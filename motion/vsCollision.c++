@@ -14,9 +14,9 @@
 //    VESS Module:  vsCollision.c++
 //
 //    Description:  Motion model that implements collision detection for
-//		    any object. Works by taking a set of designated 'hot'
-//		    points on an object and making sure that none of those
-//		    points pass through a solid object.
+//                  any object. Works by taking a set of designated 'hot'
+//                  points on an object and making sure that none of those
+//                  points pass through a solid object.
 //
 //    Author(s):    Bryan Kline
 //
@@ -305,6 +305,9 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
     int valid1[VS_COLLISION_POINTS_MAX];
     int valid2[VS_COLLISION_POINTS_MAX];
     double resultDist, newDist;
+    vsVector segmentDir;
+    
+    hitNorm->set(0.0, 0.0, 0.0);
 
     // The first intersection test consists of rays fired in the direction
     // of movement from each key point
@@ -396,9 +399,20 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
             {
                 resultDist = newDist;
                 (*hitNorm) = intersect->getIsectNorm(loop);
+		
+		// Check the normal of the second intersection to see if we
+		// hit the back side of a polygon; invert the normal if so.
+		segmentDir = normals[loop].getScaled(-1.0);
+		if (segmentDir.getDotProduct(*hitNorm) > 0.0)
+		    hitNorm->scale(-1.0);
             }
         }
     }
     
+    // Cap the lower bound of the result to zero; we don't want to back up
+    // if we're too close to an object.
+    if (resultDist < 0.0)
+        return 0.0;
+
     return resultDist;
 }
