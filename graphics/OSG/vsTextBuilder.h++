@@ -15,12 +15,9 @@
 //
 //    Description:  Class that generates a vsComponent that is a subgraph
 //                  with the geometry needed to draw the given text using
-//                  a given font and with the given color.  This class is
-//                  NOT thread safe because of the static data and
-//                  functions.  Only one iteration of the buildText
-//                  function can safely be executed at a time.
+//                  a given font and with the given color.
 //
-//    Author(s):    Duvan Cope
+//    Author(s):    Bryan Kline
 //
 //------------------------------------------------------------------------
 
@@ -31,17 +28,12 @@
     #include <windows.h>
 #endif
 
-#include <GL/glu.h>
-
-#include "FTVectoriser.h"
-#include "FTFace.h"
+#include "osgText/Font"
 
 #include "vsVector.h++"
 #include "vsMatrix.h++"
 #include "vsComponent.h++"
-#include "vsGeometry.h++"
-#include "vsGrowableArray.h++"
-#include "vsTransformAttribute.h++"
+#include "vsTextureAttribute.h++"
 
 #ifndef CALLBACK
 #define CALLBACK
@@ -50,7 +42,8 @@
 #define VS_DEFAULT_FONT_POINT_SIZE  12
 #define VS_DEFAULT_FONT_RESOLUTION  72
 
-#define VS_OSG_TEXT_SCALE           0.07514f
+//#define VS_OSG_TEXT_SCALE           0.07514f
+#define VS_OSG_TEXT_SCALE           0.005f
 
 enum VS_GRAPHICS_DLL vsTextBuilderJustification
 {
@@ -62,63 +55,44 @@ enum VS_GRAPHICS_DLL vsTextBuilderJustification
 class VS_GRAPHICS_DLL vsTextBuilder : public vsObject
 {
 private:
-    static vsVector         currentColor;
-    static vsComponent      *letterComponent;
-    static vsGeometry       *primitiveGeometry;
-    static vsGrowableArray  *vertexArray;
-    static int              primitiveLength;
-    static double           letterOffset;
 
-    static vsGrowableArray  *combinedVertices;
-    static int              combinedVertexCount;
+    osgText::Font           *osgFont;
 
-    FTFace                  face;
-    vsVector                color;
+    vsVector                fontColor;
     vsMatrix                transformMatrix;
+    int                     fontJustification;
+
     vsMatrix                osgScaleMatrix;
-    unsigned int            pointSize;
-    unsigned int            resolution;
-    int                     justification;
 
-    bool                    fontLoaded;
-    bool                    error;
-    bool                    initialized;
+    osgText::Font::Glyph    *osgGlyphArray[256];
+    vsTextureAttribute      *textureAttrArray[256];
 
-    static void CALLBACK    tesselateError(GLenum type);
-    static void CALLBACK    tesselateVertex(void *vertexData);
-    static void CALLBACK    tesselateBegin(GLenum type);
-    static void CALLBACK    tesselateEnd();
-    static void CALLBACK    tesselateCombine(GLdouble coords[3],
-                                             void *vertex_data[4],
-                                             GLfloat weight[4],
-                                             void **outData);
+    osgText::Font::Glyph    *getOSGGlyph(unsigned char ch);
+    vsTextureAttribute      *getTextureAttribute(unsigned char ch);
 
-    double                  tesselateLetter(FT_Glyph glyph);
+    void                    setupTextureAttribute(unsigned char ch);
 
-    void                    setSize(unsigned int newPointSize,
-                                    unsigned int newResolution);
-
-VS_INTERNAL:
-
-    static void    deleteVertexArray();
+    void                    justifyLine(vsComponent *lineParent,
+                                        int lineStartIdx, int lineEndIdx,
+                                        double lineLength);
 
 public:
 
-                       vsTextBuilder();
-                       vsTextBuilder(char *newFont);
-                       vsTextBuilder(char *newFont, vsVector newColor);
-                       vsTextBuilder(char *newFont, vsVector newColor,
-                                     vsMatrix newTransform);
-    virtual            ~vsTextBuilder();
+                   vsTextBuilder();
+                   vsTextBuilder(char *newFont);
+                   vsTextBuilder(char *newFont, vsVector newColor);
+                   vsTextBuilder(char *newFont, vsVector newColor,
+                                 vsMatrix newTransform);
+    virtual        ~vsTextBuilder();
 
-    virtual const char *getClassName();
+    virtual const char    *getClassName();
 
-    void               setFont(char *newFont);
-    void               setColor(vsVector newColor);
-    void               setTransformMatrix(vsMatrix newTransform);
-    void               setJustification(int newJustification);
+    void           setFont(char *newFont);
+    void           setColor(vsVector newColor);
+    void           setTransformMatrix(vsMatrix newTransform);
+    void           setJustification(int newJustification);
 
-    vsComponent        *buildText(char *text);
+    vsComponent    *buildText(char *text);
 };
 
 #endif

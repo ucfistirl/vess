@@ -15,27 +15,17 @@
 //
 //    Description:  Class that generates a vsComponent that is a subgraph
 //                  with the geometry needed to draw the given text using
-//                  a given font and with the given color.  This class is
-//                  NOT thread safe because of the static data and
-//                  functions.  Only one iteration of the buildText
-//                  function can safely be executed at a time.
+//                  a given font and with the given color.
 //
-//    Author(s):    Duvan Cope
+//    Author(s):    Bryan Kline
 //
 //------------------------------------------------------------------------
 
 #include "vsTextBuilder.h++"
 
-// Declare the static variables.
-vsGrowableArray  *vsTextBuilder::vertexArray = new vsGrowableArray(60, 9);
-vsComponent      *vsTextBuilder::letterComponent;
-vsGeometry       *vsTextBuilder::primitiveGeometry;
-vsVector         vsTextBuilder::currentColor;
-double           vsTextBuilder::letterOffset;
-int              vsTextBuilder::primitiveLength;
-
-vsGrowableArray  *vsTextBuilder::combinedVertices = new vsGrowableArray(50, 10);
-int              vsTextBuilder::combinedVertexCount;
+#include "vsGeometry.h++"
+#include "vsTransformAttribute.h++"
+#include "vsTransparencyAttribute.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Sets the font size to the defaults, and sets the
@@ -43,29 +33,30 @@ int              vsTextBuilder::combinedVertexCount;
 // ------------------------------------------------------------------------
 vsTextBuilder::vsTextBuilder()
 {
-    // Initialize state variables to indicate the builder is not ready
-    // to build any text.
-    fontLoaded = false;
-    error = false;
-    initialized = false;
-    pointSize = VS_DEFAULT_FONT_POINT_SIZE;
-    resolution = VS_DEFAULT_FONT_RESOLUTION;
+    int loop;
 
-    // Set the justification to the default centered.
-    setJustification(VS_TEXTBUILDER_JUSTIFY_CENTER);
+    // Start with no font
+    osgFont = NULL;
 
-    // Set the color to the default of white.
-    setColor(vsVector(1.0, 1.0, 1.0, 1.0));
+    // Clear the glyph and texture arrays
+    for (loop = 0; loop < 256; loop++)
+    {
+        osgGlyphArray[loop] = NULL;
+        textureAttrArray[loop] = NULL;
+    }
 
-    // Set the size to the defined defaults.
-    setSize(pointSize, resolution);
+    // Default font color is opaque white
+    fontColor.set(1.0, 1.0, 1.0, 1.0);
 
-    // Initialize the transform to the identity so it does not alter
-    // the appearance of the text.
+    // Default transformation is none
     transformMatrix.setIdentity();
 
-    // Set the osg scale matrix.  This matrix attempts to scale down the text
-    // so it matches with the Performer size.
+    // Default text justification is left justified
+    fontJustification = VS_TEXTBUILDER_JUSTIFY_LEFT;
+
+    // Set up the OSG scale matrix. This matrix is applied to every generated
+    // text component to make its size more match that of the Performer
+    // text builder.
     osgScaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
         VS_OSG_TEXT_SCALE);
 }
@@ -76,34 +67,33 @@ vsTextBuilder::vsTextBuilder()
 // ------------------------------------------------------------------------
 vsTextBuilder::vsTextBuilder(char *newFont)
 {
-    // Initialize state variables to indicate the builder is not ready
-    // to build any text.
-    fontLoaded = false;
-    error = false;
-    initialized = false;
-    pointSize = VS_DEFAULT_FONT_POINT_SIZE;
-    resolution = VS_DEFAULT_FONT_RESOLUTION;
+    int loop;
 
-    // Set the justification to the default centered.
-    setJustification(VS_TEXTBUILDER_JUSTIFY_CENTER);
+    // Default font color is opaque white
+    fontColor.set(1.0, 1.0, 1.0, 1.0);
 
-    // Set the color to the default of white.
-    setColor(vsVector(1.0, 1.0, 1.0, 1.0));
-
-    // Attempt to set the font to the given one.
-    setFont(newFont);
-
-    // Set the size to the defined defaults.
-    setSize(pointSize, resolution);
-
-    // Initialize the transform to the identity so it does not alter
-    // the appearance of the text.
+    // Default transformation is none
     transformMatrix.setIdentity();
 
-    // Set the osg scale matrix.  This matrix attempts to scale down the text
-    // So it matches with the Performer size.
+    // Default text justification is left justified
+    fontJustification = VS_TEXTBUILDER_JUSTIFY_LEFT;
+
+    // Set up the OSG scale matrix. This matrix is applied to every generated
+    // text component to make its size more match that of the Performer
+    // text builder.
     osgScaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
         VS_OSG_TEXT_SCALE);
+
+    // Clear the glyph and texture arrays
+    for (loop = 0; loop < 256; loop++)
+    {
+        osgGlyphArray[loop] = NULL;
+        textureAttrArray[loop] = NULL;
+    }
+
+    // Fetch the desired font
+    osgFont = NULL;
+    setFont(newFont);
 }
 
 // ------------------------------------------------------------------------
@@ -111,34 +101,38 @@ vsTextBuilder::vsTextBuilder(char *newFont)
 // ------------------------------------------------------------------------
 vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor)
 {
-    // Initialize state variables to indicate the builder is not ready
-    // to build any text.
-    fontLoaded = false;
-    error = false;
-    initialized = false;
-    pointSize = VS_DEFAULT_FONT_POINT_SIZE;
-    resolution = VS_DEFAULT_FONT_RESOLUTION;
+    int loop;
 
-    // Set the justification to the default centered.
-    setJustification(VS_TEXTBUILDER_JUSTIFY_CENTER);
+    // Copy the font color to our internal variable. If the size of the given
+    // color vector is less than four, then make sure that the fourth element
+    // of the color is one. (Text should default to opaque.)
+    fontColor.setSize(4);
+    fontColor.clearCopy(newColor);
+    if (newColor.getSize() < 4)
+        fontColor[3] = 1.0;
 
-    // Set the color to the given new color.
-    setColor(newColor);
-
-    // Attempt to set the font to the given one.
-    setFont(newFont);
-
-    // Set the size to the defined defaults.
-    setSize(pointSize, resolution);
-
-    // Initialize the transform to the identity so it does not alter
-    // the appearance of the text.
+    // Default transformation is none
     transformMatrix.setIdentity();
 
-    // Set the osg scale matrix.  This matrix attempts to scale down the text
-    // So it matches with the Performer size.
+    // Default text justification is left justified
+    fontJustification = VS_TEXTBUILDER_JUSTIFY_LEFT;
+
+    // Set up the OSG scale matrix. This matrix is applied to every generated
+    // text component to make its size more match that of the Performer
+    // text builder.
     osgScaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
         VS_OSG_TEXT_SCALE);
+
+    // Clear the glyph and texture arrays
+    for (loop = 0; loop < 256; loop++)
+    {
+        osgGlyphArray[loop] = NULL;
+        textureAttrArray[loop] = NULL;
+    }
+
+    // Fetch the desired font
+    osgFont = NULL;
+    setFont(newFont);
 }
 
 // ------------------------------------------------------------------------
@@ -148,33 +142,38 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor)
 vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor,
                              vsMatrix newTransform)
 {
-    // Initialize state variables to indicate the builder is not ready
-    // to build any text.
-    fontLoaded = false;
-    error = false;
-    initialized = false;
-    pointSize = VS_DEFAULT_FONT_POINT_SIZE;
-    resolution = VS_DEFAULT_FONT_RESOLUTION;
+    int loop;
 
-    // Set the justification to the default centered.
-    setJustification(VS_TEXTBUILDER_JUSTIFY_CENTER);
+    // Copy the font color to our internal variable. If the size of the given
+    // color vector is less than four, then make sure that the fourth element
+    // of the color is one. (Text should default to opaque.)
+    fontColor.setSize(4);
+    fontColor.clearCopy(newColor);
+    if (newColor.getSize() < 4)
+        fontColor[3] = 1.0;
 
-    // Set the color to the given new color.
-    setColor(newColor);
+    // Copy the font transformation matrix
+    transformMatrix = newTransform;
 
-    // Attempt to set the font to the given one.
-    setFont(newFont);
+    // Default text justification is left justified
+    fontJustification = VS_TEXTBUILDER_JUSTIFY_LEFT;
 
-    // Set the size to the defined defaults.
-    setSize(pointSize, resolution);
-
-    // Initialize the transform to the given matrix.
-    setTransformMatrix(newTransform);
-
-    // Set the osg scale matrix.  This matrix attempts to scale down the text
-    // So it matches with the Performer size.
+    // Set up the OSG scale matrix. This matrix is applied to every generated
+    // text component to make its size more match that of the Performer
+    // text builder.
     osgScaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
         VS_OSG_TEXT_SCALE);
+
+    // Clear the glyph and texture arrays
+    for (loop = 0; loop < 256; loop++)
+    {
+        osgGlyphArray[loop] = NULL;
+        textureAttrArray[loop] = NULL;
+    }
+
+    // Fetch the desired font
+    osgFont = NULL;
+    setFont(newFont);
 }
 
 // ------------------------------------------------------------------------
@@ -182,6 +181,9 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor,
 // ------------------------------------------------------------------------
 vsTextBuilder::~vsTextBuilder()
 {
+    // Force the deletion of the OSG Font object through the use of the
+    // setFont method.
+    setFont(NULL);
 }
 
 // ------------------------------------------------------------------------
@@ -198,42 +200,56 @@ const char *vsTextBuilder::getClassName()
 // ------------------------------------------------------------------------
 void vsTextBuilder::setFont(char *newFont)
 {
-    // If we have already loaded a font.
-    if (fontLoaded)
+    int loop;
+
+    // If we already have a font created, delete it
+    if (osgFont)
     {
-        // Close the loaded font.
-        face.Close();
-
-        // Set this object to not initialized, which means it cannot build
-        // text.
-        fontLoaded = false;
-        initialized = false;
-    }
-
-    // Attempt to open, if the return value is false, then there was an error.
-    if (!face.Open(newFont))
-    {
-        // Print an error message to indicate the font was not loaded.
-        printf("vsTextBuilder::setFont: Unable to Open font: %s\n", newFont);
-
-        // Set this object to not initialized, which means it cannot build
-        // text.
-        fontLoaded = false;
-        initialized = false;
-    }
-    // Else the font was loaded
-    else
-    {
-        // Specify that the font was loaded.
-        fontLoaded = true;
-
-        // If there are no errors.
-        if (!error)
+        // Unreference and attempt to delete all of the vsTextureAttributes
+        // that contain the character glyph textures. Those textures that
+        // are still in use won't be destroyed, due to reference counting.
+        for (loop = 0; loop < 256; loop++)
         {
-            // Set the size.  This is done to insure the new loaded font
-            // is configured to the proper size.
-            setSize(pointSize, resolution);
+            if (osgGlyphArray[loop])
+            {
+                // Get rid of the OSG Glyph object
+                (osgGlyphArray[loop])->unref();
+                osgGlyphArray[loop] = NULL;
+
+                // Get rid of the corresponding VESS texture attribute
+                vsObject::unrefDelete(textureAttrArray[loop]);
+                textureAttrArray[loop] = NULL;
+            }
         }
+
+        // 'Delete' the font object by unreferencing it. OSG should delete
+        // any objects that have no more references to them.
+        osgFont->unref();
+
+        // As a temporary action, set the font variable to NULL. This value
+        // becomes permanent if we have to bail out of the font-opening
+        // process at any point; a NULL font value is valid and simply means
+        // that no font is currently open.
+        osgFont = NULL;
+    }
+
+    // Attempt to open the new font; leave the font pointer NULL if a NULL
+    // font name was specified.
+    if (newFont)
+    {
+        // Create an OSG Font object from the data cotnained in the specified
+        // font file
+        osgFont = osgText::readFontFile(newFont);
+
+        // If we have a valid Font object, reference it so that OSG doesn't
+        // get tempted to delete it
+        if (osgFont)
+            osgFont->ref();
+
+        // Error checking
+        if (!osgFont)
+            printf("vsTextBuilder::setFont: Error opening font file '%s'\n",
+                newFont);
     }
 }
 
@@ -242,46 +258,13 @@ void vsTextBuilder::setFont(char *newFont)
 // ------------------------------------------------------------------------
 void vsTextBuilder::setColor(vsVector newColor)
 {
-    color = newColor;
-}
-
-// ------------------------------------------------------------------------
-// Set the point size and resolution of the font.
-// ------------------------------------------------------------------------
-void vsTextBuilder::setSize(unsigned int newPointSize,
-                            unsigned int newResolution)
-{
-    // Store the given values.
-    pointSize = newPointSize;
-    resolution = newResolution;
-
-    // Only attempt to set the size if we have a font loaded.
-    if (fontLoaded)
-    {
-        // Set its size to the stored values.
-        face.Size(pointSize, resolution);
-
-        // If we have an error.
-        if (face.Error())
-        {
-            // Print an error message. 
-            printf("vsTextBuilder::setSize: Error occured after trying to set "
-                "font size to: %d, %d\n", pointSize, resolution);
-
-            // Set this object to not initialized, which means it cannot build
-            // text.  Specify there was an error as well.
-            error = true;
-            initialized = false;
-        }
-        // Else there were no problems.
-        else
-        {
-            // Set the error flag to false, and specify that the builder is
-            // ready to build text.
-            error = false;
-            initialized = true;
-        }
-    }
+    // Copy the font color to our internal variable. If the size of the given
+    // color vector is less than four, then make sure that the fourth element
+    // of the color is one. (Text should default to opaque.)
+    fontColor.setSize(4);
+    fontColor.clearCopy(newColor);
+    if (newColor.getSize() < 4)
+        fontColor[3] = 1.0;
 }
 
 // ------------------------------------------------------------------------
@@ -298,14 +281,15 @@ void vsTextBuilder::setTransformMatrix(vsMatrix newTransform)
 // ------------------------------------------------------------------------
 void vsTextBuilder::setJustification(int newJustification)
 {
-    // Insure the new justification mode is valid, and set it if it is.
+    // Insure the new justification mode is valid, and set it if it is
     switch (newJustification)
     {
         case VS_TEXTBUILDER_JUSTIFY_LEFT:
         case VS_TEXTBUILDER_JUSTIFY_RIGHT:
         case VS_TEXTBUILDER_JUSTIFY_CENTER:
-            justification = newJustification;
+            fontJustification = newJustification;
             break;
+
         default:
             printf("void vsTextBuilder::setJustification: Unknown justification"
                 " mode.\n");
@@ -319,477 +303,291 @@ void vsTextBuilder::setJustification(int newJustification)
 // ------------------------------------------------------------------------
 vsComponent *vsTextBuilder::buildText(char *text)
 {
-    vsTransformAttribute  *textTransform;
-    vsComponent           *textComponent;
-    vsComponent           *textRoot;
-    FT_Glyph              *glyph;
-    int                   stringLength;
-    int                   letter;
-    int                   charIndex;
-
-    // Get the length of the given string.
-    stringLength = strlen(text);
-
-    // Initialize the textComponent to NULL.
-    textComponent = NULL;
-
-    // If this text builder object is not fully initialized, return NULL.
-    if (!initialized)
-    {
-        return(textComponent);
-    }
-
-    // Set the static color variable to this objects color.
-    currentColor = color;
-
-    // Reinitialize the static offset variable to 0.
-    letterOffset = 0;
-
-    // Go through each letter and add up how much space they take up.
-    for (letter = 0; letter < stringLength; letter++)
-    {
-        // Get the index into this loaded font for the current letter.
-        charIndex = face.CharIndex(text[letter]);
-
-        // Get the freetype glyph of the current letter.
-        glyph = face.Glyph(charIndex, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
-
-        // If there was any error with the face, print error.
-        if (face.Error())
-        {
-            printf("vsTextBuilder::buildText: Error occured trying to get"
-                " glyph: %d\n", charIndex);
-        }
-        // Else tesselate the glyph.
-        else
-        {
-            // Get the amount of space on the x axis that this glyph will take
-            // place, as specified by the font.  Add it to the offset so
-            // we end up with the total length of the text when the for loop
-            // finishes.
-            letterOffset += (double) ((*glyph)->advance.x >> 16);
-
-            // Destroy the glyph.
-            FT_Done_Glyph((*glyph));
-        }
-    }
-
-    // Set up the offset to reflect what justification we are using.
-    switch (justification)
-    {
-        case VS_TEXTBUILDER_JUSTIFY_LEFT:
-            // If we are doing left justification, it is like that by default,
-            // So simply set the offset to 0.
-            letterOffset = 0;
-            break;
-        case VS_TEXTBUILDER_JUSTIFY_RIGHT:
-            // If we are doing right justification, then insure we end
-            // at 0 when we are doing drawing the text.  This is done by
-            // starting to draw letters at the inverse of their total length.
-            letterOffset = - letterOffset;
-            break;
-        case VS_TEXTBUILDER_JUSTIFY_CENTER:
-            // If we are centering the text, then simply offset the initial
-            // letter to begin at negative half the length of the string.
-            letterOffset = - (letterOffset / 2.0);
-            break;
-    }
-
-    // Go through each letter of the string to tesselate and add it to the
-    // textComponent.
-    for (letter = 0; letter < stringLength; letter++)
-    {
-        // Reinitialize the static letterComponent to NULL, we are building
-        // a new letter every itteration.
-        letterComponent = NULL;
-
-        // Get the index into this loaded font for the current letter.
-        charIndex = face.CharIndex(text[letter]);
-
-        // Get the freetype glyph of the current letter.
-        glyph = face.Glyph(charIndex, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
-
-        // If there was any error with the face, print error.
-        if (face.Error())
-        {
-            printf("vsTextBuilder::buildText: Error occured trying to get "
-                "glyph: %d\n", charIndex);
-        }
-        // Else tesselate the glyph.
-        else
-        {
-            // Store the offset of the tesselated glyph, so we can move the
-            // next glyphs to the right properly.
-            letterOffset += tesselateLetter(*glyph);
-        }
-
-        // If the tesselation generated a letter.
-        if (letterComponent != NULL)
-        {
-            // If the component has not been created.
-            if (textComponent == NULL)
-            {
-                // Create the text component.
-                textComponent = new vsComponent();
-            }
-            // Add the letter to it.
-            textComponent->addChild(letterComponent);
-        }
-    }
-
-    // Create and attach a transform to this text with the stored matrix.
-    textTransform = new vsTransformAttribute();
-    textTransform->setDynamicTransform(transformMatrix);
-
-    // Set the post transform to the osg scale matrix.  This will cause the
-    // text to be scaled after the transform is applied.
-    textTransform->setPostTransform(osgScaleMatrix);
-
-    // Give the component the transform attribute.
-    textComponent->addAttribute(textTransform);
-
-    // Create a root node with no attributes attached to allow for the
-    // user to add attributes easier and not step on the ones in
-    // textComponent.
-    textRoot = new vsComponent();
-    textRoot->addChild(textComponent);
-
-    // Return the root with the text component we completed.
-    return(textRoot);
-}
-
-// ------------------------------------------------------------------------
-// Tesselate Callback - Called if the tesselator encounters an error,
-// simply prints out the error now.
-// ------------------------------------------------------------------------
-void CALLBACK vsTextBuilder::tesselateError(GLenum type)
-{
-    printf("vsTextComponent::tesselateError: %d\n", type);
-}
-
-// ------------------------------------------------------------------------
-// Tesselate Callback - Called to create a vertex.
-// ------------------------------------------------------------------------
-void CALLBACK vsTextBuilder::tesselateVertex(void *vertexData)
-{
-    vsVector *vertex;
-
-    // Create a VESS vector from the data.  Give z the y values so
-    // the text is on the x and z axis like Performer's text.
-    // These are two dimensional polygons so what would normally be z is 0.
-    // Therefore y will be zero, in order to have the text drawn in the X,Z
-    // plane.
-    vertex = new vsVector(((double *)vertexData)[0] + letterOffset,
-        0.0, ((double *)vertexData)[1]);
-
-    // Place the vertex into the vertex array.
-    vertexArray->setData(primitiveLength, vertex);
-
-    // Increment the count of primitives to reflect its place in the array.
-    primitiveLength++;
-}
-
-// ------------------------------------------------------------------------
-// Tesselate Callback - Called to begin creating a primitive.
-// ------------------------------------------------------------------------
-void CALLBACK vsTextBuilder::tesselateBegin(GLenum type)
-{
-    // Create the VESS geometry for this primitive.
-    primitiveGeometry = new vsGeometry();
-
-    // Re-initialize the primitive length to 0.
-    primitiveLength = 0;
-
-    // According to which OpenGL primitive we get, set up the vsGeometry.
-    switch(type)
-    {
-        case GL_POINTS:
-            primitiveGeometry->setPrimitiveType(VS_GEOMETRY_TYPE_POINTS);
-            primitiveGeometry->setPrimitiveCount(1);
-            break;
-        case GL_LINES:
-            primitiveGeometry->setPrimitiveType(VS_GEOMETRY_TYPE_LINES);
-            primitiveGeometry->setPrimitiveCount(1);
-            break;
-        case GL_LINE_STRIP:
-            primitiveGeometry->setPrimitiveType(VS_GEOMETRY_TYPE_LINE_STRIPS);
-            primitiveGeometry->setPrimitiveCount(1);
-            break;
-        case GL_LINE_LOOP:
-            primitiveGeometry->setPrimitiveType(VS_GEOMETRY_TYPE_LINE_LOOPS);
-            primitiveGeometry->setPrimitiveCount(1);
-            break;
-        case GL_TRIANGLES:
-            primitiveGeometry->setPrimitiveType(VS_GEOMETRY_TYPE_TRIS);
-            primitiveGeometry->setPrimitiveCount(1);
-            break;
-        case GL_TRIANGLE_STRIP:
-            primitiveGeometry->setPrimitiveType(VS_GEOMETRY_TYPE_TRI_STRIPS);
-            primitiveGeometry->setPrimitiveCount(1);
-            break;
-        case GL_TRIANGLE_FAN:
-            primitiveGeometry->setPrimitiveType(VS_GEOMETRY_TYPE_TRI_FANS);
-            primitiveGeometry->setPrimitiveCount(1);
-            break;
-        case GL_QUADS:
-            primitiveGeometry->setPrimitiveType(VS_GEOMETRY_TYPE_QUADS);
-            primitiveGeometry->setPrimitiveCount(1);
-            break;
-        case GL_QUAD_STRIP:
-            primitiveGeometry->setPrimitiveType(VS_GEOMETRY_TYPE_QUAD_STRIPS);
-            primitiveGeometry->setPrimitiveCount(1);
-            break;
-        case GL_POLYGON:
-            primitiveGeometry->setPrimitiveType(VS_GEOMETRY_TYPE_POLYS);
-            primitiveGeometry->setPrimitiveCount(1);
-            break;
-    }
-}
-
-// ------------------------------------------------------------------------
-// Tesselate Callback - Called to end the creation of a primitive.
-// ------------------------------------------------------------------------
-void CALLBACK vsTextBuilder::tesselateEnd()
-{
+    vsComponent *result;
+    vsGeometry *letterGeom;
+    osgText::Font::Glyph *osgGlyph;
+    vsTextureAttribute *letterTextureAttr;
     int loop;
+    char previousChar;
+    int xpos, ypos;
+    int lineStartIdx;
+    vsVector currentPos, offset, bearing;
+    osg::Vec2 osgFontKerning;
+    vsTransformAttribute *xformAttr;
+    int charWidth, charHeight;
+    vsTransparencyAttribute *transpAttr;
+    int newlines;
 
-    // Setup the geometry to accept all the vertices we have gathered.
-    primitiveGeometry->setDataListSize(VS_GEOMETRY_VERTEX_COORDS,
-        primitiveLength);
-    primitiveGeometry->setPrimitiveLength(0, primitiveLength);
+    // If there is no currently active font, return a NULL vsComponent
+    if (!osgFont)
+        return NULL;
 
-    // Set all the vertices we have gathered.
-    for (loop = 0; loop < primitiveLength; loop++)
+    // Tell the OSG Font object to make the character textures reasonably large
+    osgFont->setSize(128, 128);
+    osgFont->setTextureSizeHint(256, 256);
+
+    // Create a new vsComponent to hold the characters
+    result = new vsComponent();
+
+    // The first line of characters starts at the first character
+    lineStartIdx = 0;
+    previousChar = 0;
+    newlines = 0;
+
+    // Start the drawing at the 'origin'
+    currentPos.set(0.0, 0.0, 0.0);
+
+    // Loop through the entire string, creating characters as we go
+    for (loop = 0; loop < strlen(text); loop++)
     {
-        primitiveGeometry->setData(VS_GEOMETRY_VERTEX_COORDS, loop,
-            *((vsVector *)vertexArray->getData(loop)));
+        // Get the OSG Glyph and VESS texture attribute corresponding to this
+        // character's value.
+        osgGlyph = getOSGGlyph((unsigned char)(text[loop]));
+        letterTextureAttr = getTextureAttribute((unsigned char)(text[loop]));
 
-        // After the data has been copied to the geometry, we don't need the
-        // the vector that was holding it.
-        delete ((vsVector *)(vertexArray->getData(loop)));
-    }
+        // Compute the size of the character
+        charWidth = osgGlyph->s() - (2 * osgFont->getGlyphImageMargin());
+        charHeight = osgGlyph->t() - (2 * osgFont->getGlyphImageMargin());
 
-    // Set the geometry to the color we have stored.
-    primitiveGeometry->setBinding(VS_GEOMETRY_COLORS, VS_GEOMETRY_BIND_OVERALL);
-    primitiveGeometry->setDataListSize(VS_GEOMETRY_COLORS, 1);
-    primitiveGeometry->setData(VS_GEOMETRY_COLORS, 0, currentColor);
-
-    // Give the geometry a normal which is perpendicular to its plane.
-    primitiveGeometry->setBinding(VS_GEOMETRY_NORMALS,
-        VS_GEOMETRY_BIND_OVERALL);
-    primitiveGeometry->setDataListSize(VS_GEOMETRY_NORMALS, 1);
-    primitiveGeometry->setData(VS_GEOMETRY_NORMALS, 0,
-        vsVector(0.0, -1.0, 0.0));
-
-    // Add the geometry to the letterComponent now that we are done with it.
-    letterComponent->addChild(primitiveGeometry);
-}
-
-// ------------------------------------------------------------------------
-// Tesselate Callback - Called to combine two vertices. 
-// ------------------------------------------------------------------------
-void CALLBACK vsTextBuilder::tesselateCombine(GLdouble coords[3],
-    void *vertex_data[4], GLfloat weight[4], void **outData)
-{
-    double *vertex;
-
-    // Allocate the new vertex.
-    vertex = (double *) malloc(sizeof(double)*3);
-
-    // Copy the coords data into the newly allocated vertex.
-    vertex[0] = coords[0];
-    vertex[1] = coords[1];
-    vertex[2] = coords[2];
-
-    // Set the outData to point to the newly allocated vertex.
-    *outData = vertex;
-
-    // Keep track of the allocated vertex in our list so that we can
-    // delete it later
-    combinedVertices->setData(combinedVertexCount++, vertex);
-}
-
-// ------------------------------------------------------------------------
-// This is the main tesselate call.  It accepts a glyph (letter) and
-// tesselates it to generate the geometry needed to draw it in a 3D
-// scene.
-// ------------------------------------------------------------------------
-double vsTextBuilder::tesselateLetter(FT_Glyph glyph)
-{
-    int            loop;
-    int            sloop;
-    int            dataOffset;
-    GLUtesselator  *tobj;
-    FTVectoriser   *vectoriser;
-    double         *data;
-    int            *contourLength;
-    int            contourCount;
-    int            pointCount;
-    int            contourFlag;
-    double         advance;
-
-    // Initialize the advance to nothing.
-    advance = 0.0;
-
-    // Setup the glyph information for tesselation.
-    // If the glyph format is not an outline, do not attempt to tesselate it.
-    if (ft_glyph_format_outline != glyph->format)
-    {
-        // Destroy the glyph.
-        FT_Done_Glyph(glyph);
-        return(advance);
-    }
-
-    // Get the amount of space on the x axis that this glyph will take place,
-    // as specified by the font.
-    advance = (double) (glyph->advance.x >> 16);
-
-    // Create the vectoriser for the given glyph.
-    vectoriser = new FTVectoriser(glyph);
-
-    // Have the vectoriser process it.
-    vectoriser->Process();
-
-    // Get the contourCount and return if it is less than 1.
-    contourCount = vectoriser->contours();
-    if (contourCount < 1)
-    {
-        // Destroy the glyph.
-        FT_Done_Glyph(glyph);
-        return(advance);
-    }
-
-    // Get the pointCount and return if it is less than 3.
-    pointCount = vectoriser->points();
-    if (pointCount < 3)
-    {
-        // Destroy the glyph.
-        FT_Done_Glyph(glyph);
-        return(advance);
-    }
-
-    // Allocate the space for the contour length array.
-    contourLength = (int *) calloc(sizeof(int), contourCount);
-
-    // Populate the array with the length of each contour.
-    for(loop = 0; loop < contourCount; ++loop)
-    {
-        contourLength[loop] = vectoriser->contourSize(loop);
-    }
-
-    // Allocate the space for the point data array.
-    data = (double *) calloc(sizeof(double), (pointCount * 3));
-
-    // Populate the point data array with the points.
-    vectoriser->MakeOutline(data);
-
-    // Get the contourFlag, this specifies what kind of winding we use when
-    // we tesselate the glyph.
-    contourFlag = vectoriser->ContourFlag();
-
-    // Delete the vectoriser, we do not need it anymore.
-    delete vectoriser;
-
-    // Create a new static letter component.
-    letterComponent = new vsComponent();
-
-    // Setup tesselation and begin.
-    dataOffset = 0;
-    tobj = gluNewTess();
-
-    // Set the tesselate callbacks.
-    gluTessCallback(tobj, GLU_TESS_BEGIN, (void (CALLBACK*)())tesselateBegin);
-    gluTessCallback(tobj, GLU_TESS_VERTEX, (void (CALLBACK*)())tesselateVertex);
-    gluTessCallback(tobj, GLU_TESS_COMBINE,
-        (void (CALLBACK*)())tesselateCombine);
-    gluTessCallback(tobj, GLU_TESS_END, (void (CALLBACK*)())tesselateEnd);
-    gluTessCallback(tobj, GLU_TESS_ERROR, (void (CALLBACK*)())tesselateError);
-
-    // If the font uses the even-odd winding rule, then set the tesselator
-    // to do the same.
-    if (contourFlag & ft_outline_even_odd_fill)
-    {
-        gluTessProperty(tobj, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_ODD);
-    }
-    // Else we must be using the non-zero winding rule.
-    else
-    {
-        gluTessProperty(tobj, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_NONZERO);
-    }
-
-    // Set the tolerence to combine tesselated vertices that are at within
-    // the specified (0) distance.
-    gluTessProperty(tobj, GLU_TESS_TOLERANCE, 0);
-
-    // Set the normal that controls the winding direction of generated
-    // polygons.
-    gluTessNormal(tobj, 0.0, 0.0, 1.0);
-
-    // Initialize calls to tesselateCombine to zero
-    combinedVertexCount = 0;
-
-    // Begin a polygon.
-    gluTessBeginPolygon(tobj, NULL);
-
-        // Process each contour.
-        for (loop = 0; loop < contourCount; ++loop)
+        // Check for a newline character
+        if (text[loop] == '\n')
         {
-            // Begin processing the contour.
-            gluTessBeginContour(tobj);
+            // * Newline character. Justify this line, and shift the current
+            // geometry placement position to the beginning of the next line.
 
-                // Process each vertex of the contour.
-                for (sloop = 0; sloop < contourLength[loop]; ++sloop)
-                {
-                    gluTessVertex(tobj, data + dataOffset, data + dataOffset);
+            // Reposition the characters' geometry if the justification
+            // requires it. The "- newlines" part of the expressions is meant
+            // to compensate for the fact that newline characters aren't
+            // actually rendered and therfore don't have geometry nodes under
+            // the parent; subtracting the number of newlines encountered so
+            // far accounts for the shift in numbering.
+            justifyLine(result, lineStartIdx - newlines, loop - 1 - newlines,
+                currentPos[VS_X]);
 
-                    // Add three to the data offset to skip the current
-                    // processed x, y, z values.
-                    dataOffset += 3;
-                }
+            // Move the draw position to the beginning of the next line
+            currentPos[VS_X] = 0.0;
+            currentPos[VS_Z] -= 128.0;
 
-            // End the contour.
-            gluTessEndContour(tobj);
+            // Reset the line marker
+            lineStartIdx = loop+1;
+
+            // Record that we've enountered another newline
+            newlines++;
+        }
+        else
+        {
+            // If there is a previous character, then advance the draw
+            // position by the inter-character amount designated by
+            // the current font.
+            if (loop > lineStartIdx)
+            {
+                // Get the inter-characer spacing between the previous
+                // character and the new one
+                osgFontKerning = osgFont->getKerning(previousChar, text[loop],
+                    osgText::KERNING_UNFITTED);
+
+                // Advance the draw position by the horizontal spacing value
+                currentPos[VS_X] += osgFontKerning[0];
+            }
+
+            // * Create a geometry object to hold the character, and set up
+            // the geometry data.
+            letterGeom = new vsGeometry();
+
+            // One quad
+            letterGeom->setPrimitiveType(VS_GEOMETRY_TYPE_QUADS);
+            letterGeom->setPrimitiveCount(1);
+
+            // Color
+            letterGeom->setBinding(VS_GEOMETRY_COLORS, VS_GEOMETRY_BIND_OVERALL);
+            letterGeom->setDataListSize(VS_GEOMETRY_COLORS, 1);
+            letterGeom->setData(VS_GEOMETRY_COLORS, 0, fontColor);
+
+            // Normal
+            letterGeom->setBinding(VS_GEOMETRY_NORMALS, VS_GEOMETRY_BIND_OVERALL);
+            letterGeom->setDataListSize(VS_GEOMETRY_NORMALS, 1);
+            letterGeom->setData(VS_GEOMETRY_NORMALS, 0, vsVector(0.0, -1.0, 0.0));
+
+            // Vertex and texture coordinates
+            letterGeom->setBinding(VS_GEOMETRY_TEXTURE_COORDS, VS_GEOMETRY_BIND_PER_VERTEX);
+            letterGeom->setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 4);
+            letterGeom->setDataListSize(VS_GEOMETRY_TEXTURE_COORDS, 4);
+
+            // calculate the bearing
+            bearing.set((osgGlyph->getHorizontalBearing())[0], 0.0,
+                (osgGlyph->getHorizontalBearing())[1]);
+
+            // bottom left
+            offset.set(0.0, 0.0, 0.0);
+            letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 0, currentPos + bearing + offset);
+            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 0, vsVector(0.0, 0.0));
+
+            // bottom right
+            offset.set(charWidth, 0.0, 0.0);
+            letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 1, currentPos + bearing + offset);
+            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 1, vsVector(1.0, 0.0));
+
+            // top right
+            offset.set(charWidth, 0.0, charHeight);
+            letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 2, currentPos + bearing + offset);
+            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 2, vsVector(1.0, 1.0));
+
+            // top left
+            offset.set(0.0, 0.0, charHeight);
+            letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 3, currentPos + bearing + offset);
+            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 3, vsVector(0.0, 1.0));
+
+            // Get the texture for the character and attach it to the geometry
+            letterTextureAttr = getTextureAttribute((unsigned char)(text[loop]));
+            letterGeom->addAttribute(letterTextureAttr);
+
+            // Add the new geometry to the parent component
+            result->addChild(letterGeom);
+
+            // Advance the 'draw position'
+            currentPos[VS_X] += osgGlyph->getHorizontalAdvance();
         }
 
-    // End the polygon.
-    gluTessEndPolygon(tobj);
+        // Record the current character for the next iteration
+        previousChar = text[loop];
+    }
 
-    // Delete memory created by the tesselateCombine callback
-    for (loop = 0; loop < combinedVertexCount; loop++)
-        free(combinedVertices->getData(loop));
+    // Reposition the characters' geometry if the justification requires
+    justifyLine(result, lineStartIdx - newlines, loop - 1 - newlines,
+        currentPos[VS_X]);
 
-    // Delete the OpenGL tesselator.
-    gluDeleteTess(tobj);
+    // Create a transform attribute for the text component
+    xformAttr = new vsTransformAttribute();
 
-    // Free the allocated space.
-    free(data);
-    free(contourLength);
+    // Apply the transform and scale matricies to the attribute
+    xformAttr->setDynamicTransform(transformMatrix);
+    xformAttr->setPostTransform(osgScaleMatrix);
+    result->addAttribute(xformAttr);
 
-    // Free the FreeType glyph object
-    FT_Done_Glyph(glyph);
+    // Create and apply a transparency attribute to the parent component. This
+    // improves the quality of the characters, because the font rendering
+    // process creates partially-translucent pixels that don't show up
+    // correctly without transparency enabled.
+    transpAttr = new vsTransparencyAttribute();
+    transpAttr->enable();
+    result->addAttribute(transpAttr);
 
-    // Return the amount of space this glyph takes in the X axis.
-    return(advance);
+    // Done.
+    return result;
 }
 
 // ------------------------------------------------------------------------
-// Internal Function - Used to delete the static vertex array that this
-// object needs.  Should only be called when no other textBuilders will
-// be made.  Like the destructor to vsSystem.
+// Private function
+// Retrieves the OSG Glyph object corresponsing to the given character code
 // ------------------------------------------------------------------------
-void vsTextBuilder::deleteVertexArray()
+osgText::Font::Glyph *vsTextBuilder::getOSGGlyph(unsigned char ch)
 {
-    // If there is a vertex array pointer, delete what it points to.
-    if (vertexArray)
-    {
-        delete vertexArray;
-        vertexArray = NULL;
-    }
+    // Make sure that the specified Glyph exists
+    if (!(osgGlyphArray[ch]))
+        setupTextureAttribute(ch);
 
-    // If there is a combined vertex pointer, delete what it points to.
-    if (combinedVertices)
+    return osgGlyphArray[ch];
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Retrieves the texture attribute corresponding to the given character
+// code
+// ------------------------------------------------------------------------
+vsTextureAttribute *vsTextBuilder::getTextureAttribute(unsigned char ch)
+{
+    // Make sure that the specified texture attribute exists
+    if (!(textureAttrArray[ch]))
+        setupTextureAttribute(ch);
+
+    return textureAttrArray[ch];
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Obtains the OSG Glyph and creates the VESS texture attribute
+// corresponding to the given character code, if they are not already
+// available.
+// ------------------------------------------------------------------------
+void vsTextBuilder::setupTextureAttribute(unsigned char ch)
+{
+    // No work to do if the character's glyph already exists
+    if (osgGlyphArray[ch])
+        return;
+
+    // Obtain the Glyph for the designated character from the OSG Font object
+    osgGlyphArray[ch] = osgFont->getGlyph(ch);
+    (osgGlyphArray[ch])->ref();
+
+    // Create the corresponding VESS texture attribute
+    textureAttrArray[ch] = new vsTextureAttribute();
+    (textureAttrArray[ch])->ref();
+
+    // Set the new texture to use the new glyph. (Technically, this function
+    // takes an OSG Image, but in this case Glyph is derived from Image so
+    // everything works fine.)
+    (textureAttrArray[ch])->setOSGImage(osgGlyphArray[ch]);
+
+    // Set some of the parameters of the texture
+    (textureAttrArray[ch])->setApplyMode(VS_TEXTURE_APPLY_MODULATE);
+    (textureAttrArray[ch])->setMagFilter(VS_TEXTURE_MAGFILTER_LINEAR);
+    (textureAttrArray[ch])->setMinFilter(VS_TEXTURE_MINFILTER_MIPMAP_LINEAR);
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Applies justification to the 'line' of characters specified by the
+// start and end indices, inclusive
+// ------------------------------------------------------------------------
+void vsTextBuilder::justifyLine(vsComponent *lineParent, int lineStartIdx,
+    int lineEndIdx, double lineLength)
+{
+    int loop, sloop;
+    vsNode *childNode;
+    vsGeometry *childGeom;
+    vsVector vertexCoord;
+
+    // If the current justification mode is LEFT justified, then there's no
+    // work to do
+    if (fontJustification == VS_TEXTBUILDER_JUSTIFY_LEFT)
+        return;
+
+    // For each vsGeometry in the range lineStartIdx-lineEndIdx of children on
+    // the lineParent component, move the vertices of that geometry over as
+    // specified by the justification mode.
+    for (loop = lineStartIdx; loop <= lineEndIdx; loop++)
     {
-        delete combinedVertices;
-        combinedVertices = NULL;
+        // Get the loop'th child of the component, and make sure that it's
+        // a vsGeometry
+        childNode = lineParent->getChild(loop);
+        if (childNode->getNodeType() != VS_NODE_TYPE_GEOMETRY)
+        {
+            printf("vsTextBuilder::justifyLine: Non-geometry vsNode discovered"
+                " on parent component\n");
+            continue;
+        }
+        childGeom = (vsGeometry *)childNode;
+
+        // For each vertex of this geometry, nudge the vertex to the 'left'
+        for (sloop = 0; sloop < 4; sloop++)
+        {
+            // get
+            vertexCoord = childGeom->getData(VS_GEOMETRY_VERTEX_COORDS, sloop);
+
+            // offset
+            switch (fontJustification)
+            {
+                case VS_TEXTBUILDER_JUSTIFY_CENTER:
+                    vertexCoord[VS_X] -= (lineLength / 2.0);
+                    break;
+
+                case VS_TEXTBUILDER_JUSTIFY_RIGHT:
+                    vertexCoord[VS_X] -= lineLength;
+                    break;
+            }
+
+            // set
+            childGeom->setData(VS_GEOMETRY_VERTEX_COORDS, sloop, vertexCoord);
+        }
     }
 }
