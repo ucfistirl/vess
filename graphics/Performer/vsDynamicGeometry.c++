@@ -95,6 +95,12 @@ vsDynamicGeometry::vsDynamicGeometry() : parentList(5, 5)
 
     // Enable lighting (by default)
     enableLighting();
+
+    // Set the performer geode's CULL mask to 0x0 to disable view frustum
+    // culling.  This is necessary because Performer cannot accurately
+    // compute bounding spheres for fluxed geometry.
+    performerGeode->setTravMask(PFTRAV_CULL, 0x0, PFTRAV_SELF | PFTRAV_DESCEND,
+        PF_SET);
     
     // Register the pfGeode with the vsObjectMap
     getMap()->registerLink(this, performerGeode);
