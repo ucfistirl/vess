@@ -25,9 +25,10 @@
 // Takes 2 axes, one for forward motion control (throttle), and one for
 // heading changes (steering).  Both controls can be set for position,
 // velocity, or acceleration control.  Additionally, steering can be set to
-// change heading based on current linear velocity (controlled by the throttle, as in a regular car), or to change 
-// heading directly (as in a tracked vehicle such as a tank).  Throttle and
-// steering have separate scaling factors to scale the input values received.
+// change heading based on current linear velocity (controlled by the throttle,
+// as in a regular car), or to change heading directly (as in a tracked 
+// vehicle such as a tank).  Throttle and steering have separate scaling 
+// factors to scale the input values received.
 //
 // The vsKinematics object provided should have inertia disabled.  Should work 
 // well with other motion models on the same vsKinematics, provided the other
@@ -86,7 +87,7 @@ protected:
 
 public:
 
-    // Constructors (see the source file or documentation for and explanation
+    // Constructors (see the source file or documentation for an explanation
     // of each form)
                         vsDrivingMotion(vsInputAxis *steeringAxis,
                                         vsInputAxis *throttleAxis,
