@@ -744,8 +744,8 @@ void vsPane::updateView()
             stereoChannel->setNearFar(nearClip, farClip);
 
         // Remember the new settings
-        curNearClip = near;
-        curFarClip = far;
+        curNearClip = nearClip;
+        curFarClip = farClip;
     }
 
     // Get the projection data from the view object and check to see if
