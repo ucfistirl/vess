@@ -624,7 +624,7 @@ void *vsAvatar::makeVsFastrak()
     
     for (loop = 0; loop < VS_FT_MAX_TRACKERS; loop++)
 	if (hemiVectors[loop].getMagnitude() > 1E-6)
-	    result->setHemisphere(loop+1, hemiVectors[loop]);
+	    result->setActiveHemisphere(loop+1, hemiVectors[loop]);
     
     if (forkFlag)
         result->forkTracking();

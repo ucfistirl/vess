@@ -9,6 +9,8 @@
 #include "vsNode.h++"
 #include "vsOptimizer.h++"
 
+#define VS_AVATAR_LOCAL_ISECT_MASK 0x01000000
+
 class vsAvatar
 {
 protected:
