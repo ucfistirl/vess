@@ -1,16 +1,18 @@
 #include "vsWalkInPlace.h++"
 #include <stdio.h>
+#include <math.h>
 
 // ------------------------------------------------------------------------
 // Constructor for vsWalkInPlace
 // ------------------------------------------------------------------------
 vsWalkInPlace::vsWalkInPlace(vsMotionTracker *back, vsMotionTracker *left, 
-                             vsMotionTracker *right)
+                             vsMotionTracker *right, vsKinematics *kin)
              : vsMotionModel()
 {
     backTracker = back;
     lFootTracker = left;
     rFootTracker = right;
+    kinematics = kin;
 
     if ((backTracker == NULL) || (lFootTracker == NULL) || 
         (rFootTracker == NULL))
@@ -20,15 +22,15 @@ vsWalkInPlace::vsWalkInPlace(vsMotionTracker *back, vsMotionTracker *left,
     }
 
     forwardAllowed = VS_TRUE;
-    backUpAllowed = VS_TRUE;
+    backwardAllowed = VS_TRUE;
     sideStepAllowed = VS_TRUE;
 
     forwardSpeed = VS_WIP_DEFAULT_FWD_SPD;
-    backUpSpeed = VS_WIP_DEFAULT_BCK_SPD;
+    backwardSpeed = VS_WIP_DEFAULT_BCK_SPD;
     sideStepSpeed = VS_WIP_DEFAULT_SS_SPD;
 
     forwardThresh = VS_WIP_DEFAULT_FWD_THRESH;
-    backUpThresh = VS_WIP_DEFAULT_BCK_THRESH;
+    backwardThresh = VS_WIP_DEFAULT_BCK_THRESH;
     sideStepThresh = VS_WIP_DEFAULT_SS_THRESH;
 
     maxAllowance = VS_WIP_DEFAULT_ALLOWANCE;
@@ -44,36 +46,51 @@ vsWalkInPlace::~vsWalkInPlace()
 }
 
 // ------------------------------------------------------------------------
-// Enables/disables forward motion
+// Enables forward motion
 // ------------------------------------------------------------------------
-void vsWalkInPlace::enableForward(int enabled)
+void vsWalkInPlace::enableForward()
 {
-    if (enabled)
-        forwardAllowed = VS_TRUE;
-    else
-        forwardAllowed = VS_FALSE;
+    forwardAllowed = VS_TRUE;
 }
 
 // ------------------------------------------------------------------------
-// Enables/disables backward motion
+// Disables forward motion
 // ------------------------------------------------------------------------
-void vsWalkInPlace::enableBackUp(int enabled)
+void vsWalkInPlace::disableForward()
 {
-    if (enabled)
-        backUpAllowed = VS_TRUE;
-    else
-        backUpAllowed = VS_FALSE;
+    forwardAllowed = VS_FALSE;
 }
 
 // ------------------------------------------------------------------------
-// Enables/disables side step motion
+// Enables backward motion
 // ------------------------------------------------------------------------
-void vsWalkInPlace::enableSideStep(int enabled)
+void vsWalkInPlace::enableBackward()
 {
-    if (enabled)
-        sideStepAllowed = VS_TRUE;
-    else
-        sideStepAllowed = VS_FALSE;
+    backwardAllowed = VS_TRUE;
+}
+
+// ------------------------------------------------------------------------
+// Disables forward motion
+// ------------------------------------------------------------------------
+void vsWalkInPlace::disableBackward()
+{
+    backwardAllowed = VS_FALSE;
+}
+
+// ------------------------------------------------------------------------
+// Enables side step motion
+// ------------------------------------------------------------------------
+void vsWalkInPlace::enableSideStep()
+{
+    sideStepAllowed = VS_TRUE;
+}
+
+// ------------------------------------------------------------------------
+// Disables side step motion
+// ------------------------------------------------------------------------
+void vsWalkInPlace::disableSideStep()
+{
+    sideStepAllowed = VS_FALSE;
 }
 
 // ------------------------------------------------------------------------
@@ -87,9 +104,9 @@ double vsWalkInPlace::getForwardSpeed()
 // ------------------------------------------------------------------------
 // Retrieves the velocity of backward motion
 // ------------------------------------------------------------------------
-double vsWalkInPlace::getBackUpSpeed()
+double vsWalkInPlace::getBackwardSpeed()
 {
-    return backUpSpeed;
+    return backwardSpeed;
 }
 
 // ------------------------------------------------------------------------
@@ -111,9 +128,9 @@ void vsWalkInPlace::setForwardSpeed(double speed)
 // ------------------------------------------------------------------------
 // Adjusts the velocity of backward motion
 // ------------------------------------------------------------------------
-void vsWalkInPlace::setBackUpSpeed(double speed)
+void vsWalkInPlace::setBackwardSpeed(double speed)
 {
-    backUpSpeed = speed;
+    backwardSpeed = speed;
 }
 
 // ------------------------------------------------------------------------
@@ -135,9 +152,9 @@ double vsWalkInPlace::getForwardThreshold()
 // ------------------------------------------------------------------------
 // Retrieves the tracker threshold for backward motion
 // ------------------------------------------------------------------------
-double vsWalkInPlace::getBackUpThreshold()
+double vsWalkInPlace::getBackwardThreshold()
 {
-    return backUpThresh;
+    return backwardThresh;
 }
 
 // ------------------------------------------------------------------------
@@ -159,9 +176,9 @@ void vsWalkInPlace::setForwardThreshold(double threshold)
 // ------------------------------------------------------------------------
 // Adjusts the tracker threshold for backward motion
 // ------------------------------------------------------------------------
-void vsWalkInPlace::setBackUpThreshold(double threshold)
+void vsWalkInPlace::setBackwardThreshold(double threshold)
 {
-    backUpThresh = threshold;
+    backwardThresh = threshold;
 }
 
 // ------------------------------------------------------------------------
@@ -175,7 +192,7 @@ void vsWalkInPlace::setSideStepThreshold(double threshold)
 // ------------------------------------------------------------------------
 // Updates the motion model
 // ------------------------------------------------------------------------
-vsMatrix vsWalkInPlace::update()
+void vsWalkInPlace::update()
 {
     vsVector             backOrient;
     vsVector             leftFoot, rightFoot;
@@ -190,7 +207,6 @@ vsMatrix vsWalkInPlace::update()
     double               moveDistance;
     vsMatrix             newTranslation;
     vsMatrix             newRotation;
-    int                  i, j;
 
     // Grab tracker data
     backOrient = backTracker->getOrientationVec(VS_EULER_ANGLES_ZXY_R);
@@ -218,6 +234,8 @@ vsMatrix vsWalkInPlace::update()
     // Compute the current heading relative to last frame's heading
     deltaHeading = trackerHeading - lastTrackerHeading;
     lastTrackerHeading = trackerHeading;
+
+    headingQuat.setAxisAngleRotation(1, 0, 0, deltaHeading);
 
     printf("heading = %0.2f  deltaX = %0.2f  deltaY = %0.2f  deltaZ = %0.2f\n",
            trackerHeading, deltaX, deltaY, deltaZ);
@@ -252,10 +270,10 @@ vsMatrix vsWalkInPlace::update()
 
         motionFlag = VS_TRUE;
     }
-    else if ((fabs(deltaY) > backUpThresh) && (backUpAllowed))
+    else if ((fabs(deltaY) > backwardThresh) && (backwardAllowed))
     {
         // Backward motion
-        moveDistance = deltaTime * backUpSpeed;
+        moveDistance = deltaTime * backwardSpeed;
 
         transVec.set(0.0, -moveDistance, 0.0);
 
@@ -293,39 +311,6 @@ vsMatrix vsWalkInPlace::update()
         moveAllowance -= moveDistance;
     }
 
-    // Set up the translation matrix
-    newTranslation.setIdentity();
-    newTranslation.setTranslation(transVec[VS_X], transVec[VS_Y], 
-        transVec[VS_Z]);
-
-    // Report any change in heading
-    newRotation.setIdentity();
-    headingQuat.setAxisAngleRotation(0, 0, 1, deltaHeading);
-    newRotation.setQuatRotation(headingQuat);
-
-    printf("newTranslation:\n");
-    for (i = 0; i < 4; i++)
-    {
-        for (j = 0; j < 4; j++)
-        {
-            printf("%6.2lf  ", newTranslation[i][j]);
-        }
-        printf("\n");
-    }
-
-    printf("\n");
-
-    printf("newRotation:\n");
-    for (i = 0; i < 4; i++)
-    {
-        for (j = 0; j < 4; j++)
-        {
-            printf("%6.2lf  ", newRotation[i][j]);
-        }
-        printf("\n");
-    }
-  
-
-
-    return newRotation * newTranslation;
+    kinematics->modifyPosition(transVec);
+    kinematics->preModifyOrientation(headingQuat);
 }

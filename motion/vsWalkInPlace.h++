@@ -7,6 +7,7 @@
 
 #include "vsMotionModel.h++"
 #include "vsMotionTracker.h++"
+#include "vsKinematics.h++"
 
 #define VS_WIP_DEFAULT_FWD_THRESH 6.0
 #define VS_WIP_DEFAULT_BCK_THRESH 12.0
@@ -22,6 +23,9 @@ class vsWalkInPlace : public vsMotionModel
 {
 protected:
 
+    // Kinematics object
+    vsKinematics       *kinematics;
+
     // The motion trackers
     vsMotionTracker    *backTracker;
     vsMotionTracker    *lFootTracker;
@@ -32,17 +36,17 @@ protected:
 
     // Motion restriction flags
     int                forwardAllowed;
-    int                backUpAllowed;
+    int                backwardAllowed;
     int                sideStepAllowed;
 
     // Motion speed values
     double             forwardSpeed;
-    double             backUpSpeed;
+    double             backwardSpeed;
     double             sideStepSpeed;
 
     // Tracker threshold values
     double             forwardThresh;
-    double             backUpThresh;
+    double             backwardThresh;
     double             sideStepThresh;
 
     // Maximum distance allowed per step
@@ -53,33 +57,37 @@ protected:
 
 public: 
 
-                        vsWalkInPlace(vsMotionTracker *back, 
-                                      vsMotionTracker *left, 
-                                      vsMotionTracker *right);
+                    vsWalkInPlace(vsMotionTracker *back, 
+                                  vsMotionTracker *left, 
+                                  vsMotionTracker *right,
+                                  vsKinematics *kin);
 
-                        ~vsWalkInPlace();
+                    ~vsWalkInPlace();
 
-    void                enableForward(int enabled);
-    void                enableBackUp(int enabled);
-    void                enableSideStep(int enabled);
+    void            enableForward();
+    void            enableBackward();
+    void            enableSideStep();
+    void            disableForward();
+    void            disableBackward();
+    void            disableSideStep();
 
-    double              getForwardSpeed();
-    double              getBackUpSpeed();
-    double              getSideStepSpeed();
+    double          getForwardSpeed();
+    double          getBackwardSpeed();
+    double          getSideStepSpeed();
 
-    void                setForwardSpeed(double unitsPerSec);
-    void                setBackUpSpeed(double unitsPerSec);
-    void                setSideStepSpeed(double unitsPerSec);
+    void            setForwardSpeed(double unitsPerSec);
+    void            setBackwardSpeed(double unitsPerSec);
+    void            setSideStepSpeed(double unitsPerSec);
 
-    double              getForwardThreshold();
-    double              getBackUpThreshold();
-    double              getSideStepThreshold();
+    double          getForwardThreshold();
+    double          getBackwardThreshold();
+    double          getSideStepThreshold();
 
-    void                setForwardThreshold(double distance);
-    void                setBackUpThreshold(double distance);
-    void                setSideStepThreshold(double distance);
+    void            setForwardThreshold(double distance);
+    void            setBackwardThreshold(double distance);
+    void            setSideStepThreshold(double distance);
 
-    virtual vsMatrix    update();
+    virtual void    update();
 };
 
 #endif
