@@ -405,6 +405,14 @@ void vsSystem::preFrameTraverse(vsNode *node)
 // ------------------------------------------------------------------------
 void vsSystem::drawFrame()
 {
+    int screenLoop, windowLoop, paneLoop;
+    int windowCount, paneCount;
+    vsScreen *targetScreen;
+    vsWindow *targetWindow;
+    vsPane *targetPane;
+    vsScene *scene;
+    int screenCount;
+
     // Do nothing if this isn't a real system object
     if (!validObject)
         return;
@@ -416,33 +424,37 @@ void vsSystem::drawFrame()
         return;
     }
 
-    int screenLoop, windowLoop, paneLoop;
-    int windowCount, paneCount;
-    vsScreen *targetScreen;
-    vsWindow *targetWindow;
-    vsPane *targetPane;
-    vsScene *scene;
-    int screenCount = vsScreen::getScreenCount();
+    // Get the number of screens available
+    screenCount = vsScreen::getScreenCount();
 
     // If any of the vsGeometry's render bin modes changed last frame,
     // then we need to mark every geometry object in existance as dirty so
     // that the bin mode change gets applied to all geometry objects.
     if (vsGeometry::binModesChanged)
     {
+        // Iterate over all screens
         for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
         {
+            // Get the current screen and the number of windows in it
             targetScreen = vsScreen::getScreen(screenLoop);
             windowCount = targetScreen->getChildWindowCount();
+
+            // Iterate over all windows
             for (windowLoop = 0; windowLoop < windowCount; windowLoop++)
             {
+                // Get the current window and the number of panes in it
                 targetWindow = targetScreen->getChildWindow(windowLoop);
                 paneCount = targetWindow->getChildPaneCount();
+
+                // Iterate over all panes
                 for (paneLoop = 0; paneLoop < paneCount; paneLoop++)
                 {
+                    // Get the current pane and its scene
                     targetPane = targetWindow->getChildPane(paneLoop);
                     scene = targetPane->getScene();
-
-                    if (scene)
+                    
+                    // If there is a valid scene, mark it dirty
+                    if (scene != NULL)
                         scene->dirty();
                 }
             }
