@@ -29,7 +29,7 @@ enum vsImageFormat
     VS_IMAGE_FORMAT_RGB,
 };
 
-class vsImage : public vsObject
+class VS_UTIL_DLL vsImage : public vsObject
 {
     protected:
         // Like OpenGL, we will store the lower left corner first
