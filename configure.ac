@@ -42,24 +42,30 @@ case "$target" in
 [  Unsupported target $target.  VESS cannot be installed on this machine.]) ;;
 esac
 
-dnl Export the AM_C(XX)FLAGS variables
-AC_SUBST(AM_CFLAGS)
-AC_SUBST(AM_CXXFLAGS)
-
 dnl Checks for certain (often problematic) header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h)
 
 dnl Operating system*******************************************************
 
-dnl The IRIX n32 ABI uses /usr/lib32 for its libraries, we'll need to 
-dnl know this for the library tests.  Also gcc/g++ doesn't seem to work
-dnl well in IRIX, so we'll specify a compiler to use.  Additionally,
-dnl we add the vsLinuxJoystickSystem class when under Linux.  Shared libraries
-dnl are built differently on different systems, so we set up variables
-dnl to handle that (since we're not using libtool).  Finally, we set the 
-dnl operating system variable (OS) to indicate the appropriate operating 
-dnl system.
+dnl gcc/g++ doesn't seem to work well in IRIX, so we'll specify a 
+dnl compiler to use.  The IRIX n32 ABI uses /usr/lib32 for its libraries, 
+dnl and requires -n32 and -mips3 (or -mips4) for compiler arguments, we'll 
+dnl need to know this for the library tests.  Complicating this is the fact
+dnl that the MIPSPro 7.3 compiler needs additional options to specify the
+dnl language conventions (-LANG:std for STL support, required for Open 
+dnl Scene Graph version), whereas 7.2.1 does not support these features at 
+dnl all. We have to set the CFLAGS for this, so we'll save the current 
+dnl CFLAGS in a temporary variable, and restore them when we're done with 
+dnl our tests.
+OLDCFLAGS=
+OLDCXXFLAGS=
+
+dnl Additionally, we add the vsLinuxJoystickSystem class dnl when under Linux.
+dnl Shared libraries are built differently on different systems, so we set 
+dnl up variables to handle that (since we're not using libtool).  Finally, 
+dnl we set the operating system variable (OS) to indicate the appropriate 
+dnl operating system.
 case "$target" in
    i*86-pc-linux*)
        LIBDIR="lib"
@@ -67,6 +73,7 @@ case "$target" in
        SO_NO_LINK="-Wl,--no-whole-archive"
        EXTRA_IO_OBJECTS="vsLinuxJoystickSystem.$OBJEXT"
        OS=Linux ;;
+
    mips-sgi-irix*)
        CC=cc
        CXX=CC
@@ -74,7 +81,48 @@ case "$target" in
        SO_LINK="-all"
        SO_NO_LINK="-notall"
        EXTRA_IO_OBJECTS=
-       OS=IRIX ;;
+       OS=IRIX
+
+       dnl Save the current CFLAGS so we can fix it after we're done
+       dnl configuring.
+       OLDCFLAGS="$CFLAGS"
+       OLDCXXFLAGS="$CXXFLAGS"
+
+       dnl Get the MIPSPro version
+       AC_MSG_CHECKING([MIPSPro compiler version])
+       MIPSPRO_MAJOR=`CC -version 2>&1 | awk '{print substr($4, 1, 1)}'`
+       MIPSPRO_MINOR=`CC -version 2>&1 | awk '{print substr($4, 3, 1)}'`
+       AC_MSG_RESULT([$MIPSPRO_MAJOR.$MIPSPRO_MINOR])
+
+       dnl Bail out right now if we're not using MIPSPro 7.2 or later
+       if test $MIPSPRO_MAJOR -lt 7 || test $MIPSPRO_MINOR -lt 2 ; then
+           AC_MSG_ERROR([
+
+    VESS under IRIX requires the MIPSPro compiler version 7.2 or later.
+    Your compiler version is not sufficient to compile VESS.
+    
+    E-mail vess@ist.ucf.edu if you think you've received this message in
+    error.
+
+])
+       fi
+
+       dnl Add the n32 options to the CFLAGS so the library tests will
+       dnl work correctly
+       CFLAGS="$CFLAGS -n32 -mips3"
+       CXXFLAGS="$CXXFLAGS -n32 -mips3" 
+
+       dnl Also add the -LANG:std option to both CXXFLAGS for the library 
+       dnl tests and AM_CXXFLAGS for the actual compiler options if we're 
+       dnl using MIPSPro 7.3 or greater.  We'll also disable the same
+       dnl warnings that Open Scene Graph disables in case we're using that
+       dnl library.
+       if test $MIPSPRO_MAJOR -gt 7 || test $MIPSPRO_MINOR -ge 3 ; then
+           CXXFLAGS="$CXXFLAGS -LANG:std -DEBUG:woff=1682 -DEBUG:woff=3303"
+           AM_CXXFLAGS="$AM_CXXFLAGS -LANG:std -DEBUG:woff=1682 -DEBUG:woff=3303"
+       fi
+       ;;
+
    *)
        AC_MSG_ERROR(
 [  Unsupported target $target.  VESS cannot be installed on this machine.]) ;;
@@ -212,13 +260,13 @@ case "$SG" in
 
         elif test -e "/usr/local/include/freetype2/freetype/ftglyph.h" ; then
             dnl Look in /usr/local (alternate directory for Linux)
-            FREETYPE_INCLUDE_DIR="-I/usr/local/include/freetype2"
+            FREETYPE_INCLUDE_DIR="-I/usr/local/include/freetype2 -I/usr/local/include"
             FREETYPE_LIB_DIR="-L/usr/local/$LIBDIR"
             AC_MSG_RESULT(/usr/local)
 
         elif test -e "/usr/freeware/include/freetype2/freetype/ftglyph.h" ; then
             dnl Look in /usr/freeware (standard directory for IRIX)
-            FREETYPE_INCLUDE_DIR="-I/usr/freeware/include/freetype2"
+            FREETYPE_INCLUDE_DIR="-I/usr/freeware/include/freetype2 -I/usr/freeware/include"
             FREETYPE_LIB_DIR="-L/usr/freeware/$LIBDIR"
             AC_MSG_RESULT(/usr/freeware)
 
@@ -239,7 +287,7 @@ case "$SG" in
         dnl Make sure freetype is where we think it is
         FT_ERROR=
         LIBS=
-        AC_CHECK_LIB(freetype, FT_Load_Char,, FT_ERROR=yes, -L$FREETYPE_LIB_DIR)
+        AC_CHECK_LIB(freetype, FT_Load_Char,, FT_ERROR=yes, $FREETYPE_LIB_DIR)
 
         dnl Print an error and bail if freetype is messed up
         if test x$FT_ERROR = xyes ; then
@@ -457,6 +505,16 @@ CLEANFILES="config.h.in~ so_locations"
 DISTCLEANFILES="makefile config.h.in~ so_locations"
 AC_SUBST(CLEANFILES)
 AC_SUBST(DISTCLEANFILES)
+
+dnl If we've messed with the CFLAGS, restore them now
+if test x$OLDCFLAGS != x ; then
+    CFLAGS="$OLDCFLAGS"
+    CXXFLAGS="$OLDCXXFLAGS"
+fi
+
+dnl Export the AM_C(XX)FLAGS variables
+AC_SUBST(AM_CFLAGS)
+AC_SUBST(AM_CXXFLAGS)
 
 dnl Configure the the makefiles to write out.  Start with the ones that
 dnl will always be used (everything except sound and test).
