@@ -102,14 +102,6 @@ const char *vsTCPNetworkInterface::getClassName()
 }
 
 // ------------------------------------------------------------------------
-// Gets a string representation of this object's class name
-// ------------------------------------------------------------------------
-const char *vsTCPNetworkInterface::getClassName()
-{
-    return "vsTCPNetworkInterface";
-}
-
-// ------------------------------------------------------------------------
 // Binds to the socket and indicates the willingness to take connections
 // ------------------------------------------------------------------------
 void vsTCPNetworkInterface::allowConnections(int backlog)
