@@ -61,11 +61,11 @@ protected:
     int            numEntries;
 
     // Indicates whether this process is the data server
-    int            server;
+    bool           server;
 
 public:
 
-                 vsSharedInputData(key_t key, int entryCount, int master);
+                 vsSharedInputData(key_t key, int entryCount, bool master);
     virtual      ~vsSharedInputData();
 
     virtual const char    *getClassName();

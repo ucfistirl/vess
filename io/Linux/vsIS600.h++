@@ -180,9 +180,9 @@ protected:
 
     // Shared memory object and state variables
     vsSharedInputData    *sharedData;
-    int                  forked;
+    bool                 forked;
     int                  serverPID;
-    static int           serverDone;
+    static bool          serverDone;
 
     // Array representing the current output format
     int                  formatArray[VS_IS_MAX_OUTPUT_ITEMS];
@@ -195,7 +195,7 @@ protected:
     int                  outputSize;
 
     // Indicates whether or not we're streaming data 
-    int                  streaming;
+    bool                 streaming;
 
     // Units for positional output
     int                  outputUnits;

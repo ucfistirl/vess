@@ -209,7 +209,7 @@ class vsAscensionSerialTrackingSystem : public vsTrackingSystem
 protected:
    
     // Flag to indicate whether multiple serial ports are being used
-    int                  multiSerial;
+    bool                 multiSerial;
 
     // Pointer name for the serial port object(s)
     vsSerialPort         *port[VS_AS_MAX_TRACKERS];
@@ -220,16 +220,16 @@ protected:
 
     // Shared memory object and state variables
     vsSharedInputData    *sharedData;
-    int                  forked;
+    bool                 forked;
     int                  serverPID;
-    static int           serverDone;
+    static bool          serverDone;
 
     // Flock parameters
     int                  configuration;
     int                  addressMode;
     int                  ercAddress;
     int                  dataFormat;
-    int                  streaming;
+    bool                 streaming;
     double               posScale;
     int                  ornScale;
 
@@ -249,7 +249,7 @@ protected:
 
     // Utility functions
     void                 enumerateTrackers();
-    int                  initializeFlock();
+    bool                 initializeFlock();
     void                 getErrorString(unsigned char errorNum,
                              unsigned char errorAddr);
     void                 fbbCommand(int address, unsigned char command,

@@ -62,8 +62,8 @@ public:
     void         setParity(char parity);
     void         setWordLength(int wordLength);
     void         setStopBits(int stopBits);
-    void         setRTS(int enable);
-    void         setDTR(int enable);
+    void         setRTS(bool enable);
+    void         setDTR(bool enable);
 
     void         flushPort(void);
 };

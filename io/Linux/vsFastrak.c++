@@ -30,7 +30,7 @@
 #include <time.h>
 
 // Static class data member to instruct the server process to exit
-int vsFastrak::serverDone;
+bool vsFastrak::serverDone;
 
 // ------------------------------------------------------------------------
 // Constructs a vsFastrak on the specified port with the given number of
@@ -62,9 +62,9 @@ vsFastrak::vsFastrak(int portNumber, long baud, int nTrackers)
     // Initialize variables
     port = NULL;
     numTrackers = 0;
-    forked = VS_FALSE;
+    forked = false;
     serverPID = 0;
-    streaming = VS_FALSE;
+    streaming = false;
 
     // Set up a coordinate conversion quaternion that will convert
     // Polhemus coordinates to VESS coordinates
@@ -189,7 +189,7 @@ void vsFastrak::serverLoop()
     signal(SIGUSR1, vsFastrak::quitServer);
 
     // Initialize the done flag
-    vsFastrak::serverDone = VS_FALSE;
+    vsFastrak::serverDone = false;
 
     // Start streaming data
     startStream();
@@ -246,7 +246,7 @@ void vsFastrak::serverLoop()
 // ------------------------------------------------------------------------
 void vsFastrak::quitServer(int arg)
 {
-    vsFastrak::serverDone = VS_TRUE;
+    vsFastrak::serverDone = true;
 }
 
 // ------------------------------------------------------------------------
@@ -941,15 +941,15 @@ void vsFastrak::forkTracking()
         case 0:
             // Server process, create the shared memory area and enter the
             // server loop
-            sharedData = new vsSharedInputData(theKey, numTrackers, VS_TRUE);
+            sharedData = new vsSharedInputData(theKey, numTrackers, true);
             serverLoop();
             break;
 
         default:
             // Application process, connect to (don't create) the shared
             // memory and begin retrieving data from it
-            sharedData = new vsSharedInputData(theKey, numTrackers, VS_FALSE);
-            forked = VS_TRUE;
+            sharedData = new vsSharedInputData(theKey, numTrackers, false);
+            forked = true;
             printf("vsFastrak::forkTracking: Server PID is %d\n", serverPID);
             break;
     }
@@ -968,7 +968,7 @@ void vsFastrak::startStream()
 
     // Set the streaming flag to true, so we know the FASTRAK is now 
     // streaming data
-    streaming = VS_TRUE;
+    streaming = true;
 }
 
 // ------------------------------------------------------------------------
@@ -984,7 +984,7 @@ void vsFastrak::stopStream()
 
     // Clear the streaming flag, so we know that the FASTRAK is not
     // streaming data
-    streaming = VS_FALSE;
+    streaming = false;
 }
 
 // ------------------------------------------------------------------------
@@ -1270,7 +1270,7 @@ void vsFastrak::setBaudRate(long baud)
     char buf[20];
     int  baudCode;
     int  length;
-    int  wasStreaming;
+    bool wasStreaming;
 
     // Remember if we were streaming data
     wasStreaming = streaming;

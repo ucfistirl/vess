@@ -29,7 +29,7 @@
 // responsible for creating the necessary structures.
 // ------------------------------------------------------------------------
 vsSharedInputData::vsSharedInputData(key_t ipcKey, int trackerCount,
-                                     int master)
+                                     bool master)
 {
     union semun zero;
     int         i;

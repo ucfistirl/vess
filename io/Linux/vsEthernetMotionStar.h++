@@ -349,17 +349,17 @@ protected:
 
     // Shared memory object and state variables
     vsSharedInputData       *sharedData;
-    int                     forked;
+    bool                    forked;
     int                     serverPID;
-    static int              serverDone;
+    static bool             serverDone;
 
     // MotionStar parameters
     int                     numChassis;
     int                     addressMode;
     int                     master;
     int                     xmtrAddress;
-    int                     streaming;
-    int                     configured;
+    bool                    streaming;
+    bool                    configured;
     double                  posScale;
     int                     ornScale;
 
@@ -374,12 +374,12 @@ protected:
     static void             quitServer(int arg);
 
     // Utility functions
-    int                     sendCommand(unsigned char command, 
+    bool                    sendCommand(unsigned char command, 
                                         unsigned char extType, 
                                         vsBirdnetPacket *response);
-    int                     sendPacket(vsBirdnetPacket *packet, int length,
+    bool                    sendPacket(vsBirdnetPacket *packet, int length,
                                        vsBirdnetPacket *response);
-    int                     configureSystem();
+    bool                    configureSystem();
     void                    enumerateTrackers(
                                 vsBirdnetSystemStatusPacket *status);
     void                    updateConfiguration();

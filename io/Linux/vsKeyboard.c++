@@ -43,7 +43,7 @@ vsKeyboard::vsKeyboard(int kbMode)
 
     // Clear the command string
     sprintf(command, "");
-    commandReady = VS_FALSE;
+    commandReady = false;
 
     // Create a  vsInputButton for each key except the lower-case letter
     // keys.  These are mapped to the same vsInputButton as the upper-case
@@ -397,7 +397,7 @@ void vsKeyboard::pressKey(KeySym keySym, char *string)
                     sprintf(command, "");
 
                     // Set the command ready flag
-                    commandReady = VS_TRUE;
+                    commandReady = true;
                 }
             }
         }
@@ -407,7 +407,7 @@ void vsKeyboard::pressKey(KeySym keySym, char *string)
             if (index == commandKey)
             {
                 // Switch to terminal mode to obtain the command
-                modeToggled = VS_TRUE;
+                modeToggled = true;
                 mode = VS_KB_MODE_TERMINAL;
 
                 // Clear the command string
@@ -531,7 +531,7 @@ void vsKeyboard::update()
 // ------------------------------------------------------------------------
 // Return the state of the command string.
 // ------------------------------------------------------------------------
-int vsKeyboard::isCommandReady()
+bool vsKeyboard::isCommandReady()
 {
     return commandReady;
 }
@@ -541,13 +541,13 @@ int vsKeyboard::isCommandReady()
 // ------------------------------------------------------------------------
 char *vsKeyboard::getCommand()
 {
-    commandReady = VS_FALSE;
+    commandReady = false;
 
     // If we entered terminal mode by the command key, switch 
     // back to button mode now
     if (modeToggled)
     {
-        modeToggled = VS_FALSE;
+        modeToggled = false;
         mode = VS_KB_MODE_BUTTON;
     }
 

@@ -34,7 +34,7 @@
 #include "vsAscensionSerialTrackingSystem.h++"
 
 // Static class variable for instructing the server (child) process to exit
-int vsAscensionSerialTrackingSystem::serverDone;
+bool vsAscensionSerialTrackingSystem::serverDone;
 
 // ------------------------------------------------------------------------
 // Constructs a tracking system on the specified port with the given number
@@ -47,7 +47,7 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
 {
     char   portDevice[20];
     int    i;
-    int    result;
+    bool   result;
     vsQuat quat1, quat2, xformQuat;
 
     // Determine the platform-dependent serial device
@@ -66,14 +66,14 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
 #endif
 
     // Initialize variables
-    multiSerial = VS_FALSE;
-    forked = VS_FALSE;
+    multiSerial = false;
+    forked = false;
     serverPID = 0;
     configuration = mode;
     addressMode = 0;
     ercAddress = 0;
     numTrackers = 0;
-    streaming = VS_FALSE;
+    streaming = false;
 
     // Initialize all trackers and ports to NULL
     for (i = 0; i < VS_AS_MAX_TRACKERS; i++)
@@ -95,10 +95,10 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
     if (port[0])
     {
         // Drop the RTS line to put the flock into FLY mode
-        port[0]->setRTS(VS_FALSE);
+        port[0]->setRTS(false);
 
         // Set the DTR line to make sure the flock knows the host is ready
-        port[0]->setDTR(VS_TRUE);
+        port[0]->setDTR(true);
 
         // Wait for the bird to wake up
         sleep(1);
@@ -184,7 +184,7 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
     : vsTrackingSystem()
 {
     char   portDevice[20];
-    int    result;
+    bool   result;
     int    i;
     vsQuat quat1, quat2, xformQuat;
 
@@ -210,14 +210,14 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
             port[i] = new vsSerialPort(portDevice, baud, 8, 'N', 1);
 
             // Drop the RTS line to put the flock into FLY mode
-            port[i]->setRTS(VS_FALSE);
+            port[i]->setRTS(false);
 
             // Set the DTR line to make sure the flock knows the host is ready
-            port[i]->setDTR(VS_TRUE);
+            port[i]->setDTR(true);
         }
 
         // Initialize variables
-        multiSerial = VS_TRUE;
+        multiSerial = true;
         configuration = VS_AS_MODE_FLOCK;
         addressMode = 0;
         ercAddress = 0;
@@ -339,7 +339,7 @@ void vsAscensionSerialTrackingSystem::serverLoop()
     // Set up the signal handler
     signal(SIGUSR1, vsAscensionSerialTrackingSystem::quitServer);
 
-    vsAscensionSerialTrackingSystem::serverDone = VS_FALSE;
+    vsAscensionSerialTrackingSystem::serverDone = false;
 
     // Start the flock streaming data
     startStream();
@@ -391,7 +391,7 @@ void vsAscensionSerialTrackingSystem::serverLoop()
 // ------------------------------------------------------------------------
 void vsAscensionSerialTrackingSystem::quitServer(int arg)
 {
-    vsAscensionSerialTrackingSystem::serverDone = VS_TRUE;
+    vsAscensionSerialTrackingSystem::serverDone = true;
 }
 
 // ------------------------------------------------------------------------
@@ -696,14 +696,14 @@ void vsAscensionSerialTrackingSystem::enumerateTrackers()
 // initialized.  Any error conditions are reported.  The function returns
 // non-zero if the flock is initialized without errors.
 // ------------------------------------------------------------------------
-int vsAscensionSerialTrackingSystem::initializeFlock()
+bool vsAscensionSerialTrackingSystem::initializeFlock()
 {
     int           highAddress;
     unsigned char outBuf[VS_AS_CMD_PACKET_SIZE];
     unsigned char inBuf[VS_AS_CMD_PACKET_SIZE];
     unsigned char data;
     int           address;
-    int           errorFlag;
+    bool          errorFlag;
     int           i;
 
     // Print status as we go
@@ -748,7 +748,7 @@ int vsAscensionSerialTrackingSystem::initializeFlock()
     port[0]->flushPort();
 
     // Check all birds for errors
-    errorFlag = VS_FALSE;
+    errorFlag = false;
     for (address = 1; address <= highAddress; address++)
     {
         // We'll have to handle this differently depending on if we're 
@@ -778,7 +778,7 @@ int vsAscensionSerialTrackingSystem::initializeFlock()
                 printf("    %s\n", errorString);
     
                 // Set the error flag to true
-                errorFlag = VS_TRUE;
+                errorFlag = true;
             }
         }
         else
@@ -806,13 +806,13 @@ int vsAscensionSerialTrackingSystem::initializeFlock()
                 printf("    %s\n", errorString);
     
                 // Set the error flag to true
-                errorFlag = VS_TRUE;
+                errorFlag = true;
             }
         }
     }
 
     // Finish initializing if no errors reported
-    if (errorFlag == VS_FALSE)
+    if (errorFlag == false)
     {
         printf("  Flock initialized\n");
 
@@ -832,11 +832,11 @@ int vsAscensionSerialTrackingSystem::initializeFlock()
         ping();
 
         // Initialization successful
-        return VS_TRUE;
+        return true;
     }
  
     // Problem with initialization
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------
@@ -1711,15 +1711,15 @@ void vsAscensionSerialTrackingSystem::forkTracking()
 
         case 0:
             // Create the shared memory area and enter the server loop
-            sharedData = new vsSharedInputData(theKey, numTrackers, VS_TRUE);
+            sharedData = new vsSharedInputData(theKey, numTrackers, true);
             serverLoop();
             break;
 
         default:
             // Connect to the shared memory area (don't create it) and 
             // continue with the application
-            sharedData = new vsSharedInputData(theKey, numTrackers, VS_FALSE);
-            forked = VS_TRUE;
+            sharedData = new vsSharedInputData(theKey, numTrackers, false);
+            forked = true;
             printf("vsAscensionSerialTrackingSystem::forkTracking:\n");
             printf("    Server PID is %d\n", serverPID);
             break;
@@ -1744,7 +1744,7 @@ void vsAscensionSerialTrackingSystem::startStream()
         port[0]->writePacket(&buf, 1);
 
         // Set the stream flag to true
-        streaming = VS_TRUE;
+        streaming = true;
     }
 }
 
@@ -1761,7 +1761,7 @@ void vsAscensionSerialTrackingSystem::stopStream()
         ping();
 
         // Set the stream flag to false
-        streaming = VS_FALSE;
+        streaming = false;
     }
 }
 
