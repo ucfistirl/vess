@@ -6,6 +6,8 @@
 #include <Performer/pr/pfTexture.h>
 #include "vsAttribute.h++"
 
+#define VS_TEXTURE_MAX_SAVES	8
+
 enum vsTextureDirection
 {
     VS_TEXTURE_DIRECTION_S,
@@ -55,8 +57,9 @@ private:
     pfTexture    *performerTexture;
     pfTexEnv     *performerTexEnv;
     
-    pfTexture    *savedTexture;
-    pfTexEnv     *savedTexEnv;
+    pfTexture    *savedTexture[VS_TEXTURE_MAX_SAVES];
+    pfTexEnv     *savedTexEnv[VS_TEXTURE_MAX_SAVES];
+    int          saveCount;
 
 VS_INTERNAL:
 

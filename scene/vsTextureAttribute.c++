@@ -9,8 +9,12 @@
 vsTextureAttribute::vsTextureAttribute()
 {
     performerTexture = new pfTexture();
+    performerTexture->ref();
     performerTexEnv = new pfTexEnv();
+    performerTexEnv->ref();
     performerTexEnv->setMode(PFTE_DECAL);
+
+    saveCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -21,9 +25,11 @@ vsTextureAttribute::vsTextureAttribute(pfTexture *texObject,
                                        pfTexEnv *texEnvObject)
 {
     performerTexture = texObject;
+    performerTexture->ref();
     performerTexEnv = texEnvObject;
+    performerTexEnv->ref();
 
-    attachedFlag = 1;
+    saveCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -31,6 +37,8 @@ vsTextureAttribute::vsTextureAttribute(pfTexture *texObject,
 // ------------------------------------------------------------------------
 vsTextureAttribute::~vsTextureAttribute()
 {
+    performerTexture->unrefDelete();
+    performerTexEnv->unrefDelete();
 }
 
 // ------------------------------------------------------------------------
@@ -293,16 +301,25 @@ int vsTextureAttribute::getMinFilter()
 // ------------------------------------------------------------------------
 void vsTextureAttribute::saveCurrent()
 {
+    if (saveCount >= VS_TEXTURE_MAX_SAVES)
+    {
+	printf("vsTextureAttribute::saveCurrent: Save list full\n");
+	saveCount++;
+	return;
+    }
+
     if (pfGetEnable(PFEN_TEXTURE))
     {
-        savedTexture = pfGetCurTex();
-        savedTexEnv = pfGetCurTEnv();
+        savedTexture[saveCount] = pfGetCurTex();
+        savedTexEnv[saveCount] = pfGetCurTEnv();
     }
     else
     {
-        savedTexture = NULL;
-        savedTexEnv = NULL;
+        savedTexture[saveCount] = NULL;
+        savedTexEnv[saveCount] = NULL;
     }
+    
+    saveCount++;
 }
 
 // ------------------------------------------------------------------------
@@ -311,7 +328,10 @@ void vsTextureAttribute::saveCurrent()
 // ------------------------------------------------------------------------
 void vsTextureAttribute::apply()
 {
-    if (!savedTexture)
+    if (saveCount > VS_TEXTURE_MAX_SAVES)
+	return;
+
+    if (!(savedTexture[saveCount-1]))
         pfEnable(PFEN_TEXTURE);
 
     performerTexture->apply();
@@ -324,10 +344,15 @@ void vsTextureAttribute::apply()
 // ------------------------------------------------------------------------
 void vsTextureAttribute::restoreSaved()
 {
-    if (savedTexture)
+    saveCount--;
+
+    if ((saveCount+1) > VS_TEXTURE_MAX_SAVES)
+	return;
+
+    if (savedTexture[saveCount])
     {
-        savedTexture->apply();
-        savedTexEnv->apply();
+        (savedTexture[saveCount])->apply();
+        (savedTexEnv[saveCount])->apply();
     }
     else
         pfDisable(PFEN_TEXTURE);
