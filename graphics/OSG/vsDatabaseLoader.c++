@@ -490,14 +490,14 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
                 dofXformGroup = (osg::DOFTransform *)node;
 
                 // Set the pre-transform data
-                osgMat = dofXformGroup->getPutMatrix();
+                osgMat = dofXformGroup->getInversePutMatrix();
                 for (loop = 0; loop < 4; loop++)
                     for (sloop = 0; sloop < 4; sloop++)
                         xformMat[loop][sloop] = osgMat(sloop, loop);
                 xformAttr->setPreTransform(xformMat);
 
                 // Set the post-transform data
-                osgMat = dofXformGroup->getInversePutMatrix();
+                osgMat = dofXformGroup->getPutMatrix();
                 for (loop = 0; loop < 4; loop++)
                     for (sloop = 0; sloop < 4; sloop++)
                         xformMat[loop][sloop] = osgMat(sloop, loop);
