@@ -45,6 +45,14 @@ vsScentManager::vsScentManager()
     // Inintialize the scent and scent source counters
     numScents = 0;
     numScentSources = 0;
+
+    // Create a vsIntersect to handle the occlusion tests, and
+    // configure it to intersect with both sides of the geometry.
+    occlusionIsect = new vsIntersect();
+    occlusionIsect->setFacingMode(VS_INTERSECT_IGNORE_NONE);
+
+    // Start out with no occlusion scene
+    occlusionScene = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -73,6 +81,9 @@ int vsScentManager::getScentIndex(vsScent *scent)
 vsScentManager::~vsScentManager()
 {
     instance = NULL;
+
+    // Delete the occlusion intersector
+    delete occlusionIsect;
 }
 
 // ------------------------------------------------------------------------
@@ -220,6 +231,23 @@ vsScentManager *vsScentManager::getInstance()
 }
 
 // ------------------------------------------------------------------------
+// Set the scene component that will be used to determine if a scent is 
+// occluded or not.
+// ------------------------------------------------------------------------
+void vsScentManager::setOcclusionScene(vsComponent *scene)
+{
+    occlusionScene = scene;
+}
+
+// ------------------------------------------------------------------------
+// Return the scene that is being used for scent occlusion tests.
+// ------------------------------------------------------------------------
+vsComponent *vsScentManager::getOcclusionScene()
+{
+    return occlusionScene;
+}
+
+// ------------------------------------------------------------------------
 // Update the strengths of all available scents to match the current
 // situation in the scene.
 // ------------------------------------------------------------------------
@@ -233,6 +261,9 @@ void vsScentManager::update()
     double currentStrengths[VS_SM_MAX_SCENTS];
     vsScent *currentScent;
     double scale, reference, maxDist, rolloff, minStr, maxStr, sensitivity;
+    int occlusionIndex[VS_SM_MAX_SCENTS];
+    int occlusionTestCount;
+    bool occludedFlag[VS_SM_MAX_SCENTS];
 
     // If there are no scents, scent sources, or scent detector, no
     // scents should be present.  Just make sure that all scents (if
@@ -247,10 +278,32 @@ void vsScentManager::update()
         return;
     }
 
-    // Update all scent sources
+    // Initialize the occlusion test variables to indicate that no tests
+    // should be done.
+    occlusionTestCount = 0;
+    for (i = 0; i < numScentSources; i++)
+        occlusionIndex[i] = -1;
+
+    // Initialize the flags indicating which sources are occluded to false
+    memset(occludedFlag, 0, sizeof(occludedFlag));
+
+    // Update all scent sources, and figure out which ones need to have
+    // occlusion tests done
     for (i = 0; i < numScentSources; i++)
     {
+        // Update the source
         scentSources[i]->update();
+
+        // If we have an occlusion scene to test against, the scent is on,
+        // and the scent has its occlusion test enabled, flag it as needing
+        // an occlusion test and count it.
+        if ((occlusionScene != NULL) && 
+            (scentSources[i]->isOn()) && 
+            (scentSources[i]->isOcclusionEnabled()))
+        {
+            occlusionIndex[occlusionTestCount] = i;
+            occlusionTestCount++;
+        }
     }
 
     // Update the scent detector
@@ -258,6 +311,33 @@ void vsScentManager::update()
 
     // Initialize the currentStrengths array
     memset(currentStrengths, 0, sizeof(currentStrengths));
+
+    // Check for occlusions, if we have an occlusion scene and
+    // this scent source has occlusion enabled
+    if (occlusionTestCount > 0)
+    {
+        // Size the segment list accordingly
+        occlusionIsect->setSegListSize(occlusionTestCount);
+
+        // Create a segment from each scent source with occlusion enabled
+        // to the detector
+        for (i = 0; i < occlusionTestCount; i++)
+        {
+            occlusionIsect->setSeg(i, 
+                scentSources[occlusionIndex[i]]->getPosition(),
+                scentDetector->getPosition());
+        }
+
+        // Run the intersection test
+        occlusionIsect->intersect(occlusionScene);
+
+        // Figure out which sources are occluded
+        for (i = 0; i < occlusionTestCount; i++)
+        {
+            if (occlusionIsect->getIsectValid(i))
+                occludedFlag[occlusionIndex[i]] = true;
+        }
+    }
 
     // Get the effective strength of each scent source, and set the
     // corresponding scent to the calculated strength.  If the same
@@ -291,8 +371,8 @@ void vsScentManager::update()
             sensitivity = scentDetector->getSensitivity();
 
             // Mute the scent if the distance is greater than the
-            // maximum distance
-            if (distance > maxDist)
+            // maximum distance, or if the scent is occluded
+            if ((distance > maxDist) && (maxDist >= 0.0) || (occludedFlag[i]))
             {
                 strength = 0.0;
             }
@@ -361,7 +441,5 @@ void vsScentManager::update()
     // Now that we know the strength of each scent, update each vsScent
     // object accordingly
     for (i = 0; i < numScents; i++)
-    {
         scents[i]->setStrength(currentStrengths[i]);
-    }
 }

@@ -44,6 +44,10 @@ vsScentSourceAttribute::vsScentSourceAttribute(vsScent *theScent)
     maxDistance = VS_SA_DEFAULT_MAX_DIST;
     rolloffFactor = VS_SA_DEFAULT_ROLLOFF;
 
+    // Set the state variables (scent is on, occlusion is off)
+    scentOn = true;
+    occlusionOn = false;
+
     // Register scent source with the scent manager
     vsScentManager::getInstance()->addScentSource(this);
 }
@@ -201,6 +205,33 @@ void vsScentSourceAttribute::off()
 bool vsScentSourceAttribute::isOn()
 {
     return scentOn;
+}
+
+// ------------------------------------------------------------------------
+// Enables occlusion testing, allowing this source to be occluded by 
+// virtual objects and barriers.  Occlusion of sources is off by default.
+// ------------------------------------------------------------------------
+void vsScentSourceAttribute::enableOcclusion()
+{
+    occlusionOn = true;
+}
+
+// ------------------------------------------------------------------------
+// Disables occlusion testing, allowing the scent to be detected through
+// virtual barriers (walls, etc).
+// ------------------------------------------------------------------------
+void vsScentSourceAttribute::disableOcclusion()
+{
+    occlusionOn = false;
+}
+
+// ------------------------------------------------------------------------
+// Returns whether or not occlusion testing is enabled for this scent 
+// source
+// ------------------------------------------------------------------------
+bool vsScentSourceAttribute::isOcclusionEnabled()
+{
+    return occlusionOn;
 }
 
 // ------------------------------------------------------------------------

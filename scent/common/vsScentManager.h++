@@ -28,6 +28,8 @@
 #include "vsScent.h++"
 #include "vsScentSourceAttribute.h++"
 #include "vsScentDetectorAttribute.h++"
+#include "vsTimer.h++"
+#include "vsIntersect.h++"
 
 #define VS_SM_MAX_SCENTS 20
 
@@ -45,6 +47,9 @@ protected:
     int                         numScentSources;
 
     vsScentDetectorAttribute    *scentDetector;
+
+    vsIntersect                 *occlusionIsect;
+    vsComponent                 *occlusionScene;
 
                                 vsScentManager(); 
 
@@ -66,6 +71,9 @@ public:
     virtual const char       *getClassName();
 
     static vsScentManager    *getInstance();
+
+    void                     setOcclusionScene(vsComponent *scene);
+    vsComponent              *getOcclusionScene();
 
     void                     update();
 }; 

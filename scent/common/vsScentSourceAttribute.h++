@@ -52,6 +52,7 @@ protected:
     double         rolloffFactor;
 
     bool           scentOn;
+    bool           occlusionOn;
 
 VS_INTERNAL:
 
@@ -82,6 +83,10 @@ public:
     void                  on();
     void                  off();
     bool                  isOn();
+
+    void                  enableOcclusion();
+    void                  disableOcclusion();
+    bool                  isOcclusionEnabled();
 
     double                getStrengthScale();
     void                  setStrengthScale(double newScale);
