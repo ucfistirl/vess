@@ -843,22 +843,25 @@ void vsPane::updateView()
             }
         }
 
-    // Calculate the current view position and orientation
-    eyePoint = sceneView->getViewpoint();
-    lookDirection = sceneView->getDirection();
-    lookAtPoint = eyePoint + lookDirection.getScaled(10.0);
-    upDirection = sceneView->getUpDirection();
+        // Calculate the current view position and orientation
+        eyePoint = sceneView->getViewpoint();
+        lookDirection = sceneView->getDirection();
+        lookAtPoint = eyePoint + lookDirection.getScaled(10.0);
+        upDirection = sceneView->getUpDirection();
 
-    // Copy the relevant vectors into OSG vectors
-    osgEyePoint.set(eyePoint[VS_X], eyePoint[VS_Y], eyePoint[VS_Z]);
-    osgLookAtPoint.set(lookAtPoint[VS_X], lookAtPoint[VS_Y], lookAtPoint[VS_Z]);
-    osgUpDirection.set(upDirection[VS_X], upDirection[VS_Y], upDirection[VS_Z]);
+        // Copy the relevant vectors into OSG vectors
+        osgEyePoint.set(eyePoint[VS_X], eyePoint[VS_Y], eyePoint[VS_Z]);
+        osgLookAtPoint.set(lookAtPoint[VS_X], lookAtPoint[VS_Y], 
+            lookAtPoint[VS_Z]);
+        osgUpDirection.set(upDirection[VS_X], upDirection[VS_Y], 
+            upDirection[VS_Z]);
 
-    // Set the current view matrix using the 'look at' interface
-    osgSceneView->setViewMatrixAsLookAt(osgEyePoint, osgLookAtPoint, osgUpDirection);
+        // Set the current view matrix using the 'look at' interface
+        osgSceneView->setViewMatrixAsLookAt(osgEyePoint, osgLookAtPoint, 
+            osgUpDirection);
 
-    // Record the change number
-    viewChangeNum = sceneView->getChangeNum();
+        // Record the change number
+        viewChangeNum = sceneView->getChangeNum();
     }
 }
 
