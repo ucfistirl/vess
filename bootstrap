@@ -6,13 +6,15 @@ if ! test -d config ; then
 fi
 
 # Scan configure.ac and generate aclocal.m4
-aclocal -I config
+aclocal-1.6 -I config
 
 # Scan configure.ac and generate config.h.in
 autoheader
 
 # Run automake to generate makefile.in files from the makefile.am files
-automake --foreign --add-missing --copy
+# There is a bug in automake 1.9 so we'll always try to find the 1.6 version
+# before running plain old "automake"
+automake-1.6 --foreign --add-missing --copy
 
 # Run autoconf to generate the configure script
 autoconf
