@@ -644,6 +644,11 @@ void vsPathMotion::update()
     if (currentPlayMode == VS_PATH_STOPPED)
         return;
 
+    // If there aren't any points defined, then there's nothing we can do;
+    // abort.
+    if (pointCount < 1)
+        return;
+
     // If the current play mode is PLAYING, then update the time of the
     // path based on the draw time from the last frame
     if (currentPlayMode == VS_PATH_PLAYING)
