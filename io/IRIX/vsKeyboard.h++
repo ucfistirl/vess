@@ -179,7 +179,7 @@ public:
     vsInputButton    *getButton(int index);
 
     // Retrieve the current command string
-    int              isCommandReady();
+    bool             isCommandReady();
     char             *getCommand();
 
     // Set/get the operational mode

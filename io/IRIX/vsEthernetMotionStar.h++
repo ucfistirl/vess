@@ -351,12 +351,12 @@ protected:
     vsSharedInputData       *sharedData;
     int                     forked;
     int                     serverPID;
-    static int              serverDone;
+    static bool             serverDone;
 
     // MotionStar parameters
     int                     numChassis;
     int                     addressMode;
-    int                     master;
+    bool                    master;
     int                     xmtrAddress;
     int                     streaming;
     int                     configured;
@@ -402,7 +402,7 @@ public:
 
                                vsEthernetMotionStar(char *serverName, int port,
                                                     int nTrackers, 
-                                                    int masterFlag, 
+                                                    bool masterFlag, 
                                                     int dataFormat);
     virtual                    ~vsEthernetMotionStar();
 

@@ -149,22 +149,22 @@ protected:
 
     // Shared memory object and state variables
     vsSharedInputData    *sharedData;
-    int                  forked;
+    bool                 forked;
     int                  serverPID;
-    static int           serverDone;
+    static bool          serverDone;
 
     // Array representing the current output format
     int                  formatArray[VS_FT_MAX_OUTPUT_ITEMS];
     int                  formatNum;
 
     // Indicates whether or not this machine is big-endian
-    int                  bigEndian;
+    bool                 bigEndian;
 
     // Size of the output record (for each tracker)
     int                  outputSize;
 
     // Indicates whether or not we're streaming data 
-    int                  streaming;
+    bool                 streaming;
 
     // Units for positional output
     int                  outputUnits;
@@ -175,7 +175,7 @@ protected:
     // Utility functions
     void                 enumerateTrackers();
     void                 initOutputFormat();
-    int                  isBigEndian();
+    bool                 isBigEndian();
     void                 endianSwap(float *inFloat, float *outFloat);
     void                 setBinaryOutput();
 

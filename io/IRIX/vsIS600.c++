@@ -30,7 +30,7 @@
 #include <time.h>
 
 // Static class data member to instruct the server process to exit
-int vsIS600::serverDone;
+bool vsIS600::serverDone;
 
 // ------------------------------------------------------------------------
 // Constructs a vsIS600 on the specified port with the given number of
@@ -62,9 +62,9 @@ vsIS600::vsIS600(int portNumber, long baud, int nTrackers)
     // Initialize variables
     port = NULL;
     numTrackers = 0;
-    forked = VS_FALSE;
+    forked = false;
     serverPID = 0;
-    streaming = VS_FALSE;
+    streaming = false;
 
     // Set up a coordinate conversion quaternion that will convert
     // Polhemus (Intersense) coordinates to VESS coordinates
@@ -190,7 +190,7 @@ void vsIS600::serverLoop()
     signal(SIGUSR1, vsIS600::quitServer);
 
     // Initialize the done flag
-    vsIS600::serverDone = VS_FALSE;
+    vsIS600::serverDone = false;
 
     // Start streaming data
     startStream();
@@ -247,7 +247,7 @@ void vsIS600::serverLoop()
 // ------------------------------------------------------------------------
 void vsIS600::quitServer(int arg)
 {
-    vsIS600::serverDone = VS_TRUE;
+    vsIS600::serverDone = true;
 }
 
 // ------------------------------------------------------------------------
@@ -381,7 +381,7 @@ void vsIS600::initOutputFormat()
 // From Harbinson&Steele.  Determines whether this machine is big- or
 // little-endian.
 // ------------------------------------------------------------------------
-int vsIS600::isBigEndian()
+bool vsIS600::isBigEndian()
 {
     // Union of a long and four bytes used to perform the test
     union
@@ -900,15 +900,15 @@ void vsIS600::forkTracking()
         case 0:
             // Server process, create the shared memory area and enter the
             // server loop
-            sharedData = new vsSharedInputData(theKey, numTrackers, VS_TRUE);
+            sharedData = new vsSharedInputData(theKey, numTrackers, true);
             serverLoop();
             break;
 
         default:
             // Application process, connect to (don't create) the shared
             // memory and begin retrieving data from it
-            sharedData = new vsSharedInputData(theKey, numTrackers, VS_FALSE);
-            forked = VS_TRUE;
+            sharedData = new vsSharedInputData(theKey, numTrackers, false);
+            forked = true;
             printf("vsIS600::forkTracking: Server PID is %d\n", serverPID);
     }
 }
@@ -926,7 +926,7 @@ void vsIS600::startStream()
 
     // Set the streaming flag so we know that the IS-600 is now streaming 
     // data
-    streaming = VS_TRUE;
+    streaming = true;
 }
 
 // ------------------------------------------------------------------------
@@ -942,7 +942,7 @@ void vsIS600::stopStream()
 
     // Clear the streaming flag so we know that the IS-600 is not streaming 
     // data
-    streaming = VS_FALSE;
+    streaming = false;
 }
 
 // ------------------------------------------------------------------------

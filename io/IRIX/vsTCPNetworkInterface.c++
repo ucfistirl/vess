@@ -224,7 +224,7 @@ void vsTCPNetworkInterface::disableBlockingOnClient(int clientID)
 int vsTCPNetworkInterface::makeConnection()
 {
     int                   statusFlags;
-    int                   keepTrying;
+    bool                  keepTrying;
     struct sockaddr_in    connectingName;
 
     // Get flags on our current socket (so we can put them on new sockets if
@@ -232,8 +232,8 @@ int vsTCPNetworkInterface::makeConnection()
     if ( (statusFlags = fcntl(socketValue, F_GETFL)) < 0 )
         printf("Unable to get status of socket.\n");
 
-    keepTrying = 1;
-    while (keepTrying == 1)
+    keepTrying = true;
+    while (keepTrying)
     {
         // Try to connect
         connectingName = writeName;
@@ -241,7 +241,7 @@ int vsTCPNetworkInterface::makeConnection()
             sizeof(connectingName)) != -1)
         {
             // We connected so signal the loop to end
-            keepTrying = 0;
+            keepTrying = false;
         }
         else
         {
@@ -253,7 +253,7 @@ int vsTCPNetworkInterface::makeConnection()
             // up); Otherwise, tell the user the info that we failed this time
             // and re-open the socket
             if ( (statusFlags & FNONBLOCK) != 0 )
-                keepTrying = 0;
+                keepTrying = false;
             else
             {
                 printf("Failed to connect to server.  Trying again.\n");

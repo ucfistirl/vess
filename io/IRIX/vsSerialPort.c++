@@ -198,14 +198,14 @@ int vsSerialPort::readCharacter()
 {
     char character;
     int  result;
-    int  readFlag;
+    bool  readFlag;
 
     // Read a single byte from the port
     readFlag = read(portDescriptor, &character, 1);
 
     // Return the character read if we successfully read a byte
     // otherwise, return -1
-    if (readFlag == 1)
+    if (readFlag)
     {
         result = character;
         return result;
@@ -444,10 +444,10 @@ void vsSerialPort::setStopBits(int stopBits)
 } 
 
 // ------------------------------------------------------------------------
-// Raises (if the parameter is VS_TRUE) or lowers (if VS_FALSE) the RTS
-// line on the serial port
+// Raises (if the parameter is true) or lowers (if false) the RTS line on
+// the serial port
 // ------------------------------------------------------------------------
-void vsSerialPort::setRTS(int enable)
+void vsSerialPort::setRTS(bool enable)
 {
     int status;
 
@@ -465,10 +465,10 @@ void vsSerialPort::setRTS(int enable)
 }
 
 // ------------------------------------------------------------------------
-// Raises (if the parameter is VS_TRUE) or lowers (if VS_FALSE) the DTR
-// line on the serial port
+// Raises (if the parameter is true) or lowers (if false) the DTR line on
+// the serial port
 // ------------------------------------------------------------------------
-void vsSerialPort::setDTR(int enable)
+void vsSerialPort::setDTR(bool enable)
 {
     int status;
 
