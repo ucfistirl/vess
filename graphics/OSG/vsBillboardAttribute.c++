@@ -52,6 +52,7 @@ vsBillboardAttribute::vsBillboardAttribute()
     
     // Create a callback object and set it to use this attribute
     billboardCallback = new vsBillboardCallback(this);
+    billboardCallback->ref();
 }
 
 // ------------------------------------------------------------------------
@@ -61,9 +62,11 @@ vsBillboardAttribute::~vsBillboardAttribute()
 {
     // Detach before deleting
     if (isAttached())
+    {
         detach(NULL);
+    }
 
-    delete billboardCallback;
+    billboardCallback->unref();
 }
 
 // ------------------------------------------------------------------------
