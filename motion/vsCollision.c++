@@ -24,6 +24,10 @@
 
 #include "vsCollision.h++"
 
+// ------------------------------------------------------------------------
+// Constructor - Sets up the collsion's variables and allocates a 
+// vsIntersect object
+// ------------------------------------------------------------------------
 vsCollision::vsCollision(vsKinematics *objectKin, vsNode *theScene)
 {
     kinematics = objectKin;
@@ -39,11 +43,17 @@ vsCollision::vsCollision(vsKinematics *objectKin, vsNode *theScene)
     wallMargin = VS_COLLISION_DEFAULT_MARGIN;
 }
 
+// ------------------------------------------------------------------------
+// Destructor - Deletes the internal vsIntersect object
+// ------------------------------------------------------------------------
 vsCollision::~vsCollision()
 {
     delete intersect;
 }
 
+// ------------------------------------------------------------------------
+// Sets the number of 'hot points' that this collision object uses
+// ------------------------------------------------------------------------
 void vsCollision::setPointCount(int numPoints)
 {
     if ((numPoints < 0) || (numPoints > VS_COLLISION_POINTS_MAX))
@@ -56,11 +66,18 @@ void vsCollision::setPointCount(int numPoints)
     intersect->setSegListSize(numPoints);
 }
 
+// ------------------------------------------------------------------------
+// Gets the number of 'hot points' that this collision object uses
+// ------------------------------------------------------------------------
 int vsCollision::getPointCount()
 {
     return offsetCount;
 }
 
+// ------------------------------------------------------------------------
+// Sets the position of one of the hot points of the collision object, in
+// the local coordinate system of the associated kinematics' component.
+// ------------------------------------------------------------------------
 void vsCollision::setPoint(int index, vsVector newOffset)
 {
     if ((index < 0) || (index >= VS_COLLISION_POINTS_MAX))
@@ -73,6 +90,10 @@ void vsCollision::setPoint(int index, vsVector newOffset)
     (offsetPoints[index]).setSize(3);
 }
 
+// ------------------------------------------------------------------------
+// Gets the position of one of the hot points of the collision object, in
+// the local coordinate system of the associated kinematics' component.
+// ------------------------------------------------------------------------
 vsVector vsCollision::getPoint(int index)
 {
     vsVector zero(0.0, 0.0, 0.0);
@@ -86,36 +107,63 @@ vsVector vsCollision::getPoint(int index)
     return (offsetPoints[index]);
 }
 
+// ------------------------------------------------------------------------
+// Sets the collision mode for the object
+// ------------------------------------------------------------------------
 void vsCollision::setCollisionMode(int newMode)
 {
     collisionMode = newMode;
 }
 
+// ------------------------------------------------------------------------
+// Gets the collision mode for the object
+// ------------------------------------------------------------------------
 int vsCollision::getCollisionMode()
 {
     return collisionMode;
 }
 
+// ------------------------------------------------------------------------
+// Sets the intersection mask for the collision object. The intersection
+// mask is passed directly to the collision's associated vsIntersect 
+// object.
+// ------------------------------------------------------------------------
 void vsCollision::setIntersectMask(unsigned int newMask)
 {
     intersect->setMask(newMask);
 }
 
+// ------------------------------------------------------------------------
+// Gets the intersection mask for the collision object
+// ------------------------------------------------------------------------
 unsigned int vsCollision::getIntersectMask()
 {
     return (intersect->getMask());
 }
 
+// ------------------------------------------------------------------------
+// Sets the collision margin for the object. The margin is the closest the
+// geometry governed by the collision object can approach any obstacle.
+// ------------------------------------------------------------------------
 void vsCollision::setMargin(double newMargin)
 {
     wallMargin = newMargin;
 }
 
+// ------------------------------------------------------------------------
+// Sets the collision margin for the object
+// ------------------------------------------------------------------------
 double vsCollision::getMargin()
 {
     return wallMargin;
 }
 
+// ------------------------------------------------------------------------
+// Updates the collision object by determining the direction of travel of
+// the geometry, performing an intersection test to see if that direction
+// of travel is clear, and adjusting the direction and/or speed if
+// necessary.
+// ------------------------------------------------------------------------
 void vsCollision::update()
 {
     vsComponent *objectComp;
@@ -228,6 +276,10 @@ void vsCollision::update()
     }
 }
 
+// ------------------------------------------------------------------------
+// Private function
+// Utility function - calculates the raw distance between two points
+// ------------------------------------------------------------------------
 double vsCollision::distance(vsVector start, vsVector end)
 {
     return sqrt(VS_SQR(start[0] - end[0]) +
@@ -235,6 +287,12 @@ double vsCollision::distance(vsVector start, vsVector end)
                 VS_SQR(start[2] - end[2]));
 }
 
+// ------------------------------------------------------------------------
+// Private function
+// Uses the internal intersection object to determine the amount of
+// movement in the desired direction is possible, given the presence or
+// absence of any obstacles within the scene.
+// ------------------------------------------------------------------------
 double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
                                     vsVector moveDir, double maxMove,
                                     vsVector *hitNorm)
@@ -344,4 +402,3 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
     
     return resultDist;
 }
-
