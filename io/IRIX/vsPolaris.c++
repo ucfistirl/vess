@@ -44,7 +44,6 @@ vsPolaris::vsPolaris(int portNumber, long baud, int nTrackers)
     // Initialize data members
     memset(tracker, 0, sizeof(tracker));
     memset(portHandle, 0, sizeof(portHandle));
-    memset(validTrackingVolumes, 0, sizeof(validTrackingVolumes));
 
     // Test for endianness
     bigEndian = isBigEndian();
@@ -60,7 +59,7 @@ vsPolaris::vsPolaris(int portNumber, long baud, int nTrackers)
 
     // Initialize the reference frame to identity.  This assumes that
     // the tracker's cameras are mounted facing forward
-    referenceFrame.setIdentity();
+    referenceFrame.set(0.0, 0.0, 0.0, 1.0);
 
     // Open the port
     port = new vsSerialPort(portDevice, 9600, 8, 'N', 1);
@@ -1589,7 +1588,7 @@ void vsPolaris::setTrackingVolume(int volumeNumber)
     sprintf(cmdStr, "VSEL:%d", volumeNumber);
 
     // Get the Polaris's reply
-    result = getReply()
+    result = getReply();
     if (result != VS_PL_ERR_NONE)
     {
         printError("setTrackingVolume", "Unable to change tracking volume",
