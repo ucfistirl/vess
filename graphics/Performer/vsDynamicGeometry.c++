@@ -44,7 +44,9 @@ vsDynamicGeometry::vsDynamicGeometry() : parentList(5, 5)
     performerGeode = new pfGeode();
     performerGeode->ref();
 
-    // Create a pfFlux for the pfGeoSets
+    // Create a pfFlux for the pfGeoSets to manage the changes in the 
+    // pfGeoSets as they progress through the different processes in the 
+    // Performer pipeline
     performerFlux = new pfFlux(initFluxedGeoSet, PFFLUX_DEFAULT_NUM_BUFFERS);
     performerFlux->ref();
 
@@ -82,9 +84,13 @@ vsDynamicGeometry::vsDynamicGeometry() : parentList(5, 5)
         (pfMemory::malloc(sizeof(pfLight *) * PF_MAX_LIGHTS));
     for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
         lightsList[loop] = NULL;
+
+    // Set up a pre-callback for the Performer GeoState.  This allows
+    // VESS to track state changes and set node attributes appropriately.
     performerGeostate->setFuncs(geostateCallback, NULL, lightsList);
     
-    // Turn off GeoSet flat shading
+    // Make sure the "force flat shading" draw mode is off since we don't
+    // want all geometry to be drawn flat shaded.
     performerGeoset->setDrawMode(PFGS_FLATSHADE, PF_OFF);
 
     // Enable lighting (by default)
@@ -185,11 +191,14 @@ void vsDynamicGeometry::beginNewState()
     int            min;
     int            *lengths;
 
+    // Get the first writable flux buffer and cast it to a pfGeoSet
     performerGeoset = (pfGeoSet *)performerFlux->getWritableData();
+
+    // Set the primitive type and number of primitives
     performerGeoset->setPrimType(primitiveType);
     performerGeoset->setNumPrims(primitiveCount);
 
-    // Retrieve the data lists 
+    // Retrieve the existing attribute data lists 
     performerGeoset->getAttrLists(PFGS_COLOR4, (void **)&colorList, &dummy);
     performerGeoset->getAttrRange(PFGS_COLOR4, &min, &colorListSize);
     performerGeoset->getAttrLists(PFGS_NORMAL3, (void **)&normalList, &dummy);
@@ -207,7 +216,7 @@ void vsDynamicGeometry::beginNewState()
     else
         memcpy(lengthsList, lengths, sizeof(int) * primitiveCount);
 
-    // Set the bindings
+    // Set the attribute bindings
     setBinding(VS_GEOMETRY_COLORS, colorBinding);
     setBinding(VS_GEOMETRY_NORMALS, normalBinding);
     setBinding(VS_GEOMETRY_TEXTURE_COORDS, texCoordBinding);
@@ -223,6 +232,8 @@ void vsDynamicGeometry::beginNewState()
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::finishNewState()
 {
+    // Signal the pfFlux that all changes to the current pfGeoSet are 
+    // complete
     performerFlux->writeComplete();
 }
 
@@ -231,6 +242,8 @@ void vsDynamicGeometry::finishNewState()
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::setPrimitiveType(int newType)
 {
+    // Translate the VESS primitive type to the performer counterpart
+    // and set the Performer GeoSet to use it
     switch (newType)
     {
         case VS_GEOMETRY_TYPE_POINTS:
@@ -291,6 +304,8 @@ void vsDynamicGeometry::setPrimitiveType(int newType)
 // ------------------------------------------------------------------------
 int vsDynamicGeometry::getPrimitiveType()
 {
+    // Translate the Performer primitive type to the VESS counterpart
+    // and return it.  Return -1 if the current type is invalid.
     switch (primitiveType)
     {
         case PFGS_POINTS:
@@ -323,7 +338,10 @@ int vsDynamicGeometry::getPrimitiveType()
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::setPrimitiveCount(int newCount)
 {
+    // Set the primitive count on the pfGeoSet to the new value
     performerGeoset->setNumPrims(newCount);
+
+    // Store the new count
     primitiveCount = newCount;
     
     // If the geometry's particular primitive type doesn't require a
@@ -337,22 +355,27 @@ void vsDynamicGeometry::setPrimitiveCount(int newCount)
     // Change the length of the primitive lengths array
     if (newCount && !lengthsList)
     {
-        // Create
+        // No lengths array exists, but there are primitives to draw.
+        // Create a new lengths array.
         lengthsList = (int *)(pfMemory::malloc(sizeof(int) * newCount));
     }
     else if (!newCount && lengthsList)
     {
-        // Delete
+        // Delete the existing lengths array.  It is no longer needed since
+        // there are now no primitives to draw.
         pfMemory::free(lengthsList);
         lengthsList = NULL;
     }
     else
     {
-        // Modify
+        // Lengths array exists and there are primitives to draw.
+        // Modify the current lengths array to match the number of
+        // primitives just set.
         lengthsList = (int *)(pfMemory::realloc(lengthsList,
             sizeof(int) * newCount));
     }
     
+    // Update the lengths array on the pfGeoSet
     performerGeoset->setPrimLengths(lengthsList);
 }
 
@@ -370,6 +393,7 @@ int vsDynamicGeometry::getPrimitiveCount()
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::setPrimitiveLength(int index, int length)
 {
+    // Validate the index parameter
     if ((index < 0) || (index >= primitiveCount))
     {
         printf("vsDynamicGeometry::setPrimitiveLength: Index out of bounds\n");
@@ -384,6 +408,7 @@ void vsDynamicGeometry::setPrimitiveLength(int index, int length)
         (getPrimitiveType() == VS_GEOMETRY_TYPE_QUADS))
         return;
 
+    // Change the appropriate length
     lengthsList[index] = length;
 }
 
@@ -393,6 +418,7 @@ void vsDynamicGeometry::setPrimitiveLength(int index, int length)
 // ------------------------------------------------------------------------
 int vsDynamicGeometry::getPrimitiveLength(int index)
 {
+    // Validate the index parameter
     if ((index < 0) || (index >= primitiveCount))
     {
         printf("vsDynamicGeometry::getPrimitiveLength: Index out of bounds\n");
@@ -410,6 +436,7 @@ int vsDynamicGeometry::getPrimitiveLength(int index)
     if (getPrimitiveType() == VS_GEOMETRY_TYPE_QUADS)
         return 4;
 
+    // Return the given primitive length
     return (lengthsList[index]);
 }
 
@@ -430,6 +457,7 @@ void vsDynamicGeometry::setPrimitiveLengths(int *lengths)
         (getPrimitiveType() == VS_GEOMETRY_TYPE_QUADS))
         return;
 
+    // Set all the primitive lengths
     for (loop = 0; loop < primitiveCount; loop++)
         lengthsList[loop] = lengths[loop];
 }
@@ -444,10 +472,13 @@ void vsDynamicGeometry::getPrimitiveLengths(int *lengthsBuffer)
 {
     int loop;
     
+    // Get all the primitive lengths in the Geometry object and
+    // return them in the parameter
     for (loop = 0; loop < primitiveCount; loop++)
     {
         switch (getPrimitiveType())
         {
+            // The first four cases have fixed primitive lengths
             case VS_GEOMETRY_TYPE_POINTS:
                 lengthsBuffer[loop] = 1;
                 break;
@@ -460,6 +491,10 @@ void vsDynamicGeometry::getPrimitiveLengths(int *lengthsBuffer)
             case VS_GEOMETRY_TYPE_QUADS:
                 lengthsBuffer[loop] = 4;
                 break;
+
+             // The remaining primitives are variable length, so
+             // we can simply copy the lengths list we have stored
+             // into the buffer provided
             default:
                 lengthsBuffer[loop] = lengthsList[loop];
                 break;
@@ -477,6 +512,8 @@ void vsDynamicGeometry::setBinding(int whichData, int binding)
 {
     int performerBinding;
     
+    // Translate the binding type parameters into its Performer counterpart
+    // act accordingly
     switch (binding)
     {
         case VS_GEOMETRY_BIND_NONE:
@@ -492,34 +529,52 @@ void vsDynamicGeometry::setBinding(int whichData, int binding)
             performerBinding = PFGS_PER_VERTEX;
             break;
         default:
-            printf("vsDynamicGeometry::setBinding: Unrecognized binding value\n");
+            printf("vsDynamicGeometry::setBinding: Unrecognized binding "
+                "value\n");
             return;
     }
 
+    // Translate the whichData parameter into its Performer counterpart
+    // and alter the pfGeoSet's binding appropriately
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
+
+            // Vertex coordinate binding must be per-vertex (no other
+            // binding makes sense)
             if (binding != VS_GEOMETRY_BIND_PER_VERTEX)
             {
                 printf("vsDynamicGeometry::setBinding: Vertex coordinate "
                     "binding must always be VS_GEOMETRY_BIND_PER_VERTEX\n");
                 return;
             }
+
+            // Set the vertex coordinate binding to the given value
             performerGeoset->setAttr(PFGS_COORD3, performerBinding,
                 vertexList, NULL);
             vertexBinding = performerBinding;
             break;
+
         case VS_GEOMETRY_NORMALS:
+
+            // Set the normal binding to the given value
             performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
                 normalList, NULL);
             normalBinding = performerBinding;
             break;
+
         case VS_GEOMETRY_COLORS:
+
+            // Set the color binding to the given value
             performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
                 colorList, NULL);
             colorBinding = performerBinding;
             break;
+
         case VS_GEOMETRY_TEXTURE_COORDS:
+
+            // Texture coordinate binding must be none or per-vertex
+            // (no other binding makes sense).
             if ((binding != VS_GEOMETRY_BIND_PER_VERTEX) &&
                 (binding != VS_GEOMETRY_BIND_NONE))
             {
@@ -528,10 +583,13 @@ void vsDynamicGeometry::setBinding(int whichData, int binding)
                     "VS_GEOMETRY_BIND_NONE\n");
                 return;
             }
+
+            // Set the texture coordinate binding to the given value
             performerGeoset->setAttr(PFGS_TEXCOORD2, performerBinding,
                 texCoordList, NULL);
             texCoordBinding = performerBinding;
             break;
+
         default:
             printf("vsDynamicGeometry::setBinding: Unrecognized data value\n");
             return;
@@ -546,6 +604,7 @@ int vsDynamicGeometry::getBinding(int whichData)
 {
     int result;
 
+    // Translate the whichData parameter to its VESS counterpart
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
@@ -564,6 +623,7 @@ int vsDynamicGeometry::getBinding(int whichData)
             return -1;
     }
     
+    // Return the appropriate VESS binding value for the given data list
     switch (result)
     {
         case PFGS_OFF:
@@ -576,6 +636,7 @@ int vsDynamicGeometry::getBinding(int whichData)
             return VS_GEOMETRY_BIND_PER_VERTEX;
     }
     
+    // Return -1, indicating there was a problem
     return -1;
 }
 
@@ -589,74 +650,104 @@ void vsDynamicGeometry::setData(int whichData, int dataIndex, vsVector data)
 {
     int loop;
 
+    // Make sure the data index is valid
     if (dataIndex < 0)
     {
         printf("vsDynamicGeometry::setData: Index out of bounds\n");
         return;
     }
     
+    // Different actions necessary depending on which data is being set
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
+
+            // Validate the index
             if (dataIndex >= vertexListSize)
             {
                 printf("vsDynamicGeometry::setData: Index out of bounds\n");
                 return;
             }
+
+            // Vertex coordinates require a 3-component vector
             if (data.getSize() < 3)
             {
                 printf("vsDynamicGeometry::setData: Insufficient data (vertex "
                     "coordinates require 3 values)\n");
                 return;
             }
+
+            // Copy the data from the vector into the vertex list
             for (loop = 0; loop < 3; loop++)
                 (vertexList[dataIndex])[loop] = data[loop];
             break;
+
         case VS_GEOMETRY_NORMALS:
+
+            // Validate the index
             if (dataIndex >= normalListSize)
             {
                 printf("vsDynamicGeometry::setData: Index out of bounds\n");
                 return;
             }
+
+            // Normals require a 3-component vector
             if (data.getSize() < 3)
             {
                 printf("vsDynamicGeometry::setData: Insufficient data (vertex "
                     "normals require 3 values)\n");
                 return;
             }
+
+            // Copy the data from the vector into the normal list
             for (loop = 0; loop < 3; loop++)
                 (normalList[dataIndex])[loop] = data[loop];
             break;
+
         case VS_GEOMETRY_COLORS:
+
+            // Validate the index
             if (dataIndex >= colorListSize)
             {
                 printf("vsDynamicGeometry::setData: Index out of bounds\n");
                 return;
             }
+
+            // Colors require a 4-component vector
             if (data.getSize() < 4)
             {
                 printf("vsDynamicGeometry::setData: Insufficient data (colors "
                     "require 4 values)\n");
                 return;
             }
+
+            // Copy the data from the vector into the color list
             for (loop = 0; loop < 4; loop++)
                 (colorList[dataIndex])[loop] = data[loop];
             break;
+
         case VS_GEOMETRY_TEXTURE_COORDS:
+
+            // Validate the index
             if (dataIndex >= texCoordListSize)
             {
                 printf("vsDynamicGeometry::setData: Index out of bounds\n");
                 return;
             }
+
+            // Texture coordinates require a 2-component vector
             if (data.getSize() < 2)
             {
                 printf("vsDynamicGeometry::setData: Insufficient data (texture "
                     "coordinates require 2 values)\n");
                 return;
             }
+
+            // Copy the data from the vector into the texture coordinate list
             for (loop = 0; loop < 2; loop++)
                 (texCoordList[dataIndex])[loop] = data[loop];
             break;
+
         default:
             printf("vsDynamicGeometry::setData: Unrecognized data type\n");
             return;
@@ -674,59 +765,91 @@ vsVector vsDynamicGeometry::getData(int whichData, int dataIndex)
     vsVector result;
     int loop;
 
+    // Make sure the data index is valid
     if (dataIndex < 0)
     {
         printf("vsDynamicGeometry::getData: Index out of bounds\n");
         return result;
     }
     
+    // Determine which list we should obtain the data from, and return
+    // the requested item from that list
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
+
+            // Validate the index
             if (dataIndex >= vertexListSize)
             {
                 printf("vsDynamicGeometry::getData: Index out of bounds\n");
                 return result;
             }
+            
+            // Set the result vector's size to 3
             result.setSize(3);
+
+            // Copy the vertex in question 
             for (loop = 0; loop < 3; loop++)
                 result[loop] = (vertexList[dataIndex])[loop];
             break;
+
         case VS_GEOMETRY_NORMALS:
+
+            // Validate the index
             if (dataIndex >= normalListSize)
             {
                 printf("vsDynamicGeometry::getData: Index out of bounds\n");
                 return result;
             }
+            
+            // Set the result vector's size to 3
             result.setSize(3);
+
+            // Copy the normal in question 
             for (loop = 0; loop < 3; loop++)
                 result[loop] = (normalList[dataIndex])[loop];
             break;
+
         case VS_GEOMETRY_COLORS:
+
+            // Validate the index
             if (dataIndex >= colorListSize)
             {
                 printf("vsDynamicGeometry::getData: Index out of bounds\n");
                 return result;
             }
+            
+            // Set the result vector's size to 3
             result.setSize(4);
+
+            // Copy the color in question 
             for (loop = 0; loop < 4; loop++)
                 result[loop] = (colorList[dataIndex])[loop];
             break;
+
         case VS_GEOMETRY_TEXTURE_COORDS:
+
+            // Validate the index
             if (dataIndex >= texCoordListSize)
             {
                 printf("vsDynamicGeometry::getData: Index out of bounds\n");
                 return result;
             }
+            
+            // Set the result vector's size to 2
             result.setSize(2);
+
+            // Copy the texture coordinate in question 
             for (loop = 0; loop < 2; loop++)
                 result[loop] = (texCoordList[dataIndex])[loop];
             break;
+
         default:
             printf("vsDynamicGeometry::getData: Unrecognized data type\n");
             return result;
     }
     
+    // Return the vector copied from the requested list and index
     return result;
 }
 
@@ -739,6 +862,7 @@ void vsDynamicGeometry::setDataList(int whichData, vsVector *dataList)
 {
     int loop, sloop;
     
+    // Copy the entire data list given to the appropriate geometry data list
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
@@ -777,6 +901,7 @@ void vsDynamicGeometry::getDataList(int whichData, vsVector *dataBuffer)
 {
     int loop, sloop;
     
+    // Copy the entire geometry data list requested to the given buffer
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
@@ -826,6 +951,8 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
 {
     int binding, performerBinding;
     
+    // Get the requested list's data binding (required by Performer's
+    // setAttr() method for its pfGeoSet data lists)
     binding = getBinding(whichData);
     switch (binding)
     {
@@ -843,102 +970,149 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
             break;
     }
 
+    // Resize the performer attribute lists to the requested size
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
+
+            // Check the current vertex list size and the requested new 
+            // size, and reallocate the list as appropriate
             if (newSize && !vertexList)
             {
-                // Create
+                // No list exists, create a new list
                 vertexList = (pfVec3 *)(pfMemory::malloc(
                     sizeof(pfVec3) * newSize));
             }
             else if (!newSize && vertexList)
             {
-                // Delete
+                // List exists, but the requested new size is zero, so
+                // delete the existing list
                 pfMemory::free(vertexList);
                 vertexList = NULL;
             }
             else
             {
-                // Modify
+                // Either the list is NULL, and the requested size is 
+                // zero, or the list exists and the new size is non-zero.
+                // Modify the length of the existing list using realloc.
+                // If the list doesn't exist, the realloc call will do
+                // nothing, since the requested size is also zero.
                 vertexList = (pfVec3 *)(pfMemory::realloc(vertexList,
                     sizeof(pfVec3) * newSize));
             }
+
+            // Set the newly-resized vertex list on the pfGeoSet
             performerGeoset->setAttr(PFGS_COORD3, performerBinding,
                 vertexList, NULL);
             vertexListSize = newSize;
             break;
+
         case VS_GEOMETRY_NORMALS:
+
+            // Check the current normal list size and the requested new 
+            // size, and reallocate the list as appropriate
             if (newSize && !normalList)
             {
-                // Create
+                // No list exists, create a new normal list
                 normalList = (pfVec3 *)(pfMemory::malloc(
                     sizeof(pfVec3) * newSize));
             }
             else if (!newSize && normalList)
             {
-                // Delete
+                // List exists, but the requested new size is zero, so
+                // delete the existing normal list
                 pfMemory::free(normalList);
                 normalList = NULL;
             }
             else
             {
-                // Modify
+                // Either the list is NULL, and the requested size is 
+                // zero, or the list exists and the new size is non-zero.
+                // Modify the length of the existing list using realloc.
+                // If the list doesn't exist, the realloc call will do
+                // nothing, since the requested size is also zero.
                 normalList = (pfVec3 *)(pfMemory::realloc(normalList,
                     sizeof(pfVec3) * newSize));
             }
+
+            // Set the newly-resized normal list on the pfGeoSet
             performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
                 normalList, NULL);
             normalListSize = newSize;
             break;
+
         case VS_GEOMETRY_COLORS:
+
+            // Check the current color list size and the requested new 
+            // size, and reallocate the list as appropriate
             if (newSize && !colorList)
             {
-                // Create
+                // No list exists, create a new color list
                 colorList = (pfVec4 *)(pfMemory::malloc(
                     sizeof(pfVec4) * newSize));
             }
             else if (!newSize && colorList)
             {
-                // Delete
+                // List exists, but the requested new size is zero, so
+                // delete the existing color list
                 pfMemory::free(colorList);
                 colorList = NULL;
             }
             else
             {
-                // Modify
+                // Either the list is NULL, and the requested size is 
+                // zero, or the list exists and the new size is non-zero.
+                // Modify the length of the existing list using realloc.
+                // If the list doesn't exist, the realloc call will do
+                // nothing, since the requested size is also zero.
                 colorList = (pfVec4 *)(pfMemory::realloc(colorList,
                     sizeof(pfVec4) * newSize));
             }
+
+            // Set the newly-resized color list on the pfGeoSet
             performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
                 colorList, NULL);
             colorListSize = newSize;
             break;
+
         case VS_GEOMETRY_TEXTURE_COORDS:
+
+            // Check the current texture coordinate list size and the 
+            // requested new size, and reallocate the list as appropriate
             if (newSize && !texCoordList)
             {
-                // Create
+                // No list exists, create a new texture coordinate list
                 texCoordList = (pfVec2 *)(pfMemory::malloc(
                     sizeof(pfVec2) * newSize));
             }
             else if (!newSize && texCoordList)
             {
-                // Delete
+                // List exists, but the requested new size is zero, so
+                // delete the existing texture coordinate list
                 pfMemory::free(texCoordList);
                 texCoordList = NULL;
             }
             else
             {
-                // Modify
+                // Either the list is NULL, and the requested size is 
+                // zero, or the list exists and the new size is non-zero.
+                // Modify the length of the existing list using realloc.
+                // If the list doesn't exist, the realloc call will do
+                // nothing, since the requested size is also zero.
                 texCoordList = (pfVec2 *)(pfMemory::realloc(texCoordList,
                     sizeof(pfVec2) * newSize));
             }
+
+            // Set the newly-resized texture coordinate list on the pfGeoSet
             performerGeoset->setAttr(PFGS_TEXCOORD2, performerBinding,
                 texCoordList, NULL);
             texCoordListSize = newSize;
             break;
+
         default:
-            printf("vsDynamicGeometry::setDataListSize: Unrecognized data value\n");
+
+            printf("vsDynamicGeometry::setDataListSize: Unrecognized data "
+                "value\n");
             return;
     }
 }
@@ -948,6 +1122,7 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
 // ------------------------------------------------------------------------
 int vsDynamicGeometry::getDataListSize(int whichData)
 {
+    // Return the size of the requested data list
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
@@ -959,9 +1134,11 @@ int vsDynamicGeometry::getDataListSize(int whichData)
         case VS_GEOMETRY_TEXTURE_COORDS:
             return texCoordListSize;
         default:
-            printf("vsDynamicGeometry::getDataListSize: Unrecognized data value\n");
+            printf("vsDynamicGeometry::getDataListSize: Unrecognized data "
+                "value\n");
     }
     
+    // Unknown data list specified, return -1 to indicate error
     return -1;
 }
 
@@ -1006,7 +1183,16 @@ int vsDynamicGeometry::isLightingEnabled()
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::setRenderBin(int binNum)
 {
+    // Store the bin number
     renderBin = binNum;
+
+    // Set the pfGeoSet to use the given bin
+    performerGeoset->setDrawBin((short)binNum);
+
+    // Set the sort order on the draw bin to a default value to force
+    // a bin mode update.  This is necessary because Performer will not
+    // recognize any bin unless it has been given a bin order for it.
+    vsGeometry::setBinSortMode(binNum, VS_GEOMETRY_SORT_STATE);
 }
 
 // ------------------------------------------------------------------------
@@ -1025,12 +1211,15 @@ void vsDynamicGeometry::getBoundSphere(vsVector *centerPoint, double *radius)
 {
     pfSphere boundSphere;
     
+    // Get the geode's pfSphere
     performerGeode->getBound(&boundSphere);
     
+    // Set the center point (if requested)
     if (centerPoint)
         centerPoint->set(boundSphere.center[PF_X], boundSphere.center[PF_Y],
             boundSphere.center[PF_Z]);
 
+    // Set the radius (if requested)
     if (radius)
         *radius = boundSphere.radius;
 }
@@ -1047,24 +1236,37 @@ vsMatrix vsDynamicGeometry::getGlobalXform()
     vsMatrix result;
     int loop, sloop;
 
+    // Create an identity matrix
     xform.makeIdent();
+
+    // Start the node pointer at the pfGeode
     nodePtr = performerGeode;
     
+    // Loop until we reach the top of the scene graph
     while (nodePtr->getNumParents() > 0)
     {
+        // Accumulate all transformations along the way
         if (nodePtr->isOfType(pfSCS::getClassType()))
         {
+            // Get the matrix from this transform node
             scsMatPtr = ((pfSCS *)nodePtr)->getMatPtr();
+
+            // Multiply it by the accumulated matrix
             xform.postMult(*scsMatPtr);
         }
         
+        // Move to the (first) parent of this node
         nodePtr = nodePtr->getParent(0);
     }
     
+    // Copy the pfMatrix into a vsMatrix.  Recall that a pfMatrix is
+    // transposed with respect to a vsMatrix (this is why the indices
+    // below are reversed)
     for (loop = 0; loop < 4; loop++)
         for (sloop = 0; sloop < 4; sloop++)
             result[loop][sloop] = xform[sloop][loop];
 
+    // Return the vsMatrix
     return result;
 }
 
@@ -1076,6 +1278,8 @@ vsMatrix vsDynamicGeometry::getGlobalXform()
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::setIntersectValue(unsigned int newValue)
 {
+    // Set the mask of the Performer intersection traversal for this node
+    // to the given value.
     performerGeode->setTravMask(PFTRAV_ISECT, newValue, PFTRAV_SELF, PF_SET);
 }
 
@@ -1084,6 +1288,8 @@ void vsDynamicGeometry::setIntersectValue(unsigned int newValue)
 // ------------------------------------------------------------------------
 unsigned int vsDynamicGeometry::getIntersectValue()
 {
+    // Get the current intersection traversal mask for this node from 
+    // Performer and return it
     return (performerGeode->getTravMask(PFTRAV_ISECT));
 }
 
@@ -1097,20 +1303,25 @@ void vsDynamicGeometry::addAttribute(vsAttribute *newAttribute)
     int attrCat, attrType;
     int loop;
 
+    // Make sure we can attach this attribute
     if (!(newAttribute->canAttach()))
     {
-        printf("vsDynamicGeometry::addAttribute: Attribute is already in use\n");
+        printf("vsDynamicGeometry::addAttribute: Attribute is already in "
+            "use\n");
         return;
     }
     
+    // Make sure this attribute isn't a state attribute (these don't belong
+    // on geometry nodes)
     attrCat = newAttribute->getAttributeCategory();
     if (attrCat != VS_ATTRIBUTE_CATEGORY_STATE)
     {
-        printf("vsDynamicGeometry::addAttribute: Geometry nodes may not contain "
-            "attributes of that type\n");
+        printf("vsDynamicGeometry::addAttribute: Geometry nodes may not "
+            "contain attributes of that type\n");
         return;
     }
     
+    // Make sure we don't already have an attribute of that type
     attrType = newAttribute->getAttributeType();
     for (loop = 0; loop < getAttributeCount(); loop++)
         if ((getAttribute(loop))->getAttributeType() == attrType)
@@ -1139,11 +1350,16 @@ pfGeode *vsDynamicGeometry::getBaseLibraryObject()
 // ------------------------------------------------------------------------
 int vsDynamicGeometry::initFluxedGeoSet(pfFluxMemory *fluxMem)
 {
+    // If the fluxMemory is NULL, return the size of a fluxed pfGeoSet.
+    // This is standard procedure for Performer fluxes (see the man page
+    // for pfFlux::pfFlux()).
     if (fluxMem == NULL)
         return pfFluxedGSetInit(fluxMem);
 
+    // Initialize the fluxMemory to a pfGeoSet
     pfFluxedGSetInit(fluxMem);
 
+    // Return 0 if the pfFluxMemory is valid and we have initialized it
     return 0;
 }
 
@@ -1153,9 +1369,11 @@ int vsDynamicGeometry::initFluxedGeoSet(pfFluxMemory *fluxMem)
 // ------------------------------------------------------------------------
 int vsDynamicGeometry::addParent(vsNode *newParent)
 {
+    // Add the given node to the parent list and reference it
     parentList[parentCount++] = newParent;
     newParent->ref();
 
+    // Return success
     return VS_TRUE;
 }
 
@@ -1167,16 +1385,30 @@ int vsDynamicGeometry::removeParent(vsNode *targetParent)
 {
     int loop, sloop;
 
+    // Look thru this node's parent list to see if the target parent is
+    // there
     for (loop = 0; loop < parentCount; loop++)
+    {
+        // Check the current parent against the target parent
         if (targetParent == parentList[loop])
         {
+            // Found it!  Slide the remaining nodes in the list
+            // down by one
             for (sloop = loop; sloop < parentCount-1; sloop++)
                 parentList[sloop] = parentList[sloop+1];
+
+            // Unreference the target parent
             targetParent->unref();
+
+            // Decrement the parent count
             parentCount--;
+
+            // Return success
             return VS_TRUE;
         }
+    }
 
+    // Couldn't find the target parent, return failure
     return VS_FALSE;
 }
 
@@ -1188,8 +1420,11 @@ int vsDynamicGeometry::removeParent(vsNode *targetParent)
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::applyAttributes()
 {
+    // Call the parent class method
     vsNode::applyAttributes();
     
+    // Apply the current vsGraphicsState settings to this object's
+    // pfGeoState
     (vsGraphicsState::getInstance())->applyState(performerGeostate);
 }
 
@@ -1204,11 +1439,15 @@ int vsDynamicGeometry::geostateCallback(pfGeoState *gstate, void *userData)
     pfLight **lightList;
     int loop;
     
+    // Get the light list from the userData parameter
     lightList = (pfLight **)userData;
     
+    // Turn all the lights in the list on
     for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
         if (lightList[loop] != NULL)
             (lightList[loop])->on();
 
+    // Return zero (Performer callback requires a return value, even though
+    // it is ignored)
     return 0;
 }
