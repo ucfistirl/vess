@@ -84,10 +84,6 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundSample *buffer, int loop)
         alSourcePlay(sourceID);
 }
 
-/*  
-   Not available yet.  The details of streaming sounds are still 
-   being worked out in the OpenAL world
-
 // ------------------------------------------------------------------------
 // Constructor -  creates a streaming sound source.  The play() method
 // must be explicitly called to start playing because we cannot assume
@@ -135,8 +131,6 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundStream *buffer)
     alSourcefv(sourceID, AL_VELOCITY, zero);
     alSourcei(sourceID, AL_BUFFER, 0);
 }
-
-*/
 
 // ------------------------------------------------------------------------
 // Destructor
@@ -269,10 +263,8 @@ void vsSoundSourceAttribute::update()
     vsVector       tempVec;
     vsVector       deltaVec;
     double         interval;
-/*
     int            buffersProcessed;
     ALuint         bufferID;
-*/
 
     if (!attachedFlag)
         return;
@@ -312,7 +304,6 @@ void vsSoundSourceAttribute::update()
             tempVec[VS_Z]);
     }
 
-/*
     // For streaming sources, check to see if we need to swap buffers
     // to allow the old buffer to be refilled
     if (streamingSource)
@@ -323,11 +314,15 @@ void vsSoundSourceAttribute::update()
         {
             // The current buffer is done, swap buffers
             bufferID = ((vsSoundStream *)soundBuffer)->getFrontBufferID();
-            alUnqueue(sourceID, 1, &bufferID);
+            alSourceUnqueueBuffers(sourceID, 1, &bufferID);
+
+            // NOTE:  no provisions are made in case the buffer swap
+            // fails (i.e.: if there isn't any new data in the back buffer)
+            // The user is responsible for making sure the buffers stay
+            // filled and ready
             ((vsSoundStream *)soundBuffer)->swapBuffers();
         }
     }
-*/
 }
 
 // ------------------------------------------------------------------------
@@ -344,19 +339,13 @@ void vsSoundSourceAttribute::play()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::stop()
 {
-/*
-    int buffersProcessed;
-*/
-
     alSourceStop(sourceID);
 
-/*
     if (streamingSource)
     {
         ((vsSoundStream *)soundBuffer)->flushBuffers();
         alSourcei(sourceID, AL_BUFFER, 0);
     }
-*/
 }
 
 // ------------------------------------------------------------------------
