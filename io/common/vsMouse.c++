@@ -116,6 +116,14 @@ vsMouse::~vsMouse()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsMouse::getClassName()
+{
+    return "vsMouse";
+}
+
+// ------------------------------------------------------------------------
 // Change the value of the first two vsInputAxes to the given positions.
 // ------------------------------------------------------------------------
 void vsMouse::moveTo(int xPos, int yPos)

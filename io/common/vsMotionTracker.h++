@@ -45,6 +45,8 @@ public:
                           vsMotionTracker();
                           ~vsMotionTracker();
 
+    virtual const char    *getClassName();
+
     virtual int           getNumButtons();
 
     virtual vsInputButton *getButton(int index);

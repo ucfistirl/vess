@@ -47,6 +47,8 @@ public:
                              vsSpaceball(int nButtons);
     virtual                  ~vsSpaceball(void);
 
+    virtual const char       *getClassName();
+
     virtual int              getNumButtons(void);
     virtual vsInputButton    *getButton(int index);
 };

@@ -65,6 +65,14 @@ vsKeyboard::~vsKeyboard()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsKeyboard::getClassName()
+{
+    return "vsKeyboard";
+}
+
+// ------------------------------------------------------------------------
 // Map the given X KeySym to the correct vsInputButton.
 // ------------------------------------------------------------------------
 int vsKeyboard::mapToButton(KeySym keySym)

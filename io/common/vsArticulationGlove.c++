@@ -65,6 +65,14 @@ vsArticulationGlove::~vsArticulationGlove()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsArticulationGlove::getClassName()
+{
+    return "vsArticulationGlove";
+}
+
+// ------------------------------------------------------------------------
 // Updates the joint angles from the current sensor values.  Call this 
 // method after updating all the sensor values.
 // ------------------------------------------------------------------------

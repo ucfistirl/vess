@@ -161,6 +161,8 @@ public:
                      ~vsArticulationGlove();
 
     // Inherited methods
+    virtual const char    *getClassName();
+
     int              getNumAxes();
     int              getNumButtons();
 

@@ -94,6 +94,8 @@ public:
                              ~vsChordGloves();
 
     // Inherited functions
+    virtual const char       *getClassName();
+
     virtual int              getNumAxes();
     virtual int              getNumButtons();
 

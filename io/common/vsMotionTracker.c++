@@ -47,6 +47,14 @@ vsMotionTracker::~vsMotionTracker()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsMotionTracker::getClassName()
+{
+    return "vsMotionTracker";
+}
+
+// ------------------------------------------------------------------------
 // Set the position of this motion tracker
 // ------------------------------------------------------------------------
 void vsMotionTracker::setPosition(vsVector posVec)

@@ -59,6 +59,14 @@ vsSpaceball::~vsSpaceball(void)
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsSpaceball::getClassName()
+{
+    return "vsSpaceball";
+}
+
+// ------------------------------------------------------------------------
 // Set the position of the Spaceball
 // ------------------------------------------------------------------------
 void vsSpaceball::setPosition(vsVector posVec)

@@ -53,6 +53,8 @@ public:
                      vsMouse(int nAxes, int nButtons, int xSize, int ySize);
                      ~vsMouse();
 
+    virtual const char    *getClassName();
+
     virtual int      getNumAxes();
     virtual int      getNumButtons();
 

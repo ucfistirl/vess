@@ -62,6 +62,14 @@ vsChordGloves::~vsChordGloves()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsChordGloves::getClassName()
+{
+    return "vsChordGloves";
+}
+
+// ------------------------------------------------------------------------
 // VESS Internal function.  Sets the two given digits as connected.
 // ------------------------------------------------------------------------
 void vsChordGloves::connect(int first, int second)

@@ -164,6 +164,9 @@ public:
                      vsKeyboard(int mode);
                      ~vsKeyboard();
 
+    // Inherited methods
+    virtual const char    *getClassName();
+
     // General input device methods
     virtual int      getNumAxes();
     virtual int      getNumButtons();

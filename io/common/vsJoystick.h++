@@ -55,6 +55,9 @@ public:
                 vsJoystick(int nAxes, int nButtons);
                 ~vsJoystick();
 
+    // Inherited methods
+    virtual const char       *getClassName();
+
     // Input device methods
     virtual int              getNumAxes();
     virtual int              getNumButtons();

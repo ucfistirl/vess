@@ -104,6 +104,14 @@ vsJoystick::~vsJoystick()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsJoystick::getClassName()
+{
+    return "vsJoystick";
+}
+
+// ------------------------------------------------------------------------
 // Return the number of axes
 // ------------------------------------------------------------------------
 int vsJoystick::getNumAxes()
