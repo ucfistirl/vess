@@ -15,7 +15,7 @@
 //
 //    Description:  Class that represents an open window on any screen
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Casey Thurston
 //
 //------------------------------------------------------------------------
 
@@ -25,6 +25,13 @@
 class vsWindow;
 
 #include <windows.h>
+
+#include <wingdi.h>
+#include <gl/gl.h>
+#include <gl/glu.h>
+#include <glext.h>
+#include <wglext.h>
+
 #include "vsScreen.h++"
 #include "vsPane.h++"
 #include "vsObjectMap.h++"
@@ -48,28 +55,42 @@ private:
     int                        windowNumber;
 
     char                       windowClassName[50];
-    WNDCLASSEX                 windowClass;    
+    WNDCLASSEX                 windowClass;
     HWND                       msWindow;
     HDC                        deviceContext;
     HGLRC                      glContext;
     WNDPROC                    oldWindowProc;
+    HPBUFFERARB                pBuffer;
+    int                        pixelFormat;
     
+
     // Maps vsWindow's to MS Windows HWND's
     static vsObjectMap         *windowMap;
-    
+
     int                        xPositionOffset, yPositionOffset;
     int                        widthOffset, heightOffset;
+    int                        drawableWidth, drawableHeight;
 
     int                        validObject;
 
     static int                 windowCount;
-    
+
     static LRESULT CALLBACK    mainWindowProc(HWND msWindow, UINT message, 
                                               WPARAM wParam, LPARAM lParam);
-                                              
+
     static LRESULT CALLBACK    subclassedWindowProc(HWND msWindow, UINT message,
                                                     WPARAM wParam, 
                                                     LPARAM lParam);
+
+    bool                       isOffScreenWindow;
+
+    // Function pointers for the WGL Extensions for off-screen windows
+    PFNWGLCHOOSEPIXELFORMATARBPROC   wglChoosePixelFormatARB;
+    PFNWGLRELEASEPBUFFERDCARBPROC    wglReleasePbufferDCARB;
+    PFNWGLDESTROYPBUFFERARBPROC      wglDestroyPbufferARB;
+    PFNWGLCREATEPBUFFERARBPROC       wglCreatePbufferARB;
+    PFNWGLGETPBUFFERDCARBPROC        wglGetPbufferDCARB;
+    PFNWGLQUERYPBUFFERARBPROC        wglQueryPbufferARB;
 
 VS_INTERNAL:
 
@@ -79,22 +100,25 @@ VS_INTERNAL:
     int                   getWindowNumber();
     void                  makeCurrent();
     void                  swapBuffers();
-    
+
     static vsObjectMap    *getMap();
     static void           deleteMap();
 
     WNDPROC               getWindowProc();
-    
+
     void                  update();
+    bool                  isOffScreen();
 
 public:
 
                        vsWindow(vsScreen *parent, bool hideBorder, bool stereo);
                        vsWindow(vsScreen *parent, int x, int y, int width, 
                                 int height, bool hideBorder, bool stereo);
+                       vsWindow(vsScreen *parent, int offScreenWidth,
+                                int offScreenHeight);
                        vsWindow(vsScreen *parent, HWND msWin);
     virtual            ~vsWindow();
-    
+
     virtual const char *getClassName();
 
     vsScreen           *getParentScreen();

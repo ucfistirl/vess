@@ -15,7 +15,7 @@
 //
 //    Description:  Class that represents an open window on any screen
 //
-//    Author(s):    Bryan Kline, Jason Daly
+//    Author(s):    Bryan Kline, Jason Daly, Casey Thurston
 //
 //------------------------------------------------------------------------
 
@@ -48,8 +48,7 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     vsPipe *parentPipe;
     DWORD windowStyle;
     PIXELFORMATDESCRIPTOR pixelFormatDesc, stereoPFD;
-    int pixelFormat;
-    
+
     // Initialize the pane count
     childPaneCount = 0;
 
@@ -57,7 +56,7 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     // Note: this procedure may need to be protected for thread-safeness 
     // if OSG becomes multi-threaded.
     windowNumber = windowCount++;
-    
+
     // Get the parent vsScreen and vsPipe
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
@@ -65,7 +64,7 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     // Set up the window class.  First pick a name for it, use the
     // window number to keep it unique.
     sprintf(windowClassName, "VS_WINDOW_CLASS_%d", windowNumber);
-	
+
     // Size in memory
     windowClass.cbSize = sizeof(WNDCLASSEX);
 
@@ -200,6 +199,9 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     
     // Register a mapping between this vsWindow and its MS window handle
     getMap()->registerLink(msWindow, this);
+
+    // Indicate that the window is not for off-screen rendering
+    isOffScreenWindow = false;
 }
 
 // ------------------------------------------------------------------------
@@ -216,7 +218,6 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     vsPipe *parentPipe;
     DWORD windowStyle;
     PIXELFORMATDESCRIPTOR pixelFormatDesc, stereoPFD;
-    int pixelFormat;
     
     // Initialize the pane count
     childPaneCount = 0;
@@ -362,9 +363,164 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
 
     // Add the window to its parent screen
     parentScreen->addWindow(this);
-    
+
     // Register a mapping between this vsWindow and its MS window handle
     getMap()->registerLink(msWindow, this);
+
+    // Indicate that the window is not for off-screen rendering
+    isOffScreenWindow = false;
+}
+
+// ------------------------------------------------------------------------
+// Constructor - Initializes the window by creating a GLX window and
+// creating connections with that, verifying that the window is being
+// properly displayed, recording some size data from the window manager,
+// and configuring the window with its default position and size.  This
+// constructor creates a window for off-screen rendering with a PBuffer.
+// ------------------------------------------------------------------------
+vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
+         : childPaneList(1, 1)
+{
+    vsPipe *parentPipe;
+    UINT numFormats;
+    PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB;
+    char *wglExtensions, *token;
+    bool wglPbufferFlag, wglPixelFormatFlag;
+    
+    int iAttributeList[] = {
+        WGL_DRAW_TO_PBUFFER_ARB, GL_TRUE,
+        WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+        WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+        WGL_COLOR_BITS_ARB, 32,
+        WGL_DEPTH_BITS_ARB, 24,
+        WGL_STENCIL_BITS_ARB, 8,
+        0, 0};
+
+    float fAttributeList[] = {0, 0};
+
+    int bufferAttribList[] = {
+        WGL_PBUFFER_LARGEST_ARB, GL_FALSE,
+        0, 0};
+    
+    // Store the values for the width and height
+    drawableWidth = offScreenWidth;
+    drawableHeight = offScreenHeight;
+
+    // Initialize the pane count
+    childPaneCount = 0;
+
+    // Assign this window an index and increment the window count.
+    // Note: this procedure may need to be protected for thread-safeness
+    // if OSG becomes multi-threaded.
+    windowNumber = windowCount++;
+
+    // Get the parent vsScreen and vsPipe
+    parentScreen = parent;
+    parentPipe = parentScreen->getParentPipe();
+
+    // The off-screen window has no visible component
+    msWindow = NULL;
+
+    // Set the oldWindowProc member to NULL, since we aren't subclassing
+    // this window
+    oldWindowProc = NULL;
+
+    // Get the current valid device context from the system
+    deviceContext = wglGetCurrentDC();
+    
+    // This function pointer must be fetched to determine which WGL
+    // extensions are installed on this machine
+    wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)
+        wglGetProcAddress("wglGetExtensionsStringARB");
+
+    // If the extensions are not installed, bail out
+    if(!wglGetExtensionsStringARB)
+    {
+        printf("vsWindow::vsWindow:  WGL Extensions not detected. "
+               "Cannot instantiate off-screen window\n");
+        return;
+    }
+        
+    // Get the extensions string
+    wglExtensions = (char *)wglGetExtensionsStringARB(deviceContext);
+    
+    // Initialize the flags indicating the presence of the two WGL extensions
+    // to false, since they have not yet been found
+    wglPbufferFlag = false;
+    wglPixelFormatFlag = false;
+    
+    // Start a tokenizer on the extensions string
+    token = strtok(wglExtensions, " \n");
+    
+    // If the token matches either extensions string, set the flag to true
+    if(strcmp(token, "WGL_ARB_pbuffer") == 0)
+        wglPbufferFlag = true;
+    else if(strcmp(token, "WGL_ARB_pixel_format") == 0)
+        wglPixelFormatFlag = true;
+        
+    // Scan the tokenizer for the strings, setting the flags appropriately
+    while(token = strtok(NULL, " \n"))
+    {
+        if(strcmp(token, "WGL_ARB_pbuffer") == 0)
+            wglPbufferFlag = true;
+        else if(strcmp(token, "WGL_ARB_pixel_format") == 0)
+            wglPixelFormatFlag = true;
+    }
+    
+    // If either the pbuffer or pixel format extensions are missing, the window
+    // cannot be instantiated
+    if((!wglPbufferFlag) || (!wglPixelFormatFlag))
+    {
+        printf("vsWindow::vsWindow:  WGL extensions not installed!\n");
+        return;
+    }
+    
+    // Set the WGL function pointers
+    wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)
+        wglGetProcAddress("wglChoosePixelFormatARB");
+    wglReleasePbufferDCARB = (PFNWGLRELEASEPBUFFERDCARBPROC)
+        wglGetProcAddress("wglReleasePbufferDCARB");        
+    wglDestroyPbufferARB = (PFNWGLDESTROYPBUFFERARBPROC)
+        wglGetProcAddress("wglDestroyPbufferARB");
+    wglCreatePbufferARB = (PFNWGLCREATEPBUFFERARBPROC)
+        wglGetProcAddress("wglCreatePbufferARB");
+    wglGetPbufferDCARB = (PFNWGLGETPBUFFERDCARBPROC)
+        wglGetProcAddress("wglGetPbufferDCARB");
+    wglQueryPbufferARB = (PFNWGLQUERYPBUFFERARBPROC)
+        wglGetProcAddress("wglQueryPbufferARB");
+
+    // Search the current device context for the pixel format that most
+    // closely matches the format we described
+    if( !wglChoosePixelFormatARB(deviceContext, iAttributeList, fAttributeList,
+        1, &pixelFormat, &numFormats) )
+    {
+        // If we could not find a valid pixel format, bail out
+        printf("vsWindow::vsWindow:  Unable to find valid pixel format\n");
+        return;
+    }
+
+    // Create the Pbuffer based on the new pixel format
+    pBuffer = wglCreatePbufferARB(deviceContext, pixelFormat, offScreenWidth,
+        offScreenHeight, bufferAttribList);
+
+    // Set the device context to that of the Pbuffer
+    deviceContext = wglGetPbufferDCARB(pBuffer);
+
+    // Create an OpenGL context for the Pbuffer
+    glContext = wglCreateContext(deviceContext);
+
+    // If the context is not valid, bail out.
+    if (glContext == NULL)
+    {
+        printf("vsWindow::vsWindow:  Unable to create OpenGL context\n");
+        return;
+    }
+
+    // Add the window to its parent screen
+    parentScreen->addWindow(this);
+
+    // Indicate that the window is used for off-screen rendering
+    isOffScreenWindow = true;
 }
 
 // ------------------------------------------------------------------------
@@ -376,7 +532,6 @@ vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
 {
     vsPipe *parentPipe;
     PIXELFORMATDESCRIPTOR pixelFormatDesc, stereoPFD;
-    int pixelFormat;
     
     // Initialize the pane count
     childPaneCount = 0;
@@ -453,6 +608,9 @@ vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
     
     // Register a mapping between this vsWindow and its MS window handle
     getMap()->registerLink(msWindow, this);
+
+    // Indicate that the window is not for off-screen rendering
+    isOffScreenWindow = false;
 }
 
 // ------------------------------------------------------------------------
@@ -466,17 +624,31 @@ vsWindow::~vsWindow()
     // the list will go away by itself.
     while (childPaneCount > 0)
         delete ((vsPane *)(childPaneList[0]));
-    
+
     // Remove the window from its screen
     parentScreen->removeWindow(this);
-    
-    // Remove the window mapping
-    if (getMap()->mapSecondToFirst(this))
-        getMap()->removeLink(this, VS_OBJMAP_SECOND_LIST);
 
-    // Destroy the window
+    // Delete the rendering context
     wglDeleteContext(glContext);
-    DestroyWindow(msWindow);
+
+    // Handle off-screen windows seperately
+    if(isOffScreenWindow)
+    {
+        // Destroy the device context of the Pbuffer
+        wglReleasePbufferDCARB(pBuffer, deviceContext);
+
+        // Destroy the Pbuffer itself
+        wglDestroyPbufferARB(pBuffer);
+    }
+    else
+    {
+        // Remove the window mapping
+        if (getMap()->mapSecondToFirst(this))
+            getMap()->removeLink(this, VS_OBJMAP_SECOND_LIST);
+
+        // Destroy the window
+        DestroyWindow(msWindow);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -525,6 +697,37 @@ vsPane *vsWindow::getChildPane(int index)
 // ------------------------------------------------------------------------
 void vsWindow::setSize(int width, int height)
 {
+    // Resizing an off-screen window requires destroying and re-creating
+    // its Pbuffer and associated rendering context
+    if(isOffScreenWindow)
+    {
+        int bufferAttribList[] = {
+            WGL_PBUFFER_LARGEST_ARB, GL_FALSE,
+            0, 0};
+
+        // Destroy the old Pbuffer
+        wglDeleteContext(glContext);
+        wglReleasePbufferDCARB(pBuffer, deviceContext);
+        wglDestroyPbufferARB(pBuffer);
+
+        // Obtain a safe device context
+        deviceContext = wglGetCurrentDC();
+
+        // Use the original pixel format chosen to create a new Pbuffer
+        pBuffer = wglCreatePbufferARB(deviceContext, pixelFormat, width,
+            height, bufferAttribList);
+
+        // Finally update the device context and gl rendering context
+        deviceContext = wglGetPbufferDCARB(pBuffer);
+        glContext = wglCreateContext(deviceContext);
+
+        // Update the drawable width and height for future get calls
+        drawableWidth = width;
+        drawableHeight = height;
+
+        return;
+    }
+
     // Call the SetWindowPos function, telling it to ignore the position 
     // and z-order fields.  Also instruct the function not to activate the
     // window (don't give it focus or change the stacking order).
@@ -538,6 +741,20 @@ void vsWindow::setSize(int width, int height)
 // ------------------------------------------------------------------------
 void vsWindow::getSize(int *width, int *height)
 {
+    // If the window is off-screen, this must be handled seperately
+    if(isOffScreenWindow)
+    {
+        // Return the width if requested
+        if(width)
+            *width = drawableWidth;
+
+        // Return the height if requested
+        if(height)
+            *height = drawableHeight;
+
+        return;
+    }
+
     RECT windowRect;
     
     // Get the dimensions of the window
@@ -560,6 +777,20 @@ void vsWindow::getSize(int *width, int *height)
 // ------------------------------------------------------------------------
 void vsWindow::getDrawableSize(int *width, int *height)
 {
+    // If the window is off-screen, this must be handled seperately
+    if(isOffScreenWindow)
+    {
+        // Return the width if requested
+        if(width)
+            *width = drawableWidth;
+
+        // Return the height if requested
+        if(height)
+            *height = drawableHeight;
+
+        return;
+    }
+
     RECT clientRect;
     
     // Get the dimensions of the window
@@ -580,6 +811,10 @@ void vsWindow::getDrawableSize(int *width, int *height)
 // ------------------------------------------------------------------------
 void vsWindow::setPosition(int xPos, int yPos)
 {
+    // If the window is off-screen, position is irrelevant
+    if(isOffScreenWindow)
+        return;
+
     // Call the SetWindowPos function, telling it to ignore the size and 
     // z-order fields.  Also instruct the function not to activate the
     // window (don't give it focus or change the stacking order).
@@ -594,6 +829,20 @@ void vsWindow::setPosition(int xPos, int yPos)
 // ------------------------------------------------------------------------
 void vsWindow::getPosition(int *xPos, int *yPos)
 {
+    // If the window is off-screen, position is irrelevant
+    if(isOffScreenWindow)
+    {
+        // Return a default x-position if requested
+        if (xPos)
+            *xPos = 0;
+
+        // Return a default y-position if requested
+        if (yPos)
+            *yPos = 0;
+
+        return;
+    }
+
     RECT windowRect;
     
     // Get the dimensions of the window
@@ -631,6 +880,10 @@ void vsWindow::setFullScreen()
 // ------------------------------------------------------------------------
 void vsWindow::setName(char *newName)
 {
+    // If the window is offScreen, it doesn't have a name
+    if(isOffScreenWindow)
+        return;
+
     SetWindowText(msWindow, newName);
 }
 
@@ -649,8 +902,8 @@ void vsWindow::saveImage(char *filename)
     makeCurrent();
     
     // Get the current size of the window and apply the border offsets
-    getSize(&width, &height);
-    
+    getDrawableSize(&width, &height);
+
     // Construct the Image object
     osgImage = new osg::Image();
 
@@ -675,12 +928,10 @@ vsImage * vsWindow::getImage()
 
     // Make sure the window's OpenGL context is the current context
     makeCurrent();
-    
+
     // Get the current size of the window and apply the border offsets
-    getSize(&width, &height);
-    width -= widthOffset;
-    height -= heightOffset;
-    
+    getDrawableSize(&width, &height);
+
     // Allocate our temporary buffer
     unsigned char * buffer = new unsigned char[ width * height * 3 ];
 
@@ -772,7 +1023,40 @@ int vsWindow::getWindowNumber()
 // ------------------------------------------------------------------------
 void vsWindow::makeCurrent()
 {
-    BOOL result;
+    // If the window is off-screen, make sure the Pbuffer is still valid
+    if(isOffScreenWindow)
+    {
+        int flag;
+
+        // Query the Pbuffer to see if it was lost
+        wglQueryPbufferARB(pBuffer, WGL_PBUFFER_LOST_ARB, &flag);
+
+        // If the Pbuffer is no longer valid, re-create it
+        if(flag != 0)
+        {
+            int bufferAttribList[] = {
+                WGL_PBUFFER_LARGEST_ARB, GL_FALSE,
+                0, 0};
+
+            // Destroy the old Pbuffer
+            wglDeleteContext(glContext);
+            wglReleasePbufferDCARB(pBuffer, deviceContext);
+            wglDestroyPbufferARB(pBuffer);
+
+            // Obtain a safe device context
+            deviceContext = wglGetCurrentDC();
+
+            // Use the original pixel format chosen to create a new Pbuffer
+            pBuffer = wglCreatePbufferARB(deviceContext, pixelFormat,
+                drawableWidth, drawableHeight, bufferAttribList);
+
+            // Finally update the device context and gl rendering context
+            deviceContext = wglGetPbufferDCARB(pBuffer);
+            glContext = wglCreateContext(deviceContext);
+        }
+    }
+
+    bool result;
 
     // Try to make this window's GLX context current
     result = wglMakeCurrent(deviceContext, glContext);
@@ -781,26 +1065,34 @@ void vsWindow::makeCurrent()
     if (!result)
     {
         printf("vsWindow::makeCurrent:  Unable to attach OpenGL context to "
-            "window!\n");
+            "drawing surface!\n");
     }
 }
 
 // ------------------------------------------------------------------------
 // Internal function
-// Swaps drawing buffers on this Window
+// Swaps the drawing buffers on this window if the window is on-screen.
+// Note: OSG always draws to the back buffer, so off-screen windows must be
+// double-buffered under OSG. However, when rendering single frames, as one
+// might wish to do with an off-screen window, the double-buffering adds a
+// single frame of delay. The check made here eliminates that delay.
 // ------------------------------------------------------------------------
 void vsWindow::swapBuffers()
 {
-    BOOL result;
+    bool result = true;
     
-    // Try to swap the buffers on the MS window's GDI context
-    result = SwapBuffers(deviceContext);
-    
+    // Make sure the window is on-screen before trying to swap
+    if(!isOffScreenWindow)
+    {
+        // Try to swap the buffers on the MS window's GDI context
+        result = SwapBuffers(deviceContext);
+    }
+
     // Print an error if the swapBuffers failed
     if (!result)
     {
         printf("vsWindow::swapBuffers:  Unable to swap buffers on the "
-            "window!\n");
+            "drawing surface!\n");
     }
 }
 
@@ -839,10 +1131,10 @@ LRESULT CALLBACK vsWindow::mainWindowProc(HWND msWindow, UINT message,
     int i;
     int width, height;
     vsWindow *window;
-    
+
     // Get the vsWindow corresponding to the given HWND
     window = (vsWindow *)(getMap()->mapFirstToSecond(msWindow));
-    
+
     // Make sure we know about this window.  If not, just let Windows
     // handle the message
     if (window == NULL)
@@ -862,11 +1154,11 @@ LRESULT CALLBACK vsWindow::mainWindowProc(HWND msWindow, UINT message,
                 ((vsPane *)(window->childPaneList[i]))->resize();
             break;
             
-	    default:
-	        // Call the Windows default window procedure for this message
+            default:
+            // Call the Windows default window procedure for this message
             return DefWindowProc(msWindow, message, wParam, lParam);
-	}
-	return 0;
+    }
+    return 0;
 }
 
 // ------------------------------------------------------------------------
@@ -882,7 +1174,7 @@ LRESULT CALLBACK vsWindow::subclassedWindowProc(HWND msWindow, UINT message,
     int width, height;
     vsWindow *window;
     LRESULT result;
-    
+
     // Get the vsWindow corresponding to the given HWND
     window = (vsWindow *)(getMap()->mapFirstToSecond(msWindow));
 
@@ -904,14 +1196,14 @@ LRESULT CALLBACK vsWindow::subclassedWindowProc(HWND msWindow, UINT message,
             for (i = 0; i < window->childPaneCount; i++)
                 ((vsPane *)(window->childPaneList[i]))->resize();
             break;
-	}
-	
-	// Call the previous window procedure (whether we handle a message or
-	// not)
-	result = CallWindowProc(window->oldWindowProc, msWindow, message, wParam, 
-	    lParam);
-	
-	return result;
+    }
+    
+    // Call the previous window procedure (whether we handle a message or
+    // not)
+    result = CallWindowProc(window->oldWindowProc, msWindow, message, wParam, 
+        lParam);
+    
+    return result;
 }
 
 // ------------------------------------------------------------------------
@@ -921,4 +1213,13 @@ LRESULT CALLBACK vsWindow::subclassedWindowProc(HWND msWindow, UINT message,
 // ------------------------------------------------------------------------
 void vsWindow::update()
 {
+}
+
+// ------------------------------------------------------------------------
+// Internal function
+// Returns a boolean value representing whether the window is off-screen
+// ------------------------------------------------------------------------
+bool vsWindow::isOffScreen()
+{
+    return isOffScreenWindow;
 }
