@@ -139,6 +139,9 @@ public:
     void                disableStats();
     bool                areStatsEnabled();
 
+    void                setGLClearMask(int clearMask);
+    int                 getGLClearMask();
+
     pfChannel           *getBaseLibraryObject();
 };
 
