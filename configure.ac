@@ -32,7 +32,7 @@ AM_LDFLAGS=
 
 dnl Additional CFLAGS/CXXFLAGS based on system type
 case "$target" in
-   i*86-pc-linux*)
+   i*86-*-linux*)
    AM_CFLAGS="$AM_CFLAGS -g -ansi -D__linux__ -D_MISC_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE -Wno-deprecated"
    AM_CXXFLAGS="$AM_CXXFLAGS -g -ansi -D__linux__ -D_MISC_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE -Wno-deprecated" ;;
    mips-sgi-irix*)
@@ -69,7 +69,7 @@ dnl up variables to handle that (since we're not using libtool).  Finally,
 dnl we set the operating system variable (OS) to indicate the appropriate 
 dnl operating system.
 case "$target" in
-   i*86-pc-linux*)
+   i*86-*-linux*)
        LIBDIR="lib"
        SO_LINK="-Wl,--whole-archive"
        SO_NO_LINK="-Wl,--no-whole-archive"
@@ -302,17 +302,18 @@ case "$SG" in
         fi
 
         dnl Set the graphics library directories
-        GFX_INCLUDE_DIR="$GFX_INCLUDE_DIR -I$x_includes -I$OSG_PATH/include -I$OSG_PATH/src/osgText -I$with_openthreads/include"
+        GFX_INCLUDE_DIR="$GFX_INCLUDE_DIR -I$x_includes -I$OSG_PATH/include -I$with_openthreads/include"
         GFX_LIB_DIR="$GFX_LIB_DIR -L$x_libraries -L$OSG_PATH/lib -L$OSG_PATH/lib/osgPlugins -L$with_openthreads/lib"
-        GFX_LIB="$GFX_LIB -lXi -lXm -lXt -lGLU -lGL -lOpenThreads -losg -losgDB -losgUtil -losgText -lfreetype -lXext -lXmu -lX11 -ldl"
+        GFX_LIB="$GFX_LIB -lXi -lXm -lXt -lGLU -lGL -lOpenThreads -losg -losgDB -losgUtil -losgText -losgSim -lfreetype -lXext -lXmu -lX11 -ldl"
 
         dnl Check the OSG libraries to see if they're where they are
         dnl supposed to be.  Set an error flag if not.
         LIBS=
-        AC_CHECK_LIB(osg, osgGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib)
-        AC_CHECK_LIB(osgDB, osgDBGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib -L$with_openthreads/lib -lOpenThreads)
-        AC_CHECK_LIB(osgUtil, osgUtilGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib -L$with_openthreads/lib -lOpenThreads)
-        AC_CHECK_LIB(osgText, osgTextGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib -L$with_openthreads/lib -lOpenThreads)
+        AC_CHECK_LIB(osg, osgGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib -L$with_openthreads/lib -lOpenThreads)
+        AC_CHECK_LIB(osgDB, osgDBGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib -L$with_openthreads/lib -losg -lOpenThreads)
+        AC_CHECK_LIB(osgUtil, osgUtilGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib -L$with_openthreads/lib -losg -lOpenThreads)
+        AC_CHECK_LIB(osgText, osgTextGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib -L$with_openthreads/lib -losg -lOpenThreads)
+        AC_CHECK_LIB(osgSim, osgSimGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib -L$with_openthreads/lib -losg -lOpenThreads)
 
         dnl Look for freetype 2.  We need this for osgText.
         AC_MSG_CHECKING([path for freetype2])
