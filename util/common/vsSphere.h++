@@ -35,17 +35,19 @@ private:
 
     void        promote(vsVector *points, int index);
 
-    vsSphere    calcSphereOn(vsVector *points, int pointCount);
+    vsSphere    calcSphereOn(vsVector *points, int pointCount,
+                             bool *errorFlag);
     vsSphere    moveToFront(vsVector *points, int pointCount,
                             vsVector *basis, int basisCount,
-                            int *supportSize);
+                            int *supportSize, bool *errorFlag);
 
     void        promote(vsSphere *spheres, int index);
 
-    vsSphere    calcSphereAround(vsSphere *spheres, int sphereCount);
+    vsSphere    calcSphereAround(vsSphere *spheres, int sphereCount,
+                                 bool *errorFlag);
     vsSphere    moveToFront(vsSphere *spheres, int sphereCount,
                             vsSphere *basis, int basisCount,
-                            int *supportSize);
+                            int *supportSize, bool *errorFlag);
 
 public:
 

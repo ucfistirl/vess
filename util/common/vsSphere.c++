@@ -218,6 +218,7 @@ void vsSphere::enclosePoints(vsVector *points, int pointCount)
     double sqrDist, maxSqrDist;
     int maxIdx;
     int going;
+    bool err;
 
     // Bounds checking
     if (pointCount < 0)
@@ -235,19 +236,18 @@ void vsSphere::enclosePoints(vsVector *points, int pointCount)
     }
 
     // Start with a sphere that just encompasses the first point
-    result = moveToFront(points, 1, NULL, 0, &ssize);
+    result = moveToFront(points, 1, NULL, 0, &ssize, &err);
+
+    // Error checking
+    if (err)
+    {
+        setEmpty();
+        return;
+    }
 
     // Keep iterating as long as the function result is changing
     do
     {
-        // Error check: if the result sphere ever becomes empty, then there
-        // was a problem; abort.
-        if (result.getRadius() == -1.0)
-        {
-            printf("vsSphere::enclosePoints: Unable to compute enclosing sphere\n");
-            break;
-        }
-
         // Initialization
         going = 0;
         maxSqrDist = -1.0;
@@ -278,7 +278,14 @@ void vsSphere::enclosePoints(vsVector *points, int pointCount)
         {
             // Run the algorithm with the new point
             result = moveToFront(points, ssize, &(points[maxIdx]), 1,
-                &ssize);
+                &ssize, &err);
+
+            // Error checking
+            if (err)
+            {
+                setEmpty();
+                return;
+            }
 
             // Move the new point to the front of the point list
             promote(points, maxIdx);
@@ -305,6 +312,7 @@ void vsSphere::encloseSpheres(vsSphere *spheres, int sphereCount)
     double dist, maxDist;
     int maxIdx;
     int going;
+    bool err;
 
     // Bounds checking
     if (sphereCount < 0)
@@ -322,19 +330,18 @@ void vsSphere::encloseSpheres(vsSphere *spheres, int sphereCount)
     }
 
     // Start with a sphere that just encompasses the first sphere
-    result = moveToFront(spheres, 1, NULL, 0, &ssize);
+    result = moveToFront(spheres, 1, NULL, 0, &ssize, &err);
+
+    // Error checking
+    if (err)
+    {
+        setEmpty();
+        return;
+    }
 
     // Keep iterating as long as the function result is changing
     do
     {
-        // Error check: if the result sphere ever becomes empty, then there
-        // was a problem; abort.
-        if (result.getRadius() == -1.0)
-        {
-            printf("vsSphere::encloseSpheres: Unable to compute enclosing sphere\n");
-            break;
-        }
-
         // Initialization
         going = 0;
         maxDist = -1.0;
@@ -365,7 +372,14 @@ void vsSphere::encloseSpheres(vsSphere *spheres, int sphereCount)
         {
             // Run the algorithm with the new sphere
             result = moveToFront(spheres, ssize, &(spheres[maxIdx]), 1,
-                &ssize);
+                &ssize, &err);
+
+            // Error checking
+            if (err)
+            {
+                setEmpty();
+                return;
+            }
 
             // Move the new sphere to the front of the sphere list
             promote(spheres, maxIdx);
@@ -575,7 +589,8 @@ void vsSphere::promote(vsVector *points, int index)
 // Calculates the smallest sphere that has the specified points exactly
 // on its boundary
 //------------------------------------------------------------------------
-vsSphere vsSphere::calcSphereOn(vsVector *points, int pointCount)
+vsSphere vsSphere::calcSphereOn(vsVector *points, int pointCount,
+    bool *errorFlag)
 {
     vsSphere result;
     int loop, sloop;
@@ -586,10 +601,13 @@ vsSphere vsSphere::calcSphereOn(vsVector *points, int pointCount)
     vsVector resultCenter;
     double resultRadius;
 
+    *errorFlag = false;
+
     // Bounds checking
     if ((pointCount < 0) || (pointCount > 4))
     {
         printf("vsSphere::calcSphereOn: pointCount parameter out of bounds\n");
+        *errorFlag = true;
         return result;
     }
 
@@ -636,6 +654,7 @@ vsSphere vsSphere::calcSphereOn(vsVector *points, int pointCount)
             "(data underflow)\n");
 
         // Return an empty sphere
+        *errorFlag = true;
         return result;
     }
 
@@ -671,15 +690,26 @@ vsSphere vsSphere::calcSphereOn(vsVector *points, int pointCount)
 // that encompasses all of the points.
 //------------------------------------------------------------------------
 vsSphere vsSphere::moveToFront(vsVector *points, int pointCount,
-    vsVector *basis, int basisCount, int *supportSize)
+    vsVector *basis, int basisCount, int *supportSize, bool *errorFlag)
 {
     vsSphere result;
     int loop;
     vsVector basisStore[4];
     int ssize;
+    bool err;
+
+    *errorFlag = false;
 
     // Calculate the sphere that goes through all of the basis points
-    result = calcSphereOn(basis, basisCount);
+    result = calcSphereOn(basis, basisCount, &err);
+
+    // Check for errors in the sphere calculation process
+    if (err)
+    {
+        *errorFlag = true;
+        result.setEmpty();
+        return result;
+    }
 
     // Copy the size of the basis point set to the basis size return parameter
     *supportSize = basisCount;
@@ -698,19 +728,21 @@ vsSphere vsSphere::moveToFront(vsVector *points, int pointCount,
     // by the basis points
     for (loop = 0; loop < pointCount; loop++)
     {
-        // Make sure that the result sphere is still valid; if it ever becomes
-        // empty for some reason, then there must have been a problem at some
-        // point in the algorithm, and we need to abort.
-        if (result.getRadius() == -1.0)
-            break;
-
         if (!result.isPointInside(points[loop]))
         {
             // If the point is outside our sphere, add that point to the basis
             // array, and recurse.
             basisStore[basisCount] = points[loop];
             result = moveToFront(points, loop, basisStore, basisCount+1,
-                &ssize);
+                &ssize, &err);
+
+            // Check for errors
+            if (err)
+            {
+                *errorFlag = true;
+                result.setEmpty();
+                return result;
+            }
 
             // Copy the new size of the basis point set to the return
             // parameter
@@ -755,7 +787,8 @@ void vsSphere::promote(vsSphere *spheres, int index)
 // Calculates the smallest sphere that is tangent to and encompasses the
 // specified spheres
 //------------------------------------------------------------------------
-vsSphere vsSphere::calcSphereAround(vsSphere *spheres, int sphereCount)
+vsSphere vsSphere::calcSphereAround(vsSphere *spheres, int sphereCount,
+    bool *errorFlag)
 {
     vsSphere result;
     int loop, sloop;
@@ -768,11 +801,14 @@ vsSphere vsSphere::calcSphereAround(vsSphere *spheres, int sphereCount)
     vsVector resultCenter;
     double resultRadius;
 
+    *errorFlag = false;
+
     // Bounds checking
     if ((sphereCount < 0) || (sphereCount > 4))
     {
         printf("vsSphere::calcSphereAround: sphereCount parameter "
             "out of bounds\n");
+        *errorFlag = true;
         return result;
     }
 
@@ -824,6 +860,7 @@ vsSphere vsSphere::calcSphereAround(vsSphere *spheres, int sphereCount)
             "(data underflow)\n");
 
         // Return an empty sphere
+        *errorFlag = true;
         return result;
     }
 
@@ -876,16 +913,27 @@ vsSphere vsSphere::calcSphereAround(vsSphere *spheres, int sphereCount)
 // sphere that encompasses all of the spheres.
 //------------------------------------------------------------------------
 vsSphere vsSphere::moveToFront(vsSphere *spheres, int sphereCount,
-    vsSphere *basis, int basisCount, int *supportSize)
+    vsSphere *basis, int basisCount, int *supportSize, bool *errorFlag)
 {
     vsSphere result;
     int loop;
     vsSphere basisStore[4];
     int ssize;
+    bool err;
+
+    *errorFlag = false;
 
     // Calculate the sphere that encompasses and is tangent to all of the
     // basis spheres
-    result = calcSphereAround(basis, basisCount);
+    result = calcSphereAround(basis, basisCount, &err);
+
+    // Check for errors in the sphere calculation process
+    if (err)
+    {
+        *errorFlag = true;
+        result.setEmpty();
+        return result;
+    }
 
     // Copy the size of the basis sphere set to the basis size return
     // parameter
@@ -905,19 +953,21 @@ vsSphere vsSphere::moveToFront(vsSphere *spheres, int sphereCount,
     // outside of the sphere indicated by the basis spheres
     for (loop = 0; loop < sphereCount; loop++)
     {
-        // Make sure that the result sphere is still valid; if it ever becomes
-        // empty for some reason, then there must have been a problem at some
-        // point in the algorithm, and we need to abort.
-        if (result.getRadius() == -1.0)
-            break;
-
         if (!result.isSphereInside(spheres[loop]))
         {
             // If the sphere is outside our sphere, add that sphere to the
             // basis array, and recurse.
             basisStore[basisCount] = spheres[loop];
             result = moveToFront(spheres, loop, basisStore, basisCount+1,
-                &ssize);
+                &ssize, &err);
+
+            // Check for errors
+            if (err)
+            {
+                *errorFlag = true;
+                result.setEmpty();
+                return result;
+            }
 
             // Copy the new size of the basis sphere set to the return
             // parameter
