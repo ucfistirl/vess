@@ -545,7 +545,7 @@ void vsIntersect::intersect(vsNode *targetNode)
         // it as if no intersection occurred
         if (segList[loop] == NULL)
         {
-            validFlag[loop] = 0;
+            validFlag[loop] = false;
             sectPoint[loop].set(0, 0, 0);
             sectNorm[loop].set(0, 0, 0);
             sectGeom[loop] = NULL;
@@ -563,7 +563,7 @@ void vsIntersect::intersect(vsNode *targetNode)
         // values and skip to the next segment if there aren't any
         if (hitList.empty())
         {
-            validFlag[loop] = 0;
+            validFlag[loop] = false;
             sectPoint[loop].set(0, 0, 0);
             sectNorm[loop].set(0, 0, 0);
             sectGeom[loop] = NULL;
@@ -575,7 +575,7 @@ void vsIntersect::intersect(vsNode *targetNode)
         }
         
         // Set the flag to indicate this segment has a valid intersection
-        validFlag[loop] = 1;
+        validFlag[loop] = true;
 
         // Get the segment's first hit
         hit = hitList.front();
@@ -668,17 +668,17 @@ void vsIntersect::intersect(vsNode *targetNode)
 // Returns if the last intersection traversal found an intersection for
 // the specified segment. The number of the first segment is 0.
 // ------------------------------------------------------------------------
-int vsIntersect::getIsectValid(int segNum)
+bool vsIntersect::getIsectValid(int segNum)
 {
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectValid: Segment number out of bounds\n");
-        return 0;
+        return false;
     }
 
     // Return the valid flag value of the corresponding segment.  This will
-    // be VS_TRUE if there was a valid intersection with this segment.
+    // be true if there was a valid intersection with this segment.
     return validFlag[segNum];
 }
 
