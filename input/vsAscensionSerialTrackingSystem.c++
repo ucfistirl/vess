@@ -1093,7 +1093,7 @@ void vsAscensionSerialTrackingSystem::updateMatrix(int trackerIndex,
     {
         for (j = 0; j < 3; j++)
         {
-            ornMat[j][i] = flockData[(i * 4) + j] * VS_AS_SCALE_MATRIX;
+            ornMat[j][i] = flockData[(i * 3) + j] * VS_AS_SCALE_MATRIX;
         }
     }
 

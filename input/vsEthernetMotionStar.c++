@@ -890,7 +890,7 @@ void vsEthernetMotionStar::updateMatrix(int trackerIndex, short flockData[])
     {
         for (j = 0; j < 3; j++)
         {
-            ornMat[j][i] = flockData[(i * 4) + j] * VS_MSTAR_SCALE_MATRIX;
+            ornMat[j][i] = flockData[(i * 3) + j] * VS_MSTAR_SCALE_MATRIX;
         }
     }
 
@@ -986,7 +986,7 @@ void vsEthernetMotionStar::updatePosMatrix(int trackerIndex, short flockData[])
     {
         for (j = 0; j < 3; j++)
         {
-            ornMat[j][i] = flockData[(i * 3) + j] * VS_MSTAR_SCALE_MATRIX;
+            ornMat[j][i] = flockData[(i * 3) + j + 3] * VS_MSTAR_SCALE_MATRIX;
         }
     }
 
