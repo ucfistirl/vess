@@ -23,6 +23,7 @@
 #ifndef VS_NODE_HPP
 #define VS_NODE_HPP
 
+#include <Performer/pf/pfNode.h>
 #include "vsObject.h++"
 #include "vsGrowableArray.h++"
 #include "vsAttribute.h++"
@@ -122,6 +123,8 @@ public:
 
     virtual void        enableCull() = 0;
     virtual void        disableCull() = 0;
+
+    virtual pfNode      *getBaseLibraryObject();
 };
 
 #endif

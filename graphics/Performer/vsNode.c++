@@ -592,3 +592,12 @@ void vsNode::dirtyDown()
     for (loop = 0; loop < getChildCount(); loop++)
         getChild(loop)->dirtyDown();
 }
+
+// ------------------------------------------------------------------------
+// Return the pfNode corresponding to this vsNode
+// ------------------------------------------------------------------------
+pfNode *vsNode::getBaseLibraryObject()
+{
+    return (pfNode *)nodeMap->mapFirstToSecond(this);
+}
+
