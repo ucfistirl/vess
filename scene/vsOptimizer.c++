@@ -21,7 +21,7 @@ vsOptimizer::~vsOptimizer()
 }
 
 // ------------------------------------------------------------------------
-// Start optimizations on the scene rotted at the given node
+// Start optimizations on the scene rooted at the given node
 // ------------------------------------------------------------------------
 void vsOptimizer::optimize(vsNode *rootNode)
 {
@@ -94,6 +94,12 @@ int vsOptimizer::optimizeNode(vsNode *node, int level)
 
         if (passMask & VS_OPTIMIZER_MERGE_GEOMETRY)
             mergeGeometry(componentNode);
+
+        if ((passMask & VS_OPTIMIZER_CLEAN_TREE) && (level > 0))
+        {
+            if (cleanComponent(componentNode))
+                return 1;
+        }
 
         if (passMask & VS_OPTIMIZER_SORT_CHILDREN)
         {
@@ -245,6 +251,7 @@ void vsOptimizer::mergeGeometry(vsComponent *componentNode)
     int loop, sloop;
     vsNode *firstNode, *secondNode;
     vsGeometry *firstGeo, *secondGeo;
+    vsComponent *parent;
 
     if (componentNode->getCategoryAttribute(VS_ATTRIBUTE_CATEGORY_GROUPING, 0))
         return;
@@ -262,7 +269,11 @@ void vsOptimizer::mergeGeometry(vsComponent *componentNode)
                 secondGeo = (vsGeometry *)secondNode;
                 if (isSimilarGeometry(firstGeo, secondGeo))
                 {
-                    componentNode->removeChild(secondGeo);
+		    while (secondGeo->getParentCount() > 0)
+		    {
+			parent = (vsComponent *)(secondGeo->getParent(0));
+			parent->removeChild(secondGeo);
+		    }
                     addGeometry(firstGeo, secondGeo);
                     delete secondGeo;
                     sloop--;
@@ -282,6 +293,7 @@ int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
     vsVector firstVec, secondVec;
     int loop, firstType;
     vsAttribute *firstAttr, *secondAttr;
+    int sloop, matchFlag;
 
     // If somehow they're the same geometry object, then we don't want the
     // caller to get the bright idea of trying to merge the object with
@@ -289,18 +301,42 @@ int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
     if (firstGeo == secondGeo)
         return VS_FALSE;
 
+    // If either geometry node is named, return false
+    if (strlen(firstGeo->getName()) > 0)
+	return VS_FALSE;
+    if (strlen(secondGeo->getName()) > 0)
+	return VS_FALSE;
+
     // Compare primitive types
     firstVal = firstGeo->getPrimitiveType();
     secondVal = secondGeo->getPrimitiveType();
     if (firstVal != secondVal)
         return VS_FALSE;
 
-    // Compare attributes
+    // Compare attribute counts
     firstVal = firstGeo->getAttributeCount();
     secondVal = secondGeo->getAttributeCount();
     if (firstVal != secondVal)
         return VS_FALSE;
 
+    // Check to make sure that both geometry nodes have the same parent(s)
+    if (firstGeo->getParentCount() != secondGeo->getParentCount())
+	return VS_FALSE;
+    for (loop = 0; loop < firstGeo->getParentCount(); loop++)
+    {
+	matchFlag = 0;
+	for (sloop = 0; sloop < secondGeo->getParentCount(); sloop++)
+	    if (firstGeo->getParent(loop) == secondGeo->getParent(sloop))
+	    {
+		matchFlag = 1;
+		break;
+	    }
+	
+	if (!matchFlag)
+	    return VS_FALSE;
+    }
+
+    // Compare attributes
     for (loop = 0; loop < firstVal; loop++)
     {
         firstAttr = firstGeo->getAttribute(loop);
@@ -538,21 +574,27 @@ void vsOptimizer::optimizeAttributes(vsComponent *componentNode,
                 emptyFlag = 1;
                 break;
             }
-            
-            matchFlag = 0;
-            for (sloop = 0; sloop < attrCount; sloop++)
-                if (cmpFunc(childAttr, attrArray[sloop]))
-                {
-                    attrHitCounts[sloop]++;
-                    matchFlag = 1;
-                    break;
-                }
-            if (!matchFlag)
-            {
-                attrArray[attrCount] = childAttr;
-                attrHitCounts[attrCount] = 1;
-                attrCount++;
-            }
+	    
+            // Determine if we've seen a similar attribute before; either
+	    // mark the similar one if we have or add this one in as new if
+	    // we haven't. The attributes of instanced nodes don't count.
+	    if (childNode->getParentCount() < 2)
+	    {
+		matchFlag = 0;
+		for (sloop = 0; sloop < attrCount; sloop++)
+		    if (cmpFunc(childAttr, attrArray[sloop]))
+		    {
+			attrHitCounts[sloop]++;
+			matchFlag = 1;
+			break;
+		    }
+		if (!matchFlag)
+		{
+		    attrArray[attrCount] = childAttr;
+		    attrHitCounts[attrCount] = 1;
+		    attrCount++;
+		}
+	    }
         }
         
         if (attrCount && !emptyFlag)
