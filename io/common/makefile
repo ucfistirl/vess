@@ -127,49 +127,12 @@ vsCyberGloveBox.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 vsCyberGloveBox.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
 vsCyberGloveBox.o: /usr/include/bits/stdio_lim.h
 vsCyberGloveBox.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
-vsCyberGloveBox.o: ../../util/common/vsVector.h++ ../../io/X/vsSerialPort.h++
-vsCyberGloveBox.o: /usr/include/termios.h /usr/include/bits/termios.h
-vsCyberGloveBox.o: /usr/include/sys/ttydefaults.h /usr/include/unistd.h
-vsCyberGloveBox.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
-vsCyberGloveBox.o: vsInputSystem.h++ ../../util/common/vsUpdatable.h++
+vsCyberGloveBox.o: ../../util/common/vsVector.h++ vsInputSystem.h++
+vsCyberGloveBox.o: ../../util/common/vsUpdatable.h++
 vsCyberGloveBox.o: ../../util/common/vsObject.h++
 vsCyberGloveBox.o: ../../util/common/vsTreeMap.h++
 vsCyberGloveBox.o: ../../util/common/vsGrowableArray.h++
 vsFlockOfBirds.o: vsFlockOfBirds.h++
-vsFlockOfBirds.o: ../../io/X/vsAscensionSerialTrackingSystem.h++
-vsFlockOfBirds.o: ../../io/X/vsSerialPort.h++ /usr/include/termios.h
-vsFlockOfBirds.o: /usr/include/features.h /usr/include/sys/cdefs.h
-vsFlockOfBirds.o: /usr/include/gnu/stubs.h /usr/include/bits/termios.h
-vsFlockOfBirds.o: /usr/include/sys/ttydefaults.h /usr/include/unistd.h
-vsFlockOfBirds.o: /usr/include/bits/posix_opt.h /usr/include/bits/types.h
-vsFlockOfBirds.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
-vsFlockOfBirds.o: /usr/include/bits/confname.h /usr/include/getopt.h
-vsFlockOfBirds.o: vsMotionTracker.h++ vs6DInputDevice.h++
-vsFlockOfBirds.o: ../../util/common/vsVector.h++ /usr/include/stdio.h
-vsFlockOfBirds.o: /usr/include/libio.h /usr/include/_G_config.h
-vsFlockOfBirds.o: /usr/include/wchar.h /usr/include/bits/wchar.h
-vsFlockOfBirds.o: /usr/include/gconv.h
-vsFlockOfBirds.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
-vsFlockOfBirds.o: /usr/include/bits/stdio_lim.h
-vsFlockOfBirds.o: /usr/include/bits/sys_errlist.h
-vsFlockOfBirds.o: ../../util/common/vsGlobals.h++ /usr/include/math.h
-vsFlockOfBirds.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
-vsFlockOfBirds.o: /usr/include/bits/mathcalls.h
-vsFlockOfBirds.o: ../../util/common/vsMatrix.h++ ../../util/common/vsQuat.h++
-vsFlockOfBirds.o: vsInputDevice.h++ vsInputAxis.h++ vsInputButton.h++
-vsFlockOfBirds.o: vsTrackingSystem.h++ vsInputSystem.h++
-vsFlockOfBirds.o: ../../util/common/vsUpdatable.h++
-vsFlockOfBirds.o: ../../util/common/vsObject.h++
-vsFlockOfBirds.o: ../../util/common/vsTreeMap.h++
-vsFlockOfBirds.o: ../../util/common/vsGrowableArray.h++ vsSharedInputData.h++
-vsFlockOfBirds.o: /usr/include/sys/types.h /usr/include/time.h
-vsFlockOfBirds.o: /usr/include/endian.h /usr/include/bits/endian.h
-vsFlockOfBirds.o: /usr/include/sys/select.h /usr/include/bits/select.h
-vsFlockOfBirds.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
-vsFlockOfBirds.o: /usr/include/sys/sysmacros.h /usr/include/sys/ipc.h
-vsFlockOfBirds.o: /usr/include/bits/ipc.h /usr/include/sys/shm.h
-vsFlockOfBirds.o: /usr/include/bits/shm.h /usr/include/sys/sem.h
-vsFlockOfBirds.o: /usr/include/bits/sem.h
 vsISTJoystickBox.o: vsISTJoystickBox.h++ vsJoystick.h++ vsInputDevice.h++
 vsISTJoystickBox.o: ../../util/common/vsGlobals.h++ /usr/include/math.h
 vsISTJoystickBox.o: /usr/include/features.h /usr/include/sys/cdefs.h
@@ -187,11 +150,6 @@ vsISTJoystickBox.o: /usr/include/bits/stdio_lim.h
 vsISTJoystickBox.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
 vsISTJoystickBox.o: ../../util/common/vsTreeMap.h++
 vsISTJoystickBox.o: ../../util/common/vsGrowableArray.h++
-vsISTJoystickBox.o: ../../io/X/vsSerialPort.h++ /usr/include/termios.h
-vsISTJoystickBox.o: /usr/include/bits/termios.h
-vsISTJoystickBox.o: /usr/include/sys/ttydefaults.h /usr/include/unistd.h
-vsISTJoystickBox.o: /usr/include/bits/posix_opt.h
-vsISTJoystickBox.o: /usr/include/bits/confname.h
 vsInputAxis.o: vsInputAxis.h++ ../../util/common/vsGlobals.h++
 vsInputAxis.o: /usr/include/math.h /usr/include/features.h
 vsInputAxis.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
@@ -370,51 +328,12 @@ vsPinchGloveBox.o: /usr/include/string.h vsPinchGloveBox.h++
 vsPinchGloveBox.o: vsInputSystem.h++ ../../util/common/vsUpdatable.h++
 vsPinchGloveBox.o: ../../util/common/vsObject.h++
 vsPinchGloveBox.o: ../../util/common/vsTreeMap.h++
-vsPinchGloveBox.o: ../../util/common/vsGrowableArray.h++
-vsPinchGloveBox.o: ../../io/X/vsSerialPort.h++ /usr/include/termios.h
-vsPinchGloveBox.o: /usr/include/bits/termios.h /usr/include/sys/ttydefaults.h
-vsPinchGloveBox.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
-vsPinchGloveBox.o: /usr/include/bits/confname.h vsChordGloves.h++
+vsPinchGloveBox.o: ../../util/common/vsGrowableArray.h++ vsChordGloves.h++
 vsPinchGloveBox.o: ../../util/common/vsGlobals.h++ /usr/include/math.h
 vsPinchGloveBox.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
 vsPinchGloveBox.o: /usr/include/bits/mathcalls.h vsInputDevice.h++
 vsPinchGloveBox.o: vsInputAxis.h++ vsInputButton.h++
 vsSerialMotionStar.o: vsSerialMotionStar.h++
-vsSerialMotionStar.o: ../../io/X/vsAscensionSerialTrackingSystem.h++
-vsSerialMotionStar.o: ../../io/X/vsSerialPort.h++ /usr/include/termios.h
-vsSerialMotionStar.o: /usr/include/features.h /usr/include/sys/cdefs.h
-vsSerialMotionStar.o: /usr/include/gnu/stubs.h /usr/include/bits/termios.h
-vsSerialMotionStar.o: /usr/include/sys/ttydefaults.h /usr/include/unistd.h
-vsSerialMotionStar.o: /usr/include/bits/posix_opt.h /usr/include/bits/types.h
-vsSerialMotionStar.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
-vsSerialMotionStar.o: /usr/include/bits/confname.h /usr/include/getopt.h
-vsSerialMotionStar.o: vsMotionTracker.h++ vs6DInputDevice.h++
-vsSerialMotionStar.o: ../../util/common/vsVector.h++ /usr/include/stdio.h
-vsSerialMotionStar.o: /usr/include/libio.h /usr/include/_G_config.h
-vsSerialMotionStar.o: /usr/include/wchar.h /usr/include/bits/wchar.h
-vsSerialMotionStar.o: /usr/include/gconv.h
-vsSerialMotionStar.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
-vsSerialMotionStar.o: /usr/include/bits/stdio_lim.h
-vsSerialMotionStar.o: /usr/include/bits/sys_errlist.h
-vsSerialMotionStar.o: ../../util/common/vsGlobals.h++ /usr/include/math.h
-vsSerialMotionStar.o: /usr/include/bits/huge_val.h
-vsSerialMotionStar.o: /usr/include/bits/mathdef.h
-vsSerialMotionStar.o: /usr/include/bits/mathcalls.h
-vsSerialMotionStar.o: ../../util/common/vsMatrix.h++
-vsSerialMotionStar.o: ../../util/common/vsQuat.h++ vsInputDevice.h++
-vsSerialMotionStar.o: vsInputAxis.h++ vsInputButton.h++ vsTrackingSystem.h++
-vsSerialMotionStar.o: vsInputSystem.h++ ../../util/common/vsUpdatable.h++
-vsSerialMotionStar.o: ../../util/common/vsObject.h++
-vsSerialMotionStar.o: ../../util/common/vsTreeMap.h++
-vsSerialMotionStar.o: ../../util/common/vsGrowableArray.h++
-vsSerialMotionStar.o: vsSharedInputData.h++ /usr/include/sys/types.h
-vsSerialMotionStar.o: /usr/include/time.h /usr/include/endian.h
-vsSerialMotionStar.o: /usr/include/bits/endian.h /usr/include/sys/select.h
-vsSerialMotionStar.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
-vsSerialMotionStar.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
-vsSerialMotionStar.o: /usr/include/sys/ipc.h /usr/include/bits/ipc.h
-vsSerialMotionStar.o: /usr/include/sys/shm.h /usr/include/bits/shm.h
-vsSerialMotionStar.o: /usr/include/sys/sem.h /usr/include/bits/sem.h
 vsSharedInputData.o: /usr/include/stdio.h /usr/include/features.h
 vsSharedInputData.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 vsSharedInputData.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
@@ -583,7 +502,4 @@ vsUnwinder.o: ../../util/common/vsGrowableArray.h++ vsJoystick.h++
 vsUnwinder.o: vsInputDevice.h++ ../../util/common/vsGlobals.h++
 vsUnwinder.o: /usr/include/math.h /usr/include/bits/huge_val.h
 vsUnwinder.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
-vsUnwinder.o: vsInputAxis.h++ vsInputButton.h++ ../../io/X/vsSerialPort.h++
-vsUnwinder.o: /usr/include/termios.h /usr/include/bits/termios.h
-vsUnwinder.o: /usr/include/sys/ttydefaults.h /usr/include/unistd.h
-vsUnwinder.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+vsUnwinder.o: vsInputAxis.h++ vsInputButton.h++

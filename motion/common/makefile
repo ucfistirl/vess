@@ -339,8 +339,6 @@ vsCollision.o: ../../graphics/Performer/vsScene.h++
 vsCollision.o: ../../graphics/Performer/vsLightAttribute.h++
 vsCollision.o: /usr/include/Performer/pr/pfLight.h
 vsCollision.o: /usr/include/Performer/pf/pfLightSource.h
-vsCollision.o: ../../system/Performer/vsSystem.h++
-vsCollision.o: ../../util/common/vsTimer.h++
 vsDifferentialTrackedOrientation.o: vsDifferentialTrackedOrientation.h++
 vsDifferentialTrackedOrientation.o: vsMotionModel.h++
 vsDifferentialTrackedOrientation.o: ../../util/common/vsUpdatable.h++

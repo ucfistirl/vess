@@ -133,7 +133,7 @@ int vsMatrix::isEqual(vsMatrix operand)
     // value) for almost-equality; return false if a pair doesn't match up.
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
-            if (fabs(data[i][j] - operand[i][j]) > VS_MATH_DEFAULT_TOLERANCE)
+            if (fabs(data[i][j] - operand[i][j]) > VS_DEFAULT_TOLERANCE)
                 return VS_FALSE;
 
     // If all the pairs match, return true
