@@ -795,7 +795,7 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
                     {
                         osgDrawLengthsPrim =
                             (osg::DrawArrayLengths *)osgPrimitiveSet;
-                        for (loop = 0; loop < primCount; loop++)
+                        for (tloop = 0; tloop < primCount; tloop++)
                             geometry->setPrimitiveLength(loop,
                                 (*osgDrawLengthsPrim)[loop]);
                     }
