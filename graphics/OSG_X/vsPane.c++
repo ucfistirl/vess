@@ -29,7 +29,7 @@
 #include <osg/CullFace>
 #include <osg/LightModel>
 #include <osg/ShadeModel>
-#include <osgUtil/DisplayListVisitor>
+#include <osgUtil/GLObjectsVisitor>
 #include <osgUtil/UpdateVisitor>
 #include <osgUtil/CullVisitor>
 #include <stdio.h>
@@ -557,7 +557,7 @@ void vsPane::setBackgroundColor(double r, double g, double b)
     bgColor.set((float)r, (float)g, (float)b, 1.0f);
     
     // Set the background color of the OSG SceneView object
-    osgSceneView->setBackgroundColor(bgColor);
+    osgSceneView->setClearColor(bgColor);
 }
 
 // ------------------------------------------------------------------------
@@ -569,7 +569,7 @@ void vsPane::getBackgroundColor(double *r, double *g, double *b)
     osg::Vec4 bgColor;
 
     // Get the background color of the OSG SceneView object
-    bgColor = osgSceneView->getBackgroundColor();
+    bgColor = osgSceneView->getClearColor();
 
     // Return each color component if the corresponding parameter is valid
     if (r != NULL)
