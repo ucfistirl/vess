@@ -936,7 +936,7 @@ void vsIS600::forkTracking()
     printf("    Server Thread ID is %d\n", serverThreadID);
     
     // Set the forked flag to indicate we've started running multithreaded
-    forked = VS_TRUE;
+    forked = true;
 }
 
 // ------------------------------------------------------------------------

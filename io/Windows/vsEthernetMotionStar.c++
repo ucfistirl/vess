@@ -1250,7 +1250,7 @@ void vsEthernetMotionStar::forkTracking()
     printf("    Server Thread ID is %d\n", serverThreadID);
     
     // Set the forked flag to indicate we've started running multithreaded
-    forked = VS_TRUE;
+    forked = true;
 }
 
 // ------------------------------------------------------------------------
@@ -1314,7 +1314,7 @@ void vsEthernetMotionStar::updateSystem()
             // The bird's address is in the first byte of the data record
             // (the high bit is the flag indicating button data is present)
             currentAddress = dataPacket.buffer[currentByte] & 0x7F;
-            birdButtonFlag = (dataPacket.buffer[currentByte] & 0x80) >> 7;
+            birdButtonFlag = (bool)((dataPacket.buffer[currentByte] & 0x80) >> 7);
             currentByte++;
     
             // The bird's data format and data size in words are in the next 
