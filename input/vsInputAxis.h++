@@ -45,6 +45,9 @@ protected:
     // Indicates whether or not to normalize the axis value
     int          normalized;
 
+    // Indicates whether or not to invert the axis value
+    int          inverted;
+
     // Minimum and maximum positions (raw device values)
     double       axisMin;
     double       axisMax;
@@ -67,6 +70,8 @@ public:
     // Axis operations
     void         setNormalized(int normalize);
     int          isNormalized();
+    void         setInverted(int invert);
+    int          isInverted();
     void         setRange(double minPos, double maxPos);
     void         getRange(double *minPos, double *maxPos);
 

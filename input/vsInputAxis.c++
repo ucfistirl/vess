@@ -36,6 +36,7 @@ vsInputAxis::vsInputAxis(void)
     offset = 0.0;
     position = 0.0;
     normalized = VS_FALSE;
+    inverted = VS_FALSE;
     passiveCalibration = VS_FALSE;
 }
 
@@ -57,6 +58,7 @@ vsInputAxis::vsInputAxis(double minPos, double maxPos)
         axisMin = minPos;
         axisMax = maxPos;
         normalized = VS_TRUE;
+        inverted = VS_FALSE;
         passiveCalibration = VS_FALSE;
     }
     else
@@ -74,6 +76,7 @@ vsInputAxis::vsInputAxis(double minPos, double maxPos)
         position = 0.0;
         offset = 0.0;
         normalized = VS_FALSE;
+        inverted = VS_FALSE;
     }
 }
 
@@ -90,6 +93,10 @@ vsInputAxis::~vsInputAxis(void)
 // ------------------------------------------------------------------------
 void vsInputAxis::setPosition(double rawPos)
 {
+    // Invert axis value if necessary
+    if (inverted)
+        rawPos = -rawPos;
+
     // Do calibration if it's enabled
     if (passiveCalibration)
     {
@@ -190,6 +197,22 @@ void vsInputAxis::setNormalized(int normOn)
 int vsInputAxis::isNormalized(void)
 {
     return normalized;
+}
+
+// ------------------------------------------------------------------------
+// Specifies whether or not the axis values should be inverted (negated)
+// ------------------------------------------------------------------------
+void vsInputAxis::setInverted(int invert)
+{
+    inverted = invert;
+}
+
+// ------------------------------------------------------------------------
+// Returns whether or not the axis values are inverted
+// ------------------------------------------------------------------------
+int vsInputAxis::isInverted()
+{
+    return inverted;
 }
 
 // ------------------------------------------------------------------------
