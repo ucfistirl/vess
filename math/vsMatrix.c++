@@ -547,6 +547,7 @@ void vsMatrix::setEulerRotation(vsMathEulerAxisOrder axisOrder,
     int axis[3];
     vsMatrix axisRotation[3];
     double axisDegrees[3];
+    double tempVal;
     
     axisDegrees[0] = axis1Degrees;
     axisDegrees[1] = axis2Degrees;
@@ -613,24 +614,39 @@ void vsMatrix::setEulerRotation(vsMathEulerAxisOrder axisOrder,
         {
             case 0:
                 axisRotation[loop][0][0] = 1.0;
-                axisRotation[loop][1][1] = cos(VS_DEG2RAD(axisDegrees[loop]));
-                axisRotation[loop][2][2] = cos(VS_DEG2RAD(axisDegrees[loop]));
-                axisRotation[loop][2][1] = sin(VS_DEG2RAD(axisDegrees[loop]));
-                axisRotation[loop][1][2] = -sin(VS_DEG2RAD(axisDegrees[loop]));
+
+		tempVal = cos(VS_DEG2RAD(axisDegrees[loop]));
+                axisRotation[loop][1][1] = tempVal;
+                axisRotation[loop][2][2] = tempVal;
+
+		tempVal = sin(VS_DEG2RAD(axisDegrees[loop]));
+                axisRotation[loop][2][1] = tempVal;
+                axisRotation[loop][1][2] = -tempVal;
+
                 break;
             case 1:
                 axisRotation[loop][1][1] = 1.0;
-                axisRotation[loop][0][0] = cos(VS_DEG2RAD(axisDegrees[loop]));
-                axisRotation[loop][2][2] = cos(VS_DEG2RAD(axisDegrees[loop]));
-                axisRotation[loop][0][2] = sin(VS_DEG2RAD(axisDegrees[loop]));
-                axisRotation[loop][2][0] = -sin(VS_DEG2RAD(axisDegrees[loop]));
+
+		tempVal = cos(VS_DEG2RAD(axisDegrees[loop]));
+                axisRotation[loop][0][0] = tempVal;
+                axisRotation[loop][2][2] = tempVal;
+
+		tempVal = sin(VS_DEG2RAD(axisDegrees[loop]));
+                axisRotation[loop][0][2] = tempVal;
+                axisRotation[loop][2][0] = -tempVal;
+
                 break;
             case 2:
                 axisRotation[loop][2][2] = 1.0;
-                axisRotation[loop][0][0] = cos(VS_DEG2RAD(axisDegrees[loop]));
-                axisRotation[loop][1][1] = cos(VS_DEG2RAD(axisDegrees[loop]));
-                axisRotation[loop][1][0] = sin(VS_DEG2RAD(axisDegrees[loop]));
-                axisRotation[loop][0][1] = -sin(VS_DEG2RAD(axisDegrees[loop]));
+
+		tempVal = cos(VS_DEG2RAD(axisDegrees[loop]));
+                axisRotation[loop][0][0] = tempVal;
+                axisRotation[loop][1][1] = tempVal;
+
+		tempVal = sin(VS_DEG2RAD(axisDegrees[loop]));
+                axisRotation[loop][1][0] = tempVal;
+                axisRotation[loop][0][1] = -tempVal;
+
                 break;
         }
     }

@@ -572,6 +572,7 @@ void vsQuat::setAxisAngleRotation(double x, double y, double z,
     double rotDegrees)
 {
     vsVector axis(x, y, z);
+    double tempVal;
 
     if ((x == 0.0) && (y == 0.0) && (z == 0.0))
     {
@@ -583,9 +584,11 @@ void vsQuat::setAxisAngleRotation(double x, double y, double z,
     }
 
     axis.normalize();
-    data[0] = axis[0] * sin(VS_DEG2RAD(rotDegrees / 2.0));
-    data[1] = axis[1] * sin(VS_DEG2RAD(rotDegrees / 2.0));
-    data[2] = axis[2] * sin(VS_DEG2RAD(rotDegrees / 2.0));
+
+    tempVal = sin(VS_DEG2RAD(rotDegrees / 2.0));
+    data[0] = axis[0] * tempVal;
+    data[1] = axis[1] * tempVal;
+    data[2] = axis[2] * tempVal;
     data[3] = cos(VS_DEG2RAD(rotDegrees / 2.0));
 }
 
