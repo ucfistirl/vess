@@ -43,9 +43,10 @@ vsTextBuilder::vsTextBuilder()
     // Set the color to the default of white.
     setColor(vsVector(1.0, 1.0, 1.0, 1.0));
 
-    // Initialize the transform to the identity so it does not alter
+    // Initialize the transforms to the identity so they do not alter
     // the appearance of the text.
     transformMatrix.setIdentity();
+    scaleMatrix.setIdentity();
 }
 
 // ------------------------------------------------------------------------
@@ -69,9 +70,10 @@ vsTextBuilder::vsTextBuilder(char *newFont)
     font = NULL;
     setFont(newFont);
 
-    // Initialize the transform to the identity so it does not alter
+    // Initialize the transforms to the identity so they do not alter
     // the appearance of the text.
     transformMatrix.setIdentity();
+    scaleMatrix.setIdentity();
 }
 
 // ------------------------------------------------------------------------
@@ -94,9 +96,10 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor)
     font = NULL;
     setFont(newFont);
 
-    // Initialize the transform to the identity so it does not alter
+    // Initialize the transforms to the identity so they do not alter
     // the appearance of the text.
     transformMatrix.setIdentity();
+    scaleMatrix.setIdentity();
 }
 
 // ------------------------------------------------------------------------
@@ -123,6 +126,10 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor,
 
     // Initialize the transform to the given matrix.
     setTransformMatrix(newTransform);
+
+    // Initialize the transform to the identity so it does not alter
+    // the appearance of the text.
+    scaleMatrix.setIdentity();
 }
 
 // ------------------------------------------------------------------------
@@ -167,6 +174,14 @@ void vsTextBuilder::setFont(char *newFont)
         // Print an error message to indicate the font was not loaded.
         printf("vsTextBuilder::setFont: Unable to Open font: %s\n", newFont);
     }
+}
+
+// ------------------------------------------------------------------------
+// Set the scale in each dimension of the text built by this object
+// ------------------------------------------------------------------------
+void vsTextBuilder::setScale(double xScale, double yScale, double zScale)
+{
+    scaleMatrix.setScale(xScale, yScale, zScale);
 }
 
 // ------------------------------------------------------------------------
@@ -290,9 +305,8 @@ vsComponent *vsTextBuilder::buildText(char *text)
             textComponent->addChild(letterNode);
         }
 
-// DAC - Possible memory leak?
         // Delete the geode we used to create the vsGeometry.
-//        pfDelete(letterGeode);
+        pfDelete(letterGeode);
     }
 
 // DAC - Possible memory leak?
@@ -307,6 +321,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
     // Create and attach a transform to this text with the stored matrix.
     textTransform = new vsTransformAttribute();
     textTransform->setDynamicTransform(transformMatrix);
+    textTransform->setPostTransform(scaleMatrix);
     textComponent->addAttribute(textTransform);
 
     // Create a root node with no attributes attached to allow for the

@@ -50,6 +50,7 @@ private:
     vsDatabaseLoader        *loader;
     vsVector                color;
     vsMatrix                transformMatrix;
+    vsMatrix                scaleMatrix;
     int                     justification;
 
     void                    colorGraph(vsNode *node);
@@ -65,6 +66,7 @@ public:
     virtual const char *getClassName();
 
     void               setFont(char *newFont);
+    void               setScale(double xScale, double yScale, double zScale);
     void               setColor(vsVector newColor);
     void               setTransformMatrix(vsMatrix newTransform);
     void               setJustification(int newJustification);

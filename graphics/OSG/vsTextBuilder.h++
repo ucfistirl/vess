@@ -62,7 +62,7 @@ private:
     vsMatrix                transformMatrix;
     int                     fontJustification;
 
-    vsMatrix                osgScaleMatrix;
+    vsMatrix                scaleMatrix;
 
     osgText::Font::Glyph    *osgGlyphArray[256];
     vsTextureAttribute      *textureAttrArray[256];
@@ -88,6 +88,7 @@ public:
     virtual const char    *getClassName();
 
     void           setFont(char *newFont);
+    void           setScale(double xScale, double yScale, double zScale);
     void           setColor(vsVector newColor);
     void           setTransformMatrix(vsMatrix newTransform);
     void           setJustification(int newJustification);

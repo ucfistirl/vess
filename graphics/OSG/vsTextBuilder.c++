@@ -57,7 +57,7 @@ vsTextBuilder::vsTextBuilder()
     // Set up the OSG scale matrix. This matrix is applied to every generated
     // text component to make its size more match that of the Performer
     // text builder.
-    osgScaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
+    scaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
         VS_OSG_TEXT_SCALE);
 }
 
@@ -81,7 +81,7 @@ vsTextBuilder::vsTextBuilder(char *newFont)
     // Set up the OSG scale matrix. This matrix is applied to every generated
     // text component to make its size more match that of the Performer
     // text builder.
-    osgScaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
+    scaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
         VS_OSG_TEXT_SCALE);
 
     // Clear the glyph and texture arrays
@@ -120,7 +120,7 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor)
     // Set up the OSG scale matrix. This matrix is applied to every generated
     // text component to make its size more match that of the Performer
     // text builder.
-    osgScaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
+    scaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
         VS_OSG_TEXT_SCALE);
 
     // Clear the glyph and texture arrays
@@ -161,7 +161,7 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor,
     // Set up the OSG scale matrix. This matrix is applied to every generated
     // text component to make its size more match that of the Performer
     // text builder.
-    osgScaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
+    scaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
         VS_OSG_TEXT_SCALE);
 
     // Clear the glyph and texture arrays
@@ -254,6 +254,15 @@ void vsTextBuilder::setFont(char *newFont)
 }
 
 // ------------------------------------------------------------------------
+// Set the scale in each dimension of the text built by this object
+// ------------------------------------------------------------------------
+void vsTextBuilder::setScale(double xScale, double yScale, double zScale)
+{
+    scaleMatrix.setScale(xScale * VS_OSG_TEXT_SCALE,
+        yScale * VS_OSG_TEXT_SCALE, zScale * VS_OSG_TEXT_SCALE);
+}
+
+// ------------------------------------------------------------------------
 // Set the color of this objects text.
 // ------------------------------------------------------------------------
 void vsTextBuilder::setColor(vsVector newColor)
@@ -309,7 +318,6 @@ vsComponent *vsTextBuilder::buildText(char *text)
     vsTextureAttribute *letterTextureAttr;
     int loop;
     char previousChar;
-    int xpos, ypos;
     int lineStartIdx;
     vsVector currentPos, offset, bearing;
     osg::Vec2 osgFontKerning;
@@ -338,7 +346,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
     currentPos.set(0.0, 0.0, 0.0);
 
     // Loop through the entire string, creating characters as we go
-    for (loop = 0; loop < strlen(text); loop++)
+    for (loop = 0; loop < (int)strlen(text); loop++)
     {
         // Get the OSG Glyph and VESS texture attribute corresponding to this
         // character's value.
@@ -461,7 +469,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
 
     // Apply the transform and scale matricies to the attribute
     xformAttr->setDynamicTransform(transformMatrix);
-    xformAttr->setPostTransform(osgScaleMatrix);
+    xformAttr->setPostTransform(scaleMatrix);
     result->addAttribute(xformAttr);
 
     // Create and apply a transparency attribute to the parent component. This
