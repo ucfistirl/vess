@@ -49,7 +49,7 @@ public:
     
     int                   getRefCount();
     
-    int                   isValidObject();
+    bool                  isValidObject();
 
     static void           checkDelete(vsObject *obj);
     static void           unrefDelete(vsObject *obj);
