@@ -39,6 +39,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     unsigned int childCount;
     Window parentID, rootID;
     XWindowAttributes xattr;
+    int result;
     
     childPaneCount = 0;
     
@@ -57,37 +58,40 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
         VS_WINDOW_DEFAULT_YPOS, VS_WINDOW_DEFAULT_WIDTH,
         VS_WINDOW_DEFAULT_HEIGHT);
     performerPipeWindow->open();
-    
-    while (!(performerPipeWindow->isOpen()))
-        pfFrame();
 
-    // * Obtain the size of the window manager's border for our outer window
+    // Attempt to determine the size of the window manager's border for
+    // this window by checking the difference between Performer's idea
+    // of the window size and X's one.
     xWindowDisplay = pfGetCurWSConnection();
     xWindowID = performerPipeWindow->getWSWindow();
 
-    XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID, &childPointer,
-        &childCount);
-    XFree(childPointer);
-    while (parentID == 0)
+    while (!(performerPipeWindow->isOpen()))
     {
         pfFrame();
-        XFlush(xWindowDisplay);
-        XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
-            &childPointer, &childCount);
-        XFree(childPointer);
+	XFlush(xWindowDisplay);
     }
 
-    XQueryTree(xWindowDisplay, parentID, &rootID, &topWindowID,
-        &childPointer, &childCount);
-    XFree(childPointer);
-    while (topWindowID == 0)
+//    printf("xWindowID(%d)\n", xWindowID);
+
+    do
     {
-        pfFrame();
-        XFlush(xWindowDisplay);
-        XQueryTree(xWindowDisplay, parentID, &rootID, &topWindowID,
+        result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
             &childPointer, &childCount);
         XFree(childPointer);
+//        printf("result(%d) rootID(%d) parentID(%d) xWindowID(%d)\n", result,
+//            rootID, parentID, xWindowID);
+
+        if (result == 0)
+        {
+            pfFrame();
+            XFlush(xWindowDisplay);
+        }
+        else if (parentID != rootID)
+            xWindowID = parentID;
     }
+    while (rootID != parentID);
+    topWindowID = xWindowID;
+//    printf("topWindowID: %d\n", topWindowID);
 
     XGetWindowAttributes(xWindowDisplay, topWindowID, &xattr);
     xPositionOffset = VS_WINDOW_DEFAULT_XPOS - xattr.x;
@@ -314,6 +318,7 @@ void vsWindow::removePane(vsPane *targetPane)
             for (sloop = loop; sloop < (childPaneCount-1); sloop++)
                 childPaneList[sloop] = childPaneList[sloop+1];
             childPaneCount--;
+            performerPipeWindow->removeChan(targetPane->getBaseLibraryObject());
             return;
         }
 
