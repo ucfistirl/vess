@@ -38,8 +38,9 @@ protected:
 VS_INTERNAL:
 
     void    setPosition(vsVector posVec);
-    void    setOrientation(vsVector ornVec);
+    void    setOrientation(vsVector ornVec, vsMathEulerAxisOrder axisOrder);
     void    setOrientation(vsMatrix ornMat);
+    void    setOrientation(vsQuat ornQuat);
 
 public:
 

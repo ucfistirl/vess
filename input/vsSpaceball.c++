@@ -73,6 +73,16 @@ void vsSpaceball::setPosition(vsVector posVec)
 // ------------------------------------------------------------------------
 // Set the orientation of the Spaceball
 // ------------------------------------------------------------------------
+void vsSpaceball::setOrientation(vsVector ornVec, 
+                                 vsMathEulerAxisOrder axisOrder)
+{
+    orientation.setEulerRotation(axisOrder, ornVec.getValue(0),
+                                 ornVec.getValue(1), ornVec.getValue(2));
+}
+
+// ------------------------------------------------------------------------
+// Set the orientation of the Spaceball
+// ------------------------------------------------------------------------
 void vsSpaceball::setOrientation(vsMatrix ornMat)
 {
     orientation.setMatrixRotation(ornMat);
@@ -81,10 +91,9 @@ void vsSpaceball::setOrientation(vsMatrix ornMat)
 // ------------------------------------------------------------------------
 // Set the orientation of the Spaceball
 // ------------------------------------------------------------------------
-void vsSpaceball::setOrientation(vsVector ornVec)
+void vsSpaceball::setOrientation(vsQuat ornQuat)
 {
-    orientation.setEulerRotation(VS_EULER_ANGLES_ZXY_R, ornVec.getValue(0),
-                                 ornVec.getValue(1), ornVec.getValue(2));
+    orientation = ornQuat;
 }
 
 // ------------------------------------------------------------------------
