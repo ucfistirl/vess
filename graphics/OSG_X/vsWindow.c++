@@ -79,7 +79,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
     
-    // Get the X display and screen as well
+    // Get the X display from the pipe
     xWindowDisplay = parentPipe->getXDisplay();
 
     // Choose an XVisual most closely matching the default attributes
@@ -203,6 +203,13 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     // Add the window to its parent screen
     parentScreen->addWindow(this);
 
+    // For some reason (probably window manager interaction), the window
+    // does not seem to appear at the position it was supposed to be 
+    // created.  To fix this, we'll move it there and flush the display
+    // to make sure it happens.
+    setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
+    XFlush(xWindowDisplay);
+
     // After mapping the window, the window manager may reparent the
     // window to add its own stuff (decorations, etc.).  Query the X
     // Windows tree attached to this window to find the topmost window
@@ -292,6 +299,7 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
     Window *childPointer;
     unsigned int childCount;
     Window parentID, rootID;
+    XWindowAttributes winXAttr, topXAttr;
     Colormap colorMap;
     PropMotifWmHints motifHints;
     Atom property, propertyType;
@@ -324,7 +332,7 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
     
-    // Get the X display and screen as well
+    // Get the X display from the pipe
     xWindowDisplay = parentPipe->getXDisplay();
 
     // Choose an XVisual most closely matching the default attributes
@@ -444,12 +452,79 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
     // Add the window to its parent screen
     parentScreen->addWindow(this);
 
+    // After mapping the window, the window manager may reparent the
+    // window to add its own stuff (decorations, etc.).  Query the X
+    // Windows tree attached to this window to find the topmost window
+    // in the tree.  This should let us measure the size of the window
+    // manager decorations.
+
+    // Start from the window we just mapped
+    xWindowID = xWindow;
+
+    // Keep trying until we reach the top window
+    do
+    {
+        // Query the tree from the current window
+        result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
+            &childPointer, &childCount);
+
+        // Free the child list that's returned (we don't need it for anything)
+        XFree(childPointer);
+
+        // See if the query succeeded
+        if (result == 0)
+        {
+            // Failed, flush the display and try again
+            XFlush(xWindowDisplay);
+        }
+        else
+        {
+            // Query succeeded, if we're not yet at the top, move the
+            // current window id to the parent and query again.  Note that
+            // we don't want the root window, because this is the entire
+            // desktop.  We want the window one level down from the root.
+            if (parentID != rootID)
+                xWindowID = parentID;
+        }
+    }
+    while (rootID != parentID);
+
+    // Keep track of the topmost window
+    topWindowID = xWindowID;
+
     // For some reason (probably window manager interaction), the window
     // does not seem to appear at the position it was supposed to be 
     // created.  To fix this, we'll move it there and flush the display
     // to make sure it happens.
     setPosition(xPosition, yPosition);
     XFlush(xWindowDisplay);
+
+    // See if the window was reparented
+    if (xWindow != topWindowID)
+    {
+        // Attempt to determine the size of the window manager's border for
+        // this window by checking the position of the main window relative
+        // to its parent, and finding the difference in width and height.
+        XGetWindowAttributes(xWindowDisplay, xWindow, &winXAttr);
+        XGetWindowAttributes(xWindowDisplay, topWindowID, &topXAttr);
+        xPositionOffset = winXAttr.x;
+        yPositionOffset = winXAttr.y;
+        widthOffset = topXAttr.width - winXAttr.width;
+        heightOffset = topXAttr.height - winXAttr.height;
+
+        // Adjust the window using the offsets we computed
+        setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
+        setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
+        XFlush(xWindowDisplay);
+    }
+    else
+    {
+        // Window was not reparented, initialize the offsets to zero
+        xPositionOffset = 0;
+        yPositionOffset = 0;
+        widthOffset = 0;
+        heightOffset = 0;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -470,6 +545,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
     Window *childPointer;
     unsigned int childCount;
     Window parentID, rootID;
+    XWindowAttributes winXAttr, topXAttr;
     Colormap colorMap;
     PropMotifWmHints motifHints;
     Atom property, propertyType;
@@ -623,6 +699,73 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
     // to make sure it happens.
     setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
     XFlush(xWindowDisplay);
+
+    // After mapping the window, the window manager may reparent the
+    // window to add its own stuff (decorations, etc.).  Query the X
+    // Windows tree attached to this window to find the topmost window
+    // in the tree.  This should let us measure the size of the window
+    // manager decorations.
+
+    // Start from the window we just mapped
+    xWindowID = xWindow;
+
+    // Keep trying until we reach the top window
+    do
+    {
+        // Query the tree from the current window
+        result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
+            &childPointer, &childCount);
+
+        // Free the child list that's returned (we don't need it for anything)
+        XFree(childPointer);
+
+        // See if the query succeeded
+        if (result == 0)
+        {
+            // Failed, flush the display and try again
+            XFlush(xWindowDisplay);
+        }
+        else
+        {
+            // Query succeeded, if we're not yet at the top, move the
+            // current window id to the parent and query again.  Note that
+            // we don't want the root window, because this is the entire
+            // desktop.  We want the window one level down from the root.
+            if (parentID != rootID)
+                xWindowID = parentID;
+        }
+    }
+    while (rootID != parentID);
+
+    // Keep track of the topmost window
+    topWindowID = xWindowID;
+
+    // See if the window was reparented
+    if (xWindow != topWindowID)
+    {
+        // Attempt to determine the size of the window manager's border for
+        // this window by checking the position of the main window relative
+        // to its parent, and finding the difference in width and height.
+        XGetWindowAttributes(xWindowDisplay, xWindow, &winXAttr);
+        XGetWindowAttributes(xWindowDisplay, topWindowID, &topXAttr);
+        xPositionOffset = winXAttr.x;
+        yPositionOffset = winXAttr.y;
+        widthOffset = topXAttr.width - winXAttr.width;
+        heightOffset = topXAttr.height - winXAttr.height;
+
+        // Adjust the window using the offsets we computed
+        setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
+        setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
+        XFlush(xWindowDisplay);
+    }
+    else
+    {
+        // Window was not reparented, initialize the offsets to zero
+        xPositionOffset = 0;
+        yPositionOffset = 0;
+        widthOffset = 0;
+        heightOffset = 0;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -644,6 +787,7 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
     Window *childPointer;
     unsigned int childCount;
     Window parentID, rootID;
+    XWindowAttributes winXAttr, topXAttr;
     Colormap colorMap;
     PropMotifWmHints motifHints;
     Atom property, propertyType;
@@ -798,6 +942,73 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
     // to make sure it happens.
     setPosition(xPosition, yPosition);
     XFlush(xWindowDisplay);
+
+    // After mapping the window, the window manager may reparent the
+    // window to add its own stuff (decorations, etc.).  Query the X
+    // Windows tree attached to this window to find the topmost window
+    // in the tree.  This should let us measure the size of the window
+    // manager decorations.
+
+    // Start from the window we just mapped
+    xWindowID = xWindow;
+
+    // Keep trying until we reach the top window
+    do
+    {
+        // Query the tree from the current window
+        result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
+            &childPointer, &childCount);
+
+        // Free the child list that's returned (we don't need it for anything)
+        XFree(childPointer);
+
+        // See if the query succeeded
+        if (result == 0)
+        {
+            // Failed, flush the display and try again
+            XFlush(xWindowDisplay);
+        }
+        else
+        {
+            // Query succeeded, if we're not yet at the top, move the
+            // current window id to the parent and query again.  Note that
+            // we don't want the root window, because this is the entire
+            // desktop.  We want the window one level down from the root.
+            if (parentID != rootID)
+                xWindowID = parentID;
+        }
+    }
+    while (rootID != parentID);
+
+    // Keep track of the topmost window
+    topWindowID = xWindowID;
+
+    // See if the window was reparented
+    if (xWindow != topWindowID)
+    {
+        // Attempt to determine the size of the window manager's border for
+        // this window by checking the position of the main window relative
+        // to its parent, and finding the difference in width and height.
+        XGetWindowAttributes(xWindowDisplay, xWindow, &winXAttr);
+        XGetWindowAttributes(xWindowDisplay, topWindowID, &topXAttr);
+        xPositionOffset = winXAttr.x;
+        yPositionOffset = winXAttr.y;
+        widthOffset = topXAttr.width - winXAttr.width;
+        heightOffset = topXAttr.height - winXAttr.height;
+
+        // Adjust the window using the offsets we computed
+        setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
+        setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
+        XFlush(xWindowDisplay);
+    }
+    else
+    {
+        // Window was not reparented, initialize the offsets to zero
+        xPositionOffset = 0;
+        yPositionOffset = 0;
+        widthOffset = 0;
+        heightOffset = 0;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -808,12 +1019,15 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
 {
     vsPipe *parentPipe;
     Display *xWindowDisplay;
-    XVisualInfo *visual;
+    XWindowAttributes winXAttr, topXAttr;
+    VisualID visualID;
+    XVisualInfo visualTemplate;
+    int visualsMatched;
+    XVisualInfo *visualList;
     Window xWindowID;
     Window *childPointer;
     unsigned int childCount;
     Window parentID, rootID;
-    XWindowAttributes winXAttr, topXAttr;
     int result;
 
     // Initialize the pane count
@@ -827,15 +1041,76 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
     // Get the parent vsScreen and vsPipe
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
+
+    // Remember the window ID
+    xWindow = xWin;
     
+    // Get the X display from the pipe
+    xWindowDisplay = parentPipe->getXDisplay();
+
     // Add the window to its parent screen
     parentScreen->addWindow(this);
+
+    // Determine the visual characteristics of the window.  First, get
+    // the window's attributes
+    XGetWindowAttributes(xWindowDisplay, xWindow, &winXAttr);
+
+    // Get the Visual's ID from the window
+    visualID = XVisualIDFromVisual(winXAttr.visual);
+
+    // Now, find the XVisualInfo structure that matches the window's visual
+    // ID
+    visualTemplate.visualid = visualID;
+    visualList = XGetVisualInfo(xWindowDisplay, VisualIDMask, &visualTemplate, 
+        &visualsMatched);
+
+    // If we can't match the visual, then we can't create an OpenGL context 
+    // for the window, so give up.
+    if (visualsMatched <= 0)
+    {
+        // Print an error
+        printf("vsWindow::vsWindow:  Unable to match visual ID of the given X "
+            "Window!\n");
+
+        // Flag this object as invalid
+        validObject = VS_FALSE;
+
+        // Bail out
+        return;
+    }
+    else
+    {
+        // Print status
+        printf("X Window has VisualID 0x%x\n", visualID);
+        printf("Matching %d visual(s), choosing visual 0x%x\n", visualsMatched,
+            visualList[0].visualid);
+    }
+
+    // Create an OpenGL rendering context using direct rendering.  Assume
+    // the first visual matched is the one we want, since we queried by
+    // exact ID number.
+    glContext = glXCreateContext(xWindowDisplay, &(visualList[0]), NULL, 
+        GL_TRUE);
+
+    // Make sure the context is valid
+    if (glContext == NULL)
+    {
+        // Invalid context, print an error
+        printf("vsWindow::vsWindow:  Unable to create an OpenGL context!\n");
+
+        // Flag this object as invalid
+        validObject = VS_FALSE;
+
+        // Bail out
+        return;
+    }
 
     // After mapping the window, the window manager may reparent the
     // window to add its own stuff (decorations, etc.).  Query the X
     // Windows tree attached to this window to find the topmost window
     // in the tree.  This should let us measure the size of the window
-    // manager decorations.
+    // manager decorations.  Note that if the window is not yet mapped,
+    // there will not be any decorations added yet.
 
     // Start from the window passed in
     xWindowID = xWin;
@@ -847,7 +1122,8 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
         result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
             &childPointer, &childCount);
 
-        // Free the child list that's returned (we don't need it for anything)
+        // Free the child list that's returned (we don't need it for 
+        // anything)
         XFree(childPointer);
 
         // See if the query succeeded
