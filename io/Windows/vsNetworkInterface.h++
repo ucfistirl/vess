@@ -23,29 +23,29 @@
 #ifndef NETWORK_INTERFACE_HPP
 #define NETWORK_INTERFACE_HPP
 
-#include <netinet/in.h>
 #include "vsIPCInterface.h++"
 
 
-class vsNetworkInterface : public vsIPCInterface
+class VS_IO_DLL vsNetworkInterface : public vsIPCInterface
 {
 protected:
 
-    int                   socketValue;
+    SOCKET                socketValue;
 
     struct sockaddr_in    readName;
-    socklen_t             readNameLength;
+    int                   readNameLength;
     struct sockaddr_in    writeName;
-    socklen_t             writeNameLength;
+    int                   writeNameLength;
 
 public:
 
-                    vsNetworkInterface();
-    virtual         ~vsNetworkInterface();
+                          vsNetworkInterface();
+    virtual               ~vsNetworkInterface();
 
-    virtual void    enableBlocking();
-    virtual void    disableBlocking();
+    virtual const char    *getClassName();
+
+    virtual void          enableBlocking();
+    virtual void          disableBlocking();
 };
 
 #endif
-
