@@ -219,12 +219,25 @@ if test x$with_mpeg2 != xno ; then
 
 ])
     fi
+    AC_CHECK_LIB(vo, convert_rgb24,,MPEG_ERROR=yes,-L$with_mpeg2/lib)
+    if test x$MPEG_ERROR = xyes ; then
+        AC_MSG_ERROR([
+
+    There is a problem with the libvo library, which is part of the mpeg2
+    library distribution. Check to make sure that it is installed correctly 
+    and in the specified location. 
+
+    E-mail vess@ist.ucf.edu if you think you've received this message in
+    error.
+
+])
+    fi
     dnl Add the mpeg2 path information to the variables that will eventually
     dnl get exported to the graphics makefile.
     EXTRA_GRAPHICS_OBJECTS="$EXTRA_GRAPHICS_OBJECTS vsMPEGReader.$OBJEXT"
     GFX_INCLUDE_DIR="$GFX_INCLUDE_DIR -I$with_mpeg2/include"
     GFX_LIB_DIR="$GFX_LIB_DIR -L$with_mpeg2/lib"
-    GFX_LIB="$GFX_LIB -lmpeg2"
+    GFX_LIB="$GFX_LIB -lmpeg2 -lvo"
 fi
 
 dnl Figure out which graphics library we're using
