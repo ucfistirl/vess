@@ -151,9 +151,14 @@ vsEthernetMotionStar::~vsEthernetMotionStar()
         if (tracker[i] != NULL)
             delete tracker[i];
 
-    // Stop the server process if we've forked
     if (forked)
+    {
+        // Stop the server process if we've forked
         kill(serverPID, SIGUSR1);
+
+        // Detach from shared memory
+        delete sharedData;
+    }
 
     // Shut down the MotionStar (if it's our job)
     if (!forked)
@@ -228,6 +233,8 @@ void vsEthernetMotionStar::serverLoop()
     if (net != NULL)
         delete net;
 
+    printf("vsEthernetMotionStar server process exiting...\n");
+
     exit(0);
 }
 
@@ -251,7 +258,7 @@ int vsEthernetMotionStar::sendCommand(unsigned char command,
 {
     vsBirdnetPacket commandPacket;
 
-    commandPacket.header.sequence = currentSequence++;
+    commandPacket.header.sequence = htons(currentSequence++);
     commandPacket.header.type = command;
     commandPacket.header.xtype = xtype;
     commandPacket.header.protocol = VS_BN_PROTOCOL_VERSION;
@@ -330,7 +337,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
     // Check the response for validity
     if (responseReceived)
     {
-        currentSequence = responsePacket.header.sequence;
+        currentSequence = ntohs(responsePacket.header.sequence);
 
         switch(responsePacket.header.type)
         {
@@ -350,7 +357,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                         memcpy(response, &responsePacket, 
                             sizeof(vsBirdnetHeader));
                         memcpy(&(response->buffer[0]), responsePacket.buffer, 
-                            responsePacket.header.numBytes);
+                            ntohs(responsePacket.header.numBytes));
                     }
     
                     return VS_TRUE;
@@ -371,7 +378,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                         memcpy(response, &responsePacket, 
                             sizeof(vsBirdnetHeader));
                         memcpy(&(response->buffer[0]), responsePacket.buffer, 
-                            responsePacket.header.numBytes);
+                            ntohs(responsePacket.header.numBytes));
                     }
     
                     return VS_TRUE;
@@ -392,7 +399,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                         memcpy(response, &responsePacket, 
                             sizeof(vsBirdnetHeader));
                         memcpy(&(response->buffer[0]), responsePacket.buffer, 
-                            responsePacket.header.numBytes);
+                            ntohs(responsePacket.header.numBytes));
                     }
     
                     return VS_TRUE;
@@ -413,7 +420,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                         memcpy(response, &responsePacket, 
                             sizeof(vsBirdnetHeader));
                         memcpy(&(response->buffer[0]), responsePacket.buffer, 
-                            responsePacket.header.numBytes);
+                            ntohs(responsePacket.header.numBytes));
                     }
     
                     return VS_TRUE;
@@ -434,7 +441,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                         memcpy(response, &responsePacket, 
                             sizeof(vsBirdnetHeader));
                         memcpy(&(response->buffer[0]), responsePacket.buffer, 
-                            responsePacket.header.numBytes);
+                            ntohs(responsePacket.header.numBytes));
                     }
     
                     return VS_TRUE;
@@ -455,7 +462,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                         memcpy(response, &responsePacket, 
                             sizeof(vsBirdnetHeader));
                         memcpy(&(response->buffer[0]), responsePacket.buffer, 
-                            responsePacket.header.numBytes);
+                            ntohs(responsePacket.header.numBytes));
                     }
     
                     return VS_TRUE;
@@ -476,7 +483,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                         memcpy(response, &responsePacket, 
                             sizeof(vsBirdnetHeader));
                         memcpy(&(response->buffer[0]), responsePacket.buffer, 
-                            responsePacket.header.numBytes);
+                            ntohs(responsePacket.header.numBytes));
                     }
     
                     return VS_TRUE;
@@ -500,7 +507,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                         memcpy(response, &responsePacket, 
                             sizeof(vsBirdnetHeader));
                         memcpy(&(response->buffer[0]), responsePacket.buffer, 
-                            responsePacket.header.numBytes);
+                            ntohs(responsePacket.header.numBytes));
                     }
 
                     return VS_TRUE;
@@ -555,7 +562,7 @@ int vsEthernetMotionStar::configureSystem()
     {
         // Copy the status (it has all the info we need)
 
-        memcpy(&status, &(response.buffer[0]), response.header.numBytes);
+        memcpy(&status, &(response.buffer[0]), ntohs(response.header.numBytes));
 
         // Print some of the vital information
 
@@ -676,9 +683,12 @@ void vsEthernetMotionStar::enumerateTrackers(
 
                     refTable = (vsBirdnetRefAlignmentPacket *)
                         &(response.buffer[tableIndex]);
-                    trackerConfig[numTrackers].refH = refTable->azimuth;
-                    trackerConfig[numTrackers].refP = refTable->elevation;
-                    trackerConfig[numTrackers].refR = refTable->roll;
+                    trackerConfig[numTrackers].refH = 
+                        ntohs(refTable->azimuth);
+                    trackerConfig[numTrackers].refP = 
+                        ntohs(refTable->elevation);
+                    trackerConfig[numTrackers].refR = 
+                        ntohs(refTable->roll);
 
                     // Increment tracker count
                     numTrackers++;
@@ -769,7 +779,7 @@ void vsEthernetMotionStar::updateConfiguration()
 
         if (result)
         {
-            response.header.sequence = currentSequence++;
+            response.header.sequence = htons(currentSequence++);
             response.header.type = VS_BN_MSG_SEND_SETUP;
 
             bStatus = (vsBirdnetBirdStatusPacket *)response.buffer;
@@ -784,11 +794,12 @@ void vsEthernetMotionStar::updateConfiguration()
                 refTable = (vsBirdnetRefAlignmentPacket *)
                     &(response.buffer[tableIndex]);
 
-                refTable->azimuth = trackerConfig[index].refH;
-                refTable->elevation = trackerConfig[index].refP;
-                refTable->roll = trackerConfig[index].refR;
+                refTable->azimuth = htons(trackerConfig[index].refH);
+                refTable->elevation = htons(trackerConfig[index].refP);
+                refTable->roll = htons(trackerConfig[index].refR);
 
-                sendPacket(&response, 16 + response.header.numBytes, NULL);
+                sendPacket(&response, 16 + ntohs(response.header.numBytes), 
+                           NULL);
             }
         }
         else
@@ -1104,7 +1115,7 @@ void vsEthernetMotionStar::updateSystem()
     {
         ping();
     }
-    
+
     // Read the data packet
     net->readPacket((unsigned char *)&dataPacket,
         sizeof(vsBirdnetPacket));
@@ -1112,7 +1123,7 @@ void vsEthernetMotionStar::updateSystem()
     if ((dataPacket.header.type == VS_BN_DATA_PACKET_MULTI) ||
         (dataPacket.header.type == VS_BN_DATA_PACKET_SINGLE))
     {
-        dataBytes = dataPacket.header.numBytes;
+        dataBytes = ntohs(dataPacket.header.numBytes);
         currentByte = 0;
 
         while (currentByte < dataBytes)
@@ -1220,6 +1231,7 @@ void vsEthernetMotionStar::startStream()
         // Update the system configuration if it has changed
         if (!configured)
         {
+            printf("Updating MotionStar configuration\n");
             updateConfiguration();
         }
 
