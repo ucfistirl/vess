@@ -46,6 +46,7 @@ private:
     char             *objectName;
     vsInputButton    *inputAccel;
     bool             selectable;
+    bool             enabled;
 
 protected:
 
@@ -72,6 +73,9 @@ public:
 
     void                  setSelectable(bool canSelect);
     bool                  isSelectable();
+
+    void                  setEnabled(bool state);
+    bool                  isEnabled();
 };
 
 #endif

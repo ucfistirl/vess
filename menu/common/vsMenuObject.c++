@@ -32,6 +32,7 @@ vsMenuObject::vsMenuObject()
     objectName = NULL;
     inputAccel = NULL;
     selectable = true;
+    enabled = true;
 
     menuComponent = NULL;
     menuKinematics = NULL;
@@ -157,3 +158,18 @@ bool vsMenuObject::isSelectable()
     return selectable;
 }
 
+// ------------------------------------------------------------------------
+// Sets whether or not the object will be expressed in a menu system.
+// ------------------------------------------------------------------------
+void vsMenuObject::setEnabled(bool state)
+{
+    enabled = state;
+}
+
+// ------------------------------------------------------------------------
+// Returns whether or not the object is expressed in a menu system.
+// ------------------------------------------------------------------------
+bool vsMenuObject::isEnabled()
+{
+    return enabled;
+}
