@@ -111,14 +111,19 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
 	// Set up the window style.  The following style flags are recommended
 	// in the docs for OpenGL windows.
     windowStyle = WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-    
-    // Add the "overlapped" style if we don't want to hide the window border
-    if (!hideBorder)
+
+    // The hideBorder parameter determines which kind of window we're going
+    // to use.  If the border is to be hidden, we use a popup window.  If
+    // not, we use an overlapped window.
+    if (hideBorder)
+	    windowStyle |= WS_POPUP;
+	else
 	    windowStyle |= WS_OVERLAPPEDWINDOW;
-	
+	    
 	// Now, try to open the window
 	msWindow = CreateWindow(windowClassName, "VESS Window", windowStyle,
-	    CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL,
+	    VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS, 
+	    VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT, NULL, NULL,
 	    GetModuleHandle(NULL), NULL);
 	    
 	// Set the oldWindowProc member to NULL, since we aren't subclassing
@@ -275,8 +280,12 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
 	// in the docs for OpenGL windows.
     windowStyle = WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
     
-    // Add the "overlapped" style if we don't want to hide the window border
-    if (!hideBorder)
+    // The hideBorder parameter determines which kind of window we're going
+    // to use.  If the border is to be hidden, we use a popup window.  If
+    // not, we use an overlapped window.
+    if (hideBorder)
+	    windowStyle |= WS_POPUP;
+	else
 	    windowStyle |= WS_OVERLAPPEDWINDOW;
 	
 	// Now, try to open the window
