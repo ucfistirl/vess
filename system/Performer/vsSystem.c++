@@ -128,7 +128,7 @@ vsSystem::vsSystem(vsClusterConfig *config)
     if (screenCount > 1)
         pfMultipipe(screenCount);
     
-    if(cluster && cluster->isValid())
+    if(config && config->isValid())
     {
         cluster = config;
         slaves = (vsTCPNetworkInterface**)calloc(cluster->numSlaves(),
@@ -141,11 +141,16 @@ vsSystem::vsSystem(vsClusterConfig *config)
                    (int)slaveAddr[2],(int)slaveAddr[3]);
             slaves[i] = new vsTCPNetworkInterface(slaveName, 
                     VS_RI_DEFAULT_CONTROL_PORT);
+            //slaves[i]->enableBlocking();
+            //int x;
+            while((x = slaves[i]->makeConnection()) < 0);
+            //printf("%d\n",x);
+            slaves[i]->disableBlocking();
         }
         //master = NULL;
         isSlave = false;
     }
-    else if(cluster == NULL)
+    else if(config == NULL)
     {
         cluster = NULL;
         slaves = NULL;
@@ -605,7 +610,7 @@ void vsSystem::drawFrame()
                 "</vessxml>");
         for(i=0;i<numSlaves;i++)
         {
-            slaves[i]->write((u_char *)commStr, strlen(commStr));
+            slaves[i]->write((u_char *)commStr, strlen(commStr)+1);
         }
     }
     else if( isSlave)
@@ -620,7 +625,7 @@ void vsSystem::drawFrame()
                 "<readytosync>\n"
                 "</readytosync>\n"
                 "</vessxml>");
-        remoteInterface->send((u_char *)commStr, strlen(commStr));
+        remoteInterface->send((u_char *)commStr, strlen(commStr)+1);
         
         
         //Block until released by master
