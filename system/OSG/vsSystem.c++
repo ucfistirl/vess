@@ -132,9 +132,9 @@ vsSystem::vsSystem(vsClusterConfig *config)
             slaves[i] = new vsTCPNetworkInterface(slaveName, 
                     VS_RI_DEFAULT_CONTROL_PORT);
             //slaves[i]->enableBlocking();
-            int x;
-            while((x = slaves[i]->makeConnection()) < 0);
-            printf("%d\n",x);
+            //int x;
+            while(slaves[i]->makeConnection() < 0);
+            //printf("%d\n",x);
             slaves[i]->disableBlocking();
         }
         //master = NULL;
@@ -621,7 +621,6 @@ void vsSystem::drawFrame()
     }
     
     //Perform cluster rendering
-    //printf("Confirmed: I am getting at least this far\n");
     if(slaves != NULL && !isSlave)
     {
         //Send out relevant info to clients
@@ -675,7 +674,6 @@ void vsSystem::drawFrame()
         while(!readyToSwap)
         {
             remoteInterface->update();
-            //printf("I'm being a defiant client!\n");
         }
         
     }

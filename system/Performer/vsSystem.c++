@@ -98,7 +98,9 @@ vsSystem::vsSystem(vsClusterConfig *config)
 {
     pfWSConnection winConnection;
     int screenCount;
+    int i;
     char slaveName[128];
+    const unsigned char *slaveAddr;
 
     // Start off uninitialized
     isInitted = 0;
@@ -143,7 +145,7 @@ vsSystem::vsSystem(vsClusterConfig *config)
                     VS_RI_DEFAULT_CONTROL_PORT);
             //slaves[i]->enableBlocking();
             //int x;
-            while((x = slaves[i]->makeConnection()) < 0);
+            while(slaves[i]->makeConnection() < 0);
             //printf("%d\n",x);
             slaves[i]->disableBlocking();
         }
@@ -181,6 +183,7 @@ vsSystem::vsSystem(vsClusterConfig *config)
 // ------------------------------------------------------------------------
 vsSystem::~vsSystem()
 {
+    int i;
     // Do nothing if this isn't a real system object
     if (!validObject)
         return;
