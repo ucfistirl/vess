@@ -52,6 +52,9 @@ vsPhantomCollision::vsPhantomCollision(vsPhantomSystem *thePhantomSys,
     // Set the default margin distance
     sphereRadius = VS_PHANTOM_COLLISION_DEFAULT_RADIUS;
 
+    // Set the default maximum force
+    maximumForce = VS_PHANTOM_COLLISION_DEFAULT_FORCE;
+
 #ifdef VS_PHANTOM_COLLISION_DEBUG
     // Initialize the geometry used for the lines.
     forceLine = new vsGeometry();
@@ -219,11 +222,30 @@ void vsPhantomCollision::setRadius(double newRadius)
 }
 
 // ------------------------------------------------------------------------
-// Sets the collision margin for the object
+// Gets the collision margin for the object
 // ------------------------------------------------------------------------
 double vsPhantomCollision::getRadius()
 {
     return sphereRadius;
+}
+
+// ------------------------------------------------------------------------
+// Gets the maximum force to apply to the Phantom.
+// ------------------------------------------------------------------------
+void vsPhantomCollision::setMaxForce(double newMaxForce)
+{
+    if ((newMaxForce >= 0.0) && (newMaxForce < VS_PHANTOM_COLLISION_MAX_FORCE))
+    {
+        maximumForce = newMaxForce;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Gets the maximum force to apply to the Phantom.
+// ------------------------------------------------------------------------
+double vsPhantomCollision::getMaxForce()
+{
+    return maximumForce;
 }
 
 // ------------------------------------------------------------------------
@@ -267,13 +289,12 @@ void vsPhantomCollision::update()
 /*
             // Original (linear) scaling formula.
             forceVector = collideNormal *
-              ((distFromCollision / sphereRadius) *
-              VS_PHANTOM_COLLISION_MAX_FORCE);
+              ((distFromCollision / sphereRadius) * maximumForce);
 */
 
             // Elliptical function to have the magnitude curve some.
             forceVector = collideNormal *
-              (VS_PHANTOM_COLLISION_MAX_FORCE * (1 - sqrt(1 -
+              (maximumForce * (1 - sqrt(1 -
               (VS_SQR(distFromCollision)/VS_SQR(sphereRadius)))));
         }
 

@@ -33,8 +33,9 @@
 
 #define VS_PHANTOM_COLLISION_POINTS_MAX        VS_SPH_ISECT_MAX_SPHERES
 #define VS_PHANTOM_COLLISION_DEFAULT_RADIUS    0.02
+#define VS_PHANTOM_COLLISION_DEFAULT_FORCE     4.0
+#define VS_PHANTOM_COLLISION_MAX_FORCE         8.5
 #define VS_PHANTOM_COLLISION_MAX_PASSES        10
-#define VS_PHANTOM_COLLISION_MAX_FORCE         4.0
 
 // Define this to have the normal and force vectors drawn as lines.
 //#define VS_PHANTOM_COLLISION_DEBUG
@@ -60,6 +61,7 @@ private:
 #endif
  
     double             sphereRadius;
+    double             maximumForce;
  
     double             getCollisionData(vsMatrix globalXform,
                                         vsVector *hitNorm);
@@ -84,6 +86,9 @@ public:
  
     void                  setRadius(double newRadius);
     double                getRadius();
+
+    void                  setMaxForce(double newMaxForce);
+    double                getMaxForce();
 
     virtual void          update();
 };
