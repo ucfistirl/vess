@@ -50,6 +50,7 @@ void vsGraphicsState::clearState()
     shadingAttr = NULL;
     textureAttr = NULL;
     transparencyAttr = NULL;
+    wireframeAttr = NULL;
     lightAttrCount = 0;
 
     backfaceLock = NULL;
@@ -58,6 +59,7 @@ void vsGraphicsState::clearState()
     shadingLock = NULL;
     textureLock = NULL;
     transparencyLock = NULL;
+    wireframeLock = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -90,6 +92,9 @@ void vsGraphicsState::applyState(pfGeoState *state)
 
     if (transparencyAttr)
         transparencyAttr->setState(state);
+
+    if (wireframeAttr)
+        wireframeAttr->setState(state);
 
     state->getFuncs(&preFunc, &postFunc, &data);
     lightList = (pfLight **)data;
@@ -151,6 +156,15 @@ void vsGraphicsState::setTransparency(vsTransparencyAttribute *newAttrib)
 {
     if (!transparencyLock)
         transparencyAttr = newAttrib;
+}
+
+// ------------------------------------------------------------------------
+// Sets the attribute that contains the desired wireframe state
+// ------------------------------------------------------------------------
+void vsGraphicsState::setWireframe(vsWireframeAttribute *newAttrib)
+{
+    if (!wireframeLock)
+        wireframeAttr = newAttrib;
 }
 
 // ------------------------------------------------------------------------
@@ -222,6 +236,14 @@ vsTextureAttribute *vsGraphicsState::getTexture()
 vsTransparencyAttribute *vsGraphicsState::getTransparency()
 {
     return transparencyAttr;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the attribute that contains the current wireframe state
+// ------------------------------------------------------------------------
+vsWireframeAttribute *vsGraphicsState::getWireframe()
+{
+    return wireframeAttr;
 }
 
 // ------------------------------------------------------------------------
@@ -310,6 +332,17 @@ void vsGraphicsState::lockTransparency(void *lockAddr)
 }
 
 // ------------------------------------------------------------------------
+// Locks the current wireframe attribute, using the given address as a
+// 'key'. The wireframe attribute cannot be changed again until it is
+// unlocked with this key address.
+// ------------------------------------------------------------------------
+void vsGraphicsState::lockWireframe(void *lockAddr)
+{
+    if (!wireframeLock)
+        wireframeLock = lockAddr;
+}
+
+// ------------------------------------------------------------------------
 // Unlocks the current backface attribute, using the given address as a
 // 'key'; this key must match the key that the attribute was locked with or
 // the function will not work.
@@ -373,6 +406,17 @@ void vsGraphicsState::unlockTransparency(void *lockAddr)
 {
     if (transparencyLock == lockAddr)
         transparencyLock = NULL;
+}
+
+// ------------------------------------------------------------------------
+// Unlocks the current wireframe attribute, using the given address as a
+// 'key'; this key must match the key that the attribute was locked with or
+// the function will not work.
+// ------------------------------------------------------------------------
+void vsGraphicsState::unlockWireframe(void *lockAddr)
+{
+    if (wireframeLock == lockAddr)
+        wireframeLock = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -643,6 +687,33 @@ int vsGraphicsState::isSameTransparency(vsAttribute *firstAttr,
     
     first = (vsTransparencyAttribute *)firstAttr;
     second = (vsTransparencyAttribute *)secondAttr;
+    
+    if (first == second)
+        return VS_TRUE;
+
+    if (!first || !second)
+        return VS_FALSE;
+
+    val1 = first->isEnabled();
+    val2 = second->isEnabled();
+    if (val1 != val2)
+        return VS_FALSE;
+
+    return VS_TRUE;
+}
+
+// ------------------------------------------------------------------------
+// Static function
+// Compares two wireframe attributes for equivalence
+// ------------------------------------------------------------------------
+int vsGraphicsState::isSameWireframe(vsAttribute *firstAttr,
+    vsAttribute *secondAttr)
+{
+    vsWireframeAttribute *first, *second;
+    int val1, val2;
+    
+    first = (vsWireframeAttribute *)firstAttr;
+    second = (vsWireframeAttribute *)secondAttr;
     
     if (first == second)
         return VS_TRUE;

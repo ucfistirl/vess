@@ -29,6 +29,7 @@
 #include "vsShadingAttribute.h++"
 #include "vsTextureAttribute.h++"
 #include "vsTransparencyAttribute.h++"
+#include "vsWireframeAttribute.h++"
 #include "vsLightAttribute.h++"
 #include "vsGrowableArray.h++"
 
@@ -42,6 +43,7 @@ private:
     vsShadingAttribute         *shadingAttr;
     vsTextureAttribute         *textureAttr;
     vsTransparencyAttribute    *transparencyAttr;
+    vsWireframeAttribute       *wireframeAttr;
     
     vsGrowableArray            lightAttrList;
     int                        lightAttrCount;
@@ -52,6 +54,7 @@ private:
     void                       *shadingLock;
     void                       *textureLock;
     void                       *transparencyLock;
+    void                       *wireframeLock;
 
 VS_INTERNAL:
 
@@ -70,6 +73,7 @@ public:
     void          setShading(vsShadingAttribute *newAttrib);
     void          setTexture(vsTextureAttribute *newAttrib);
     void          setTransparency(vsTransparencyAttribute *newAttrib);
+    void          setWireframe(vsWireframeAttribute *newAttrib);
     
     void          addLight(vsLightAttribute *lightAttrib);
     void          removeLight(vsLightAttribute *lightAttrib);
@@ -80,6 +84,7 @@ public:
     vsShadingAttribute         *getShading();
     vsTextureAttribute         *getTexture();
     vsTransparencyAttribute    *getTransparency();
+    vsWireframeAttribute       *getWireframe();
     
     vsLightAttribute           *getLight(int index);
     int                        getLightCount();
@@ -90,6 +95,7 @@ public:
     void          lockShading(void *lockAddr);
     void          lockTexture(void *lockAddr);
     void          lockTransparency(void *lockAddr);
+    void          lockWireframe(void *lockAddr);
 
     void          unlockBackface(void *lockAddr);
     void          unlockFog(void *lockAddr);
@@ -97,6 +103,7 @@ public:
     void          unlockShading(void *lockAddr);
     void          unlockTexture(void *lockAddr);
     void          unlockTransparency(void *lockAddr);
+    void          unlockWireframe(void *lockAddr);
 
     static int    isSameBackface(vsAttribute *firstAttr,
                                  vsAttribute *secondAttr);
@@ -109,6 +116,8 @@ public:
                                 vsAttribute *secondAttr);
     static int    isSameTransparency(vsAttribute *firstAttr,
                                      vsAttribute *secondAttr);
+    static int    isSameWireframe(vsAttribute *firstAttr,
+                                  vsAttribute *secondAttr);
 };
 
 #endif
