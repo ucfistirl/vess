@@ -33,9 +33,9 @@
 // performance will not likely be what is expected.
 //
 // Also note that this motion model is exclusive.  It most likely will not
-// work well with other motion models on the same vsKinematics object, since it
-// eliminates any roll component incurred, and can possibly set the heading and
-// pitch absolutely.  The vsKinematics object provided should have inertia 
+// work well with other motion models on the same vsKinematics object, since 
+// it eliminates any roll component incurred, and sets the heading and pitch 
+// absolutely.  The vsKinematics object provided should have inertia 
 // disabled.
 
 #include "vsMotionModel.h++"
