@@ -17,6 +17,7 @@ libvsIO_a_SOURCES = \
                     common/vsJoystick.c++ \
                     common/vsMotionTracker.c++ \
                     common/vsMouse.c++ \
+                    common/vsPhantom.c++ \
                     common/vsPinchGloveBox.c++ \
                     common/vsSerialMotionStar.c++ \
                     common/vsSpaceball.c++ \
@@ -31,6 +32,7 @@ libvsIO_a_SOURCES = \
                     @OS@/vsIPCInterface.c++ \
                     @OS@/vsKeyboard.c++ \
                     @OS@/vsNetworkInterface.c++ \
+                    @OS@/vsPhantomSystem.c++ \
                     @OS@/vsSerialPort.c++ \
                     @OS@/vsSharedInputData.c++ \
                     @OS@/vsTCPNetworkInterface.c++ \
@@ -65,6 +67,8 @@ include_HEADERS = \
                   common/vsJoystick.h++ \
                   common/vsMotionTracker.h++ \
                   common/vsMouse.h++ \
+                  common/vsPhantom.h++ \
+                  common/vsPhantomProtocol.h++ \
                   common/vsPinchGloveBox.h++ \
                   common/vsSerialMotionStar.h++ \
                   common/vsSpaceball.h++ \
@@ -79,10 +83,11 @@ include_HEADERS = \
                   @OS@/vsIS600.h++ \
                   @OS@/vsKeyboard.h++ \
                   @OS@/vsNetworkInterface.h++ \
+                  @OS@/vsPhantomSystem.h++ \
                   @OS@/vsSerialPort.h++ \
                   @OS@/vsSharedInputData.h++ \
-                  @OS@/vsUDPNetworkInterface.h++ \
                   @OS@/vsTCPNetworkInterface.h++ \
+                  @OS@/vsUDPNetworkInterface.h++ \
                   @WS@/vsWSSpaceball.c++ \
                   @SG@_@WS@/vsWindowSystem.c++
 
