@@ -1061,15 +1061,18 @@ void vsWindow::getSize(int *width, int *height)
 void vsWindow::getDrawableSize(int *width, int *height)
 {
     Display *xWindowDisplay;
-    XWindowAttributes xattr;
-    int x, y;
+    Window rootWindow;
+    int xPosition, yPosition;
+    unsigned int uWidth, uHeight;
+    unsigned int uBorderWidth, uBorderHeight;
+    int xReturn, yReturn;
 
     // If the window is off-screen its size is stored rather than queried
     if(isOffScreenWindow)
     {
         // Set the values for width and height
-        x = drawableWidth;
-        y = drawableHeight;
+        xReturn = drawableWidth;
+        yReturn = drawableHeight;
     }
     else
     {
@@ -1078,27 +1081,28 @@ void vsWindow::getDrawableSize(int *width, int *height)
 
         // Query the window attributes from X, and make sure the query
         // succeeds
-        if (XGetWindowAttributes(xWindowDisplay, xWindow, &xattr) == 0)
+        if (XGetGeometry(xWindowDisplay, xWindow, &rootWindow, &xPosition,
+            &yPosition, &uWidth, &uHeight, &uBorderWidth, &uBorderHeight) == 0)
         {
             // The query failed, return zeroes as default
-            x = 0;
-            y = 0;
+            xReturn = 0;
+            yReturn = 0;
         }
         else
         {
-            // Get the window size from the attributes structure
-            x = xattr.width;
-            y = xattr.height;
+            // Set the return values
+            xReturn = uWidth;
+            yReturn = uHeight;
         }
     }
 
     // Return the width if requested
     if (width)
-        *width = x;
+        *width = xReturn;
 
     // Return the height if requested
     if (height)
-        *height = y;
+        *height = yReturn;
 }
 
 // ------------------------------------------------------------------------
