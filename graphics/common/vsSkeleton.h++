@@ -31,7 +31,7 @@
 #include "vsUpdatable.h++"
 #include "vsTransformAttribute.h++"
 
-class vsSkeleton : public vsUpdatable
+class VS_GRAPHICS_DLL vsSkeleton : public vsUpdatable
 {
 private:
 
