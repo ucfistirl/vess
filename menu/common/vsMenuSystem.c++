@@ -14,10 +14,7 @@
 //    VESS Module:  vsMenuSystem.c++
 //
 //    Description:  The vsMenuSystem is a handler class that manages input
-//                  and state changes of a menu structure. It requires a
-//                  window and an input system, creating a pane over the
-//                  existing window for output and extracting devices for
-//                  input.
+//                  and state changes of a menu structure.
 //
 //    Author(s):    Casey Thurston
 //
@@ -33,8 +30,9 @@
 vsMenuSystem::vsMenuSystem(vsPane *pane, vsWindowSystem *windowSystem)
 {
     int i;
+    vsComponent *newRoot;
 
-    // Create the objects used to visually represent menu objects
+    // Store the pane used to render everything
     menuPane = pane;
 
     // If the pane already has a scene fetch it, otherwise create a new one
@@ -53,17 +51,28 @@ vsMenuSystem::vsMenuSystem(vsPane *pane, vsWindowSystem *windowSystem)
         menuPane->setView(menuView);
     }
 
-    // If the scene is empty, add a new component as its child, otherwise add a
-    // new component (that will hold the menu objects) as a child of the first
-    // node underneath the 
+    // Create the component that will hold all of the visualization objects
     menuComponent = new vsComponent();
+
+    // If the scene is empty, add a new component as its child, or otherwise
+    // create a new root node that will hold both the old root and the new
+    // menu object visualization nodes as children
     if (menuScene->getChild(0) == NULL)
     {
         menuScene->addChild(menuComponent);
     }
     else
     {
-        menuScene->getChild(0)->addChild(menuComponent);
+        // Create the new root node
+        newRoot = new vsComponent();
+
+        // Add each of the contending nodes as children of that root
+        newRoot->addChild(menuComponent);
+        newRoot->addChild(menuScene->getChild(0));
+
+        // Swap the new root node into its place
+        menuScene->removeChild(0);
+        menuScene->addChild(newRoot);
     }
 
     // This version of the constructor has a cursor
@@ -140,180 +149,6 @@ void vsMenuSystem::setMenuTree(vsMenuTree *newTree)
 }
 
 // ------------------------------------------------------------------------
-// Set the button used to trigger the specified menu action
-// ------------------------------------------------------------------------
-void vsMenuSystem::setMenuButton(vsMenuAction action, vsInputButton *button)
-{
-    // Store the button and initialize it to unpressed
-    inputButtons[action] = button;
-    pressed[action] = false;
-}
-
-// ------------------------------------------------------------------------
-// Move the menu system to display on a different location in the tree
-// ------------------------------------------------------------------------
-void vsMenuSystem::setFrame(vsMenuFrame *frame)
-{
-    // Copy the argument frame
-    menuFrame->setFrame(frame);
-
-    // Update the display data based on the new frame
-    rebuildMenu();
-}
-
-// ------------------------------------------------------------------------
-// Returns the current menu frame
-// ------------------------------------------------------------------------
-vsMenuFrame *vsMenuSystem::getFrame()
-{
-    return menuFrame;
-}
-
-// ------------------------------------------------------------------------
-// Gets the currently selected item
-// ------------------------------------------------------------------------
-vsMenuObject *vsMenuSystem::getSelection()
-{
-    return selectedObj;
-}
-
-// ------------------------------------------------------------------------
-// Hide the menu system so that it isn't displayed
-// ------------------------------------------------------------------------
-void vsMenuSystem::hide()
-{
-    menuPane->hidePane();
-}
-
-// ------------------------------------------------------------------------
-// Show the menu system so that it will be displayed
-// ------------------------------------------------------------------------
-void vsMenuSystem::show()
-{
-    menuPane->showPane();
-}
-
-// ------------------------------------------------------------------------
-// Process the current input state and adjust the current menu object
-// states accordingly.
-// ------------------------------------------------------------------------
-void vsMenuSystem::update()
-{
-    vsMenuObject   *prevObj;
-    vsMenuObject   *currentObj;
-    vsMenuIterator *menuIter;
-    int b;
-
-    // Get the first child of the tree at the current frame
-    menuIter = new vsMenuIterator(menuTree, menuFrame);
-    currentObj = menuIter->getObject();
-
-    // For all objects
-    while (currentObj)
-    {
-        // Tell each object to update its internal states, including any
-        // visual effects
-        currentObj->update(VS_MENU_SIGNAL_IDLE, menuFrame);
-
-        // If the window system uses a cursor, intersect with this object
-        if (hasCursor && currentObj->getComponent())
-        {
-            isectObject->setPickSeg(0, menuPane, xAxis->getPosition(),
-                yAxis->getPosition());
-
-            isectObject->intersect(currentObj->getComponent());
-
-            if (isectObject->getIsectValid(0))
-            {
-                // Make the highlighted item the selected item
-                selectedObj = currentObj;
-
-                // If the activate button is pressed, activate the item
-                if (processAction(VS_MENU_ACTION_CURSOR))
-                {
-                    // Send the activation signal to the object
-                    currentObj->update(VS_MENU_SIGNAL_ACTIVATE, menuFrame);
-                }
-            }
-        }
-
-        // Check the accelerator of this object
-        if (currentObj->getAccelerator())
-        {
-            // If the accelerator is pressed down, ensure that this object
-            // is selected
-            if (currentObj->getAccelerator()->isPressed())
-                selectedObj = currentObj;
-        }
-
-        // Move on to the next child
-        menuIter->advance();
-
-        // Handle selecting the previous item
-        if (processAction(VS_MENU_ACTION_PREVIOUS))
-        {
-            // If the next item is already the selected object, move the
-            // selected object back to the current item
-            if (menuIter->getObject() == selectedObj)
-            {
-                selectedObj = currentObj;
-
-                pressed[VS_MENU_ACTION_PREVIOUS] = true;
-            }
-        }
-
-        // Handle selecting the next item
-        if (processAction(VS_MENU_ACTION_NEXT))
-        {
-            // If the old current item is selected and the next one exists,
-            // move the selected object indicator forward to the next item
-            if ((currentObj == selectedObj) && (menuIter->getObject()))
-            {
-                selectedObj = menuIter->getObject();
-                pressed[VS_MENU_ACTION_NEXT] = true;
-            }
-        }
-
-        // Update the current item before moving on in the loop
-        currentObj = menuIter->getObject();
-    }
-
-    // Check the activation button on the selected object
-    if (processAction(VS_MENU_ACTION_ACTIVATE))
-    {
-        // Send the activation signal to the object
-        selectedObj->update(VS_MENU_SIGNAL_ACTIVATE, menuFrame);
-    }
-
-    // Update all of the button press states for the next frame
-    for (b = 0; b < VS_MENU_ACTION_COUNT; b++)
-    {
-        if (inputButtons[b])
-            pressed[b] = inputButtons[b]->isPressed();
-    }
-}
-
-// ------------------------------------------------------------------------
-// VESS Internal Function
-// Convenience function for whether a given action should be performed
-// from the state of its assigned input button.
-// ------------------------------------------------------------------------
-bool vsMenuSystem::processAction(vsMenuAction action)
-{
-    // Only handle the state if the action has a button assigned
-    if (inputButtons[action])
-    {
-        // Return true if and only if the button is currently pressed but
-        // was not pressed on the last update
-        return (inputButtons[action]->isPressed() && !pressed[action]);
-    }
-
-    // If the action does not have a button assigned, return false by default
-    return false;
-}
-
-// ------------------------------------------------------------------------
-// VESS Internal Function
 // Update the visualization of the menu system, rebuilding the scene graph
 // at the location of the tree currently specified by the menu frame
 // ------------------------------------------------------------------------
@@ -357,3 +192,192 @@ void vsMenuSystem::rebuildMenu()
     }
 }
 
+// ------------------------------------------------------------------------
+// Move the menu system to display on a different location in the tree
+// ------------------------------------------------------------------------
+void vsMenuSystem::setFrame(vsMenuFrame *frame)
+{
+    // Copy the argument frame
+    menuFrame->setFrame(frame);
+
+    // Update the display data based on the new frame
+    rebuildMenu();
+}
+
+// ------------------------------------------------------------------------
+// Returns the current menu frame
+// ------------------------------------------------------------------------
+vsMenuFrame *vsMenuSystem::getFrame()
+{
+    return menuFrame;
+}
+
+// ------------------------------------------------------------------------
+// Set the button used to trigger the specified menu action
+// ------------------------------------------------------------------------
+void vsMenuSystem::setMenuButton(vsMenuAction action, vsInputButton *button)
+{
+    // Store the button and initialize it to unpressed
+    inputButtons[action] = button;
+    pressed[action] = false;
+}
+
+// ------------------------------------------------------------------------
+// Gets the currently selected item
+// ------------------------------------------------------------------------
+vsMenuObject *vsMenuSystem::getSelection()
+{
+    return selectedObj;
+}
+
+// ------------------------------------------------------------------------
+// Hide the menu system so that it isn't displayed
+// ------------------------------------------------------------------------
+void vsMenuSystem::hide()
+{
+    menuPane->hidePane();
+}
+
+// ------------------------------------------------------------------------
+// Show the menu system so that it will be displayed
+// ------------------------------------------------------------------------
+void vsMenuSystem::show()
+{
+    menuPane->showPane();
+}
+
+// ------------------------------------------------------------------------
+// Process the current input state and adjust the current menu object
+// states accordingly.
+// ------------------------------------------------------------------------
+void vsMenuSystem::update()
+{
+    vsMenuObject   *prevObj;
+    vsMenuObject   *curObj;
+    vsMenuIterator *menuIter;
+    vsMenuFrame    *curFrame;
+    int b;
+
+    // Get the first child of the tree at the current frame
+    menuIter = new vsMenuIterator(menuTree, menuFrame);
+    curObj = menuIter->getObject();
+
+    // Create a working frame to use on this update
+    curFrame = new vsMenuFrame(menuFrame);
+
+    // For all objects
+    while (curObj)
+    {
+        // Tell each object to update its internal states, including any
+        // visual effects
+        curObj->update(VS_MENU_SIGNAL_IDLE, curFrame);
+
+        // If the window system uses a cursor, intersect with this object
+        if (hasCursor && curObj->getComponent())
+        {
+            isectObject->setPickSeg(0, menuPane, xAxis->getPosition(),
+                yAxis->getPosition());
+
+            isectObject->intersect(curObj->getComponent());
+
+            if (isectObject->getIsectValid(0))
+            {
+                // Make the highlighted item the selected item
+                selectedObj = curObj;
+
+                // If the activate button is pressed, activate the item
+                if (processAction(VS_MENU_ACTION_CURSOR))
+                {
+                    // Send the activation signal to the object
+                    curObj->update(VS_MENU_SIGNAL_ACTIVATE, curFrame);
+                }
+            }
+        }
+
+        // Check the accelerator of this object
+        if (curObj->getAccelerator())
+        {
+            // If the accelerator is pressed down, ensure that this object
+            // is selected
+            if (curObj->getAccelerator()->isPressed())
+                selectedObj = curObj;
+        }
+
+        // Move on to the next child
+        menuIter->advance();
+
+        // Handle selecting the previous item
+        if (processAction(VS_MENU_ACTION_PREVIOUS))
+        {
+            // If the next item is already the selected object, move the
+            // selected object back to the current item
+            if (menuIter->getObject() == selectedObj)
+            {
+                selectedObj = curObj;
+
+                pressed[VS_MENU_ACTION_PREVIOUS] = true;
+            }
+        }
+
+        // Handle selecting the next item
+        if (processAction(VS_MENU_ACTION_NEXT))
+        {
+            // If the old current item is selected and the next one exists,
+            // move the selected object indicator forward to the next item
+            if ((curObj == selectedObj) && (menuIter->getObject()))
+            {
+                selectedObj = menuIter->getObject();
+                pressed[VS_MENU_ACTION_NEXT] = true;
+            }
+        }
+
+        // Update the current item before moving on in the loop
+        curObj = menuIter->getObject();
+    }
+
+    // Check the activation button on the selected object
+    if (processAction(VS_MENU_ACTION_ACTIVATE))
+    {
+        // Send the activation signal to the object
+        selectedObj->update(VS_MENU_SIGNAL_ACTIVATE, curFrame);
+    }
+
+    // If the frame data has changed during this update, rebuild the menus
+    if (!curFrame->isEqual(menuFrame))
+    {
+        // Copy the new data into the existing frame, deleting the working copy
+        // This slightly slower method is used to preserve the validity of any
+        // frame pointers in use outside of this class
+        menuFrame->setFrame(curFrame);
+        delete curFrame;
+
+        // Rebuild the menu system in the new location
+        rebuildMenu();
+    }
+
+    // Update all of the button press states for the next frame
+    for (b = 0; b < VS_MENU_ACTION_COUNT; b++)
+    {
+        if (inputButtons[b])
+            pressed[b] = inputButtons[b]->isPressed();
+    }
+}
+
+// ------------------------------------------------------------------------
+// VESS Internal Function
+// Convenience function for whether a given action should be performed
+// from the state of its assigned input button.
+// ------------------------------------------------------------------------
+bool vsMenuSystem::processAction(vsMenuAction action)
+{
+    // Only handle the state if the action has a button assigned
+    if (inputButtons[action])
+    {
+        // Return true if and only if the button is currently pressed but
+        // was not pressed on the last update
+        return (inputButtons[action]->isPressed() && !pressed[action]);
+    }
+
+    // If the action does not have a button assigned, return false by default
+    return false;
+}
