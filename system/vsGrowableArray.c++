@@ -92,7 +92,13 @@ void vsGrowableArray::setSize(int newSize)
         }
 
         if (storage)
+        {
+            // Clear the newly-allocated memory
+            memset(&storage[currentSize], 0, 
+                sizeof(void *) * (newSize - currentSize));
+
             currentSize = newSize;
+        }
         else
         {
             currentSize = 0;
@@ -186,6 +192,14 @@ inline int vsGrowableArray::access(int index)
     // Allocated space check
     if (index >= currentSize)
     {
+        // If the array is set to not grow (stepSize == 0), we won't
+        // be able to access this index
+        if (stepSize <= 0)
+        {
+            printf("vsGrowableArray::access: Array index out of bounds\n");
+            return FALSE;
+        }
+
         int newSize;
         newSize = currentSize;
         while (newSize <= index)
