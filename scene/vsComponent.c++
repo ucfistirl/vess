@@ -238,6 +238,18 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
                 // Create new geometry
                 myNode = new vsGeometry((pfGeode *)currentNode);
             }
+            else // unrecognized type
+            {
+                // This node is a type we don't recognize and can't handle;
+                // discard it so that it doesn't get in the way.
+                bottomGroup->removeChild(currentNode);
+                loop--;
+                printf("vsComponent::vsComponent (conversion constructor): Discarding unrecognized "
+                	"Performer node of type '%s'\n",
+                	((pfObject *)(currentNode))->getType()->getName());
+                pfDelete(currentNode);
+                continue;
+            }
         }
         
         // Parent and child are already connected in the Performer scene;
