@@ -280,6 +280,9 @@ case "$SG" in
         AC_CHECK_LIB(pfui, pfiPickMode,,GFX_ERROR=yes,-L$x_libraries -L/usr/$LIBDIR -lpf -lpfutil -lpfui)
         AC_CHECK_LIB(pfflt, pfdConverterMode_flt,,GFX_ERROR=yes,-L$x_libraries -L/usr/$LIBDIR $GFX_LIB_DIR -lpf -lpfdu)
 
+        dnl Add the extra objects that Performer requires
+        EXTRA_GRAPHICS_OBJECTS="$EXTRA_GRAPHICS_OBJECTS vsCallbackList.$OBJEXT"
+
         if test x$GFX_ERROR = xyes ; then
             AC_MSG_ERROR([
 
