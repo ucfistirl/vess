@@ -459,11 +459,13 @@ void CALLBACK vsTextBuilder::tesselateVertex(void *vertexData)
 {
     vsVector  *vertex;
 
-    // Create a VESS vector from the data.  Swap the y and z values so
+    // Create a VESS vector from the data.  Give z the y values so
     // the text is on the x and z axis like Performer's text.
+    // These are two dimensional polygons so what would normally be z is 0.
+    // Therefore y will be zero, in order to have the text drawn in the X,Z
+    // plane.
     vertex = new vsVector(((double *)vertexData)[0] + letterOffset,
-        ((double *)vertexData)[2],
-        ((double *)vertexData)[1]);
+        0.0, ((double *)vertexData)[1]);
 
     // Place the vertex into the vertex array.
     vertexArray->setData(primitiveLength, vertex);
@@ -557,7 +559,8 @@ void CALLBACK vsTextBuilder::tesselateEnd()
     primitiveGeometry->setBinding(VS_GEOMETRY_NORMALS,
         VS_GEOMETRY_BIND_OVERALL);
     primitiveGeometry->setDataListSize(VS_GEOMETRY_NORMALS, 1);
-    primitiveGeometry->setData(VS_GEOMETRY_NORMALS, 0, vsVector(0.0, 0.0, 1.0));
+    primitiveGeometry->setData(VS_GEOMETRY_NORMALS, 0,
+        vsVector(0.0, -1.0, 0.0));
 
     // Add the geometry to the letterComponent now that we are done with it.
     letterComponent->addChild(primitiveGeometry);
@@ -694,6 +697,10 @@ double vsTextBuilder::tesselateLetter(FT_Glyph glyph)
     // Set the tolerence to combine tesselated vertices that are at within
     // the specified (0) distance.
     gluTessProperty(tobj, GLU_TESS_TOLERANCE, 0);
+
+    // Set the normal that controls the winding direction of generated
+    // polygons.
+    gluTessNormal(tobj, 0.0, 0.0, 1.0);
 
     // Begin a polygon.
     gluTessBeginPolygon(tobj, NULL);
