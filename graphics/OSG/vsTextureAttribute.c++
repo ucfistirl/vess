@@ -138,7 +138,7 @@ void vsTextureAttribute::setImage(unsigned char *imageData, int xSize,
 
     // Pass the image data and settings to the osg::Image
     osgTexImage->setImage(xSize, ySize, 1, GL_RGBA, format,
-        GL_UNSIGNED_BYTE, imageData);
+        GL_UNSIGNED_BYTE, imageData, osg::Image::USE_MALLOC_FREE, 1);
 }
 
 // ------------------------------------------------------------------------
@@ -568,4 +568,25 @@ bool vsTextureAttribute::isEquivalent(vsAttribute *attribute)
 
     // If all pass, the attribute is equivalent
     return true;
+}
+
+// ------------------------------------------------------------------------
+// Internal function
+// Directly sets the osg::Image object to be used by this texture
+// attribute. Deletes the current Image object, if any. (Deleting the
+// image object will delete its image data as well; this should probably
+// be changed as some point, as it's not always desirable to do that.)
+// ------------------------------------------------------------------------
+void vsTextureAttribute::setOSGImage(osg::Image *osgImage)
+{
+    // Release the existing image
+    if (osgTexImage)
+        osgTexImage->unref();
+
+    // Store and reference the new image
+    osgTexImage = osgImage;
+    osgTexImage->ref();
+
+    // Instruct the OSG texture object to use the new image
+    osgTexture->setImage(osgTexImage);
 }

@@ -92,6 +92,8 @@ VS_INTERNAL:
 
     virtual bool    isEquivalent(vsAttribute *attribute);
 
+    void            setOSGImage(osg::Image *osgImage);
+
 public:
 
                           vsTextureAttribute();
