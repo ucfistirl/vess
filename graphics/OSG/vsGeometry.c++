@@ -839,7 +839,7 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
         case VS_GEOMETRY_TEXTURE_COORDS:
             texCoordList->resize(newSize);
             texCoordListSize = newSize;
-        
+
             // If the texture coordinate binding is OFF, then the pointer
             // to the coordinate list should be NULL so that OSG knows not
             // to use texture coordinates at all.
@@ -874,7 +874,7 @@ int vsGeometry::getDataListSize(int whichData)
         default:
             printf("vsGeometry::getDataListSize: Unrecognized data value\n");
     }
-    
+
     // If the whichData constant is unrecognized, return an error value
     return -1;
 }

@@ -39,7 +39,7 @@ vsTextureAttribute::vsTextureAttribute()
 
     // Start with no image data
     osgTexImage = NULL;
-    
+
     //Initialize the osg::Texture2D
     osgTexture->setBorderColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
     osgTexture->setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
@@ -65,7 +65,7 @@ vsTextureAttribute::vsTextureAttribute(osg::Texture2D *texObject,
     osgTexEnv->ref();
     osgTexImage = osgTexture->getImage();
     osgTexImage->ref();
-    
+
     // Set the texture border color to black
     osgTexture->setBorderColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
 }
@@ -230,7 +230,7 @@ void vsTextureAttribute::loadImageFromFile(char *filename)
 void vsTextureAttribute::setBoundaryMode(int whichDirection, int boundaryMode)
 {
     osg::Texture::WrapMode wrapType;
-    
+
     // Translate the new boundary mode value into its OSG counterpart
     if (boundaryMode == VS_TEXTURE_BOUNDARY_REPEAT)
         wrapType = osg::Texture::REPEAT;
