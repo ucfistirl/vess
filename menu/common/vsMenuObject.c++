@@ -31,6 +31,7 @@ vsMenuObject::vsMenuObject()
 {
     objectName = NULL;
     inputAccel = NULL;
+    selectable = true;
 
     menuComponent = NULL;
     menuKinematics = NULL;
@@ -138,5 +139,21 @@ void vsMenuObject::setAccelerator(vsInputButton *accelerator)
 vsInputButton *vsMenuObject::getAccelerator()
 {
     return inputAccel;
+}
+
+// ------------------------------------------------------------------------
+// Sets whether or not the object can be selected or not
+// ------------------------------------------------------------------------
+void vsMenuObject::setSelectable(bool canSelect)
+{
+    selectable = canSelect;
+}
+
+// ------------------------------------------------------------------------
+// Returns whether the object can be selected or not
+// ------------------------------------------------------------------------
+bool vsMenuObject::isSelectable()
+{
+    return selectable;
 }
 

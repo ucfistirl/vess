@@ -45,6 +45,7 @@ private:
 
     char             *objectName;
     vsInputButton    *inputAccel;
+    bool             selectable;
 
 protected:
 
@@ -68,6 +69,9 @@ public:
 
     void                  setAccelerator(vsInputButton *accelerator);
     vsInputButton         *getAccelerator();
+
+    void                  setSelectable(bool canSelect);
+    bool                  isSelectable();
 };
 
 #endif
