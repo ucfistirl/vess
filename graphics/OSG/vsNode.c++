@@ -62,8 +62,7 @@ vsNode::~vsNode()
     {
         attr = getAttribute(0);
         removeAttribute(attr);
-        if (!(attr->isAttached()))
-            delete attr;
+        vsObject::checkDelete(attr);
     }
 }
 
