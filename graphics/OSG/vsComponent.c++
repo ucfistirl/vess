@@ -152,6 +152,7 @@ bool vsComponent::addChild(vsNode *newChild)
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
     vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
+    vsSwitchAttribute *switchAttr;
 
     // Notify the newChild node that it is getting a new parent. This might
     // fail, as the child node is permitted to object to getting a parent.
@@ -190,6 +191,14 @@ bool vsComponent::addChild(vsNode *newChild)
     childList[childCount++] = newChild;
     newChild->ref();
 
+    // Special case:  If there is a switch attribute attached to this 
+    // component, then we need to add a switch mask to the switch with 
+    // the new child active.  This emulates Performer's pfSwitch behavior.
+    switchAttr = (vsSwitchAttribute *)
+        getTypedAttribute(VS_ATTRIBUTE_TYPE_SWITCH, 0);
+    if (switchAttr != NULL)
+        switchAttr->addMask(this, newChild);
+
     // Mark the entire tree above and below this node as needing an update
     newChild->dirty();
     
@@ -209,6 +218,7 @@ bool vsComponent::insertChild(vsNode *newChild, int index)
     vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
     osg::Node *newNode, *displacedNode;
     int loop;
+    vsSwitchAttribute *switchAttr;
 
     // Bounds check
     if (index < 0)
@@ -281,7 +291,15 @@ bool vsComponent::insertChild(vsNode *newChild, int index)
     childList[index] = newChild;
     childCount++;
     newChild->ref();
-    
+
+    // Special case:  If there is a switch attribute attached to this 
+    // component, then we need to add a switch mask to the switch with 
+    // the new child active.  This emulates Performer's pfSwitch behavior.
+    switchAttr = (vsSwitchAttribute *)
+        getTypedAttribute(VS_ATTRIBUTE_TYPE_SWITCH, 0);
+    if (switchAttr != NULL)
+        switchAttr->addMask(this, newChild);
+
     // Finally, mark the entire tree above and below this node as needing
     // of an update
     newChild->dirty();
@@ -299,6 +317,7 @@ bool vsComponent::removeChild(vsNode *targetChild)
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
     vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
+    vsSwitchAttribute *switchAttr;
     
     // Search the child list for the target child
     for (loop = 0; loop < childCount; loop++)
@@ -358,6 +377,15 @@ bool vsComponent::removeChild(vsNode *targetChild)
 
             return true;
         }
+
+    // Special case:  If there is a switch attribute attached to this 
+    // component, then we need to check the switch masks after we remove
+    // the child, and delete any masks that are now empty.  This emulates
+    // Performer's pfSwitch behavior.
+    switchAttr = (vsSwitchAttribute *)
+        getTypedAttribute(VS_ATTRIBUTE_TYPE_SWITCH, 0);
+    if (switchAttr != NULL)
+        switchAttr->pruneMasks(this);
 
     return false;
 }

@@ -29,8 +29,8 @@
 // ------------------------------------------------------------------------
 vsSwitchAttribute::vsSwitchAttribute()
 {
-    // Start with a NULL osg::Switch (this will be created in the attach()
-    // method)
+    // Start with a NULL osgSim::MultiSwitch (this will be created in the 
+    // attach() method)
     osgSwitch = NULL;
 }
 
@@ -80,17 +80,15 @@ void vsSwitchAttribute::enableOne(int index)
     }
 
     // Ensure the given index is valid.
-    if ((index < 0) || (index >= (int)osgSwitch->getNumChildren()))
+    if ((index < 0) || (index >= osgSwitch->getSwitchSetList().size() - 1))
     {
-        printf("vsSwitchAttribute::enableOne: Index out of bounds\n");
+        printf("vsSwitchAttribute::enableOne: Index out of bounds (%d >= %d)\n",
+            index, osgSwitch->getSwitchSetList().size() - 1);
         return;
     }
     
-    // Turn all children off first
-    osgSwitch->setAllChildrenOff();
-
-    // Turn the requested child on on the osg::Switch
-    osgSwitch->setValue(index, true);
+    // Activate the requested switch mask on the osgSim::MultiSwitch
+    osgSwitch->setActiveSwitchSet(index);
 }
 
 // ------------------------------------------------------------------------
@@ -108,14 +106,18 @@ void vsSwitchAttribute::disableOne(int index)
     }
 
     // Ensure the given index is valid.
-    if ((index < 0) || (index >= (int)osgSwitch->getNumChildren()))
+    if ((index < 0) || (index >= osgSwitch->getSwitchSetList().size() - 1))
     {
-        printf("vsSwitchAttribute::disableOne: Index out of bounds\n");
+        printf("vsSwitchAttribute::disableOne: Index out of bounds (%d >= %d)"
+            "\n", index, osgSwitch->getSwitchSetList().size() - 1);
         return;
     }
 
-    // Turn the requested child off on the osg::Switch
-    osgSwitch->setValue(index, false);
+    // If the requested switch mask is active, turn it off (showing no
+    // children).  We can do this by setting the active switch set to
+    // a negative value.
+    if (osgSwitch->getActiveSwitchSet() == index)
+        disableAll();
 }
 
 // ------------------------------------------------------------------------
@@ -131,8 +133,16 @@ void vsSwitchAttribute::enableAll()
         return;
     }
 
-    // Turn all children on on the osg::Switch
-    osgSwitch->setAllChildrenOn();
+    // Turn all children on on the osgSim::MultiSwitch.  To do this, we use
+    // the dummy switch set that we add to the end of the switch set list
+    // during the attach() process.
+    osgSwitch->setActiveSwitchSet(osgSwitch->getSwitchSetList().size() - 1);
+    osgSwitch->setAllChildrenOn(osgSwitch->getSwitchSetList().size() - 1);
+
+    // Finally, we reset the default new child value (which determines the
+    // state of new nodes added to the switch) to false, because the call
+    // to setAllChildrenOn() above has the side effect of changing this value.
+    osgSwitch->setNewChildDefaultValue(false);
 }
 
 // ------------------------------------------------------------------------
@@ -148,8 +158,11 @@ void vsSwitchAttribute::disableAll()
         return;
     }
 
-    // Turn all children off on the osg::Switch
-    osgSwitch->setAllChildrenOff();
+    // Turn all children off on the osgSim::MultiSwitch.  To do this, we use
+    // the dummy switch set that we add to the end of the switch set list
+    // during the attach() process.
+    osgSwitch->setActiveSwitchSet(osgSwitch->getSwitchSetList().size() - 1);
+    osgSwitch->setAllChildrenOff(osgSwitch->getSwitchSetList().size() - 1);
 }
 
 // ------------------------------------------------------------------------
@@ -167,14 +180,19 @@ bool vsSwitchAttribute::isEnabled(int index)
     }
 
     // Ensure the given index is valid.
-    if ((index < 0) || (index >= (int)osgSwitch->getNumChildren()))
+    if ((index < 0) || (index >= osgSwitch->getSwitchSetList().size() - 1))
     {
-        printf("vsSwitchAttribute::isEnabled: Index out of bounds\n");
+        printf("vsSwitchAttribute::disableOne: Index out of bounds (%d >= %d)"
+            "\n", index, osgSwitch->getSwitchSetList().size() - 1);
         return true;
     }
 
-    // Fetch and return the value (ON/OFF) of the given child
-    return osgSwitch->getValue(index);
+    // Return true if the given switch mask is the active switch set on
+    // the OSG switch
+    if (index == osgSwitch->getActiveSwitchSet())
+        return true;
+    else
+        return false;
 }
 
 // ------------------------------------------------------------------------
@@ -199,6 +217,10 @@ bool vsSwitchAttribute::canAttach()
 // ------------------------------------------------------------------------
 void vsSwitchAttribute::attach(vsNode *theNode)
 {
+    vsComponent *theComponent;
+    int maskCount;
+    int i;
+
     // Make sure we're not already attached to a node, bail out if we are
     if (attachedCount)
     {
@@ -215,11 +237,27 @@ void vsSwitchAttribute::attach(vsNode *theNode)
         return;
     }
     
-    // Replace the component's bottom group with an osg::Switch group
-    osgSwitch = new osg::Switch();
-    osgSwitch->setAllChildrenOff();
-    ((vsComponent *)theNode)->replaceBottomGroup(osgSwitch);
+    // Replace the component's bottom group with an osgSim::MultiSwitch group
+    theComponent = (vsComponent *)theNode;
+    osgSwitch = new osgSim::MultiSwitch();
+    osgSwitch->ref();
+    osgSwitch->setNewChildDefaultValue(false);
+    theComponent->replaceBottomGroup(osgSwitch);
 
+    // Set up a default set of switch masks (switch sets in OSG terms).  This 
+    // list may be changed later by the vsDatabaseLoader (or by the user with 
+    // OSG calls).  Currently, there is no VESS API to change switch masks,
+    // because they can't be changed under Performer.  The default set of
+    // switch masks is one mask for each child, with only that child active.
+    for (i = 0; i < theComponent->getChildCount(); i++)
+        osgSwitch->setValue(i, i, true);
+
+    // Add an artificial switch set to the end of the switch that has
+    // all of the children on.  We'll use this mask for the enableAll()
+    // call, since the osgSim::MultiSwitch doesn't have this capability.
+    maskCount = osgSwitch->getSwitchSetList().size();
+    osgSwitch->setAllChildrenOn(maskCount);
+    
     // Flag the attribute as attached
     attachedCount = 1;
 }
@@ -243,6 +281,7 @@ void vsSwitchAttribute::detach(vsNode *theNode)
     // Replace the component's switch group with an ordinary group
     newGroup = new osg::Group();
     ((vsComponent *)theNode)->replaceBottomGroup(newGroup);
+    osgSwitch->unref();
     osgSwitch = NULL;
     
     // Flag the attribute as not attached
@@ -256,7 +295,7 @@ void vsSwitchAttribute::detach(vsNode *theNode)
 void vsSwitchAttribute::attachDuplicate(vsNode *theNode)
 {
     vsSwitchAttribute *newAttrib;
-    int loop;
+    int loop, sloop;
     int sourceChildCount, targetChildCount, childCount;
 
     // Can only add switches to components (no other node makes sense)
@@ -278,16 +317,136 @@ void vsSwitchAttribute::attachDuplicate(vsNode *theNode)
         childCount = sourceChildCount;
     
     // Copy the switch values
-    for (loop = 0; loop < childCount; loop++)
+    for (loop = 0; loop < osgSwitch->getSwitchSetList().size(); loop++)
     {
-        if (osgSwitch->getValue(loop))
-            newAttrib->enableOne(loop);
-        else
-            newAttrib->disableOne(loop);
+        for (sloop = 0; sloop < childCount; sloop++)
+        {
+            if (osgSwitch->getValue(loop, sloop))
+                newAttrib->osgSwitch->setValue(loop, sloop, true);
+            else
+                newAttrib->osgSwitch->setValue(loop, sloop, false);
+        }
+    }
+}
+
+// ------------------------------------------------------------------------
+// Internal function.
+// Called by the addChild(), and insertChild() methods of vsComponent
+// (as well as the attach() method of this class) to set up an 
+// osgSim::MultiSwitch switch set for the given child
+// ------------------------------------------------------------------------
+void vsSwitchAttribute::addMask(vsComponent *parent, vsNode *newChild)
+{
+    int childIndex;
+    int maskListSize;
+    bool maskValue;
+    int i, j;
+
+    // Bail out if we're not attached (no switch to manipulate)
+    if (attachedCount <= 0)
+        return;
+
+    // Get the index of the given child
+    childIndex = 0;
+    while ((parent->getChild(childIndex) != newChild) &&
+           (childIndex < parent->getChildCount()))
+        childIndex++;
+
+    // Insert a new mask in the switch's switch set corresponding to this
+    // child
+    maskListSize = osgSwitch->getSwitchSetList().size();
+
+    // If the childIndex is not greater than the size of the switch mask list,
+    // then we have to make room in the list for this child's mask.
+    if (childIndex < maskListSize)
+    {
+        // Slide all of the switch masks down by one position
+        for (i = childIndex; i < maskListSize; i++)
+        {
+            for (j = 0; j < parent->getChildCount(); j++)
+            {
+                // Get the value for the mask in this position
+                maskValue = osgSwitch->getValue(i, j);
+
+                // Set this value for the corresponding value in the
+                // next position's mask
+                osgSwitch->setValue(i+1, j, maskValue);
+            }
+        }
     }
 
-    // If the target has more children than the source, switch off all
-    // of the excess children
-    for (loop = childCount; loop < targetChildCount; loop++)
-        newAttrib->disableOne(loop);
+    // Now that we've made sure we have room for this child's switch mask, 
+    // set it up to have only this child on.
+    osgSwitch->setSingleChildOn(childIndex, childIndex);
+}
+
+// ------------------------------------------------------------------------
+// Internal function.
+// Called by the removeChild() method of vsComponent to update the switch
+// masks when a child is removed.
+// ------------------------------------------------------------------------
+void vsSwitchAttribute::pruneMasks(vsComponent *parent)
+{
+    int childIndex;
+    int maskListSize;
+    bool maskValue;
+    osgSim::MultiSwitch *newSwitch;
+    osgSim::MultiSwitch::ValueList switchMask;
+    int newMaskCount;
+    int i, j;
+    bool empty;
+
+    // Bail out if we're not attached (no switch to manipulate)
+    if (attachedCount <= 0)
+        return;
+
+    // If we find any empty masks in the MultiSwitch, then we should
+    // remove them (it serves no purpose any longer). Create a new 
+    // osgSim::MultiSwitch, which will contain the reduced set of switch 
+    // masks
+    newSwitch = new osgSim::MultiSwitch();
+    newMaskCount = 0;
+    for (i = 0; i < osgSwitch->getSwitchSetList().size(); i++)
+    {
+        // Get the next switch mask from the switch
+        switchMask = osgSwitch->getValueList(i);
+        
+        // Check the values in the switch mask to make sure it's not
+        // empty
+        empty = true;
+        for (j = 0; j < switchMask.size(); j++)
+        {
+            if (osgSwitch->getValue(i, j))
+                empty = false;
+        }
+
+        // If the switch mask is not empty, copy the mask to the new
+        // switch
+        if (!empty)
+        {
+            for (j = 0; j < switchMask.size(); j++)
+                newSwitch->setValue(newMaskCount, j, 
+                    osgSwitch->getValue(i, j));
+        }
+    }
+    
+    // Now, replace the bottom group of the component with the new
+    // switch, which has the updated switch masks
+    parent->replaceBottomGroup(newSwitch);
+    osgSwitch->unref();
+    osgSwitch = newSwitch;
+    osgSwitch->ref();
+}
+
+// ------------------------------------------------------------------------
+// Internal function
+// Add the child at the given index to the given switch mask.
+// ------------------------------------------------------------------------
+void vsSwitchAttribute::setMaskValue(int maskIndex, int childIndex, bool value)
+{
+    if (attachedCount <= 0)
+       return;
+
+    // Enable the given child on the given mask
+    osgSwitch->setValue(maskIndex, childIndex, value);
 }

@@ -23,15 +23,16 @@
 #ifndef VS_SWITCH_ATTRIBUTE_HPP
 #define VS_SWITCH_ATTRIBUTE_HPP
 
-#include <osg/Switch>
+#include <osgSim/MultiSwitch>
 #include "vsAttribute.h++"
 #include "vsNode.h++"
+#include "vsComponent.h++"
 
 class VS_GRAPHICS_DLL vsSwitchAttribute : public vsAttribute
 {
 private:
 
-    osg::Switch     *osgSwitch;
+    osgSim::MultiSwitch     *osgSwitch;
 
 VS_INTERNAL:
 
@@ -40,6 +41,10 @@ VS_INTERNAL:
     virtual void    detach(vsNode *theNode);
 
     virtual void    attachDuplicate(vsNode *theNode);
+
+    void            addMask(vsComponent *parent, vsNode *newChild);
+    void            pruneMasks(vsComponent *parent);
+    void            setMaskValue(int maskIndex, int childIndex, bool value);
 
 public:
 
