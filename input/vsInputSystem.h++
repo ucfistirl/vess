@@ -23,7 +23,9 @@
 #ifndef VS_INPUT_SYSTEM_HPP
 #define VS_INPUT_SYSTEM_HPP
 
-class vsInputSystem
+#include "vsUpdatable.h++"
+
+class vsInputSystem : public vsUpdatable
 {
 public:
 
