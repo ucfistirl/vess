@@ -24,16 +24,16 @@
 #define VS_MOVIEREADER_HPP
 
 
+#include "vsObject.h++"
+#include "vsSoundStream.h++"
+#include <stdio.h>
+#include <pthread.h>
+
 extern "C"
 {
 #include "ffmpeg/avcodec.h"
 #include "ffmpeg/avformat.h"
 }
-
-#include "vsObject.h++"
-#include "vsSoundStream.h++"
-#include <stdio.h>
-#include <pthread.h>
 
 #define VS_MOVIE_PACKET_QUEUE_SIZE 8
 
