@@ -45,7 +45,6 @@ vsLightAttribute::vsLightAttribute()
     lightOn = VS_FALSE;
     
     lightNode->off();
-    lightObject->off();
     
     lightScope = VS_LIGHT_MODE_GLOBAL;
     
@@ -300,7 +299,7 @@ void vsLightAttribute::setScope(int scope)
     
     lightScope = scope;
     if (parentNode)
-	parentNode->dirty();
+        parentNode->dirty();
 }
 
 // ------------------------------------------------------------------------
@@ -320,7 +319,7 @@ void vsLightAttribute::on()
     if (lightScope == VS_LIGHT_MODE_GLOBAL)
         lightNode->on();
     else if (parentNode)
-	parentNode->dirty();
+        parentNode->dirty();
 }
 
 // ------------------------------------------------------------------------
@@ -330,9 +329,9 @@ void vsLightAttribute::off()
 {
     lightOn = VS_FALSE;
     if (lightScope == VS_LIGHT_MODE_GLOBAL)
-	lightNode->off();
+        lightNode->off();
     else if (parentNode)
-	parentNode->dirty();
+        parentNode->dirty();
 }
 
 // ------------------------------------------------------------------------
