@@ -152,17 +152,17 @@ void vsWindowSystem::update()
 
     // Process all the events we're interested in
 
-    while (XCheckTypedWindowEvent(display, window, KeyPress, &event))
-    {
-        XLookupString(&(event.xkey), buffer, sizeof(buffer), &keySym, NULL); 
-
-        keyboard->pressKey(keySym, buffer);
-    }
     while (XCheckTypedWindowEvent(display, window, KeyRelease, &event))
     {
         XLookupString(&(event.xkey), buffer, sizeof(buffer), &keySym, NULL); 
 
         keyboard->releaseKey(keySym);
+    }
+    while (XCheckTypedWindowEvent(display, window, KeyPress, &event))
+    {
+        XLookupString(&(event.xkey), buffer, sizeof(buffer), &keySym, NULL); 
+
+        keyboard->pressKey(keySym, buffer);
     }
     while (XCheckTypedWindowEvent(display, window, ButtonPress, &event))
     {
