@@ -185,9 +185,9 @@ case "$SG" in
         dnl Print that we're using Performer for graphics
         AC_MSG_RESULT(Performer)
 
-        dnl Performer can only be in one place.  Configure the include and
-        dnl library directories accordingly.
-        GFX_INCLUDE_DIR=-I/usr/include
+        dnl Performer can only be in one place (/usr/include).  Configure 
+        dnl the include and library directories accordingly.
+        GFX_INCLUDE_DIR=
         GFX_LIB_DIR="-L/usr/$LIBDIR -L/usr/$LIBDIR/libpfdb"
         GFX_LIB="-lpf -lpfflt -lpfutil -lpfdu -lpfui -lXi -lXm -lXt -lGLU -lGL -lXext -lXmu -lX11 -ldl"
 
