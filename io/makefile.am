@@ -10,8 +10,8 @@ libvsIO_a_SOURCES = \
                     common/vsFlockOfBirds.c++ \
                     common/vsInputAxis.c++ \
                     common/vsInputButton.c++ \
-                    common/vsInputDevice.c++ \
-                    common/vsInputSystem.c++ \
+                    common/vsIODevice.c++ \
+                    common/vsIOSystem.c++ \
                     common/vsISTJoystickBox.c++ \
                     common/vsJoystickBox.c++ \
                     common/vsJoystick.c++ \
@@ -22,6 +22,8 @@ libvsIO_a_SOURCES = \
                     common/vsSpaceball.c++ \
                     common/vsTrackingSystem.c++ \
                     common/vsUnwinder.c++ \
+                    common/vsVest.c++ \
+                    common/vsVestSystem.c++ \
                     @OS@/vsAscensionSerialTrackingSystem.c++ \
                     @OS@/vsEthernetMotionStar.c++ \
                     @OS@/vsFastrak.c++ \
@@ -56,8 +58,8 @@ include_HEADERS = \
                   common/vsFlockOfBirds.h++ \
                   common/vsInputAxis.h++ \
                   common/vsInputButton.h++ \
-                  common/vsInputDevice.h++ \
-                  common/vsInputSystem.h++ \
+                  common/vsIODevice.h++ \
+                  common/vsIOSystem.h++ \
                   common/vsISTJoystickBox.h++ \
                   common/vsJoystickBox.h++ \
                   common/vsJoystick.h++ \
@@ -68,6 +70,8 @@ include_HEADERS = \
                   common/vsSpaceball.h++ \
                   common/vsTrackingSystem.h++ \
                   common/vsUnwinder.h++ \
+                  common/vsVest.h++ \
+                  common/vsVestSystem.h++ \
                   @OS@/vsAscensionSerialTrackingSystem.h++ \
                   @OS@/vsEthernetMotionStar.h++ \
                   @OS@/vsFastrak.h++ \
