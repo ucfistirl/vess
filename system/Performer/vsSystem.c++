@@ -395,8 +395,8 @@ void vsSystem::drawFrame()
     // Do nothing if the object hasn't been initialized
     if (!isInitted)
     {
-    printf("vsSystem::drawFrame: System object is not initialized\n");
-    return;
+        printf("vsSystem::drawFrame: System object is not initialized\n");
+        return;
     }
 
     // Tell the "root" sequencer to update itself and everything attached
