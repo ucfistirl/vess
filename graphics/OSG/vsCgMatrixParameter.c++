@@ -35,6 +35,7 @@ vsCgMatrixParameter::vsCgMatrixParameter(
     // Create the parameter and add it to the program.
     matrixParameter = new osgNVCg::MatrixParameter(getCgProgram(),
         variableName);
+    matrixParameter->ref();
 
     // Add the parameter to the program, in case there will not be a
     // a parameter block to handle this.
@@ -46,6 +47,8 @@ vsCgMatrixParameter::vsCgMatrixParameter(
 // ------------------------------------------------------------------------
 vsCgMatrixParameter::~vsCgMatrixParameter()
 {
+    // Unreference the OSG object.
+    matrixParameter->unref();
 }
 
 // ------------------------------------------------------------------------
