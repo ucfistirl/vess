@@ -51,11 +51,15 @@ VS_INTERNAL:
 
 public:
 
+                vsViewpointAttribute();
                 vsViewpointAttribute(vsView *theView);
     virtual     ~vsViewpointAttribute();
 
     int         getAttributeType();
     int         getAttributeCategory();
+    
+    void        setView(vsView *theView);
+    vsView      *getView();
 
     void        setOffsetMatrix(vsMatrix newMatrix);
     vsMatrix    getOffsetMatrix();

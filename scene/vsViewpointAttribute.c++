@@ -27,6 +27,17 @@
 #include "vsComponent.h++"
 
 // ------------------------------------------------------------------------
+// Constructor - Initializes the attribute's adjustment matrix
+// ------------------------------------------------------------------------
+vsViewpointAttribute::vsViewpointAttribute()
+{
+    viewObject = NULL;
+
+    offsetMatrix.setIdentity();
+    parentComponent = NULL;
+}
+
+// ------------------------------------------------------------------------
 // Constructor - Registers this attribute with the specified view object,
 // and initializes the adjustment matrix.
 // ------------------------------------------------------------------------
@@ -63,6 +74,28 @@ int vsViewpointAttribute::getAttributeType()
 int vsViewpointAttribute::getAttributeCategory()
 {
     return VS_ATTRIBUTE_CATEGORY_CONTAINER;
+}
+
+// ------------------------------------------------------------------------
+// Sets the view object associated with this attribute
+// ------------------------------------------------------------------------
+void vsViewpointAttribute::setView(vsView *theView)
+{
+    if (viewObject)
+        viewObject->detachViewAttribute();
+
+    if (theView->attachViewAttribute(this))
+        viewObject = theView;
+    else
+        viewObject = NULL;
+}
+
+// ------------------------------------------------------------------------
+// Gets the view object associated with this attribute
+// ------------------------------------------------------------------------
+vsView *vsViewpointAttribute::getView()
+{
+    return viewObject;
 }
 
 // ------------------------------------------------------------------------
