@@ -743,14 +743,14 @@ void vsWindow::saveImage(char *filename)
         for (sloop = 0; sloop < width; sloop++)
         {
             // Call an X function to extract one of the image pixels from
-	    // the X image object
+            // the X image object
             pixelData = XGetPixel(image, sloop, loop);
 
-	    // Decode the three component pixel values using the associated
-	    // bit mask, bit shift value, and lookup table. Store the
-	    // resulting value in the pixel array for that component.
+            // Decode the three component pixel values using the associated
+            // bit mask, bit shift value, and lookup table. Store the
+            // resulting value in the pixel array for that component.
 
-	    // Red
+            // Red
             redPixel = pixelData & redMask;
             redPixel >>= redShift;
             redBuffer[sloop] = redVals[redPixel];
@@ -776,6 +776,156 @@ void vsWindow::saveImage(char *filename)
     // Clean up
     iclose(imageOut);
     XDestroyImage(image);
+}
+
+// ------------------------------------------------------------------------
+// Returns a copy of the image currently displayed in the window
+// ------------------------------------------------------------------------
+vsImage * vsWindow::getImage()
+{
+    vsImage * image;
+    Display *xWindowDisplay;
+    Drawable winDrawable;
+    Window rootWin;
+    int xpos, ypos;
+    unsigned int width, height;
+    unsigned int border, depth;
+    XImage *ximage;
+
+    unsigned long pixelData;
+    unsigned long redMask, greenMask, blueMask;
+    unsigned long redMax, greenMax, blueMax;
+    unsigned long redPixel, greenPixel, bluePixel;
+    int redShift, greenShift, blueShift;
+    int loop, sloop;
+    unsigned short redVals[4096], greenVals[4096], blueVals[4096];
+    unsigned char * tempBuffer;
+    int index;
+
+    // Get the connections to the X window system and to the drawable region
+    // of the window
+    xWindowDisplay = pfGetCurWSConnection();
+    winDrawable = performerPipeWindow->getWSDrawable();
+    
+    // Get the size and shape info for the window
+    XGetGeometry(xWindowDisplay, winDrawable, &rootWin, &xpos, &ypos,
+        &width, &height, &border, &depth);
+
+    // Insure we begin at winDrawable's origin.  This is done because the
+    // XGetGeometry call returns the x and y pos relative to the parent's
+    // window.
+    xpos = 0;
+    ypos = 0;
+
+    // Capture the contents of the window into an X image struture
+    ximage = XGetImage(xWindowDisplay, winDrawable, xpos, ypos, width, height,
+        AllPlanes, ZPixmap);
+    if (!ximage)
+    {
+        printf("vsWindow::saveImage: Unable to access contents of window\n");
+        return NULL;
+    }
+    
+    // * Juggle the 'mask' bits around (as given by the X image structure)
+    // to determine which color data bits occupy what space within each
+    // pixel data unit. This information is stored as a bit shift indicating
+    // the number of bits to move before we get to the start of that color
+    // component's bits, and a bit mask used to mask out bits from other
+    // color components. Also construct a lookup table to allow for quick
+    // scaling from whatever is stored in the data into the 0-255 range
+    // that the RGB format wants.
+    
+    // Computing the shift and mask involves shifting the mask down until
+    // the low bit becomes one. The mask is them saved like that, and the
+    // number of shifts is recorded.
+    
+    // Red size and offset
+    redMax = ximage->red_mask;
+    redShift = 0;
+    while (!(redMax & 1))
+    {
+        redShift++;
+        redMax >>= 1;
+    }
+    redMask = ximage->red_mask;
+    // Red scale lookup table
+    for (loop = 0; loop <= redMax; loop++)
+        redVals[loop] = ((loop * 255) / redMax);
+
+    // Green size and offset
+    greenMax = ximage->green_mask;
+    greenShift = 0;
+    while (!(greenMax & 1))
+    {
+        greenShift++;
+        greenMax >>= 1;
+    }
+    greenMask = ximage->green_mask;
+    // Green scale lookup table
+    for (loop = 0; loop <= greenMax; loop++)
+        greenVals[loop] = ((loop * 255) / greenMax);
+
+    // Blue size and offset
+    blueMax = ximage->blue_mask;
+    blueShift = 0;
+    while (!(blueMax & 1))
+    {
+        blueShift++;
+        blueMax >>= 1;
+    }
+    blueMask = ximage->blue_mask;
+    // Blue scale lookup table
+    for (loop = 0; loop <= blueMax; loop++)
+        blueVals[loop] = ((loop * 255) / blueMax);
+
+    // Create a buffer area for each color component of the image
+    tempBuffer = new unsigned char[ width * height * 3];
+
+    // Process the image, one pixel at a time
+    for (loop = 0, index = 0; loop < height; loop++)
+    {
+        for (sloop = 0; sloop < width; sloop++)
+        {
+            // Call an X function to extract one of the image pixels from
+            // the X image object
+            pixelData = XGetPixel(ximage, sloop, loop);
+
+            // Decode the three component pixel values using the associated
+            // bit mask, bit shift value, and lookup table. Store the
+            // resulting value in the pixel array for that component.
+
+            // Red
+            redPixel = pixelData & redMask;
+            redPixel >>= redShift;
+            tempBuffer[ index++ ] = redVals[redPixel];
+
+            // Green
+            greenPixel = pixelData & greenMask;
+            greenPixel >>= greenShift;
+            tempBuffer[ index++ ] = greenVals[greenPixel];
+
+            // Blue
+            bluePixel = pixelData & blueMask;
+            bluePixel >>= blueShift;
+            tempBuffer[ index++ ] = blueVals[bluePixel];
+        }
+
+    }
+
+    // Clean up the XImage
+    XDestroyImage(ximage);
+
+    // Put the data into vsImage
+    image = new vsImage( width, height, VS_IMAGE_FORMAT_RGB, tempBuffer );
+
+    // X returns the image with the origin in the top left. We store our
+    // image like OpenGL with the origin in the bottom left. Flip it
+    image->flipVertical();
+
+    // Delete the temporary buffer
+    delete [] tempBuffer;
+
+    return image;
 }
 
 // ------------------------------------------------------------------------
