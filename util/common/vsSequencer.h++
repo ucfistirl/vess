@@ -58,9 +58,8 @@ public:
 
     const char      *getClassName();
 
-    void            addUpdatable(vsUpdatable *updatable);
-    void            addUpdatable(vsUpdatable *updatable, double time);
-    void            addUpdatable(vsUpdatable *updatable, double time,
+    void            addUpdatable(vsUpdatable *updatable, char *name);
+    void            addUpdatable(vsUpdatable *updatable, double time, 
                                  char *name);
 
     void            removeUpdatable(vsUpdatable *updatable);

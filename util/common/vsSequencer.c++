@@ -72,9 +72,9 @@ const char * vsSequencer::getClassName()
 // Add the specified updatable to the end of this sequencer.
 // Set the time to 0, which means run as fast as you can.
 // ------------------------------------------------------------------------
-void vsSequencer::addUpdatable(vsUpdatable *updatable)
+void vsSequencer::addUpdatable(vsUpdatable *updatable, char *name)
 {
-    addUpdatable(updatable, 0.0);
+    addUpdatable(updatable, 0.0, name);
 }
 
 // ------------------------------------------------------------------------
