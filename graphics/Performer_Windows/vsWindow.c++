@@ -243,7 +243,7 @@ vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
     
-    // Create and configure the Performer PipeWindow to use the given X Window
+    // Create and configure the Performer PipeWindow to use the given MS Window
     performerPipeWindow = new pfPipeWindow(parentPipe->getBaseLibraryObject());
     performerPipeWindow->setWinType(PFPWIN_TYPE_X);
     performerPipeWindow->setWSWindow(pfGetCurWSConnection(), msWin);
