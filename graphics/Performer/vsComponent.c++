@@ -702,8 +702,8 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
             break;
 
         // Component may only contain one of any of these; if the new
-	// attribute is this category, make sure there's not another one
-	// of the same category already
+        // attribute is this category, make sure there's not another one
+        // of the same category already
         case VS_ATTRIBUTE_CATEGORY_GROUPING:
             if (getCategoryAttribute(VS_ATTRIBUTE_CATEGORY_GROUPING, 0))
             {
