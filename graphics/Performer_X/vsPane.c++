@@ -82,6 +82,9 @@ vsPane::vsPane(vsWindow *parent)
     curProjHval = -1.0;
     curProjVval = -1.0;
     performerChannel->setFOV(-1.0, -1.0);
+
+    // By default, don't draw stats
+    statsEnabled = VS_FALSE;
 }
 
 // ------------------------------------------------------------------------
@@ -507,6 +510,32 @@ void vsPane::getESColor(int which, double *r, double *g, double *b)
         *g = fg;
     if (b)
         *b = fb;
+}
+
+// ------------------------------------------------------------------------
+// Enables the drawing of statistical information (frames per second, etc.)
+// in the pane.
+// ------------------------------------------------------------------------
+void vsPane::enableStats()
+{
+    statsEnabled = VS_TRUE;
+}
+
+// ------------------------------------------------------------------------
+// Disables the drawing of statistical information (frames per second,
+// etc.)  in the pane.
+// ------------------------------------------------------------------------
+void vsPane::disableStats()
+{
+    statsEnabled = VS_FALSE;
+}
+
+// ------------------------------------------------------------------------
+// Returns whether or not statistics are set to be drawn
+// ------------------------------------------------------------------------
+int vsPane::areStatsEnabled()
+{
+    return statsEnabled;
 }
 
 // ------------------------------------------------------------------------

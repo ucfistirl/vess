@@ -87,6 +87,8 @@ private:
     int                 curProjMode;
     double              curProjHval, curProjVval;
 
+    int                 statsEnabled;
+
 VS_INTERNAL:
 
     void           updateView();
@@ -128,6 +130,10 @@ public:
     double              getESGroundHeight();
     void                setESColor(int which, double r, double g, double b);
     void                getESColor(int which, double *r, double *g, double *b);
+
+    void                enableStats();
+    void                disableStats();
+    int                 areStatsEnabled();
 
     pfChannel           *getBaseLibraryObject();
 };
