@@ -7,7 +7,6 @@ TYPE = -n32 -mips3
 FLAGS = $(TYPE) -g -xansi -DSGI -DPF_CPLUSPLUS_API=1 -woff 1681 $(INCDIRS)
 
 LIBSRCS = vsAttribute.c++ \
-	  vsAttributeList.c++ \
 	  vsBackfaceAttribute.c++ \
 	  vsBillboardAttribute.c++ \
 	  vsComponent.c++ \
@@ -30,7 +29,6 @@ LIBSRCS = vsAttribute.c++ \
 	  vsViewpointAttribute.c++
 
 LIBOBJS = vsAttribute.o \
-	  vsAttributeList.o \
 	  vsBackfaceAttribute.o \
 	  vsBillboardAttribute.o \
 	  vsComponent.o \
