@@ -191,26 +191,33 @@ int vsSerialPort::readPacket(unsigned char *packet, int length)
 }
 
 // ------------------------------------------------------------------------
-// Checks to see if there is data waiting to be read on the port. Will wait
-// up to secondsToWait seconds before returning. To return instantly,
-// pass 0.0 as the time (or use the default paramter value in
-// vsSerialPort.h++)
+// Checks to see if there is data waiting to be read on the port.  If no
+// data is waiting, returns immediately
 // ------------------------------------------------------------------------
-bool vsSerialPort::isDataWaiting( double secondsToWait )
+bool vsSerialPort::isDataWaiting()
+{
+    return isDataWaiting(0.0);
+}
+
+// ------------------------------------------------------------------------
+// Checks to see if there is data waiting to be read on the port. Will wait
+// up to secondsToWait seconds before returning.
+// ------------------------------------------------------------------------
+bool vsSerialPort::isDataWaiting(double secondsToWait)
 {
     fd_set readfds;
     struct timeval tv;
     int returnValue;
     
     // Make sure that the port is open before performing any actions on it
-    if( portDescriptor >= 0 )
+    if(portDescriptor >= 0)
     {
         // Initialize our file descriptor set
         FD_ZERO(&readfds);
-        FD_SET( portDescriptor, &readfds );
+        FD_SET(portDescriptor, &readfds);
 
         // Determine how much time we should wait to see if there is data
-        if( secondsToWait < 1e-6 )
+        if (secondsToWait < 1e-6)
         {
             // The input (secondsToWait) was almost 0.0 (or a negative number)
             // so we'll wait 0 seconds
@@ -221,18 +228,18 @@ bool vsSerialPort::isDataWaiting( double secondsToWait )
         {
             // The input (secondsToWait) wasn't 0.0 so calculate the correct
             // time to wait
-            tv.tv_sec = (long)floor( secondsToWait );
-            tv.tv_usec = (long)((secondsToWait - floor( secondsToWait ))
+            tv.tv_sec = (long)floor(secondsToWait);
+            tv.tv_usec = (long)((secondsToWait - floor(secondsToWait))
                     *((double)1e6));
         }
 
         // Call select to see if there is data waiting for us
-        returnValue = select( portDescriptor+1, &readfds, NULL, NULL, &tv );
+        returnValue = select(portDescriptor+1, &readfds, NULL, NULL, &tv);
 
         // If the returnValue > 0, then there is data waiting
-        if( returnValue > 0 )
+        if(returnValue > 0)
             return true;
-        else if( returnValue == -1 )
+        else if(returnValue == -1)
         {
             // Select returned an error condition
             perror("vsSerialPort::isDataWaiting() - select");
@@ -484,6 +491,14 @@ void vsSerialPort::setDTR(bool enable)
 
     // Set the control lines with the new bit setting
     ioctl(portDescriptor, TIOCMSET, &status);
+}
+
+// ------------------------------------------------------------------------
+// Send a serial BREAK signal
+// ------------------------------------------------------------------------
+void vsSerialPort::sendBreakSignal()
+{
+    tcsendbreak(portDescriptor, 1);
 }
 
 // ------------------------------------------------------------------------

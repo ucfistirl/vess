@@ -54,7 +54,8 @@ public:
 
     int          readCharacter();
 
-    bool         isDataWaiting( double secondsToWait=0.0 );
+    bool         isDataWaiting();
+    bool         isDataWaiting(double secondsToWait);
 
     void         setBaudRate(long baudRate);
     void         setParity(char parity);
@@ -63,6 +64,7 @@ public:
     void         setRTS(bool enable);
     void         setDTR(bool enable);
 
+    void         sendBreakSignal();
     void         flushPort(void);
 };
 
