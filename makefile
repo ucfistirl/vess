@@ -1,25 +1,15 @@
 #!/bin/make
+# booster makefile
 
-VSLIBS = \
-    avatar \
-    input \
-    math \
-    motion \
-    scene \
-    sound \
-    system \
-    test
+# determine operating system
+UNAME = `uname`
+OS = $(UNAME:IRIX64=IRIX)
 
-OS = `uname`
+# call the main makefile
+all:
+	@echo "Making for $(UNAME)"
+	@${MAKE} -f makefile.mk all "UNAME=$(UNAME)"
 
-all clean dep:
-	@for i in $(VSLIBS); \
-	do \
-		if test ! -d $$i; then \
-			echo "Skipping $$i; No such directory"; \
-		else \
-			echo "Making $$i ($@) for ${OS}"; \
-			cd $$i; ${MAKE} -f makefile.${OS} $@; cd ..; \
-		fi \
-	done
-
+.DEFAULT:
+	@echo "Making for $(UNAME)"
+	@${MAKE} -f makefile.mk $@ "UNAME=$(UNAME)"

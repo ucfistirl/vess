@@ -1,4 +1,7 @@
 EXTRA_INCS = -I/ist/projects/nve/tools/openal/include \
-             -I/ist/projects/nve/tools/openal/linux/include
+             -I/ist/projects/nve/tools/openal/linux/include \
+             -I/ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include
 
-EXTRA_LIBS = -L/ist/projects/nve/tools/openal/linux/src
+EXTRA_LIBS = -L/ist/projects/nve/tools/openal/linux/src \
+             -L/ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/lib \
+             -L/ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/osgPlugin
