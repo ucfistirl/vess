@@ -4,6 +4,10 @@
 
 #include <sys/time.h>
 
+// ------------------------------------------------------------------------
+// Constructor - Verfies that there is a transform attribute on the
+// component and sets the internal position and orientation data
+// ------------------------------------------------------------------------
 vsKinematics::vsKinematics(vsComponent *theComponent)
 {
     vsMatrix xform;
@@ -11,11 +15,11 @@ vsKinematics::vsKinematics(vsComponent *theComponent)
     component = theComponent;
     
     transform = (vsTransformAttribute *)
-	(component->getTypedAttribute(VS_ATTRIBUTE_TYPE_TRANSFORM, 0));
+        (component->getTypedAttribute(VS_ATTRIBUTE_TYPE_TRANSFORM, 0));
     if (!transform)
     {
-	transform = new vsTransformAttribute();
-	component->addAttribute(transform);
+        transform = new vsTransformAttribute();
+        component->addAttribute(transform);
     }
     
     reset();
@@ -25,10 +29,16 @@ vsKinematics::vsKinematics(vsComponent *theComponent)
     orientation.setMatrixRotation(xform);
 }
 
+// ------------------------------------------------------------------------
+// Destructor
+// ------------------------------------------------------------------------
 vsKinematics::~vsKinematics()
 {
 }
 
+// ------------------------------------------------------------------------
+// Sets the translation
+// ------------------------------------------------------------------------
 void vsKinematics::setPosition(vsVector newPosition)
 {
     vsMatrix xform;
@@ -40,16 +50,22 @@ void vsKinematics::setPosition(vsVector newPosition)
     xform = transform->getDynamicTransform();
 
     for (loop = 0; loop < 3; loop++)
-	xform[loop][3] = position[loop];
+        xform[loop][3] = position[loop];
 
     transform->setDynamicTransform(xform);
 }
 
+// ------------------------------------------------------------------------
+// Retrieves the translation
+// ------------------------------------------------------------------------
 vsVector vsKinematics::getPosition()
 {
     return position;
 }
 
+// ------------------------------------------------------------------------
+// Adds the given vector to the current translation
+// ------------------------------------------------------------------------
 void vsKinematics::modifyPosition(vsVector deltaPosition)
 {
     vsVector dPos;
@@ -63,11 +79,14 @@ void vsKinematics::modifyPosition(vsVector deltaPosition)
     xform = transform->getDynamicTransform();
 
     for (loop = 0; loop < 3; loop++)
-	xform[loop][3] = position[loop];
+        xform[loop][3] = position[loop];
 
     transform->setDynamicTransform(xform);
 }
 
+// ------------------------------------------------------------------------
+// Sets the rotation
+// ------------------------------------------------------------------------
 void vsKinematics::setOrientation(vsQuat newOrientation)
 {
     vsMatrix xform, tempMat;
@@ -81,24 +100,18 @@ void vsKinematics::setOrientation(vsQuat newOrientation)
     transform->setDynamicTransform(xform);
 }
 
+// ------------------------------------------------------------------------
+// Retrieves the rotation
+// ------------------------------------------------------------------------
 vsQuat vsKinematics::getOrientation()
 {
     return orientation;
 }
 
+// ------------------------------------------------------------------------
+// Multiplies the current rotation by the given rotation on the left
+// ------------------------------------------------------------------------
 void vsKinematics::preModifyOrientation(vsQuat deltaOrientation)
-{
-    vsMatrix xform, tempMat;
-    
-    orientation = orientation * deltaOrientation;
-    xform.setQuatRotation(orientation);
-    tempMat.setTranslation(position[0], position[1], position[2]);
-    xform = tempMat * xform;
-
-    transform->setDynamicTransform(xform);
-}
-
-void vsKinematics::postModifyOrientation(vsQuat deltaOrientation)
 {
     vsMatrix xform, tempMat;
     
@@ -110,17 +123,41 @@ void vsKinematics::postModifyOrientation(vsQuat deltaOrientation)
     transform->setDynamicTransform(xform);
 }
 
+// ------------------------------------------------------------------------
+// Multiplies the current rotation by the given rotation on the right
+// ------------------------------------------------------------------------
+void vsKinematics::postModifyOrientation(vsQuat deltaOrientation)
+{
+    vsMatrix xform, tempMat;
+    
+    orientation = orientation * deltaOrientation;
+    xform.setQuatRotation(orientation);
+    tempMat.setTranslation(position[0], position[1], position[2]);
+    xform = tempMat * xform;
+
+    transform->setDynamicTransform(xform);
+}
+
+// ------------------------------------------------------------------------
+// Sets the positional velocity
+// ------------------------------------------------------------------------
 void vsKinematics::setVelocity(vsVector newVelocity)
 {
     velocity.clearCopy(newVelocity);
     velocity.setSize(3);
 }
 
+// ------------------------------------------------------------------------
+// Retrieves the positional velocity
+// ------------------------------------------------------------------------
 vsVector vsKinematics::getVelocity()
 {
     return velocity;
 }
 
+// ------------------------------------------------------------------------
+// Adds the given velocity to the current positional velocity
+// ------------------------------------------------------------------------
 void vsKinematics::modifyVelocity(vsVector deltaVelocity)
 {
     vsVector dVel;
@@ -131,6 +168,9 @@ void vsKinematics::modifyVelocity(vsVector deltaVelocity)
     velocity += dVel;
 }
 
+// ------------------------------------------------------------------------
+// Sets the angular velocity
+// ------------------------------------------------------------------------
 void vsKinematics::setAngularVelocity(vsVector rotAxis, double degreesPerSec)
 {
     vsVector axis;
@@ -141,19 +181,32 @@ void vsKinematics::setAngularVelocity(vsVector rotAxis, double degreesPerSec)
     mag = axis.getMagnitude();
     if (mag < 1E-6)
     {
-	angularVelocity.set(0.0, 0.0, 0.0, 0.0);
-	return;
+        angularVelocity.set(0.0, 0.0, 0.0, 0.0);
+        return;
     }
     axis.normalize();
     
+    // The internal representation of angular velocity is an axis of
+    // rotation and a degrees-per-second value. This is similar to, but
+    // not quite the same as, the internal representation of a
+    // quaternion.
     angularVelocity.set(axis[0], axis[1], axis[2], degreesPerSec);
 }
 
+// ------------------------------------------------------------------------
+// Retrieves the angular velocity as a vector containing the axis of
+// rotation in the first three positions and a rotation speed, represented
+// as degrees per second, in the fourth position.
+// ------------------------------------------------------------------------
 vsVector vsKinematics::getAngularVelocity()
 {
     return angularVelocity;
 }
 
+// ------------------------------------------------------------------------
+// Modifies the current angular velocity to be a composite of the current
+// angular velocity and the given angular velocity
+// ------------------------------------------------------------------------
 void vsKinematics::modifyAngularVelocity(vsVector rotAxis,
     double degreesPerSec)
 {
@@ -162,8 +215,8 @@ void vsKinematics::modifyAngularVelocity(vsVector rotAxis,
     
     if (angularVelocity[3] == 0.0)
     {
-	setAngularVelocity(rotAxis, degreesPerSec);
-	return;
+        setAngularVelocity(rotAxis, degreesPerSec);
+        return;
     }
 
     // Prepare the delta rotation
@@ -171,7 +224,7 @@ void vsKinematics::modifyAngularVelocity(vsVector rotAxis,
     avel1.setSize(3);
     mag = avel1.getMagnitude();
     if (mag < 1E-6)
-	return;
+        return;
     avel1.normalize();
     avel1.scale(degreesPerSec);
     
@@ -184,13 +237,16 @@ void vsKinematics::modifyAngularVelocity(vsVector rotAxis,
     mag = result.getMagnitude();
     if (mag > 1E-6)
     {
-	result.normalize();
-	angularVelocity.set(result[0], result[1], result[2], mag);
+        result.normalize();
+        angularVelocity.set(result[0], result[1], result[2], mag);
     }
     else
-	angularVelocity.set(0.0, 0.0, 0.0, 0.0);
+        angularVelocity.set(0.0, 0.0, 0.0, 0.0);
 }
 
+// ------------------------------------------------------------------------
+// Sets the center point for rotations of this object
+// ------------------------------------------------------------------------
 void vsKinematics::setCenterOfMass(vsVector newCenter)
 {
     vsMatrix xform;
@@ -202,15 +258,18 @@ void vsKinematics::setCenterOfMass(vsVector newCenter)
 
     xform = transform->getPreTransform();
     for (loop = 0; loop < 3; loop++)
-	xform[loop][3] = -(nCenter[loop]);
+        xform[loop][3] = -(nCenter[loop]);
     transform->setPreTransform(xform);
 
     xform = transform->getPostTransform();
     for (loop = 0; loop < 3; loop++)
-	xform[loop][3] = nCenter[loop];
+        xform[loop][3] = nCenter[loop];
     transform->setPostTransform(xform);
 }
 
+// ------------------------------------------------------------------------
+// Retrieves the center point for rotations of this object
+// ------------------------------------------------------------------------
 vsVector vsKinematics::getCenterOfMass()
 {
     vsMatrix xform;
@@ -223,6 +282,11 @@ vsVector vsKinematics::getCenterOfMass()
     return result;
 }
 
+// ------------------------------------------------------------------------
+// Updates the kinematics by computing the time since the last update, and
+// using that time value and the current positional and angular velocities
+// to modify the current position and orientation
+// ------------------------------------------------------------------------
 void vsKinematics::update()
 {
     struct timeval tv;
@@ -237,7 +301,7 @@ void vsKinematics::update()
     lastTime = currentTime;
     
     if (deltaTime > 1.0)
-	deltaTime = 1.0;
+        deltaTime = 1.0;
 
     // Update the position and orientation from the velocity and angular
     // velocity, respectively.
@@ -245,10 +309,14 @@ void vsKinematics::update()
     
     degrees = (angularVelocity[3] * deltaTime);
     deltaOrient.setAxisAngleRotation(angularVelocity[0], angularVelocity[1],
-	angularVelocity[2], degrees);
+        angularVelocity[2], degrees);
     postModifyOrientation(deltaOrient);
 }
 
+// ------------------------------------------------------------------------
+// Resets the kinematics by setting all velocities to zero and resetting
+// the function timer
+// ------------------------------------------------------------------------
 void vsKinematics::reset()
 {
     velocity.set(0.0, 0.0, 0.0);
@@ -257,6 +325,9 @@ void vsKinematics::reset()
     resetTimer();
 }
 
+// ------------------------------------------------------------------------
+// Resets the function timer
+// ------------------------------------------------------------------------
 void vsKinematics::resetTimer()
 {
     struct timeval tv;
