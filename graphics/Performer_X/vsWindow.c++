@@ -375,6 +375,7 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
     
     // Create and configure the Performer PipeWindow to use the given X Window
     performerPipeWindow = new pfPipeWindow(parentPipe->getBaseLibraryObject());
+    performerPipeWindow->ref();
     performerPipeWindow->setWinType(PFPWIN_TYPE_X);
     performerPipeWindow->setWSWindow(pfGetCurWSConnection(), xWin);
     performerPipeWindow->setWSDrawable(pfGetCurWSConnection(), xWin);
