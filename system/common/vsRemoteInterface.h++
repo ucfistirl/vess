@@ -3,53 +3,25 @@
 #define VS_REMOTE_INTERFACE_HPP
 
 #include <sys/types.h>
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 #include "vsTCPNetworkInterface.h++"
-#include "vsQuat.h++"
+#include "vsRemoteInterfaceBuffer.h++"
 
 #define VS_RI_DEFAULT_CONTROL_PORT     32816
-#define VS_RI_MAX_XML_DOCUMENT_SIZE    65536
 
-#define VS_MAX_CONNECTIONS   10
+#define VS_RI_MAX_CONNECTIONS   10
 
 class vsRemoteInterface
 {
 protected:
-    u_char                   xmlBuffer[VS_RI_MAX_XML_DOCUMENT_SIZE];
-    u_long                   xmlBufferSize;
+    vsTCPNetworkInterface     *tcpInterface;
 
-    xmlDtdPtr                xmlDTD;
-    xmlValidCtxt             xmlContext;
-
-    vsTCPNetworkInterface    *tcpInterface;
-
-    u_long                   numClients;
-    int                      tcpClientIDs[VS_MAX_CONNECTIONS];
-
-    void                     getPosition(xmlDocPtr doc, xmlNodePtr node,
-                                         double *x, double *y, double *z);
-    void                     getOrientation(xmlDocPtr doc, xmlNodePtr node,
-                                            vsQuat *quat);
-
-    void                     processXMLDocument();
-    void                     processPlaceComponent(xmlDocPtr doc, 
-                                                   xmlNodePtr current);
-    void                     processQuerySequence(xmlDocPtr doc, 
-                                                  xmlNodePtr current);
-    void                     processReleaseSync(xmlDocPtr doc, 
-                                                xmlNodePtr current);
-    void                     processSetKinematics(xmlDocPtr doc, 
-                                                  xmlNodePtr current);
-    void                     processStats(xmlDocPtr doc, xmlNodePtr current);
-    void                     processTerminateCluster(xmlDocPtr doc, 
-                                                     xmlNodePtr current);
+    u_long                    numClients;
+    int                       tcpClientIDs[VS_RI_MAX_CONNECTIONS];
+    vsRemoteInterfaceBuffer   *tcpClientBuffers[VS_RI_MAX_CONNECTIONS];
 
 public:
     vsRemoteInterface();
-    vsRemoteInterface(char *dtdFilename);
     vsRemoteInterface(short port);
-    vsRemoteInterface(char *dtdFilename, short port);
     virtual ~vsRemoteInterface();
 
     void   update();
