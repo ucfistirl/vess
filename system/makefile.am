@@ -29,6 +29,9 @@ INCLUDES = \
            -I../io/@OS@ \
            @IO_INCLUDE_DIR@ \
            -I../sound/@AL@ \
+           @SOUND_INCLUDE_DIR@ \
+           -I../scent/common \
+           -I../scent/@OS@ \
            -I../graphics/common \
            -I../graphics/@SG@ \
            -I../graphics/@SG@_@WS@ \
