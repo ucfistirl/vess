@@ -341,7 +341,7 @@ void vsPane::setPosition(int xPos, int yPos)
     int x, y, width, height;
     int winWidth, winHeight;
 
-    // Get the current viewport settings to obtain the pane's width and 
+    // Get the current viewport settings to obtain the pane's width and
     // height
     osgSceneView->getViewport()->getViewport(x, y, width, height);
 
@@ -350,8 +350,9 @@ void vsPane::setPosition(int xPos, int yPos)
     xPosNorm = (double)xPos / (double)winWidth;
     yPosNorm = (double)yPos / (double)winHeight;
 
-    // Set the new origin
-    osgSceneView->getViewport()->setViewport(xPos, yPos, width, height);
+    // Set the new origin (using the VESS standard upper-left origin)
+    osgSceneView->getViewport()->
+        setViewport(xPos, winHeight - (yPos + height), width, height);
 }
 
 // ------------------------------------------------------------------------

@@ -348,7 +348,8 @@ void vsPane::setPosition(int xPos, int yPos)
     yPosNorm = (double)yPos / (double)winHeight;
 
     // Set the new origin
-    osgSceneView->getViewport()->setViewport(xPos, yPos, width, height);
+    osgSceneView->getViewport()->
+        setViewport(xPos, winHeight - (yPos + height), width, height);
 }
 
 // ------------------------------------------------------------------------
