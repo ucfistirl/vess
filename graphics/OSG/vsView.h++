@@ -23,7 +23,6 @@
 #ifndef VS_VIEW_HPP
 #define VS_VIEW_HPP
 
-#include <osg/Camera>
 #include "vsVector.h++"
 #include "vsMatrix.h++"
 #include "vsObject.h++"
@@ -38,57 +37,63 @@ class VS_GRAPHICS_DLL vsView : public vsObject
 {
 private:
 
-    // OSG Camera object for handling the viewpoint parameters
-    osg::Camera    *osgCamera;
+    // Current viewpoint and orientation values
+    vsVector    viewpoint;
+    vsVector    forwardDir, upDir;
+
+    // Near/far clipping plane distances
+    double      nearClipDist, farClipDist;
 
     // Projection mode and FOV values
-    int            projMode;
-    double         projHval, projVval;
+    int         projMode;
+    double      projHval, projVval;
+
+    // Marker for noting if the view values changed
+    int         changeNum;
     
 VS_INTERNAL:
 
     void        getProjectionData(int *mode, double *horizVal,
                                   double *vertiVal);
 
+    int         getChangeNum();
+
 public:
 
-                   vsView();
-    virtual        ~vsView();
+                vsView();
+    virtual     ~vsView();
 
     // Inherited functions
     virtual const char    *getClassName();
 
     // Position manipulations
-    void           setViewpoint(double xPosition, double yPosition,
-                                double zPosition);
-    void           setViewpoint(vsVector newPosition);
-    void           getViewpoint(double *xPosition, double *yPosition,
-                                double *zPosition);
-    vsVector       getViewpoint();
+    void        setViewpoint(double xPosition, double yPosition,
+                             double zPosition);
+    void        setViewpoint(vsVector newPosition);
+    void        getViewpoint(double *xPosition, double *yPosition,
+                             double *zPosition);
+    vsVector    getViewpoint();
 
     // Orientation manipulations
-    void           setDirectionFromVector(vsVector direction,
+    void        setDirectionFromVector(vsVector direction,
                                        vsVector upDirection);
-    void           lookAtPoint(vsVector targetPoint, vsVector upDirection);
-    void           setDirectionFromRotation(vsQuat rotQuat);
-    void           setDirectionFromRotation(vsMatrix rotMatrix);
+    void        lookAtPoint(vsVector targetPoint, vsVector upDirection);
+    void        setDirectionFromRotation(vsQuat rotQuat);
+    void        setDirectionFromRotation(vsMatrix rotMatrix);
     
     // Near/far clip plane functions
-    void           setClipDistances(double nearPlane, double farPlane);
-    void           getClipDistances(double *nearPlane, double *farPlane);
+    void        setClipDistances(double nearPlane, double farPlane);
+    void        getClipDistances(double *nearPlane, double *farPlane);
 
     // Projection manipulations
-    void           setPerspective(double horizFOV, double vertiFOV);
-    void           setOrthographic(double horizSize, double vertiSize);
+    void        setPerspective(double horizFOV, double vertiFOV);
+    void        setOrthographic(double horizSize, double vertiSize);
 
     // Orientation accessors
-    vsVector       getDirection();
-    vsVector       getUpDirection();
+    vsVector    getDirection();
+    vsVector    getUpDirection();
 
-    vsMatrix       getRotationMat();
-
-    // Returns the OSG Camera object
-    osg::Camera    *getBaseLibraryObject();
+    vsMatrix    getRotationMat();
 };
 
 #endif

@@ -29,12 +29,18 @@
 // ------------------------------------------------------------------------
 vsView::vsView()
 {
-    // Create the osg::Camera to manage the viewpoint
-    osgCamera = new osg::Camera();
-    osgCamera->ref();
+    // Initialize to defaults
+    viewpoint.set(0.0, 0.0, 0.0);
+    forwardDir.set(0.0, 1.0, 0.0);
+    upDir.set(0.0, 0.0, 1.0);
+    nearClipDist = 0.1;
+    farClipDist = 10000.0;
 
     // Set the view to a default perspective projection
     setPerspective(0.0, 0.0);
+
+    // Initialize the change counter
+    changeNum = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -42,7 +48,6 @@ vsView::vsView()
 // ------------------------------------------------------------------------
 vsView::~vsView()
 {
-    osgCamera->unref();
 }
 
 // ------------------------------------------------------------------------
@@ -58,13 +63,11 @@ const char *vsView::getClassName()
 // ------------------------------------------------------------------------
 void vsView::setViewpoint(double xPosition, double yPosition, double zPosition)
 {
-    vsVector position;
+    // Set the viewpoint
+    viewpoint.set(xPosition, yPosition, zPosition);
 
-    // Create a vsVector with the new position
-    position.set(xPosition, yPosition, zPosition);
-
-    // Set the new position using the other setViewpoint() method
-    setViewpoint(position);
+    // Mark that a change was made
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -72,33 +75,11 @@ void vsView::setViewpoint(double xPosition, double yPosition, double zPosition)
 // ------------------------------------------------------------------------
 void vsView::setViewpoint(vsVector newPosition)
 {
-    osg::Vec3 oldPos;
-    osg::Vec3 newPos;
-    osg::Vec3 transVec;
-    osg::Vec3 centerPoint;
+    // Set the viewpoint, forcing the vector size to 3
+    viewpoint.clearCopy(newPosition);
 
-    // Translate the vsVector to an OSG::Vec3
-    newPos.set(newPosition[VS_X], newPosition[VS_Y], newPosition[VS_Z]);
-
-    // OSG only allows you to specify orientation using a "lookAt" 
-    // mechanism.  In order to maintain the current orientation while
-    // moving the viewpoint, we need to translate the center point
-    // the same amount as the viewpoint is moving.  First, get the old
-    // position.
-    oldPos = osgCamera->getEyePoint();
-
-    // Calculate the translation vector (the amount the viewpoint is
-    // moving).
-    transVec = newPos - oldPos;
-
-    // Get the current center point, and apply the same translation to
-    // it
-    centerPoint = osgCamera->getCenterPoint();
-    centerPoint += transVec;
-
-    // Set the new position and new center point.  The up vector can
-    // stay the same
-    osgCamera->setLookAt(newPos, centerPoint, osgCamera->getUpVector());
+    // Mark that a change was made
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -111,11 +92,11 @@ void vsView::getViewpoint(double *xPosition, double *yPosition,
     // Return each eye point coordinate if the corresponding parameter 
     // is valid
     if (xPosition)
-        *xPosition = (double)(osgCamera->getEyePoint().x());
+        *xPosition = viewpoint[0];
     if (yPosition)
-        *yPosition = (double)(osgCamera->getEyePoint().y());
+        *yPosition = viewpoint[1];
     if (zPosition)
-        *zPosition = (double)(osgCamera->getEyePoint().z());
+        *zPosition = viewpoint[2];
 }
 
 // ------------------------------------------------------------------------
@@ -123,17 +104,7 @@ void vsView::getViewpoint(double *xPosition, double *yPosition,
 // ------------------------------------------------------------------------
 vsVector vsView::getViewpoint()
 {
-    osg::Vec3 eyePoint;
-    vsVector viewLocation;
-
-    // Get the eye point of the camera
-    eyePoint = osgCamera->getEyePoint();
-
-    // Convert to a vsVector
-    viewLocation.set(eyePoint[0], eyePoint[1], eyePoint[2]);
-
-    // Return the vector
-    return viewLocation;
+    return viewpoint;
 }
 
 // ------------------------------------------------------------------------
@@ -142,17 +113,16 @@ vsVector vsView::getViewpoint()
 // ------------------------------------------------------------------------
 void vsView::setDirectionFromVector(vsVector direction, vsVector upDirection)
 {
-    vsVector eyePoint;
-    vsVector targetPoint;
+    // Copy the forward direction, forcing its size to 3 and normalizing it
+    forwardDir.clearCopy(direction);
+    forwardDir.normalize();
 
-    // Get the current viewpoint
-    eyePoint = getViewpoint();
+    // Copy the up direction, forcing its size to 3 and normalizing it
+    upDir.clearCopy(upDirection);
+    upDir.normalize();
 
-    // Compute a target point based on the given direction
-    targetPoint = eyePoint + direction;
-
-    // Set the camera
-    lookAtPoint(targetPoint, upDirection);
+    // Mark that a change was made
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -161,21 +131,21 @@ void vsView::setDirectionFromVector(vsVector direction, vsVector upDirection)
 // ------------------------------------------------------------------------
 void vsView::lookAtPoint(vsVector targetPoint, vsVector upDirection)
 {
-    osg::Vec3 eyePoint;
-    osg::Vec3 center;
-    osg::Vec3 up;
+    vsVector dir;
 
-    // Get the eye point from the camera
-    eyePoint = osgCamera->getEyePoint();
+    // Calculate the direction of view as the difference of the current
+    // viewpoint and the target point
+    dir.setSize(3);
+    dir.clearCopy(targetPoint);
+    dir = dir - viewpoint;
+    forwardDir = dir.getNormalized();
 
-    // Convert the target point to an osg::Vec3
-    center.set(targetPoint[VS_X], targetPoint[VS_Y], targetPoint[VS_Z]);
+    // Copy the up direction, forcing its size to 3 and normalizing it
+    upDir.clearCopy(upDirection);
+    upDir.normalize();
 
-    // Convert the up direction to an osg::Vec3
-    up.set(upDirection[VS_X], upDirection[VS_Y], upDirection[VS_Z]);
-
-    // Set the camera
-    osgCamera->setLookAt(eyePoint, center, up);
+    // Mark that a change was made
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -193,8 +163,12 @@ void vsView::setDirectionFromRotation(vsQuat rotQuat)
     forward = rotQuat.rotatePoint(forward);
     up = rotQuat.rotatePoint(up);
 
-    // Set the camera
-    setDirectionFromVector(forward, up);
+    // Set the forward and up directions, and make sure they're normalized
+    forwardDir = forward.getNormalized();
+    upDir = up.getNormalized();
+
+    // Mark that a change was made
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -213,8 +187,12 @@ void vsView::setDirectionFromRotation(vsMatrix rotMatrix)
     forward = rotMatrix.getVectorXform(forward);
     up = rotMatrix.getVectorXform(up);
 
-    // Set the camera
-    setDirectionFromVector(forward, up);
+    // Set the forward and up directions, and make sure they're normalized
+    forwardDir = forward.getNormalized();
+    upDir = up.getNormalized();
+
+    // Mark that a change was made
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -222,8 +200,12 @@ void vsView::setDirectionFromRotation(vsMatrix rotMatrix)
 // ------------------------------------------------------------------------
 void vsView::setClipDistances(double nearPlane, double farPlane)
 {
-    // Pass the new near and far values to the osg::Camera
-    osgCamera->setNearFar((float)nearPlane, (float)farPlane);
+    // Copy the near and far plane values
+    nearClipDist = nearPlane;
+    farClipDist = farPlane;
+
+    // Mark that a change was made
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -235,9 +217,9 @@ void vsView::getClipDistances(double *nearPlane, double *farPlane)
     // Return each plane's distance, if the corresponding parameter is 
     // valid
     if (nearPlane)
-        *nearPlane = osgCamera->zNear();
+        *nearPlane = nearClipDist;
     if (farPlane)
-        *farPlane = osgCamera->zFar();
+        *farPlane = farClipDist;
 }    
 
 // ------------------------------------------------------------------------
@@ -256,6 +238,9 @@ void vsView::setPerspective(double horizFOV, double vertiFOV)
     projMode = VS_VIEW_PROJMODE_PERSP;
     projHval = horizFOV;
     projVval = vertiFOV;
+
+    // Mark that a change was made
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -275,6 +260,9 @@ void vsView::setOrthographic(double horizSize, double vertiSize)
     projMode = VS_VIEW_PROJMODE_ORTHO;
     projHval = horizSize;
     projVval = vertiSize;
+
+    // Mark that a change was made
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -282,16 +270,7 @@ void vsView::setOrthographic(double horizSize, double vertiSize)
 // ------------------------------------------------------------------------
 vsVector vsView::getDirection()
 {
-    osg::Vec3 direction;
-    vsVector result;
-    
-    // Get camera direction
-    direction = osgCamera->getLookVector();
-
-    // Convert to a vsVector
-    result.set(direction[0], direction[1], direction[2]);
-    
-    return result;
+    return forwardDir;
 }
 
 // ------------------------------------------------------------------------
@@ -299,16 +278,7 @@ vsVector vsView::getDirection()
 // ------------------------------------------------------------------------
 vsVector vsView::getUpDirection()
 {
-    osg::Vec3 upDirection;
-    vsVector result;
-
-    // Get camera up vector
-    upDirection = osgCamera->getUpVector();
-    
-    // Convert to a vsVector
-    result.set(upDirection[0], upDirection[1], upDirection[2]);
-    
-    return result;
+    return upDir;
 }
 
 // ------------------------------------------------------------------------
@@ -316,32 +286,20 @@ vsVector vsView::getUpDirection()
 // ------------------------------------------------------------------------
 vsMatrix vsView::getRotationMat()
 {
-    osg::Matrix modelView;
-    vsMatrix rotationMat;
-    int i, j;
+    vsQuat rotationQuat;
+    vsMatrix result;
 
-    // Get the modelview matrix from the camera
-    modelView = osgCamera->getModelViewMatrix();
+    // Find the quaternion that rotates the origin directions to the
+    // current directions
+    rotationQuat.setVecsRotation(vsVector(0.0, 1.0, 0.0),
+                                 vsVector(0.0, 0.0, 1.0),
+                                 forwardDir,
+                                 upDir);
 
-    // Convert to a vsMatrix
-    for (i = 0; i < 4; i++)
-    {
-        for (j = 0; j < 4; j++)
-        {
-            rotationMat[i][j] = modelView(j, i);
-        }
-    }
+    // Create a rotation matrix from the quaternion and return it
+    result.setQuatRotation(rotationQuat);
 
-    return rotationMat;
-}
-
-// ------------------------------------------------------------------------
-// Returns the underlying osg::Camera
-// ------------------------------------------------------------------------
-osg::Camera *vsView::getBaseLibraryObject()
-{
-    // Return the osg::Camera we created
-    return osgCamera;
+    return result;
 }
 
 // ------------------------------------------------------------------------
@@ -354,4 +312,14 @@ void vsView::getProjectionData(int *mode, double *horizVal, double *vertiVal)
     *mode = projMode;
     *horizVal = projHval;
     *vertiVal = projVval;
+}
+
+// ------------------------------------------------------------------------
+// Internal function
+// Gets the "change number" for this object. The change number is a value
+// that is incremented every time some parameter of the view is modified.
+// ------------------------------------------------------------------------
+int vsView::getChangeNum()
+{
+    return changeNum;
 }
