@@ -43,50 +43,53 @@ int vsGeometry::binModesChanged = VS_FALSE;
 // ------------------------------------------------------------------------
 vsGeometry::vsGeometry() : parentList(5, 5)
 {
+    // Initialize the number of parents to zero
     parentCount = 0;
 
-    // Geode
+    // Create an osg::Geode
     osgGeode = new osg::Geode();
     osgGeode->ref();
     
-    // Geometry
+    // Create an osg::Geometry node to contain the Geode
     osgGeometry = new osg::Geometry();
     osgGeometry->ref();
     osgGeode->addDrawable(osgGeometry);
 
-    // Color array
+    // Create the color array
     colorList = new osg::Vec4Array();
     colorList->ref();
     colorListSize = 0;
     osgGeometry->setColorArray(colorList);
 
-    // Normal array
+    // Create the normal array
     normalList = new osg::Vec3Array();
     normalList->ref();
     normalListSize = 0;
     osgGeometry->setNormalArray(normalList);
 
-    // Texture coordinate array
+    // Create the texture coordinate array
     texCoordList = new osg::Vec2Array();
     texCoordList->ref();
     texCoordListSize = 0;
     osgGeometry->setTexCoordArray(0, NULL);
     textureBinding = VS_GEOMETRY_BIND_NONE;
 
-    // Vertex array
+    // Create the vertex array
     vertexList = new osg::Vec3Array();
     vertexList->ref();
     vertexListSize = 0;
     osgGeometry->setVertexArray(vertexList);
 
-    // Other values
+    // Initialize other values
     lengthsList = NULL;
     primitiveCount = 0;
     primitiveType = VS_GEOMETRY_TYPE_POINTS;
+
+    // Enable lighting on this Geometry and set the render bin to default
     enableLighting();
     renderBin = -1;
 
-    // Register the connection
+    // Register this node and osg::Geode in the node map
     getMap()->registerLink(this, osgGeode);
 }
 
@@ -130,7 +133,7 @@ vsGeometry::~vsGeometry()
     // Remove the link to the osg node from the object map
     getMap()->removeLink(this, VS_OBJMAP_FIRST_LIST);
 
-    // Other cleanup
+    // If we've created a primitive lengths list, free this now
     if (lengthsList)
         free(lengthsList);
 }
@@ -165,13 +168,15 @@ int vsGeometry::getParentCount()
 // ------------------------------------------------------------------------
 vsNode *vsGeometry::getParent(int index)
 {
-    // Bounds check
+    // Check the index to make sure it refers to a valid parent, complain 
+    // and return NULL if not
     if ((index < 0) || (index >= parentCount))
     {
         printf("vsGeometry::getParent: Bad parent index\n");
         return NULL;
     }
     
+    // Return the requested parent
     return (vsNode *)(parentList[index]);
 }
 
@@ -180,7 +185,7 @@ vsNode *vsGeometry::getParent(int index)
 // ------------------------------------------------------------------------
 void vsGeometry::setPrimitiveType(int newType)
 {
-    // Check for a valid primitive type
+    // Make sure the type argument is a valid primitive type
     if ((newType < VS_GEOMETRY_TYPE_POINTS) ||
         (newType > VS_GEOMETRY_TYPE_POLYS))
     {
@@ -188,8 +193,10 @@ void vsGeometry::setPrimitiveType(int newType)
         return;
     }
 
+    // Set the primitive type
     primitiveType = newType;
     
+    // Reconstruct the primitives with a new type
     rebuildPrimitives();
 }
 
@@ -209,8 +216,8 @@ void vsGeometry::setPrimitiveCount(int newCount)
 {
     int loop;
     
-    // Sanity check
-    if ((newCount < 0) || (newCount > 1000000))
+    // Sanity check, primarily to avoid memory corruption
+    if ((newCount < 0) || (newCount > VS_GEOMETRY_MAX_LIST_INDEX))
     {
         printf("vsGeometry::setPrimitiveCount: Invalid count value '%d'\n",
             newCount);
@@ -220,26 +227,28 @@ void vsGeometry::setPrimitiveCount(int newCount)
     // Change the length of the primitive lengths array
     if (newCount && !lengthsList)
     {
-        // Create
+        // Create the lengths array
         lengthsList = (int *)(calloc(newCount, sizeof(int)));
     }
     else if (!newCount && lengthsList)
     {
-        // Delete
+        // Delete the lengths array
         free(lengthsList);
         lengthsList = NULL;
     }
     else
     {
-        // Modify
+        // Modify the size of the lengths array
         lengthsList = (int *)(realloc(lengthsList, sizeof(int) * newCount));
         if (newCount > primitiveCount)
             for (loop = primitiveCount; loop < newCount; loop++)
                 lengthsList[loop] = 0;
     }
     
+    // Set the new primitive count
     primitiveCount = newCount;
     
+    // Reconstruct the osg::PrimitiveSet with the new settings
     rebuildPrimitives();
 }
 
@@ -257,15 +266,17 @@ int vsGeometry::getPrimitiveCount()
 // ------------------------------------------------------------------------
 void vsGeometry::setPrimitiveLength(int index, int length)
 {
-    // Bounds check
+    // Make sure the index is valid, given the current primitive count
     if ((index < 0) || (index >= getPrimitiveCount()))
     {
         printf("vsGeometry::setPrimitiveLength: Index out of bounds\n");
         return;
     }
     
+    // Set the new length in the primitive lengths list
     lengthsList[index] = length;
     
+    // Reconstruct the osg::PrimitiveSet with the new setting
     rebuildPrimitives();
 }
 
@@ -275,7 +286,7 @@ void vsGeometry::setPrimitiveLength(int index, int length)
 // ------------------------------------------------------------------------
 int vsGeometry::getPrimitiveLength(int index)
 {
-    // Boudns check
+    // Make sure the index is valid, given the current primitive count
     if ((index < 0) || (index >= getPrimitiveCount()))
     {
         printf("vsGeometry::getPrimitiveLength: Index out of bounds\n");
@@ -309,10 +320,11 @@ void vsGeometry::setPrimitiveLengths(int *lengths)
 {
     int loop;
     
-    // Copy the lengths to our array
+    // Copy the given integer array into the primitive lengths array
     for (loop = 0; loop < getPrimitiveCount(); loop++)
         lengthsList[loop] = lengths[loop];
 
+    // Reconstruct the osg::PrimitiveSet with the new setting
     rebuildPrimitives();
 }
 
@@ -366,7 +378,8 @@ void vsGeometry::setBinding(int whichData, int binding)
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
-            // Vertex coordinates should always be per-vertex
+            // Check the binding and make sure it is per-vertex (this is
+            // the only valid setting for vertices)
             if (binding != VS_GEOMETRY_BIND_PER_VERTEX)
             {
                 printf("vsGeometry::setBinding: Vertex coordinate binding must "
@@ -376,15 +389,18 @@ void vsGeometry::setBinding(int whichData, int binding)
             break;
 
         case VS_GEOMETRY_NORMALS:
+            // Set the normal binding to the new value
             osgGeometry->setNormalBinding(osgBinding);
             break;
 
         case VS_GEOMETRY_COLORS:
+            // Set the color binding to the new value
             osgGeometry->setColorBinding(osgBinding);
             break;
 
         case VS_GEOMETRY_TEXTURE_COORDS:
-            // Texture coordinates should always be either per-vertex or off
+            // Make sure the binding is a valid value for this list
+            // (only NONE and PER_VERTEX make sense for texture coordinates)
             if ((binding != VS_GEOMETRY_BIND_PER_VERTEX) &&
                 (binding != VS_GEOMETRY_BIND_NONE))
             {
@@ -402,6 +418,8 @@ void vsGeometry::setBinding(int whichData, int binding)
                 osgGeometry->setTexCoordArray(0, NULL);
             else
                 osgGeometry->setTexCoordArray(0, texCoordList);
+
+            // Store the binding value in this object
             textureBinding = binding;
             break;
 
@@ -419,7 +437,11 @@ int vsGeometry::getBinding(int whichData)
 {
     int result;
 
-    // Fetch the binding value
+    // Interpret the whichData parameter and fetch the appropriate binding
+    // value.  Note that vertices are always PER_VERTEX, and the
+    // texture coordinate binding is stored locally, since OSG doesn't
+    // use a texture coordinate binding.  The other two data list bindings
+    // are fetched from OSG and translated below.
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
@@ -438,7 +460,7 @@ int vsGeometry::getBinding(int whichData)
             return -1;
     }
     
-    // Translate the osg binding value to VESS
+    // Translate the result to its VESS counterpart
     switch (result)
     {
         case osg::Geometry::BIND_OFF:
@@ -465,93 +487,109 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
 {
     int loop;
 
-    // Bounds check
+    // Make sure the index is not negative
     if (dataIndex < 0)
     {
         printf("vsGeometry::setData: Index out of bounds\n");
         return;
     }
     
-    // Interpret the whichData constant
+    // Select the appropriate data list
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
-            // Bounds check
+            // Make sure the index is valid, given the list size
             if (dataIndex >= vertexListSize)
             {
                 printf("vsGeometry::setData: Index out of bounds\n");
                 return;
             }
-            // Input check
+
+            // Make sure the vector size is correct
             if (data.getSize() < 3)
             {
                 printf("vsGeometry::setData: Insufficient data (vertex "
                     "coordinates require 3 values)\n");
                 return;
             }
-            // Copy the data into our list
+
+            // Copy the vector data to the data list at the given index
             for (loop = 0; loop < 3; loop++)
                 ((*vertexList)[dataIndex])[loop] = data[loop];
+
+            // Set the OSG vertex array with the new data
             osgGeometry->setVertexArray(vertexList);
             break;
 
         case VS_GEOMETRY_NORMALS:
-            // Bounds check
+            // Make sure the index is valid, given the list size
             if (dataIndex >= normalListSize)
             {
                 printf("vsGeometry::setData: Index out of bounds\n");
                 return;
             }
-            // Input check
+
+            // Make sure the vector size is correct
             if (data.getSize() < 3)
             {
                 printf("vsGeometry::setData: Insufficient data (vertex "
                     "normals require 3 values)\n");
                 return;
             }
-            // Copy the data into our list
+
+            // Copy the vector data to the data list at the given index
             for (loop = 0; loop < 3; loop++)
                 ((*normalList)[dataIndex])[loop] = data[loop];
+
+            // Set the OSG normal array with the new data
             osgGeometry->setNormalArray(normalList);
             break;
 
         case VS_GEOMETRY_COLORS:
-            // Bounds check
+            // Make sure the index is valid, given the list size
             if (dataIndex >= colorListSize)
             {
                 printf("vsGeometry::setData: Index out of bounds\n");
                 return;
             }
-            // Input check
+
+            // Make sure the vector size is correct
             if (data.getSize() < 4)
             {
                 printf("vsGeometry::setData: Insufficient data (colors "
                     "require 4 values)\n");
                 return;
             }
-            // Copy the data into our list
+
+            // Copy the vector data to the data list at the given index
             for (loop = 0; loop < 4; loop++)
                 ((*colorList)[dataIndex])[loop] = data[loop];
+
+            // Set the OSG color array with the new data
             osgGeometry->setColorArray(colorList);
             break;
 
         case VS_GEOMETRY_TEXTURE_COORDS:
-            // Bounds check
+            // Make sure the index is valid, given the list size
             if (dataIndex >= texCoordListSize)
             {
                 printf("vsGeometry::setData: Index out of bounds\n");
                 return;
             }
-            // Input check
+
+            // Make sure the vector size is correct
             if (data.getSize() < 2)
             {
                 printf("vsGeometry::setData: Insufficient data (texture "
                     "coordinates require 2 values)\n");
                 return;
             }
-            // Copy the data into our list
+
+            // Copy the vector data to the data list at the given index
             for (loop = 0; loop < 2; loop++)
                 ((*texCoordList)[dataIndex])[loop] = data[loop];
+
+            // Set the OSG texture coordinate array with the new data
             osgGeometry->setTexCoordArray(0, texCoordList);
             break;
 
@@ -572,7 +610,7 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
     vsVector result;
     int loop;
 
-    // Bounds check
+    // Make sure the index is not negative
     if (dataIndex < 0)
     {
         printf("vsGeometry::getData: Index out of bounds (dataIndex = %d)\n",
@@ -580,11 +618,11 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
         return result;
     }
     
-    // Interpret the whichData constant
+    // Select the appropriate data list
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
-            // Bounds check
+            // Make sure the index is valid, given the list size
             if (dataIndex >= vertexListSize)
             {
                 printf("vsGeometry::getData: Index out of bounds "
@@ -592,14 +630,16 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
                     dataIndex, vertexListSize);
                 return result;
             }
-            // Copy the data to the result vector
+
+            // Set the result vector to the appropriate size, and copy
+            // the requested data
             result.setSize(3);
             for (loop = 0; loop < 3; loop++)
                 result[loop] = ((*vertexList)[dataIndex])[loop];
             break;
 
         case VS_GEOMETRY_NORMALS:
-            // Bounds check
+            // Make sure the index is valid, given the list size
             if (dataIndex >= normalListSize)
             {
                 printf("vsGeometry::getData: Index out of bounds "
@@ -607,14 +647,16 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
                     dataIndex, normalListSize);
                 return result;
             }
-            // Copy the data to the result vector
+
+            // Set the result vector to the appropriate size, and copy
+            // the requested data
             result.setSize(3);
             for (loop = 0; loop < 3; loop++)
                 result[loop] = ((*normalList)[dataIndex])[loop];
             break;
 
         case VS_GEOMETRY_COLORS:
-            // Bounds check
+            // Make sure the index is valid, given the list size
             if (dataIndex >= colorListSize)
             {
                 printf("vsGeometry::getData: Index out of bounds "
@@ -622,14 +664,16 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
                     dataIndex, colorListSize);
                 return result;
             }
-            // Copy the data to the result vector
+
+            // Set the result vector to the appropriate size, and copy
+            // the requested data
             result.setSize(4);
             for (loop = 0; loop < 4; loop++)
                 result[loop] = ((*colorList)[dataIndex])[loop];
             break;
 
         case VS_GEOMETRY_TEXTURE_COORDS:
-            // Bounds check
+            // Make sure the index is valid, given the list size
             if (dataIndex >= texCoordListSize)
             {
                 printf("vsGeometry::getData: Index out of bounds "
@@ -637,7 +681,9 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
                     dataIndex, texCoordListSize);
                 return result;
             }
-            // Copy the data to the result vector
+
+            // Set the result vector to the appropriate size, and copy
+            // the requested data
             result.setSize(2);
             for (loop = 0; loop < 2; loop++)
                 result[loop] = ((*texCoordList)[dataIndex])[loop];
@@ -648,7 +694,7 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
             return result;
     }
     
-    // Return the copied data vector
+    // Return the result vector
     return result;
 }
 
@@ -661,34 +707,46 @@ void vsGeometry::setDataList(int whichData, vsVector *dataList)
 {
     int loop, sloop;
     
-    // Interpret the whichData constant
+    // Select the appropriate data list
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
+            // Copy the data list into the vertex array
             for (loop = 0; loop < vertexListSize; loop++)
                 for (sloop = 0; sloop < 3; sloop++)
                     (*vertexList)[loop][sloop] = dataList[loop][sloop];
+
+            // Set the OSG vertex array with the new data
             osgGeometry->setVertexArray(vertexList);
             break;
 
         case VS_GEOMETRY_NORMALS:
+            // Copy the data list into the normal array
             for (loop = 0; loop < normalListSize; loop++)
                 for (sloop = 0; sloop < 3; sloop++)
                     (*normalList)[loop][sloop] = dataList[loop][sloop];
+
+            // Set the OSG normal array with the new data
             osgGeometry->setNormalArray(normalList);
             break;
 
         case VS_GEOMETRY_COLORS:
+            // Copy the data list into the color array
             for (loop = 0; loop < colorListSize; loop++)
                 for (sloop = 0; sloop < 4; sloop++)
                     (*colorList)[loop][sloop] = dataList[loop][sloop];
+
+            // Set the OSG color array with the new data
             osgGeometry->setColorArray(colorList);
             break;
 
         case VS_GEOMETRY_TEXTURE_COORDS:
+            // Copy the data list into the texture coordinate array
             for (loop = 0; loop < texCoordListSize; loop++)
                 for (sloop = 0; sloop < 2; sloop++)
                     (*texCoordList)[loop][sloop] = dataList[loop][sloop];
+
+            // Set the OSG texture coordinate array with the new data
             osgGeometry->setTexCoordArray(0, texCoordList);
             break;
 
@@ -708,7 +766,7 @@ void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
 {
     int loop, sloop;
     
-    // Interpret the whichData constant
+    // Copy the appropriate data list into the buffer provided
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
@@ -764,21 +822,23 @@ void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
 // ------------------------------------------------------------------------
 void vsGeometry::setDataListSize(int whichData, int newSize)
 {
-    // Sanity check
-    if ((newSize < 0) || (newSize > 1000000))
+    // Sanity check, primarily to avoid memory corruption
+    if ((newSize < 0) || (newSize > VS_GEOMETRY_MAX_LIST_INDEX))
     {
         printf("vsGeometry::setDataListSize: Invalid list size '%d'\n",
             newSize);
         return;
     }
 
-    // Interpret the whichData constant
+    // Resize the appropriate data list 
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
             vertexList->resize(newSize);
             osgGeometry->setVertexArray(vertexList);
             vertexListSize = newSize;
+
+            // Rebuild the osg::PrimitiveSet with the new settings
             rebuildPrimitives();
             break;
 
@@ -818,7 +878,7 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
 // ------------------------------------------------------------------------
 int vsGeometry::getDataListSize(int whichData)
 {
-    // Interpret the whichData constant
+    // Return the size of the appropriate data list
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
@@ -848,7 +908,8 @@ void vsGeometry::enableLighting()
     osgStateSet = osgGeode->getOrCreateStateSet();
     osgStateSet->setMode(GL_LIGHTING, osg::StateAttribute::ON);
     
-    lightingEnable = 1;
+    // Mark lighting as enabled
+    lightingEnable = VS_TRUE;
 }
 
 // ------------------------------------------------------------------------
@@ -862,7 +923,8 @@ void vsGeometry::disableLighting()
     osgStateSet = osgGeode->getOrCreateStateSet();
     osgStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
     
-    lightingEnable = 0;
+    // Mark lighting as disabled
+    lightingEnable = VS_FALSE;
 }
 
 // ------------------------------------------------------------------------
@@ -929,6 +991,8 @@ int vsGeometry::getBinSortMode(int binNum)
     if (!(binModeList->containsKey((void *)binNum)))
         return VS_GEOMETRY_SORT_STATE;
 
+    // Otherwise, return the bin's mode according to its setting in the
+    // bin mode list
     return (int)(binModeList->getValue((void *)binNum));
 }
 
@@ -940,7 +1004,8 @@ int vsGeometry::getBinSortMode(int binNum)
 // ------------------------------------------------------------------------
 void vsGeometry::clearBinSortModes()
 {
-    // If the bin list exists, delete it
+    // Delete the bin mode list, this will cause all render bins to be
+    // state sorted
     if (binModeList)
     {
         delete binModeList;
@@ -981,14 +1046,16 @@ vsMatrix vsGeometry::getGlobalXform()
     vsMatrix result;
     int loop, sloop;
 
-    // Start at the geometry's Geode, and work our way up the OSG tree
-
+    // Start with an identity matrix
     xform.makeIdentity();
+
+    // Start at the geometry's osg::Geode, and work our way up the OSG tree
     nodePtr = osgGeode;
     
     // Check the parent count to determine if we're at the top of the tree
     while (nodePtr->getNumParents() > 0)
     {
+        // Check to see if the current node is a transform
         if (dynamic_cast<osg::MatrixTransform *>(nodePtr))
         {
             // Multiply this Transform's matrix into the accumulated
@@ -1006,7 +1073,7 @@ vsMatrix vsGeometry::getGlobalXform()
         for (sloop = 0; sloop < 4; sloop++)
             result[loop][sloop] = xform(sloop, loop);
 
-    // Return the resulting matrix
+    // Return the resulting vsMatrix
     return result;
 }
 
@@ -1106,6 +1173,7 @@ void vsGeometry::rebuildPrimitives()
         // of the geometry.
         osgDrawArrays = NULL;
         
+        // Select the appropriate primitive type
         switch (primitiveType)
         {
             case VS_GEOMETRY_TYPE_POINTS:
@@ -1126,6 +1194,7 @@ void vsGeometry::rebuildPrimitives()
                 break;
         }
         
+        // Make sure the DrawArrays is valid, then add it to the Geometry
         if (osgDrawArrays)
             osgGeometry->addPrimitiveSet(osgDrawArrays);
     }
@@ -1137,6 +1206,7 @@ void vsGeometry::rebuildPrimitives()
         // are interpreted by OSG as different primitives.
         osgDrawArrayLengths = NULL;
         
+        // Select the appropriate primitive type
         switch (primitiveType)
         {
             case VS_GEOMETRY_TYPE_LINE_STRIPS:
@@ -1171,6 +1241,8 @@ void vsGeometry::rebuildPrimitives()
                 break;
         }
         
+        // Make sure the DrawArrayLengths is valid, then add it to the 
+        // Geometry
         if (osgDrawArrayLengths)
             osgGeometry->addPrimitiveSet(osgDrawArrayLengths);
     }
@@ -1182,7 +1254,7 @@ void vsGeometry::rebuildPrimitives()
 // ------------------------------------------------------------------------
 int vsGeometry::addParent(vsNode *newParent)
 {
-    // Add the new parent to our parent list
+    // Add the parent to our parent list and reference it
     parentList[parentCount++] = newParent;
     newParent->ref();
     
@@ -1198,17 +1270,24 @@ int vsGeometry::removeParent(vsNode *targetParent)
 {
     int loop, sloop;
 
-    // Search for the specified parent and remove it
+    // Look for the given "parent" in the parent list
     for (loop = 0; loop < parentCount; loop++)
+    {
+        // See if this is the parent we're looking for
         if (targetParent == parentList[loop])
         {
             // 'Slide' the parents down to cover up the removed one
             for (sloop = loop; sloop < parentCount-1; sloop++)
                 parentList[sloop] = parentList[sloop+1];
+
+            // Remove the given parent
             targetParent->unref();
             parentCount--;
+
+            // Return that the remove succeeded
             return VS_TRUE;
         }
+    }
 
     // Return failure if the specified parent isn't found
     return VS_FALSE;
@@ -1226,9 +1305,9 @@ void vsGeometry::applyAttributes()
     osg::StateSet *osgStateSet;
     int sortMode;
 
-    // Inherited
+    // Call the inherited applyAttributes function
     vsNode::applyAttributes();
-    
+
     // Instruct the current active attributes to apply themselves to this
     // node's osg StateSet
     osgStateSet = osgGeometry->getOrCreateStateSet();
@@ -1239,7 +1318,10 @@ void vsGeometry::applyAttributes()
     // attributes.
     if (renderBin >= 0)
     {
+        // Get the bin's sort mode
         sortMode = getBinSortMode(renderBin);
+
+        // Set the sort order on the corresponding osg::RenderBin
         if (sortMode == VS_GEOMETRY_SORT_DEPTH)
             osgStateSet->setRenderBinDetails(renderBin, "DepthSortedBin");
         else
