@@ -7,6 +7,7 @@
 
 #include "vsMotionModel.h++"
 #include "vsMouse.h++"
+#include "vsKinematics.h++"
 
 // Number of degrees rotated per normalized unit of movement
 #define VS_TBM_TRANSLATE_CONST 10.0
@@ -19,6 +20,8 @@ protected:
     vsInputAxis      *horizontal;
     vsInputAxis      *vertical;
 
+    vsKinematics     *kinematics;
+
     vsInputButton    *transXZButton;
     vsInputButton    *transYButton;
     vsInputButton    *rotButton;
@@ -27,22 +30,24 @@ protected:
 
 public:
 
-                        vsTrackballMotion(vsMouse *mouse);
+                        vsTrackballMotion(vsMouse *mouse, vsKinematics *kin);
 
                         vsTrackballMotion(vsMouse *mouse, 
                                           int xyTransButtonIndex,
                                           int zTransButtonIndex, 
-                                          int rotButtonIndex);
+                                          int rotButtonIndex,
+                                          vsKinematics *kin);
 
                         vsTrackballMotion(vsInputAxis *horizAxis, 
                                           vsInputAxis *vertAxis,
                                           vsInputButton *xyTransBtn, 
                                           vsInputButton *zTransBtn, 
-                                          vsInputButton *rotBtn);
+                                          vsInputButton *rotBtn,
+                                          vsKinematics *kin);
 
                         ~vsTrackballMotion();
  
-    virtual vsMatrix    update();
+    virtual void    update();
 };
 
 #endif

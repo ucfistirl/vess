@@ -3,28 +3,24 @@
 
 // Abstract base class for all motion models
 
-#include "vsGlobals.h++"
-#include "vsVecQuat.h++"
-#include "vsComponent.h++"
-#include "vsTransformAttribute.h++"
-#include "vsInputAxis.h++"
-#include "vsInputButton.h++"
-
 class vsMotionModel
 {
-protected:
+private:
 
     // Time of day when this motion model was last updated
     double      lastTime;
+
+protected:
+
+    // Returns time in seconds between calls to this function
+    double      getTimeInterval();
 
 public:
                         vsMotionModel();
     virtual             ~vsMotionModel();
 
-    // Returns time in seconds between calls to this function
-    double              getTimeInterval();
-
-    virtual vsMatrix    update() = 0;
+    virtual void        update() = 0;
+    virtual void        reset();
 };
 
 #endif

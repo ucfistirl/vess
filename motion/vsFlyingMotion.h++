@@ -13,6 +13,7 @@
 #include "vsMouse.h++"
 #include "vsInputAxis.h++"
 #include "vsInputButton.h++"
+#include "vsKinematics.h++"
 
 enum vsFlyingAxis
 {
@@ -40,6 +41,9 @@ class vsFlyingMotion : public vsMotionModel
 {
 protected:
 
+    // Kinematics
+    vsKinematics        *kinematics;
+
     // Control input primitives
     vsInputAxis         *headingAxis;
     vsInputAxis         *pitchAxis;
@@ -48,10 +52,6 @@ protected:
     vsInputButton       *accelButton;
     vsInputButton       *decelButton;
     vsInputButton       *stopButton;
-
-    // Last frame's headingAxis and pitchAxis values
-    double              lastHeadingAxisVal;
-    double              lastPitchAxisVal;
 
     // Number of units per square second the velocity will increase while
     // the acceleration button is held down, or the throttle axis is in 
@@ -63,8 +63,8 @@ protected:
     // maximum or minimum position
     double              turningRate;
 
-    // Current forward velocity
-    double              velocity;
+    // Maximum forward velocity 
+    // (NOTE: overrides all other motion model input)
     double              maxVelocity;
 
     // Mode settings for each axis
@@ -73,21 +73,24 @@ protected:
 
 public:
 
-                        vsFlyingMotion(vsMouse *mouse);
+                        vsFlyingMotion(vsMouse *mouse, vsKinematics *kin);
 
                         vsFlyingMotion(vsMouse *mouse, int accelButtonIndex,
                                        int decelButtonIndex, 
-                                       int stopButtonIndex);
+                                       int stopButtonIndex,
+                                       vsKinematics *kin);
 
                         vsFlyingMotion(vsInputAxis *headingAx,
                                        vsInputAxis *pitchAx, 
-                                       vsInputAxis *throttleAx);
+                                       vsInputAxis *throttleAx,
+                                       vsKinematics *kin);
 
                         vsFlyingMotion(vsInputAxis *headingAx,
                                        vsInputAxis *pitchAx, 
                                        vsInputButton *accelBtn,
                                        vsInputButton *decelBtn, 
-                                       vsInputButton *stopBtn);
+                                       vsInputButton *stopBtn,
+                                       vsKinematics *kin);
 
                         ~vsFlyingMotion();
 
@@ -105,7 +108,7 @@ public:
     double              getMaxVelocity();
     void                setMaxVelocity(double newMax);
 
-    virtual vsMatrix    update();
+    virtual void        update();
 };
 
 #endif

@@ -1,10 +1,12 @@
 #include "vsTrackballMotion.h++"
+#include <stdio.h>
+#include "vsMatrix.h++"
 
 // ------------------------------------------------------------------------
 // Constructs a trackball motion model using a mouse and the default button
 // configuration
 // ------------------------------------------------------------------------
-vsTrackballMotion::vsTrackballMotion(vsMouse *mouse)
+vsTrackballMotion::vsTrackballMotion(vsMouse *mouse, vsKinematics *kin)
                  : vsMotionModel()
 {
      horizontal = mouse->getAxis(0);
@@ -20,6 +22,7 @@ vsTrackballMotion::vsTrackballMotion(vsMouse *mouse)
      transXZButton = mouse->getButton(0);
      transYButton = mouse->getButton(2);
      rotButton = mouse->getButton(1);
+     kinematics = kin;
 }
 
 // ------------------------------------------------------------------------
@@ -27,7 +30,8 @@ vsTrackballMotion::vsTrackballMotion(vsMouse *mouse)
 // configuration
 // ------------------------------------------------------------------------
 vsTrackballMotion::vsTrackballMotion(vsMouse *mouse, int xzTransButtonIndex, 
-                                     int yTransButtonIndex, int rotButtonIndex)
+                                     int yTransButtonIndex, int rotButtonIndex,
+                                     vsKinematics *kin)
                  : vsMotionModel()
 {
      horizontal = mouse->getAxis(0);
@@ -43,6 +47,7 @@ vsTrackballMotion::vsTrackballMotion(vsMouse *mouse, int xzTransButtonIndex,
      transXZButton = mouse->getButton(xzTransButtonIndex);
      transYButton = mouse->getButton(yTransButtonIndex);
      rotButton = mouse->getButton(rotButtonIndex);
+     kinematics = kin;
 }
 
 // ------------------------------------------------------------------------
@@ -53,7 +58,8 @@ vsTrackballMotion::vsTrackballMotion(vsInputAxis *horizAxis,
                                      vsInputAxis *vertAxis,
                                      vsInputButton *xzTransBtn,
                                      vsInputButton *yTransBtn,
-                                     vsInputButton *rotBtn)
+                                     vsInputButton *rotBtn,
+                                     vsKinematics *kin)
                  : vsMotionModel()
 {
      horizontal = horizAxis;
@@ -69,6 +75,7 @@ vsTrackballMotion::vsTrackballMotion(vsInputAxis *horizAxis,
      transXZButton = xzTransBtn;
      transYButton = yTransBtn;
      rotButton = rotBtn;
+     kinematics = kin;
 }
 
 // ------------------------------------------------------------------------
@@ -82,16 +89,13 @@ vsTrackballMotion::~vsTrackballMotion()
 // ------------------------------------------------------------------------
 // Updates the motion model
 // ------------------------------------------------------------------------
-vsMatrix vsTrackballMotion::update()
+void vsTrackballMotion::update()
 {
     vsVector  origin;
     vsVector  currentPos;
     double    dHoriz, dVert;
     vsQuat    rot1, rot2;
-    vsMatrix  motion;
-
-    // Initialize
-    motion.setIdentity();
+    vsVector  dPos;
 
     // Next, get the amount of axis movement
     dHoriz = 0.0;
@@ -113,8 +117,10 @@ vsMatrix vsTrackballMotion::update()
     if ((transXZButton != NULL) && (transXZButton->isPressed()))
     {
         // Translate in the XZ (screen) plane
-        motion.setTranslation(dHoriz * VS_TBM_TRANSLATE_CONST, 0.0, 
+        dPos.set(dHoriz * VS_TBM_TRANSLATE_CONST, 0.0, 
             -dVert * VS_TBM_TRANSLATE_CONST);
+        
+        kinematics->modifyPosition(dPos);
     }
     else if ((rotButton != NULL) && (rotButton->isPressed()))
     {
@@ -126,7 +132,7 @@ vsMatrix vsTrackballMotion::update()
             rot2.setAxisAngleRotation(0, 1, 0,
                 -dVert * VS_TBM_ROTATE_CONST);
 
-            motion.setQuatRotation(rot2 * rot1);
+            kinematics->postModifyOrientation(rot2 * rot1);
         }
         else
         {
@@ -136,14 +142,14 @@ vsMatrix vsTrackballMotion::update()
             rot2.setAxisAngleRotation(1, 0, 0, 
                 dVert * VS_TBM_ROTATE_CONST);
 
-            motion.setQuatRotation(rot2 * rot1);
+            kinematics->postModifyOrientation(rot2 * rot1);
         }
     }
     else if ((transYButton != NULL) && (transYButton->isPressed()))
     {
         // Translate in the Y direction
-        motion.setTranslation(0.0, -dVert * VS_TBM_TRANSLATE_CONST, 0.0);
-    }
+        dPos.set(0.0, -dVert * VS_TBM_TRANSLATE_CONST, 0.0);
 
-    return motion;
+        kinematics->modifyPosition(dPos);
+    }
 }

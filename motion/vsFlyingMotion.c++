@@ -1,10 +1,12 @@
 #include "vsFlyingMotion.h++"
+#include <stdio.h>
+#include "vsMatrix.h++"
 
 // ------------------------------------------------------------------------
 // Constructs a flying motion model using a mouse and the default button
 // configuration.
 // ------------------------------------------------------------------------
-vsFlyingMotion::vsFlyingMotion(vsMouse *mouse)
+vsFlyingMotion::vsFlyingMotion(vsMouse *mouse, vsKinematics *kin)
               : vsMotionModel()
 {
     headingAxis = mouse->getAxis(0);
@@ -13,6 +15,7 @@ vsFlyingMotion::vsFlyingMotion(vsMouse *mouse)
     accelButton = mouse->getButton(0);
     decelButton = mouse->getButton(2);
     stopButton = mouse->getButton(1);
+    kinematics = kin;
 
     if (((headingAxis != NULL) && (!headingAxis->isNormalized())) ||
         ((pitchAxis != NULL) && (!pitchAxis->isNormalized())) ||
@@ -21,11 +24,6 @@ vsFlyingMotion::vsFlyingMotion(vsMouse *mouse)
         printf("vsFlyingMotion::vsFlyingMotion:  One or more axes are not "
                "normalized!\n");
     }
-
-    lastHeadingAxisVal = 0.0;
-    lastPitchAxisVal = 0.0;
-
-    velocity = 0.0;
 
     accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
@@ -40,7 +38,8 @@ vsFlyingMotion::vsFlyingMotion(vsMouse *mouse)
 // Constructs a flying motion model with the given control axes
 // ------------------------------------------------------------------------
 vsFlyingMotion::vsFlyingMotion(vsMouse *mouse, int accelButtonIndex, 
-                               int decelButtonIndex, int stopButtonIndex)
+                               int decelButtonIndex, int stopButtonIndex,
+                               vsKinematics *kin)
               : vsMotionModel()
 {
     headingAxis = mouse->getAxis(0);
@@ -49,6 +48,7 @@ vsFlyingMotion::vsFlyingMotion(vsMouse *mouse, int accelButtonIndex,
     accelButton = mouse->getButton(accelButtonIndex);
     decelButton = mouse->getButton(decelButtonIndex);
     stopButton = mouse->getButton(stopButtonIndex);
+    kinematics = kin;
 
     if (((headingAxis != NULL) && (!headingAxis->isNormalized())) ||
         ((pitchAxis != NULL) && (!pitchAxis->isNormalized())) ||
@@ -57,11 +57,6 @@ vsFlyingMotion::vsFlyingMotion(vsMouse *mouse, int accelButtonIndex,
         printf("vsFlyingMotion::vsFlyingMotion:  One or more axes are not "
                "normalized!\n");
     }
-
-    lastHeadingAxisVal = 0.0;
-    lastPitchAxisVal = 0.0;
-
-    velocity = 0.0;
 
     accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
@@ -76,7 +71,7 @@ vsFlyingMotion::vsFlyingMotion(vsMouse *mouse, int accelButtonIndex,
 // Constructs a flying motion model with the given control axes
 // ------------------------------------------------------------------------
 vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
-                               vsInputAxis *throttleAx)
+                               vsInputAxis *throttleAx, vsKinematics *kin)
               : vsMotionModel()
 {
     headingAxis = headingAx;
@@ -85,6 +80,7 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
     accelButton = NULL;
     decelButton = NULL;
     stopButton = NULL;
+    kinematics = kin;
 
     if (((headingAxis != NULL) && (!headingAxis->isNormalized())) ||
         ((pitchAxis != NULL) && (!pitchAxis->isNormalized())) ||
@@ -93,11 +89,6 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
         printf("vsFlyingMotion::vsFlyingMotion:  One or more axes are not "
                "normalized!\n");
     }
-
-    lastHeadingAxisVal = 0.0;
-    lastPitchAxisVal = 0.0;
-
-    velocity = 0.0;
 
     accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
@@ -113,7 +104,8 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
 // ------------------------------------------------------------------------
 vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
                                vsInputButton *accelBtn, 
-                               vsInputButton *decelBtn, vsInputButton *stopBtn)
+                               vsInputButton *decelBtn, vsInputButton *stopBtn,
+                               vsKinematics *kin)
               : vsMotionModel()
 {
     headingAxis = headingAx;
@@ -122,6 +114,7 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
     accelButton = accelBtn;
     decelButton = decelBtn;
     stopButton = stopBtn;
+    kinematics = kin;
 
     if (((headingAxis != NULL) && (!headingAxis->isNormalized())) ||
         ((pitchAxis != NULL) && (!pitchAxis->isNormalized())))
@@ -129,11 +122,6 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
         printf("vsFlyingMotion::vsFlyingMotion:  One or more axes are not "
                "normalized!\n");
     }
-
-    lastHeadingAxisVal = 0.0;
-    lastPitchAxisVal = 0.0;
-
-    velocity = 0.0;
 
     accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
@@ -232,75 +220,142 @@ void vsFlyingMotion::setMaxVelocity(double newMax)
 // ------------------------------------------------------------------------
 // Updates the motion model
 // ------------------------------------------------------------------------
-vsMatrix vsFlyingMotion::update()
+void vsFlyingMotion::update()
 {
     double              interval;
     double              dHeading;
     double              dPitch;
+    double              dSpeed;
     vsVector            dPos;
-    vsQuat              dOrn, quat1, quat2;
+    vsQuat              orn, quat1, quat2;
+    vsQuat              currentRot;
+    double              h, p, r;
+    vsVector            v, dv;
+    double              newH, newP, newSpd;
     vsMatrix            transMat, rotMat;
     vsMatrix            movement;
 
     interval = getTimeInterval();
 
-    // Adjust heading according to the current axis mode
+    // Get the current rotation
+    currentRot = kinematics->getOrientation();   
+    currentRot.getEulerRotation(VS_EULER_ANGLES_ZXY_R, &h, &p, &r);
+
+    // Get the current velocity
+    v = kinematics->getVelocity();
+
+    // "Unrotate" the current velocity by the current orientation
+    orn = currentRot;
+    orn.conjugate();
+    v = orn.rotatePoint(v);
+
+    // Maintain the same heading and pitch, unless a control dictates
+    // otherwise
+    newH = h;
+    newP = p;
+
+    // Get the new heading
     if (headingAxis != NULL)
     {
         if (headingMode == VS_FM_MODE_INCREMENTAL)
         {
             dHeading = -(headingAxis->getPosition()) * turningRate * interval;
+            newH = h + dHeading;
         }
         else
         {
-            dHeading = 
-                (-(headingAxis->getPosition() - lastHeadingAxisVal) * 180.0);
+            dHeading = 0;
+            newH = (-(headingAxis->getPosition()) * 180.0);
         }
     }
 
-    // Adjust pitch according to the current axis mode
+    // Get the new pitch
     if (pitchAxis != NULL)
     {
         if (pitchMode == VS_FM_MODE_INCREMENTAL)
         {
             dPitch = -(pitchAxis->getPosition()) * turningRate * interval;
+            newP = p + dPitch;
+
+            if (p > 89.9)
+                newP = 89.9;
+            if (p < -89.9)
+                newP = -89.9;
         }
         else
         {
-            dPitch = (-(pitchAxis->getPosition() - lastPitchAxisVal) * 89.9);
+            dPitch = 0;
+            newP = (-(pitchAxis->getPosition()) * 89.9);
         }
     }
 
-    // Handle the throttle axis
+    // Update the orientation
+    quat1.setAxisAngleRotation(0, 0, 1, newH);
+    quat2.setAxisAngleRotation(1, 0, 0, newP);
+    orn = quat1 * quat2;
+    kinematics->setOrientation(orn);
+
+    // Now, "rerotate" the velocity to the new orientation.
+    // This will redirect the velocity by the same amount as the
+    // change in orientation.
+    v = orn.rotatePoint(v);
+
+    // Get the new speed from the throttle axis
     if (throttleAxis != NULL)
     {
         if (throttleMode == VS_FM_MODE_INCREMENTAL)
         {
-            velocity += throttleAxis->getPosition() * accelerationRate * 
-                interval;
+            // Calculate a scalar speed adjustment
+            dSpeed = throttleAxis->getPosition() * accelerationRate * interval;
+
+            // Compute a velocity adjustment vector from the speed 
+            // adjustment
+            dv.set(0.0, dSpeed, 0.0);
+            dv = orn.rotatePoint(dv);
+
+            // Add the velocity adjustment vector to the current velocity
+            // vector
+            v += dv;
         }
         else
         {
-            velocity = throttleAxis->getPosition() * maxVelocity;
+            // Compute a new velocity vector directly from the axis value
+            // and current rotation
+            newSpd = throttleAxis->getPosition() * maxVelocity;
+            v.set(0.0, newSpd, 0.0);
+            v = orn.rotatePoint(v);
         }
     }
 
-    // Handle the buttons
+    // Get the new speed from the throttle buttons
     if ((accelButton != NULL) && (accelButton->isPressed()))
     {
         if (throttleMode == VS_FM_MODE_INCREMENTAL)
         {
-            velocity += accelerationRate * interval;
+            // Calculate a scalar speed adjustment
+            dSpeed = accelerationRate * interval;
+
+            // Compute a velocity adjustment vector from the speed 
+            // adjustment
+            dv.set(0.0, dSpeed, 0.0);
+            dv = orn.rotatePoint(dv);
+
+            // Add the velocity adjustment vector to the current velocity
+            // vector
+            v += dv;
         }
         else
         {
             if ((decelButton != NULL) && (decelButton->isPressed()))
             {
-                velocity = 0;
+                // If both buttons are pressed, treat as a stop
+                v.clear();
             }
             else
             {
-                velocity = maxVelocity;
+                // Set velocity to max
+                v.set(0.0, maxVelocity, 0.0);
+                v = orn.rotatePoint(v);
             }
         }
     }
@@ -309,49 +364,51 @@ vsMatrix vsFlyingMotion::update()
     {
         if (throttleMode == VS_FM_MODE_INCREMENTAL)
         {
-            velocity -= accelerationRate * interval;
+            // Calculate a scalar speed adjustment
+            dSpeed = -accelerationRate * interval;
+
+            // Compute a velocity adjustment vector from the speed 
+            // adjustment
+            dv.set(0.0, dSpeed, 0.0);
+            dv = orn.rotatePoint(dv);
+
+            // Add the velocity adjustment vector to the current velocity
+            // vector
+            v += dv;
         }
         else
         {
             if ((accelButton != NULL) && (accelButton->isPressed()))
             {
-                velocity = 0;
+                // If both buttons are pressed, treat as a stop
+                v.clear();
             }
             else
             {
-                velocity = -maxVelocity;
+                // Set velocity to negative max
+                v.set(0.0, maxVelocity, 0.0);
+                v = orn.rotatePoint(v);
             }
         }
     }
 
     if ((stopButton != NULL) && (stopButton->isPressed()))
     {
-        velocity = 0;
+        // Set velocity to zero
+        v.clear();
     }
 
-    // Clamp the velocity to the maximum velocity
-    if (velocity > maxVelocity)
+    // Clamp the velocity to maximum
+    if (v.getMagnitude() > maxVelocity)
     {
-        velocity = maxVelocity;
-    }
-    
-    if (velocity < -maxVelocity)
-    {
-        velocity = -maxVelocity;
+        v.normalize();
+        v.scale(maxVelocity);
     }
 
-    // Update the stored axis values
-    lastHeadingAxisVal = headingAxis->getPosition();
-    lastPitchAxisVal = pitchAxis->getPosition();
+    // Update the linear velocity
+    kinematics->setVelocity(v);
 
-    // Update the orientation
-    quat1.setAxisAngleRotation(0, 0, 1, dHeading);
-    quat2.setAxisAngleRotation(1, 0, 0, dPitch);
-    dOrn = quat1 * quat2;
-    rotMat.setQuatRotation(dOrn);
-
-    // Update the position
-    transMat.setTranslation(0.0, velocity * interval, 0.0);
-
-    return rotMat * transMat;   
+    // Clear the angular velocity
+    v.clear();
+    kinematics->setAngularVelocity(v, 0.0);
 }
