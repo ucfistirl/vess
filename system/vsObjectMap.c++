@@ -28,9 +28,16 @@
 // ------------------------------------------------------------------------
 // Constructor - Initializes the object map's internal arrays
 // ------------------------------------------------------------------------
-vsObjectMap::vsObjectMap() : firstList(100, 50), secondList(100, 50)
+vsObjectMap::vsObjectMap() : firstList(200, 200), secondList(200, 200)
 {
     objectEntryCount = 0;
+    
+    // Stretch the maximum size of each vsGrowableArray (and thus the size
+    // of the object map) to some ridiculously large amount. (If the map
+    // size goes over this amount, then there must be a problem somewhere
+    // else in the program anyway.)
+    firstList.setMaxSize(10000000);
+    secondList.setMaxSize(10000000);
 }
 
 // ------------------------------------------------------------------------
