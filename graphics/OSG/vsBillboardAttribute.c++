@@ -372,8 +372,17 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
         worldUp.set(0.0, 0.0, 1.0);
         // In point-eye mode, the world 'up' direction is based on the
         // viewpoint of the user rather than just the z-axis.
+        // * In OSG, the viewMatrix we're getting is the OpenGL model
+        // view matrix, meaning that it's 'forward' direction is negative-z,
+        // rather than positive-y. Similarly, 'up' is positive-y rather
+        // that positive-z. We take this into account in this mode by
+        // setting the up direction as positive-y before applying the
+        // model view rotation to it.
         if (billboardMode == VS_BILLBOARD_ROT_POINT_EYE)
+        {
+            worldUp.set(0.0, 1.0, 0.0);
             worldUp = viewMatrix.getVectorXform(worldUp);
+        }
         worldUp.normalize();
 
         // Project both 'up' vectors onto the plane specified by a
