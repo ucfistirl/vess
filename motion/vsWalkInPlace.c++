@@ -199,25 +199,18 @@ void vsWalkInPlace::update()
     double               trackerHeading;
     double               deltaHeading;
     vsQuat               headingQuat;
-    vsVector             separationVec, unitVec;
+    vsVector             separationVec;
     double               deltaX, deltaY, deltaZ;
     double               deltaTime;
     vsVector             transVec;
     int                  motionFlag;
     double               moveDistance;
-    vsMatrix             newTranslation;
-    vsMatrix             newRotation;
+    vsQuat               currentOrientation;
 
     // Grab tracker data
     backOrient = backTracker->getOrientationVec(VS_EULER_ANGLES_ZXY_R);
     leftFoot = lFootTracker->getPositionVec();
     rightFoot = rFootTracker->getPositionVec();
-
-    printf("Left foot :  %0.2lf %0.2lf %0.2lf\n", leftFoot[VS_X],
-        leftFoot[VS_Y], leftFoot[VS_Z]);
-    printf("Right foot:  %0.2lf %0.2lf %0.2lf\n", rightFoot[VS_X],
-        rightFoot[VS_Y], rightFoot[VS_Z]);
-    printf("Back hdg  :  %0.2lf\n", backOrient[VS_H]);
 
     // Extract the essential data
     trackerHeading = backOrient[VS_H];
@@ -235,10 +228,7 @@ void vsWalkInPlace::update()
     deltaHeading = trackerHeading - lastTrackerHeading;
     lastTrackerHeading = trackerHeading;
 
-    headingQuat.setAxisAngleRotation(1, 0, 0, deltaHeading);
-
-    printf("heading = %0.2f  deltaX = %0.2f  deltaY = %0.2f  deltaZ = %0.2f\n",
-           trackerHeading, deltaX, deltaY, deltaZ);
+    headingQuat.setAxisAngleRotation(0, 0, 1, deltaHeading);
 
     // Get the difference in time from last frame to this one
     deltaTime = getTimeInterval();
@@ -260,12 +250,10 @@ void vsWalkInPlace::update()
         if (deltaY < 0)
         {
             transVec.set(moveDistance, 0.0, 0.0);
-            printf("Stepping RIGHT %0.2lf\n", moveDistance);
         }
         else
         {
             transVec.set(-moveDistance, 0.0, 0.0);
-            printf("Stepping LEFT %0.2lf\n", moveDistance);
         }
 
         motionFlag = VS_TRUE;
@@ -277,7 +265,6 @@ void vsWalkInPlace::update()
 
         transVec.set(0.0, -moveDistance, 0.0);
 
-        printf("Stepping BACK %0.2lf\n", moveDistance);
         motionFlag = VS_TRUE;
     }
     else if ((fabs(deltaZ) > forwardThresh) && (forwardAllowed))
@@ -287,7 +274,6 @@ void vsWalkInPlace::update()
 
         transVec.set(0.0, moveDistance, 0.0);
 
-        printf("Stepping FORWARD %0.2lf\n", moveDistance);
         motionFlag = VS_TRUE;
     }
 
@@ -303,14 +289,23 @@ void vsWalkInPlace::update()
     // Reset the movement allowance if we stop moving
     if (!motionFlag)
     {
-        printf("Not moving\n");
         moveAllowance = maxAllowance;
     }
     else
     {
-        moveAllowance -= moveDistance;
+        if (moveAllowance > 0.0)
+            moveAllowance -= moveDistance;
     }
 
-    kinematics->modifyPosition(transVec);
+    // Modify the orientation
     kinematics->preModifyOrientation(headingQuat);
+
+    // Extract the current orientation from the kinematics object
+    currentOrientation = kinematics->getOrientation();
+
+    // Rotate the position adjustment to match the orientation
+    transVec = currentOrientation.rotatePoint(transVec);
+
+    // Modify the position
+    kinematics->modifyPosition(transVec);
 }

@@ -10,6 +10,12 @@ vsTrackedMotion::vsTrackedMotion(vsMotionTracker *theTracker,
     tracker = theTracker;   
     kinematics = kinObject;
 
+    if (tracker == NULL)
+    {
+        printf("vsTrackedMotion::vsTrackedMotion:  WARNING -- NULL motion "
+            "tracker specified!\n");
+    }
+
     positionEnabled = VS_TRUE;
     orientationEnabled = VS_TRUE;
     
@@ -113,8 +119,10 @@ void vsTrackedMotion::update()
     trackerOrn = orientationOffset * trackerOrn;
     
     // Apply the data to the kinematics object
-    kinematics->setPosition(trackerPos);
-    kinematics->setOrientation(trackerOrn);
+    if (positionEnabled)
+        kinematics->setPosition(trackerPos);
+    if (orientationEnabled)
+        kinematics->setOrientation(trackerOrn);
 }
 
 // ------------------------------------------------------------------------

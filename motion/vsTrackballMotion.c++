@@ -132,7 +132,7 @@ void vsTrackballMotion::update()
             rot2.setAxisAngleRotation(0, 1, 0,
                 -dVert * VS_TBM_ROTATE_CONST);
 
-            kinematics->postModifyOrientation(rot2 * rot1);
+            kinematics->preModifyOrientation(rot2 * rot1);
         }
         else
         {
@@ -142,7 +142,7 @@ void vsTrackballMotion::update()
             rot2.setAxisAngleRotation(1, 0, 0, 
                 dVert * VS_TBM_ROTATE_CONST);
 
-            kinematics->postModifyOrientation(rot2 * rot1);
+            kinematics->preModifyOrientation(rot2 * rot1);
         }
     }
     else if ((transYButton != NULL) && (transYButton->isPressed()))

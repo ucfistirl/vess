@@ -9,14 +9,17 @@
 #include "vsMotionTracker.h++"
 #include "vsKinematics.h++"
 
+// Threshold values (in tracker units)
 #define VS_WIP_DEFAULT_FWD_THRESH 6.0
 #define VS_WIP_DEFAULT_BCK_THRESH 12.0
 #define VS_WIP_DEFAULT_SS_THRESH  2.0
 
-#define VS_WIP_DEFAULT_FWD_SPD    1.5
-#define VS_WIP_DEFAULT_BCK_SPD    1.5
-#define VS_WIP_DEFAULT_SS_SPD     1.5
+// Movement speeds (in database units)
+#define VS_WIP_DEFAULT_FWD_SPD    1.95
+#define VS_WIP_DEFAULT_BCK_SPD    1.95
+#define VS_WIP_DEFAULT_SS_SPD     1.95
 
+// Maximum movement distance (in database units)
 #define VS_WIP_DEFAULT_ALLOWANCE  2.0
 
 class vsWalkInPlace : public vsMotionModel
