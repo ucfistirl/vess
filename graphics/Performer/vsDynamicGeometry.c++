@@ -195,18 +195,19 @@ void vsDynamicGeometry::beginNewState()
 
     // Retrieve the existing attribute data lists 
     performerGeoset->getAttrLists(PFGS_COLOR4, (void **)&colorList, &dummy);
-    performerGeoset->getAttrRange(PFGS_COLOR4, &min, &colorListSize);
+    colorListSize = performerGeoset->getAttrRange(PFGS_COLOR4, NULL, NULL);
     performerGeoset->getAttrLists(PFGS_NORMAL3, (void **)&normalList, &dummy);
-    performerGeoset->getAttrRange(PFGS_NORMAL3, &min, &normalListSize);
+    normalListSize = performerGeoset->getAttrRange(PFGS_NORMAL3, NULL, NULL);
     for (unit = 0; unit < VS_MAXIMUM_TEXTURE_UNITS; unit++)
     {
         performerGeoset->getMultiAttrLists(PFGS_TEXCOORD2, unit,
             (void **)&(texCoordList[unit]), &dummy);
-        performerGeoset->getMultiAttrRange(PFGS_TEXCOORD2, unit, &min,
-            &(texCoordListSize[unit]));
+        texCoordListSize[unit] =
+            performerGeoset->getMultiAttrRange(PFGS_TEXCOORD2, unit,
+                NULL, NULL);
     }
     performerGeoset->getAttrLists(PFGS_COORD3, (void **)&vertexList, &dummy);
-    performerGeoset->getAttrRange(PFGS_COORD3, &min, &vertexListSize);
+    vertexListSize = performerGeoset->getAttrRange(PFGS_COORD3, NULL, NULL);
 
     // Copy the lengths list from the pfGeoSet, if it has one
     lengths = performerGeoset->getPrimLengths();
