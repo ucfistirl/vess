@@ -24,9 +24,8 @@
 
 #include "vsSequencer.h++"
 
-#include <stdlib.h>
-#include <sys/time.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 
 // ------------------------------------------------------------------------
@@ -38,6 +37,9 @@ vsSequencer::vsSequencer(void) : vsUpdatable()
     updatableCount = 0;
     updatableListHead = NULL;
     updatableListTail = NULL;
+    
+    // Create the vsTimer to time the gaps between tasks
+    sequencerTimer = new vsTimer();
 }
 
 // ------------------------------------------------------------------------
@@ -58,6 +60,9 @@ vsSequencer::~vsSequencer(void)
 
         free(tempEntry);
     }
+    
+    // Delete the timer
+    delete sequencerTimer;
 }
 
 // ------------------------------------------------------------------------
@@ -326,6 +331,7 @@ void vsSequencer::setUpdatablePosition(vsUpdatable *updatable,
     destinationEntry = NULL;
     tempEntry = updatableListHead;
     found = false;
+    position = 0;
     while ((tempEntry) && (!found))
     {
         // If we are in the position where we want to move to, remember
@@ -533,8 +539,6 @@ vsUpdatable *vsSequencer::getUpdatableByName(char *name)
 void vsSequencer::update(void)
 {
     UpdatableEntry  *tempEntry;
-    timeval         timeValue;
-    double          beginTime;
     double          tempTime;
     double          endTime;
     unsigned long   sleepTime;
@@ -545,42 +549,46 @@ void vsSequencer::update(void)
     {
         if (tempEntry->time != 0.0)
         {
-            // Get the time we begin, convert to seconds in a double.
-            gettimeofday(&timeValue, NULL);
-            beginTime = ((double) timeValue.tv_sec) +
-                ((double) timeValue.tv_usec / 1000000.0);
+            // Mark the time we begin
+            sequencerTimer->mark();
 
             // Update the updatable.
             tempEntry->updatable->update();
 
-            // Calculate when the updating should be over.
-            endTime = beginTime + tempEntry->time;
+            // Get the time when the updating should be over.
+            endTime = tempEntry->time;
 
-            // Get the current time, convert to seconds in a double.
-            gettimeofday(&timeValue, NULL);
-            tempTime = ((double) timeValue.tv_sec) +
-                ((double) timeValue.tv_usec / 1000000.0); 
+            // Get the amount of time elapsed since we marked the timer
+            tempTime = sequencerTimer->getElapsed();
 
-/* Busy Wait */
-/*
-            // While we have not reached the end time, keep querying the time.
-            while (tempTime > endTime)
+            // If the end time is small, do a busy wait.  Otherwise, use
+            // usleep() to do the waiting
+            if (endTime < 0.01)
             {
-                // Get the current time, convert to seconds in a double.
-                gettimeofday(&timeValue, NULL);
-                tempTime = ((double) timeValue.tv_sec) +
-                    ((double) timeValue.tv_usec / 1000000.0); 
+                // While we have not reached the end time, keep querying 
+                // the time.
+                while (tempTime < endTime)
+                {
+                    // Get the amount of time elapsed since we marked the timer
+                    tempTime = sequencerTimer->getElapsed();
+                }
             }
-*/
-/* End Busy Wait */
-/* Sleep Wait */
-            if (tempTime > endTime)
+            else
             {
-                tempTime -= endTime;
-                sleepTime = ((unsigned long) (tempTime * 1000000.0));
-                usleep(sleepTime);
+                if (tempTime < endTime)
+                {
+                    // Compute the amount of time to sleep
+                    tempTime = endTime - tempTime;
+
+                    // Don't try to sleep if we've already reached the
+                    // end time
+                    if (sleepTime > 0.0)
+                    {
+                        sleepTime = ((unsigned long) (tempTime * 1000000.0));
+                        usleep(sleepTime);
+                    }
+                }
             }
-/* End Sleep Wait */
         }
         else
         {
