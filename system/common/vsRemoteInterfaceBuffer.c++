@@ -194,6 +194,33 @@ void vsRemoteInterfaceBuffer::getOrientation(xmlDocPtr doc, xmlNodePtr current,
 
 
 // ------------------------------------------------------------------------
+// Go through the sequence tree recursive and build up a representation
+// of it
+// ------------------------------------------------------------------------
+void vsRemoteInterfaceBuffer::getSequenceTree(vsSequencer *currentSequencer)
+{
+    u_long         i;
+    vsUpdatable    *updatable;
+
+    // Loop through the updatables in this sequencer
+    for (i=0; i < currentSequencer->getUpdatableCount(); i++)
+    {
+        // Get the ith updatable from this sequencer
+        updatable = currentSequencer->getUpdatable(i);
+
+        // If this updatable is a sequencer itself, call recursively
+        // to process this new sequencer; otherwise, just add the
+        // updatable to the built up structure
+        if (strcmp(updatable->getClassName(), "vsSequencer") == 0)
+            getSequenceTree((vsSequencer *) updatable);
+        else
+        {
+        }
+    }
+}
+
+
+// ------------------------------------------------------------------------
 // Takes an XML document from the ith xml buffer, validates it, determines
 // what type it is, and calls the appropriate processing method
 // ------------------------------------------------------------------------
@@ -393,6 +420,7 @@ void vsRemoteInterfaceBuffer::processQuerySequence(xmlDocPtr doc,
     rootSequencer = vsSystem::systemObject->getSequencer();
 
     // Go through and collect the state of the sequencer
+    getSequenceTree(rootSequencer);
 }
 
 

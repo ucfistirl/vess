@@ -6,6 +6,7 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
 #include "vsQuat.h++"
+#include "vsSequencer.h++"
 
 #define VS_RI_MAX_XML_DOCUMENT_SIZE    65536
 
@@ -22,6 +23,7 @@ protected:
                                          double *x, double *y, double *z);
     void                     getOrientation(xmlDocPtr doc, xmlNodePtr node,
                                             vsQuat *quat);
+    void                     getSequenceTree(vsSequencer *currentSequencer);
 
     void                     processXMLDocument();
     void                     processPlaceComponent(xmlDocPtr doc, 
