@@ -465,38 +465,47 @@ vsQuat vsQuat::getInverse() const
 // ------------------------------------------------------------------------
 void vsQuat::setMatrixRotation(const vsMatrix &theMatrix)
 {
+    // Since the matrix-to-quat algorithm doesn't seem to like it when the
+    // matrix contains any scaling, strip scaling out here.
+    vsMatrix tempMatrix;
+    double xscale, yscale, zscale;
+
+    theMatrix.getScale(&xscale, &yscale, &zscale);
+    tempMatrix.setScale(1.0 / xscale, 1.0 / yscale, 1.0 / zscale);
+    tempMatrix = tempMatrix * theMatrix;
+
     // The following algorithm is drawn from the SIGGRAPH '85 paper
     // "Animating Rotation with Quaternion Curves", by Ken Shoemake.
 
     double ws, xs, ys;
 
-    ws = (1.0 + theMatrix.getValue(0, 0) + theMatrix.getValue(1, 1) +
-        theMatrix.getValue(2, 2)) / 4.0;
+    ws = (1.0 + tempMatrix.getValue(0, 0) + tempMatrix.getValue(1, 1) +
+        tempMatrix.getValue(2, 2)) / 4.0;
     if (ws > 1E-6)
     {
         data[3] = sqrt(ws);
-        data[0] = (theMatrix.getValue(2, 1) - theMatrix.getValue(1, 2)) / (4.0 * data[3]);
-        data[1] = (theMatrix.getValue(0, 2) - theMatrix.getValue(2, 0)) / (4.0 * data[3]);
-        data[2] = (theMatrix.getValue(1, 0) - theMatrix.getValue(0, 1)) / (4.0 * data[3]);
+        data[0] = (tempMatrix.getValue(2, 1) - tempMatrix.getValue(1, 2)) / (4.0 * data[3]);
+        data[1] = (tempMatrix.getValue(0, 2) - tempMatrix.getValue(2, 0)) / (4.0 * data[3]);
+        data[2] = (tempMatrix.getValue(1, 0) - tempMatrix.getValue(0, 1)) / (4.0 * data[3]);
     }
     else
     {
         data[3] = 0.0;
-        xs = -(theMatrix.getValue(1, 1) + theMatrix.getValue(2, 2)) / 2.0;
+        xs = -(tempMatrix.getValue(1, 1) + tempMatrix.getValue(2, 2)) / 2.0;
         if (xs > 1E-6)
         {
             data[0] = sqrt(xs);
-            data[1] = theMatrix.getValue(1, 0) / (2.0 * data[0]);
-            data[2] = theMatrix.getValue(2, 0) / (2.0 * data[0]);
+            data[1] = tempMatrix.getValue(1, 0) / (2.0 * data[0]);
+            data[2] = tempMatrix.getValue(2, 0) / (2.0 * data[0]);
         }
         else
         {
             data[0] = 0.0;
-            ys = (1.0 - theMatrix.getValue(2, 2)) / 2.0;
+            ys = (1.0 - tempMatrix.getValue(2, 2)) / 2.0;
             if (ys > 1E-6)
             {
                 data[1] = sqrt(ys);
-                data[2] = theMatrix.getValue(2, 1) / (2.0 * data[1]);
+                data[2] = tempMatrix.getValue(2, 1) / (2.0 * data[1]);
             }
             else
             {
