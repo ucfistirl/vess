@@ -295,8 +295,7 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
     dbRoot = convertNode(performerGraph, nodeMap, attrMap);
     
     // Clean up the Performer scene graph (we don't need it any more)
-    performerGraph->unref();
-    pfMemory::checkDelete(performerGraph);
+    pfMemory::unrefDelete(performerGraph);
 
     // Dispose of the object maps
     delete nodeMap;
@@ -456,7 +455,7 @@ bool vsDatabaseLoader::importanceCheck(pfNode *targetNode)
 }
 
 // ------------------------------------------------------------------------
-// Private function
+// VESS internal function
 // Converts a Performer graph, rooted at the specified node, into a VESS
 // graph.
 // ------------------------------------------------------------------------
