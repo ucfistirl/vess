@@ -76,7 +76,7 @@ protected:
 
     char        attributeName[VS_ATTRIBUTE_NAME_MAX_LENGTH];
     
-    int         attachedFlag;
+    int         attachedCount;
 
 VS_INTERNAL:
 

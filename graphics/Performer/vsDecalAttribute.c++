@@ -72,7 +72,7 @@ bool vsDecalAttribute::canAttach()
 {
     // This attribute is not available to be attached if it is already
     // attached to another node
-    if (attachedFlag)
+    if (attachedCount)
         return false;
 
     return true;
@@ -86,7 +86,7 @@ bool vsDecalAttribute::canAttach()
 void vsDecalAttribute::attach(vsNode *theNode)
 {
     // Verify that we're not already attached to something
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsDecalAttribute::attach: Attribute is already attached\n");
         return;
@@ -110,7 +110,7 @@ void vsDecalAttribute::attach(vsNode *theNode)
     performerLayer->setMode(PFDECAL_BASE_DISPLACE | PFDECAL_LAYER_OFFSET);
 
     // Mark this attribute as attached
-    attachedFlag = 1;
+    attachedCount = 1;
 }
 
 // ------------------------------------------------------------------------
@@ -123,7 +123,7 @@ void vsDecalAttribute::detach(vsNode *theNode)
     pfGroup *newGroup;
 
     // Can't detach an attribute that is not attached
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsDecalAttribute::attach: Attribute is not attached\n");
         return;
@@ -135,7 +135,7 @@ void vsDecalAttribute::detach(vsNode *theNode)
     performerLayer = NULL;
     
     // Mark this attribute as unattached
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------

@@ -52,7 +52,7 @@ int vsStateAttribute::getAttributeCategory()
 // ------------------------------------------------------------------------
 // Sets the value of the override flag for this graphics state
 // ------------------------------------------------------------------------
-void vsStateAttribute::setOverride(int override)
+void vsStateAttribute::setOverride(bool override)
 {
     // If there's a change in the override value, then mark the nodes
     // that have this attribute attached as dirty

@@ -191,7 +191,7 @@ bool vsViewpointAttribute::canAttach()
 {
     // This attribute is not available to be attached if it is already
     // attached to another node
-    if (attachedFlag)
+    if (attachedCount)
         return false;
 
     return true;
@@ -205,7 +205,7 @@ bool vsViewpointAttribute::canAttach()
 void vsViewpointAttribute::attach(vsNode *theNode)
 {
     // Verify that we're not already attached to something
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsViewpointAttribute::attach: Attribute is already attached\n");
         return;
@@ -224,7 +224,7 @@ void vsViewpointAttribute::attach(vsNode *theNode)
     parentComponent = (vsComponent *)theNode;
     
     // Mark this attribute as attached
-    attachedFlag = 1;
+    attachedCount = 1;
 }
 
 // ------------------------------------------------------------------------
@@ -235,7 +235,7 @@ void vsViewpointAttribute::attach(vsNode *theNode)
 void vsViewpointAttribute::detach(vsNode *theNode)
 {
     // Can't detach an attribute that is not attached
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsViewpointAttribute::detach: Attribute is not attached\n");
         return;
@@ -245,7 +245,7 @@ void vsViewpointAttribute::detach(vsNode *theNode)
     parentComponent = NULL;
     
     // Mark this attribute as unattached
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -270,7 +270,7 @@ void vsViewpointAttribute::update()
     vsMatrix result;
 
     // An update on an unattached viewpoint attribute does nothing
-    if (!attachedFlag)
+    if (!attachedCount)
         return;
 
     // An update on a viewpoint attribute that doesn't have an associated

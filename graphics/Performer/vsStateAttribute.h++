@@ -54,7 +54,7 @@ public:
 
     virtual int    getAttributeCategory();
     
-    void           setOverride(int override);
+    void           setOverride(bool override);
     bool           getOverride();
 };
 

@@ -538,13 +538,14 @@ void vsNode::dirty()
 // ------------------------------------------------------------------------
 void vsNode::clean()
 {
-    int loop, flag;
+    int loop;
+    bool flag;
 
     // Check to see if any of the parents of this node is still dirty
-    flag = 1;
+    flag = true;
     for (loop = 0; loop < getParentCount(); loop++)
         if (getParent(loop)->isDirty())
-            flag = 0;
+            flag = false;
 
     // If the parents are clean, clean this node
     if (flag)

@@ -88,7 +88,7 @@ void vsTransformAttribute::setPreTransform(vsMatrix newTransform)
     preMatrix = newTransform;
     
     // If we're not atatched, there no other work to do
-    if (!attachedFlag)
+    if (!attachedCount)
         return;
     
     // Set the working identity matrix
@@ -178,7 +178,7 @@ void vsTransformAttribute::setDynamicTransform(vsMatrix newTransform)
     dynMatrix = newTransform;
     
     // If we're not atatched, there no other work to do
-    if (!attachedFlag)
+    if (!attachedCount)
         return;
     
     // Set the working identity matrix
@@ -262,7 +262,7 @@ void vsTransformAttribute::setPostTransform(vsMatrix newTransform)
     postMatrix = newTransform;
     
     // If we're not atatched, there no other work to do
-    if (!attachedFlag)
+    if (!attachedCount)
         return;
     
     // Set the working identity matrix
@@ -381,7 +381,7 @@ bool vsTransformAttribute::canAttach()
 {
     // This attribute is not available to be attached if it is already
     // attached to another node
-    if (attachedFlag)
+    if (attachedCount)
         return false;
 
     return true;
@@ -395,7 +395,7 @@ bool vsTransformAttribute::canAttach()
 void vsTransformAttribute::attach(vsNode *theNode)
 {
     // Verify that we're not already attached to something
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsTransformAttribute::attach: Attribute is already attached\n");
         return;
@@ -414,7 +414,7 @@ void vsTransformAttribute::attach(vsNode *theNode)
     componentTop = ((vsComponent *)theNode)->getTopGroup();
     
     // Mark this attribute as attached
-    attachedFlag = 1;
+    attachedCount = 1;
     
     // Create the transform nodes on the Performer scene
     setPreTransform(preMatrix);
@@ -432,7 +432,7 @@ void vsTransformAttribute::detach(vsNode *theNode)
     vsMatrix tempPre, tempDyn, tempPost, identityMatrix;
 
     // Can't detach an attribute that is not attached
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsTransformAttribute::detach: Attribute is not attached\n");
         return;
@@ -466,7 +466,7 @@ void vsTransformAttribute::detach(vsNode *theNode)
     // Clear the component top group pointer, and mark this attribute
     // as unattached
     componentTop = NULL;
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------

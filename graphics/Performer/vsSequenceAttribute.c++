@@ -73,7 +73,7 @@ int vsSequenceAttribute::getAttributeCategory()
 void vsSequenceAttribute::setChildTime(int childNum, double seconds)
 {
     // Unattached sequences can't be manipulated
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::setChildTime: Attribute must be attached "
             "before sequence can be manipulated\n");
@@ -98,7 +98,7 @@ void vsSequenceAttribute::setChildTime(int childNum, double seconds)
 double vsSequenceAttribute::getChildTime(int childNum)
 {
     // Unattached sequences can't be manipulated
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::getChildTime: Attribute must be attached "
             "before sequence can be manipulated\n");
@@ -127,7 +127,7 @@ void vsSequenceAttribute::setRepetitionCount(int numReps)
     int temp;
 
     // Unattached sequences can't be manipulated
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::setRepetitionCount: Attribute must be "
             "attached before sequence can be manipulated\n");
@@ -151,7 +151,7 @@ int vsSequenceAttribute::getRepetitionCount()
     float temp;
 
     // Unattached sequences can't be manipulated
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::getRepetitionCount: Attribute must be "
             "attached before sequence can be manipulated\n");
@@ -173,7 +173,7 @@ void vsSequenceAttribute::setCycleMode(int seqCycle)
     int mode, begin, end;
 
     // Unattached sequences can't be manipulated
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::setCycleMode: Attribute must be "
             "attached before sequence can be manipulated\n");
@@ -210,7 +210,7 @@ int vsSequenceAttribute::getCycleMode()
     int mode, begin, end;
 
     // Unattached sequences can't be manipulated
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::getCycleMode: Attribute must be "
             "attached before sequence can be manipulated\n");
@@ -233,7 +233,7 @@ int vsSequenceAttribute::getCycleMode()
 void vsSequenceAttribute::setPlayMode(int playMode)
 {
     // Unattached sequences can't be manipulated
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::setPlayMode: Attribute must be "
             "attached before sequence can be manipulated\n");
@@ -268,7 +268,7 @@ void vsSequenceAttribute::setPlayMode(int playMode)
 int vsSequenceAttribute::getPlayMode()
 {
     // Unattached sequences can't be manipulated
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::getPlayMode: Attribute must be "
             "attached before sequence can be manipulated\n");
@@ -301,7 +301,7 @@ int vsSequenceAttribute::getCurrentChildNum()
     int temp;
 
     // Unattached sequences can't be manipulated
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::getCurrentChildNum: Attribute must be "
             "attached before sequence can be manipulated\n");
@@ -320,7 +320,7 @@ bool vsSequenceAttribute::canAttach()
 {
     // This attribute is not available to be attached if it is already
     // attached to another node
-    if (attachedFlag)
+    if (attachedCount)
         return false;
 
     return true;
@@ -334,7 +334,7 @@ bool vsSequenceAttribute::canAttach()
 void vsSequenceAttribute::attach(vsNode *theNode)
 {
     // Verify that we're not already attached to something
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsSequenceAttribute::attach: Attribute is already attached\n");
         return;
@@ -361,7 +361,7 @@ void vsSequenceAttribute::attach(vsNode *theNode)
     performerSequence->setMode(PFSEQ_START);
     
     // Mark this attribute as attached
-    attachedFlag = 1;
+    attachedCount = 1;
 }
 
 // ------------------------------------------------------------------------
@@ -374,7 +374,7 @@ void vsSequenceAttribute::detach(vsNode *theNode)
     pfGroup *newGroup;
 
     // Can't detach an attribute that is not attached
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::attach: Attribute is not attached\n");
         return;
@@ -386,7 +386,7 @@ void vsSequenceAttribute::detach(vsNode *theNode)
     performerSequence = NULL;
     
     // Mark this attribute as unattached
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------

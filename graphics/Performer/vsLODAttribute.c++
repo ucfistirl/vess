@@ -37,7 +37,7 @@ vsLODAttribute::vsLODAttribute()
     performerLOD = NULL;
     
     // Mark this attribute as not attached
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -80,7 +80,7 @@ int vsLODAttribute::getAttributeCategory()
 void vsLODAttribute::setRangeEnd(int childNum, double rangeLimit)
 {
     // Unattached LODs can't be manipulated
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsLODAttribute::setRangeEnd: Attribute must be attached "
             "before LOD can be manipulated\n");
@@ -106,7 +106,7 @@ void vsLODAttribute::setRangeEnd(int childNum, double rangeLimit)
 double vsLODAttribute::getRangeEnd(int childNum)
 {
     // Unattached LODs can't be manipulated
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsLODAttribute::getRangeEnd: Attribute must be attached "
             "before LOD can be manipulated\n");
@@ -132,7 +132,7 @@ bool vsLODAttribute::canAttach()
 {
     // This attribute is not available to be attached if it is already
     // attached to another node
-    if (attachedFlag)
+    if (attachedCount)
         return false;
 
     return true;
@@ -148,7 +148,7 @@ void vsLODAttribute::attach(vsNode *theNode)
     int loop, childCount;
 
     // Verify that we're not already attached to something
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsLODAttribute::attach: Attribute is already attached\n");
         return;
@@ -179,7 +179,7 @@ void vsLODAttribute::attach(vsNode *theNode)
             ((1000.0 * (double)loop) / (double)childCount));
 
     // Mark this attribute as attached
-    attachedFlag = 1;
+    attachedCount = 1;
 }
 
 // ------------------------------------------------------------------------
@@ -192,7 +192,7 @@ void vsLODAttribute::detach(vsNode *theNode)
     pfGroup *newGroup;
 
     // Can't detach an attribute that is not attached
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsLODAttribute::detach: Attribute is not attached\n");
         return;
@@ -204,7 +204,7 @@ void vsLODAttribute::detach(vsNode *theNode)
     performerLOD = NULL;
     
     // Mark this attribute as unattached
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------

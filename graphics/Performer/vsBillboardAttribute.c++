@@ -38,7 +38,7 @@ vsBillboardAttribute::vsBillboardAttribute()
     billboardTransform = NULL;
     billboardMode = VS_BILLBOARD_ROT_AXIS;
     
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -155,7 +155,7 @@ vsVector vsBillboardAttribute::getAxis()
 // ------------------------------------------------------------------------
 bool vsBillboardAttribute::canAttach()
 {
-    if (attachedFlag)
+    if (attachedCount)
         return false;
 
     return true;
@@ -170,7 +170,7 @@ void vsBillboardAttribute::attach(vsNode *theNode)
 {
     pfGroup *lightHook, *childGroup;
 
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsBillboardAttribute::attach: Attribute is already attached\n");
         return;
@@ -193,7 +193,7 @@ void vsBillboardAttribute::attach(vsNode *theNode)
     lightHook->setTravFuncs(PFTRAV_APP, travCallback, NULL);
     lightHook->setTravData(PFTRAV_APP, this);
     
-    attachedFlag = 1;
+    attachedCount = 1;
 }
 
 // ------------------------------------------------------------------------
@@ -205,7 +205,7 @@ void vsBillboardAttribute::detach(vsNode *theNode)
 {
     pfGroup *lightHook, *childGroup;
 
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsBillboardAttribute::detach: Attribute is not attached\n");
         return;
@@ -220,7 +220,7 @@ void vsBillboardAttribute::detach(vsNode *theNode)
     billboardTransform->unref();
     pfDelete(billboardTransform);
     
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------
