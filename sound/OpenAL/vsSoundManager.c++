@@ -60,7 +60,7 @@ vsSoundManager::vsSoundManager()
     // Determine the hardware voice limit by generating OpenAL voices
     // until OpenAL signals an error
     alError = false;
-    while ((!alError) && (numVoices < VS_SDM_MAX_SOUNDS))
+    while ((!alError) && (numVoices < VS_SDM_MAX_VOICES))
     {
         // Generate an OpenAL source (a new voice)
         alGenSources(1, (ALuint *)&voices[numVoices]);
