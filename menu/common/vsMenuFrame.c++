@@ -28,9 +28,28 @@
 // ------------------------------------------------------------------------
 vsMenuFrame::vsMenuFrame()
 {
+    // Initialize the storage variables to their defaults
     pathIndices = (int *)malloc(sizeof(int));
     maxDepth = 1;
     pathDepth = 0;
+}
+
+// ------------------------------------------------------------------------
+// Constructor - This constructor initializes a vsMenuFrame that points to
+// the same location as the provided vsMenuFrame
+// ------------------------------------------------------------------------
+vsMenuFrame::vsMenuFrame(vsMenuFrame *frame)
+{
+    int i;
+
+    // Initialize the storage variables to their defaults
+    pathIndices = (int *)malloc(sizeof(int));
+    maxDepth = 1;
+    pathDepth = 0;
+
+    // Add all of the values from the old frame to the new one
+    for (i = 0; i < frame->getDepth(); i++)
+        appendIndex(frame->getIndex(i));
 }
 
 // ------------------------------------------------------------------------
@@ -153,5 +172,29 @@ int vsMenuFrame::getIndex(int depth)
 int vsMenuFrame::getDepth()
 {
     return pathDepth;
+}
+
+// ------------------------------------------------------------------------
+// This function returns whether two frames point to the same tree location
+// ------------------------------------------------------------------------
+bool vsMenuFrame::isEqual(vsMenuFrame *frame)
+{
+    int i;
+
+    // The frames are only considered equivalent if they are of the same length
+    if (pathDepth == frame->getDepth())
+    {
+        // Iterate through the indices, returning false if any don't match
+        for (i = 0; i < pathDepth; i++)
+        {
+            if (pathIndices[i] != frame->getIndex(i))
+                return false;
+        }
+
+        // All of the indices matched, so the frames are equivalent
+        return true;
+    }
+
+    return false;
 }
 

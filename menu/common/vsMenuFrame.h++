@@ -38,6 +38,7 @@ private:
 public:
 
                 vsMenuFrame();
+                vsMenuFrame(vsMenuFrame *frame);
     virtual     ~vsMenuFrame();
 
     void        setFrame(vsMenuFrame *frame);
@@ -49,6 +50,8 @@ public:
 
     int         getIndex(int depth);
     int         getDepth();
+
+    bool        isEqual(vsMenuFrame *frame);
 };
 
 #endif
