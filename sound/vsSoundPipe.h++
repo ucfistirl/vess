@@ -41,9 +41,7 @@ protected:
 
 public:
 
-                // NOTE:  The channels parameter won't do anything at this
-                //        time (you'll get two channels by default)
-                vsSoundPipe(int freq, int width, int channels);
+                vsSoundPipe(int freq);
                 vsSoundPipe();
                 ~vsSoundPipe();
 
@@ -53,6 +51,8 @@ public:
 
     double      getDopplerVelocity();
     void        setDopplerVelocity(double speed);
+
+    void        *getBaseLibraryObject();
 };
 
 #endif

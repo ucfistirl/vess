@@ -27,7 +27,7 @@
 // ------------------------------------------------------------------------
 // Creates a vsSoundPipe with the given internal buffer frequency
 // ------------------------------------------------------------------------
-vsSoundPipe::vsSoundPipe(int freq, int width, int channels)
+vsSoundPipe::vsSoundPipe(int freq)
 {
     int attrList[3];
 
@@ -104,4 +104,13 @@ double vsSoundPipe::getDopplerVelocity()
 void vsSoundPipe::setDopplerVelocity(double speed)
 {
     alDopplerVelocity((float)speed);
+}
+
+// ------------------------------------------------------------------------
+// Returns the corresponding base library object (an OpenAL context handle
+// as a void * in this case)
+// ------------------------------------------------------------------------
+void *vsSoundPipe::getBaseLibraryObject()
+{
+    return pipeHandle;
 }
