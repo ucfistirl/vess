@@ -771,6 +771,40 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
 }
 
 // ------------------------------------------------------------------------
+// Enables lighting on this vsComponent, and all of its children and
+// geometry.
+// ------------------------------------------------------------------------
+void vsComponent::enableLighting()
+{
+    int loop;
+    
+    // Loop through all children.
+    for(loop = 0; loop < childCount; loop++)
+    {   
+        // Enable lighting on this child.
+        ((vsNode*)childList[loop])->enableLighting();
+    }
+}
+
+// ------------------------------------------------------------------------
+// Disables lighting on this vsComponent, and all of its children and
+// geometry.
+// ------------------------------------------------------------------------
+void vsComponent::disableLighting()
+{  
+   int loop;
+   
+   // Loop through all children.
+   for(loop = 0; loop < childCount; loop++)
+   {
+       // Disable lighting on this child
+       ((vsNode*)childList[loop])->disableLighting();
+   }
+}
+        
+    
+       
+// ------------------------------------------------------------------------
 // Enables culling on this node and its children
 // ------------------------------------------------------------------------
 void vsComponent::enableCull()
