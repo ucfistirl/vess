@@ -361,8 +361,6 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
     // Sequence vars
     osg::Sequence *sequenceGroup;
     vsSequenceAttribute *sequenceAttr;
-    float speed;
-    int nReps;
     osg::Sequence::LoopMode loopMode;
     int begin, end;
             
