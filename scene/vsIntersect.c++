@@ -278,7 +278,7 @@ void vsIntersect::intersect(vsNode *targetNode)
 {
     pfNode *performerNode, *geoNode, *pathNode;
     pfHit **hits[PFIS_MAX_SEGS];
-    int loop, arraySize;
+    int loop, sloop, arraySize;
     int flags;
     pfVec3 hitPoint, polyNormal;
     pfMatrix xformMat;
@@ -349,11 +349,11 @@ void vsIntersect::intersect(vsNode *targetNode)
             if (hitNodePath)
             {
                 arraySize = 0;
-                for (loop = 0; loop < hitNodePath->getNum(); loop++)
+                for (sloop = 0; sloop < hitNodePath->getNum(); sloop++)
                 {
-                    pathNode = (pfNode *)(hitNodePath->get(loop));
+                    pathNode = (pfNode *)(hitNodePath->get(sloop));
                     vessNode = (vsNode *)((vsSystem::systemObject)->
-			getNodeMap()->mapSecondToFirst(pathNode));
+                        getNodeMap()->mapSecondToFirst(pathNode));
                     if (vessNode)
                         (sectPath[loop])->setData(arraySize++, vessNode);
                 }
