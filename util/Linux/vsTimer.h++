@@ -30,8 +30,8 @@ private:
 
     static vsTimer    *systemTimer;
 
-    double	      markTime;
-    double	      markInterval;
+    double            markTime;
+    double            markInterval;
 
 VS_INTERNAL:
 
@@ -40,13 +40,13 @@ VS_INTERNAL:
 public:
 
                       vsTimer();
-		      ~vsTimer();
+                      ~vsTimer();
 
     static vsTimer    *getSystemTimer();
 
-    void	      mark();
-    double	      getInterval();
-    double	      getElapsed();
+    void              mark();
+    double            getInterval();
+    double            getElapsed();
 };
 
 #endif
