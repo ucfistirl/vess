@@ -45,7 +45,6 @@ bool vsGeometry::binModesChanged = false;
 // ------------------------------------------------------------------------
 vsGeometry::vsGeometry() : parentList(5, 5)
 {
-    unsigned int unit;
     int loop;
 
     // Initialize the number of parents to zero
@@ -82,7 +81,6 @@ vsGeometry::vsGeometry() : parentList(5, 5)
 // ------------------------------------------------------------------------
 vsGeometry::~vsGeometry()
 {
-//    unsigned int unit;
     int loop;
 
     // Remove all parents
