@@ -69,9 +69,11 @@ vsWindowSystem::vsWindowSystem(vsWindow *mainWindow)
     // Create the keyboard in Button mode, by default.  The user can 
     // change this later
     keyboard = new vsKeyboard(VS_KB_MODE_BUTTON);
+    keyboard->ref();
 
     // Most mice have 2 axes and 3 buttons
     mouse = new vsMouse(2, 3, xSize, ySize);
+    mouse->ref();
 
     // Assume the mouse isn't in the window yet (an EnterNotify or 
     // PointerMotion event will change this)
@@ -85,7 +87,7 @@ vsWindowSystem::vsWindowSystem(vsWindow *mainWindow)
     // Add the events we want to the event mask
     XSelectInput(display, window, oldEventMask | PointerMotionHintMask | 
         PointerMotionMask | ButtonPressMask | ButtonReleaseMask | 
-       KeyPressMask | KeyReleaseMask | EnterWindowMask | LeaveWindowMask);
+        KeyPressMask | KeyReleaseMask | EnterWindowMask | LeaveWindowMask);
 
     // Register the window
     getMap()->registerLink(vessWindow, this);
@@ -98,9 +100,9 @@ vsWindowSystem::~vsWindowSystem()
 {
     // Delete the keyboard and mouse
     if (keyboard)
-        delete keyboard;
+        vsObject::unrefDelete(keyboard);
     if (mouse)
-        delete mouse;
+        vsObject::unrefDelete(mouse);
 
     // Detach from the parent window
     if (getMap()->mapSecondToFirst(this))
