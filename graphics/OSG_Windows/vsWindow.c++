@@ -614,6 +614,39 @@ void vsWindow::saveImage(char *filename)
 }
 
 // ------------------------------------------------------------------------
+// Get a copy of the image currently displayed in the window
+// ------------------------------------------------------------------------
+vsImage * vsWindow::getImage()
+{
+    int width, height;
+    vsImage * image;
+
+    // Make sure the window's OpenGL context is the current context
+    makeCurrent();
+    
+    // Get the current size of the window and apply the border offsets
+    getSize(&width, &height);
+    width -= widthOffset;
+    height -= heightOffset;
+    
+    // Allocate our temporary buffer
+    unsigned char * buffer = new unsigned char[ width * height * 3 ];
+
+    // Read the image from the frame buffer
+    glPixelStorei( GL_PACK_ALIGNMENT, 1 );
+    glReadPixels( 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE,
+            (GLvoid *)buffer );
+
+    // Copy everything into a vsImage structure
+    image = new vsImage( width, height, VS_IMAGE_FORMAT_RGB, buffer );
+
+    // Free the buffer
+    delete [] buffer;
+
+    return image;
+}
+
+// ------------------------------------------------------------------------
 // Returns the Windows object associated with this object
 // ------------------------------------------------------------------------
 HWND vsWindow::getBaseLibraryObject()
