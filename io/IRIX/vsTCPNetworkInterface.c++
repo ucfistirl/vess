@@ -1,4 +1,3 @@
-
 //------------------------------------------------------------------------
 //
 //    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
@@ -277,8 +276,14 @@ int vsTCPNetworkInterface::makeConnection()
     {
         // Store the socket as a client
         clientSockets[numClientSockets] = socketValue;
-        numClientSockets++;
 
+        // Store the client name (and length)
+        memcpy(&clientNames[numClientSockets], &connectingName,
+               sizeof(connectingName));
+        clientNameLengths[numClientSockets] = sizeof(connectingName);
+
+        // Increment the count and return that we succeeded
+        numClientSockets++;
         return 0;
     }
 }
@@ -385,7 +390,7 @@ int vsTCPNetworkInterface::write(u_char *buffer, u_long len)
 
     // Set up the file descriptor set to allow reading from our main socket
     FD_ZERO(&writeFDs);
-    FD_SET(socketValue, &writeFDs);
+    FD_SET(clientSockets[0], &writeFDs);
 
     // Set up a time for 1 microsecond
     tv.tv_sec = 0;
@@ -427,7 +432,7 @@ int vsTCPNetworkInterface::write(int clientID, u_char *buffer, u_long len)
 
     // Set up the file descriptor set to allow reading from our main socket
     FD_ZERO(&writeFDs);
-    FD_SET(socketValue, &writeFDs);
+    FD_SET(clientSockets[clientID], &writeFDs);
 
     // Set up a time for 1 microsecond
     tv.tv_sec = 0;
