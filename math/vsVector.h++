@@ -1,4 +1,25 @@
-// File vsVector.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsVector.h++
+//
+//    Description:  Class representing a variable-sized array of double
+//		    presicion values. The size of the vector is limited
+//		    to four entries.
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_VECTOR_HPP
 #define VS_VECTOR_HPP

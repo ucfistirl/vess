@@ -1,4 +1,24 @@
-// File vsMatrix.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsMatrix.c++
+//
+//    Description:  Class implementing a 4x4 graphical transformation
+//		    matrix
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include <math.h>
 #include <stdio.h>

@@ -1,4 +1,24 @@
-// File vsMatrix.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsMatrix.h++
+//
+//    Description:  Class implementing a 4x4 graphical transformation
+//		    matrix
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_MATRIX_HPP
 #define VS_MATRIX_HPP
@@ -13,7 +33,7 @@ class vsMatrix
 {
 private:
 
-    // Internal storage for this object is a set of four row vsVectors
+    // Internal storage for this object is a set of four vsVectors
     // representing the four rows of the matrix.
     vsVector    data[4];
 
