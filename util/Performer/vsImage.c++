@@ -23,6 +23,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef WIN32
+    // Need to this for the JPEG library headers to work properly
+    #define __WIN32__
+#endif
+
 extern "C"
 {
     #include "jpeglib.h"
