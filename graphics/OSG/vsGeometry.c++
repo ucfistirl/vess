@@ -1149,15 +1149,14 @@ osg::Geode *vsGeometry::getBaseLibraryObject()
 // ------------------------------------------------------------------------
 void vsGeometry::rebuildPrimitives()
 {
+    int numSets;
     osg::DrawArrays *osgDrawArrays;
     osg::DrawArrayLengths *osgDrawArrayLengths;
 
     // Erase the current list of PrimitiveSets
-    // * I hope this deletes them as well... supposedly they're held on to
-    // by OSG's ref_ptr objects, meaning that they should get deleted when
-    // the references are destroyed, but I don't know how thorough
-    // std::vector is when destroying objects.
-    (osgGeometry->getPrimitiveSetList()).clear();
+    numSets = osgGeometry->getNumPrimitiveSets();
+    if (numSets > 0)
+        osgGeometry->removePrimitiveSet(0, numSets);
     
     // Create one or more new PrimitiveSet objects based on the type,
     // number, and length data of the primitives stored in this vsGeometry
