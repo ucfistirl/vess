@@ -28,16 +28,3 @@ clean:
 .c.o:
 	CC $(FLAGS) -c $< -o ./$*.o
 
-
-#----------------------------------------------------------------------
-# DO NOT DELETE
-
-vsVector.o: /usr/include/stdio.h /usr/include/standards.h
-vsVector.o: /usr/include/sgidefs.h /usr/include/math.h vsVector.h++
-vsVector.o: ../corelib/vsGlobals.h++
-vsQuat.o: vsQuat.h++ vsMatrix.h++ ../corelib/vsGlobals.h++ vsVector.h++
-vsQuat.o: /usr/include/math.h /usr/include/sgidefs.h /usr/include/standards.h
-vsQuat.o: /usr/include/stdio.h
-vsMatrix.o: /usr/include/math.h /usr/include/sgidefs.h
-vsMatrix.o: /usr/include/standards.h /usr/include/stdio.h
-vsMatrix.o: ../corelib/vsGlobals.h++ vsMatrix.h++ vsVector.h++ vsQuat.h++
