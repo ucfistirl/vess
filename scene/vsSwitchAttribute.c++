@@ -245,7 +245,7 @@ void vsSwitchAttribute::attachDuplicate(vsNode *theNode)
 
     theNode->addAttribute(newAttrib);
     
-    switchVal = performerSwitch->getVal();
+    switchVal = (int)(performerSwitch->getVal());
     switch (switchVal)
     {
         case PFSWITCH_ON:
