@@ -65,7 +65,7 @@ public:
                        vsWindow(vsScreen *parent, bool hideBorder, bool stereo);
                        vsWindow(vsScreen *parent, int x, int y, int width,
                                 int height, bool hideBorder, bool stereo);
-                       vsWindow(vsScreen *parent, Window xWin);
+                       vsWindow(vsScreen *parent, HWND msWin);
     virtual            ~vsWindow();
     
     virtual const char *getClassName();
