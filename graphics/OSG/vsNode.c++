@@ -102,12 +102,12 @@ void vsNode::deleteTree()
     // Delete all children of this node
     while (getChildCount() > 0)
     {
-	// We can always get the first child, because removing a child
-	// causes all of the other children to slide over to fill the
-	// gap.
+        // We can always get the first child, because removing a child
+        // causes all of the other children to slide over to fill the
+        // gap.
         node = getChild(0);
 
-	// Delete the subgraph below the selected child
+        // Delete the subgraph below the selected child
         if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
             ((vsComponent *)node)->deleteTree();
 
