@@ -11,6 +11,7 @@ libvsMotion_a_SOURCES = \
                         common/vsFlyingMotion.c++ \
                         common/vsKinematics.c++ \
                         common/vsMotionModel.c++ \
+                        common/vsPathMotion.c++ \
                         common/vsRelativeMouseMotion.c++ \
                         common/vsSphericalMotion.c++ \
                         common/vsTerrainFollow.c++ \
@@ -32,6 +33,7 @@ include_HEADERS = \
                   common/vsFlyingMotion.h++ \
                   common/vsKinematics.h++ \
                   common/vsMotionModel.h++ \
+                  common/vsPathMotion.h++ \
                   common/vsRelativeMouseMotion.h++ \
                   common/vsSphericalMotion.h++ \
                   common/vsTerrainFollow.h++ \
