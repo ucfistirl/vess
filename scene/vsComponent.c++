@@ -643,21 +643,31 @@ void vsComponent::setBottomGroup(pfGroup *newBottom)
 // ------------------------------------------------------------------------
 int vsComponent::handleName(pfNode *targetNode, vsDatabaseLoader *nameDirectory)
 {
+    // If the node in question doesn't have a name, we're safe.
     if (targetNode->getName() == NULL)
         return VS_TRUE;
 
+    // The node in question has a name, but this component has the
+    // same name; we're safe.
     if (!strcmp(targetNode->getName(), getName()))
         return VS_TRUE;
 
-    if (!(nameDirectory->checkName(targetNode->getName())))
+    // If the node isn't considered important, either by its name or
+    // that it's an unimportant DCS, then we're safe.
+    if (!(nameDirectory->importanceCheck(targetNode)))
         return VS_TRUE;
 
+    // The node must be important, but this component doesn't have a
+    // name yet; we're off the hook. Assign the node's name to
+    // this component and return that we're safe.
     if (getName()[0] == 0)
     {
         setName(targetNode->getName());
         return VS_TRUE;
     }
 
+    // The node in question is important, but this component already
+    // has something else important; fail.
     return VS_FALSE;
 }
 
