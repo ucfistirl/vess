@@ -90,11 +90,9 @@ public:
     double      &operator[](int index);
     vsQuat      operator+(vsQuat addend);
     vsQuat      operator-(vsQuat subtrahend);
-    vsQuat      operator*(double multiplier);
     vsQuat      operator*(vsQuat operand);
     void        operator+=(vsQuat addend);
     void        operator-=(vsQuat subtrahend);
-    void        operator*=(double multiplier);
     void        operator*=(vsQuat operand);
     int         operator==(vsQuat operand);
 };

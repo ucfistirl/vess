@@ -800,22 +800,6 @@ vsQuat vsQuat::operator-(vsQuat subtrahend)
 }
 
 // ------------------------------------------------------------------------
-// Multiplies each element of this quaternion by the given scalar,
-// returning the result.
-// Equivalent to getScaled(multiplier)
-// ------------------------------------------------------------------------
-vsQuat vsQuat::operator*(double multiplier)
-{
-    int loop;
-    vsQuat result;
-    
-    for (loop = 0; loop < 4; loop++)
-        result[loop] = data[loop] * multiplier;
-
-    return result;
-}
-
-// ------------------------------------------------------------------------
 // Multiplies this quaternion by the operand quaternion, returning the
 // result. This function 'cheats' by just calling multiplyQuat for it's
 // answer.
@@ -851,17 +835,6 @@ void vsQuat::operator-=(vsQuat subtrahend)
 }
 
 // ------------------------------------------------------------------------
-// Multiplies each element of this quaternion by the given scalar, storing
-// the result in this quaternion.
-// Equivalent to scale(multiplier)
-// ------------------------------------------------------------------------
-void vsQuat::operator*=(double multiplier)
-{
-    for (int i = 0; i < 4; i++)
-        data[i] *= multiplier;
-}
-
-// ------------------------------------------------------------------------
 // Multiplies this quaternion by the operand quaternion, storing the result
 // in this quaternion.
 // Equivalent to multiplyQuat(operand)
@@ -888,18 +861,3 @@ int vsQuat::operator==(vsQuat operand)
     return VS_TRUE;
 }
 
-// ------------------------------------------------------------------------
-// Related function
-// Multiplies each element of the operand quaternion by the given scalar,
-// returning the result.
-// ------------------------------------------------------------------------
-vsQuat operator*(double multiplier, vsQuat operand)
-{
-    int loop;
-    vsQuat result;
-    
-    for (loop = 0; loop < 4; loop++)
-        result[loop] = multiplier * operand[loop];
-
-    return result;
-}
