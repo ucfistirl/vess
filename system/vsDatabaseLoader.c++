@@ -1,15 +1,23 @@
 // File vsDatabaseLoader.c++
 
+#include "vsDatabaseLoader.h++"
+
+#include <stdlib.h>
+#include <string.h>
+#include <Performer/pf/pfGeode.h>
+#include <Performer/pf/pfBillboard.h>
+#include <Performer/pf/pfDCS.h>
+#include <Performer/pfdu.h>
 #include "vsGeometry.h++"
 #include "vsComponent.h++"
 #include "vsSystem.h++"
-#include "vsDatabaseLoader.h++"
 
 // ------------------------------------------------------------------------
 // Constructor - Adds the given file extension as the first in the loader's
 // list of file extensions. Initializes the list of important node names.
 // ------------------------------------------------------------------------
-vsDatabaseLoader::vsDatabaseLoader(char *fileExtension)
+vsDatabaseLoader::vsDatabaseLoader(char *fileExtension) :
+    extensions(1, 5, 0), nodeNames(0, 50, 0)
 {
     extensions[0] = strdup(fileExtension);
     extensionCount = 1;
@@ -25,6 +33,7 @@ vsDatabaseLoader::vsDatabaseLoader(char *fileExtension)
 // ------------------------------------------------------------------------
 vsDatabaseLoader::~vsDatabaseLoader()
 {
+    clearNames();
 }
 
 // ------------------------------------------------------------------------
@@ -35,14 +44,8 @@ void vsDatabaseLoader::addExtension(char *fileExtension)
 {
     if (inittedFlag)
     {
-        printf("vsDatabaseLoader::addExtension: Can't add extensions after \
-loader initialization by vsSystem object\n");
-        return;
-    }
-    
-    if (extensionCount >= VS_DBL_MAX_EXT_COUNT)
-    {
-        printf("vsDatabaseLoader::addExtension: Extension limit reached\n");
+        printf("vsDatabaseLoader::addExtension: Can't add extensions after "
+            "loader initialization by vsSystem object\n");
         return;
     }
 
@@ -50,7 +53,8 @@ loader initialization by vsSystem object\n");
     if (!(extensions[extensionCount]))
         printf("vsDatabaseLoader::addExtension: Error allocating space "
             "for extension string\n");
-    extensionCount++;
+    else
+	extensionCount++;
 }
 
 // ------------------------------------------------------------------------
@@ -60,18 +64,12 @@ loader initialization by vsSystem object\n");
 // ------------------------------------------------------------------------
 void vsDatabaseLoader::addImportantNodeName(char *newName)
 {
-    if (nodeNameCount >= VS_DBL_MAX_NAME_COUNT)
-    {
-        printf("vsDatabaseLoader::addImportantNodeName: Important node name "
-            "limit reached\n");
-        return;
-    }
-
     nodeNames[nodeNameCount] = strdup(newName);
     if (!(nodeNames[nodeNameCount]))
         printf("vsDatabaseLoader::addImportantNodeName: Error allocating "
             "space for node name string\n");
-    nodeNameCount++;
+    else
+	nodeNameCount++;
 }
 
 // ------------------------------------------------------------------------
@@ -107,9 +105,9 @@ void vsDatabaseLoader::addPath(char *filePath)
     
     performerPath = pfGetFilePath();
     if (!performerPath)
-	strcpy(fullPath, ".");
+        strcpy(fullPath, ".");
     else
-	strcpy(fullPath, pfGetFilePath());
+        strcpy(fullPath, pfGetFilePath());
 
     strcat(fullPath, ":");
     strcat(fullPath, filePath);
@@ -411,13 +409,14 @@ void vsDatabaseLoader::init()
 
     for (loop = 0; loop < extensionCount; loop++)
     {
-        if (!pfdInitConverter(extensions[loop]))
+        if (!pfdInitConverter((char *)(extensions[loop])))
         {
             printf("vsDatabaseLoader::init: Unable to initialize '%s' loader\n",
                 extensions[loop]);
             continue;
         }
-        if (classifyExtension(extensions[loop]) == VS_DATABASE_TYPE_FLT)
+        if (classifyExtension((char *)(extensions[loop])) ==
+            VS_DATABASE_TYPE_FLT)
         {
             callbackPtr = fltLoaderCallback;
             callbackHandle = &callbackPtr;
@@ -500,7 +499,7 @@ int vsDatabaseLoader::checkName(const char *possibleName)
     int loop;
     
     for (loop = 0; loop < nodeNameCount; loop++)
-        if (!strcmp(nodeNames[loop], possibleName))
+        if (!strcmp((char *)(nodeNames[loop]), possibleName))
             return VS_TRUE;
 
     return VS_FALSE;

@@ -7,11 +7,10 @@
 #include <Performer/pf/pfScene.h>
 
 class vsPane;
-struct vsPaneListNode;
 
 #include "vsWindow.h++"
 #include "vsView.h++"
-#include "vsComponent.h++"
+#include "vsNode.h++"
 
 enum vsPanePlacement
 {
@@ -24,12 +23,6 @@ enum vsPanePlacement
     VS_PANE_PLACEMENT_TOP_RIGHT_QUADRANT,
     VS_PANE_PLACEMENT_BOTTOM_RIGHT_QUADRANT,
     VS_PANE_PLACEMENT_BOTTOM_LEFT_QUADRANT
-};
-
-struct vsPaneListNode
-{
-    vsPane            *data;
-    vsPaneListNode    *next;
 };
 
 class vsPane
@@ -46,9 +39,11 @@ private:
 
 VS_INTERNAL:
 
-    void        updateView();
+    void          updateView();
+    
+    static int    gstateCallback(pfGeoState *gstate, void *userData);
 
-    void        _debugWriteScene();
+    void          _debugWriteScene();
 
 public:
 
@@ -65,7 +60,7 @@ public:
     void         getSize(int *width, int *height);
     void         setPosition(int xPos, int yPos);
     void         getPosition(int *xPos, int *yPos);
-    void         autoConfigure(vsPanePlacement value);
+    void         autoConfigure(int panePlacement);
 
     void         showPane();
     void         hidePane();

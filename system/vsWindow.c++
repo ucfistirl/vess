@@ -1,8 +1,9 @@
 // File vsWindow.c++
 
+#include "vsWindow.h++"
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include "vsWindow.h++"
 
 // ------------------------------------------------------------------------
 // Constructor - Initializes the window by creating a Performer pipe window
@@ -10,7 +11,7 @@
 // being properly displayed, recording some size data from the window
 // manager, and configuring the window with its default position and size.
 // ------------------------------------------------------------------------
-vsWindow::vsWindow(vsScreen *parent, int hideBorder)
+vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1, 0)
 {
     vsPipe *parentPipe;
     Display *xWindowDisplay;
@@ -20,12 +21,13 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder)
     Window parentID, rootID;
     XWindowAttributes xattr;
     
-    childPaneList = NULL;
+    childPaneCount = 0;
     
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
     
     performerPipeWindow = new pfPipeWindow(parentPipe->getBaseLibraryObject());
+    performerPipeWindow->ref();
     
     parentScreen->addWindow(this);
     
@@ -68,13 +70,14 @@ vsWindow::~vsWindow()
 {
     // Performer bug: pfPipeWindows can't be deleted
     //delete performerPipeWindow;
+    performerPipeWindow->unref();
     
     // Delete all child panes
     // The vsPane destructor includes a call to the parent vsWindow (this)
     // to remove it from the pane list. Keep deleting vsPanes and eventually
     // the list will go away by itself.
-    while (childPaneList)
-        delete (childPaneList->data);
+    while (childPaneCount > 0)
+        delete ((vsPane *)(childPaneList[0]));
     
     parentScreen->removeWindow(this);
 }
@@ -92,13 +95,7 @@ vsScreen *vsWindow::getParentScreen()
 // ------------------------------------------------------------------------
 int vsWindow::getChildPaneCount()
 {
-    vsPaneListNode *listNode;
-    int result = 0;
-    
-    for (listNode = childPaneList; listNode; listNode = listNode->next)
-        result++;
-
-    return result;
+    return childPaneCount;
 }
 
 // ------------------------------------------------------------------------
@@ -107,24 +104,13 @@ int vsWindow::getChildPaneCount()
 // ------------------------------------------------------------------------
 vsPane *vsWindow::getChildPane(int index)
 {
-    vsPaneListNode *node;
-    int loop;
-
-    if (index < 0)
+    if ((index < 0) || (index >= childPaneCount))
     {
-        printf("vsWindow::getChildPane: Bad index value\n");
+        printf("vsWindow::getChildPane: Index out of bounds\n");
         return NULL;
     }
 
-    node = childPaneList;
-    for (loop = 0; (loop < index) && (node); loop++)
-        node = node->next;
-
-    if (!node)
-        printf("vsWindow::getChildPane: Index greater than number of \
-children\n");
-
-    return node->data;
+    return (vsPane *)(childPaneList[index]);
 }
 
 // ------------------------------------------------------------------------
@@ -270,13 +256,7 @@ pfPipeWindow *vsWindow::getBaseLibraryObject()
 void vsWindow::addPane(vsPane *newPane)
 {
     // Add pane to window's internal list
-    vsPaneListNode *newNode;
-    
-    newNode = new vsPaneListNode;
-    newNode->data = newPane;
-    newNode->next = childPaneList;
-    
-    childPaneList = newNode;
+    childPaneList[childPaneCount++] = newPane;
     
     // Add pane (as pfChannel) to pfPipeWindow
     performerPipeWindow->addChan(newPane->getBaseLibraryObject());
@@ -289,32 +269,16 @@ void vsWindow::addPane(vsPane *newPane)
 void vsWindow::removePane(vsPane *targetPane)
 {
     // Remove pane from window's internal list
-    vsPaneListNode *thisNode, *prevNode;
-
-    if (childPaneList->data == targetPane)
-    {
-        thisNode = childPaneList;
-        childPaneList = childPaneList->next;
-        performerPipeWindow->removeChan(targetPane->getBaseLibraryObject());
-        delete thisNode;
-    }
-    else
-    {
-        prevNode = childPaneList;
-        thisNode = prevNode->next;
-        while ((thisNode) && (thisNode->data != targetPane))
+    int loop, sloop;
+    
+    for (loop = 0; loop < childPaneCount; loop++)
+        if (targetPane == childPaneList[loop])
         {
-            prevNode = thisNode;
-            thisNode = thisNode->next;
+            for (sloop = loop; sloop < (childPaneCount-1); sloop++)
+                childPaneList[sloop] = childPaneList[sloop+1];
+            childPaneCount--;
+            return;
         }
 
-        if (thisNode)
-        {
-            prevNode->next = thisNode->next;
-            performerPipeWindow->removeChan(targetPane->getBaseLibraryObject());
-            delete thisNode;
-        }
-        else
-            printf("vsWindow::removePane: Specified pane not part of window\n");
-    }
+    printf("vsWindow::removePane: Specified pane not part of window\n");
 }

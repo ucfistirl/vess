@@ -1,10 +1,10 @@
 // File vsPane.c++
 
-#include <Performer/pr/pfMaterial.h>
+#include "vsPane.h++"
+
 #include <Performer/pr/pfLight.h>
 #include "vsGeometry.h++"
 #include "vsComponent.h++"
-#include "vsPane.h++"
 
 // ------------------------------------------------------------------------
 // Constructor - Creates and connects the underlying Performer objects that
@@ -16,7 +16,6 @@ vsPane::vsPane(vsWindow *parent)
     vsPipe *parentPipe;
     pfPipeWindow *tempPWin;
     pfGeoState *defaultState;
-    pfMaterial *frontMtl, *backMtl;
     pfLightModel *lightModel;
     
     sceneRoot = NULL;
@@ -27,16 +26,18 @@ vsPane::vsPane(vsWindow *parent)
     parentPipe = parentScreen->getParentPipe();
     
     performerChannel = new pfChannel(parentPipe->getBaseLibraryObject());
+    performerChannel->ref();
 
     // Performer automatically assigns a new channel to the first window
     // on the specified pipe; I'd rather do it myself.
     tempPWin = performerChannel->getPWin();
     if (tempPWin)
         tempPWin->removeChan(performerChannel);
-    
+
     parentWindow->addPane(this);
-    
+
     performerScene = new pfScene();
+    performerScene->ref();
     defaultState = new pfGeoState();
     defaultState->makeBasic();
 
@@ -46,13 +47,7 @@ vsPane::vsPane(vsWindow *parent)
     lightModel->setTwoSide(VS_FALSE);
     lightModel->setAmbient(0.0, 0.0, 0.0);
     defaultState->setAttr(PFSTATE_LIGHTMODEL, lightModel);
-    defaultState->setMode(PFSTATE_CULLFACE, PFCF_BACK);
-    frontMtl = new pfMaterial();
-    frontMtl->setSide(PFMTL_FRONT);
-    defaultState->setAttr(PFSTATE_FRONTMTL, frontMtl);
-    backMtl = new pfMaterial();
-    frontMtl->setSide(PFMTL_BACK);
-    defaultState->setAttr(PFSTATE_BACKMTL, backMtl);
+    defaultState->setFuncs(gstateCallback, NULL, NULL);
     
     performerScene->setGState(defaultState);
 
@@ -64,7 +59,11 @@ vsPane::vsPane(vsWindow *parent)
 // ------------------------------------------------------------------------
 vsPane::~vsPane()
 {
-    delete performerChannel;
+    performerChannel->setScene(NULL);
+    performerChannel->unref();
+    // pfChannel's can't be deleted
+    performerScene->unref();
+    pfDelete(performerScene);
     
     parentWindow->removePane(this);
 }
@@ -206,12 +205,12 @@ void vsPane::getPosition(int *xPos, int *yPos)
 // Automaticially configures the size and location of the pane within
 // its parent window, based on the placement constant passed in.
 // ------------------------------------------------------------------------
-void vsPane::autoConfigure(vsPanePlacement value)
+void vsPane::autoConfigure(int panePlacement)
 {
     // Y coordinate inverted and scaled to 0.0 - 1.0 for
     // Performer's benefit
 
-    switch (value)
+    switch (panePlacement)
     {
         case VS_PANE_PLACEMENT_FULL_WINDOW:
             performerChannel->setViewport(0.0, 1.0, 0.0, 1.0);
@@ -302,6 +301,20 @@ void vsPane::updateView()
 
     sceneView->getClipDistances(&near, &far);
     performerChannel->setNearFar(near, far);
+}
+
+// ------------------------------------------------------------------------
+// static VESS internal function - Performer callback
+// When Performer is just starting to render the scene, it first calls
+// this function, which is set as the callback function for the pfGeoState
+// attached to the pfScene. This function clears the VESS internal graphics
+// state.
+// ------------------------------------------------------------------------
+int vsPane::gstateCallback(pfGeoState *gstate, void *userData)
+{
+    (vsSystem::systemObject)->getGraphicsState()->clearState();
+    
+    return 0;
 }
 
 // ------------------------------------------------------------------------

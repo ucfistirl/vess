@@ -7,13 +7,16 @@ class vsScreen;
 
 #include "vsPipe.h++"
 #include "vsWindow.h++"
+#include "vsGrowableArray.h++"
 
 class vsScreen
 {
 private:
 
-    vsPipe              *parentPipe;
-    vsWindowListNode    *childWindowList;
+    vsPipe             *parentPipe;
+
+    vsGrowableArray    childWindowList;
+    int                childWindowCount;
 
 VS_INTERNAL:
 

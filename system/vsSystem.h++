@@ -7,8 +7,7 @@
 #include "vsScreen.h++"
 #include "vsDatabaseLoader.h++"
 #include "vsObjectMap.h++"
-#include "vsLightAttribute.h++"
-#include "vsMatrix.h++"
+#include "vsGraphicsState.h++"
 
 #define MAX_PIPE_COUNT 10
 #define MAX_SCREEN_COUNT 10
@@ -26,20 +25,22 @@ private:
     vsDatabaseLoader    *databaseLoader;
     
     vsObjectMap         *nodeMap;
+    vsGraphicsState     *graphicsState;
 
 VS_INTERNAL:
 
-    static vsSystem     *systemObject;
+    static vsSystem    *systemObject;
 
-    vsObjectMap         *getNodeMap();
-    
+    vsObjectMap        *getNodeMap();
+    vsGraphicsState    *getGraphicsState();
+
 public:
 
                         vsSystem(vsDatabaseLoader *fileLoader);
-			vsSystem(char *databaseFilename, char **nameList,
-				 char *windowTitle, int fullScreen,
-				 vsNode **sceneGraph, vsView **viewpoint,
-				 vsWindow **window);
+                        vsSystem(char *databaseFilename, char **nameList,
+                                 char *windowTitle, int fullScreen,
+                                 vsNode **sceneGraph, vsView **viewpoint,
+                                 vsWindow **window);
                         ~vsSystem();
 
     vsPipe              *getPipe(int index);

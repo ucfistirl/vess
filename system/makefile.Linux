@@ -27,6 +27,8 @@ all: $(LIBNAME)
 
 
 SRCS = vsDatabaseLoader.c++ \
+       vsGraphicsState.c++ \
+       vsGrowableArray.c++ \
        vsObjectMap.c++ \
        vsPane.c++ \
        vsPipe.c++ \
@@ -36,6 +38,8 @@ SRCS = vsDatabaseLoader.c++ \
        vsWindow.c++
 
 OBJS = vsDatabaseLoader.o \
+       vsGraphicsState.o \
+       vsGrowableArray.o \
        vsObjectMap.o \
        vsPane.o \
        vsPipe.o \

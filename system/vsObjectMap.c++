@@ -1,17 +1,15 @@
 // File vsObjectMap.c++
 
-#include <stdlib.h>
-#include <stdio.h>
 #include "vsObjectMap.h++"
 
+#include <stdio.h>
+#include "vsGlobals.h++"
+
 // ------------------------------------------------------------------------
-// Constructor - Initializes the object map's internal array
+// Constructor - Initializes the object map's internal arrays
 // ------------------------------------------------------------------------
-vsObjectMap::vsObjectMap()
+vsObjectMap::vsObjectMap() : firstList(100, 50, 0), secondList(100, 50, 0)
 {
-    objectList = (vsObjectMapEntry *)
-        malloc(sizeof(vsObjectMapEntry) * VS_OBJMAP_START_SIZE);
-    objectListSize = VS_OBJMAP_START_SIZE;
     objectEntryCount = 0;
 }
 
@@ -20,7 +18,6 @@ vsObjectMap::vsObjectMap()
 // ------------------------------------------------------------------------
 vsObjectMap::~vsObjectMap()
 {
-    free(objectList);
 }
 
 // ------------------------------------------------------------------------
@@ -29,12 +26,10 @@ vsObjectMap::~vsObjectMap()
 // ------------------------------------------------------------------------
 void vsObjectMap::registerLink(void *firstObject, void *secondObject)
 {
-    objectList[objectEntryCount].firstObj = firstObject;
-    objectList[objectEntryCount].secondObj = secondObject;
+    firstList[objectEntryCount] = firstObject;
+    secondList[objectEntryCount] = secondObject;
 
     objectEntryCount++;
-    if (objectEntryCount == objectListSize)
-        growList();
 }
 
 // ------------------------------------------------------------------------
@@ -50,26 +45,29 @@ int vsObjectMap::removeLink(void *theObject, int whichList)
         switch (whichList)
         {
             case VS_OBJMAP_FIRST_LIST:
-                if (theObject == objectList[loop].firstObj)
+                if (theObject == firstList[loop])
                 {
-                    objectList[loop] = objectList[objectEntryCount - 1];
+                    firstList[loop] = firstList[objectEntryCount - 1];
+                    secondList[loop] = secondList[objectEntryCount - 1];
                     objectEntryCount--;
                     return VS_TRUE;
                 }
                 break;
             case VS_OBJMAP_SECOND_LIST:
-                if (theObject == objectList[loop].secondObj)
+                if (theObject == secondList[loop])
                 {
-                    objectList[loop] = objectList[objectEntryCount - 1];
+                    firstList[loop] = firstList[objectEntryCount - 1];
+                    secondList[loop] = secondList[objectEntryCount - 1];
                     objectEntryCount--;
                     return VS_TRUE;
                 }
                 break;
             case VS_OBJMAP_EITHER_LIST:
-                if ((theObject == objectList[loop].firstObj) ||
-                    (theObject == objectList[loop].secondObj))
+                if ((theObject == firstList[loop]) ||
+                    (theObject == secondList[loop]))
                 {
-                    objectList[loop] = objectList[objectEntryCount - 1];
+                    firstList[loop] = firstList[objectEntryCount - 1];
+                    secondList[loop] = secondList[objectEntryCount - 1];
                     objectEntryCount--;
                     return VS_TRUE;
                 }
@@ -88,6 +86,8 @@ int vsObjectMap::removeLink(void *theObject, int whichList)
 void vsObjectMap::removeAllLinks()
 {
     objectEntryCount = 0;
+    firstList.setSize(100);
+    secondList.setSize(100);
 }
 
 // ------------------------------------------------------------------------
@@ -99,8 +99,8 @@ void *vsObjectMap::mapFirstToSecond(void *firstObject)
     int loop;
     
     for (loop = 0; loop < objectEntryCount; loop++)
-        if (firstObject == objectList[loop].firstObj)
-            return (objectList[loop].secondObj);
+        if (firstObject == firstList[loop])
+            return (secondList[loop]);
 
     return NULL;
 }
@@ -114,19 +114,8 @@ void *vsObjectMap::mapSecondToFirst(void *secondObject)
     int loop;
     
     for (loop = 0; loop < objectEntryCount; loop++)
-        if (secondObject == objectList[loop].secondObj)
-            return (objectList[loop].firstObj);
+        if (secondObject == secondList[loop])
+            return (firstList[loop]);
 
     return NULL;
-}
-
-// ------------------------------------------------------------------------
-// Private function
-// Increases the size of the object map's internal array
-// ------------------------------------------------------------------------
-void vsObjectMap::growList()
-{
-    objectListSize += VS_OBJMAP_SIZE_INCREMENT;
-    objectList = (vsObjectMapEntry *)realloc(objectList,
-        sizeof(vsObjectMapEntry) * objectListSize);
 }

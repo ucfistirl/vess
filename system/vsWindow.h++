@@ -6,35 +6,31 @@
 #include <Performer/pf/pfPipeWindow.h>
 
 class vsWindow;
-struct vsWindowListNode;
 
 #include "vsScreen.h++"
 #include "vsPane.h++"
+#include "vsGrowableArray.h++"
 
 #define VS_WINDOW_DEFAULT_WIDTH  640
 #define VS_WINDOW_DEFAULT_HEIGHT 480
 #define VS_WINDOW_DEFAULT_XPOS   50
 #define VS_WINDOW_DEFAULT_YPOS   50
 
-struct vsWindowListNode
-{
-    vsWindow            *data;
-    vsWindowListNode    *next;
-};
-
 class vsWindow
 {
 private:
 
-    vsScreen          *parentScreen;
-    vsPaneListNode    *childPaneList;
+    vsScreen           *parentScreen;
+
+    vsGrowableArray    childPaneList;
+    int                childPaneCount;
     
-    pfPipeWindow      *performerPipeWindow;
+    pfPipeWindow       *performerPipeWindow;
     
-    Window            topWindowID;
+    Window             topWindowID;
     
-    int               xPositionOffset, yPositionOffset;
-    int               widthOffset, heightOffset;
+    int                xPositionOffset, yPositionOffset;
+    int                widthOffset, heightOffset;
     
 VS_INTERNAL:
 

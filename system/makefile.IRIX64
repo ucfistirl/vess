@@ -19,6 +19,8 @@ all: $(LIBNAME)
 
 
 SRCS = vsDatabaseLoader.c++ \
+       vsGraphicsState.c++ \
+       vsGrowableArray.c++ \
        vsObjectMap.c++ \
        vsPane.c++ \
        vsPipe.c++ \
@@ -28,6 +30,8 @@ SRCS = vsDatabaseLoader.c++ \
        vsWindow.c++
 
 OBJS = vsDatabaseLoader.o \
+       vsGraphicsState.o \
+       vsGrowableArray.o \
        vsObjectMap.o \
        vsPane.o \
        vsPipe.o \
@@ -59,9 +63,7 @@ clean:
 #----------------------------------------------------------------------
 # DO NOT DELETE
 
-vsDatabaseLoader.o: ../scene/vsGeometry.h++
-vsDatabaseLoader.o: /usr/include/Performer/pf/pfGeode.h
-vsDatabaseLoader.o: /usr/include/Performer/pf/pfNode.h
+vsDatabaseLoader.o: vsDatabaseLoader.h++ /usr/include/Performer/pf/pfNode.h
 vsDatabaseLoader.o: /usr/include/Performer/pf/pfUpdatable.h
 vsDatabaseLoader.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
 vsDatabaseLoader.o: /usr/include/sys/types.h /usr/include/standards.h
@@ -105,87 +107,187 @@ vsDatabaseLoader.o: /usr/include/Performer/pr/pfDispList.h
 vsDatabaseLoader.o: /usr/include/Performer/pr/pfGeoState.h
 vsDatabaseLoader.o: /usr/include/Performer/pr/pfState.h
 vsDatabaseLoader.o: /usr/include/Performer/pr/pfGeoMath.h
+vsDatabaseLoader.o: /usr/include/Performer/pfdb/pfflt.h ../scene/vsNode.h++
+vsDatabaseLoader.o: vsGrowableArray.h++ ../scene/vsAttributeList.h++
+vsDatabaseLoader.o: ../scene/vsAttribute.h++ /usr/include/stdlib.h
+vsDatabaseLoader.o: vsGlobals.h++ ../math/vsVector.h++
+vsDatabaseLoader.o: /usr/include/Performer/pf/pfGeode.h
 vsDatabaseLoader.o: /usr/include/Performer/pr/pfFlux.h
-vsDatabaseLoader.o: /usr/include/Performer/pr/pfEngine.h vsSystem.h++
-vsDatabaseLoader.o: vsPipe.h++ vsGlobals.h++ vsScreen.h++ vsWindow.h++
-vsDatabaseLoader.o: /usr/include/Performer/pf/pfPipeWindow.h
-vsDatabaseLoader.o: /usr/include/Performer/pr/pfWindow.h vsPane.h++
+vsDatabaseLoader.o: /usr/include/Performer/pr/pfEngine.h
+vsDatabaseLoader.o: /usr/include/Performer/pf/pfBillboard.h
+vsDatabaseLoader.o: /usr/include/Performer/pf/pfCuller.h
+vsDatabaseLoader.o: /usr/include/alloca.h
+vsDatabaseLoader.o: /usr/include/Performer/pf/pfTraverser.h
 vsDatabaseLoader.o: /usr/include/Performer/pf/pfChannel.h
+vsDatabaseLoader.o: /usr/include/Performer/pf/pfPipeWindow.h
+vsDatabaseLoader.o: /usr/include/Performer/pr/pfWindow.h
 vsDatabaseLoader.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
 vsDatabaseLoader.o: /usr/include/Performer/pf/pfEarthSky.h
 vsDatabaseLoader.o: /usr/include/Performer/pf/pfLODState.h
 vsDatabaseLoader.o: /usr/include/Performer/pf/pfScene.h
 vsDatabaseLoader.o: /usr/include/Performer/pf/pfGroup.h
 vsDatabaseLoader.o: /usr/include/Performer/pr/pfGeoSet.h
-vsDatabaseLoader.o: /usr/include/Performer/pr/pfCycleBuffer.h vsView.h++
-vsDatabaseLoader.o: ../math/vsVector.h++ ../math/vsMatrix.h++
-vsDatabaseLoader.o: ../math/vsQuat.h++ ../scene/vsViewpointAttribute.h++
-vsDatabaseLoader.o: /usr/include/Performer/pf/pfSCS.h ../scene/vsNode.h++
-vsDatabaseLoader.o: ../scene/vsAttributeList.h++ ../scene/vsAttribute.h++
-vsDatabaseLoader.o: /usr/include/stdlib.h ../scene/vsComponent.h++
-vsDatabaseLoader.o: /usr/include/Performer/pf/pfSwitch.h
-vsDatabaseLoader.o: /usr/include/Performer/pf/pfSequence.h
-vsDatabaseLoader.o: /usr/include/Performer/pf/pfLOD.h
-vsDatabaseLoader.o: ../scene/vsTransformAttribute.h++
-vsDatabaseLoader.o: /usr/include/Performer/pf/pfDCS.h vsDatabaseLoader.h++
-vsDatabaseLoader.o: /usr/include/Performer/pf/pfBillboard.h
-vsDatabaseLoader.o: /usr/include/Performer/pf/pfCuller.h
-vsDatabaseLoader.o: /usr/include/alloca.h
-vsDatabaseLoader.o: /usr/include/Performer/pf/pfTraverser.h
+vsDatabaseLoader.o: /usr/include/Performer/pr/pfCycleBuffer.h
 vsDatabaseLoader.o: /usr/include/Performer/pr/pfSprite.h
+vsDatabaseLoader.o: /usr/include/Performer/pf/pfDCS.h
+vsDatabaseLoader.o: /usr/include/Performer/pf/pfSCS.h
 vsDatabaseLoader.o: /usr/include/Performer/pfdu.h
 vsDatabaseLoader.o: /usr/include/Performer/pfutil.h /usr/include/dlfcn.h
-vsDatabaseLoader.o: /usr/include/Performer/objfnt.h
-vsDatabaseLoader.o: /usr/include/Performer/pfdb/pfflt.h
-vsDatabaseLoader.o: ../scene/vsSwitchAttribute.h++
-vsDatabaseLoader.o: ../scene/vsSequenceAttribute.h++
-vsDatabaseLoader.o: ../scene/vsLODAttribute.h++
-vsDatabaseLoader.o: ../scene/vsBillboardAttribute.h++ vsObjectMap.h++
+vsDatabaseLoader.o: /usr/include/Performer/objfnt.h ../scene/vsGeometry.h++
+vsDatabaseLoader.o: ../scene/vsComponent.h++ vsSystem.h++ vsPipe.h++
+vsDatabaseLoader.o: vsScreen.h++ vsWindow.h++ vsPane.h++ vsView.h++
+vsDatabaseLoader.o: ../math/vsMatrix.h++ ../math/vsQuat.h++
+vsDatabaseLoader.o: ../scene/vsViewpointAttribute.h++ vsObjectMap.h++
+vsDatabaseLoader.o: vsGraphicsState.h++ ../scene/vsBackfaceAttribute.h++
 vsDatabaseLoader.o: ../scene/vsFogAttribute.h++
 vsDatabaseLoader.o: /usr/include/Performer/pr/pfFog.h
 vsDatabaseLoader.o: ../scene/vsMaterialAttribute.h++
 vsDatabaseLoader.o: /usr/include/Performer/pr/pfMaterial.h
+vsDatabaseLoader.o: ../scene/vsShadingAttribute.h++
 vsDatabaseLoader.o: ../scene/vsTextureAttribute.h++
 vsDatabaseLoader.o: /usr/include/Performer/pr/pfTexture.h
 vsDatabaseLoader.o: /usr/include/Performer/image.h
 vsDatabaseLoader.o: ../scene/vsTransparencyAttribute.h++
-vsDatabaseLoader.o: ../scene/vsBackfaceAttribute.h++
-vsDatabaseLoader.o: /usr/include/Performer/pr/pfLight.h
-vsObjectMap.o: /usr/include/stdlib.h /usr/include/standards.h
-vsObjectMap.o: /usr/include/sgidefs.h /usr/include/stdio.h vsObjectMap.h++
-vsObjectMap.o: vsGlobals.h++
-vsPane.o: /usr/include/Performer/pr/pfMaterial.h
-vsPane.o: /usr/include/Performer/pr/pfObject.h
-vsPane.o: /usr/include/Performer/pr/pfMemory.h /usr/include/sys/types.h
-vsPane.o: /usr/include/standards.h /usr/include/sgidefs.h
-vsPane.o: /usr/include/string.h /usr/include/bstring.h
-vsPane.o: /usr/include/Performer/pr.h /usr/include/stdio.h
-vsPane.o: /usr/include/ulocks.h /usr/include/limits.h /usr/include/task.h
-vsPane.o: /usr/include/sys/prctl.h /usr/include/unistd.h /usr/include/errno.h
-vsPane.o: /usr/include/sys/errno.h /usr/include/X11/X.h
-vsPane.o: /usr/include/X11/Xlib.h /usr/include/X11/Xfuncproto.h
-vsPane.o: /usr/include/X11/Xosdefs.h /usr/include/stddef.h
-vsPane.o: /usr/include/X11/Xutil.h /usr/include/X11/extensions/XSGIvc.h
+vsGraphicsState.o: vsGraphicsState.h++ ../scene/vsBackfaceAttribute.h++
+vsGraphicsState.o: vsGrowableArray.h++ ../scene/vsAttribute.h++
+vsGraphicsState.o: /usr/include/stdlib.h /usr/include/standards.h
+vsGraphicsState.o: /usr/include/sgidefs.h vsGlobals.h++
+vsGraphicsState.o: ../scene/vsFogAttribute.h++
+vsGraphicsState.o: /usr/include/Performer/pr/pfFog.h
+vsGraphicsState.o: /usr/include/Performer/pr/pfObject.h
+vsGraphicsState.o: /usr/include/Performer/pr/pfMemory.h
+vsGraphicsState.o: /usr/include/sys/types.h /usr/include/string.h
+vsGraphicsState.o: /usr/include/bstring.h /usr/include/Performer/pr.h
+vsGraphicsState.o: /usr/include/stdio.h /usr/include/ulocks.h
+vsGraphicsState.o: /usr/include/limits.h /usr/include/task.h
+vsGraphicsState.o: /usr/include/sys/prctl.h /usr/include/unistd.h
+vsGraphicsState.o: /usr/include/errno.h /usr/include/sys/errno.h
+vsGraphicsState.o: /usr/include/X11/X.h /usr/include/X11/Xlib.h
+vsGraphicsState.o: /usr/include/X11/Xfuncproto.h /usr/include/X11/Xosdefs.h
+vsGraphicsState.o: /usr/include/stddef.h /usr/include/X11/Xutil.h
+vsGraphicsState.o: /usr/include/X11/extensions/XSGIvc.h
+vsGraphicsState.o: /usr/include/X11/extensions/XSGIvcstr.h
+vsGraphicsState.o: /usr/include/wctype.h /usr/include/wchar.h
+vsGraphicsState.o: /usr/include/locale_attr.h /usr/include/ctype.h
+vsGraphicsState.o: /usr/include/time.h /usr/include/GL/gl.h
+vsGraphicsState.o: /usr/include/GL/glx.h /usr/include/X11/Xmd.h
+vsGraphicsState.o: /usr/include/GL/glxtokens.h /usr/include/GL/glu.h
+vsGraphicsState.o: /usr/include/Performer/opengl.h
+vsGraphicsState.o: /usr/include/Performer/prmath.h /usr/include/math.h
+vsGraphicsState.o: /usr/include/Performer/prstats.h
+vsGraphicsState.o: /usr/include/Performer/pr/pfType.h
+vsGraphicsState.o: /usr/include/Performer/pr/pfLinMath.h
+vsGraphicsState.o: /usr/include/Performer/pr/pfStruct.h
+vsGraphicsState.o: ../scene/vsMaterialAttribute.h++
+vsGraphicsState.o: /usr/include/Performer/pr/pfMaterial.h
+vsGraphicsState.o: ../scene/vsShadingAttribute.h++
+vsGraphicsState.o: ../scene/vsTextureAttribute.h++
+vsGraphicsState.o: /usr/include/Performer/pr/pfTexture.h
+vsGraphicsState.o: /usr/include/Performer/pr/pfList.h
+vsGraphicsState.o: /usr/include/Performer/image.h
+vsGraphicsState.o: ../scene/vsTransparencyAttribute.h++
+vsGrowableArray.o: vsGrowableArray.h++ /usr/include/stdlib.h
+vsGrowableArray.o: /usr/include/standards.h /usr/include/sgidefs.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfMemory.h
+vsGrowableArray.o: /usr/include/sys/types.h /usr/include/string.h
+vsGrowableArray.o: /usr/include/bstring.h /usr/include/Performer/pr.h
+vsGrowableArray.o: /usr/include/stdio.h /usr/include/ulocks.h
+vsGrowableArray.o: /usr/include/limits.h /usr/include/task.h
+vsGrowableArray.o: /usr/include/sys/prctl.h /usr/include/unistd.h
+vsGrowableArray.o: /usr/include/errno.h /usr/include/sys/errno.h
+vsGrowableArray.o: /usr/include/X11/X.h /usr/include/X11/Xlib.h
+vsGrowableArray.o: /usr/include/X11/Xfuncproto.h /usr/include/X11/Xosdefs.h
+vsGrowableArray.o: /usr/include/stddef.h /usr/include/X11/Xutil.h
+vsGrowableArray.o: /usr/include/X11/extensions/XSGIvc.h
+vsGrowableArray.o: /usr/include/X11/extensions/XSGIvcstr.h
+vsGrowableArray.o: /usr/include/wctype.h /usr/include/wchar.h
+vsGrowableArray.o: /usr/include/locale_attr.h /usr/include/ctype.h
+vsGrowableArray.o: /usr/include/time.h /usr/include/GL/gl.h
+vsGrowableArray.o: /usr/include/GL/glx.h /usr/include/X11/Xmd.h
+vsGrowableArray.o: /usr/include/GL/glxtokens.h /usr/include/GL/glu.h
+vsGrowableArray.o: /usr/include/Performer/opengl.h
+vsGrowableArray.o: /usr/include/Performer/prmath.h /usr/include/math.h
+vsGrowableArray.o: /usr/include/Performer/prstats.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfType.h vsGlobals.h++
+vsGrowableArray.o: vsSystem.h++ vsPipe.h++ /usr/include/Performer/pf/pfPipe.h
+vsGrowableArray.o: /usr/include/Performer/pf/pfUpdatable.h
+vsGrowableArray.o: /usr/include/Performer/pf.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfLinMath.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfObject.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfStruct.h
+vsGrowableArray.o: /usr/include/Performer/pfstats.h
+vsGrowableArray.o: /usr/include/Performer/pf/pfBuffer.h
+vsGrowableArray.o: /usr/include/Performer/pf/pfUpdate.h
+vsGrowableArray.o: /usr/include/Performer/pf/pfLists.h
+vsGrowableArray.o: /usr/include/sys/stream.h /usr/include/sys/strmdep.h
+vsGrowableArray.o: /usr/include/sys/cdefs.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfVideoChannel.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfList.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfCalligraphic.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfStats.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfDispList.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfGeoState.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfState.h vsScreen.h++
+vsGrowableArray.o: vsWindow.h++ /usr/include/Performer/pf/pfPipeWindow.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfWindow.h vsPane.h++
+vsGrowableArray.o: /usr/include/Performer/pf/pfChannel.h
+vsGrowableArray.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
+vsGrowableArray.o: /usr/include/Performer/pf/pfEarthSky.h
+vsGrowableArray.o: /usr/include/Performer/pf/pfLODState.h
+vsGrowableArray.o: /usr/include/Performer/pf/pfFrameStats.h
+vsGrowableArray.o: /usr/include/Performer/pf/pfScene.h
+vsGrowableArray.o: /usr/include/Performer/pf/pfGroup.h
+vsGrowableArray.o: /usr/include/Performer/pf/pfNode.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfGeoMath.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfGeoSet.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfFlux.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfEngine.h
+vsGrowableArray.o: /usr/include/Performer/pr/pfCycleBuffer.h vsView.h++
+vsGrowableArray.o: ../math/vsVector.h++ ../math/vsMatrix.h++
+vsGrowableArray.o: ../math/vsQuat.h++ ../scene/vsViewpointAttribute.h++
+vsGrowableArray.o: ../scene/vsNode.h++ ../scene/vsAttributeList.h++
+vsGrowableArray.o: ../scene/vsAttribute.h++ vsDatabaseLoader.h++
+vsGrowableArray.o: /usr/include/Performer/pfdb/pfflt.h vsObjectMap.h++
+vsGrowableArray.o: vsGraphicsState.h++ ../scene/vsBackfaceAttribute.h++
+vsGrowableArray.o: ../scene/vsFogAttribute.h++
+vsGrowableArray.o: /usr/include/Performer/pr/pfFog.h
+vsGrowableArray.o: ../scene/vsMaterialAttribute.h++
+vsGrowableArray.o: /usr/include/Performer/pr/pfMaterial.h
+vsGrowableArray.o: ../scene/vsShadingAttribute.h++
+vsGrowableArray.o: ../scene/vsTextureAttribute.h++
+vsGrowableArray.o: /usr/include/Performer/pr/pfTexture.h
+vsGrowableArray.o: /usr/include/Performer/image.h
+vsGrowableArray.o: ../scene/vsTransparencyAttribute.h++
+vsObjectMap.o: vsObjectMap.h++ vsGrowableArray.h++ /usr/include/stdio.h
+vsObjectMap.o: /usr/include/standards.h /usr/include/sgidefs.h vsGlobals.h++
+vsPane.o: vsPane.h++ /usr/include/Performer/pf/pfChannel.h
+vsPane.o: /usr/include/math.h /usr/include/sgidefs.h /usr/include/standards.h
+vsPane.o: /usr/include/string.h /usr/include/Performer/pf/pfUpdatable.h
+vsPane.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
+vsPane.o: /usr/include/sys/types.h /usr/include/stdio.h /usr/include/ulocks.h
+vsPane.o: /usr/include/limits.h /usr/include/task.h /usr/include/sys/prctl.h
+vsPane.o: /usr/include/unistd.h /usr/include/errno.h /usr/include/sys/errno.h
+vsPane.o: /usr/include/X11/X.h /usr/include/X11/Xlib.h
+vsPane.o: /usr/include/X11/Xfuncproto.h /usr/include/X11/Xosdefs.h
+vsPane.o: /usr/include/stddef.h /usr/include/X11/Xutil.h
+vsPane.o: /usr/include/X11/extensions/XSGIvc.h
 vsPane.o: /usr/include/X11/extensions/XSGIvcstr.h /usr/include/wctype.h
 vsPane.o: /usr/include/wchar.h /usr/include/locale_attr.h
 vsPane.o: /usr/include/ctype.h /usr/include/time.h /usr/include/GL/gl.h
 vsPane.o: /usr/include/GL/glx.h /usr/include/X11/Xmd.h
 vsPane.o: /usr/include/GL/glxtokens.h /usr/include/GL/glu.h
 vsPane.o: /usr/include/Performer/opengl.h /usr/include/Performer/prmath.h
-vsPane.o: /usr/include/math.h /usr/include/Performer/prstats.h
-vsPane.o: /usr/include/Performer/pr/pfType.h
+vsPane.o: /usr/include/Performer/prstats.h
 vsPane.o: /usr/include/Performer/pr/pfLinMath.h
+vsPane.o: /usr/include/Performer/pr/pfObject.h
+vsPane.o: /usr/include/Performer/pr/pfMemory.h /usr/include/bstring.h
+vsPane.o: /usr/include/Performer/pr/pfType.h
 vsPane.o: /usr/include/Performer/pr/pfStruct.h
-vsPane.o: /usr/include/Performer/pr/pfLight.h ../scene/vsGeometry.h++
-vsPane.o: /usr/include/Performer/pf/pfGeode.h
-vsPane.o: /usr/include/Performer/pf/pfNode.h
-vsPane.o: /usr/include/Performer/pf/pfUpdatable.h /usr/include/Performer/pf.h
 vsPane.o: /usr/include/Performer/pfstats.h
 vsPane.o: /usr/include/Performer/pf/pfBuffer.h
 vsPane.o: /usr/include/Performer/pf/pfUpdate.h
 vsPane.o: /usr/include/Performer/pf/pfLists.h /usr/include/sys/stream.h
 vsPane.o: /usr/include/sys/strmdep.h /usr/include/sys/cdefs.h
-vsPane.o: /usr/include/Performer/pf/pfFrameStats.h
 vsPane.o: /usr/include/Performer/pf/pfPipe.h
 vsPane.o: /usr/include/Performer/pr/pfVideoChannel.h
 vsPane.o: /usr/include/Performer/pr/pfList.h
@@ -194,42 +296,36 @@ vsPane.o: /usr/include/Performer/pr/pfStats.h
 vsPane.o: /usr/include/Performer/pr/pfDispList.h
 vsPane.o: /usr/include/Performer/pr/pfGeoState.h
 vsPane.o: /usr/include/Performer/pr/pfState.h
-vsPane.o: /usr/include/Performer/pr/pfGeoMath.h
-vsPane.o: /usr/include/Performer/pr/pfFlux.h
-vsPane.o: /usr/include/Performer/pr/pfEngine.h vsSystem.h++ vsPipe.h++
-vsPane.o: vsGlobals.h++ vsScreen.h++ vsWindow.h++
 vsPane.o: /usr/include/Performer/pf/pfPipeWindow.h
-vsPane.o: /usr/include/Performer/pr/pfWindow.h vsPane.h++
-vsPane.o: /usr/include/Performer/pf/pfChannel.h
+vsPane.o: /usr/include/Performer/pr/pfWindow.h
 vsPane.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
 vsPane.o: /usr/include/Performer/pf/pfEarthSky.h
 vsPane.o: /usr/include/Performer/pf/pfLODState.h
+vsPane.o: /usr/include/Performer/pf/pfFrameStats.h
 vsPane.o: /usr/include/Performer/pf/pfScene.h
 vsPane.o: /usr/include/Performer/pf/pfGroup.h
+vsPane.o: /usr/include/Performer/pf/pfNode.h
+vsPane.o: /usr/include/Performer/pr/pfGeoMath.h
 vsPane.o: /usr/include/Performer/pr/pfGeoSet.h
-vsPane.o: /usr/include/Performer/pr/pfCycleBuffer.h vsView.h++
-vsPane.o: ../math/vsVector.h++ ../math/vsMatrix.h++ ../math/vsQuat.h++
-vsPane.o: ../scene/vsViewpointAttribute.h++ /usr/include/Performer/pf/pfSCS.h
-vsPane.o: ../scene/vsNode.h++ ../scene/vsAttributeList.h++
-vsPane.o: ../scene/vsAttribute.h++ /usr/include/stdlib.h
-vsPane.o: ../scene/vsComponent.h++ /usr/include/Performer/pf/pfSwitch.h
-vsPane.o: /usr/include/Performer/pf/pfSequence.h
-vsPane.o: /usr/include/Performer/pf/pfLOD.h ../scene/vsTransformAttribute.h++
-vsPane.o: /usr/include/Performer/pf/pfDCS.h vsDatabaseLoader.h++
-vsPane.o: /usr/include/Performer/pf/pfBillboard.h
-vsPane.o: /usr/include/Performer/pf/pfCuller.h /usr/include/alloca.h
-vsPane.o: /usr/include/Performer/pf/pfTraverser.h
-vsPane.o: /usr/include/Performer/pr/pfSprite.h /usr/include/Performer/pfdu.h
-vsPane.o: /usr/include/Performer/pfutil.h /usr/include/dlfcn.h
-vsPane.o: /usr/include/Performer/objfnt.h /usr/include/Performer/pfdb/pfflt.h
-vsPane.o: ../scene/vsSwitchAttribute.h++ ../scene/vsSequenceAttribute.h++
-vsPane.o: ../scene/vsLODAttribute.h++ ../scene/vsBillboardAttribute.h++
-vsPane.o: vsObjectMap.h++ ../scene/vsFogAttribute.h++
-vsPane.o: /usr/include/Performer/pr/pfFog.h ../scene/vsMaterialAttribute.h++
-vsPane.o: ../scene/vsTextureAttribute.h++
+vsPane.o: /usr/include/Performer/pr/pfFlux.h
+vsPane.o: /usr/include/Performer/pr/pfEngine.h
+vsPane.o: /usr/include/Performer/pr/pfCycleBuffer.h vsWindow.h++ vsScreen.h++
+vsPane.o: vsPipe.h++ vsGlobals.h++ vsGrowableArray.h++ vsView.h++
+vsPane.o: vsSystem.h++ vsDatabaseLoader.h++
+vsPane.o: /usr/include/Performer/pfdb/pfflt.h ../scene/vsNode.h++
+vsPane.o: ../scene/vsAttributeList.h++ ../scene/vsAttribute.h++
+vsPane.o: /usr/include/stdlib.h ../math/vsVector.h++ vsObjectMap.h++
+vsPane.o: vsGraphicsState.h++ ../scene/vsBackfaceAttribute.h++
+vsPane.o: ../scene/vsFogAttribute.h++ /usr/include/Performer/pr/pfFog.h
+vsPane.o: ../scene/vsMaterialAttribute.h++
+vsPane.o: /usr/include/Performer/pr/pfMaterial.h
+vsPane.o: ../scene/vsShadingAttribute.h++ ../scene/vsTextureAttribute.h++
 vsPane.o: /usr/include/Performer/pr/pfTexture.h
 vsPane.o: /usr/include/Performer/image.h ../scene/vsTransparencyAttribute.h++
-vsPane.o: ../scene/vsBackfaceAttribute.h++
+vsPane.o: ../math/vsMatrix.h++ ../math/vsQuat.h++
+vsPane.o: ../scene/vsViewpointAttribute.h++
+vsPane.o: /usr/include/Performer/pr/pfLight.h ../scene/vsGeometry.h++
+vsPane.o: /usr/include/Performer/pf/pfGeode.h ../scene/vsComponent.h++
 vsPipe.o: vsPipe.h++ /usr/include/Performer/pf/pfPipe.h
 vsPipe.o: /usr/include/Performer/pf/pfUpdatable.h /usr/include/Performer/pf.h
 vsPipe.o: /usr/include/Performer/pr.h /usr/include/sys/types.h
@@ -279,32 +375,19 @@ vsPipe.o: /usr/include/Performer/pr/pfGeoSet.h
 vsPipe.o: /usr/include/Performer/pr/pfFlux.h
 vsPipe.o: /usr/include/Performer/pr/pfEngine.h
 vsPipe.o: /usr/include/Performer/pr/pfCycleBuffer.h vsView.h++ vsSystem.h++
-vsPipe.o: vsDatabaseLoader.h++ /usr/include/Performer/pf/pfGeode.h
-vsPipe.o: /usr/include/Performer/pf/pfBillboard.h
-vsPipe.o: /usr/include/Performer/pf/pfCuller.h /usr/include/alloca.h
-vsPipe.o: /usr/include/Performer/pf/pfTraverser.h
-vsPipe.o: /usr/include/Performer/pr/pfSprite.h
-vsPipe.o: /usr/include/Performer/pf/pfDCS.h /usr/include/Performer/pf/pfSCS.h
-vsPipe.o: /usr/include/Performer/pfdu.h /usr/include/Performer/pfutil.h
-vsPipe.o: /usr/include/dlfcn.h /usr/include/Performer/objfnt.h
-vsPipe.o: /usr/include/Performer/pfdb/pfflt.h ../scene/vsNode.h++
+vsPipe.o: vsDatabaseLoader.h++ /usr/include/Performer/pfdb/pfflt.h
+vsPipe.o: ../scene/vsNode.h++ vsGrowableArray.h++
 vsPipe.o: ../scene/vsAttributeList.h++ ../scene/vsAttribute.h++
-vsPipe.o: /usr/include/stdlib.h vsObjectMap.h++ ../math/vsMatrix.h++
-vsPipe.o: ../math/vsVector.h++ ../math/vsQuat.h++
-vsPipe.o: ../scene/vsViewpointAttribute.h++ ../scene/vsComponent.h++
-vsPipe.o: /usr/include/Performer/pf/pfSwitch.h
-vsPipe.o: /usr/include/Performer/pf/pfSequence.h
-vsPipe.o: /usr/include/Performer/pf/pfLOD.h ../scene/vsTransformAttribute.h++
-vsPipe.o: ../scene/vsSwitchAttribute.h++ ../scene/vsSequenceAttribute.h++
-vsPipe.o: ../scene/vsLODAttribute.h++ ../scene/vsBillboardAttribute.h++
-vsPipe.o: ../scene/vsGeometry.h++ ../scene/vsFogAttribute.h++
-vsPipe.o: /usr/include/Performer/pr/pfFog.h ../scene/vsMaterialAttribute.h++
+vsPipe.o: /usr/include/stdlib.h ../math/vsVector.h++ vsObjectMap.h++
+vsPipe.o: vsGraphicsState.h++ ../scene/vsBackfaceAttribute.h++
+vsPipe.o: ../scene/vsFogAttribute.h++ /usr/include/Performer/pr/pfFog.h
+vsPipe.o: ../scene/vsMaterialAttribute.h++
 vsPipe.o: /usr/include/Performer/pr/pfMaterial.h
-vsPipe.o: ../scene/vsTextureAttribute.h++
+vsPipe.o: ../scene/vsShadingAttribute.h++ ../scene/vsTextureAttribute.h++
 vsPipe.o: /usr/include/Performer/pr/pfTexture.h
 vsPipe.o: /usr/include/Performer/image.h ../scene/vsTransparencyAttribute.h++
-vsPipe.o: ../scene/vsBackfaceAttribute.h++
-vsPipe.o: /usr/include/Performer/pr/pfLight.h
+vsPipe.o: ../math/vsMatrix.h++ ../math/vsQuat.h++
+vsPipe.o: ../scene/vsViewpointAttribute.h++
 vsScreen.o: vsScreen.h++ vsPipe.h++ /usr/include/Performer/pf/pfPipe.h
 vsScreen.o: /usr/include/Performer/pf/pfUpdatable.h
 vsScreen.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
@@ -356,44 +439,30 @@ vsScreen.o: /usr/include/Performer/pr/pfGeoSet.h
 vsScreen.o: /usr/include/Performer/pr/pfFlux.h
 vsScreen.o: /usr/include/Performer/pr/pfEngine.h
 vsScreen.o: /usr/include/Performer/pr/pfCycleBuffer.h vsView.h++ vsSystem.h++
-vsScreen.o: vsDatabaseLoader.h++ /usr/include/Performer/pf/pfGeode.h
-vsScreen.o: /usr/include/Performer/pf/pfBillboard.h
-vsScreen.o: /usr/include/Performer/pf/pfCuller.h /usr/include/alloca.h
-vsScreen.o: /usr/include/Performer/pf/pfTraverser.h
-vsScreen.o: /usr/include/Performer/pr/pfSprite.h
-vsScreen.o: /usr/include/Performer/pf/pfDCS.h
-vsScreen.o: /usr/include/Performer/pf/pfSCS.h /usr/include/Performer/pfdu.h
-vsScreen.o: /usr/include/Performer/pfutil.h /usr/include/dlfcn.h
-vsScreen.o: /usr/include/Performer/objfnt.h
-vsScreen.o: /usr/include/Performer/pfdb/pfflt.h ../scene/vsNode.h++
+vsScreen.o: vsDatabaseLoader.h++ /usr/include/Performer/pfdb/pfflt.h
+vsScreen.o: ../scene/vsNode.h++ vsGrowableArray.h++
 vsScreen.o: ../scene/vsAttributeList.h++ ../scene/vsAttribute.h++
-vsScreen.o: /usr/include/stdlib.h vsObjectMap.h++ ../math/vsMatrix.h++
-vsScreen.o: ../math/vsVector.h++ ../math/vsQuat.h++
-vsScreen.o: ../scene/vsViewpointAttribute.h++ ../scene/vsComponent.h++
-vsScreen.o: /usr/include/Performer/pf/pfSwitch.h
-vsScreen.o: /usr/include/Performer/pf/pfSequence.h
-vsScreen.o: /usr/include/Performer/pf/pfLOD.h
-vsScreen.o: ../scene/vsTransformAttribute.h++ ../scene/vsSwitchAttribute.h++
-vsScreen.o: ../scene/vsSequenceAttribute.h++ ../scene/vsLODAttribute.h++
-vsScreen.o: ../scene/vsBillboardAttribute.h++ ../scene/vsGeometry.h++
+vsScreen.o: /usr/include/stdlib.h ../math/vsVector.h++ vsObjectMap.h++
+vsScreen.o: vsGraphicsState.h++ ../scene/vsBackfaceAttribute.h++
 vsScreen.o: ../scene/vsFogAttribute.h++ /usr/include/Performer/pr/pfFog.h
 vsScreen.o: ../scene/vsMaterialAttribute.h++
 vsScreen.o: /usr/include/Performer/pr/pfMaterial.h
-vsScreen.o: ../scene/vsTextureAttribute.h++
+vsScreen.o: ../scene/vsShadingAttribute.h++ ../scene/vsTextureAttribute.h++
 vsScreen.o: /usr/include/Performer/pr/pfTexture.h
 vsScreen.o: /usr/include/Performer/image.h
-vsScreen.o: ../scene/vsTransparencyAttribute.h++
-vsScreen.o: ../scene/vsBackfaceAttribute.h++
-vsScreen.o: /usr/include/Performer/pr/pfLight.h
-vsSystem.o: /usr/include/X11/Xlib.h /usr/include/sys/types.h
-vsSystem.o: /usr/include/standards.h /usr/include/sgidefs.h
-vsSystem.o: /usr/include/X11/X.h /usr/include/X11/Xfuncproto.h
-vsSystem.o: /usr/include/X11/Xosdefs.h /usr/include/stddef.h
+vsScreen.o: ../scene/vsTransparencyAttribute.h++ ../math/vsMatrix.h++
+vsScreen.o: ../math/vsQuat.h++ ../scene/vsViewpointAttribute.h++
+vsSystem.o: vsSystem.h++ vsPipe.h++ /usr/include/Performer/pf/pfPipe.h
+vsSystem.o: /usr/include/Performer/pf/pfUpdatable.h
 vsSystem.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
-vsSystem.o: /usr/include/stdio.h /usr/include/ulocks.h /usr/include/limits.h
-vsSystem.o: /usr/include/task.h /usr/include/sys/prctl.h
-vsSystem.o: /usr/include/unistd.h /usr/include/errno.h
-vsSystem.o: /usr/include/sys/errno.h /usr/include/X11/Xutil.h
+vsSystem.o: /usr/include/sys/types.h /usr/include/standards.h
+vsSystem.o: /usr/include/sgidefs.h /usr/include/stdio.h /usr/include/ulocks.h
+vsSystem.o: /usr/include/limits.h /usr/include/task.h
+vsSystem.o: /usr/include/sys/prctl.h /usr/include/unistd.h
+vsSystem.o: /usr/include/errno.h /usr/include/sys/errno.h
+vsSystem.o: /usr/include/X11/X.h /usr/include/X11/Xlib.h
+vsSystem.o: /usr/include/X11/Xfuncproto.h /usr/include/X11/Xosdefs.h
+vsSystem.o: /usr/include/stddef.h /usr/include/X11/Xutil.h
 vsSystem.o: /usr/include/X11/extensions/XSGIvc.h
 vsSystem.o: /usr/include/X11/extensions/XSGIvcstr.h /usr/include/wctype.h
 vsSystem.o: /usr/include/wchar.h /usr/include/locale_attr.h
@@ -407,9 +476,7 @@ vsSystem.o: /usr/include/Performer/pr/pfObject.h
 vsSystem.o: /usr/include/Performer/pr/pfMemory.h /usr/include/string.h
 vsSystem.o: /usr/include/bstring.h /usr/include/Performer/pr/pfType.h
 vsSystem.o: /usr/include/Performer/pr/pfStruct.h
-vsSystem.o: /usr/include/Performer/pfstats.h vsSystem.h++ vsPipe.h++
-vsSystem.o: /usr/include/Performer/pf/pfPipe.h
-vsSystem.o: /usr/include/Performer/pf/pfUpdatable.h
+vsSystem.o: /usr/include/Performer/pfstats.h
 vsSystem.o: /usr/include/Performer/pf/pfBuffer.h
 vsSystem.o: /usr/include/Performer/pf/pfUpdate.h
 vsSystem.o: /usr/include/Performer/pf/pfLists.h /usr/include/sys/stream.h
@@ -437,35 +504,22 @@ vsSystem.o: /usr/include/Performer/pr/pfFlux.h
 vsSystem.o: /usr/include/Performer/pr/pfEngine.h
 vsSystem.o: /usr/include/Performer/pr/pfCycleBuffer.h vsView.h++
 vsSystem.o: ../math/vsVector.h++ ../math/vsMatrix.h++ ../math/vsQuat.h++
-vsSystem.o: ../scene/vsViewpointAttribute.h++
-vsSystem.o: /usr/include/Performer/pf/pfSCS.h ../scene/vsNode.h++
-vsSystem.o: ../scene/vsAttributeList.h++ ../scene/vsAttribute.h++
-vsSystem.o: /usr/include/stdlib.h ../scene/vsComponent.h++
-vsSystem.o: /usr/include/Performer/pf/pfSwitch.h
-vsSystem.o: /usr/include/Performer/pf/pfSequence.h
-vsSystem.o: /usr/include/Performer/pf/pfLOD.h
-vsSystem.o: /usr/include/Performer/pf/pfGeode.h
-vsSystem.o: ../scene/vsTransformAttribute.h++
-vsSystem.o: /usr/include/Performer/pf/pfDCS.h vsDatabaseLoader.h++
-vsSystem.o: /usr/include/Performer/pf/pfBillboard.h
-vsSystem.o: /usr/include/Performer/pf/pfCuller.h /usr/include/alloca.h
-vsSystem.o: /usr/include/Performer/pf/pfTraverser.h
-vsSystem.o: /usr/include/Performer/pr/pfSprite.h
-vsSystem.o: /usr/include/Performer/pfdu.h /usr/include/Performer/pfutil.h
-vsSystem.o: /usr/include/dlfcn.h /usr/include/Performer/objfnt.h
-vsSystem.o: /usr/include/Performer/pfdb/pfflt.h
-vsSystem.o: ../scene/vsSwitchAttribute.h++ ../scene/vsSequenceAttribute.h++
-vsSystem.o: ../scene/vsLODAttribute.h++ ../scene/vsBillboardAttribute.h++
-vsSystem.o: ../scene/vsGeometry.h++ ../scene/vsFogAttribute.h++
+vsSystem.o: ../scene/vsViewpointAttribute.h++ ../scene/vsNode.h++
+vsSystem.o: vsGrowableArray.h++ ../scene/vsAttributeList.h++
+vsSystem.o: ../scene/vsAttribute.h++ /usr/include/stdlib.h
+vsSystem.o: vsDatabaseLoader.h++ /usr/include/Performer/pfdb/pfflt.h
+vsSystem.o: vsObjectMap.h++ vsGraphicsState.h++
+vsSystem.o: ../scene/vsBackfaceAttribute.h++ ../scene/vsFogAttribute.h++
 vsSystem.o: /usr/include/Performer/pr/pfFog.h
 vsSystem.o: ../scene/vsMaterialAttribute.h++
 vsSystem.o: /usr/include/Performer/pr/pfMaterial.h
-vsSystem.o: ../scene/vsTextureAttribute.h++
+vsSystem.o: ../scene/vsShadingAttribute.h++ ../scene/vsTextureAttribute.h++
 vsSystem.o: /usr/include/Performer/pr/pfTexture.h
 vsSystem.o: /usr/include/Performer/image.h
 vsSystem.o: ../scene/vsTransparencyAttribute.h++
-vsSystem.o: ../scene/vsBackfaceAttribute.h++
-vsSystem.o: /usr/include/Performer/pr/pfLight.h vsObjectMap.h++
+vsSystem.o: /usr/include/Performer/pfutil.h ../scene/vsLightAttribute.h++
+vsSystem.o: /usr/include/Performer/pr/pfLight.h
+vsSystem.o: /usr/include/Performer/pf/pfLightSource.h
 vsView.o: vsView.h++ /usr/include/math.h /usr/include/sgidefs.h
 vsView.o: /usr/include/standards.h vsSystem.h++ vsPipe.h++
 vsView.o: /usr/include/Performer/pf/pfPipe.h
@@ -515,45 +569,31 @@ vsView.o: /usr/include/Performer/pr/pfGeoMath.h
 vsView.o: /usr/include/Performer/pr/pfGeoSet.h
 vsView.o: /usr/include/Performer/pr/pfFlux.h
 vsView.o: /usr/include/Performer/pr/pfEngine.h
-vsView.o: /usr/include/Performer/pr/pfCycleBuffer.h ../scene/vsComponent.h++
-vsView.o: /usr/include/Performer/pf/pfSwitch.h
-vsView.o: /usr/include/Performer/pf/pfSequence.h
-vsView.o: /usr/include/Performer/pf/pfLOD.h
-vsView.o: /usr/include/Performer/pf/pfGeode.h
-vsView.o: ../scene/vsTransformAttribute.h++ /usr/include/Performer/pf/pfDCS.h
-vsView.o: /usr/include/Performer/pf/pfSCS.h ../math/vsMatrix.h++
-vsView.o: ../math/vsVector.h++ ../math/vsQuat.h++ vsDatabaseLoader.h++
-vsView.o: /usr/include/Performer/pf/pfBillboard.h
-vsView.o: /usr/include/Performer/pf/pfCuller.h /usr/include/alloca.h
-vsView.o: /usr/include/Performer/pf/pfTraverser.h
-vsView.o: /usr/include/Performer/pr/pfSprite.h /usr/include/Performer/pfdu.h
-vsView.o: /usr/include/Performer/pfutil.h /usr/include/dlfcn.h
-vsView.o: /usr/include/Performer/objfnt.h /usr/include/Performer/pfdb/pfflt.h
-vsView.o: ../scene/vsNode.h++ ../scene/vsAttributeList.h++
-vsView.o: ../scene/vsAttribute.h++ /usr/include/stdlib.h
-vsView.o: ../scene/vsSwitchAttribute.h++ ../scene/vsSequenceAttribute.h++
-vsView.o: ../scene/vsLODAttribute.h++ ../scene/vsBillboardAttribute.h++
-vsView.o: ../scene/vsGeometry.h++ ../scene/vsFogAttribute.h++
+vsView.o: /usr/include/Performer/pr/pfCycleBuffer.h ../scene/vsNode.h++
+vsView.o: vsGrowableArray.h++ ../scene/vsAttributeList.h++
+vsView.o: ../scene/vsAttribute.h++ /usr/include/stdlib.h ../math/vsVector.h++
+vsView.o: vsDatabaseLoader.h++ /usr/include/Performer/pfdb/pfflt.h
+vsView.o: vsObjectMap.h++ vsGraphicsState.h++
+vsView.o: ../scene/vsBackfaceAttribute.h++ ../scene/vsFogAttribute.h++
 vsView.o: /usr/include/Performer/pr/pfFog.h ../scene/vsMaterialAttribute.h++
 vsView.o: /usr/include/Performer/pr/pfMaterial.h
-vsView.o: ../scene/vsTextureAttribute.h++
+vsView.o: ../scene/vsShadingAttribute.h++ ../scene/vsTextureAttribute.h++
 vsView.o: /usr/include/Performer/pr/pfTexture.h
 vsView.o: /usr/include/Performer/image.h ../scene/vsTransparencyAttribute.h++
-vsView.o: ../scene/vsBackfaceAttribute.h++
-vsView.o: /usr/include/Performer/pr/pfLight.h vsObjectMap.h++
+vsView.o: ../math/vsMatrix.h++ ../math/vsQuat.h++
 vsView.o: ../scene/vsViewpointAttribute.h++
-vsWindow.o: /usr/include/X11/Xlib.h /usr/include/sys/types.h
-vsWindow.o: /usr/include/standards.h /usr/include/sgidefs.h
-vsWindow.o: /usr/include/X11/X.h /usr/include/X11/Xfuncproto.h
-vsWindow.o: /usr/include/X11/Xosdefs.h /usr/include/stddef.h
-vsWindow.o: /usr/include/X11/Xutil.h vsWindow.h++
-vsWindow.o: /usr/include/Performer/pf/pfPipeWindow.h
+vsWindow.o: vsWindow.h++ /usr/include/Performer/pf/pfPipeWindow.h
 vsWindow.o: /usr/include/Performer/pf/pfUpdatable.h
 vsWindow.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
-vsWindow.o: /usr/include/stdio.h /usr/include/ulocks.h /usr/include/limits.h
-vsWindow.o: /usr/include/task.h /usr/include/sys/prctl.h
-vsWindow.o: /usr/include/unistd.h /usr/include/errno.h
-vsWindow.o: /usr/include/sys/errno.h /usr/include/X11/extensions/XSGIvc.h
+vsWindow.o: /usr/include/sys/types.h /usr/include/standards.h
+vsWindow.o: /usr/include/sgidefs.h /usr/include/stdio.h /usr/include/ulocks.h
+vsWindow.o: /usr/include/limits.h /usr/include/task.h
+vsWindow.o: /usr/include/sys/prctl.h /usr/include/unistd.h
+vsWindow.o: /usr/include/errno.h /usr/include/sys/errno.h
+vsWindow.o: /usr/include/X11/X.h /usr/include/X11/Xlib.h
+vsWindow.o: /usr/include/X11/Xfuncproto.h /usr/include/X11/Xosdefs.h
+vsWindow.o: /usr/include/stddef.h /usr/include/X11/Xutil.h
+vsWindow.o: /usr/include/X11/extensions/XSGIvc.h
 vsWindow.o: /usr/include/X11/extensions/XSGIvcstr.h /usr/include/wctype.h
 vsWindow.o: /usr/include/wchar.h /usr/include/locale_attr.h
 vsWindow.o: /usr/include/ctype.h /usr/include/time.h /usr/include/GL/gl.h
@@ -580,7 +620,8 @@ vsWindow.o: /usr/include/Performer/pr/pfDispList.h
 vsWindow.o: /usr/include/Performer/pr/pfGeoState.h
 vsWindow.o: /usr/include/Performer/pr/pfState.h
 vsWindow.o: /usr/include/Performer/pr/pfWindow.h vsScreen.h++ vsPipe.h++
-vsWindow.o: vsGlobals.h++ vsPane.h++ /usr/include/Performer/pf/pfChannel.h
+vsWindow.o: vsGlobals.h++ vsGrowableArray.h++ vsPane.h++
+vsWindow.o: /usr/include/Performer/pf/pfChannel.h
 vsWindow.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
 vsWindow.o: /usr/include/Performer/pf/pfEarthSky.h
 vsWindow.o: /usr/include/Performer/pf/pfLODState.h
@@ -593,32 +634,16 @@ vsWindow.o: /usr/include/Performer/pr/pfGeoSet.h
 vsWindow.o: /usr/include/Performer/pr/pfFlux.h
 vsWindow.o: /usr/include/Performer/pr/pfEngine.h
 vsWindow.o: /usr/include/Performer/pr/pfCycleBuffer.h vsView.h++ vsSystem.h++
-vsWindow.o: vsDatabaseLoader.h++ /usr/include/Performer/pf/pfGeode.h
-vsWindow.o: /usr/include/Performer/pf/pfBillboard.h
-vsWindow.o: /usr/include/Performer/pf/pfCuller.h /usr/include/alloca.h
-vsWindow.o: /usr/include/Performer/pf/pfTraverser.h
-vsWindow.o: /usr/include/Performer/pr/pfSprite.h
-vsWindow.o: /usr/include/Performer/pf/pfDCS.h
-vsWindow.o: /usr/include/Performer/pf/pfSCS.h /usr/include/Performer/pfdu.h
-vsWindow.o: /usr/include/Performer/pfutil.h /usr/include/dlfcn.h
-vsWindow.o: /usr/include/Performer/objfnt.h
-vsWindow.o: /usr/include/Performer/pfdb/pfflt.h ../scene/vsNode.h++
-vsWindow.o: ../scene/vsAttributeList.h++ ../scene/vsAttribute.h++
-vsWindow.o: /usr/include/stdlib.h vsObjectMap.h++ ../math/vsMatrix.h++
-vsWindow.o: ../math/vsVector.h++ ../math/vsQuat.h++
-vsWindow.o: ../scene/vsViewpointAttribute.h++ ../scene/vsComponent.h++
-vsWindow.o: /usr/include/Performer/pf/pfSwitch.h
-vsWindow.o: /usr/include/Performer/pf/pfSequence.h
-vsWindow.o: /usr/include/Performer/pf/pfLOD.h
-vsWindow.o: ../scene/vsTransformAttribute.h++ ../scene/vsSwitchAttribute.h++
-vsWindow.o: ../scene/vsSequenceAttribute.h++ ../scene/vsLODAttribute.h++
-vsWindow.o: ../scene/vsBillboardAttribute.h++ ../scene/vsGeometry.h++
-vsWindow.o: ../scene/vsFogAttribute.h++ /usr/include/Performer/pr/pfFog.h
+vsWindow.o: vsDatabaseLoader.h++ /usr/include/Performer/pfdb/pfflt.h
+vsWindow.o: ../scene/vsNode.h++ ../scene/vsAttributeList.h++
+vsWindow.o: ../scene/vsAttribute.h++ /usr/include/stdlib.h
+vsWindow.o: ../math/vsVector.h++ vsObjectMap.h++ vsGraphicsState.h++
+vsWindow.o: ../scene/vsBackfaceAttribute.h++ ../scene/vsFogAttribute.h++
+vsWindow.o: /usr/include/Performer/pr/pfFog.h
 vsWindow.o: ../scene/vsMaterialAttribute.h++
 vsWindow.o: /usr/include/Performer/pr/pfMaterial.h
-vsWindow.o: ../scene/vsTextureAttribute.h++
+vsWindow.o: ../scene/vsShadingAttribute.h++ ../scene/vsTextureAttribute.h++
 vsWindow.o: /usr/include/Performer/pr/pfTexture.h
 vsWindow.o: /usr/include/Performer/image.h
-vsWindow.o: ../scene/vsTransparencyAttribute.h++
-vsWindow.o: ../scene/vsBackfaceAttribute.h++
-vsWindow.o: /usr/include/Performer/pr/pfLight.h
+vsWindow.o: ../scene/vsTransparencyAttribute.h++ ../math/vsMatrix.h++
+vsWindow.o: ../math/vsQuat.h++ ../scene/vsViewpointAttribute.h++

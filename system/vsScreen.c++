@@ -6,9 +6,9 @@
 // Constructor - Initializes the child window list and sets this object
 // as a child of its parent pipe
 // ------------------------------------------------------------------------
-vsScreen::vsScreen(vsPipe *parent)
+vsScreen::vsScreen(vsPipe *parent) : childWindowList(1, 1, 0)
 {
-    childWindowList = NULL;
+    childWindowCount = 0;
 
     parentPipe = parent;
     parentPipe->setScreen(this);
@@ -19,8 +19,12 @@ vsScreen::vsScreen(vsPipe *parent)
 // ------------------------------------------------------------------------
 vsScreen::~vsScreen()
 {
-    while (childWindowList)
-        delete (childWindowList->data);
+    // Delete all child windows
+    // The vsWindow destructor includes a call to the parent vsScreen (this)
+    // to remove it from the window list. Keep deleting vsWindows and
+    // eventually the list will go away by itself.
+    while (childWindowCount > 0)
+        delete ((vsWindow *)(childWindowList[0]));
 }
 
 // ------------------------------------------------------------------------
@@ -36,13 +40,7 @@ vsPipe *vsScreen::getParentPipe()
 // ------------------------------------------------------------------------
 int vsScreen::getChildWindowCount()
 {
-    vsWindowListNode *listNode;
-    int result = 0;
-    
-    for (listNode = childWindowList; listNode; listNode = listNode->next)
-        result++;
-
-    return result;
+    return childWindowCount;
 }
 
 // ------------------------------------------------------------------------
@@ -51,24 +49,13 @@ int vsScreen::getChildWindowCount()
 // ------------------------------------------------------------------------
 vsWindow *vsScreen::getChildWindow(int index)
 {
-    vsWindowListNode *node;
-    int loop;
-
-    if (index < 0)
+    if ((index < 0) || (index >= childWindowCount))
     {
-        printf("vsScreen::getChildWindow: Bad index value\n");
+        printf("vsScreen::getChildWindow: Index out of bounds\n");
         return NULL;
     }
 
-    node = childWindowList;
-    for (loop = 0; (loop < index) && (node); loop++)
-        node = node->next;
-
-    if (!node)
-        printf("vsScreen::getChildWindow: Index greater than number of \
-children\n");
-
-    return node->data;
+    return (vsWindow *)(childWindowList[index]);
 }
 
 // ------------------------------------------------------------------------
@@ -94,13 +81,7 @@ void vsScreen::getScreenSize(int *width, int *height)
 void vsScreen::addWindow(vsWindow *newWindow)
 {
     // Add window to screen's internal list
-    vsWindowListNode *newNode;
-    
-    newNode = new vsWindowListNode;
-    newNode->data = newWindow;
-    newNode->next = childWindowList;
-    
-    childWindowList = newNode;
+    childWindowList[childWindowCount++] = newWindow;
 }
 
 // ------------------------------------------------------------------------
@@ -110,30 +91,16 @@ void vsScreen::addWindow(vsWindow *newWindow)
 void vsScreen::removeWindow(vsWindow *targetWindow)
 {
     // Remove window from screen's internal list
-    vsWindowListNode *thisNode, *prevNode;
-
-    if (childWindowList->data == targetWindow)
-    {
-        thisNode = childWindowList;
-        childWindowList = childWindowList->next;
-        delete thisNode;
-    }
-    else
-    {
-        prevNode = childWindowList;
-        thisNode = prevNode->next;
-        while ((thisNode) && (thisNode->data != targetWindow))
+    int loop, sloop;
+    
+    for (loop = 0; loop < childWindowCount; loop++)
+        if (targetWindow == childWindowList[loop])
         {
-            prevNode = thisNode;
-            thisNode = thisNode->next;
+            for (sloop = loop; sloop < (childWindowCount-1); sloop++)
+                childWindowList[sloop] = childWindowList[sloop+1];
+            childWindowCount--;
+            return;
         }
 
-        if (thisNode)
-        {
-            prevNode->next = thisNode->next;
-            delete thisNode;
-        }
-        else
-            printf("vsScreen::removeWindow: Specified window not part of screen\n");
-    }
+    printf("vsScreen::removeWindow: Specified window not part of screen\n");
 }

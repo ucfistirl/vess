@@ -1,8 +1,11 @@
 // File vsSystem.c++
 
+#include "vsSystem.h++"
+
 #include <X11/Xlib.h>
 #include <Performer/pf.h>
-#include "vsSystem.h++"
+#include <Performer/pfutil.h>
+#include "vsLightAttribute.h++"
 
 vsSystem *vsSystem::systemObject = NULL;
 
@@ -44,6 +47,10 @@ vsSystem::vsSystem(vsDatabaseLoader *fileLoader)
     if (databaseLoader)
         databaseLoader->init();
 
+    graphicsState = new vsGraphicsState();
+
+    // * This call can potentially fork new processes, so every object
+    // that must be visible to all processes should be created before this
     pfConfig();
     
     // Set up the internal vsScreen and vsPipe objects
@@ -117,15 +124,19 @@ vsSystem::vsSystem(char *databaseFilename, char **nameList, char *windowTitle,
     databaseLoader->init();
     if (nameList)
     {
-	loop = 0;
-	nodeName = nameList[0];
-	while (nodeName)
-	{
-	    databaseLoader->addImportantNodeName(nodeName);
-	    nodeName = nameList[++loop];
-	}
+        loop = 0;
+        nodeName = nameList[0];
+        while (nodeName)
+        {
+            databaseLoader->addImportantNodeName(nodeName);
+            nodeName = nameList[++loop];
+        }
     }
 
+    graphicsState = new vsGraphicsState();
+
+    // * This call can potentially fork new processes, so every object
+    // that must be visible to all processes should be created before this
     pfConfig();
     
     // Set up the internal vsScreen and vsPipe objects
@@ -140,11 +151,11 @@ vsSystem::vsSystem(char *databaseFilename, char **nameList, char *windowTitle,
     // Set up the default window, pane, and view objects
     defaultWindow = new vsWindow(getScreen(0), fullScreen);
     if (fullScreen)
-	defaultWindow->setFullScreen();
+        defaultWindow->setFullScreen();
     if (windowTitle)
-	defaultWindow->setName(windowTitle);
+        defaultWindow->setName(windowTitle);
     else
-	defaultWindow->setName(databaseFilename);
+        defaultWindow->setName(databaseFilename);
 
     defaultPane = new vsPane(defaultWindow);
     defaultPane->autoConfigure(VS_PANE_PLACEMENT_FULL_WINDOW);
@@ -172,11 +183,11 @@ vsSystem::vsSystem(char *databaseFilename, char **nameList, char *windowTitle,
     
     // Return the requested values and finish
     if (sceneGraph)
-	*sceneGraph = scene;
+        *sceneGraph = scene;
     if (viewpoint)
-	*viewpoint = defaultView;
+        *viewpoint = defaultView;
     if (window)
-	*window = defaultWindow;
+        *window = defaultWindow;
 }
 
 
@@ -260,11 +271,26 @@ vsNode *vsSystem::loadDatabase(char *databaseFilename)
 
 // ------------------------------------------------------------------------
 // VESS internal function
-// Retrieves the node map object for the system object.
+// Retrieves the node map object for the system object
 // ------------------------------------------------------------------------
 vsObjectMap *vsSystem::getNodeMap()
 {
+    if (!validObject)
+        return NULL;
+
     return nodeMap;
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Retrieves the graphics state object for the system object
+// ------------------------------------------------------------------------
+vsGraphicsState *vsSystem::getGraphicsState()
+{
+    if (!validObject)
+        return NULL;
+
+    return graphicsState;
 }
 
 // ------------------------------------------------------------------------

@@ -3,17 +3,10 @@
 #ifndef VS_DATABASE_LOADER_HPP
 #define VS_DATABASE_LOADER_HPP
 
-#include <string.h>
-#include <Performer/pf/pfGeode.h>
-#include <Performer/pf/pfBillboard.h>
-#include <Performer/pf/pfDCS.h>
-#include <Performer/pfdu.h>
+#include <Performer/pf/pfNode.h>
 #include <Performer/pfdb/pfflt.h>
-
 #include "vsNode.h++"
-
-#define VS_DBL_MAX_EXT_COUNT  5
-#define VS_DBL_MAX_NAME_COUNT 200
+#include "vsGrowableArray.h++"
 
 enum vsDatabaseType
 {
@@ -39,21 +32,21 @@ class vsDatabaseLoader
 {
 private:
 
-    char        *extensions[VS_DBL_MAX_EXT_COUNT];
-    int         extensionCount;
+    vsGrowableArray    extensions;
+    int                extensionCount;
     
-    char        *nodeNames[VS_DBL_MAX_NAME_COUNT];
-    int         nodeNameCount;
+    vsGrowableArray    nodeNames;
+    int                nodeNameCount;
     
-    int         unitMode;
+    int                unitMode;
 
-    int         inittedFlag;
+    int                inittedFlag;
     
-    int         classifyExtension(char *name);
+    int                classifyExtension(char *name);
 
-    void        fixPerformerFltDOF(pfNode *node);
-    void        fixGeodes(pfNode *targetGraph);
-    void        replaceBillboards(pfNode *targetGraph);
+    void               fixPerformerFltDOF(pfNode *node);
+    void               fixGeodes(pfNode *targetGraph);
+    void               replaceBillboards(pfNode *targetGraph);
 
 VS_INTERNAL:
 
@@ -76,7 +69,7 @@ public:
     
     void        setUnits(int databaseUnit);
     
-    void	addPath(char *filePath);
+    void        addPath(char *filePath);
     
     vsNode      *loadDatabase(char *databaseFilename);
 };
