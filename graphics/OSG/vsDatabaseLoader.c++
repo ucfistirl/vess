@@ -80,6 +80,7 @@ vsDatabaseLoader::vsDatabaseLoader() : nodeNames(0, 50)
 // ------------------------------------------------------------------------
 vsDatabaseLoader::~vsDatabaseLoader()
 {
+    // Delete the important names list
     clearNames();
 }
 
@@ -90,7 +91,10 @@ vsDatabaseLoader::~vsDatabaseLoader()
 // ------------------------------------------------------------------------
 void vsDatabaseLoader::addImportantNodeName(char *newName)
 {
+    // Allocate space for and duplicate the given name
     nodeNames[nodeNameCount] = strdup(newName);
+
+    // Check for failure
     if (!(nodeNames[nodeNameCount]))
         printf("vsDatabaseLoader::addImportantNodeName: Error allocating "
             "space for node name string\n");
@@ -105,6 +109,7 @@ void vsDatabaseLoader::clearNames()
 {
     int loop;
     
+    // Delete each name in the list
     for (loop = 0; loop < nodeNameCount; loop++)
         free(nodeNames[loop]);
 
@@ -156,6 +161,7 @@ void vsDatabaseLoader::clearPath()
 {
     char *envPath;
 
+    // Delete the old path's memory
     free(loaderFilePath);
 
     // Attempt to get the default path from the environment; if not found,
@@ -181,6 +187,7 @@ const char *vsDatabaseLoader::getPath()
 // ------------------------------------------------------------------------
 void vsDatabaseLoader::setLoaderMode(int whichMode, int modeVal)
 {
+    // OR the mode in if we're adding it, ~AND it out if we're removing it
     if (modeVal)
         loaderModes |= whichMode;
     else
@@ -192,6 +199,7 @@ void vsDatabaseLoader::setLoaderMode(int whichMode, int modeVal)
 // ------------------------------------------------------------------------
 int vsDatabaseLoader::getLoaderMode(int whichMode)
 {
+    // Check the desired mode mask against our mode variable
     if (loaderModes & whichMode)
         return VS_TRUE;
     else
@@ -271,6 +279,7 @@ int vsDatabaseLoader::importanceCheck(osg::Node *targetNode)
     if (loaderModes & VS_DATABASE_MODE_NAME_ALL)
         return VS_TRUE;
 
+    // Get the name from the OSG Node
     targetName = targetNode->getName().c_str();
 
     // Check the node's name against the list of important names
@@ -310,6 +319,8 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
     if (!node)
         return NULL;
     
+    // Determine if we've seen (and converted) this node before; just
+    // return the already-converted node if we have.
     result = (vsNode *)(nodeMap->mapSecondToFirst(node));
     if (result)
         return result;
@@ -340,6 +351,8 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
         // data while we're at it.
         for (loop = 0; loop < osgGroup->getNumChildren(); loop++)
         {
+            // Recurse on the loop'th child, and add the result of that as
+            // a child of this component
             child = convertNode(osgGroup->getChild(loop), nodeMap, attrMap);
             newComponent->addChild(child);
             
@@ -354,12 +367,18 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
                     osg::StateAttribute::POLYGONOFFSET));
                 if (osgPolyOffset)
                 {
+                    // Get the factor and units from the PolygonOffset,
+                    // combine them into a single offset value, and store
+                    // that value in our offsets array for later use.
                     offsetFactor = osgPolyOffset->getFactor();
                     offsetUnits = osgPolyOffset->getUnits();
                     
                     offsetArray[offsetArraySize++] =
                         -((offsetFactor * 10.0) + offsetUnits);
                 
+                    // If the final computed offset is non-zero, then we're
+                    // going to need to put a decal attribute on the
+                    // component at some point later
                     if (!(VS_EQUAL(offsetArray[offsetArraySize-1], 0.0)))
                         needsDecal = 1;
                 }
@@ -537,7 +556,6 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
     
     // Store the result of this operation in the node map, so that we
     // don't try to re-convert this node if we run across it again
-//    nodeMap->registerLink(result, node);
     // * New: Only store the result if the node is a geometry; due to
     // the fact that components can only have one parent, we don't
     // want to try adding the same component to a second parent if
@@ -660,12 +678,18 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
                     osg::StateAttribute::POLYGONOFFSET));
                 if (osgPolyOffset)
                 {
+                    // Get the factor and units from the PolygonOffset,
+                    // combine them into a single offset value, and store
+                    // that value in our offsets array for later use.
                     offsetFactor = osgPolyOffset->getFactor();
                     offsetUnits = osgPolyOffset->getUnits();
                     
                     offsetArray[offsetArraySize++] =
                         -((offsetFactor * 10.0) + offsetUnits);
                 
+                    // If the final computed offset is non-zero, then we're
+                    // going to need to put a decal attribute on the
+                    // component at some point later
                     if (!(VS_EQUAL(offsetArray[offsetArraySize-1], 0.0)))
                         needsDecal = 1;
                 }
@@ -763,6 +787,9 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
                     osgGeometry->getNormalArray(), 
                     osgGeometry->getNormalIndices());
                 
+                // Check for the presence of normals; if none, and the
+                // appropriate loader mode is set, then disable
+                // lighting on this geometry
                 if ((loaderModes & VS_DATABASE_MODE_AUTO_UNLIT) &&
                     (geometry->getBinding(VS_GEOMETRY_NORMALS) ==
                         VS_GEOMETRY_BIND_NONE))
@@ -785,29 +812,6 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
                 // Add the new vsGeometry object to the OSG Geometry's 
                 // vsComponent
                 childComponent->addChild(geometry);
-                
-                // Debug stuff
-//              osg::Geode *debugGeode = geometry->getBaseLibraryObject();
-//              printf(" drawable count = %d\n", debugGeode->getNumDrawables());
-//              osg::Geometry *debugGeom = (osg::Geometry *)(debugGeode->getDrawable(0));
-//              printf(" primitive set count = %d\n", debugGeom->getNumPrimitiveSets());
-//              osg::DrawArrays *debugPrim = dynamic_cast<osg::DrawArrays *>
-//                  (debugGeom->getPrimitiveSet(0));
-//              osg::Vec3Array *debugVerts = debugGeom->getVertexArray();
-//              printf(" vertex list size = %d\n", debugVerts->size());
-//              if (debugPrim)
-//              {
-//                  osg::Vec3 vert;
-//                  printf(" primitive: mode = %d   first = %d   count = %d\n",
-//                      debugPrim->getMode(), debugPrim->getFirst(),
-//                      debugPrim->getCount());
-//                  for (int i = 0; i < debugPrim->getCount(); i++)
-//                  {
-//                      vert = (*debugVerts)[i];
-//                      printf(" <%f %f %f>\n", vert[0], vert[1], vert[2]);
-//                  }
-//              }
-
             } // loop (sloop < osgGeometry->getNumPrimitiveSets())
         } // if (osgGeometry)
     } // loop (loop < geode->getNumDrawables())
@@ -816,6 +820,7 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     if (needsDecal)
         convertDecal(geodeComponent, offsetArray, offsetArraySize);
 
+    // We're done with the polygon offset values
     free(offsetArray);
     
     return geodeComponent;
@@ -966,6 +971,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     // Transparency
     vsTransparencyAttribute *vsTransparencyAttr;
     
+    // Check to see if a render bin has been specified for this node
     if (stateSet->useRenderBinDetails())
     {
         // Create a new transparency attribute on the node
@@ -989,6 +995,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     int cullfaceMode;
     vsBackfaceAttribute *vsBackfaceAttr;
     
+    // Check to see if the cull face mode for this node is not inherited
     cullfaceMode = stateSet->getMode(GL_CULL_FACE);
     if (!(cullfaceMode & osg::StateAttribute::INHERIT))
     {
@@ -1041,6 +1048,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     osg::ShadeModel *osgShadeModel;
     vsShadingAttribute *vsShadingAttr;
     
+    // Check for a shading model on this node
     osgShadeModel = dynamic_cast<osg::ShadeModel *>
         (stateSet->getAttribute(osg::StateAttribute::SHADEMODEL));
     if (osgShadeModel)
@@ -1067,6 +1075,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     osg::PolygonMode *osgPolyMode, *newPolyMode;
     vsWireframeAttribute *vsWireframeAttr;
     
+    // Check for a polygon mode attribute on this node
     osgPolyMode = dynamic_cast<osg::PolygonMode *>
         (stateSet->getAttribute(osg::StateAttribute::POLYGONMODE));
     if (osgPolyMode)
@@ -1146,7 +1155,7 @@ void vsDatabaseLoader::convertLOD(vsComponent *lodComponent, osg::LOD *osgLOD)
         rangeList[(loop * 2) + 2] = osgLOD->getMaxRange(loop);
     }
     
-    // * Sort the list of ranges, eliminating duplicates
+    // * Sort the list of ranges, eliminating duplicates (bubble sort)
     flag = 1;
     while (flag)
     {
@@ -1165,6 +1174,7 @@ void vsDatabaseLoader::convertLOD(vsComponent *lodComponent, osg::LOD *osgLOD)
             }
             else if (rangeList[loop] > rangeList[loop+1])
             {
+                // Swap the range values
                 tempFloat = rangeList[loop];
                 rangeList[loop] = rangeList[loop+1];
                 rangeList[loop+1] = tempFloat;
@@ -1178,6 +1188,8 @@ void vsDatabaseLoader::convertLOD(vsComponent *lodComponent, osg::LOD *osgLOD)
     nodeListSize = lodComponent->getChildCount();
     for (loop = 0; loop < nodeListSize; loop++)
     {
+        // Always getting the first node ensures that the nodes are
+        // transferred in the correct order
         childNode = lodComponent->getChild(0);
         lodComponent->removeChild(childNode);
         nodeList[loop] = childNode;
@@ -1282,12 +1294,16 @@ void vsDatabaseLoader::convertDecal(vsComponent *decalComponent,
         {
             if (VS_EQUAL(offsetArray[loop], offsetArray[loop+1]))
             {
+                // Copy the last entry in the list over the entry to
+                // be deleted, and shrink the list. The sorting mechanism
+                // will put the moved entry back into its proper place.
                 offsetArray[loop+1] = offsetArray[offsetArraySize-1];
                 offsetArraySize--;
                 flag = 1;
             }
             else if (offsetArray[loop] > offsetArray[loop+1])
             {
+                // Swap
                 tempDouble = offsetArray[loop];
                 offsetArray[loop] = offsetArray[loop+1];
                 offsetArray[loop+1] = tempDouble;
@@ -1334,6 +1350,7 @@ void vsDatabaseLoader::convertDecal(vsComponent *decalComponent,
         closestDist = fabs(offsetValues[loop] - offsetArray[0]);
         closestIdx = 0;
 
+        // Search for the closest entry
         for (sloop = 1; sloop < offsetArraySize; sloop++)
             if (fabs(offsetValues[loop] - offsetArray[sloop]) < closestDist)
             {
@@ -1350,7 +1367,6 @@ void vsDatabaseLoader::convertDecal(vsComponent *decalComponent,
     // Clean up
     free(offsetArray);
 }
-
 
 // ------------------------------------------------------------------------
 // Private function
