@@ -76,7 +76,7 @@ public:
                                            vsInputAxis *pAxis, 
                                            vsInputButton *rButton, 
                                            vsKinematics *kin);
-                            ~vsAxisRotation();
+    virtual                 ~vsAxisRotation();
 
     // Class name
     virtual const char      *getClassName();

@@ -49,7 +49,7 @@ public:
                                         vsKinematics *elbowJoint,
                                         vsMotionTracker *handTracker,
                                         vsKinematics *wristJoint);
-                          ~vs3TrackerArm();
+    virtual               ~vs3TrackerArm();
 
     virtual const char    *getClassName();
 

@@ -62,7 +62,7 @@ public:
                           vsDifferentialTrackedOrientation(vsMotionTracker *ref,
                                                        vsMotionTracker *diff,
                                                        vsKinematics *kinObject);
-                          ~vsDifferentialTrackedOrientation();
+    virtual               ~vsDifferentialTrackedOrientation();
 
     // Class name
     virtual const char    *getClassName();

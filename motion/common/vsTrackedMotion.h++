@@ -71,7 +71,7 @@ public:
                                           vsKinematics *kinObject);
 
     // Destructor
-                          ~vsTrackedMotion();
+    virtual               ~vsTrackedMotion();
 
     // Inherited from vsObject
     virtual const char    *getClassName();

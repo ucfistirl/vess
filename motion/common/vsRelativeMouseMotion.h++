@@ -83,20 +83,20 @@ private:
 
 public:
                         vsRelativeMouseMotion( vsMouse *, vsKinematics * );
-	                    ~vsRelativeMouseMotion( );
+    virtual             ~vsRelativeMouseMotion();
 
-    const char *        getClassName();
+    virtual const char  *getClassName();
 
     void                reset();
 
     // Update velocity and orientation
-	void                update();
+    void                update();
 
     // Update just velocity or orientation
     void                updateVelocity();
     void                updateOrientation();
 
-	void                setThrottleAxisMode( vsFlyingAxisMode newMode );
+    void                setThrottleAxisMode( vsFlyingAxisMode newMode );
     vsFlyingAxisMode    getThrottleAxisMode();
 
     void                setAxisLimits( int axis,

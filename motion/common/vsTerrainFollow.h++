@@ -45,7 +45,7 @@ private:
 public:
 
                           vsTerrainFollow(vsKinematics *objectKin, vsNode *theScene);
-                          ~vsTerrainFollow();
+    virtual               ~vsTerrainFollow();
 
     virtual const char    *getClassName();
 

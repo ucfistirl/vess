@@ -108,7 +108,7 @@ public:
                                           vsKinematics *kin);
 
     // Destructor
-                          ~vsDrivingMotion();
+    virtual               ~vsDrivingMotion();
 
     // Inherited from vsObject
     virtual const char    *getClassName();

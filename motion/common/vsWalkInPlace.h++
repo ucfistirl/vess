@@ -96,7 +96,7 @@ public:
                                         vsKinematics *kin);
 
     // Destructor
-                          ~vsWalkInPlace();
+    virtual               ~vsWalkInPlace();
 
     // Inherited from vsObject
     virtual const char    *getClassName();

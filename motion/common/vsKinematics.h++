@@ -51,7 +51,7 @@ public:
 
     // Constructor/destructor
                           vsKinematics(vsComponent *theComponent);
-		          ~vsKinematics();
+    virtual               ~vsKinematics();
 
     // Inherited from vsObject
     virtual const char    *getClassName();

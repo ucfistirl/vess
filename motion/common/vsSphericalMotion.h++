@@ -108,7 +108,7 @@ public:
                                             vsKinematics *kin);
 
     // Destructor
-                          ~vsSphericalMotion();
+    virtual               ~vsSphericalMotion();
 
     // Inherited from vsObject
     virtual const char    *getClassName();

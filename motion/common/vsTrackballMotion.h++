@@ -83,7 +83,7 @@ public:
                                             vsKinematics *kin);
 
     // Destructor
-                          ~vsTrackballMotion();
+    virtual               ~vsTrackballMotion();
 
     // Inherited from vsObject
     virtual const char    *getClassName();

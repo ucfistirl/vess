@@ -82,7 +82,7 @@ public:
 
                           vsWalkArticulation(vsKinematics *objectKin,
                                              char *walkDataFilename);
-                          ~vsWalkArticulation();
+    virtual               ~vsWalkArticulation();
 
     virtual const char    *getClassName();
 

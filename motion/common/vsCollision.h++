@@ -65,7 +65,7 @@ private:
 public:
 
                           vsCollision(vsKinematics *objectKin, vsNode *theScene);
-                          ~vsCollision();
+    virtual               ~vsCollision();
 
     virtual const char    *getClassName();
 
