@@ -97,6 +97,28 @@ void vsDatabaseLoader::setUnits(int databaseUnit)
 }
 
 // ------------------------------------------------------------------------
+// Adds the given directory path to the search path list for loading new
+// databases
+// ------------------------------------------------------------------------
+void vsDatabaseLoader::addPath(char *filePath)
+{
+    const char *performerPath;
+    char fullPath[1000];
+    
+    performerPath = pfGetFilePath();
+    if (!performerPath)
+	strcpy(fullPath, ".");
+    else
+	strcpy(fullPath, pfGetFilePath());
+
+    strcat(fullPath, ":");
+    strcat(fullPath, filePath);
+    
+    pfFilePath(fullPath);
+    printf("Path is: %s\n", fullPath);
+}
+
+// ------------------------------------------------------------------------
 // Creates a VESS scene graph from the geometric data stored within the
 // given named database file. The database file must have an extension
 // that was specified as a valid extension to the loader before the
@@ -131,7 +153,6 @@ vsNode *vsDatabaseLoader::loadDatabase(char *databaseFilename)
         }
     }
 
-    pfFilePath(".");
     performerGraph = pfdLoadFile(databaseFilename);
     if (!performerGraph)
     {
@@ -280,7 +301,6 @@ void vsDatabaseLoader::fixGeodes(pfNode *targetGraph)
         if (oldGeode->getNumGSets() > 1)
         {
             // 'Fix' the geode by creating one geode for every geoset
-
             newMasterGroup = new pfGroup();
             for (loop = 0; loop < oldGeode->getNumParents(); loop++)
             {

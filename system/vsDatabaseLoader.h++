@@ -76,6 +76,8 @@ public:
     
     void        setUnits(int databaseUnit);
     
+    void	addPath(char *filePath);
+    
     vsNode      *loadDatabase(char *databaseFilename);
 };
 
