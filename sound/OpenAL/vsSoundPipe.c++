@@ -77,7 +77,8 @@ vsSoundPipe::~vsSoundPipe()
     alcDestroyContext(pipeHandle);
 
     // Close the device
-    alcCloseDevice(deviceHandle);
+    if (deviceHandle)
+        alcCloseDevice(deviceHandle);
 }
 
 // ------------------------------------------------------------------------
