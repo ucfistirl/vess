@@ -74,7 +74,7 @@ vsWindowSystem::vsWindowSystem(vsWindow *mainWindow)
     
     // Subclass the MS Window associated with the vsWindow to install an
     // additional window procedure
-    originalWindowProc = (WNDPROC)SetWindowLongPtr(window, GWL_WNDPROC, 
+    originalWindowProc = (WNDPROC)SetWindowLongPtr(window, GWLP_WNDPROC, 
         (LONG_PTR)inputWindowProc);
 
     // Register the window
@@ -91,6 +91,9 @@ vsWindowSystem::~vsWindowSystem()
         delete keyboard;
     if (mouse)
         delete mouse;
+        
+    // Restore the original window procedure
+    SetWindowLongPtr(window, GWLP_WNDPROC, (LONG_PTR)originalWindowProc);
 
     // Detach from the parent window
     if (getMap()->mapSecondToFirst(this))
@@ -168,6 +171,7 @@ bool vsWindowSystem::isMouseInWindow()
 void vsWindowSystem::grabMouse()
 {
     RECT windowRect;
+    POINT upperLeft, lowerRight;
     
     // Make sure we have a display and that the mouse is not already grabbed
     if ((window != NULL) && (mouseGrabbed == false))
@@ -176,7 +180,19 @@ void vsWindowSystem::grabMouse()
         GetClipCursor(&oldCursorRect);
         
         // Get the rectangle containing the window's client area
-        GetClientRect(window, &windowRect);           
+        GetClientRect(window, &windowRect);
+        
+        // Translate the rectangle's corner points to screen coordinates
+        upperLeft.x = windowRect.left;
+        upperLeft.y = windowRect.top;
+        lowerRight.x = windowRect.right;
+        lowerRight.y = windowRect.bottom;
+        ClientToScreen(window, &upperLeft);
+        ClientToScreen(window, &lowerRight);
+        windowRect.left = upperLeft.x;
+        windowRect.top = upperLeft.y;
+        windowRect.right = lowerRight.x;
+        windowRect.bottom = lowerRight.y;
         
         // Confine the cursor to the window's client area
         ClipCursor(&windowRect);
