@@ -76,7 +76,7 @@ void vsScentAirScent::setStrength(double newStrength)
     }
 
     // Turn the channel on if the strength is not zero
-    if (fabs(strength) > 1.0e-6)
+    if (strength > 1.0e-6)
     {
         // Adjust the pulse rate of the ScentAir to match the strength.
         // Note that most scents are much too strong at the maximum strength.
