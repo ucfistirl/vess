@@ -346,11 +346,29 @@ void vsMenuSystem::update()
         curObj = menuIter->getObject();
     }
 
-    // Check the activation button on the selected object
-    if (selectedObj && processAction(VS_MENU_ACTION_ACTIVATE))
+    // Make sure there is an object selected before sending any signals
+    if (selectedObj)
     {
-        // Send the activation signal to the object
-        selectedObj->update(VS_MENU_SIGNAL_ACTIVATE, curFrame);
+        // Check the activation button
+        if (processAction(VS_MENU_ACTION_ACTIVATE))
+        {
+            // Send the activation signal to the object
+            selectedObj->update(VS_MENU_SIGNAL_ACTIVATE, curFrame);
+        }
+
+        // Check the increase button
+        if (processAction(VS_MENU_ACTION_INCREASE))
+        {
+            // Send an increase signal to the object
+            selectedObj->update(VS_MENU_SIGNAL_INCREASE, curFrame);
+        }
+
+        // Check the decrease button
+        if (processAction(VS_MENU_ACTION_DECREASE))
+        {
+            // Send a decrease signal to the object
+            selectedObj->update(VS_MENU_SIGNAL_DECREASE, curFrame);
+        }
     }
 
     // If the frame data has changed during this update, rebuild the menus
