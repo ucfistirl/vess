@@ -23,7 +23,6 @@ libvsGraphics_a_SOURCES = \
                           @SG@/vsScene.c++ \
                           @SG@/vsSequenceAttribute.c++ \
                           @SG@/vsShadingAttribute.c++ \
-                          @SG@/vsSphereIntersect.c++ \
                           @SG@/vsStateAttribute.c++ \
                           @SG@/vsSwitchAttribute.c++ \
                           @SG@/vsTextBuilder.c++ \
@@ -75,7 +74,6 @@ include_HEADERS = \
                   @SG@/vsScene.h++ \
                   @SG@/vsSequenceAttribute.h++ \
                   @SG@/vsShadingAttribute.h++ \
-                  @SG@/vsSphereIntersect.h++ \
                   @SG@/vsStateAttribute.h++ \
                   @SG@/vsSwitchAttribute.h++ \
                   @SG@/vsTextBuilder.h++ \
