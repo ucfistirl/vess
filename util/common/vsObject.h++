@@ -51,6 +51,8 @@ public:
     
     int                   isValidObject();
 
+    static void           unrefDelete(vsObject *obj);
+
     static void           printCurrentObjects(FILE *outfile);
     static void           deleteObjectList();
 };

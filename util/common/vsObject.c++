@@ -131,6 +131,19 @@ int vsObject::isValidObject()
 
 //------------------------------------------------------------------------
 // Static function
+// Unreferences the given object, then deletes the object if its reference
+// count is zero
+//------------------------------------------------------------------------
+void vsObject::unrefDelete(vsObject *obj)
+{
+    if (obj->getRefCount() > 0)
+        obj->unref();
+    if (obj->getRefCount() == 0)
+        delete obj;
+}
+
+//------------------------------------------------------------------------
+// Static function
 // Writes a list of currently allocated vsObjects out to the specified
 // file
 //------------------------------------------------------------------------
