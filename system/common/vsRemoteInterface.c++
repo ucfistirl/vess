@@ -5,6 +5,7 @@
 #include "vsWindow.h++"
 #include "vsPane.h++"
 #include "vsSystem.h++"
+#include "vsSequencer.h++"
 
 #define VS_RI_MAX_BUFFER_SIZE   65536
 
