@@ -62,9 +62,9 @@ public:
                 vsSoundStream(int bufSize, int bufFormat, int bufFreq);
 
     // Destructor.  Frees the buffers.
-                ~vsSoundStream();
+    virtual     ~vsSoundStream();
 
-    const char *getClassName();
+    virtual const char    *getClassName();
 
     // Returns VS_TRUE if the back buffer is empty and ready for queuing
     int         isBufferReady();
