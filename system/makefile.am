@@ -3,6 +3,7 @@ lib_LIBRARIES = libvsSystem.a libvsSystem.so
 
 # Sources for libvsSystem.a
 libvsSystem_a_SOURCES = \
+                        common/vsRemoteInterface.c++ \
                         @SG@/vsSystem.c++ 
 
 # Sources for libvsSystem.so (same as libvsSystem.a)
@@ -10,11 +11,13 @@ libvsSystem_so_SOURCES = $(libvsSystem_a_SOURCES)
 
 # Header files
 include_HEADERS = \
+                  common/vsRemoteInterface.h++ \
                   @SG@/vsSystem.h++
 
 # Include directives for the compiler
 INCLUDES = \
            -I. \
+           -Icommon \
            -I../avatar/common \
 	   -I../motion/common \
 	   -I../io/common \
@@ -27,7 +30,8 @@ INCLUDES = \
 	   -I../graphics/@SG@_@WS@ \
 	   -I../util/common \
 	   -I../util/@OS@ \
-           @GFX_INCLUDE_DIR@
+           @GFX_INCLUDE_DIR@ \
+           @XML_INCLUDE_DIR@ 
 
 # Rule to make libvsSystem.so
 libvsSystem.so: libvsSystem.a
