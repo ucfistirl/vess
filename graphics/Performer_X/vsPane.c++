@@ -400,10 +400,8 @@ void vsPane::setBufferMode(vsPaneBufferMode newMode)
             // Set the DRAW process callbacks.  The normal channel will
             // be considered the left eye, and the stereo channel the
             // right eye
-            performerCallbackList->
-                prependCallback(vsPane::drawLeftChannel, (void *)NULL);
-            stereoCallbackList->
-                prependCallback(vsPane::drawRightChannel, (void *)NULL);
+            performerCallbackList->prependCallback(vsPane::drawLeftChannel, 0);
+            stereoCallbackList->prependCallback(vsPane::drawRightChannel, 0);
         }
 
         // Change the buffer mode
@@ -423,8 +421,7 @@ void vsPane::setBufferMode(vsPaneBufferMode newMode)
 
             // Add a callback for switching back to single-channel drawing
             // to the main callback list
-            performerCallbackList->
-                prependCallback(vsPane::drawMonoChannel, (void *)NULL);
+            performerCallbackList->prependCallback(vsPane::drawMonoChannel, 0);
 
             // Tell the system not to cull or draw the stereo channel 
             // any longer
@@ -842,6 +839,21 @@ void vsPane::updateView()
 
 // ------------------------------------------------------------------------
 // static VESS internal function - Performer callback
+// Pre-DRAW callback to draw a monovision channel when no longer in
+// QUADBUFFER mode.  This callback is called only once after exiting
+// QUADBUFFER mode.
+// ------------------------------------------------------------------------
+void vsPane::drawMonoChannel(pfChannel *chan, void *userData)
+{
+    // Select the correct buffer
+    glDrawBuffer(GL_BACK);
+
+    // Tell this callback node to delete itself so it isn't called again
+    vsCallbackList::nodeRemove(userData);
+}
+
+// ------------------------------------------------------------------------
+// static VESS internal function - Performer callback
 // Pre-DRAW callback to select the left stereo channel when in QUADBUFFER
 // stereo mode.
 // ------------------------------------------------------------------------
@@ -862,17 +874,3 @@ void vsPane::drawRightChannel(pfChannel *chan, void *userData)
     glDrawBuffer(GL_BACK_RIGHT);
 }
 
-// ------------------------------------------------------------------------
-// static VESS internal function - Performer callback
-// Pre-DRAW callback to draw a monovision channel when no longer in
-// QUADBUFFER mode.  This callback is called only once after exiting
-// QUADBUFFER mode.
-// ------------------------------------------------------------------------
-void vsPane::drawMonoChannel(pfChannel *chan, void *userData)
-{
-    // Select the right buffer
-    glDrawBuffer(GL_BACK);
-
-    // Tell this callback node to delete itself so it isn't called again
-    vsCallbackList::removeCallbackNode(userData);
-}
