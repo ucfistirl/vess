@@ -33,6 +33,8 @@ protected:
                                                 xmlNodePtr current);
     void                     processReleaseSync(xmlDocPtr doc, 
                                                 xmlNodePtr current);
+    void                     processTerminateCluster(xmlDocPtr doc, 
+                                                     xmlNodePtr current);
 
 public:
     vsRemoteInterface();

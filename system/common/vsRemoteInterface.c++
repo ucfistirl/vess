@@ -185,6 +185,11 @@ void vsRemoteInterface::processXMLDocument()
         {
             processReleaseSync(doc, current);
         }
+        else if (xmlStrcmp(current->name, 
+                           (const xmlChar *) "terminatecluster") == 0)
+        {
+            processTerminateCluster(doc, current);
+        }
 
         // Get the next child of the root element
         current = current->next;
@@ -231,7 +236,14 @@ void vsRemoteInterface::processStats(xmlDocPtr doc, xmlNodePtr current)
 
 void vsRemoteInterface::processReleaseSync(xmlDocPtr doc, xmlNodePtr current)
 {
-   vsSystem::systemObject->releaseSync();
+    vsSystem::systemObject->releaseSync();
+}
+
+
+void vsRemoteInterface::processTerminateCluster(xmlDocPtr doc, 
+                                                xmlNodePtr current)
+{
+    vsSystem::systemObject->terminateCluster();
 }
 
 
