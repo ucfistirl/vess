@@ -53,6 +53,7 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
 
     // Open the serial port
     port = new vsSerialPort(portDevice, baud, 8, 'N', 1);
+    port->ref();
 
     // Make sure it opened properly
     if (port)
@@ -144,6 +145,7 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
 
         // Create the gloves object and initialize it
         gloves = new vsChordGloves();
+        gloves->ref();
         gloves->clearContacts();
     }
 }
@@ -155,11 +157,11 @@ vsPinchGloveBox::~vsPinchGloveBox()
 {
     // Destroy the gloves object
     if (gloves)
-        delete gloves;
+        vsObject::unrefDelete(gloves);
 
     // Close the serial port
     if (port)
-        delete port;
+        vsObject::unrefDelete(port);
 }
 
 // ------------------------------------------------------------------------

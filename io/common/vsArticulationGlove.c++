@@ -41,11 +41,17 @@ vsArticulationGlove::vsArticulationGlove(int estDistal)
     // Construct sensor axes, start with a reasonable range, which will
     // be more closely calibrated later
     for (i = 0; i < VS_AG_NUM_SENSORS; i++)
+    {
         sensors[i] = new vsInputAxis(1, 255);
+        sensors[i]->ref();
+    }
 
     // Construct input buttons
     for (i = 0; i < VS_AG_NUM_BUTTONS; i++)
+    {
         buttons[i] = new vsInputButton();
+        buttons[i]->ref();
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -57,11 +63,11 @@ vsArticulationGlove::~vsArticulationGlove()
 
     // Destroy sensor axes
     for (i = 0; i < VS_AG_NUM_SENSORS; i++)
-        delete sensors[i];
+        vsObject::unrefDelete(sensors[i]);
 
     // Destroy buttons
     for (i = 0; i < VS_AG_NUM_BUTTONS; i++)
-        delete buttons[i];
+        vsObject::unrefDelete(buttons[i]);
 }
 
 // ------------------------------------------------------------------------

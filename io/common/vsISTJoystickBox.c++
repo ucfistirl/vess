@@ -50,9 +50,11 @@ vsISTJoystickBox::vsISTJoystickBox(int portNumber)
     // Create a 2-axis 2-button joystick in normalized axis mode
     joystick = new vsJoystick(VS_ISTJS_NUM_AXES, VS_ISTJS_NUM_BUTTONS,
                               VS_ISTJS_AXIS_MIN, VS_ISTJS_AXIS_MAX);
+    joystick->ref();
 
     // Open serial port
     port = new vsSerialPort(portDevice, 9600, 8, 'N', 1);
+    port->ref();
 
     // Ping the box to get the first packet ready
     ping();
@@ -65,7 +67,11 @@ vsISTJoystickBox::~vsISTJoystickBox(void)
 {
     // Close the serial port
     if (port)
-        delete port;
+        vsObject::unrefDelete(port);
+
+    // Delete the joystick
+    if (joystick)
+        vsObject::unrefDelete(joystick);
 }
 
 // ------------------------------------------------------------------------

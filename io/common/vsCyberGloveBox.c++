@@ -46,6 +46,7 @@ vsCyberGloveBox::vsCyberGloveBox(int portNum, long baud, int nSensors)
 
     // Open the serial port
     port = new vsSerialPort(portDevice, baud, 8, 'N', 1);
+    port->ref();
 
     // Initialize variables
     numSensors = 0;
@@ -89,11 +90,13 @@ vsCyberGloveBox::vsCyberGloveBox(int portNum, long baud, int nSensors)
         {
             // Estimate the distal interphalangial joints
             glove = new vsArticulationGlove(VS_TRUE);
+            glove->ref();
         }
         else
         {
             // Use the distal interphalangial joint sensors (don't estimate)
             glove = new vsArticulationGlove(VS_FALSE);
+            glove->ref();
         }
 
         // Request the first update
@@ -111,10 +114,10 @@ vsCyberGloveBox::~vsCyberGloveBox()
     stopAllFeedback();
 
     // Close the serial port
-    delete port;
+    vsObject::unrefDelete(port);
 
     // Destroy the vsArticulationGlove
-    delete glove;
+    vsObject::unrefDelete(glove);
 }
 
 // ------------------------------------------------------------------------

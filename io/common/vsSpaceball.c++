@@ -40,6 +40,7 @@ vsSpaceball::vsSpaceball(int nButtons)
     for (i = 0; i < numButtons; i++)
     {
         button[i] = new vsInputButton();
+        button[i]->ref();
     }
 }
 
@@ -54,7 +55,7 @@ vsSpaceball::~vsSpaceball(void)
     for (i = 0; i < numButtons; i++)
     {
         if (button[i])
-            delete button[i];
+            vsObject::unrefDelete(button[i]);
     }
 }
 

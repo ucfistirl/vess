@@ -48,10 +48,13 @@ vsJoystick::vsJoystick(int nAxes, int nButtons, double axisMin, double axisMax)
             axis[i] = new vsInputAxis(axisMin, axisMax);
         else
             axis[i] = new vsInputAxis();
+
+        axis[i]->ref();
     }
     for (i = 0; i < numButtons; i++)
     {
         button[i] = new vsInputButton();
+        button[i]->ref();
     }
 }
 
@@ -76,10 +79,12 @@ vsJoystick::vsJoystick(int nAxes, int nButtons)
     for (i = 0; i < numAxes; i++)
     {
         axis[i] = new vsInputAxis();
+        axis[i]->ref();
     }
     for (i = 0; i < numButtons; i++)
     {
         button[i] = new vsInputButton();
+        button[i]->ref();
     }
 }
 
@@ -94,12 +99,12 @@ vsJoystick::~vsJoystick()
     for (i = 0; i < VS_JS_MAX_AXES; i++)
     {
         if (axis[i])
-            delete axis[i];
+            vsObject::unrefDelete(axis[i]);
     }
     for (i = 0; i < VS_JS_MAX_BUTTONS; i++)
     {
         if (button[i])
-            delete button[i];
+            vsObject::unrefDelete(button[i]);
     }
 }
 

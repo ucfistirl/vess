@@ -34,7 +34,10 @@ vsMouse::vsMouse(int nAxes, int nButtons)
     for (i = 0; i < VS_MOUSE_MAX_AXES; i++)
     {
         if (i < numAxes)
+        {
             axis[i] = new vsInputAxis();
+            axis[i]->ref();
+        }
         else
             axis[i] = NULL;
     }
@@ -42,7 +45,10 @@ vsMouse::vsMouse(int nAxes, int nButtons)
     for (i = 0; i < numButtons; i++)
     {
         if (i < numButtons)
+        {
             button[i] = new vsInputButton();
+            button[i]->ref();
+        }
         else
             button[i] = NULL;
     }
@@ -77,6 +83,8 @@ vsMouse::vsMouse(int nAxes, int nButtons, int xSize, int ySize)
             else
                 // Construct additional axes non-normalized
                 axis[i] = new vsInputAxis();
+
+            axis[i]->ref();
         }
         else
             axis[i] = NULL;
@@ -87,7 +95,10 @@ vsMouse::vsMouse(int nAxes, int nButtons, int xSize, int ySize)
         // Construct the specified number of buttons, initialize the rest
         // of the buttons in the button array to NULL
         if (i < numButtons)
+        {
             button[i] = new vsInputButton();
+            button[i]->ref();
+        }
         else
             button[i] = NULL;
     }
@@ -104,14 +115,14 @@ vsMouse::~vsMouse()
     for (i = 0; i < numAxes; i++)
     {
         if (axis[i])
-            delete axis[i];
+            vsObject::unrefDelete(axis[i]);
     }
 
     // Delete all the button we created
     for (i = 0; i < numButtons; i++)
     {
         if (button[i])
-            delete button[i];
+            vsObject::unrefDelete(button[i]);
     }
 }
 

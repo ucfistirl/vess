@@ -42,6 +42,7 @@ vsChordGloves::vsChordGloves()
         for (j = i+1; j < VS_CG_MAX_DIGITS; j++)
         {
             contactMatrix[i][j] = new vsInputButton();
+            contactMatrix[i][j]->ref();
         }
     }
 }
@@ -57,7 +58,7 @@ vsChordGloves::~vsChordGloves()
     for (i = 0; i < VS_CG_MAX_DIGITS - 1; i++)
     {
         for (j = i+1; j < VS_CG_MAX_DIGITS; j++)
-            delete contactMatrix[i][j];
+            vsObject::unrefDelete(contactMatrix[i][j]);
     }
 }
 

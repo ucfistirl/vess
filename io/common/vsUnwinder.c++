@@ -46,6 +46,7 @@ vsUnwinder::vsUnwinder(int portNumber, int joy1, int joy2)
         joystick[0] = 
             new vsJoystick(VS_UW_NUM_AXES, VS_UW_NUM_BUTTONS,
                            VS_UW_AXIS_MIN, VS_UW_AXIS_MAX);
+        joystick[0]->ref();
     }
     if (joy2) 
     {
@@ -53,6 +54,7 @@ vsUnwinder::vsUnwinder(int portNumber, int joy1, int joy2)
         joystick[1] = 
             new vsJoystick(VS_UW_NUM_AXES, VS_UW_NUM_BUTTONS,
                            VS_UW_AXIS_MIN, VS_UW_AXIS_MAX);
+        joystick[1]->ref();
     }
 
 
@@ -72,6 +74,7 @@ vsUnwinder::vsUnwinder(int portNumber, int joy1, int joy2)
 
     // Open serial port
     port = new vsSerialPort(portDevice, 9600, 8, 'N', 1);
+    port->ref();
 
     // Set to polled mode
     buf = 'p';
@@ -110,6 +113,7 @@ vsUnwinder::vsUnwinder(int portNumber, int joy1, int joy2)
 // ------------------------------------------------------------------------
 vsUnwinder::~vsUnwinder(void)
 {
+    int           i;
     unsigned char buf;
 
     // If the serial port is valid
@@ -129,7 +133,14 @@ vsUnwinder::~vsUnwinder(void)
         port->flushPort();
 
         // Close serial port
-        delete port;
+        vsObject::unrefDelete(port);
+    }
+
+    // Delete the joystick(s)
+    for (i = 0; i < VS_UW_MAX_JOYSTICKS; i++)
+    {
+        if (joystick[i])
+            vsObject::unrefDelete(joystick[i]);
     }
 }
 
