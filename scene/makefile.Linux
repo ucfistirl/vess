@@ -1,6 +1,6 @@
 #!/bin/make
 
-include ../libpath.Linux
+include ../libpaths.Linux
 
 INCDIRS =   -I.\
             -I../system \
