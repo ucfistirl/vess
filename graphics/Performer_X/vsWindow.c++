@@ -15,7 +15,7 @@
 //
 //    Description:  Class that represents an open window on any screen
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Casey Thurston
 //
 //------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     unsigned int childCount;
     Window parentID, rootID;
     XWindowAttributes xattr;
-    static int fbConfigAttrs[20];
+    int fbConfigAttrs[20];
 
     int result;
     
@@ -77,15 +77,21 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
         fbConfigAttrs[2] = PFFB_STEREO;
 
         fbConfigAttrs[3] = PFFB_DEPTH_SIZE;
-        fbConfigAttrs[4] = 1;
+        fbConfigAttrs[4] = 24;
 
         fbConfigAttrs[5] = PFFB_RED_SIZE;
-        fbConfigAttrs[6] = 1;
+        fbConfigAttrs[6] = 8;
 
-        fbConfigAttrs[7] = PFFB_STENCIL_SIZE;
-        fbConfigAttrs[8] = 1;
+        fbConfigAttrs[7] = PFFB_GREEN_SIZE;
+        fbConfigAttrs[8] = 8;
 
-        fbConfigAttrs[9] = 0;
+        fbConfigAttrs[9] = PFFB_BLUE_SIZE;
+        fbConfigAttrs[10] = 8;
+
+        fbConfigAttrs[11] = PFFB_STENCIL_SIZE;
+        fbConfigAttrs[12] = 8;
+
+        fbConfigAttrs[13] = 0;
 
         // Pass the frame buffer configuration to Performer
         performerPipeWindow->setFBConfigAttrs(fbConfigAttrs);
@@ -173,7 +179,7 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     unsigned int childCount;
     Window parentID, rootID;
     XWindowAttributes xattr;
-    static int fbConfigAttrs[20];
+    int fbConfigAttrs[20];
 
     int result;
     
@@ -206,15 +212,21 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
         fbConfigAttrs[2] = PFFB_STEREO;
 
         fbConfigAttrs[3] = PFFB_DEPTH_SIZE;
-        fbConfigAttrs[4] = 1;
+        fbConfigAttrs[4] = 24;
 
         fbConfigAttrs[5] = PFFB_RED_SIZE;
-        fbConfigAttrs[6] = 1;
+        fbConfigAttrs[6] = 8;
 
-        fbConfigAttrs[7] = PFFB_STENCIL_SIZE;
-        fbConfigAttrs[8] = 1;
+        fbConfigAttrs[7] = PFFB_GREEN_SIZE;
+        fbConfigAttrs[8] = 8;
 
-        fbConfigAttrs[9] = 0;
+        fbConfigAttrs[9] = PFFB_BLUE_SIZE;
+        fbConfigAttrs[10] = 8;
+
+        fbConfigAttrs[11] = PFFB_STENCIL_SIZE;
+        fbConfigAttrs[12] = 8;
+
+        fbConfigAttrs[13] = 0;
 
         // Pass the frame buffer configuration to Performer
         performerPipeWindow->setFBConfigAttrs(fbConfigAttrs);
@@ -283,6 +295,51 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
 }
 
 // ------------------------------------------------------------------------
+// Constructor - Initializes the window by creating a Performer pipe window
+// object and creating connections with that, verifying that the window is
+// being properly displayed, recording some size data from the window
+// manager, and configuring the window with its default position and size.
+// Also configures the window's buffer settings to be either mono or stereo
+// based on the value of the stereo parameter
+// ------------------------------------------------------------------------
+vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
+   : childPaneList(1, 1)
+{
+    vsPipe *parentPipe;
+
+    // No panes attached to start with
+    childPaneCount = 0;
+    
+    // Get the parent screen
+    parentScreen = parent;
+    parentPipe = parentScreen->getParentPipe();
+
+    // Add this window to the parent screen's window list
+    parentScreen->addWindow(this);
+
+    // Create a new Performer rendering window
+    performerPipeWindow = new pfPipeWindow(parentPipe->getBaseLibraryObject());
+    performerPipeWindow->ref();
+
+    // Window configuration
+    performerPipeWindow->setMode(PFWIN_ORIGIN_LL, 0);
+
+    // Set the location and size of the window
+    performerPipeWindow->setOriginSize(0, 0, offScreenWidth, offScreenHeight);
+
+    // Declare the window to be an off-screen type. Pbuffers are automatically
+    // declared as unmanaged
+    performerPipeWindow->setWinType(PFPWIN_TYPE_PBUFFER|PFPWIN_TYPE_UNMANAGED);
+
+    // Set the configuration function for the window
+    performerPipeWindow->setConfigFunc(vsWindow::InitPbuffer);
+
+    // Tell the pipe window to use its configuration function during the next
+    // draw process. This will cause the window to open.
+    performerPipeWindow->config();
+}
+
+// ------------------------------------------------------------------------
 // Constructor - Initializes the window using the given Performer pipe 
 // window object.   The window is forced open if it is not already open.
 // ------------------------------------------------------------------------
@@ -304,7 +361,9 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
         printf("vsWindow::vsWindow:  WARNING:  X Window parameter is ");
         printf("probably not valid (%d).\n", xWin);
         printf("    The vsWindow::vsWindow(parentScreen, hideBorder) form\n");
-        printf("    of the vsWindow constructor was removed in VESS 3.0.0\n\n");        printf("    If a BadWindow error appears below, make sure your code\n");        printf("    is not using this outdated constructor.\n");
+        printf("    of the vsWindow constructor was removed in VESS 3.0.0\n\n");
+        printf("    If a BadWindow error appears below, make sure your code\n");
+        printf("    is not using this outdated constructor.\n");
     }
 
     // Start with no panes attached
@@ -387,6 +446,8 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
 // ------------------------------------------------------------------------
 vsWindow::~vsWindow()
 {
+    performerPipeWindow->close();
+
     // Performer bug: pfPipeWindows can't be deleted
     //delete performerPipeWindow;
     performerPipeWindow->unref();
@@ -578,7 +639,7 @@ void vsWindow::getPosition(int *xPos, int *yPos)
         y = xattr.y;
     }
 
-    // Return the desired values
+    // Return the desired values (if requested)
     if (xPos)
         *xPos = x;
     if (yPos)
@@ -696,7 +757,9 @@ void vsWindow::saveImage(char *filename)
     redMask = image->red_mask;
     // Red scale lookup table
     for (loop = 0; loop <= redMax; loop++)
+    {
         redVals[loop] = ((loop * 255) / redMax);
+    }
 
     // Green size and offset
     greenMax = image->green_mask;
@@ -709,7 +772,9 @@ void vsWindow::saveImage(char *filename)
     greenMask = image->green_mask;
     // Green scale lookup table
     for (loop = 0; loop <= greenMax; loop++)
+    {
         greenVals[loop] = ((loop * 255) / greenMax);
+    }
 
     // Blue size and offset
     blueMax = image->blue_mask;
@@ -722,7 +787,9 @@ void vsWindow::saveImage(char *filename)
     blueMask = image->blue_mask;
     // Blue scale lookup table
     for (loop = 0; loop <= blueMax; loop++)
+    {
         blueVals[loop] = ((loop * 255) / blueMax);
+    }
 
     // Create a buffer area for each color component of the image
     redBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
@@ -802,129 +869,174 @@ vsImage * vsWindow::getImage()
     unsigned char * tempBuffer;
     int index;
 
+    vsCallbackList *callbackList;
+    void *sharedBuffer;
+
     // Get the connections to the X window system and to the drawable region
     // of the window
     xWindowDisplay = pfGetCurWSConnection();
     winDrawable = performerPipeWindow->getWSDrawable();
-    
-    // Get the size and shape info for the window
-    XGetGeometry(xWindowDisplay, winDrawable, &rootWin, &xpos, &ypos,
-        &width, &height, &border, &depth);
 
-    // Insure we begin at winDrawable's origin.  This is done because the
-    // XGetGeometry call returns the x and y pos relative to the parent's
-    // window.
-    xpos = 0;
-    ypos = 0;
-
-    // Capture the contents of the window into an X image struture
-    ximage = XGetImage(xWindowDisplay, winDrawable, xpos, ypos, width, height,
-        AllPlanes, ZPixmap);
-    if (!ximage)
+    // If the window is a pbuffer, XGetGeometry cannot be called on its
+    // drawable, so we have to make GL calls through Performer
+    if (performerPipeWindow->getWinType() & PFPWIN_TYPE_PBUFFER)
     {
-        printf("vsWindow::saveImage: Unable to access contents of window\n");
-        return NULL;
-    }
-    
-    // * Juggle the 'mask' bits around (as given by the X image structure)
-    // to determine which color data bits occupy what space within each
-    // pixel data unit. This information is stored as a bit shift indicating
-    // the number of bits to move before we get to the start of that color
-    // component's bits, and a bit mask used to mask out bits from other
-    // color components. Also construct a lookup table to allow for quick
-    // scaling from whatever is stored in the data into the 0-255 range
-    // that the RGB format wants.
-    
-    // Computing the shift and mask involves shifting the mask down until
-    // the low bit becomes one. The mask is them saved like that, and the
-    // number of shifts is recorded.
-    
-    // Red size and offset
-    redMax = ximage->red_mask;
-    redShift = 0;
-    while (!(redMax & 1))
-    {
-        redShift++;
-        redMax >>= 1;
-    }
-    redMask = ximage->red_mask;
-    // Red scale lookup table
-    for (loop = 0; loop <= redMax; loop++)
-        redVals[loop] = ((loop * 255) / redMax);
+        // Query the drawable for its width and height
+        glXQueryDrawable(xWindowDisplay, winDrawable, GLX_WIDTH, &width);
+        glXQueryDrawable(xWindowDisplay, winDrawable, GLX_HEIGHT, &height);
 
-    // Green size and offset
-    greenMax = ximage->green_mask;
-    greenShift = 0;
-    while (!(greenMax & 1))
-    {
-        greenShift++;
-        greenMax >>= 1;
-    }
-    greenMask = ximage->green_mask;
-    // Green scale lookup table
-    for (loop = 0; loop <= greenMax; loop++)
-        greenVals[loop] = ((loop * 255) / greenMax);
+        // Get the callback list of the last child pane, so that the image
+        // taken is the one drawn last
+        callbackList =
+            getChildPane(childPaneCount -1)->getPerformerCallbackList();
 
-    // Blue size and offset
-    blueMax = ximage->blue_mask;
-    blueShift = 0;
-    while (!(blueMax & 1))
-    {
-        blueShift++;
-        blueMax >>= 1;
-    }
-    blueMask = ximage->blue_mask;
-    // Blue scale lookup table
-    for (loop = 0; loop <= blueMax; loop++)
-        blueVals[loop] = ((loop * 255) / blueMax);
+        // Give the callback list a save image callback, storing the shared
+        // memory on which the callback acts into the temporary buffer. The
+        // image is retreived in RGB format, which uses three bytes per pixel
+        sharedBuffer = callbackList->
+            appendCallback(saveImage, width * height * 3);
 
-    // Create a buffer area for each color component of the image
-    tempBuffer = new unsigned char[ width * height * 3];
-
-    // Process the image, one pixel at a time
-    for (loop = 0, index = 0; loop < height; loop++)
-    {
-        for (sloop = 0; sloop < width; sloop++)
+        // Keep trying to acquire the data until the image has been written
+        while (!callbackList->acquireData(sharedBuffer))
         {
-            // Call an X function to extract one of the image pixels from
-            // the X image object
-            pixelData = XGetPixel(ximage, sloop, loop);
-
-            // Decode the three component pixel values using the associated
-            // bit mask, bit shift value, and lookup table. Store the
-            // resulting value in the pixel array for that component.
-
-            // Red
-            redPixel = pixelData & redMask;
-            redPixel >>= redShift;
-            tempBuffer[ index++ ] = redVals[redPixel];
-
-            // Green
-            greenPixel = pixelData & greenMask;
-            greenPixel >>= greenShift;
-            tempBuffer[ index++ ] = greenVals[greenPixel];
-
-            // Blue
-            bluePixel = pixelData & blueMask;
-            bluePixel >>= blueShift;
-            tempBuffer[ index++ ] = blueVals[bluePixel];
+            // Force a traversal of the callback list in the draw process
+            pfFrame();
         }
 
+        // Save the image
+        image = new vsImage(width, height, VS_IMAGE_FORMAT_RGB,
+            (unsigned char *)sharedBuffer);
+
+        // Free the shared memory that Performer used to create the image
+        pfFree(sharedBuffer);
     }
+    else
+    {
+        // Get the size and shape info for the window
+        XGetGeometry(xWindowDisplay, winDrawable, &rootWin, &xpos, &ypos,
+            &width, &height, &border, &depth);
 
-    // Clean up the XImage
-    XDestroyImage(ximage);
+        // Insure we begin at winDrawable's origin.  This is done because the
+        // XGetGeometry call returns the x and y pos relative to the parent's
+        // window.
+        xpos = 0;
+        ypos = 0;
 
-    // Put the data into vsImage
-    image = new vsImage( width, height, VS_IMAGE_FORMAT_RGB, tempBuffer );
+        // Capture the contents of the window into an X image struture
+        ximage = XGetImage(xWindowDisplay, winDrawable, xpos, ypos, width, height,
+            AllPlanes, ZPixmap);
+        if (!ximage)
+        {
+            printf("vsWindow::saveImage: Unable to access contents of window\n");
+            return NULL;
+        }
+    
+        // * Juggle the 'mask' bits around (as given by the X image structure)
+        // to determine which color data bits occupy what space within each
+        // pixel data unit. This information is stored as a bit shift indicating
+        // the number of bits to move before we get to the start of that color
+        // component's bits, and a bit mask used to mask out bits from other
+        // color components. Also construct a lookup table to allow for quick
+        // scaling from whatever is stored in the data into the 0-255 range
+        // that the RGB format wants.
+    
+        // Computing the shift and mask involves shifting the mask down until
+        // the low bit becomes one. The mask is them saved like that, and the
+        // number of shifts is recorded.
+    
+        // Red size and offset
+        redMax = ximage->red_mask;
+        redShift = 0;
+        while (!(redMax & 1))
+        {
+            redShift++;
+            redMax >>= 1;
+        }
+        redMask = ximage->red_mask;
+        // Red scale lookup table
+        for (loop = 0; loop <= redMax; loop++)
+        {
+            redVals[loop] = ((loop * 255) / redMax);
+        }
 
-    // X returns the image with the origin in the top left. We store our
-    // image like OpenGL with the origin in the bottom left. Flip it
-    image->flipVertical();
+        // Green size and offset
+        greenMax = ximage->green_mask;
+        greenShift = 0;
+        while (!(greenMax & 1))
+        {
+            greenShift++;
+            greenMax >>= 1;
+        }
+        greenMask = ximage->green_mask;
+        // Green scale lookup table
+        for (loop = 0; loop <= greenMax; loop++)
+        {
+            greenVals[loop] = ((loop * 255) / greenMax);
+        }
 
-    // Delete the temporary buffer
-    delete [] tempBuffer;
+        // Blue size and offset
+        blueMax = ximage->blue_mask;
+        blueShift = 0;
+        while (!(blueMax & 1))
+        {
+            blueShift++;
+            blueMax >>= 1;
+        }
+        blueMask = ximage->blue_mask;
+        // Blue scale lookup table
+        for (loop = 0; loop <= blueMax; loop++)
+        {
+            blueVals[loop] = ((loop * 255) / blueMax);
+        }
 
+        // Create a buffer area for each color component of the image
+        tempBuffer = new unsigned char[ width * height * 3];
+
+        // Process the image, one pixel at a time
+        for (loop = 0, index = 0; loop < height; loop++)
+        {
+            for (sloop = 0; sloop < width; sloop++)
+            {
+                // Call an X function to extract one of the image pixels from
+                // the X image object
+                pixelData = XGetPixel(ximage, sloop, loop);
+    
+                // Decode the three component pixel values using the associated
+                // bit mask, bit shift value, and lookup table. Store the
+                // resulting value in the pixel array for that component.
+    
+                // Red
+                redPixel = pixelData & redMask;
+                redPixel >>= redShift;
+                tempBuffer[ index++ ] = redVals[redPixel];
+    
+                // Green
+                greenPixel = pixelData & greenMask;
+                greenPixel >>= greenShift;
+                tempBuffer[ index++ ] = greenVals[greenPixel];
+    
+                // Blue
+                bluePixel = pixelData & blueMask;
+                bluePixel >>= blueShift;
+                tempBuffer[ index++ ] = blueVals[bluePixel];
+            }
+    
+        }
+
+        // Clean up the XImage
+        XDestroyImage(ximage);
+
+        // Put the data into vsImage
+        image = new vsImage( width, height, VS_IMAGE_FORMAT_RGB, tempBuffer );
+
+        // X returns the image with the origin in the top left. We store our
+        // image like OpenGL with the origin in the bottom left. Flip it
+        image->flipVertical();
+
+        // Delete the temporary buffer
+        delete [] tempBuffer;
+    }
+    
     return image;
 }
 
@@ -963,12 +1075,15 @@ void vsWindow::removePane(vsPane *targetPane)
     
     // Search the child pane list for the target pane
     for (loop = 0; loop < childPaneCount; loop++)
+    {
         if (targetPane == childPaneList[loop])
         {
             // Remove the target pane from the child list by sliding the
 	    // other children down over the removed one
             for (sloop = loop; sloop < (childPaneCount-1); sloop++)
+            {
                 childPaneList[sloop] = childPaneList[sloop+1];
+            }
 
             // One fewer child
             childPaneCount--;
@@ -981,6 +1096,156 @@ void vsWindow::removePane(vsPane *targetPane)
             performerPipeWindow->removeChan(targetPane->getBaseLibraryObject());
             return;
         }
+    }
 
     printf("vsWindow::removePane: Specified pane not part of window\n");
 }
+
+// ------------------------------------------------------------------------
+// VESS internal function - Performer callback
+// This is the Config function for a Pbuffer. It is called once during the
+// first draw process because this is the only time the necessary OpenGL
+// calls for creating a pbuffer can be made.
+// ------------------------------------------------------------------------
+void vsWindow::InitPbuffer(pfPipeWindow *pipeWindow)
+{
+    pfWSConnection display;
+    int            screenIndex;
+    int            width;
+    int            height;
+    GLXFBConfig    *configList;
+    int            configCount;
+    GLXPbuffer     pBuffer;
+    GLXContext     glContext;
+
+    // Default frame buffer configuration
+    int frameBufferAttributes[20] =
+    {
+        GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT,
+        GLX_RENDER_TYPE, GLX_RGBA_BIT,
+        GLX_RED_SIZE, 8,
+        GLX_GREEN_SIZE, 8,
+        GLX_BLUE_SIZE, 8,
+        GLX_DEPTH_SIZE, 24,
+        GLX_STENCIL_SIZE, 8,
+        GLX_DOUBLEBUFFER, 1,
+        0
+    };
+
+    // pBuffer configuration: This will create a pBuffer of the requested
+    // width and height. Its contents are preserved, meaning images held
+    // should survive screen modifications. Also this will not create the
+    // largest available pBuffer if there is not enough memory; it will
+    // give an invalid context instead.
+    int pBufferAttributes[10] =
+    {
+        GLX_PBUFFER_WIDTH, 0,
+        GLX_PBUFFER_HEIGHT, 0,
+        GLX_LARGEST_PBUFFER, GL_TRUE,
+        GLX_PRESERVED_CONTENTS, GL_FALSE
+    };
+
+    // Grab the display and screen index from Performer
+    display = pfGetCurWSConnection();
+    screenIndex = pipeWindow->getScreen();
+
+    // Grab the size of the pfPipeWindow to use for the pBuffer
+    pipeWindow->getSize(&width, &height);
+
+    // Set the pBuffer width and height attributes to this width and height
+    pBufferAttributes[1] = width;
+    pBufferAttributes[3] = height;
+
+    // Get the list of valid framebuffer configurations
+    configList = glXChooseFBConfig(display, screenIndex,
+        frameBufferAttributes, &configCount);
+
+    // Make sure at least one valid framebuffer configuration was returned
+    if (configCount == 0)
+    {
+        pfNotify(PFNFY_WARN, PFNFY_PRINT, "No valid framebuffer "
+            "configurations found!");
+    }
+    else
+    {
+        // Give the pfPipeWindow the first valid configuration
+        pipeWindow->setFBConfig(configList[0]);
+
+        // Create the pBuffer that we will pass to Performer
+        pBuffer = glXCreatePbuffer(display, configList[0], pBufferAttributes);
+
+        // Create the rendering context for the pBuffer
+        glContext = glXCreateNewContext(display, configList[0], GLX_RGBA_TYPE,
+            NULL, GL_TRUE);
+ 
+        // Tell the pfPipeWindow to use our pBuffer as its drawable
+        pipeWindow->setWSDrawable(display, pBuffer);
+
+        // Tell the pfPipeWindow to use our GLXContext
+        pipeWindow->setGLCxt(glContext);
+
+        // Free the memory used for the config list
+        XFree(configList);
+
+        // Open the window
+        pipeWindow->open();
+    }
+}
+                                                                                                                                                             
+// ------------------------------------------------------------------------
+// static VESS internal function - Performer callback
+// Post-DRAW callback to read the pixels from the current frame and save
+// them into shared memory where they can be retrieved later. This callback
+// is added to the performer callback list when the user needs to save an
+// image, and deletes itself so that the image is only saved once.
+// ------------------------------------------------------------------------
+void vsWindow::saveImage(pfChannel *chan, void *userData)
+{
+    pfPipeWindow *pipeWindow;
+    pfGLContext pipeWindowContext;
+    pfWSConnection display;
+    pfWSDrawable pBuffer;
+    int numChans;
+    int chanIndex;
+    unsigned int width;
+    unsigned int height;
+
+    // Retrieve the parent pipe window from the channel
+    pipeWindow = chan->getPWin();
+
+    // Find the number of channels on the parent pipe window
+    numChans = pipeWindow->getNumChans();
+
+    // Find the index of this channel inside the parent pipe window
+    chanIndex = pipeWindow->getChanIndex(chan);
+
+    // We only want to save the image if this is the last channel, because
+    // this ensures that all of the other channels have already been drawn
+    if (numChans - 1 == chanIndex)
+    {
+        // Get the current window system connection from Performer
+        display = pfGetCurWSConnection();
+
+        // Grab the pBuffer drawable surface from the pipe window
+        pBuffer = pipeWindow->getCurWSDrawable();
+
+        // Get the dimensions of the drawable
+        glXQueryDrawable(display, pBuffer, GLX_WIDTH, &width);
+        glXQueryDrawable(display, pBuffer, GLX_HEIGHT, &height);
+
+        // Get the GL context of the pipe window
+        pipeWindowContext = pipeWindow->getGLCxt();
+
+        // Make the pipe window context current
+        glXMakeCurrent(display, pBuffer, pipeWindowContext);
+
+        // Read the image from the pBuffer into the shared user data
+        glPixelStorei( GL_PACK_ALIGNMENT, 1 );
+        glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE,
+            (GLvoid *)vsCallbackList::getData(userData));
+
+        // Tell the callback node to delete itself from the list
+        vsCallbackList::removeCallbackNode(userData);
+    }
+}
+

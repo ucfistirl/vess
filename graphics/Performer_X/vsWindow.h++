@@ -15,7 +15,7 @@
 //
 //    Description:  Class that represents an open window on any screen
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Casey Thurston
 //
 //------------------------------------------------------------------------
 
@@ -52,17 +52,22 @@ private:
     
     int                xPositionOffset, yPositionOffset;
     int                widthOffset, heightOffset;
-    
+
 VS_INTERNAL:
 
     void        addPane(vsPane *newPane);
     void        removePane(vsPane *targetPane);
+
+    static void InitPbuffer(pfPipeWindow *pipeWindow);
+    static void saveImage(pfChannel *chan, void *userData);
 
 public:
 
                        vsWindow(vsScreen *parent, bool hideBorder, bool stereo);
                        vsWindow(vsScreen *parent, int x, int y, int width,
                                 int height, bool hideBorder, bool stereo);
+                       vsWindow(vsScreen *parent, int offScreenWidth,
+                                int offScreenHeight);
                        vsWindow(vsScreen *parent, Window xWin);
     virtual            ~vsWindow();
     
