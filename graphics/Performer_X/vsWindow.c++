@@ -670,6 +670,46 @@ void vsWindow::getSize(int *width, int *height)
 }
 
 // ------------------------------------------------------------------------
+// Returns the size of the drawable area of this window.  This will be
+// the same as the window size if there are no borders or decorations.
+// ------------------------------------------------------------------------
+void vsWindow::getDrawableSize(int *width, int *height)
+{
+    Display *xWindowDisplay;
+    int result;
+    XWindowAttributes xattr;
+    int x, y;
+
+    // Get the X display connection from the screen's parent pipe
+    xWindowDisplay = pfGetCurWSConnection();
+
+    // Query the window attributes from X, and make sure the query
+    // succeeds
+    result = XGetWindowAttributes(xWindowDisplay, 
+        performerPipeWindow->getWSWindow(), &xattr);
+    if (result)
+    {
+        // The query failed, return zeroes as default
+        x = 0;
+        y = 0;
+    }
+    else
+    {
+        // Get the window size from the attributes structure
+        x = xattr.width;
+        y = xattr.height;
+    }
+
+    // Return the width if requested
+    if (width)
+        *width = x;
+
+    // Return the height if requested
+    if (height)
+        *height = y;
+}
+
+// ------------------------------------------------------------------------
 // Sets the position of this window on the screen, in pixels from the
 // top-left corner of the screen.
 // ------------------------------------------------------------------------

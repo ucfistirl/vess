@@ -300,7 +300,7 @@ void vsPane::setSize(int width, int height)
     osgSceneView->getViewport()->getViewport(x, y, oldWidth, oldHeight);
 
     // Compute the new normalized width and height
-    parentWindow->getSize(&winWidth, &winHeight);
+    parentWindow->getDrawableSize(&winWidth, &winHeight);
     widthNorm = (double)width / (double)winWidth;
     heightNorm = (double)height / (double)winHeight;
 
@@ -339,7 +339,7 @@ void vsPane::setPosition(int xPos, int yPos)
     osgSceneView->getViewport()->getViewport(x, y, width, height);
 
     // Compute the new normalized origin
-    parentWindow->getSize(&winWidth, &winHeight);
+    parentWindow->getDrawableSize(&winWidth, &winHeight);
     xPosNorm = (double)xPos / (double)winWidth;
     yPosNorm = (double)yPos / (double)winHeight;
 
@@ -375,7 +375,7 @@ void vsPane::autoConfigure(int panePlacement)
     int winWidth, winHeight;
 
     // Get the dimensions of the window
-    parentWindow->getSize(&winWidth, &winHeight);
+    parentWindow->getDrawableSize(&winWidth, &winHeight);
 
     // Get the viewport of the OSG SceneView
     viewport = osgSceneView->getViewport();
@@ -817,7 +817,7 @@ void vsPane::resize()
     int x, y, width, height;
 
     // Get the current size of the window
-    parentWindow->getSize(&winWidth, &winHeight);
+    parentWindow->getDrawableSize(&winWidth, &winHeight);
 
     // Compute the position and size of the pane in local window coordinates
     x = (int)(xPosNorm * (double)winWidth);

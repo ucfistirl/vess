@@ -188,7 +188,7 @@ void vsPane::setSize(int width, int height)
 
     // Convert from pixel sizes to the fraction-of-a-window sizes
     // that Performer likes
-    parentWindow->getSize(&winWidth, &winHeight);
+    parentWindow->getDrawableSize(&winWidth, &winHeight);
     widthFraction = (float)width / (float)winWidth;
     heightFraction = (float)height / (float)winHeight;
     
@@ -229,7 +229,7 @@ void vsPane::setPosition(int xPos, int yPos)
     
     // Convert from pixel sizes to the fraction-of-the-screen sizes
     // that Performer likes
-    parentWindow->getSize(&winWidth, &winHeight);
+    parentWindow->getDrawableSize(&winWidth, &winHeight);
     xPosFraction = (float)xPos / (float)winWidth;
     yPosFraction = 1.0f - ((float)yPos / (float)winHeight);
     
