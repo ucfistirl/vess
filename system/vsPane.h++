@@ -113,6 +113,9 @@ public:
 
     void                setBufferMode(vsPaneBufferMode newMode);
     vsPaneBufferMode    getBufferMode();
+    
+    void                setVisibilityMask(unsigned int newMask);
+    unsigned int        getVisibilityMask();
 
     void                showPane();
     void                hidePane();

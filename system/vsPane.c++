@@ -343,6 +343,26 @@ vsPaneBufferMode vsPane::getBufferMode()
 }
 
 // ------------------------------------------------------------------------
+// Sets the visibility mask for this pane. During the culling portion
+// of a frame drawing cycle, a bitwise AND of the pane's visibility mask
+// and each node's visibility value is performed; if the result of the AND
+// is zero, that node (and all other nodes under it) are culled, not to be
+// drawn.
+// ------------------------------------------------------------------------
+void vsPane::setVisibilityMask(unsigned int newMask)
+{
+    performerChannel->setTravMask(PFTRAV_DRAW, newMask);
+}
+
+// ------------------------------------------------------------------------
+// Gets the visibility mask for this pane.
+// ------------------------------------------------------------------------
+unsigned int vsPane::getVisibilityMask()
+{
+    return (performerChannel->getTravMask(PFTRAV_DRAW));
+}
+
+// ------------------------------------------------------------------------
 // Makes this pane visible. Panes are visible by default.
 // ------------------------------------------------------------------------
 void vsPane::showPane()
