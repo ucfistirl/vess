@@ -43,6 +43,14 @@ vsOptimizer::~vsOptimizer()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsOptimizer::getClassName()
+{
+    return "vsOptimizer";
+}
+
+// ------------------------------------------------------------------------
 // Start optimizations on the scene rooted at the given node
 // ------------------------------------------------------------------------
 void vsOptimizer::optimize(vsNode *rootNode)

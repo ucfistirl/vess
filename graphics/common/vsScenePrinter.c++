@@ -46,6 +46,14 @@ vsScenePrinter::~vsScenePrinter()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsScenePrinter::getClassName()
+{
+    return "vsScenePrinter";
+}
+
+// ------------------------------------------------------------------------
 // Writes a textual representation of the scene rooted at the given node
 // out to the file specified by the given filename.
 // ------------------------------------------------------------------------

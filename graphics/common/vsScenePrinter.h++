@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include "vsNode.h++"
 
-class VS_GRAPHICS_DLL vsScenePrinter
+class VS_GRAPHICS_DLL vsScenePrinter : public vsObject
 {
 private:
 
@@ -36,11 +36,13 @@ private:
 
 public:
 
-                vsScenePrinter();
-    virtual     ~vsScenePrinter();
+                       vsScenePrinter();
+    virtual            ~vsScenePrinter();
 
-    void        printScene(vsNode *targetNode, char *outputFileName);
-    void        printScene(vsNode *targetNode, FILE *outputFile);
+    virtual const char *getClassName();
+
+    void               printScene(vsNode *targetNode, char *outputFileName);
+    void               printScene(vsNode *targetNode, FILE *outputFile);
 };
 
 #endif

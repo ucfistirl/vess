@@ -38,7 +38,7 @@
 
 #define VS_OPTIMIZER_ALL                0xFFFFFFFF
 
-class VS_GRAPHICS_DLL vsOptimizer
+class VS_GRAPHICS_DLL vsOptimizer : public vsObject
 {
 private:
 
@@ -68,13 +68,15 @@ private:
 
 public:
 
-                vsOptimizer();
-    virtual     ~vsOptimizer();
+                       vsOptimizer();
+    virtual            ~vsOptimizer();
 
-    void        optimize(vsNode *rootNode);
+    virtual const char *getClassName();
 
-    void        setOptimizations(int mask);
-    int         getOptimizations();
+    void               optimize(vsNode *rootNode);
+
+    void               setOptimizations(int mask);
+    int                getOptimizations();
 };
 
 #endif
