@@ -44,7 +44,7 @@ vs6DInputDevice::~vs6DInputDevice(void)
 int vs6DInputDevice::getNumAxes(void)
 {
     // Every 6D input device has three axes to represent position
-    return 3;
+    return VS_6DINPUT_NUM_AXES;
 }
 
 // ------------------------------------------------------------------------
@@ -54,7 +54,7 @@ vsInputAxis *vs6DInputDevice::getAxis(int index)
 {
     // Validate and return the requested axis, or NULL if the index is
     // out of bounds
-    if (index < 3)
+    if (index < VS_6DINPUT_NUM_AXES)
         return &position[index];
     else
         return NULL;
