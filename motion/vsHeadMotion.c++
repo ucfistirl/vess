@@ -57,7 +57,6 @@ void vsHeadMotion::update()
 {
     vsQuat backOrn;
     vsQuat headOrn;
-    double h, p, r;
 
     // Get tracker data
     backOrn = backTracker->getOrientationQuat();
