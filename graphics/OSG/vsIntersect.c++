@@ -69,13 +69,13 @@ vsIntersect::~vsIntersect()
 
     // Clean up any line segments that were allocated
     for (loop = 0; loop < segListSize; loop++)
-        if (segList[loop]!=NULL)
+        if (segList[loop] != NULL)
             ((osg::LineSegment *)(segList[loop]))->unref();
 
-    // Unreference the vsIntersectTraverser
+    // Delete the vsIntersectTraverser
     traverser->unref();
 
-    // Unreference the OSG IntersectVisitor
+    // Delete the OSG IntersectVisitor
     osgIntersect->unref();
 }
 
@@ -108,7 +108,7 @@ void vsIntersect::setSegListSize(int newSize)
         // that are going away.
         for (loop = newSize; loop < segListSize; loop++)
         {
-            if (segList[loop]!=NULL)
+            if (segList[loop] != NULL)
                 ((osg::LineSegment *)(segList[loop]))->unref();
         }
     }
@@ -523,7 +523,8 @@ void vsIntersect::intersect(vsNode *targetNode)
     // Add all the segments from the segment list to the IntersectVisitor
     for (loop = 0; loop < segListSize; loop++)
     {
-        osgIntersect->addLineSegment((osg::LineSegment *)(segList[loop]));
+        if (segList[loop])
+            osgIntersect->addLineSegment((osg::LineSegment *)(segList[loop]));
     }
 
     // Call the Visitor's accept() method to run the intersection traversal
@@ -532,6 +533,21 @@ void vsIntersect::intersect(vsNode *targetNode)
     // Interpret and store the results
     for (loop = 0; loop < segListSize; loop++)
     {
+        // If there was no segment defined for this segment position, then treat
+        // it as if no intersection occurred
+        if (segList[loop] == NULL)
+        {
+            validFlag[loop] = 0;
+            sectPoint[loop].set(0, 0, 0);
+            sectNorm[loop].set(0, 0, 0);
+            sectGeom[loop] = NULL;
+            sectPrim[loop] = 0;
+            if (sectPath[loop])
+                delete (sectPath[loop]);
+            sectPath[loop] = NULL;
+            continue;
+        }
+
         // Get the list of hits for this segment
         hitList = osgIntersect->getHitList((osg::LineSegment *)(segList[loop]));
         
