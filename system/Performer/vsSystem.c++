@@ -352,34 +352,80 @@ void vsSystem::drawFrame()
     vsPane *targetPane;
     vsNode *scene;
     int screenCount = vsScreen::getScreenCount();
+    vsTreeMap *binModeList;
+    vsGrowableArray binList(1, 1);
+    vsGrowableArray modeList(1, 1);
+    int binLoop;
+    int binNum, binMode;
 
-    // If any of the vsGeometry's render bin modes changed last frame,
-    // then we need to mark every geometry object in existance as dirty so
-    // that the bin mode change gets applied to all geometry objects.
-    if (vsGeometry::binModesChanged)
+    // Get the bin mode list from the vsGeometry class
+    binModeList = vsGeometry::getBinModeList();
+
+    // If the bin mode list exists, and the geometry bin modes have changed, 
+    // update all panes to use the new bin modes
+    if ((vsGeometry::binModesChanged) && (binModeList != NULL))
     {
+        // Get two parallel arrays from the bin mode list representing the 
+        // bin numbers and their modes, respectively.
+        binModeList->getSortedList(&binList, &modeList);
+
+        // Loop over all screens
         for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
         {
             targetScreen = vsScreen::getScreen(screenLoop);
             windowCount = targetScreen->getChildWindowCount();
+
+            // Loop over all windows
             for (windowLoop = 0; windowLoop < windowCount; windowLoop++)
             {
+                // Find the number of panes on the window
                 targetWindow = targetScreen->getChildWindow(windowLoop);
                 paneCount = targetWindow->getChildPaneCount();
+
+                // Loop over all panes
                 for (paneLoop = 0; paneLoop < paneCount; paneLoop++)
                 {
+                    // Get the next pane
                     targetPane = targetWindow->getChildPane(paneLoop);
-                    scene = targetPane->getScene();
-                    
-                    scene->dirty();
+
+                    // For each bin in the bin mode list, set the sort
+                    // order on the pane's Performer channel
+                    for (binLoop = 0; 
+                        binLoop < binModeList->getEntryCount(); 
+                        binLoop++)
+                    {
+                        // Get the bin number and mode from the lists
+                        binNum = (int)binList[binLoop];
+                        binMode = (int)modeList[binLoop];
+
+                        // Set the bin drawing order to the same value as
+                        // the bin number (e.g. bin 1 is drawn first,
+                        // bin 2 is second, etc)
+                        targetPane->getBaseLibraryObject()->
+                            setBinOrder(binNum, binNum);
+                            
+                        // See if this bin is state- or depth- sorted
+                        if (binMode == VS_GEOMETRY_SORT_DEPTH)
+                        {
+                            // Set this bin to depth (back-to-front) sorted
+                            targetPane->getBaseLibraryObject()->
+                                setBinSort(binNum, PFSORT_BACK_TO_FRONT, NULL);
+                        }
+                        else
+                        {
+                            // Set this bin to state-sorted
+                            targetPane->getBaseLibraryObject()->
+                                setBinSort(binNum, PFSORT_BY_STATE, NULL);
+                        }
+                    }
                 }
             }
         }
-        
-        // Now that we've done our job, don't do it again next frame
+
+        // Clear the flag that states the bin modes have changed
         vsGeometry::binModesChanged = VS_FALSE;
     }
-    
+
     // Update the viewpoint of each pane by its vsView object
     for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
     {
@@ -407,6 +453,7 @@ void vsSystem::drawFrame()
 		    (vsGraphicsState::getInstance())->clearState();
 		    preFrameTraverse(scene);
 		}
+
             }
         }
     }
