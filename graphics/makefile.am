@@ -58,7 +58,8 @@ EXTRA_libvsGraphics_a_SOURCES = \
                                 OSG/vsDecalCallback.c++ \
                                 OSG/vsIntersectTraverser.c++ \
                                 OSG/vsLocalLightCallback.c++ \
-                                OSG/vsSequenceCallback.c++
+                                OSG/vsSequenceCallback.c++ \
+                                OSG/vsTextureRectangleAttribute.c++
 
 # Extra sources for libvsGraphics.so.  These are only compiled if certain
 # conditions in the configure process are met.
@@ -106,7 +107,7 @@ include_HEADERS = \
 # Extra header files.  These are only used if certain conditions in the
 # configure process are met.
 EXTRA_HEADERS = \
-                common/vsMPEGReader.c++ \
+                common/vsMPEGReader.h++ \
                 OSG/vsBillboardCallback.h++ \
                 OSG/vsCgMatrixParameter.h++ \
                 OSG/vsCgParameter.h++ \
@@ -118,7 +119,8 @@ EXTRA_HEADERS = \
                 OSG/vsDecalCallback.h++ \
                 OSG/vsIntersectTraverser.h++ \
                 OSG/vsLocalLightCallback.h++ \
-                OSG/vsSequenceCallback.c++
+                OSG/vsSequenceCallback.h++ \
+                OSG/vsTextureRectangleAttribute.h++
 
 # Extra dependencies for libvsGraphics.a.  This reflects the additional
 # dependencies necessary if any conditionally-compiled sources are used.
