@@ -137,7 +137,7 @@ void vsIntersectTraverser::apply(osg::Sequence &node)
         {
             // Check to see if this child is active, and apply the
             // IntersectVisitor to it if so
-            if (node.getValue(i))
+            if (node.getValue() == i)
             {
                 node.getChild(i)->accept(*isectVisitor);
             }

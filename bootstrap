@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Make a config directory if one doesn't exist
+if ! test -d config ; then 
+    mkdir config
+fi
+
+# Scan configure.ac and generate aclocal.m4
+aclocal -I config
+
+# Scan configure.ac and generate config.h.in
+autoheader
+
+# Run automake to generate makefile.in files from the makefile.am files
+automake --foreign --add-missing --copy
+
+# Run autoconf to generate the configure script
+autoconf

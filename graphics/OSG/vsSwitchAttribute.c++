@@ -129,6 +129,7 @@ void vsSwitchAttribute::enableAll()
     }
 
     // Turn all children on on the osg::Switch
+    //osgSwitch->setAllChildrenOn();
     osgSwitch->setValue(osg::Switch::ALL_CHILDREN_ON);
 }
 
@@ -146,6 +147,7 @@ void vsSwitchAttribute::disableAll()
     }
 
     // Turn all children off on the osg::Switch
+    //osgSwitch->setAllChildrenOff();
     osgSwitch->setValue(osg::Switch::ALL_CHILDREN_OFF);
 }
 
@@ -214,6 +216,7 @@ void vsSwitchAttribute::attach(vsNode *theNode)
     
     // Replace the component's bottom group with an osg::Switch group
     osgSwitch = new osg::Switch();
+    //osgSwitch->setAllChildrenOff();
     osgSwitch->setValue(osg::Switch::ALL_CHILDREN_OFF);
     ((vsComponent *)theNode)->replaceBottomGroup(osgSwitch);
 
