@@ -263,8 +263,15 @@ void vsInputAxis::setIdlePosition(double newOffset)
 // ------------------------------------------------------------------------
 void vsInputAxis::passiveCalibrate(int enable)
 {
-    axisMin = offset - 0.01;
-    axisMax = offset + 0.01;
+    if (enable)
+    {
+        axisMin = offset - 0.01;
+        axisMax = offset + 0.01;
 
-    passiveCalibration = VS_TRUE;
+        passiveCalibration = VS_TRUE;
+    }
+    else
+    {
+        passiveCalibration = VS_FALSE;
+    }
 }
