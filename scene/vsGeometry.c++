@@ -30,6 +30,7 @@
 #include "vsShadingAttribute.h++"
 #include "vsTextureAttribute.h++"
 #include "vsTransparencyAttribute.h++"
+#include "vsWireframeAttribute.h++"
 #include "vsSystem.h++"
 
 // ------------------------------------------------------------------------
@@ -91,10 +92,11 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
     pfTexture *texture;
     pfTexEnv *texEnv, *newTexEnv;
     vsTextureAttribute *texAttrib;
-    int transMode, cullMode, shadeMode;
+    int transMode, cullMode, shadeMode, wireMode;
     vsTransparencyAttribute *transAttrib;
     vsBackfaceAttribute *backAttrib;
     vsShadingAttribute *shadeAttrib;
+    vsWireframeAttribute *wireAttrib;
     ushort *ilist;
     pfVec2 *vec2List;
     pfVec3 *vec3List;
@@ -363,6 +365,20 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
             else
                 shadeAttrib->setShading(VS_SHADING_GOURAUD);
             addAttribute(shadeAttrib);
+        }
+
+        // Wireframe
+        if ((geostate->getInherit() & PFSTATE_ENWIREFRAME) == 0)
+        {
+            wireMode = geostate->getMode(PFSTATE_ENWIREFRAME);
+            wireAttrib = new vsWireframeAttribute();
+        
+            if (wireMode == PFTR_ON)
+                backAttrib->enable();
+            else
+                backAttrib->disable();
+
+            addAttribute(wireAttrib);
         }
 
         pfDelete(geostate);
