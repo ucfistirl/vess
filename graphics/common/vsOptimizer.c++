@@ -437,6 +437,9 @@ void vsOptimizer::mergeLODs(vsComponent *componentNode)
     for (loop = 0; loop < rangeListSize; loop++)
         newLODAttr->setRangeEnd(loop, rangeList[loop]);
 
+    // Free up the memory allocated for the rangelist
+    free(rangeList);
+    
     // For each LOD on componentNode, remove all of the LOD's children
     // and add them to the children of the new LOD component, taking the
     // range values into account
@@ -501,7 +504,7 @@ void vsOptimizer::mergeLODs(vsComponent *componentNode)
             delete childNode;
         }
     }
-    
+
     // Last step is to add the new tree as a child of componentNode
     componentNode->addChild(newLODComponent);
 }
