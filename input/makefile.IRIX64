@@ -97,23 +97,6 @@ INCS = \
        -I../math
 
 #----------------------------------------------------------------------
-#			Linking Libraries - directories and libs
-#----------------------------------------------------------------------
-LDIRS = \
-      -nostdlib \
-      -L/usr/lib32/mips3 \
-      -L/usr/lib32/internal \
-      -L/usr/lib32/libpfdb \
-      -L/usr/lib32
-
-LLIBS = -ignore_unresolved \
-	-lC \
-	-lc \
-	-lm
-
-LIBS = $(LDIRS) $(LLIBS)
-
-#----------------------------------------------------------------------
 #			Default target
 #----------------------------------------------------------------------
 all: $(LIBNAME)
@@ -144,7 +127,7 @@ clean:
 #----------------------------------------------------------------------
 dep: depend
 depend:
-	makedepend -f makefile.IRIX -- $(CFLAGS) $(INCS) -- $(SRCS)
+	makedepend -f makefile.IRIX64 -- $(CFLAGS) $(INCS) -- $(SRCS)
 #----------------------------------------------------------------------
 # Our automatically generated dependencies follow...
 # Please don't mess below this line

@@ -16,7 +16,7 @@ $(LIBNAME): $(LIBOBJS)
 
 dep: depend
 depend:
-	makedepend -f makefile.IRIX -- $(FLAGS) -- $(LIBSRCS)
+	makedepend -f makefile.IRIX64 -- $(FLAGS) -- $(LIBSRCS)
 
 clean:
 	rm -f *.o core $(LIBNAME) makefile.*.bak
@@ -26,7 +26,7 @@ clean:
 	CC $(FLAGS) -c $< -o ./$*.o
 
 .c.o:
-	CC $(FLAGS) -c $< -o ./$*.o
+	cc $(FLAGS) -c $< -o ./$*.o
 
 
 #----------------------------------------------------------------------

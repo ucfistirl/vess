@@ -21,6 +21,8 @@ LIBNAME = libvsMotion.a
 #			All Source and Object files
 #----------------------------------------------------------------------
 SRCS = \
+       vsBallJoint.c++ \
+       vsDrivingMotion.c++ \
        vsFlyingMotion.c++ \
        vsMotionModel.c++ \
        vsTrackballMotion.c++ \
@@ -28,6 +30,8 @@ SRCS = \
        vsWalkInPlace.c++
 
 OBJS = \
+       vsBallJoint.o \
+       vsDrivingMotion.o \
        vsFlyingMotion.o \
        vsMotionModel.o \
        vsTrackballMotion.o \
@@ -37,7 +41,7 @@ OBJS = \
 #----------------------------------------------------------------------
 #			Misc. settings
 #----------------------------------------------------------------------
-OS = IRIX
+OS = IRIX64
 
 #----------------------------------------------------------------------
 #			Compiler settings
@@ -57,23 +61,6 @@ INCS = \
        -I../scene \
        -I../math \
        -I../input
-
-#----------------------------------------------------------------------
-#			Linking Libraries - directories and libs
-#----------------------------------------------------------------------
-LDIRS = \
-      -nostdlib \
-      -L/usr/lib32/mips3 \
-      -L/usr/lib32/internal \
-      -L/usr/lib32/libpfdb \
-      -L/usr/lib32
-
-LLIBS = -ignore_unresolved \
-	-lC \
-	-lc \
-	-lm
-
-LIBS = $(LDIRS) $(LLIBS)
 
 #----------------------------------------------------------------------
 #			Default target
@@ -106,7 +93,7 @@ clean:
 #----------------------------------------------------------------------
 dep: depend
 depend:
-	makedepend -f makefile.IRIX -- $(CFLAGS) $(INCS) -- $(SRCS)
+	makedepend -f makefile.IRIX64 -- $(CFLAGS) $(INCS) -- $(SRCS)
 #----------------------------------------------------------------------
 # Our automatically generated dependencies follow...
 # Please don't mess below this line
@@ -496,3 +483,96 @@ vsTrackedMotion.o: /usr/include/Performer/pr/pfLight.h
 vsTrackedMotion.o: ../input/vsInputAxis.h++ ../input/vsInputButton.h++
 vsTrackedMotion.o: ../input/vsMotionTracker.h++ ../input/vs6DInputDevice.h++
 vsTrackedMotion.o: ../input/vsInputDevice.h++
+vsWalkInPlace.o: vsWalkInPlace.h++ vsMotionModel.h++ ../corelib/vsGlobals.h++
+vsWalkInPlace.o: ../math/vsVecQuat.h++ ../math/vsMatrix.h++
+vsWalkInPlace.o: ../math/vsVector.h++ ../math/vsQuat.h++
+vsWalkInPlace.o: ../scene/vsComponent.h++ /usr/include/Performer/pf/pfGroup.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfNode.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfUpdatable.h
+vsWalkInPlace.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
+vsWalkInPlace.o: /usr/include/sys/types.h /usr/include/standards.h
+vsWalkInPlace.o: /usr/include/sgidefs.h /usr/include/stdio.h
+vsWalkInPlace.o: /usr/include/ulocks.h /usr/include/limits.h
+vsWalkInPlace.o: /usr/include/task.h /usr/include/sys/prctl.h
+vsWalkInPlace.o: /usr/include/unistd.h /usr/include/errno.h
+vsWalkInPlace.o: /usr/include/sys/errno.h /usr/include/X11/X.h
+vsWalkInPlace.o: /usr/include/X11/Xlib.h /usr/include/X11/Xfuncproto.h
+vsWalkInPlace.o: /usr/include/X11/Xosdefs.h /usr/include/stddef.h
+vsWalkInPlace.o: /usr/include/X11/Xutil.h
+vsWalkInPlace.o: /usr/include/X11/extensions/XSGIvc.h
+vsWalkInPlace.o: /usr/include/X11/extensions/XSGIvcstr.h
+vsWalkInPlace.o: /usr/include/wctype.h /usr/include/wchar.h
+vsWalkInPlace.o: /usr/include/locale_attr.h /usr/include/ctype.h
+vsWalkInPlace.o: /usr/include/time.h /usr/include/GL/gl.h
+vsWalkInPlace.o: /usr/include/GL/glx.h /usr/include/X11/Xmd.h
+vsWalkInPlace.o: /usr/include/GL/glxtokens.h /usr/include/GL/glu.h
+vsWalkInPlace.o: /usr/include/Performer/opengl.h
+vsWalkInPlace.o: /usr/include/Performer/prmath.h /usr/include/math.h
+vsWalkInPlace.o: /usr/include/Performer/prstats.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfLinMath.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfObject.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfMemory.h /usr/include/string.h
+vsWalkInPlace.o: /usr/include/bstring.h /usr/include/Performer/pr/pfType.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfStruct.h
+vsWalkInPlace.o: /usr/include/Performer/pfstats.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfBuffer.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfUpdate.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfLists.h
+vsWalkInPlace.o: /usr/include/sys/stream.h /usr/include/sys/strmdep.h
+vsWalkInPlace.o: /usr/include/sys/cdefs.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfFrameStats.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfPipe.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfVideoChannel.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfList.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfCalligraphic.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfStats.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfDispList.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfGeoState.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfState.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfGeoMath.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfSwitch.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfFlux.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfEngine.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfSequence.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfLOD.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfLODState.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfGeode.h ../corelib/vsSystem.h++
+vsWalkInPlace.o: ../corelib/vsPipe.h++ ../corelib/vsScreen.h++
+vsWalkInPlace.o: ../corelib/vsWindow.h++
+vsWalkInPlace.o: /usr/include/Performer/pf/pfPipeWindow.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfWindow.h ../corelib/vsPane.h++
+vsWalkInPlace.o: /usr/include/Performer/pf/pfChannel.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfEarthSky.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfScene.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfGeoSet.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfCycleBuffer.h
+vsWalkInPlace.o: ../corelib/vsView.h++ ../scene/vsViewpointAttribute.h++
+vsWalkInPlace.o: /usr/include/Performer/pf/pfSCS.h ../scene/vsNode.h++
+vsWalkInPlace.o: ../scene/vsAttributeList.h++ ../scene/vsAttribute.h++
+vsWalkInPlace.o: /usr/include/stdlib.h ../corelib/vsDatabaseLoader.h++
+vsWalkInPlace.o: /usr/include/Performer/pf/pfBillboard.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfCuller.h /usr/include/alloca.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfTraverser.h
+vsWalkInPlace.o: /usr/include/Performer/pr/pfSprite.h
+vsWalkInPlace.o: /usr/include/Performer/pf/pfDCS.h
+vsWalkInPlace.o: /usr/include/Performer/pfdu.h
+vsWalkInPlace.o: /usr/include/Performer/pfutil.h /usr/include/dlfcn.h
+vsWalkInPlace.o: /usr/include/Performer/objfnt.h
+vsWalkInPlace.o: /usr/include/Performer/pfdb/pfflt.h
+vsWalkInPlace.o: ../corelib/vsObjectMap.h++ ../scene/vsTransformAttribute.h++
+vsWalkInPlace.o: ../scene/vsSwitchAttribute.h++
+vsWalkInPlace.o: ../scene/vsSequenceAttribute.h++ ../scene/vsLODAttribute.h++
+vsWalkInPlace.o: ../scene/vsBillboardAttribute.h++ ../scene/vsGeometry.h++
+vsWalkInPlace.o: ../scene/vsFogAttribute.h++
+vsWalkInPlace.o: /usr/include/Performer/pr/pfFog.h
+vsWalkInPlace.o: ../scene/vsMaterialAttribute.h++
+vsWalkInPlace.o: /usr/include/Performer/pr/pfMaterial.h
+vsWalkInPlace.o: ../scene/vsTextureAttribute.h++
+vsWalkInPlace.o: /usr/include/Performer/pr/pfTexture.h
+vsWalkInPlace.o: /usr/include/Performer/image.h
+vsWalkInPlace.o: ../scene/vsTransparencyAttribute.h++
+vsWalkInPlace.o: ../scene/vsBackfaceAttribute.h++
+vsWalkInPlace.o: /usr/include/Performer/pr/pfLight.h ../input/vsInputAxis.h++
+vsWalkInPlace.o: ../input/vsInputButton.h++ ../input/vsMotionTracker.h++
+vsWalkInPlace.o: ../input/vs6DInputDevice.h++ ../input/vsInputDevice.h++
