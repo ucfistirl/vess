@@ -35,6 +35,7 @@ libvsGraphics_a_SOURCES = \
                           @SG@/vsTextBuilder.c++ \
                           @SG@/vsTextureAttribute.c++ \
                           @SG@/vsTextureCubeAttribute.c++ \
+                          @SG@/vsTextureRectangleAttribute.c++ \
                           @SG@/vsTransformAttribute.c++ \
                           @SG@/vsTransparencyAttribute.c++ \
                           @SG@/vsView.c++ \
@@ -64,7 +65,6 @@ EXTRA_libvsGraphics_a_SOURCES = \
                                 OSG/vsIntersectTraverser.c++ \
                                 OSG/vsLocalLightCallback.c++ \
                                 OSG/vsSequenceCallback.c++ \
-                                OSG/vsTextureRectangleAttribute.c++ \
                                 Performer/vsCallbackList.c++
 
 # Extra sources for libvsGraphics.so.  These are only compiled if certain
@@ -105,6 +105,7 @@ include_HEADERS = \
                   @SG@/vsTextBuilder.h++ \
                   @SG@/vsTextureAttribute.h++ \
                   @SG@/vsTextureCubeAttribute.h++ \
+                  @SG@/vsTextureRectangleAttribute.h++ \
                   @SG@/vsTransformAttribute.h++ \
                   @SG@/vsTransparencyAttribute.h++ \
                   @SG@/vsView.h++ \
@@ -131,7 +132,6 @@ EXTRA_HEADERS = \
                 OSG/vsIntersectTraverser.h++ \
                 OSG/vsLocalLightCallback.h++ \
                 OSG/vsSequenceCallback.h++ \
-                OSG/vsTextureRectangleAttribute.h++ \
                 Performer/vsCallbackList.h++
 
 # Extra dependencies for libvsGraphics.a.  This reflects the additional
