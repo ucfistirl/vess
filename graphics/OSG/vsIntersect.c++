@@ -329,7 +329,6 @@ double vsIntersect::getSegLength(int segNum)
 
     // Compute the vector from the start point to the end point
     dir = endPt - startPt;
-    dir.normalize();
 
     // Return the magnitude of the vector
     return dir.getMagnitude();
