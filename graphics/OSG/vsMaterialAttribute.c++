@@ -458,17 +458,10 @@ void vsMaterialAttribute::detach(vsNode *node)
 // ------------------------------------------------------------------------
 void vsMaterialAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsMaterialAttribute *newAttrib;
-    osg::Material *newMaterial;
-    
-    // Create a new osg::Material, copying the current osg::Material
-    newMaterial = new osg::Material(*osgMaterial);
-
-    // Create a new vsMaterial attribute, using the new osg::Material
-    newAttrib = new vsMaterialAttribute(newMaterial);
-
-    // Attach the new attribute to the given node
-    theNode->addAttribute(newAttrib);
+    // Do NOT duplicate the material attribute; just point to the one we
+    // have already. We don't want multiple material objects with
+    // repetitive data floating around the scene graph.
+    theNode->addAttribute(this);
 }
 
 // ------------------------------------------------------------------------

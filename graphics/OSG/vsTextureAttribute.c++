@@ -482,19 +482,10 @@ void vsTextureAttribute::detach(vsNode *node)
 // ------------------------------------------------------------------------
 void vsTextureAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsTextureAttribute *newAttrib;
-    osg::Texture2D *newTex;
-    osg::TexEnv *newTexEnv;
-    
-    // Duplicate this attributes Texture2D and TexEnv objects
-    newTex = new osg::Texture2D(*osgTexture);
-    newTexEnv = new osg::TexEnv(*osgTexEnv);
-
-    // Create a new vsTextureAttribute using the duplicated OSG objects
-    newAttrib = new vsTextureAttribute(newTex, newTexEnv);
-
-    // Attach the new attribute to the given node
-    theNode->addAttribute(newAttrib);
+    // Do NOT duplicate the texture attribute; just point to the one we
+    // have already. We don't want multiple texture objects with
+    // repetitive data floating around the scene graph.
+    theNode->addAttribute(this);
 }
 
 // ------------------------------------------------------------------------
