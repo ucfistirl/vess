@@ -104,7 +104,7 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
         usleep(1000);
         size = readPacket(buf, 100, VS_PG_RESPONSE_PACKET);
         buf[size] = 0;
-        printf("%s\n", &buf[1]);
+        printf("%s\n", (const char *) &buf[1]);
         usleep(1000);
 
         printf("Left Glove :  ");
@@ -116,7 +116,7 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
         usleep(1000);
         size = readPacket(buf, 100, VS_PG_RESPONSE_PACKET);
         buf[size] = 0;
-        printf("%s\n", &buf[1]);
+        printf("%s\n", (const char *) &buf[1]);
         usleep(1000);
 
         printf("Right Glove:  ");
@@ -128,7 +128,7 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
         usleep(1000);
         size = readPacket(buf, 100, VS_PG_RESPONSE_PACKET);
         buf[size] = 0;
-        printf("%s\n", &buf[1]);
+        printf("%s\n", (const char *) &buf[1]);
         usleep(1000);
 
         gloves = new vsChordGloves();
