@@ -41,7 +41,6 @@ int              vsTextBuilder::primitiveLength;
 vsTextBuilder::vsTextBuilder()
 {
     // Initialize state variables to indicate the builder is not ready
-        // Destroy the glyph.
     // to build any text.
     fontLoaded = false;
     error = false;
