@@ -295,7 +295,9 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
     dbRoot = convertNode(performerGraph, nodeMap, attrMap);
     
     // Clean up the Performer scene graph (we don't need it any more)
-    pfMemory::unrefDelete(performerGraph);
+//    pfMemory::unrefDelete(performerGraph);
+    performerGraph->unref();
+    pfMemory::checkDelete(performerGraph);
 
     // Dispose of the object maps
     delete nodeMap;
