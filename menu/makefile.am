@@ -9,6 +9,7 @@ libvsMenu_a_SOURCES = \
                       common/vsMenuLabel.c++ \
                       common/vsMenuLink.c++ \
                       common/vsMenuObject.c++ \
+                      common/vsMenuSwitchButton.c++ \
                       common/vsMenuSystem.c++ \
                       common/vsMenuToggleButton.c++ \
                       common/vsMenuTree.c++
@@ -25,6 +26,7 @@ include_HEADERS = \
                   common/vsMenuLabel.h++ \
                   common/vsMenuLink.h++ \
                   common/vsMenuObject.h++ \
+                  common/vsMenuSwitchButton.h++ \
                   common/vsMenuSystem.h++ \
                   common/vsMenuToggleButton.h++ \
                   common/vsMenuTree.h++
