@@ -23,6 +23,48 @@
 #include "vsMenuSystem.h++"
 
 // ------------------------------------------------------------------------
+// Constructor - This constructor creates a basic menu system. It has no
+// cursor, no notion of intersection testing, and cannot use an existing
+// scene for navigation.
+// ------------------------------------------------------------------------
+vsMenuSystem::vsMenuSystem()
+{
+    int i;
+
+    // Begin with the pane NULL by default
+    menuPane = NULL;
+
+    // Create default scene and view objects
+    menuScene = new vsScene();
+    menuView = new vsView();
+
+    // Reference the scene and view to keep them from being deleted
+    menuScene->ref();
+    menuView->ref();
+
+    // Create the component that will hold all of the visualization objects
+    menuComponent = new vsComponent();
+    menuScene->addChild(menuComponent);
+
+    // This version of the constructor has no cursor at the moment
+    hasCursor = false;
+
+    // Generate an object for intersection testing in the scene graph
+    isectObject = new vsIntersect();
+    isectObject->setSegListSize(1);
+
+    // Initialize all of the buttons to NULL
+    for (i = 0; i < VS_MENU_ACTION_COUNT; i++)
+        setMenuButton((vsMenuAction)i, NULL);
+
+    // Initially, set the tree to null
+    menuTree = NULL;
+
+    // Begin with a default menu frame
+    menuFrame = new vsMenuFrame();
+}
+
+// ------------------------------------------------------------------------
 // Constructor - This constructor creates a menu system using a keyboard
 // and mouse. It displays the menu on a new pane which is placed over the
 // provided window.
@@ -43,7 +85,10 @@ vsMenuSystem::vsMenuSystem(vsPane *pane, vsWindowSystem *windowSystem)
         menuPane->setScene(menuScene);
     }
 
-    // If the pane already has a scene fetch it, otherwise create a new one
+    // Reference the scene to keep it from being deleted
+    menuScene->ref();
+
+    // If the pane already has a view fetch it, otherwise create a new one
     menuView = pane->getView();
     if (menuView == NULL)
     {
@@ -51,13 +96,16 @@ vsMenuSystem::vsMenuSystem(vsPane *pane, vsWindowSystem *windowSystem)
         menuPane->setView(menuView);
     }
 
+    // Reference the view to keep it from being deleted
+    menuView->ref();
+
     // Create the component that will hold all of the visualization objects
     menuComponent = new vsComponent();
 
     // If the scene is empty, add a new component as its child, or otherwise
     // create a new root node that will hold both the old root and the new
     // menu object visualization nodes as children
-    if (menuScene->getChild(0) == NULL)
+    if (menuScene->getChildCount() == 0)
     {
         menuScene->addChild(menuComponent);
     }
@@ -103,12 +151,22 @@ vsMenuSystem::vsMenuSystem(vsPane *pane, vsWindowSystem *windowSystem)
 // ------------------------------------------------------------------------
 vsMenuSystem::~vsMenuSystem()
 {
-    if (hasCursor)
-        delete isectObject;
+    // If the pane is set, make sure it doesn't hold references to the scene
+    // or view objects, as they need to be deleted
+    if (menuPane)
+    {
+        menuPane->setScene(NULL);
+        menuPane->setView(NULL);
+    }
 
-    vsObject::checkDelete(menuScene);
-    vsObject::checkDelete(menuComponent);
-    vsObject::checkDelete(menuView);
+    // Delete these objects if it is safe to do so
+    vsObject::unrefDelete(menuScene);
+    vsObject::unrefDelete(menuView);
+
+    // Delete the intersection object
+    delete isectObject;
+
+    // Delete the menu frame
     delete menuFrame;
 }
 
@@ -118,6 +176,23 @@ vsMenuSystem::~vsMenuSystem()
 const char *vsMenuSystem::getClassName()
 {
     return "vsMenuSystem";
+}
+
+// ------------------------------------------------------------------------
+// Set the pane that this vsMenuSystem renders into (and consequently will
+// be using for intersection testing). Note that calling this function will
+// automatically set the view and scene of this pane to those stored
+// internally.
+// ------------------------------------------------------------------------
+void vsMenuSystem::setPane(vsPane *pane)
+{
+    // Make sure the pane passed in is non-null
+    if (pane)
+    {
+        menuPane = pane;
+        menuPane->setScene(menuScene);
+        menuPane->setView(menuView);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -134,6 +209,26 @@ vsScene *vsMenuSystem::getScene()
 vsView *vsMenuSystem::getView()
 {
     return menuView;
+}
+
+// ------------------------------------------------------------------------
+// Set the vsMenuTree that the system will use to display data
+// ------------------------------------------------------------------------
+void vsMenuSystem::setCursor(vsInputAxis *x, vsInputAxis *y)
+{
+    // Store the axes
+    xAxis = x;
+    yAxis = y;
+
+    // The menu system only officially has a cursor if both axes are set
+    if (xAxis && yAxis)
+    {
+        hasCursor = true;
+    }
+    else
+    {
+        hasCursor = false;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -262,9 +357,18 @@ void vsMenuSystem::update()
     vsMenuFrame    *curFrame;
     int i;
 
-    // Get the first child of the tree at the current frame
-    menuIter = new vsMenuIterator(menuTree, menuFrame);
-    curObj = menuIter->getObject();
+    // Only update if the menu system is set
+    if (menuTree)
+    {
+        // Get the first child of the tree at the current frame
+        menuIter = new vsMenuIterator(menuTree, menuFrame);
+        curObj = menuIter->getObject();
+    }
+    else
+    {
+        // Initialize the current object to NULL
+        curObj = NULL;
+    }
 
     // Initialize the last valid object at the first object
     prevObj = NULL;

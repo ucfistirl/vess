@@ -84,14 +84,20 @@ VS_INTERNAL:
 
 public:
 
+                          vsMenuSystem();
                           vsMenuSystem(vsPane *pane,
                               vsWindowSystem *windowSystem);
     virtual               ~vsMenuSystem();
 
     virtual const char    *getClassName();
 
+    void                  setPane(vsPane *pane);
+    vsPane                *getPane();
+
     vsScene               *getScene();
     vsView                *getView();
+
+    void                  setCursor(vsInputAxis *x, vsInputAxis *y);
 
     void                  setMenuTree(vsMenuTree *newTree);
     void                  rebuildMenu();
