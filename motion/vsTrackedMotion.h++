@@ -61,6 +61,9 @@ protected:
     vsVector           resetPosition;
     vsQuat             resetOrientation;
 
+    // Scale factor to convert tracker units to database units
+    double             positionScale;
+
 public:
 
     // Constructor
@@ -81,6 +84,10 @@ public:
     vsVector        getPositionOffset();
     void            setOrientationOffset(vsQuat newOffset);
     vsQuat          getOrientationOffset();
+
+    // Position scaling
+    void            setPositionScale(double scale);
+    double          getPositionScale();
 
     // Update function
     virtual void    update();

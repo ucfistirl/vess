@@ -47,6 +47,8 @@ vsTrackedMotion::vsTrackedMotion(vsMotionTracker *theTracker,
 
     resetPosition.set(0.0, 0.0, 0.0);
     resetOrientation.set(0.0, 0.0, 0.0, 1.0);
+
+    positionScale = 1.0;
 }
 
 // ------------------------------------------------------------------------
@@ -122,6 +124,22 @@ vsQuat vsTrackedMotion::getOrientationOffset()
 }
 
 // ------------------------------------------------------------------------
+// Sets the scale factor for position data
+// ------------------------------------------------------------------------
+void vsTrackedMotion::setPositionScale(double scale)
+{
+    positionScale = scale;
+}
+
+// ------------------------------------------------------------------------
+// Returns the scale factor for position data
+// ------------------------------------------------------------------------
+double vsTrackedMotion::getPositionScale()
+{
+    return positionScale;
+}
+
+// ------------------------------------------------------------------------
 // Updates the motion model
 // ------------------------------------------------------------------------
 void vsTrackedMotion::update()
@@ -130,17 +148,20 @@ void vsTrackedMotion::update()
     vsQuat trackerOrn;
 
     // Get tracker data
-    trackerPos = tracker->getPositionVec();  
+    trackerPos = tracker->getPositionVec();
     trackerOrn = tracker->getOrientationQuat();
-    
+
     // Factor in reset position and offsets
     trackerPos += resetPosition;
     trackerOrn = resetOrientation * trackerOrn;
+
+    // Scale the position
+    trackerPos.scale(positionScale);
     
-    // Factor in specified offsets
+    // Factor in the user-specified offsets
     trackerPos += positionOffset;
     trackerOrn = orientationOffset * trackerOrn;
-    
+
     // Apply the data to the kinematics object
     if (positionEnabled)
         kinematics->setPosition(trackerPos);
