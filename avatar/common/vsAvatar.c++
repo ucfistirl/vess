@@ -2515,7 +2515,8 @@ void *vsAvatar::makeVsDrivingMotion()
     vsDMThrottleMode throttle = VS_DM_DEFAULT_THROTTLE_MODE;
     vsDMSteeringMode steering = VS_DM_DEFAULT_STEERING_MODE;
     double accelRate = VS_DM_DEFAULT_ACCEL_RATE;
-    double maxSpeed = VS_DM_DEFAULT_MAX_SPEED;
+    double maxForwardSpeed = VS_DM_DEFAULT_MAX_SPEED;
+    double maxReverseSpeed = VS_DM_DEFAULT_MAX_SPEED;
     double steeringRate = VS_DM_DEFAULT_STEER_RATE;
     vsDrivingMotion *result;
     vsInputAxis *steerAxis = NULL;
@@ -2630,8 +2631,19 @@ void *vsAvatar::makeVsDrivingMotion()
         }
         else if (!strcmp(token, "maxSpeed"))
         {
-            // Set the maximum speed
-            sscanf(cfgLine, "%*s %lf", &maxSpeed);
+            // Set both maximum speeds
+            sscanf(cfgLine, "%*s %lf", &maxForwardSpeed);
+            maxReverseSpeed = maxForwardSpeed;
+        }
+        else if (!strcmp(token, "maxForwardSpeed"))
+        {
+            // Set the maximum forward speed
+            sscanf(cfgLine, "%*s %lf", &maxForwardSpeed);
+        }
+        else if (!strcmp(token, "maxReverseSpeed"))
+        {
+            // Set the maximum reverse speed
+            sscanf(cfgLine, "%*s %lf", &maxReverseSpeed);
         }
         else if (!strcmp(token, "steeringMode"))
         {
@@ -2696,7 +2708,8 @@ void *vsAvatar::makeVsDrivingMotion()
     // Set the remaining parameters
     result->setThrottleMode(throttle);
     result->setAccelerationRate(accelRate);
-    result->setMaxSpeed(maxSpeed);
+    result->setMaxForwardSpeed(maxForwardSpeed);
+    result->setMaxReverseSpeed(maxReverseSpeed);
     result->setSteeringMode(steering);
     result->setSteeringRate(steeringRate);
     
