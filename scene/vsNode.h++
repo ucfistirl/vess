@@ -24,6 +24,7 @@
 #define VS_NODE_HPP
 
 #include <Performer/pf/pfNode.h>
+#include "vsObject.h++"
 #include "vsGrowableArray.h++"
 #include "vsAttribute.h++"
 #include "vsVector.h++"
@@ -40,7 +41,7 @@ enum vsNodeType
     VS_NODE_TYPE_DYNAMIC_GEOMETRY
 };
 
-class vsNode
+class vsNode : public vsObject
 {
 protected:
 

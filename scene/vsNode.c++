@@ -21,6 +21,7 @@
 //------------------------------------------------------------------------
 
 #include "vsNode.h++"
+#include "vsComponent.h++"
 
 // ------------------------------------------------------------------------
 // Constructor - Clears the node's name
@@ -251,6 +252,7 @@ vsAttribute *vsNode::getNamedAttribute(char *attribName)
 void vsNode::addParent(vsComponent *newParent)
 {
     parentList[parentCount++] = newParent;
+    newParent->ref();
 }
 
 // ------------------------------------------------------------------------
@@ -266,6 +268,7 @@ void vsNode::removeParent(vsComponent *targetParent)
         {
             for (sloop = loop; sloop < parentCount-1; sloop++)
                 parentList[sloop] = parentList[sloop+1];
+            targetParent->unref();
             parentCount--;
             return;
         }
