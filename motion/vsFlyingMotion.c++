@@ -52,6 +52,8 @@ vsFlyingMotion::vsFlyingMotion(vsMouse *mouse, vsKinematics *kin)
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
     maxSpeed = VS_FM_DEFAULT_MAX_SPEED;
 
+    currentSpeed = 0.0;
+
     headingMode = VS_FM_DEFAULT_HEADING_MODE;
     pitchMode  = VS_FM_DEFAULT_PITCH_MODE;
     throttleMode = VS_FM_DEFAULT_THROTTLE_MODE;
@@ -85,6 +87,8 @@ vsFlyingMotion::vsFlyingMotion(vsMouse *mouse, int accelButtonIndex,
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
     maxSpeed = VS_FM_DEFAULT_MAX_SPEED;
 
+    currentSpeed = 0.0;
+
     headingMode = VS_FM_DEFAULT_HEADING_MODE;
     pitchMode  = VS_FM_DEFAULT_PITCH_MODE;
     throttleMode = VS_FM_DEFAULT_THROTTLE_MODE;
@@ -116,6 +120,8 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
     accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
     maxSpeed = VS_FM_DEFAULT_MAX_SPEED;
+
+    currentSpeed = 0.0;
 
     headingMode = VS_FM_DEFAULT_HEADING_MODE;
     pitchMode  = VS_FM_DEFAULT_PITCH_MODE;
@@ -149,6 +155,8 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
     accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
     maxSpeed = VS_FM_DEFAULT_MAX_SPEED;
+
+    currentSpeed = 0.0;
 
     headingMode = VS_FM_DEFAULT_HEADING_MODE;
     pitchMode  = VS_FM_DEFAULT_PITCH_MODE;
