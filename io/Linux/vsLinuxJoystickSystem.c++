@@ -44,6 +44,9 @@ vsLinuxJoystickSystem::vsLinuxJoystickSystem(char *joystickPortName)
     char totalAxes;
     char totalButtons;
 
+    // Initialize the joystick member to NULL
+    joystick = NULL;
+
     // Copy the port name (can't use the typical port number interface
     // for this, since it could be any of several kinds of port)
     strcpy(portName, joystickPortName);
@@ -79,6 +82,7 @@ vsLinuxJoystickSystem::~vsLinuxJoystickSystem()
 {
     // Close the joystick port
     close(portFileDescriptor);
+    portFileDescriptor = -1;
 }
 
 // ------------------------------------------------------------------------
@@ -115,8 +119,8 @@ void vsLinuxJoystickSystem::update()
 
     // Read all events on the driver queue (read() returns -1
     // when there are no events pending to be read on the queue)
-    while (read(portFileDescriptor, &joystickEvent,
-        sizeof(struct js_event)) > 0)
+    while ((portFileDescriptor >= 0) && 
+        (read(portFileDescriptor, &joystickEvent, sizeof(struct js_event)) > 0))
     {
         // Do not differentiate between init events and real events
         joystickEvent.type &= ~JS_EVENT_INIT;
@@ -150,5 +154,7 @@ void vsLinuxJoystickSystem::update()
         }
     }
 
-    joystick->update();
+    // If we have a valid joystick object, update it
+    if (joystick != NULL)
+        joystick->update();
 }
