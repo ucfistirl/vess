@@ -507,13 +507,16 @@ void vsSystem::writeScene(vsNode *targetNode, FILE *outfile, int treeDepth,
     
     // Type
     if (targetNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
-        fprintf(outfile, "Geometry ");
+        fprintf(outfile, "Geometry: ");
     else
-        fprintf(outfile, "Component ");
+        fprintf(outfile, "Component: ");
     
     // Name
     if (strlen(targetNode->getName()) > 0)
         fprintf(outfile, "\"%s\" ", targetNode->getName());
+
+    // Address
+    fprintf(outfile, "address %p ", targetNode);
 
     // Is instanced?
     if (targetNode->getParentCount() > 1)
