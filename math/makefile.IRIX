@@ -4,8 +4,8 @@ INCDIRS =   -I../corelib
 TYPE = -n32 -mips3
 FLAGS = $(TYPE) -g -xansi -DSGI -DPF_CPLUSPLUS_API=1 -woff 1681 $(INCDIRS)
 
-LIBOBJS = vsVector.o vsQuat.o vsMatrix.o vsVecQuat.o
-LIBSRCS = vsVector.c++ vsQuat.c++ vsMatrix.c++ vsVecQuat.c++
+LIBOBJS = vsVector.o vsQuat.o vsMatrix.o
+LIBSRCS = vsVector.c++ vsQuat.c++ vsMatrix.c++
 
 LIBNAME = libvsMath.a
 
@@ -35,11 +35,9 @@ clean:
 vsVector.o: /usr/include/stdio.h /usr/include/standards.h
 vsVector.o: /usr/include/sgidefs.h /usr/include/math.h vsVector.h++
 vsVector.o: ../corelib/vsGlobals.h++
+vsQuat.o: vsQuat.h++ vsMatrix.h++ ../corelib/vsGlobals.h++ vsVector.h++
 vsQuat.o: /usr/include/math.h /usr/include/sgidefs.h /usr/include/standards.h
-vsQuat.o: /usr/include/stdio.h vsQuat.h++ ../corelib/vsGlobals.h++
-vsQuat.o: vsMatrix.h++ vsVector.h++
+vsQuat.o: /usr/include/stdio.h
 vsMatrix.o: /usr/include/math.h /usr/include/sgidefs.h
 vsMatrix.o: /usr/include/standards.h /usr/include/stdio.h
 vsMatrix.o: ../corelib/vsGlobals.h++ vsMatrix.h++ vsVector.h++ vsQuat.h++
-vsVecQuat.o: vsVecQuat.h++ vsMatrix.h++ ../corelib/vsGlobals.h++ vsVector.h++
-vsVecQuat.o: vsQuat.h++

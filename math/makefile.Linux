@@ -3,8 +3,8 @@
 INCDIRS =   -I../corelib
 FLAGS = -g -O -ansi -D__linux__ -D_XOPEN_SOURCE -D_BSD_SOURCE -D_MISC_SOURCE -DPF_CPLUSPLUS_API=1 $(INCDIRS)
 
-LIBOBJS = vsVector.o vsQuat.o vsMatrix.o vsVecQuat.o
-LIBSRCS = vsVector.c++ vsQuat.c++ vsMatrix.c++ vsVecQuat.c++
+LIBOBJS = vsVector.o vsQuat.o vsMatrix.o
+LIBSRCS = vsVector.c++ vsQuat.c++ vsMatrix.c++
 
 LIBNAME = libvsMath.a
 
@@ -68,5 +68,3 @@ vsMatrix.o: /usr/include/bits/types.h /usr/include/libio.h
 vsMatrix.o: /usr/include/_G_config.h /usr/include/bits/stdio_lim.h
 vsMatrix.o: /usr/include/getopt.h ../corelib/vsGlobals.h++ vsMatrix.h++
 vsMatrix.o: vsVector.h++ vsQuat.h++
-vsVecQuat.o: vsVecQuat.h++ vsMatrix.h++ ../corelib/vsGlobals.h++ vsVector.h++
-vsVecQuat.o: vsQuat.h++
