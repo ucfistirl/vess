@@ -102,6 +102,11 @@ vsPane::vsPane(vsWindow *parent)
     osgSceneView->setRenderGraph(renderGraph);
     osgSceneView->setRenderStage(renderStage);
 
+    // Set small feature culling to cull things smaller than a quarter of a
+    // pixel.  This should be done on the scene view and not the cull visitor
+    // because the scene view will override the cull visitor's settings.
+    osgSceneView->setSmallFeatureCullingPixelSize(0.25);
+
     // If this is not the first vsPane in this window, set the OSG
     // SceneView object to share the graphics state between the various 
     // panes.  If it is the first pane, make sure the State has the correct
