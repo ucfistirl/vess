@@ -121,6 +121,13 @@ void vsDatabaseLoader::setUnits(int databaseUnit)
 // ------------------------------------------------------------------------
 void vsDatabaseLoader::addPath(char *filePath)
 {
+    if (!inittedFlag)
+    {
+        printf("vsDatabaseLoader::addExtension: Can't change directory path "
+	    "before loader initialization by vsSystem object\n");
+        return;
+    }
+
     const char *performerPath;
     char fullPath[1000];
     
