@@ -22,8 +22,8 @@ vsRemoteInterface::vsRemoteInterface()
     tcpInterface->allowConnections(1);
     tcpInterface->disableBlocking();
 
-    // Initialize the client ID
-    tcpClientID = -1;
+    // Initialize the client ID storage
+    numClients = 0;
 }
 
 
@@ -47,8 +47,8 @@ vsRemoteInterface::vsRemoteInterface(char *dtdFilename)
     tcpInterface->allowConnections(1);
     tcpInterface->disableBlocking();
 
-    // Initialize the client ID
-    tcpClientID = -1;
+    // Initialize the client ID storage
+    numClients = 0;
 }
 
 
@@ -67,8 +67,8 @@ vsRemoteInterface::vsRemoteInterface(short port)
     tcpInterface->allowConnections(1);
     tcpInterface->disableBlocking();
 
-    // Initialize the client ID
-    tcpClientID = -1;
+    // Initialize the client ID storage
+    numClients = 0;
 }
 
 
@@ -92,8 +92,8 @@ vsRemoteInterface::vsRemoteInterface(char *dtdFilename, short port)
     tcpInterface->allowConnections(1);
     tcpInterface->disableBlocking();
 
-    // Initialize the client ID
-    tcpClientID = -1;
+    // Initialize the client ID storage
+    numClients = 0;
 }
 
 
@@ -247,15 +247,16 @@ void vsRemoteInterface::update()
         tcpInterface->disableBlockingOnClient(tempClientID);
 
         // Store the client ID
-        tcpClientID = tempClientID;
+        tcpClientIDs[numClients] = tempClientID;
+        numClients++;
     }
 
     // Bail out if we don't have a client yet
-    if (tcpClientID == -1)
+    if (numClients == 0)
         return;
 
     // Try to get something from the TCP stream
-    lengthRead = tcpInterface->read(tcpClientID, buffer, sizeof(buffer));
+    lengthRead = tcpInterface->read(tcpClientIDs[0], buffer, sizeof(buffer));
 
     // Determine if we received at least part of an XML document 
     if (lengthRead > 0)
@@ -348,5 +349,10 @@ void vsRemoteInterface::update()
             xmlBufferSize += lengthRead;
         }
     }
+}
+
+
+void vsRemoteInterface::send(u_char *buffer, u_long bufferLen)
+{
 }
 

@@ -28,6 +28,7 @@
 #include "vsPipe.h++"
 #include "vsScreen.h++"
 #include "vsTimer.h++"
+#include "vsRemoteInterface.h++"
 
 enum VS_SYSTEM_DLL vsMultiprocessMode
 {
@@ -55,6 +56,8 @@ private:
     // Total elapsed simulation time
     double              simTime;
     
+    vsRemoteInterface   *remoteInterface;
+
     void                preFrameTraverse(vsNode *node);
 
 public:

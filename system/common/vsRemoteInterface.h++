@@ -11,6 +11,8 @@
 #define VS_RI_DEFAULT_CONTROL_PORT     32816
 #define VS_RI_MAX_XML_DOCUMENT_SIZE    65536
 
+#define VS_MAX_CONNECTIONS   10
+
 class vsRemoteInterface
 {
 protected:
@@ -23,7 +25,7 @@ protected:
     vsTCPNetworkInterface    *tcpInterface;
 
     u_long                   numClients;
-    int                      tcpClientID;
+    int                      tcpClientIDs[VS_MAX_CONNECTIONS];
 
     void                     processXMLDocument();
     void                     processStats(xmlDocPtr doc, xmlNodePtr current);
@@ -36,6 +38,7 @@ public:
     virtual ~vsRemoteInterface();
 
     void   update();
+    void   send(u_char *buffer, u_long bufferLen);
 };
 
 #endif

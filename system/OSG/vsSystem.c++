@@ -71,6 +71,13 @@ vsSystem::vsSystem()
     // point to this instance
     validObject = true;
     systemObject = this;
+
+    // Initialize the remote interface
+#ifdef VESS_DEBUG
+    remoteInterface = new vsRemoteInterface("vessxml.dtd");
+#else
+    remoteInterface = new vsRemoteInterface();
+#endif
 }
 
 // ------------------------------------------------------------------------
@@ -96,6 +103,9 @@ vsSystem::~vsSystem()
     vsWindowSystem::deleteMap();
     vsScreen::done();
     vsPipe::done();
+
+    // Delete the remote interface
+    delete remoteInterface;
 
 #ifdef VESS_DEBUG
     FILE *outfile = fopen("vess_objects.log", "w");
@@ -405,6 +415,14 @@ void vsSystem::drawFrame()
     MSG message;
 #endif
 
+    int screenLoop, windowLoop, paneLoop;
+    int windowCount, paneCount;
+    vsScreen *targetScreen;
+    vsWindow *targetWindow;
+    vsPane *targetPane;
+    vsScene *scene;
+    int screenCount = vsScreen::getScreenCount();
+
     // Do nothing if this isn't a real system object
     if (!validObject)
         return;
@@ -416,13 +434,8 @@ void vsSystem::drawFrame()
         return;
     }
 
-    int screenLoop, windowLoop, paneLoop;
-    int windowCount, paneCount;
-    vsScreen *targetScreen;
-    vsWindow *targetWindow;
-    vsPane *targetPane;
-    vsScene *scene;
-    int screenCount = vsScreen::getScreenCount();
+    // Have the remote interface process any requests, etc.
+    remoteInterface->update();
 
     // If any of the vsGeometry's render bin modes changed last frame,
     // then we need to mark every geometry object in existance as dirty so
