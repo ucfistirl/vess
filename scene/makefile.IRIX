@@ -31,7 +31,8 @@ LIBSRCS = vsAttribute.c++ \
 	  vsTextureAttribute.c++ \
 	  vsTransformAttribute.c++ \
 	  vsTransparencyAttribute.c++ \
-	  vsViewpointAttribute.c++
+	  vsViewpointAttribute.c++ \
+	  vsWireframeAttribute.c++
 
 LIBOBJS = vsAttribute.o \
 	  vsBackfaceAttribute.o \
@@ -54,7 +55,8 @@ LIBOBJS = vsAttribute.o \
 	  vsTextureAttribute.o \
 	  vsTransformAttribute.o \
 	  vsTransparencyAttribute.o \
-	  vsViewpointAttribute.o
+	  vsViewpointAttribute.o \
+	  vsWireframeAttribute.o
 
 LIBNAME = libvsScene.a
 
