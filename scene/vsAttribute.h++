@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <Performer/pr/pfGeoState.h>
 #include "vsGlobals.h++"
+#include "vsObject.h++"
 
 class vsNode;
 
@@ -64,7 +65,7 @@ enum vsAttributeCategory
     VS_ATTRIBUTE_CATEGORY_OTHER
 };
 
-class vsAttribute
+class vsAttribute : public vsObject
 {
 protected:
 
