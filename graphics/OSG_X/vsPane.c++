@@ -30,7 +30,7 @@
 #include <osg/LightModel>
 #include <osg/ShadeModel>
 #include <osgUtil/DisplayListVisitor>
-#include <osgUtil/AppVisitor>
+#include <osgUtil/UpdateVisitor>
 #include <osgUtil/CullVisitor>
 #include <stdio.h>
 
@@ -49,7 +49,7 @@ vsPane::vsPane(vsWindow *parent)
     osg::LightModel *lightModel;
     osg::ShadeModel *shadeModel;
     osg::TexEnv *texEnv;
-    osgUtil::AppVisitor *appVisitor;
+    osgUtil::UpdateVisitor *updateVisitor;
     osgUtil::CullVisitor *cullVisitor;
     osgUtil::RenderGraph *renderGraph;
     osgUtil::RenderStage *renderStage;
@@ -57,6 +57,7 @@ vsPane::vsPane(vsWindow *parent)
 
     // Initialize the viewpoint and scene to NULL
     sceneView = NULL;
+    viewChangeNum = 0;
     sceneRoot = NULL;
 
     // Get other parameters from the vsWindow passed in
@@ -82,7 +83,7 @@ vsPane::vsPane(vsWindow *parent)
     osgSceneView->ref();
 
     // Construct the App and Cull NodeVisitors and the rendering objects
-    appVisitor = new osgUtil::AppVisitor();
+    updateVisitor = new osgUtil::UpdateVisitor();
     cullVisitor = new osgUtil::CullVisitor();
     renderGraph = new osgUtil::RenderGraph();
     renderStage = new osgUtil::RenderStage();
@@ -92,7 +93,7 @@ vsPane::vsPane(vsWindow *parent)
     cullVisitor->setRenderStage(renderStage);
 
     // Configure the SceneView pipeline
-    osgSceneView->setAppVisitor(appVisitor);
+    osgSceneView->setUpdateVisitor(updateVisitor);
     osgSceneView->setCullVisitor(cullVisitor);
     osgSceneView->setRenderGraph(renderGraph);
     osgSceneView->setRenderStage(renderStage);
@@ -195,15 +196,6 @@ vsPane::vsPane(vsWindow *parent)
 
     // Initialize the scene
     osgSceneView->setSceneData(NULL);
-
-    // Initialize the settings for the viewpoint and viewport
-    curNearClip = -1.0;
-    curFarClip = -1.0;
-    curProjMode = VS_VIEW_PROJMODE_PERSP;
-    curProjHval = -1.0;
-    curProjVval = -1.0;
-    curWidth = 0;
-    curHeight = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -250,11 +242,8 @@ void vsPane::setView(vsView *view)
     // Save the view object
     sceneView = view;
 
-    // Set the osg::SceneView's camera to use the new vsView's osg::Camera
-    if (view)
-        osgSceneView->setCamera(view->getBaseLibraryObject());
-    else
-        osgSceneView->setCamera(NULL);
+    if (sceneView)
+        viewChangeNum = sceneView->getChangeNum() - 1;
 }
 
 // ------------------------------------------------------------------------
@@ -314,6 +303,10 @@ void vsPane::setSize(int width, int height)
 
     // Set the new width and height
     osgSceneView->getViewport()->setViewport(x, y, width, height);
+
+    // Modify the view change value so that we recompute the projection
+    // parameters on the next drawFrame
+    viewChangeNum--;
 }
 
 // ------------------------------------------------------------------------
@@ -470,6 +463,10 @@ void vsPane::autoConfigure(int panePlacement)
             printf("vsPane::autoConfigure: Invalid parameter");
             break;
     }
+
+    // Modify the view change value so that we recompute the projection
+    // parameters on the next drawFrame
+    viewChangeNum--;
 }
 
 // ------------------------------------------------------------------------
@@ -687,7 +684,14 @@ void vsPane::updateView()
     int paneWidth, paneHeight;
     double aspectMatch;
     vsViewpointAttribute *viewAttr;
-    osg::Camera *osgCamera;
+    vsVector eyePoint;
+    vsVector lookDirection;
+    vsVector lookAtPoint;
+    vsVector upDirection;
+    osg::Vec3 osgEyePoint;
+    osg::Vec3 osgLookAtPoint;
+    osg::Vec3 osgUpDirection;
+    double nearClipDist, farClipDist;
     
     // Do nothing if no vsView is attached
     if (sceneView == NULL)
@@ -701,12 +705,15 @@ void vsPane::updateView()
     
     // Get the projection values from the vsView and the size of the pane,
     // and adjust the osgSceneView and osgCamera, if necessary
-    osgCamera = osgSceneView->getCamera();
     getSize(&paneWidth, &paneHeight);
     sceneView->getProjectionData(&projMode, &projHval, &projVval);
-    if ((curProjMode != projMode) || (curProjHval != projHval) ||
-        (curProjVval != projVval) || (curWidth != paneWidth) ||
-        (curHeight != paneHeight))
+    sceneView->getClipDistances(&nearClipDist, &farClipDist);
+
+    // Determine if the settings in the view object have changed, and update
+    // the OSG SceneView if they have. This determination is done by comparing
+    // the last known 'change number' of the view object to the current one;
+    // the view object has changed if the change number changed.
+    if (sceneView->getChangeNum() != viewChangeNum)
     {
         // Check the projection mode
         if (projMode == VS_VIEW_PROJMODE_PERSP)
@@ -763,8 +770,8 @@ void vsPane::updateView()
             }
 
             // Set the OSG camera to the new FOV values
-            osgCamera->setFOV(hFOV, vFOV, osgCamera->zNear(), 
-                osgCamera->zFar());
+            osgSceneView->setProjectionMatrixAsPerspective(vFOV, aspectMatch,
+                nearClipDist, farClipDist);
         }
         else
         {
@@ -773,43 +780,52 @@ void vsPane::updateView()
             if ((projHval <= 0.0) && (projVval <= 0.0))
             {
                 // Neither specified, use default values
-                osgCamera->setOrtho(-VS_PANE_DEFAULT_ORTHO_PLANE, 
-                    VS_PANE_DEFAULT_ORTHO_PLANE, -VS_PANE_DEFAULT_ORTHO_PLANE, 
-                    VS_PANE_DEFAULT_ORTHO_PLANE, osgCamera->zNear(), 
-                    osgCamera->zFar());
+                osgSceneView->setProjectionMatrixAsOrtho(
+                    -VS_PANE_DEFAULT_ORTHO_PLANE, VS_PANE_DEFAULT_ORTHO_PLANE,
+                    -VS_PANE_DEFAULT_ORTHO_PLANE, VS_PANE_DEFAULT_ORTHO_PLANE,
+                    nearClipDist, farClipDist);
             }
             else if (projHval <= 0.0)
             {
                 // Vertical specified, horizontal aspect match
-                getSize(&paneWidth, &paneHeight);
                 aspectMatch = (projVval / (double)paneHeight) *
                     (double)paneWidth;
-                osgCamera->setOrtho(-aspectMatch, aspectMatch, -projVval, 
-                    projVval, osgCamera->zNear(), osgCamera->zFar());
+                osgSceneView->setProjectionMatrixAsOrtho(-aspectMatch,
+                    aspectMatch, -projVval, projVval, nearClipDist,
+                    farClipDist);
             }
             else if (projVval <= 0.0)
             {
                 // Horizontal specified, vertical aspect match
-                getSize(&paneWidth, &paneHeight);
                 aspectMatch = (projHval / (double)paneWidth) *
                     (double)paneHeight;
-                osgCamera->setOrtho(-projHval, projHval, -aspectMatch, 
-                    aspectMatch, osgCamera->zNear(), osgCamera->zFar());
+                osgSceneView->setProjectionMatrixAsOrtho(-projHval, projHval,
+                    -aspectMatch, aspectMatch, nearClipDist, farClipDist);
             }
             else
             {
                 // Both specified, set values explicitly
-                osgCamera->setOrtho(-projHval, projHval, -projVval, 
-                    projVval, osgCamera->zNear(), osgCamera->zFar());
+                osgSceneView->setProjectionMatrixAsOrtho(-projHval, projHval,
+                    -projVval, projVval, nearClipDist, farClipDist);
             }
         }
-        
-        // Save the new projection values
-        curProjMode = projMode;
-        curProjHval = projHval;
-        curProjVval = projVval;
-        curWidth = paneWidth;
-        curHeight = paneHeight;
+
+    // Calculate the current view position and orientation
+    eyePoint = sceneView->getViewpoint();
+    lookDirection = sceneView->getDirection();
+    lookAtPoint = eyePoint + lookDirection.getScaled(10.0);
+    upDirection = sceneView->getUpDirection();
+
+    // Copy the relevant vectors into OSG vectors
+    osgEyePoint.set(eyePoint[VS_X], eyePoint[VS_Y], eyePoint[VS_Z]);
+    osgLookAtPoint.set(lookAtPoint[VS_X], lookAtPoint[VS_Y], lookAtPoint[VS_Z]);
+    osgUpDirection.set(upDirection[VS_X], upDirection[VS_Y], upDirection[VS_Z]);
+
+    // Set the current view matrix using the 'look at' interface
+    osgSceneView->setViewMatrixAsLookAt(osgEyePoint, osgLookAtPoint, osgUpDirection);
+
+    // Record the change number
+    viewChangeNum = sceneView->getChangeNum();
     }
 }
 

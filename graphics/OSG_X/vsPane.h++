@@ -75,6 +75,7 @@ private:
 
     // Viewpoint
     vsView                  *sceneView;
+    int                     viewChangeNum;
 
     // Root of the scene graph
     vsScene                 *sceneRoot;
@@ -97,12 +98,6 @@ private:
     // Stereo parameters
     double                  eyeSeparation;
     double                  screenDistance;
-
-    // Projection parameters
-    double                  curNearClip, curFarClip;
-    int                     curProjMode;
-    double                  curProjHval, curProjVval;
-    int                     curWidth, curHeight;
 
 VS_INTERNAL:
 
