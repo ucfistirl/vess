@@ -88,7 +88,7 @@ private:
 public:
 
                        vsIntersect();
-                       ~vsIntersect();
+    virtual            ~vsIntersect();
 
     virtual const char *getClassName();
 

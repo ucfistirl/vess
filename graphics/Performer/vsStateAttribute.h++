@@ -50,7 +50,7 @@ VS_INTERNAL:
 public:
 
                    vsStateAttribute();
-                   ~vsStateAttribute();
+    virtual        ~vsStateAttribute();
 
     virtual int    getAttributeCategory();
     
