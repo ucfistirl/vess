@@ -1,18 +1,37 @@
 # Libraries to make
 lib_LIBRARIES = libvsEnvironment.a libvsEnvironment.so
 
-# Sources for libvsSound.a
+# Sources for libvsEnvironment.a
 libvsEnvironment_a_SOURCES = \
                        common/vsCal3DAnimationLoader.c++ \
                        common/vsCal3DLoader.c++
 
-# Sources for libvsSound.so (same as libvsSound.a)
+# Sources for libvsEnvironment.so (same as libvsEnvironment.a)
 libvsEnvironment_so_SOURCES = $(libvsEnvironment_a_SOURCES)
+
+# Extra sources for libvsEnvironment.a.  These are only compiled if certain 
+# contitions in the configure process are met
+EXTRA_libvsEnvironment_a_SOURCES = \
+                                   common/vsMovieReader.c++
+
+# Extra sources for libvsEnvironment.so.  (Same as above)
+EXTRA_libvsEnvironment_so_SOURCES = $(EXTRA_libvsEnvironment_a_SOURCES)
 
 # Header files
 include_HEADERS = \
                   common/vsCal3DAnimationLoader.h++ \
                   common/vsCal3DLoader.h++
+
+# Header files for the above EXTRA sources
+EXTRA_HEADERS = \
+                common/vsMovieReader.h++
+
+# Extra dependencies for libvsEnvironment.a.  This reflects the additional
+# dependencies necessary if any conditionally-compiled sources are used.
+libvsEnvironment_a_DEPENDENCIES = @EXTRA_ENVIRONMENT_OBJECTS@
+
+# Extra dependencies for libvsEnvironment.so. (Same as above)
+libvsEnvironment_so_DEPENDENCIES = $(libvsEnvironment_a_DEPENDENCIES)
 
 # Include directives for the compiler
 INCLUDES = \
@@ -23,6 +42,8 @@ INCLUDES = \
            -I../graphics/@SG@ \
            -I../graphics/@SG@_@WS@ \
            @GFX_INCLUDE_DIR@ \
+           -I../sound/@AL@ \
+           @SOUND_INCLUDE_DIR@ \
            -I../io/common \
            -I../io/@OS@ \
            -I../io/@WS@ \
@@ -31,7 +52,8 @@ INCLUDES = \
            -I../llio/@OS@ \
            @SOUND_INCLUDE_DIR@ \
            -I../motion/common \
-           @XML_INCLUDE_DIR@
+           @XML_INCLUDE_DIR@ \
+           @ENV_INCLUDE_DIR@
 
 # Rule to make libvsEnvironment.so
 libvsEnvironment.so: libvsEnvironment.a
