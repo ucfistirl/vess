@@ -124,6 +124,13 @@ enum vsMathEulerAxisOrder
         #define VS_UTIL_DLL  __declspec(dllimport)
     #endif
 
+    // vsLLIO library
+    #ifdef VS_LLIO_EXPORTS
+        #define VS_LLIO_DLL  __declspec(dllexport)
+    #else
+        #define VS_LLIO_DLL  __declspec(dllimport)
+    #endif
+
     // vsAvatar library
     #ifdef VS_AVATAR_EXPORTS
         #define VS_AVATAR_DLL  __declspec(dllexport)
@@ -170,6 +177,7 @@ enum vsMathEulerAxisOrder
 
      // Define all tokens to be nothing
      #define VS_UTIL_DLL
+     #define VS_LLIO_DLL
      #define VS_AVATAR_DLL
      #define VS_GRAPHICS_DLL
      #define VS_IO_DLL
