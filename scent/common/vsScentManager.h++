@@ -57,14 +57,15 @@ protected:
 
 VS_INTERNAL:
 
-    virtual     ~vsScentManager();
+    virtual        ~vsScentManager();
+    static void    deleteInstance();
 
-    void        addScent(vsScent *scent);
-    void        removeScent(vsScent *scent);
-    void        addScentSource(vsScentSourceAttribute *attr);
-    void        removeScentSource(vsScentSourceAttribute *attr);
-    void        setScentDetector(vsScentDetectorAttribute *attr);
-    void        removeScentDetector(vsScentDetectorAttribute *attr);
+    void           addScent(vsScent *scent);
+    void           removeScent(vsScent *scent);
+    void           addScentSource(vsScentSourceAttribute *attr);
+    void           removeScentSource(vsScentSourceAttribute *attr);
+    void           setScentDetector(vsScentDetectorAttribute *attr);
+    void           removeScentDetector(vsScentDetectorAttribute *attr);
 
 public:
 

@@ -91,8 +91,8 @@ vsSoundManager::vsSoundManager()
 }
 
 // ------------------------------------------------------------------------
-// Destructor.  This is an internal method, as the single instance of
-// vsSoundManager will be destroyed by the vsSystem object.
+// Destructor.  Should only be called from the static deleteInstance() 
+// method, which should only be called by the vsSystem object.
 // ------------------------------------------------------------------------
 vsSoundManager::~vsSoundManager()
 {
@@ -195,6 +195,16 @@ void vsSoundManager::sortSources()
         // we know that the numPass'th element is in it's proper place
         numPass--;
     }
+}
+
+// ------------------------------------------------------------------------
+// Static internal function.  Should only be called by the vsSystem object.
+// Deletes the current instance of the vsSoundManager, if one exists
+// ------------------------------------------------------------------------
+void vsSoundManager::deleteInstance()
+{
+    if (instance != NULL)
+        delete instance;
 }
 
 // ------------------------------------------------------------------------

@@ -75,8 +75,9 @@ int vsScentManager::getScentIndex(vsScent *scent)
 }
 
 // ------------------------------------------------------------------------
-// Destrutor.  This is an internal method, as the single instance of
-// vsScentManager will be destroyed by the vsSystem object.
+// Destructor.  This is an internal method, and should only be called from
+// the deleteInstance() method, which should only be called by the vsSystem
+// object.
 // ------------------------------------------------------------------------
 vsScentManager::~vsScentManager()
 {
@@ -84,6 +85,17 @@ vsScentManager::~vsScentManager()
 
     // Delete the occlusion intersector
     delete occlusionIsect;
+}
+
+// ------------------------------------------------------------------------
+// Static internal method.  This calls delete on the active instance of
+// vsScentManager, if one exists.  This should only be called by the
+// vsSystem object.
+// ------------------------------------------------------------------------
+void vsScentManager::deleteInstance()
+{
+    if (instance != NULL)
+        delete instance;
 }
 
 // ------------------------------------------------------------------------

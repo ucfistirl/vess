@@ -34,6 +34,8 @@
 #include "vsGraphicsState.h++"
 #include "vsDatabaseLoader.h++"
 #include "vsWindowSystem.h++"
+#include "vsSoundManager.h++"
+#include "vsScentManager.h++"
 
 vsSystem *vsSystem::systemObject = NULL;
 
@@ -131,6 +133,10 @@ vsSystem::~vsSystem()
 
     vsObject::deleteObjectList();
 #endif
+
+    // Delete the sound and scent managers
+    vsSoundManager::deleteInstance();
+    vsScentManager::deleteInstance();
     
     // Clear the class pointer and shut down Performer
     systemObject = NULL;

@@ -62,14 +62,15 @@ protected:
 
 VS_INTERNAL:
 
-    virtual     ~vsSoundManager();
+    virtual        ~vsSoundManager();
+    static void    deleteInstance();
 
-    void        setSoundPipe(vsSoundPipe *pipe);
-    void        removeSoundPipe(vsSoundPipe *pipe);
-    void        addSoundSource(vsSoundSourceAttribute *attr);
-    void        removeSoundSource(vsSoundSourceAttribute *attr);
-    void        setSoundListener(vsSoundListenerAttribute *attr);
-    void        removeSoundListener(vsSoundListenerAttribute *attr);
+    void           setSoundPipe(vsSoundPipe *pipe);
+    void           removeSoundPipe(vsSoundPipe *pipe);
+    void           addSoundSource(vsSoundSourceAttribute *attr);
+    void           removeSoundSource(vsSoundSourceAttribute *attr);
+    void           setSoundListener(vsSoundListenerAttribute *attr);
+    void           removeSoundListener(vsSoundListenerAttribute *attr);
 
 public:
 
