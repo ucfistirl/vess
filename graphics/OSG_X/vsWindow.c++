@@ -1016,7 +1016,6 @@ vsImage * vsWindow::getImage()
     getSize(&width, &height);
     width -= widthOffset;
     height -= heightOffset;
-    fprintf(stderr,"vsWindow::getImage() - %d x %d\n", width, height );
     
     // Allocate our temporary buffer
     unsigned char * buffer = new unsigned char[ width * height * 3 ];
@@ -1024,7 +1023,6 @@ vsImage * vsWindow::getImage()
     // Read the image from the frame buffer
     glPixelStorei( GL_PACK_ALIGNMENT, 1 );
     glReadPixels( 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid *)buffer );
-    //osgImage->readPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE);
 
     // Copy everything into a vsImage structure
     image = new vsImage( width, height, VS_IMAGE_FORMAT_RGB, buffer );
