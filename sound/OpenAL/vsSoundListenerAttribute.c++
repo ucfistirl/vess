@@ -24,6 +24,7 @@
 #include <stdio.h>
 
 #include "vsSoundListenerAttribute.h++"
+#include "vsSoundManager.h++"
 #include "vsNode.h++"
 #include "vsTimer.h++"
 
@@ -60,6 +61,9 @@ vsSoundListenerAttribute::vsSoundListenerAttribute()
     alListenerfv(AL_POSITION, zero);
     alListenerfv(AL_ORIENTATION, zero);
     alListenerfv(AL_VELOCITY, zero);
+
+    // Register with the sound manager
+    vsSoundManager::getInstance()->setSoundListener(this);
 }
 
 // ------------------------------------------------------------------------
@@ -67,6 +71,8 @@ vsSoundListenerAttribute::vsSoundListenerAttribute()
 // ------------------------------------------------------------------------
 vsSoundListenerAttribute::~vsSoundListenerAttribute()
 {
+    // Unregister from the sound manager
+    vsSoundManager::getInstance()->removeSoundListener(this);
 }
 
 // ------------------------------------------------------------------------

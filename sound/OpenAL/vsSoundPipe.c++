@@ -22,6 +22,7 @@
 //------------------------------------------------------------------------
 
 #include "vsSoundPipe.h++"
+#include "vsSoundManager.h++"
 #include <stdio.h>
 
 // ------------------------------------------------------------------------
@@ -44,6 +45,9 @@ vsSoundPipe::vsSoundPipe(int freq)
 
     // Initialize the audio context
     alcMakeContextCurrent(pipeHandle);
+
+    // Register with the sound manager
+    vsSoundManager::getInstance()->setSoundPipe(this);
 }
 
 // ------------------------------------------------------------------------
@@ -66,6 +70,9 @@ vsSoundPipe::vsSoundPipe()
 
     // Initialize the audio context
     alcMakeContextCurrent(pipeHandle);
+
+    // Register with the sound manager
+    vsSoundManager::getInstance()->setSoundPipe(this);
 }
 
 // ------------------------------------------------------------------------
@@ -79,6 +86,9 @@ vsSoundPipe::~vsSoundPipe()
     // Close the device
     if (deviceHandle)
         alcCloseDevice(deviceHandle);
+
+    // Unregister from the sound manager
+    vsSoundManager::getInstance()->removeSoundPipe(this);
 }
 
 // ------------------------------------------------------------------------

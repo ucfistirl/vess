@@ -24,6 +24,7 @@
 #include <stdio.h>
 
 #include "vsSoundSourceAttribute.h++"
+#include "vsSoundManager.h++"
 #include "vsNode.h++"
 #include "vsComponent.h++"
 #include "vsTimer.h++"
@@ -85,6 +86,9 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundSample *buffer, bool loop)
     // Start playing if this is a looping sound
     if (loopSource)
         alSourcePlay(sourceID);
+
+    // Register with the sound manager
+    vsSoundManager::getInstance()->addSoundSource(this);
 }
 
 // ------------------------------------------------------------------------
@@ -132,6 +136,9 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundStream *buffer)
     alSourcefv(sourceID, AL_DIRECTION, zero);
     alSourcefv(sourceID, AL_VELOCITY, zero);
     alSourcei(sourceID, AL_BUFFER, 0);
+
+    // Register with the sound manager
+    vsSoundManager::getInstance()->addSoundSource(this);
 }
 
 // ------------------------------------------------------------------------
@@ -141,6 +148,9 @@ vsSoundSourceAttribute::~vsSoundSourceAttribute()
 {
     // Delete the OpenAL source
     alDeleteSources(1, &sourceID);
+
+    // Unregister from the sound manager
+    vsSoundManager::getInstance()->removeSoundSource(this);
 }
 
 // ------------------------------------------------------------------------
