@@ -211,14 +211,14 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     // this window by checking the difference between Performer's idea
     // of the window size and X's one.
     XGetWindowAttributes(xWindowDisplay, topWindowID, &xattr);
-    xPositionOffset = VS_WINDOW_DEFAULT_XPOS - xattr.x;
-    yPositionOffset = VS_WINDOW_DEFAULT_YPOS - xattr.y;
-    widthOffset = xattr.width - VS_WINDOW_DEFAULT_WIDTH;
-    heightOffset = xattr.height - VS_WINDOW_DEFAULT_HEIGHT;
+    xPositionOffset = x - xattr.x;
+    yPositionOffset = y - xattr.y;
+    widthOffset = xattr.width - width;
+    heightOffset = xattr.height - height;
     
     // Set the window's location and size to default values
-    setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
-    setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
+    setPosition(x, y);
+    setSize(width, height);
 }
 
 // ------------------------------------------------------------------------
@@ -415,7 +415,7 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
         performerPipeWindow->setFBConfigAttrs(fbConfigAttrs);
     }
 
-    // Set the location and size of the windo
+    // Set the location and size of the window
     performerPipeWindow->setOriginSize(x, y, width, height);
 
     // WORKAROUND:  Performer 2.5.1 seems to have introduced an annoying
@@ -467,14 +467,14 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     // this window by checking the difference between Performer's idea
     // of the window size and X's one.
     XGetWindowAttributes(xWindowDisplay, topWindowID, &xattr);
-    xPositionOffset = VS_WINDOW_DEFAULT_XPOS - xattr.x;
-    yPositionOffset = VS_WINDOW_DEFAULT_YPOS - xattr.y;
-    widthOffset = xattr.width - VS_WINDOW_DEFAULT_WIDTH;
-    heightOffset = xattr.height - VS_WINDOW_DEFAULT_HEIGHT;
+    xPositionOffset = x - xattr.x;
+    yPositionOffset = y - xattr.y;
+    widthOffset = xattr.width - width;
+    heightOffset = xattr.height - height;
     
     // Set the window's location and size to default values
-    setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
-    setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
+    setPosition(x, y);
+    setSize(width, height);
 }
 
 // ------------------------------------------------------------------------
