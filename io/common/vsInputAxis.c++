@@ -33,6 +33,7 @@ vsInputAxis::vsInputAxis(void)
     // Initialize variables
     axisMin = 0.0;
     axisMax = 0.0;
+    threshold = 0.0;
     offset = 0.0;
     position = 0.0;
     previousPosition1 = previousPosition2 = 0.0;
