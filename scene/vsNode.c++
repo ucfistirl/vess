@@ -71,6 +71,26 @@ const char *vsNode::getName()
 }
 
 // ------------------------------------------------------------------------
+// Adds the specified attribute to the node's list, and notifies the
+// attribute that it has been added.
+// ------------------------------------------------------------------------
+void vsNode::addAttribute(vsAttribute *newAttribute)
+{
+    vsAttributeList::addAttribute(newAttribute);
+    newAttribute->attach(this);
+}
+
+// ------------------------------------------------------------------------
+// Removes the specified attribute from the node's list, and notifies the
+// attribute that it has been removed.
+// ------------------------------------------------------------------------
+void vsNode::removeAttribute(vsAttribute *targetAttribute)
+{
+    targetAttribute->detach(this);
+    vsAttributeList::removeAttribute(targetAttribute);
+}
+
+// ------------------------------------------------------------------------
 // VESS internal function
 // Adds a node to this node's list of parent nodes
 // ------------------------------------------------------------------------

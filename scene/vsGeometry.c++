@@ -1248,16 +1248,6 @@ void vsGeometry::addAttribute(vsAttribute *newAttribute)
 }
 
 // ------------------------------------------------------------------------
-// Removes the given attribute from the object's list of child attributes.
-// Also notifies the attribute that it has been removed from a list.
-// ------------------------------------------------------------------------
-void vsGeometry::removeAttribute(vsAttribute *targetAttribute)
-{
-    targetAttribute->detach(this);
-    vsAttributeList::removeAttribute(targetAttribute);
-}
-
-// ------------------------------------------------------------------------
 // Returns the Performer object associated with this object
 // ------------------------------------------------------------------------
 pfGeode *vsGeometry::getBaseLibraryObject()

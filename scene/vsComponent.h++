@@ -60,7 +60,6 @@ public:
     virtual unsigned int    getIntersectMask();
 
     virtual void        addAttribute(vsAttribute *newAttribute);
-    virtual void        removeAttribute(vsAttribute *targetAttribute);
 
     pfGroup             *getBaseLibraryObject();
 };

@@ -66,6 +66,9 @@ public:
     
     virtual void            setIntersectMask(unsigned int newMask) = 0;
     virtual unsigned int    getIntersectMask() = 0;
+
+    virtual void    addAttribute(vsAttribute *newAttribute);
+    virtual void    removeAttribute(vsAttribute *targetAttribute);
 };
 
 #endif

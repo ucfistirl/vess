@@ -633,16 +633,6 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
 }
 
 // ------------------------------------------------------------------------
-// Removes the specified attribute from the component's list of attributes,
-// and notifies the attribute that it has been removed.
-// ------------------------------------------------------------------------
-void vsComponent::removeAttribute(vsAttribute *targetAttribute)
-{
-    targetAttribute->detach(this);
-    vsAttributeList::removeAttribute(targetAttribute);
-}
-
-// ------------------------------------------------------------------------
 // Returns the Performer object associated with this object
 // ------------------------------------------------------------------------
 pfGroup *vsComponent::getBaseLibraryObject()
