@@ -109,8 +109,8 @@ INCLUDES = \
            -I../graphics/common \
            -I../graphics/@SG@ \
            -I../graphics/@SG@_@WS@ \
-           -I../util/common \
-           @GFX_INCLUDE_DIR@
+           @GFX_INCLUDE_DIR@ \
+           -I../util/common
 
 # Extra object files.  If any conditionally-compiled sources are used, this
 # rule adds the object files to libvsIO.a.
