@@ -25,6 +25,8 @@
 #include "vsGeometry.h++"
 #include "vsDynamicGeometry.h++"
 #include "vsSkeletonMeshGeometry.h++"
+#include "vsTextureAttribute.h++"
+#include "vsTextureCubeAttribute.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Set the light list and child pointer to NULL,
@@ -523,7 +525,7 @@ unsigned int vsScene::getIntersectValue()
 // ------------------------------------------------------------------------
 void vsScene::addAttribute(vsAttribute *newAttribute)
 {
-    int newAttrType, newAttrCat
+    int newAttrType, newAttrCat;
     int attrType;
     int loop;
     int textureUnit, newTextureUnit;
@@ -538,7 +540,7 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
 
     // Scenes may not receive grouping, transform, or container attributes
     // (primarily because these don't make sense at the root of a scene)
-    attrCat = newAttribute->getAttributeCategory();
+    newAttrCat = newAttribute->getAttributeCategory();
     if ((newAttrCat != VS_ATTRIBUTE_CATEGORY_STATE) &&
         (newAttrCat != VS_ATTRIBUTE_CATEGORY_OTHER))
     {
@@ -552,7 +554,7 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
     newAttrType = newAttribute->getAttributeType();
     if ((newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE) ||
         (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE))
-
+    {
         // Initialize the texture unit to invalid maximum.
         textureUnit = VS_MAXIMUM_TEXTURE_UNITS;
         newTextureUnit = VS_MAXIMUM_TEXTURE_UNITS+1;

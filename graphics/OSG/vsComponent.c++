@@ -32,6 +32,8 @@
 #include "vsGeometry.h++"
 #include "vsDynamicGeometry.h++"
 #include "vsSkeletonMeshGeometry.h++"
+#include "vsTextureAttribute.h++"
+#include "vsTextureCubeAttribute.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Sets up the OSG objects associated with
