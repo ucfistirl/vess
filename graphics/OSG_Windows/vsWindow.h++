@@ -66,7 +66,7 @@ private:
     static LRESULT CALLBACK    mainWindowProc(HWND msWindow, UINT message, 
                                               WPARAM wParam, LPARAM lParam);
                                               
-    static LRESULT CALLBACK    subclassedWindowProc(HWND msWindow, UINT message, 
+    static LRESULT CALLBACK    subclassedWindowProc(HWND msWindow, UINT message,
                                                     WPARAM wParam, 
                                                     LPARAM lParam);
 
@@ -88,9 +88,9 @@ VS_INTERNAL:
 
 public:
 
-                       vsWindow(vsScreen *parent, int hideBorder, int stereo);
+                       vsWindow(vsScreen *parent, bool hideBorder, bool stereo);
                        vsWindow(vsScreen *parent, int x, int y, int width, 
-                                int height, int hideBorder, int stereo);
+                                int height, bool hideBorder, bool stereo);
                        vsWindow(vsScreen *parent, HWND msWin);
     virtual            ~vsWindow();
     
