@@ -75,6 +75,9 @@ vsSoundPipe::~vsSoundPipe()
 {
     // Destroy the OpenAL context
     alcDestroyContext(pipeHandle);
+
+    // Close the device
+    alcCloseDevice(deviceHandle);
 }
 
 // ------------------------------------------------------------------------
