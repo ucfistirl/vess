@@ -629,6 +629,26 @@ bool vsPane::areStatsEnabled()
 }
 
 // ------------------------------------------------------------------------
+// Set the value of the mask used for clearing during rendering
+// ------------------------------------------------------------------------
+void vsPane::setGLClearMask(int clearMask)
+{
+    performerCallbackList->setGLClearMask(clearMask);
+
+    // Set the value of the mask for the stereo channel if it exists
+    if (stereoCallbackList)
+        stereoCallbackList->setGLClearMask(clearMask);
+}
+
+// ------------------------------------------------------------------------
+// Return the value of the mask used for clearing during rendering
+// ------------------------------------------------------------------------
+int vsPane::getGLClearMask()
+{
+    return performerCallbackList->getGLClearMask();
+}
+
+// ------------------------------------------------------------------------
 // Returns the Performer object associated with this object
 // ------------------------------------------------------------------------
 pfChannel *vsPane::getBaseLibraryObject()
