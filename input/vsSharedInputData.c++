@@ -148,11 +148,17 @@ void vsSharedInputData::storeVectorData(int index, vsVector vector)
         semOps[1].sem_flg = 0;
 
         // Test-and-set the associated semaphore
-        semop(semID, semOps, 1);
+        semop(semID, semOps, 2);
 
         // Copy the data
         for (i = 0; i < vector.getSize(); i++)
             data[index].vectData[i] = vector[i];
+
+        // Release the semaphore
+        semOps[0].sem_num = index;
+        semOps[0].sem_op = -1;
+        semOps[0].sem_flg = 0;
+        semop(semID, semOps, 1);
     }
 }
 
@@ -176,13 +182,19 @@ void vsSharedInputData::storeQuatData(int index, vsQuat quat)
         semOps[1].sem_flg = 0;
 
         // Test-and-set the associated semaphore
-        semop(semID, semOps, 1);
+        semop(semID, semOps, 2);
 
         // Copy the data
         data[index].quatData[VS_X] = quat[VS_X];
         data[index].quatData[VS_Y] = quat[VS_Y];
         data[index].quatData[VS_Z] = quat[VS_Z];
         data[index].quatData[VS_W] = quat[VS_W];
+
+        // Release the semaphore
+        semOps[0].sem_num = index;
+        semOps[0].sem_op = -1;
+        semOps[0].sem_flg = 0;
+        semop(semID, semOps, 1);
     }
 }
 
@@ -206,11 +218,17 @@ void vsSharedInputData::retrieveVectorData(int index, vsVector *vector)
         semOps[1].sem_flg = 0;
 
         // Test-and-set the associated semaphore
-        semop(semID, semOps, 1);
+        semop(semID, semOps, 2);
 
         // Copy the data
         for (i = 0; i < vector->getSize(); i++)
             (*(vector))[i] = data[index].vectData[i];
+
+        // Release the semaphore
+        semOps[0].sem_num = index;
+        semOps[0].sem_op = -1;
+        semOps[0].sem_flg = 0;
+        semop(semID, semOps, 1);
     }
 }
 
@@ -233,13 +251,19 @@ void vsSharedInputData::retrieveQuatData(int index, vsQuat *quat)
         semOps[1].sem_flg = 0;
 
         // Test-and-set the associated semaphore
-        semop(semID, semOps, 1);
+        semop(semID, semOps, 2);
 
         // Copy the data
         (*(quat))[VS_X] = data[index].quatData[VS_X];
         (*(quat))[VS_Y] = data[index].quatData[VS_Y];
         (*(quat))[VS_Z] = data[index].quatData[VS_Z];
         (*(quat))[VS_W] = data[index].quatData[VS_W]; 
+
+        // Release the semaphore
+        semOps[0].sem_num = index;
+        semOps[0].sem_op = -1;
+        semOps[0].sem_flg = 0;
+        semop(semID, semOps, 1);
     }
 }
 
