@@ -337,7 +337,7 @@ void vsKeyboard::redrawPrompt()
 void vsKeyboard::pressKey(KeySym keySym, char *string)
 {
     int  index;
-    char buffer[50];
+    char buffer[255];
     int  cmdLength;
 
     // Copy the string representation for use in terminal commands
@@ -371,7 +371,7 @@ void vsKeyboard::pressKey(KeySym keySym, char *string)
                 (((index >= ' ') && (index <= '~')) ||
                  ((index >= VS_KEY_KP0) && (index <= VS_KEY_KPADD))))
             {
-                // Add the latest key to the command string
+	        // Add the latest key to the command string
                 strcat(command, string);
 
                 // Redraw the prompt with the current command appended
