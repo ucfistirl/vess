@@ -305,7 +305,6 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
 // ------------------------------------------------------------------------
 void vsSystem::preFrameTraverse(vsNode *node)
 {
-    vsComponent *component;
     vsNode *childNode;
     int loop;
     
