@@ -98,6 +98,9 @@ vsIS600::vsIS600(int portNumber, long baud, int nTrackers)
             numTrackers = nTrackers;
         }
 
+        // Check the endianness of the host machine
+        bigEndian = isBigEndian();
+
         // Set some default configurations
         setBinaryOutput();
 
@@ -327,20 +330,45 @@ void vsIS600::initOutputFormat()
 }
 
 // ------------------------------------------------------------------------
+// From Harbinson&Steele.  Determines whether this machine is big- or
+// little-endian.
+// ------------------------------------------------------------------------
+int vsIS600::isBigEndian()
+{
+    // Union of a long and four bytes used to perform the test
+    union
+    {
+        long          l;
+        unsigned char c[sizeof (long)];
+    } u;
+
+    // Set the long to 1
+    u.l = 1;
+
+    // If the last byte of the character array corresponding to the long
+    // is 1, we're big-endian
+    return (u.c[sizeof (long) - 1] == 1);
+}
+
+// ------------------------------------------------------------------------
 // Convert a little-endian 32-bit floating point number to big-endian (or 
-// vice versa).  On Linux systems, this function simply returns the number
+// vice versa).  The IS-600 returns its numbers in little-endian format, so
+// on little-endian systems, this function simply returns the number 
 // unchanged.
 // ------------------------------------------------------------------------
 void vsIS600::endianSwap(float *inFloat, float *outFloat)
 {
-#ifdef __linux__
-    *outFloat = *inFloat;
-#else
-    ((unsigned char *)outFloat)[0] = ((unsigned char *)inFloat)[3];
-    ((unsigned char *)outFloat)[1] = ((unsigned char *)inFloat)[2];
-    ((unsigned char *)outFloat)[2] = ((unsigned char *)inFloat)[1];
-    ((unsigned char *)outFloat)[3] = ((unsigned char *)inFloat)[0];
-#endif
+    if (bigEndian)
+    {
+        ((unsigned char *)outFloat)[0] = ((unsigned char *)inFloat)[3];
+        ((unsigned char *)outFloat)[1] = ((unsigned char *)inFloat)[2];
+        ((unsigned char *)outFloat)[2] = ((unsigned char *)inFloat)[1];
+        ((unsigned char *)outFloat)[3] = ((unsigned char *)inFloat)[0];
+    }
+    else
+    {
+        *outFloat = *inFloat;
+    }
 }
 
 // ------------------------------------------------------------------------
