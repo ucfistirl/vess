@@ -43,16 +43,16 @@ vsCallbackList::vsCallbackList(pfChannel *callbackChannel)
     callbackList = (vsCallbackNode *)pfMalloc(sizeof(vsCallbackNode),
         pfGetSharedArena());
     callbackList->prev = NULL;
-    callbackList->func = NULL;
     callbackList->data = NULL;
+    callbackList->func = NULL;
 
     // The list must contain the default callback as a member. Create it and
     // initialize its fields
     defaultDrawNode = (vsCallbackNode *)pfMalloc(sizeof(vsCallbackNode),
         pfGetSharedArena());
     defaultDrawNode->next = NULL;
-    defaultDrawNode->func = vsCallbackList::defaultCallback;
     defaultDrawNode->data = glClearMask;
+    defaultDrawNode->func = vsCallbackList::drawCallback;
 
     // Connect the list nodes to one another
     callbackList->next = defaultDrawNode;
@@ -117,6 +117,9 @@ vsCallbackList::~vsCallbackList()
         // See if this node has an associated semaphore
         if (currentNode->sema != NULL)
         {
+            // Acquire the semaphore to make sure it is safe to delete
+            uspsema(currentNode->sema);
+
             // Free the semaphore of the current node
             usfreesema(currentNode->sema, pfGetSemaArena());
         }
@@ -130,151 +133,41 @@ vsCallbackList::~vsCallbackList()
 
     // Free the GL clear mask variable
     pfFree(glClearMask);
-
-    // Free the semaphores
-    usfreesema(listSemaphore, pfGetSemaArena());
-    usfreesema(maskSemaphore, pfGetSemaArena());
 }
 
 // ------------------------------------------------------------------------
-// Gets a string representation of this object's class name
+// Set the value of the mask used for clearing during rendering
 // ------------------------------------------------------------------------
-const char *vsCallbackList::getClassName()
+void vsCallbackList::setGLClearMask(int clearMask)
 {
-    return "vsCallbackList";
+    // Acquire the semaphore for the mask
+    uspsema(maskSemaphore);
+
+    // Safely update the value
+    *glClearMask = clearMask;
+
+    // Release the semaphore
+    usvsema(maskSemaphore);
 }
 
 // ------------------------------------------------------------------------
-// Returns a pointer to the data of the specified callback node, for use by
-// any user-defined callback functions that need to act on shared memory.
+// Get the value of the mask used for clearing during rendering
 // ------------------------------------------------------------------------
-void *vsCallbackList::getData(void *userData)
+int vsCallbackList::getGLClearMask()
 {
-    vsCallbackNode *callbackNode;
+    int clearMask;
 
-    // Grab the callback node from the user data
-    callbackNode = (vsCallbackNode *)userData;
+    // Acquire the semaphore for the mask
+    uspsema(maskSemaphore);
 
-    // Make sure the callback node is not null
-    if (callbackNode != NULL)
-    {
-        // Get the pointer to the data
-        return callbackNode->data;
-    }
+    // Safely retrieve the value
+    clearMask = *glClearMask;
 
-    // Return a default value
-    return NULL;
-}
+    // Release the semaphore
+    usvsema(maskSemaphore);
 
-// ------------------------------------------------------------------------
-// Removes the specified callback node. This function is for use by any
-// user-defined callback functions that need to remove themselves during
-// the draw process. Note that this function *DOES NOT* deallocate the
-// shared memory used by the callback.
-// ------------------------------------------------------------------------
-void vsCallbackList::removeCallbackNode(void *userData)
-{
-    vsCallbackNode *callbackNode;
-
-    // Grab the callback node from the user data
-    callbackNode = (vsCallbackNode *)userData;
-
-    // Make sure the current node is not null
-    if (callbackNode != NULL)
-    {
-        // Acquire the semaphore for this node
-//        uspsema(callbackNode->sema);
-
-        // Check where in the callback list the current node resides
-        // NOTE: The naive removal method works only because the list will
-        // always contain two members when this point is reached: the default
-        // node and the one being removed.
-        if (callbackNode->next == NULL)
-        {
-            // Remove the node from the end of the list
-            callbackNode->prev->next = NULL;
-        }
-        else
-        {
-            // Remove the node from the middle of the list
-            callbackNode->prev->next = callbackNode->next;
-            callbackNode->next->prev = callbackNode->prev;
-        }
-
-        // The semaphore will be null if the node has no shared memory
-        if (callbackNode->sema != NULL)
-        {
-            // Free the semaphore of the current node
-            usfreesema(callbackNode->sema, pfGetSemaArena());
-        }
-
-        // Deallocate the memory used by the node
-        pfFree(callbackNode);
-    }
-}
-
-// ------------------------------------------------------------------------
-// Release the semaphore of the data in this callback node, indicating to
-// the application process that the data has been set and can now be used.
-// ------------------------------------------------------------------------
-void vsCallbackList::releaseData(void *userData)
-{
-    vsCallbackNode *callbackNode;
-
-    // Get the data in its proper callback node form
-    callbackNode = (vsCallbackNode *)userData;
-
-    // Make sure this node hasn't already been released
-    if (ustestsema(callbackNode->sema) == 0)
-    {
-        // Release the semaphore of this data node
-        usvsema(callbackNode->sema);
-    }
-}
-
-// ------------------------------------------------------------------------
-// Search the list of callback nodes for the first one that acts upon the
-// shared memory indicated by the argument, returning whether the semaphore
-// for that callback node indicates that the data is free to be acted upon
-// by the user. If the data is not found, true is returned because the data
-// is by default safe to act upon if no semaphore indicates otherwise.
-// ------------------------------------------------------------------------
-int vsCallbackList::acquireData(void *sharedMemory)
-{
-    vsCallbackNode *traversalNode;
-    int result;
-
-    // Acquire the semaphore for the list itself
-    uspsema(listSemaphore);
-
-    // Start at the head of the list
-    traversalNode = callbackList;
-
-    // Search the list node by node
-    while (traversalNode != NULL)
-    {
-        // See whether the data pointers match
-        if (sharedMemory == traversalNode->data)
-        {
-            // Test whether the semaphore is available
-            result = ustestsema(traversalNode->sema);
-
-            // Release the semaphore of the entire list
-            usvsema(listSemaphore);
-
-            // Return the result value
-            return result;
-        }
-
-        // Move to the next node
-        traversalNode = traversalNode->next;
-    }
-
-    // Release the list semaphore
-    usvsema(listSemaphore);
-
-    // Return true because the data was not found
-    return VS_TRUE;
+    // Return the value for the mask
+    return clearMask;
 }
 
 // ------------------------------------------------------------------------
@@ -287,8 +180,16 @@ void *vsCallbackList::prependCallback(pfChanFuncType callback,
 {
     void *sharedMemory;
 
-    // Declare shared memory to be acted upon by the callbacks
-    sharedMemory = pfMalloc(sharedMemorySize, pfGetSharedArena());
+    if (sharedMemorySize > 0)
+    {
+        // Declare shared memory to be acted upon by the callbacks
+        sharedMemory = pfMalloc(sharedMemorySize, pfGetSharedArena());
+    }
+    else
+    {
+        // The callback does not need any shared memory
+        sharedMemory = NULL;
+    }
 
     // Add a callback acting on this shared memory to the list
     prependCallback(callback, sharedMemory);
@@ -306,6 +207,7 @@ void vsCallbackList::prependCallback(pfChanFuncType callback,
                                      void *sharedMemory)
 {
     vsCallbackNode *newNode;
+    vsCallbackNode *traversalNode;
 
     // Acquire the semaphore for the list
     uspsema(listSemaphore);
@@ -327,19 +229,39 @@ void vsCallbackList::prependCallback(pfChanFuncType callback,
     // Store the pointer to the shared memory
     newNode->data = sharedMemory;
 
-    // See whether the node acts upon any shared memory
-    if (newNode->data != NULL)
+    // Start the new node with a NULL semaphore for now
+    newNode->sema = NULL;
+
+    // Only perform the following actions if the node needs a semaphore
+    if (newNode->data)
     {
-        // Create a new semaphore to handle the user data in the node itself
-        newNode->sema = usnewsema(pfGetSemaArena(), 0);
-    }
-    else
-    {
-        // The node only needs a semaphore if it acts upon user data
-        newNode->sema = NULL;
+        // Start at the beginning of the list
+        traversalNode = callbackList;
+
+        // Traverse the list, searching for a semaphore to use for this node
+        while (traversalNode->next != NULL)
+        {
+            // If the node has data and its data matches that of the current
+            // node, use the semaphore of the existing node rather than
+            // creating a new one
+            if (traversalNode->data == newNode->data)
+            {
+                newNode->sema = traversalNode->sema;
+            }
+
+            // Move to the next node
+            traversalNode = traversalNode->next;
+        }
+
+        // See whether the node acts upon any shared memory
+        if ((newNode->sema == NULL) && ( newNode->data != NULL))
+        {
+            // Create a semaphore to handle user data in the node itself
+            newNode->sema = usnewsema(pfGetSemaArena(), 0);
+        }
     }
 
-    // Release the semaphore
+    // Release the semaphore for the list
     usvsema(listSemaphore);
 }
 
@@ -353,8 +275,16 @@ void *vsCallbackList::appendCallback(pfChanFuncType callback,
 {
     void *sharedMemory;
 
-    // Declare shared memory to be acted upon by the callbacks
-    sharedMemory = pfMalloc(sharedMemorySize, pfGetSharedArena());
+    if (sharedMemorySize > 0)
+    {
+        // Declare shared memory to be acted upon by the callbacks
+        sharedMemory = pfMalloc(sharedMemorySize, pfGetSharedArena());
+    }
+    else
+    {
+        // The callback does not need any shared memory
+        sharedMemory = NULL;
+    }
 
     // Add a callback acting on this shared memory to the list
     appendCallback(callback, sharedMemory);
@@ -381,12 +311,30 @@ void vsCallbackList::appendCallback(pfChanFuncType callback,
     newNode = (vsCallbackNode *)pfMalloc(sizeof(vsCallbackNode),
         pfGetSharedArena());
 
+    // Store the function pointer in the new node
+    newNode->func = callback;
+
+    // Store the pointer to the shared memory
+    newNode->data = sharedMemory;
+
+    // Start the new node with a NULL semaphore for now
+    newNode->sema = NULL;
+
     // Start at the beginning of the list
     traversalNode = callbackList;
 
     // Traverse to the end of the list
     while (traversalNode->next != NULL)
     {
+        // If the node has data and its data matches that of the current
+        // node, use the semaphore of the existing node rather than
+        // creating a new one
+        if ((newNode->data) && (traversalNode->data == newNode->data))
+        {
+            newNode->sema = traversalNode->sema;
+        }
+
+        // Move to the next node
         traversalNode = traversalNode->next;
     }
 
@@ -395,25 +343,14 @@ void vsCallbackList::appendCallback(pfChanFuncType callback,
     newNode->prev = traversalNode;
     newNode->next = NULL;
 
-    // Store the function pointer in the new node
-    newNode->func = callback;
-
-    // Store the pointer to the shared memory
-    newNode->data = sharedMemory;
-
-    // See whether the node acts upon any shared memory
-    if (newNode->data != NULL)
+    // See if the node needs a semaphore and still doesn't have one
+    if ((newNode->sema == NULL) && (newNode->data != NULL))
     {
-        // Create a new semaphore to handle the user data in the node itself
+        // Create a semaphore to handle user data in the node itself
         newNode->sema = usnewsema(pfGetSemaArena(), 0);
     }
-    else
-    {
-        // The node only needs a semaphore if it acts upon user data
-        newNode->sema = NULL;
-    }
 
-    // Release the semaphore
+    // Release the semaphore for the list
     usvsema(listSemaphore);
 }
 
@@ -434,7 +371,7 @@ void vsCallbackList::removeCallback(pfChanFuncType callback,
 
     // Make sure no attempt is made to remove the null callback of the list or
     // the default callback that actually executes the draw function
-    if ((callback != NULL) && (callback != vsCallbackList::defaultCallback))
+    if ((callback != NULL) && (callback != vsCallbackList::drawCallback))
     {
         // Start at the first callback node
         traversalNode = callbackList;
@@ -482,45 +419,233 @@ void vsCallbackList::removeCallback(pfChanFuncType callback,
 }
 
 // ------------------------------------------------------------------------
-// Set the value of the mask used for clearing during rendering
+// Returns a pointer to the data of the specified callback node, for use by
+// any user-defined callback functions that need to act on shared memory.
 // ------------------------------------------------------------------------
-void vsCallbackList::setGLClearMask(int clearMask)
+void *vsCallbackList::getData(void *nodeData)
 {
-    // Acquire the semaphore for the mask
-    uspsema(maskSemaphore);
-
-    // Safely update the value
-    *glClearMask = clearMask;
-
-    // Release the semaphore
-    usvsema(maskSemaphore);
+    return ((vsCallbackNode *)nodeData)->data;
 }
 
 // ------------------------------------------------------------------------
-// Get the value of the mask used for clearing during rendering
+// Removes the specified callback node from its traversal. This function is
+// for use by any user-defined callback functions that need to remove
+// themselves during the draw process. Note that this function *DOES NOT*
+// deallocate the shared memory used by the callback.
 // ------------------------------------------------------------------------
-int vsCallbackList::getGLClearMask()
+void vsCallbackList::nodeRemove(void *nodeData)
 {
-    int clearMask;
+    vsCallbackNode *callbackNode;
 
-    // Acquire the semaphore for the mask
-    uspsema(maskSemaphore);
+    // Grab the callback node from the user data
+    callbackNode = (vsCallbackNode *)nodeData;
 
-    // Safely update the value
-    clearMask = *glClearMask;
+    // Make sure the current node is not null
+    if (callbackNode != NULL)
+    {
+        // Check where in the callback list the current node resides
+        // NOTE: The naive removal method works only because the list will
+        // always contain two members when this point is reached: the default
+        // node and the one being removed.
+        if (callbackNode->next == NULL)
+        {
+            // Remove the node from the end of the list
+            callbackNode->prev->next = NULL;
+        }
+        else
+        {
+            // Remove the node from the middle of the list
+            callbackNode->prev->next = callbackNode->next;
+            callbackNode->next->prev = callbackNode->prev;
+        }
 
-    // Release the semaphore
-    usvsema(maskSemaphore);
+        // The semaphore will be null if the node has no shared memory
+        if (callbackNode->sema != NULL)
+        {
+            // Free the semaphore of the current node
+            usfreesema(callbackNode->sema, pfGetSemaArena());
+        }
 
-    // Return the value for the mask
-    return clearMask;
+        // Deallocate the memory used by the node
+        pfFree(callbackNode);
+    }
 }
 
 // ------------------------------------------------------------------------
-// static VESS internal function - Performer callback
+// Attempt to acquire the semaphore of the data in this callback node,
+// indicating to the application process that the data is being modified
+// and should not be used. If the data is acquired, the function will
+// return VS_TRUE, but if it is in use by the application or otherwise
+// unavailable the function returns VS_FALSE. If the semaphore is NULL,
+// the VS_TRUE is returned by default.
+// ------------------------------------------------------------------------
+int vsCallbackList::nodeAcquireData(void *nodeData)
+{
+    vsCallbackNode *callbackNode;
+
+    // Get the data in its proper callback node form
+    callbackNode = (vsCallbackNode *)nodeData;
+
+    // Make sure the semaphore exists
+    if (callbackNode->sema)
+    {
+        // See if the data is unavailable
+        if (ustestsema(callbackNode->sema) == 0)
+        {
+            // Indicate to the callback function that the data could
+            // not be acquired
+            return VS_FALSE;
+        }
+        else
+        {
+            // Acquire the semaphore of this data node
+            uspsema(callbackNode->sema);
+
+            // Indicate to the callback function that the data was acquired
+            return VS_TRUE;
+        }
+    }
+    else
+    {
+        // Indicate to the application that the data is NULL and does not
+        // need to be acquired
+        return VS_TRUE;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Release the semaphore of the data in this callback node, indicating to
+// the application process that the data is stable and safe to reference.
+// ------------------------------------------------------------------------
+void vsCallbackList::nodeReleaseData(void *nodeData)
+{
+    vsCallbackNode *callbackNode;
+
+    // Get the data in its proper callback node form
+    callbackNode = (vsCallbackNode *)nodeData;
+
+    // The node will not have a semaphore if it has no user data
+    if (callbackNode->sema)
+    {
+        // Release the semaphore of this data node
+        usvsema(callbackNode->sema);
+    }
+}
+
+// ------------------------------------------------------------------------
+// Search the callback list for any nodes that act upon the shared memory
+// indicated by the argument, acquiring the semaphore of that data if it
+// can be found. VS_TRUE is returned if the data cannot be found or if it
+// is found and its semaphore is acquired, indicating to the draw process
+// that the data is unstable and should not be modified. VS_FALSE is
+// returned if the data is located but its semaphore cannot be acquired.
+// ------------------------------------------------------------------------
+int vsCallbackList::acquireData(void *sharedMemory)
+{
+    vsCallbackNode *traversalNode;
+
+    if (sharedMemory)
+    {
+        // Acquire the semaphore for the list itself
+        uspsema(listSemaphore);
+
+        // Start at the head of the list
+        traversalNode = callbackList;
+
+        // Search the list node by node
+        while (traversalNode != NULL)
+        {
+            // See whether the data pointers match
+            if (sharedMemory == traversalNode->data)
+            {
+                // Test whether the semaphore is available
+                if (ustestsema(traversalNode->sema) >= 1)
+                {
+                    // Acquire the semaphore of the user data
+                    uspsema(traversalNode->sema);
+
+                    // Release the semaphore of the entire list
+                    uspsema(listSemaphore);
+
+                    // Return true to indicate that the data is safe to modify
+                    return VS_TRUE;
+                }
+                else
+                {
+                    // Release the list semaphore
+                    usvsema(listSemaphore);
+
+                    // Return false to indicate that the data is unstable and
+                    // should not be modified
+                    return VS_FALSE;
+                }
+            }
+
+            // Move to the next node
+            traversalNode = traversalNode->next;
+        }
+
+        // Release the list semaphore
+        usvsema(listSemaphore);
+    }
+
+    // Return true because the data was not found in the callback list or
+    // was NULL (this sort of data is always available by default)
+    return VS_TRUE;
+}
+
+// ------------------------------------------------------------------------
+// Search the callback list for any nodes that act upon the shared memory
+// indicated by the argument and release that data if it was acquired,
+// indicating to the draw process that the memory is stable and can safely
+// be referenced.
+// ------------------------------------------------------------------------
+void vsCallbackList::releaseData(void *sharedMemory)
+{
+    vsCallbackNode *traversalNode;
+
+    if (sharedMemory)
+    {
+        // Acquire the semaphore for the list itself
+        uspsema(listSemaphore);
+
+        // Start at the head of the list
+        traversalNode = callbackList;
+
+        // Search the list node by node
+        while (traversalNode != NULL)
+        {
+            // See whether the data pointers match
+            if (sharedMemory == traversalNode->data)
+            {
+                // Test whether the semaphore is acquired by the application
+                if (ustestsema(traversalNode->sema) == 0)
+                {
+                    // Free the semaphore of the data
+                    usvsema(traversalNode->sema);
+                }
+
+                // Release the list semaphore
+                usvsema(listSemaphore);
+
+                // The data was found and manipulated in the list
+                return;
+            }
+
+            // Move to the next node
+            traversalNode = traversalNode->next;
+        }
+
+        // Release the list semaphore
+        usvsema(listSemaphore);
+    }
+}
+
+// ------------------------------------------------------------------------
+// static private function - Performer callback
 // This is the only draw callback that should be set to a Performer
 // channel. It traverses the linked list of callback functions and calls
-// each in turn on their applied user data.
+// each in turn on their specified user data.
 // ------------------------------------------------------------------------
 void vsCallbackList::traverseCallbacks(pfChannel *chan, void *userData)
 {
@@ -555,12 +680,11 @@ void vsCallbackList::traverseCallbacks(pfChannel *chan, void *userData)
 }
 
 // ------------------------------------------------------------------------
-// static VESS internal function - Performer callback
-// This is the default draw callback that will always exist somewhere in
+// static private function - Performer callback
+// This is the draw callback that will always exist somewhere in
 // the draw callback list. It performs the same function as Performer's
-// default draw callback.
 // ------------------------------------------------------------------------
-void vsCallbackList::defaultCallback(pfChannel *chan, void *userData)
+void vsCallbackList::drawCallback(pfChannel *chan, void *userData)
 {
     vsCallbackNode *currentNode;
     int            clearMask;

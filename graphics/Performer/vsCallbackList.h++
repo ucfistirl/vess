@@ -31,64 +31,66 @@
 #define VS_TRUE 1
 #endif
 
+#ifndef VS_FALSE
+#define VS_FALSE 0
+#endif
+
 struct vsCallbackNode
 {
-    vsCallbackNode *prev;
-    vsCallbackNode *next;
+    vsCallbackNode    *prev;
+    vsCallbackNode    *next;
 
-    usema_t        *sema;
-
-    pfChanFuncType func;
-    void           *data;
+    pfChanFuncType    func;
+    void              *data;
+    usema_t           *sema;
 };
 
-class VS_GRAPHICS_DLL vsCallbackList : public vsObject
+class VS_GRAPHICS_DLL vsCallbackList
 {
 private:
 
-    pfChannel       *channel;
+    pfChannel         *channel;
 
-    vsCallbackNode  *callbackList;
-    vsCallbackNode  **callbackListAddress;
+    vsCallbackNode    *callbackList;
 
-    usema_t         *listSemaphore;
-    usema_t         *maskSemaphore;
+    vsCallbackNode    **callbackListAddress;
+    usema_t           *listSemaphore;
 
-    int             *glClearMask;
+    int               *glClearMask;
+    usema_t           *maskSemaphore;
 
-VS_INTERNAL:
-
-    static void     traverseCallbacks(pfChannel *chan, void *userData);
-    static void     defaultCallback(pfChannel *chan, void *userData);
+    static void       traverseCallbacks(pfChannel *chan, void *userData);
+    static void       drawCallback(pfChannel *chan, void *userData);
 
 public:
 
-                          vsCallbackList(pfChannel *callbackChannel);
-    virtual               ~vsCallbackList();
+                   vsCallbackList(pfChannel *callbackChannel);
+    virtual        ~vsCallbackList();
 
-    virtual const char    *getClassName();
+    void           setGLClearMask(int clearMask);
+    int            getGLClearMask();
 
-    static void           *getData(void *userData);
-    static void           removeCallbackNode(void *userData);
-    static void           releaseData(void *userData);
+    void           *prependCallback(pfChanFuncType callbackFunction,
+                       int sharedMemorySize);
+    void           prependCallback(pfChanFuncType callbackFunction,
+                       void *sharedMemory);
 
-    int                   acquireData(void *sharedMemory);
+    void           *appendCallback(pfChanFuncType callbackFunction,
+                       int sharedMemorySize);
+    void           appendCallback(pfChanFuncType callbackFunction,
+                       void *sharedMemory);
 
-    void                  *prependCallback(pfChanFuncType callbackFunction,
-                                           int sharedMemorySize);
-    void                  prependCallback(pfChanFuncType callbackFunction,
-                                          void *sharedMemory);
+    void           removeCallback(pfChanFuncType callbackFunction,
+                       void *sharedMemory);
 
-    void                  *appendCallback(pfChanFuncType callbackFunction,
-                                          int sharedMemorySize);
-    void                  appendCallback(pfChanFuncType callbackFunction,
-                                         void *sharedMemory);
+    static void    *getData(void *nodeData);
+    static void    nodeRemove(void *nodeData);
 
-    void                  removeCallback(pfChanFuncType callbackFunction,
-                                         void *sharedMemory);
+    static int     nodeAcquireData(void *nodeData);
+    static void    nodeReleaseData(void *nodeData);
 
-    void                  setGLClearMask(int clearMask);
-    int                   getGLClearMask();
+    int            acquireData(void *sharedMemory);
+    void           releaseData(void *sharedMemory);
 };
 
 #endif
