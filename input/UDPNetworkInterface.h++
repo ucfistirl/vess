@@ -8,6 +8,14 @@
 #include <fcntl.h>
 #include "NetworkInterface.h++"
 
+// Stupid conditional blocks because Linux can't follow conventions
+#ifdef IRIX
+typedef int socklen_t;
+#endif
+
+#ifdef IRIX64
+typedef int socklen_t;
+#endif
 
 class UDPNetworkInterface : public NetworkInterface
 {

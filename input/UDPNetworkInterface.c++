@@ -29,7 +29,7 @@ int UDPNetworkInterface::readPacket(u_char *buffer, int maxSize)
    read_name_length = sizeof(read_name);
    length = recvfrom(socket_value, buffer, maxSize, 0,
                      (struct sockaddr *) &read_name, 
-                     (unsigned int *) &read_name_length);
+                     (socklen_t *) &read_name_length);
 
    if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
       perror("recvfrom");
@@ -46,7 +46,7 @@ int UDPNetworkInterface::readPacket(u_char *buffer, int maxSize,
    read_name_length = sizeof(read_name);
    length = recvfrom(socket_value, buffer, maxSize, 0,
                      (struct sockaddr *) &read_name,
-                     (unsigned int *) &read_name_length);
+                     (socklen_t *) &read_name_length);
 
    if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
       perror("recvfrom");
@@ -65,7 +65,7 @@ int UDPNetworkInterface::readPacket(u_char *buffer, int maxSize, char *origin)
    read_name_length = sizeof(read_name);
    length = recvfrom(socket_value, buffer, maxSize, 0,
                      (struct sockaddr *) &read_name,
-                     (unsigned int *) &read_name_length);
+                     (socklen_t *) &read_name_length);
 
    if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
       perror("recvfrom");
@@ -86,7 +86,7 @@ int UDPNetworkInterface::readPacket(u_char *buffer, int maxSize,
    read_name_length = sizeof(read_name);
    length = recvfrom(socket_value, buffer, maxSize, 0,
                      (struct sockaddr *) &read_name,
-                     (unsigned int *) &read_name_length);
+                     (socklen_t *) &read_name_length);
 
    if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
       perror("recvfrom");
