@@ -26,7 +26,7 @@
 #include "vsGlobals.h++"
 #include "vsVector.h++"
 
-class vsSphere
+class VS_UTIL_DLL vsSphere
 {
 private:
 
