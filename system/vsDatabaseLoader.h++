@@ -8,6 +8,8 @@
 #include "vsNode.h++"
 #include "vsGrowableArray.h++"
 
+#define VS_DATABASE_MODE_NAME_XFORM 1
+
 enum vsDatabaseType
 {
     VS_DATABASE_TYPE_DEFAULT,
@@ -39,6 +41,8 @@ private:
     int                nodeNameCount;
     
     int                unitMode;
+    
+    int		       importantXformMode;
 
     int                inittedFlag;
     
@@ -55,7 +59,7 @@ VS_INTERNAL:
     static void    fltLoaderCallback(pfNode *node, int mgOp, int *cbs,
                                      COMMENTcb *comment, void *userData);
 
-    int            checkName(const char *possibleName);
+    int            importanceCheck(pfNode *targetNode);
 
 public:
 
@@ -66,10 +70,13 @@ public:
     
     void        addImportantNodeName(char *newName);
     void        clearNames();
-    
+
     void        setUnits(int databaseUnit);
     
     void        addPath(char *filePath);
+    
+    void	setLoaderMode(int whichMode, int modeVal);
+    int		getLoaderMode(int whichMode);
     
     vsNode      *loadDatabase(char *databaseFilename);
 };

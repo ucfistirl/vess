@@ -25,6 +25,8 @@ vsDatabaseLoader::vsDatabaseLoader(char *fileExtension) :
     
     unitMode = VS_DATABASE_UNITS_METERS;
     
+    importantXformMode = VS_FALSE;
+    
     inittedFlag = 0;
 }
 
@@ -114,6 +116,33 @@ void vsDatabaseLoader::addPath(char *filePath)
     
     pfFilePath(fullPath);
     printf("Path is: %s\n", fullPath);
+}
+
+// ------------------------------------------------------------------------
+// Sets the specified loader mode to the given value
+// ------------------------------------------------------------------------
+void vsDatabaseLoader::setLoaderMode(int whichMode, int modeVal)
+{
+    switch (whichMode)
+    {
+	case VS_DATABASE_MODE_NAME_XFORM:
+	    importantXformMode = modeVal;
+	    break;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the value of the specified loader mode
+// ------------------------------------------------------------------------
+int vsDatabaseLoader::getLoaderMode(int whichMode)
+{
+    switch (whichMode)
+    {
+	case VS_DATABASE_MODE_NAME_XFORM:
+	    return importantXformMode;
+    }
+    
+    return 0;
 }
 
 // ------------------------------------------------------------------------
@@ -490,17 +519,24 @@ void vsDatabaseLoader::fltLoaderCallback(pfNode *node, int mgOp, int *cbs,
 
 // ------------------------------------------------------------------------
 // VESS internal function
-// Checks to see if the given name is part of the loader's list of
-// 'important' node names. This check is case sensitive. Returns true or
-// false.
+// Checks to see if the given node's name is part of the loader's list of
+// 'important' node names, or if the node is a DCS and the user has
+// specified that DCS's are automatically important. The name check is case
+// sensitive.
 // ------------------------------------------------------------------------
-int vsDatabaseLoader::checkName(const char *possibleName)
+int vsDatabaseLoader::importanceCheck(pfNode *targetNode)
 {
     int loop;
+    const char *targetName;
     
+    targetName = targetNode->getName();
+
     for (loop = 0; loop < nodeNameCount; loop++)
-        if (!strcmp((char *)(nodeNames[loop]), possibleName))
+        if (!strcmp((char *)(nodeNames[loop]), targetName))
             return VS_TRUE;
+
+    if (importantXformMode && targetNode->isOfType(pfDCS::getClassType()))
+	return VS_TRUE;
 
     return VS_FALSE;
 }
