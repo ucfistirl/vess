@@ -245,7 +245,7 @@ void vsOptimizer::zapComponent(vsComponent *targetComponent)
     }
     
     // With all links to this component gone, it should be safe to delete it
-    delete targetComponent;
+    vsObject::checkDelete(targetComponent);
 }
 
 // ------------------------------------------------------------------------
@@ -337,7 +337,7 @@ void vsOptimizer::mergeDecals(vsComponent *componentNode)
             loop--;
 
             // The target node is now unneeded; delete it.
-            delete childNode;
+            vsObject::checkDelete(childNode);
         }
     }
     
@@ -509,7 +509,7 @@ void vsOptimizer::mergeLODs(vsComponent *componentNode)
             // Finally, remove the depleted LOD component from the old
             // scene and discard it.
             componentNode->removeChild(childNode);
-            delete childNode;
+            vsObject::checkDelete(childNode);
         }
     }
 
@@ -566,7 +566,7 @@ void vsOptimizer::mergeGeometry(vsComponent *componentNode)
 
                     // The second geometry object is now unneeded; get rid
 		    // of it.
-                    delete secondGeo;
+                    vsObject::checkDelete(secondGeo);
 
                     // Back up one child, so that we don't skip over the
 		    // child that was just moved into the spot that
@@ -1054,8 +1054,7 @@ void vsOptimizer::optimizeAttributes(vsComponent *componentNode,
 		// The parent(s) of the child have the same attribute;
 		// the one on the child is unnecessary, so remove it.
                 childNode->removeAttribute(childAttr);
-                if (!(childAttr->isAttached()))
-                    delete childAttr;
+                vsObject::checkDelete(childAttr);
             }
         }
     }
