@@ -62,6 +62,120 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
 
     // Force the window open
     xWindowDisplay = pfGetCurWSConnection();
+
+    while (!(performerPipeWindow->isOpen()))
+    {
+        pfFrame();
+	XFlush(xWindowDisplay);
+    }
+
+    // Get the window that Performer thinks is topmost, and then query the
+    // X server to determine if that window really is the topmost one.
+    xWindowID = performerPipeWindow->getWSWindow();
+
+    //printf("xWindowID(%d)\n", xWindowID);
+
+    do
+    {
+        result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
+            &childPointer, &childCount);
+        XFree(childPointer);
+        printf("result(%d) rootID(%d) parentID(%d) xWindowID(%d)\n", result,
+            rootID, parentID, xWindowID);
+
+        if (result == 0)
+        {
+            pfFrame();
+            XFlush(xWindowDisplay);
+        }
+        else if (parentID != rootID)
+            xWindowID = parentID;
+    }
+    while (rootID != parentID);
+    topWindowID = xWindowID;
+    printf("topWindowID: %d\n", topWindowID);
+
+    // Attempt to determine the size of the window manager's border for
+    // this window by checking the difference between Performer's idea
+    // of the window size and X's one.
+    XGetWindowAttributes(xWindowDisplay, topWindowID, &xattr);
+    xPositionOffset = VS_WINDOW_DEFAULT_XPOS - xattr.x;
+    yPositionOffset = VS_WINDOW_DEFAULT_YPOS - xattr.y;
+    widthOffset = xattr.width - VS_WINDOW_DEFAULT_WIDTH;
+    heightOffset = xattr.height - VS_WINDOW_DEFAULT_HEIGHT;
+    
+    // Set the window's location and size to default values
+    setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
+    setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
+}
+
+// ------------------------------------------------------------------------
+// Constructor - Initializes the window by creating a Performer pipe window
+// object and creating connections with that, verifying that the window is
+// being properly displayed, recording some size data from the window
+// manager, and configuring the window with its default position and size.
+// Also configures the window's buffer settings to be either mono or stereo
+// based on the value of the stereo parameter
+// ------------------------------------------------------------------------
+vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo) 
+         : childPaneList(1, 1)
+{
+    vsPipe *parentPipe;
+    Display *xWindowDisplay;
+    Window xWindowID;
+    Window *childPointer;
+    unsigned int childCount;
+    Window parentID, rootID;
+    XWindowAttributes xattr;
+    static int fbConfigAttrs[20];
+
+    int result;
+    
+    childPaneCount = 0;
+    
+    parentScreen = parent;
+    parentPipe = parentScreen->getParentPipe();
+    
+    performerPipeWindow = new pfPipeWindow(parentPipe->getBaseLibraryObject());
+    performerPipeWindow->ref();
+    
+    parentScreen->addWindow(this);
+    
+    performerPipeWindow->setMode(PFWIN_ORIGIN_LL, 0);
+    if (hideBorder)
+        performerPipeWindow->setMode(PFWIN_NOBORDER, 1);
+
+   if (stereo)
+    {
+        // Set up a stereo/double-buffered frame buffer
+        fbConfigAttrs[0] = PFFB_RGBA;
+        fbConfigAttrs[1] = PFFB_DOUBLEBUFFER;
+        fbConfigAttrs[2] = PFFB_STEREO;
+
+        fbConfigAttrs[3] = PFFB_DEPTH_SIZE;
+        fbConfigAttrs[4] = 1;
+
+        fbConfigAttrs[5] = PFFB_RED_SIZE;
+        fbConfigAttrs[6] = 1;
+
+        fbConfigAttrs[7] = PFFB_STENCIL_SIZE;
+        fbConfigAttrs[8] = 1;
+
+        fbConfigAttrs[9] = NULL;
+
+        performerPipeWindow->setFBConfigAttrs(fbConfigAttrs);
+    }
+
+    performerPipeWindow->setOriginSize(VS_WINDOW_DEFAULT_XPOS,
+        VS_WINDOW_DEFAULT_YPOS, VS_WINDOW_DEFAULT_WIDTH,
+        VS_WINDOW_DEFAULT_HEIGHT);
+    performerPipeWindow->open();
+
+    // Attempt to determine the size of the window manager's border for
+    // this window by checking the difference between Performer's idea
+    // of the window size and X's one.
+    xWindowDisplay = pfGetCurWSConnection();
+
     while (!(performerPipeWindow->isOpen()))
     {
         pfFrame();
