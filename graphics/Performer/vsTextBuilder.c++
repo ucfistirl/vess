@@ -206,7 +206,6 @@ vsComponent *vsTextBuilder::buildText(char *text)
     pfGeode               *letterGeode;
     int                   stringLength;
     int                   letter;
-    int                   charIndex;
 
     // Get the length of the given string.
     stringLength = strlen(text);

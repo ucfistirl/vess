@@ -92,7 +92,6 @@ vsWindow *vsScreen::getChildWindow(int index)
 void vsScreen::getScreenSize(int *width, int *height)
 {
     Screen *xScreen;
-    int    x, y;
     
     // Get the X Screen from the X Server
     xScreen = ScreenOfDisplay(parentPipe->getXDisplay(), screenIndex);

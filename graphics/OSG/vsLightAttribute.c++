@@ -778,8 +778,6 @@ bool vsLightAttribute::addToScene()
 // ------------------------------------------------------------------------
 bool vsLightAttribute::removeFromScene()
 {
-    int index;
-
     // If we have no scene, then insure we set the active state to false.
     if (scene == NULL)
     {

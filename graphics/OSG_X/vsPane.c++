@@ -41,8 +41,6 @@
 // ------------------------------------------------------------------------
 vsPane::vsPane(vsWindow *parent)
 {
-    vsScreen *parentScreen;
-    vsPipe *parentPipe;
     osg::StateSet *defaultState;
     osg::State *sharedState;
     vsPane *firstPane;
@@ -56,7 +54,6 @@ vsPane::vsPane(vsWindow *parent)
     osgUtil::RenderGraph *renderGraph;
     osgUtil::RenderStage *renderStage;
     int contextID;
-    int loop;
 
     // Initialize the viewpoint and scene to NULL
     sceneView = NULL;
@@ -64,8 +61,6 @@ vsPane::vsPane(vsWindow *parent)
 
     // Get other parameters from the vsWindow passed in
     parentWindow = parent;
-    parentScreen = parent->getParentScreen();
-    parentPipe = parentScreen->getParentPipe();
 
     // Panes are visible by default
     paneVisible = VS_TRUE;
@@ -677,9 +672,7 @@ void vsPane::updateView()
 {
     vsMatrix viewMatrix, xformMatrix;
     osg::Matrix osgMatrix;
-    int loop, sloop;
     vsVector viewPos;
-    double near, far;
     int projMode;
     double projHval, projVval;
     double hFOV, vFOV;

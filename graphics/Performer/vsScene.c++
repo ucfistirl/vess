@@ -31,7 +31,6 @@
 // ------------------------------------------------------------------------
 vsScene::vsScene()
 {
-    int loop;
     pfGeoState *defaultState;
     pfLightModel *lightModel;
     

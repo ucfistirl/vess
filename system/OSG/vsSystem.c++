@@ -299,7 +299,6 @@ void vsSystem::preFrameTraverse(vsNode *node)
     osg::Drawable *drawable;
     int localLightArrayLength;
     int callbackLightCount;
-    int index;
     int loop;
     
     // Mark this node as clean

@@ -1528,7 +1528,6 @@ void vsWindow::makeCurrent()
 void vsWindow::update()
 {
     XEvent event;
-    int    width, height;
     int    i;
 
     // Check for X events on this window
@@ -1539,14 +1538,7 @@ void vsWindow::update()
         switch (event.type)
         {
             case ConfigureNotify:
-
-                // Configure notify event, this means that the configuration
-                // of the window changed.  Get the new width and height of 
-                // the window
-                width = event.xconfigure.width;
-                height = event.xconfigure.height;
-
-                // Resize each pane to match
+                // Resize each pane to match the new window dimensions
                 for (i = 0; i < childPaneCount; i++)
                     ((vsPane *)childPaneList[i])->resize();
                 break;

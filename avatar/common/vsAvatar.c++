@@ -2060,7 +2060,7 @@ void *vsAvatar::makeVsAxisRotation()
     char token[256];
     int lineType = 0;
     vsKinematics *kinematics = NULL;
-    char objName[256], strValue[256];
+    char objName[256];
     int objNum;
     double headingWidth = VS_AR_DEFAULT_HEADING_WIDTH;
     double pitchWidth = VS_AR_DEFAULT_PITCH_WIDTH;

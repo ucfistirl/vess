@@ -48,8 +48,6 @@ vsInputAxis::vsInputAxis(void)
 // ------------------------------------------------------------------------
 vsInputAxis::vsInputAxis(double minPos, double maxPos)
 {
-    char errStr[100];
-
     // Validate the axis ranges
     if (minPos < maxPos) 
     {

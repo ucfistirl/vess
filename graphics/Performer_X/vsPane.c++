@@ -36,8 +36,6 @@ vsPane::vsPane(vsWindow *parent)
     vsScreen *parentScreen;
     vsPipe *parentPipe;
     pfPipeWindow *tempPWin;
-    pfGeoState *defaultState;
-    pfLightModel *lightModel;
 
     // Start with no scene and no view object
     sceneRoot = NULL;
@@ -310,7 +308,6 @@ void vsPane::autoConfigure(int panePlacement)
 // ------------------------------------------------------------------------
 void vsPane::setBufferMode(vsPaneBufferMode newMode)
 {
-    vsScreen *parentScreen;
     vsPipe *parentPipe;
 
     // Anaglyphic not supported in Performer (yet)

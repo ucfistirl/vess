@@ -341,7 +341,7 @@ void vsOptimizer::mergeLODs(vsComponent *componentNode)
     int lodChildCount;
     vsLODAttribute *lodAttr, *newLODAttr;
     double tempDouble, midpoint;
-    vsComponent *newLODComponent, *newChildComponent;
+    vsComponent *newLODComponent;
     double rangeStart, rangeEnd;
 
     if (componentNode->getCategoryAttribute(VS_ATTRIBUTE_CATEGORY_GROUPING, 0))
