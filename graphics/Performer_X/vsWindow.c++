@@ -564,10 +564,6 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
     yPositionOffset = VS_WINDOW_DEFAULT_YPOS - xattr.y;
     widthOffset = xattr.width - VS_WINDOW_DEFAULT_WIDTH;
     heightOffset = xattr.height - VS_WINDOW_DEFAULT_HEIGHT;
-    
-    // Set the window's location and size to default values
-    setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
-    setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
 }
 
 // ------------------------------------------------------------------------
