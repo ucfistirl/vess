@@ -31,6 +31,8 @@ public:
                vsUDPNetworkInterface(u_short port);
     virtual    ~vsUDPNetworkInterface();
 
+    virtual const char    *getClassName();
+
     int        read(u_char *buffer, u_long len);
     int        write(u_char *buffer, u_long len);
 };
