@@ -1,4 +1,27 @@
-// File vsPipe.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsPipe.c++
+//
+//    Description:  Class that represents one of the graphics rendering
+//                  pipelines available on a computer. Objects of this
+//                  class should not be instantiated directly by the user
+//                  but should instead be retrieved from the active
+//                  vsSystem object.
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsPipe.h++"
 

@@ -1,4 +1,25 @@
-// File vsSystem.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsSystem.c++
+//
+//    Description:  The main object in any VESS application. Exactly one
+//                  of these objects should be in existance during the
+//                  lifetime of the program.
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsSystem.h++"
 
@@ -67,7 +88,7 @@ vsSystem::vsSystem(vsDatabaseLoader *fileLoader)
     {
         pipeArray[loop] = new vsPipe(loop);
         screenArray[loop] = new vsScreen(pipeArray[loop]);
-	(pipeArray[loop])->getBaseLibraryObject()->setScreen(loop);
+        (pipeArray[loop])->getBaseLibraryObject()->setScreen(loop);
     }
     
     nodeMap = new vsObjectMap();
@@ -160,7 +181,7 @@ vsSystem::vsSystem(char *databaseFilename, char **nameList, char *windowTitle,
     {
         pipeArray[loop] = new vsPipe(loop);
         screenArray[loop] = new vsScreen(pipeArray[loop]);
-	(pipeArray[loop])->getBaseLibraryObject()->setScreen(loop);
+        (pipeArray[loop])->getBaseLibraryObject()->setScreen(loop);
     }
     
     nodeMap = new vsObjectMap();
@@ -424,7 +445,7 @@ void vsSystem::printScene(vsNode *targetNode, FILE *outputFile)
 void vsSystem::writeBlanks(FILE *outfile, int count)
 {
     for (int loop = 0; loop < count; loop++)
-	fprintf(outfile, " ");
+        fprintf(outfile, " ");
 }
 
 // ------------------------------------------------------------------------
@@ -447,17 +468,17 @@ void vsSystem::writeScene(vsNode *targetNode, FILE *outfile, int treeDepth,
     
     // Type
     if (targetNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
-	fprintf(outfile, "Geometry ");
+        fprintf(outfile, "Geometry ");
     else
-	fprintf(outfile, "Component ");
+        fprintf(outfile, "Component ");
     
     // Name
     if (strlen(targetNode->getName()) > 0)
-	fprintf(outfile, "\"%s\" ", targetNode->getName());
+        fprintf(outfile, "\"%s\" ", targetNode->getName());
 
     // Is instanced?
     if (targetNode->getParentCount() > 1)
-	fprintf(outfile, "(instanced) ");
+        fprintf(outfile, "(instanced) ");
 
     fprintf(outfile, "\n");
 
@@ -465,180 +486,180 @@ void vsSystem::writeScene(vsNode *targetNode, FILE *outfile, int treeDepth,
     // binding info
     if (targetNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
     {
-	geometry = (vsGeometry *)targetNode;
+        geometry = (vsGeometry *)targetNode;
 
-	// Primitive type & count
-	writeBlanks(outfile, (treeDepth * 2) + 1);
-	geoType = geometry->getPrimitiveType();
-	geoCount = geometry->getPrimitiveCount();
-	fprintf(outfile, "%d ", geoCount);
-	switch (geoType)
-	{
-	    case VS_GEOMETRY_TYPE_POINTS:
-		fprintf(outfile, "POINTS");
-		break;
-	    case VS_GEOMETRY_TYPE_LINES:
-		fprintf(outfile, "LINES");
-		break;
-	    case VS_GEOMETRY_TYPE_LINE_STRIPS:
-		fprintf(outfile, "LINE STRIPS");
-		break;
-	    case VS_GEOMETRY_TYPE_LINE_LOOPS:
-		fprintf(outfile, "LINE LOOPS");
-		break;
-	    case VS_GEOMETRY_TYPE_TRIS:
-		fprintf(outfile, "TRIS");
-		break;
-	    case VS_GEOMETRY_TYPE_TRI_STRIPS:
-		fprintf(outfile, "TRI STRIPS");
-		break;
-	    case VS_GEOMETRY_TYPE_TRI_FANS:
-		fprintf(outfile, "TRI FANS");
-		break;
-	    case VS_GEOMETRY_TYPE_QUADS:
-		fprintf(outfile, "QUADS");
-		break;
-	    case VS_GEOMETRY_TYPE_QUAD_STRIPS:
-		fprintf(outfile, "QUAD STRIPS");
-		break;
-	    case VS_GEOMETRY_TYPE_POLYS:
-		fprintf(outfile, "POLYS");
-		break;
-	    default:
-		fprintf(outfile, "?");
-		break;
-	}
-	fprintf(outfile, "\n");
-	
-	// Bindings
-	for (loop = 0; loop < 3; loop++)
-	{
-	    writeBlanks(outfile, (treeDepth * 2) + 1);
-	    switch (loop)
-	    {
-		case 0:
-		    fprintf(outfile, "NORMALS (%d): ",
-			geometry->getDataListSize(VS_GEOMETRY_NORMALS));
-		    geoType = VS_GEOMETRY_NORMALS;
-		    break;
-		case 1:
-		    fprintf(outfile, "COLORS (%d): ",
-			geometry->getDataListSize(VS_GEOMETRY_COLORS));
-		    geoType = VS_GEOMETRY_COLORS;
-		    break;
-		case 2:
-		    fprintf(outfile, "TEXCOORDS (%d): ",
-			geometry->getDataListSize(VS_GEOMETRY_TEXTURE_COORDS));
-		    geoType = VS_GEOMETRY_TEXTURE_COORDS;
-		    break;
-	    }
-	    geoBinding = geometry->getBinding(geoType);
-	    switch (geoBinding)
-	    {
-		case VS_GEOMETRY_BIND_NONE:
-		    fprintf(outfile, "NONE");
-		    break;
-		case VS_GEOMETRY_BIND_OVERALL:
-		    fprintf(outfile, "OVERALL");
-		    break;
-		case VS_GEOMETRY_BIND_PER_PRIMITIVE:
-		    fprintf(outfile, "PER PRIMITIVE");
-		    break;
-		case VS_GEOMETRY_BIND_PER_VERTEX:
-		    fprintf(outfile, "PER VERTEX");
-		    break;
-	    }
-	    fprintf(outfile, "\n");
-	}
+        // Primitive type & count
+        writeBlanks(outfile, (treeDepth * 2) + 1);
+        geoType = geometry->getPrimitiveType();
+        geoCount = geometry->getPrimitiveCount();
+        fprintf(outfile, "%d ", geoCount);
+        switch (geoType)
+        {
+            case VS_GEOMETRY_TYPE_POINTS:
+                fprintf(outfile, "POINTS");
+                break;
+            case VS_GEOMETRY_TYPE_LINES:
+                fprintf(outfile, "LINES");
+                break;
+            case VS_GEOMETRY_TYPE_LINE_STRIPS:
+                fprintf(outfile, "LINE STRIPS");
+                break;
+            case VS_GEOMETRY_TYPE_LINE_LOOPS:
+                fprintf(outfile, "LINE LOOPS");
+                break;
+            case VS_GEOMETRY_TYPE_TRIS:
+                fprintf(outfile, "TRIS");
+                break;
+            case VS_GEOMETRY_TYPE_TRI_STRIPS:
+                fprintf(outfile, "TRI STRIPS");
+                break;
+            case VS_GEOMETRY_TYPE_TRI_FANS:
+                fprintf(outfile, "TRI FANS");
+                break;
+            case VS_GEOMETRY_TYPE_QUADS:
+                fprintf(outfile, "QUADS");
+                break;
+            case VS_GEOMETRY_TYPE_QUAD_STRIPS:
+                fprintf(outfile, "QUAD STRIPS");
+                break;
+            case VS_GEOMETRY_TYPE_POLYS:
+                fprintf(outfile, "POLYS");
+                break;
+            default:
+                fprintf(outfile, "?");
+                break;
+        }
+        fprintf(outfile, "\n");
+        
+        // Bindings
+        for (loop = 0; loop < 3; loop++)
+        {
+            writeBlanks(outfile, (treeDepth * 2) + 1);
+            switch (loop)
+            {
+                case 0:
+                    fprintf(outfile, "NORMALS (%d): ",
+                        geometry->getDataListSize(VS_GEOMETRY_NORMALS));
+                    geoType = VS_GEOMETRY_NORMALS;
+                    break;
+                case 1:
+                    fprintf(outfile, "COLORS (%d): ",
+                        geometry->getDataListSize(VS_GEOMETRY_COLORS));
+                    geoType = VS_GEOMETRY_COLORS;
+                    break;
+                case 2:
+                    fprintf(outfile, "TEXCOORDS (%d): ",
+                        geometry->getDataListSize(VS_GEOMETRY_TEXTURE_COORDS));
+                    geoType = VS_GEOMETRY_TEXTURE_COORDS;
+                    break;
+            }
+            geoBinding = geometry->getBinding(geoType);
+            switch (geoBinding)
+            {
+                case VS_GEOMETRY_BIND_NONE:
+                    fprintf(outfile, "NONE");
+                    break;
+                case VS_GEOMETRY_BIND_OVERALL:
+                    fprintf(outfile, "OVERALL");
+                    break;
+                case VS_GEOMETRY_BIND_PER_PRIMITIVE:
+                    fprintf(outfile, "PER PRIMITIVE");
+                    break;
+                case VS_GEOMETRY_BIND_PER_VERTEX:
+                    fprintf(outfile, "PER VERTEX");
+                    break;
+            }
+            fprintf(outfile, "\n");
+        }
     }
 
     // Attributes
     for (loop = 0; loop < targetNode->getAttributeCount(); loop++)
     {
-	attribute = targetNode->getAttribute(loop);
-	writeBlanks(outfile, (treeDepth * 2) + 1);
-	fprintf(outfile, "Attribute: address %p, references %d, type ",
-	    attribute, attribute->isAttached());
-	switch (attribute->getAttributeType())
-	{
-	    case VS_ATTRIBUTE_TYPE_TRANSFORM:
-		fprintf(outfile, "TRANSFORM\n");
-		break;
-	    case VS_ATTRIBUTE_TYPE_SWITCH:
-		fprintf(outfile, "SWITCH\n");
-		break;
-	    case VS_ATTRIBUTE_TYPE_SEQUENCE:
-		fprintf(outfile, "SEQUENCE\n");
-		break;
-	    case VS_ATTRIBUTE_TYPE_LOD:
-		fprintf(outfile, "LOD\n");
-		break;
-	    case VS_ATTRIBUTE_TYPE_LIGHT:
-		fprintf(outfile, "LIGHT\n");
-		break;
-	    case VS_ATTRIBUTE_TYPE_FOG:
-		fprintf(outfile, "FOG\n");
-		break;
-	    case VS_ATTRIBUTE_TYPE_MATERIAL:
-		fprintf(outfile, "MATERIAL\n");
-		break;
-	    case VS_ATTRIBUTE_TYPE_TEXTURE:
-		fprintf(outfile, "TEXTURE\n");
-		break;
-	    case VS_ATTRIBUTE_TYPE_TRANSPARENCY:
-		attrData = ((vsTransparencyAttribute *)attribute)->isEnabled();
-		if (attrData)
-		    fprintf(outfile, "TRANSPARENCY (on)\n");
-		else
-		    fprintf(outfile, "TRANSPARENCY (off)\n");
-		break;
-	    case VS_ATTRIBUTE_TYPE_BILLBOARD:
-		fprintf(outfile, "BILLBOARD\n");
-		break;
-	    case VS_ATTRIBUTE_TYPE_VIEWPOINT:
-		fprintf(outfile, "VIEWPOINT\n");
-		break;
-	    case VS_ATTRIBUTE_TYPE_BACKFACE:
-		attrData = ((vsBackfaceAttribute *)attribute)->isEnabled();
-		if (attrData)
-		    fprintf(outfile, "BACKFACE (on)\n");
-		else
-		    fprintf(outfile, "BACKFACE (off)\n");
-		break;
-	    case VS_ATTRIBUTE_TYPE_DECAL:
-		fprintf(outfile, "DECAL\n");
-		break;
-	    case VS_ATTRIBUTE_TYPE_SHADING:
-		attrData = ((vsShadingAttribute *)attribute)->getShading();
-		if (attrData == VS_SHADING_FLAT)
-		    fprintf(outfile, "SHADING (flat)\n");
-		else
-		    fprintf(outfile, "SHADING (gouraud)\n");
-		break;
-	}
+        attribute = targetNode->getAttribute(loop);
+        writeBlanks(outfile, (treeDepth * 2) + 1);
+        fprintf(outfile, "Attribute: address %p, references %d, type ",
+            attribute, attribute->isAttached());
+        switch (attribute->getAttributeType())
+        {
+            case VS_ATTRIBUTE_TYPE_TRANSFORM:
+                fprintf(outfile, "TRANSFORM\n");
+                break;
+            case VS_ATTRIBUTE_TYPE_SWITCH:
+                fprintf(outfile, "SWITCH\n");
+                break;
+            case VS_ATTRIBUTE_TYPE_SEQUENCE:
+                fprintf(outfile, "SEQUENCE\n");
+                break;
+            case VS_ATTRIBUTE_TYPE_LOD:
+                fprintf(outfile, "LOD\n");
+                break;
+            case VS_ATTRIBUTE_TYPE_LIGHT:
+                fprintf(outfile, "LIGHT\n");
+                break;
+            case VS_ATTRIBUTE_TYPE_FOG:
+                fprintf(outfile, "FOG\n");
+                break;
+            case VS_ATTRIBUTE_TYPE_MATERIAL:
+                fprintf(outfile, "MATERIAL\n");
+                break;
+            case VS_ATTRIBUTE_TYPE_TEXTURE:
+                fprintf(outfile, "TEXTURE\n");
+                break;
+            case VS_ATTRIBUTE_TYPE_TRANSPARENCY:
+                attrData = ((vsTransparencyAttribute *)attribute)->isEnabled();
+                if (attrData)
+                    fprintf(outfile, "TRANSPARENCY (on)\n");
+                else
+                    fprintf(outfile, "TRANSPARENCY (off)\n");
+                break;
+            case VS_ATTRIBUTE_TYPE_BILLBOARD:
+                fprintf(outfile, "BILLBOARD\n");
+                break;
+            case VS_ATTRIBUTE_TYPE_VIEWPOINT:
+                fprintf(outfile, "VIEWPOINT\n");
+                break;
+            case VS_ATTRIBUTE_TYPE_BACKFACE:
+                attrData = ((vsBackfaceAttribute *)attribute)->isEnabled();
+                if (attrData)
+                    fprintf(outfile, "BACKFACE (on)\n");
+                else
+                    fprintf(outfile, "BACKFACE (off)\n");
+                break;
+            case VS_ATTRIBUTE_TYPE_DECAL:
+                fprintf(outfile, "DECAL\n");
+                break;
+            case VS_ATTRIBUTE_TYPE_SHADING:
+                attrData = ((vsShadingAttribute *)attribute)->getShading();
+                if (attrData == VS_SHADING_FLAT)
+                    fprintf(outfile, "SHADING (flat)\n");
+                else
+                    fprintf(outfile, "SHADING (gouraud)\n");
+                break;
+        }
     }
     
     // If the node is a vsComponent, take care of its children
     if (targetNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
     {
-	component = (vsComponent *)targetNode;
-	writeBlanks(outfile, treeDepth * 2);
-	fprintf(outfile, "%d children:\n", component->getChildCount());
-	
-	// For each child, call this function again
-	for (loop = 0; loop < component->getChildCount(); loop++)
-	{
-	    countArray[treeDepth] = loop+1;
-	    writeBlanks(outfile, (treeDepth + 1) * 2);
-	    for (sloop = 0; sloop <= treeDepth; sloop++)
-	    {
-		if (sloop != 0)
-		    fprintf(outfile, ".");
-		fprintf(outfile, "%d", countArray[sloop]);
-	    }
-	    fprintf(outfile, ") ");
-	    writeScene(component->getChild(loop), outfile, treeDepth+1,
-		countArray);
-	}
+        component = (vsComponent *)targetNode;
+        writeBlanks(outfile, treeDepth * 2);
+        fprintf(outfile, "%d children:\n", component->getChildCount());
+        
+        // For each child, call this function again
+        for (loop = 0; loop < component->getChildCount(); loop++)
+        {
+            countArray[treeDepth] = loop+1;
+            writeBlanks(outfile, (treeDepth + 1) * 2);
+            for (sloop = 0; sloop <= treeDepth; sloop++)
+            {
+                if (sloop != 0)
+                    fprintf(outfile, ".");
+                fprintf(outfile, "%d", countArray[sloop]);
+            }
+            fprintf(outfile, ") ");
+            writeScene(component->getChild(loop), outfile, treeDepth+1,
+                countArray);
+        }
     }
 }

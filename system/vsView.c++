@@ -1,4 +1,24 @@
-// File vsView.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsView.c++
+//
+//    Description:  Class for storing and maintaining the viewpoint of a
+//                  vsPane
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsView.h++"
 
@@ -144,8 +164,8 @@ void vsView::setDirectionFromRotation(vsMatrix rotMatrix)
     
     for (loop = 0; loop < 3; loop++)
     {
-	viewRotation[loop][3] = 0.0;
-	viewRotation[3][loop] = 0.0;
+        viewRotation[loop][3] = 0.0;
+        viewRotation[3][loop] = 0.0;
     }
     
     viewRotation[3][3] = 1.0;
@@ -167,9 +187,9 @@ void vsView::setClipDistances(double nearPlane, double farPlane)
 void vsView::getClipDistances(double *nearPlane, double *farPlane)
 {
     if (nearPlane)
-	*nearPlane = nearClip;
+        *nearPlane = nearClip;
     if (farPlane)
-	*farPlane = farClip;
+        *farPlane = farClip;
 }    
 
 // ------------------------------------------------------------------------

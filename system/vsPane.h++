@@ -1,4 +1,24 @@
-// File vsPane.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsPane.h++
+//
+//    Description:  Class that represents a portion of a window that has
+//                  a 3D image drawn into it by the rendering engine
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_PANE_HPP
 #define VS_PANE_HPP
@@ -45,7 +65,7 @@ private:
     pfScene        *performerScene;
 
     pfChannel      *performerChannel;
-    pfEarthSky	   *earthSky;
+    pfEarthSky     *earthSky;
 
 VS_INTERNAL:
 
@@ -75,12 +95,12 @@ public:
     void         showPane();
     void         hidePane();
     
-    void	 enableEarthSky();
-    void	 disableEarthSky();
-    void	 setESGroundHeight(double newHeight);
-    double	 getESGroundHeight();
-    void	 setESColor(int which, double r, double g, double b);
-    void	 getESColor(int which, double *r, double *g, double *b);
+    void         enableEarthSky();
+    void         disableEarthSky();
+    void         setESGroundHeight(double newHeight);
+    double       getESGroundHeight();
+    void         setESColor(int which, double r, double g, double b);
+    void         getESColor(int which, double *r, double *g, double *b);
 
     pfChannel    *getBaseLibraryObject();
 };

@@ -1,4 +1,24 @@
-// File vsGraphicsState.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsGraphicsState.h++
+//
+//    Description:  Object used internally by VESS to track the current
+//                  graphics state during a scene graph traversal
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_GRAPHICS_STATE_HPP
 #define VS_GRAPHICS_STATE_HPP

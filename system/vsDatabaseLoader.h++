@@ -1,4 +1,23 @@
-// File vsDatabaseLoader.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsDatabaseLoader.h++
+//
+//    Description:  Object for loading scene databases from files
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_DATABASE_LOADER_HPP
 #define VS_DATABASE_LOADER_HPP
@@ -42,7 +61,7 @@ private:
 
     int                unitMode;
 
-    int		       importantXformMode;
+    int                importantXformMode;
 
     int                inittedFlag;
 
@@ -75,8 +94,8 @@ public:
 
     void           addPath(char *filePath);
 
-    void	   setLoaderMode(int whichMode, int modeVal);
-    int		   getLoaderMode(int whichMode);
+    void           setLoaderMode(int whichMode, int modeVal);
+    int            getLoaderMode(int whichMode);
 
     vsComponent    *loadDatabase(char *databaseFilename);
 };

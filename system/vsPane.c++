@@ -1,4 +1,24 @@
-// File vsPane.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsPane.c++
+//
+//    Description:  Class that represents a portion of a window that has
+//                  a 3D image drawn into it by the rendering engine
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsPane.h++"
 
@@ -315,24 +335,24 @@ void vsPane::setESColor(int which, double r, double g, double b)
 {
     switch (which)
     {
-	case VS_PANE_ESCOLOR_SKY_NEAR:
-	    earthSky->setColor(PFES_SKY_TOP, r, g, b, 1.0);
-	    break;
-	case VS_PANE_ESCOLOR_SKY_FAR:
-	    earthSky->setColor(PFES_SKY_BOT, r, g, b, 1.0);
-	    break;
-	case VS_PANE_ESCOLOR_SKY_HORIZON:
-	    earthSky->setColor(PFES_HORIZ, r, g, b, 1.0);
-	    break;
-	case VS_PANE_ESCOLOR_GROUND_FAR:
-	    earthSky->setColor(PFES_GRND_FAR, r, g, b, 1.0);
-	    break;
-	case VS_PANE_ESCOLOR_GROUND_NEAR:
-	    earthSky->setColor(PFES_GRND_NEAR, r, g, b, 1.0);
-	    break;
-	default:
-	    printf("vsPane::setESColor: Invalid color constant\n");
-	    break;
+        case VS_PANE_ESCOLOR_SKY_NEAR:
+            earthSky->setColor(PFES_SKY_TOP, r, g, b, 1.0);
+            break;
+        case VS_PANE_ESCOLOR_SKY_FAR:
+            earthSky->setColor(PFES_SKY_BOT, r, g, b, 1.0);
+            break;
+        case VS_PANE_ESCOLOR_SKY_HORIZON:
+            earthSky->setColor(PFES_HORIZ, r, g, b, 1.0);
+            break;
+        case VS_PANE_ESCOLOR_GROUND_FAR:
+            earthSky->setColor(PFES_GRND_FAR, r, g, b, 1.0);
+            break;
+        case VS_PANE_ESCOLOR_GROUND_NEAR:
+            earthSky->setColor(PFES_GRND_NEAR, r, g, b, 1.0);
+            break;
+        default:
+            printf("vsPane::setESColor: Invalid color constant\n");
+            break;
     }
 }
 
@@ -346,33 +366,33 @@ void vsPane::getESColor(int which, double *r, double *g, double *b)
 
     switch (which)
     {
-	case VS_PANE_ESCOLOR_SKY_NEAR:
-	    earthSky->getColor(PFES_SKY_TOP, &fr, &fg, &fb, &fa);
-	    break;
-	case VS_PANE_ESCOLOR_SKY_FAR:
-	    earthSky->getColor(PFES_SKY_BOT, &fr, &fg, &fb, &fa);
-	    break;
-	case VS_PANE_ESCOLOR_SKY_HORIZON:
-	    earthSky->getColor(PFES_HORIZ, &fr, &fg, &fb, &fa);
-	    break;
-	case VS_PANE_ESCOLOR_GROUND_FAR:
-	    earthSky->getColor(PFES_GRND_FAR, &fr, &fg, &fb, &fa);
-	    break;
-	case VS_PANE_ESCOLOR_GROUND_NEAR:
-	    earthSky->getColor(PFES_GRND_NEAR, &fr, &fg, &fb, &fa);
-	    break;
-	default:
-	    printf("vsPane::getESColor: Invalid color constant\n");
-	    fr = fg = fb = 0.0;
-	    break;
+        case VS_PANE_ESCOLOR_SKY_NEAR:
+            earthSky->getColor(PFES_SKY_TOP, &fr, &fg, &fb, &fa);
+            break;
+        case VS_PANE_ESCOLOR_SKY_FAR:
+            earthSky->getColor(PFES_SKY_BOT, &fr, &fg, &fb, &fa);
+            break;
+        case VS_PANE_ESCOLOR_SKY_HORIZON:
+            earthSky->getColor(PFES_HORIZ, &fr, &fg, &fb, &fa);
+            break;
+        case VS_PANE_ESCOLOR_GROUND_FAR:
+            earthSky->getColor(PFES_GRND_FAR, &fr, &fg, &fb, &fa);
+            break;
+        case VS_PANE_ESCOLOR_GROUND_NEAR:
+            earthSky->getColor(PFES_GRND_NEAR, &fr, &fg, &fb, &fa);
+            break;
+        default:
+            printf("vsPane::getESColor: Invalid color constant\n");
+            fr = fg = fb = 0.0;
+            break;
     }
     
     if (r)
-	*r = fr;
+        *r = fr;
     if (g)
-	*g = fg;
+        *g = fg;
     if (b)
-	*b = fb;
+        *b = fb;
 }
 
 // ------------------------------------------------------------------------

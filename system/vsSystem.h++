@@ -1,4 +1,25 @@
-// File vsSystem.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsSystem.h++
+//
+//    Description:  The main object in any VESS application. Exactly one
+//                  of these objects should be in existance during the
+//                  lifetime of the program.
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_SYSTEM_HPP
 #define VS_SYSTEM_HPP
@@ -27,8 +48,8 @@ private:
     vsObjectMap         *nodeMap;
     vsGraphicsState     *graphicsState;
     
-    double		lastFrameTimestamp;
-    double		lastFrameDuration;
+    double              lastFrameTimestamp;
+    double              lastFrameDuration;
     
     void                preFrameTraverse(vsNode *node);
     
@@ -60,7 +81,7 @@ public:
     
     void                drawFrame();
     
-    double		getFrameTime();
+    double              getFrameTime();
     
     void                printScene(vsNode *targetNode, FILE *outputFile);
 };

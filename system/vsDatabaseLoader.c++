@@ -1,4 +1,23 @@
-// File vsDatabaseLoader.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsDatabaseLoader.c++
+//
+//    Description:  Object for loading scene databases from files
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsDatabaseLoader.h++"
 
@@ -125,9 +144,9 @@ void vsDatabaseLoader::setLoaderMode(int whichMode, int modeVal)
 {
     switch (whichMode)
     {
-	case VS_DATABASE_MODE_NAME_XFORM:
-	    importantXformMode = modeVal;
-	    break;
+        case VS_DATABASE_MODE_NAME_XFORM:
+            importantXformMode = modeVal;
+            break;
     }
 }
 
@@ -138,8 +157,8 @@ int vsDatabaseLoader::getLoaderMode(int whichMode)
 {
     switch (whichMode)
     {
-	case VS_DATABASE_MODE_NAME_XFORM:
-	    return importantXformMode;
+        case VS_DATABASE_MODE_NAME_XFORM:
+            return importantXformMode;
     }
     
     return 0;
@@ -334,7 +353,7 @@ void vsDatabaseLoader::fixGeodes(pfNode *targetGraph)
         {
             // 'Fix' the geode by creating one geode for every geoset
             newMasterGroup = new pfGroup();
-	    while (oldGeode->getNumParents() > 0)
+            while (oldGeode->getNumParents() > 0)
             {
                 parentGroup = oldGeode->getParent(0);
                 parentGroup->replaceChild(oldGeode, newMasterGroup);
@@ -541,7 +560,7 @@ int vsDatabaseLoader::importanceCheck(pfNode *targetNode)
             return VS_TRUE;
 
     if (importantXformMode && targetNode->isOfType(pfDCS::getClassType()))
-	return VS_TRUE;
+        return VS_TRUE;
 
     return VS_FALSE;
 }

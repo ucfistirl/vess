@@ -1,10 +1,27 @@
-// File vsGlobals.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsGlobals.h++
+//
+//    Description:  Global header file for defining commonly-used
+//		    constants and macros
+//
+//    Author(s):    Bryan Kline, Jason Daly
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_GLOBALS_HPP
 #define VS_GLOBALS_HPP
-
-// Global header file for defining commonly-used constants and macros
-
 
 // Functions under this access specifier are for VESS internal use
 // only and should not be called by the end user.
@@ -12,7 +29,6 @@
 
 
 // Commonly used constants
-
 enum
 {
     VS_FALSE = 0,
@@ -91,7 +107,6 @@ enum vsMathEulerAxisOrder
 // as roll-pitch-heading. Additionally, the Performer coordinate axes are
 // specified as 'forward' being positive Y. 
 #define VS_EULER_ANGLES_PERFORMER    VS_EULER_ANGLES_ZXY_R
-
 
 
 

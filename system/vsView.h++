@@ -1,4 +1,24 @@
-// File vsView.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsView.h++
+//
+//    Description:  Class for storing and maintaining the viewpoint of a
+//                  vsPane
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_VIEW_HPP
 #define VS_VIEW_HPP
@@ -19,7 +39,7 @@ private:
     vsVector                viewLocation;
     vsMatrix                viewRotation;
     
-    double		    nearClip, farClip;
+    double                  nearClip, farClip;
     
     vsViewpointAttribute    *viewAttribute;
 
@@ -47,8 +67,8 @@ public:
     void        setDirectionFromRotation(vsQuat rotQuat);
     void        setDirectionFromRotation(vsMatrix rotMatrix);
     
-    void	setClipDistances(double nearPlane, double farPlane);
-    void	getClipDistances(double *nearPlane, double *farPlane);
+    void        setClipDistances(double nearPlane, double farPlane);
+    void        getClipDistances(double *nearPlane, double *farPlane);
 
     vsVector    getDirection();
     vsVector    getUpDirection();

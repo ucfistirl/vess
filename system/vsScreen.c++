@@ -1,4 +1,26 @@
-// File vsScreen.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsScreen.c++
+//
+//    Description:  Class that represents a physical display device
+//                  attached to a computer. Objects of this class should
+//                  not be instantiated directly by the user but should
+//                  instead be retrieved from the active vsSystem object.
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsScreen.h++"
 
