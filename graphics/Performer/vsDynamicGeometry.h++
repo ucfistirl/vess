@@ -11,14 +11,14 @@
 //
 //------------------------------------------------------------------------
 //
-//    VESS Module:  vsGeometry.h++
+//    VESS Module:  vsDynamicGeometry.h++
 //
 //    Description:  vsNode subclass that is a leaf node in a VESS scene
 //                  graph. Stores geometry data such as vertex and texture
 //                  coordinates, colors, and face normals.  This version
 //                  uses Performer's pfFlux to handle dynamic geometry.
 //
-//    Author(s):    Bryan Kline, Jason Daly
+//    Author(s):    Bryan Kline, Jason Daly, Duvan Cope
 //
 //------------------------------------------------------------------------
 

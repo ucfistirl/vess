@@ -17,7 +17,7 @@
 //                  graph. Stores geometry data such as vertex and texture
 //                  coordinates, colors, and face normals.
 //
-//    Author(s):    Bryan Kline, Jason Daly
+//    Author(s):    Bryan Kline, Jason Daly, Duvan Cope
 //
 //------------------------------------------------------------------------
 
