@@ -13,6 +13,11 @@ vsKinematics::vsKinematics(vsComponent *theComponent)
     vsMatrix xform;
 
     component = theComponent;
+    if (!component)
+    {
+	printf("vsKinematics::vsKinematics: NULL component\n");
+	return;
+    }
     
     transform = (vsTransformAttribute *)
         (component->getTypedAttribute(VS_ATTRIBUTE_TYPE_TRANSFORM, 0));
