@@ -286,7 +286,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
         performerPipeWindow->setFBConfigAttrs(fbConfigAttrs);
     }
 
-    // Set the location and size of the windo
+    // Set the location and size of the window
     performerPipeWindow->setOriginSize(VS_WINDOW_DEFAULT_XPOS,
         VS_WINDOW_DEFAULT_YPOS, VS_WINDOW_DEFAULT_WIDTH,
         VS_WINDOW_DEFAULT_HEIGHT);

@@ -59,10 +59,12 @@ vsPane::vsPane(vsWindow *parent)
     if (tempPWin)
         tempPWin->removeChan(performerChannel);
 
-    // Normally, this will be a monovision pane, so there is no need for
-    // shared data
+    // Normally, this will be a monovision pane, so initialize the
+    // stereo channel (used for rendering the right eye's viewpoint)
+    // to NULL.  Set the stereo eye separation to default as well.
     bufferMode = VS_PANE_BUFFER_MONO;
-    sharedData = NULL;
+    stereoChannel = NULL;
+    eyeSeparation = VS_PANE_DEFAULT_EYE_SEPARATION;
 
     // Add this pane to the parent window's child pane list
     parentWindow->addPane(this);
@@ -144,11 +146,26 @@ void vsPane::setScene(vsScene *newScene)
     // Set the new scene as the pane's scene
     sceneRoot = newScene;
 
-    // Set the channel's scene to use the new scene
+    // Check if the scene is NULL, don't try to dereference it if so
     if (newScene != NULL)
+    {
+        // Set the channel's scene to use the new scene
         performerChannel->setScene(newScene->getBaseLibraryObject());
+
+        // If we're in stereo mode, set the stereo channel to use the same
+        // scene
+        if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
+            stereoChannel->setScene(newScene->getBaseLibraryObject());
+    }
     else
+    {
+        // Clear the channel's scene
         performerChannel->setScene(NULL);
+
+        // If we're in stereo mode, clear the stereo channel's scene as well
+        if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
+            stereoChannel->setScene(newScene->getBaseLibraryObject());
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -293,53 +310,75 @@ void vsPane::autoConfigure(int panePlacement)
 // ------------------------------------------------------------------------
 void vsPane::setBufferMode(vsPaneBufferMode newMode)
 {
-    // Check to see if we're using a stereo buffer mode
-    if ((newMode == VS_PANE_BUFFER_STEREO_L) ||
-        (newMode == VS_PANE_BUFFER_STEREO_R))
+    vsScreen *parentScreen;
+    vsPipe *parentPipe;
+
+    // Anaglyphic not supported in Performer (yet)
+    if (newMode == VS_PANE_BUFFER_STEREO_ANAGLYPHIC)
     {
-        // If the current buffer mode is mono, we need to create a segment
-        // of shared memory for the Performer channel, so that we can pass
-        // the current buffer to the Performer draw callback.
+        printf("vsPane::setBufferMode: Anaglyphic stereo not supported under "
+            "Performer.\n");
+        return;
+    }
+
+    // Check to see if we're using a stereo buffer mode
+    if (newMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
+    {
+        // If the current buffer mode is mono, we need to create the
+        // stereo channel
         if (bufferMode == VS_PANE_BUFFER_MONO)
         {
-            // Allocate a chunk of shared memory for the shared data
-            sharedData = (vsPaneSharedData *)
-                performerChannel->allocChanData(sizeof(vsPaneSharedData));
+            // Create the stereo channel (used to render the second viewpoint)
+            parentPipe = parentWindow->getParentScreen()->getParentPipe();
 
-            // Set the DRAW process callback
-            performerChannel->setTravFunc(PFTRAV_DRAW, vsPane::drawPane);
+            if (stereoChannel == NULL)
+                stereoChannel = 
+                    new pfChannel(parentPipe->getBaseLibraryObject());
+
+            // Copy the scene to the stereo channel
+            if (sceneRoot != NULL)
+                stereoChannel->setScene(sceneRoot->getBaseLibraryObject());
+            else
+                stereoChannel->setScene(NULL);
+
+            // Make sure the stereo channel will be culled and drawn
+            stereoChannel->setTravMode(PFTRAV_CULL, PFDRAW_ON);
+            stereoChannel->setTravMode(PFTRAV_DRAW, PFDRAW_ON);
+
+            // Invalidate all the current view settings, so that they
+            // will be recomputed in updateView() to include the new
+            // stereo channel
+            curNearClip = -1.0;
+            curFarClip = -1.0;
+            curProjMode = -1;
+            
+            // Set the DRAW process callbacks.  The normal channel will
+            // be considered the left eye, and the stereo channel the
+            // right eye
+            performerChannel->setTravFunc(PFTRAV_DRAW, 
+                vsPane::drawLeftChannel);
+            stereoChannel->setTravFunc(PFTRAV_DRAW, 
+                vsPane::drawRightChannel);
         }
 
         // Change the buffer mode
         bufferMode = newMode;
-
-        // Set the buffer mode in the shared data block and pass it
-        // to the DRAW process, so that Performer knows which buffer
-        // to draw into.
-        sharedData->bufferMode = newMode;
-        performerChannel->passChanData();
     }
     else
     {
         // We're trying to switch to mono mode, see if we're currently in 
         // a stereo mode.
-        if ((bufferMode == VS_PANE_BUFFER_STEREO_L) ||
-            (bufferMode == VS_PANE_BUFFER_STEREO_R))
+        if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
         {
-            // Detach the channel DRAW callback
-            performerChannel->setTravFunc(PFTRAV_DRAW, NULL);
+            // Switch to the mono callback on the normal channel
+            performerChannel->setTravFunc(PFTRAV_DRAW, vsPane::drawMonoChannel);
 
-            // Make sure the shared channel data exists before we try to
-            // delete it
-            if (sharedData != NULL)
-            {
-                // Stop passing channel data
-                performerChannel->setChanData(NULL, 0);
-
-                // Deallocate the channel data
-                pfDelete(sharedData);
-                sharedData = NULL;
-            }
+            // Detach the channel DRAW callback for the stereo channel
+            // And tell the system not to cull or draw the stereo channel 
+            // any longer
+            stereoChannel->setTravFunc(PFTRAV_DRAW, NULL);
+            stereoChannel->setTravMode(PFTRAV_CULL, PFDRAW_OFF);
+            stereoChannel->setTravMode(PFTRAV_DRAW, PFDRAW_OFF);
         }
 
         // Change the buffer mode
@@ -554,8 +593,10 @@ pfChannel *vsPane::getBaseLibraryObject()
 void vsPane::updateView()
 {
     vsMatrix viewMatrix, xformMatrix;
-    pfMatrix performerMatrix;
+    pfMatrix performerMatrix, transMatrix;
+    pfMatrix chanMatrix;
     int loop, sloop;
+    pfVec3 stereoOffset;
     vsVector viewPos;
     double near, far;
     int projMode;
@@ -587,26 +628,73 @@ void vsPane::updateView()
         for (sloop = 0; sloop < 4; sloop++)
             performerMatrix[loop][sloop] = viewMatrix[sloop][loop];
 
-    performerChannel->setViewMat(performerMatrix);
+    // If we're in stereo mode, make adjustments to the matrix to
+    // account for eye separation.  Apply these adjusted settings
+    // to both stereo channels.
+    if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
+    {
+        // Set up a stereo offset vector
+        stereoOffset.set((float)eyeSeparation, 0.0f, 0.0f);
+
+        // Rotate the vector using the view matrix
+        stereoOffset.xformVec(stereoOffset, performerMatrix);
+
+        // Make a translation matrix from the negated vector.  This
+        // will be the left eye offset.
+        transMatrix.makeTrans(-stereoOffset[PF_X], -stereoOffset[PF_Y],
+            -stereoOffset[PF_Z]);
+
+        // Set the left eye channel (performerChannel) viewpoint, accounting
+        // for the stereo offset.
+        chanMatrix = performerMatrix * transMatrix;
+        performerChannel->setViewMat(chanMatrix);
+
+        // Make a translation matrix from the vector.  This will be the
+        // right eye offset.
+        transMatrix.makeTrans(stereoOffset[PF_X], stereoOffset[PF_Y],
+            stereoOffset[PF_Z]);
+
+        // Set the right eye channel (stereoChannel) viewpoint, accounting
+        // for the stereo offset.
+        chanMatrix = performerMatrix * transMatrix;
+        stereoChannel->setViewMat(chanMatrix);
+    }
+    else
+    {
+        // Not in stereo mode, just copy the matrix
+        performerChannel->setViewMat(performerMatrix);
+    }
 
     // Update the viewing volume parameters in case they changed
     sceneView->getClipDistances(&near, &far);
     if ((curNearClip != near) || (curFarClip != far))
     {
 	performerChannel->setNearFar(near, far);
+
+        // Set the stereo channel as well, if we're in stereo mode
+        if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
+            stereoChannel->setNearFar(near, far);
+
+        // Remember the new settings
 	curNearClip = near;
 	curFarClip = far;
     }
 
     // Get the projection data from the view object and check to see if
-    // it has changed since the last time we looked
+    // it has changed since the last time we looked.
     sceneView->getProjectionData(&projMode, &projHval, &projVval);
     if ((curProjMode != projMode) || (curProjHval != projHval) ||
 	(curProjVval != projVval))
     {
         // Set the new projection based on the new mode
 	if (projMode == VS_VIEW_PROJMODE_PERSP)
+        {
 	    performerChannel->setFOV(projHval, projVval);
+
+            // Update the stereo channel as well, if we're in stereo mode
+            if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
+                stereoChannel->setFOV(projHval, projVval);
+        }
 	else
 	{
             // Determine which projection values are specified, and
@@ -615,6 +703,10 @@ void vsPane::updateView()
 	    {
 		// Neither specified, default values
 		performerChannel->makeOrtho(-10.0, 10.0, -10.0, 10.0);
+
+                // Update the stereo channel as well, if we're in stereo mode
+                if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
+		    stereoChannel->makeOrtho(-10.0, 10.0, -10.0, 10.0);
 	    }
 	    else if (projHval <= 0.0)
 	    {
@@ -629,6 +721,11 @@ void vsPane::updateView()
                 // Call Performer with the new aspect data
 		performerChannel->makeOrtho(-aspectMatch, aspectMatch,
 		    -projVval, projVval);
+
+                // Update the stereo channel as well, if we're in stereo mode
+                if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
+		    stereoChannel->makeOrtho(-aspectMatch, aspectMatch,
+		        -projVval, projVval);
 	    }
 	    else if (projVval <= 0.0)
 	    {
@@ -643,6 +740,11 @@ void vsPane::updateView()
                 // Call Performer with the new aspect data
 		performerChannel->makeOrtho(-projHval, projHval, -aspectMatch,
 		    aspectMatch);
+
+                // Update the stereo channel as well, if we're in stereo mode
+                if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
+                    stereoChannel->makeOrtho(-projHval, projHval, -aspectMatch,
+                        aspectMatch);
 	    }
 	    else
 	    {
@@ -651,6 +753,11 @@ void vsPane::updateView()
                 // Call Performer with the new aspect data
 		performerChannel->makeOrtho(-projHval, projHval, -projVval,
 		    projVval);
+
+                // Update the stereo channel as well, if we're in stereo mode
+                if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
+                    stereoChannel->makeOrtho(-projHval, projHval, -projVval,
+                        projVval);
 	    }
 	}
 	
@@ -664,26 +771,13 @@ void vsPane::updateView()
 
 // ------------------------------------------------------------------------
 // static VESS internal function - Performer callback
-// Pre-DRAW callback to select which OpenGL buffer to draw the scene into
-// prior to actually drawing the scene.  Note that this function is not
-// called unless a VS_PANE_BUFFER_STEREO_* buffer mode is set (via
-// setBufferMode())
+// Pre-DRAW callback to draw the left stereo channel when in QUADBUFFER
+// stereo mode.
 // ------------------------------------------------------------------------
-void vsPane::drawPane(pfChannel *chan, void *userData)
+void vsPane::drawLeftChannel(pfChannel *chan, void *userData)
 {
-    vsPaneSharedData *paneData;
-
-    // Cast the void* userData parameter to the vsPaneSharedData structure
-    // so that we can interpret it
-    paneData = (vsPaneSharedData *)userData;
-
-    // Select the appropriate buffer to use
-    if (paneData->bufferMode == VS_PANE_BUFFER_STEREO_L)
-        glDrawBuffer(GL_BACK_LEFT);
-    else if (paneData->bufferMode == VS_PANE_BUFFER_STEREO_R)
-        glDrawBuffer(GL_BACK_RIGHT);
-    else
-        glDrawBuffer(GL_BACK);
+    // Select the left buffer
+    glDrawBuffer(GL_BACK_LEFT);
 
     // Clear the Performer channel
     chan->clear();
@@ -691,4 +785,44 @@ void vsPane::drawPane(pfChannel *chan, void *userData)
     // Call Performer's draw function.  The scene will be drawn into
     // the buffer selected above.
     pfDraw();
+}
+
+// ------------------------------------------------------------------------
+// static VESS internal function - Performer callback
+// Pre-DRAW callback to draw the right stereo channel when in QUADBUFFER
+// stereo mode.
+// ------------------------------------------------------------------------
+void vsPane::drawRightChannel(pfChannel *chan, void *userData)
+{
+    // Select the right buffer
+    glDrawBuffer(GL_BACK_RIGHT);
+
+    // Clear the Performer channel
+    chan->clear();
+
+    // Call Performer's draw function.  The scene will be drawn into
+    // the buffer selected above.
+    pfDraw();
+}
+
+// ------------------------------------------------------------------------
+// static VESS internal function - Performer callback
+// Pre-DRAW callback to draw a monovision channel when no longer in
+// QUADBUFFER mode.  This callback is called only once after exiting
+// QUADBUFFER mode.
+// ------------------------------------------------------------------------
+void vsPane::drawMonoChannel(pfChannel *chan, void *userData)
+{
+    // Select the right buffer
+    glDrawBuffer(GL_BACK);
+
+    // Clear the Performer channel
+    chan->clear();
+
+    // Call Performer's draw function.  The scene will be drawn into
+    // the buffer selected above.
+    pfDraw();
+
+    // Detach from this callback for next frame
+    chan->setTravFunc(PFTRAV_DRAW, NULL);
 }

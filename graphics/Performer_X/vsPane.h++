@@ -58,14 +58,11 @@ enum vsPaneEarthSkyColor
 enum vsPaneBufferMode
 {
     VS_PANE_BUFFER_MONO,
-    VS_PANE_BUFFER_STEREO_L,
-    VS_PANE_BUFFER_STEREO_R
+    VS_PANE_BUFFER_STEREO_ANAGLYPHIC,
+    VS_PANE_BUFFER_STEREO_QUADBUFFER
 };
 
-struct vsPaneSharedData
-{
-    vsPaneBufferMode bufferMode;
-};
+#define VS_PANE_DEFAULT_EYE_SEPARATION 0.068
 
 class vsPane
 {
@@ -78,10 +75,13 @@ private:
     pfScene             *performerScene;
 
     pfChannel           *performerChannel;
+    pfChannel           *stereoChannel;
+
+    double              eyeSeparation;
+
     pfEarthSky          *earthSky;
 
     vsPaneBufferMode    bufferMode;
-    vsPaneSharedData    *sharedData;
 
     double              curNearClip, curFarClip;
     int                 curProjMode;
@@ -91,9 +91,11 @@ private:
 
 VS_INTERNAL:
 
-    void           updateView();
+    void                updateView();
 
-    static void    drawPane(pfChannel *chan, void *userData);
+    static void         drawLeftChannel(pfChannel *chan, void *userData);
+    static void         drawRightChannel(pfChannel *chan, void *userData);
+    static void         drawMonoChannel(pfChannel *chan, void *userData);
 
 public:
 
