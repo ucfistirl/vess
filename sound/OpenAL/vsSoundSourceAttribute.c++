@@ -33,7 +33,7 @@
 // is set, the sound will start playing immediately.  Otherwise, the 
 // play() method can be called to "trigger" the sound.
 // ------------------------------------------------------------------------
-vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundSample *buffer, int loop)
+vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundSample *buffer, bool loop)
 {
     ALfloat zero[3];
 
@@ -76,7 +76,11 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundSample *buffer, int loop)
     alSourcefv(sourceID, AL_VELOCITY, zero);
     alSourcei(sourceID, AL_BUFFER, 
         ((vsSoundSample *)soundBuffer)->getBufferID());
-    alSourcei(sourceID, AL_LOOPING, loopSource);
+
+    if (loopSource)
+        alSourcei(sourceID, AL_LOOPING, AL_TRUE);
+    else
+        alSourcei(sourceID, AL_LOOPING, AL_FALSE);
 
     // Start playing if this is a looping sound
     if (loopSource)

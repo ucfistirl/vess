@@ -38,7 +38,7 @@ protected:
 
     // The sound data
     vsSoundBuffer    *soundBuffer;
-    int              loopSource;
+    bool             loopSource;
     bool             streamingSource;
 
     // Our alSource ID number
@@ -72,7 +72,8 @@ public:
 
     // Constructor for a static sound source (either a looping or triggered
     // sound)
-                          vsSoundSourceAttribute(vsSoundSample *buffer, int loop);
+                          vsSoundSourceAttribute(vsSoundSample *buffer,
+                                                 bool loop);
 
     // Constructor for a streaming sound source
                           vsSoundSourceAttribute(vsSoundStream *buffer);
