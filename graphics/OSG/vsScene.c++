@@ -11,7 +11,7 @@
 //
 //------------------------------------------------------------------------
 //
-//    VESS Module:  vsComponent.c++
+//    VESS Module:  vsScene.c++
 //
 //    Description:  vsNode subclass that acts as the root of a VESS scene
 //                  graph.
