@@ -48,6 +48,8 @@ vsTextBuilder::vsTextBuilder()
     fontLoaded = false;
     error = false;
     initialized = false;
+    pointSize = VS_DEFAULT_FONT_POINT_SIZE;
+    resolution = VS_DEFAULT_FONT_RESOLUTION;
 
     // Set the justification to the default centered.
     setJustification(VS_TEXTBUILDER_JUSTIFY_CENTER);
@@ -56,7 +58,7 @@ vsTextBuilder::vsTextBuilder()
     setColor(vsVector(1.0, 1.0, 1.0, 1.0));
 
     // Set the size to the defined defaults.
-    setSize(VS_DEFAULT_FONT_POINT_SIZE, VS_DEFAULT_FONT_RESOLUTION);
+    setSize(pointSize, resolution);
 
     // Initialize the transform to the identity so it does not alter
     // the appearance of the text.
@@ -79,6 +81,8 @@ vsTextBuilder::vsTextBuilder(char *newFont)
     fontLoaded = false;
     error = false;
     initialized = false;
+    pointSize = VS_DEFAULT_FONT_POINT_SIZE;
+    resolution = VS_DEFAULT_FONT_RESOLUTION;
 
     // Set the justification to the default centered.
     setJustification(VS_TEXTBUILDER_JUSTIFY_CENTER);
@@ -90,7 +94,7 @@ vsTextBuilder::vsTextBuilder(char *newFont)
     setFont(newFont);
 
     // Set the size to the defined defaults.
-    setSize(VS_DEFAULT_FONT_POINT_SIZE, VS_DEFAULT_FONT_RESOLUTION);
+    setSize(pointSize, resolution);
 
     // Initialize the transform to the identity so it does not alter
     // the appearance of the text.
@@ -112,6 +116,8 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor)
     fontLoaded = false;
     error = false;
     initialized = false;
+    pointSize = VS_DEFAULT_FONT_POINT_SIZE;
+    resolution = VS_DEFAULT_FONT_RESOLUTION;
 
     // Set the justification to the default centered.
     setJustification(VS_TEXTBUILDER_JUSTIFY_CENTER);
@@ -123,7 +129,7 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor)
     setFont(newFont);
 
     // Set the size to the defined defaults.
-    setSize(VS_DEFAULT_FONT_POINT_SIZE, VS_DEFAULT_FONT_RESOLUTION);
+    setSize(pointSize, resolution);
 
     // Initialize the transform to the identity so it does not alter
     // the appearance of the text.
@@ -147,6 +153,8 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor,
     fontLoaded = false;
     error = false;
     initialized = false;
+    pointSize = VS_DEFAULT_FONT_POINT_SIZE;
+    resolution = VS_DEFAULT_FONT_RESOLUTION;
 
     // Set the justification to the default centered.
     setJustification(VS_TEXTBUILDER_JUSTIFY_CENTER);
@@ -158,7 +166,7 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor,
     setFont(newFont);
 
     // Set the size to the defined defaults.
-    setSize(VS_DEFAULT_FONT_POINT_SIZE, VS_DEFAULT_FONT_RESOLUTION);
+    setSize(pointSize, resolution);
 
     // Initialize the transform to the given matrix.
     setTransformMatrix(newTransform);
