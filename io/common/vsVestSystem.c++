@@ -55,7 +55,7 @@ vsVestSystem::vsVestSystem( int portNumber )
 #endif
 
 #ifdef WIN32
-    sprintf(portDevice, "COM%d", portNumber );
+    sprintf(portDevice, "COM%d", portNumber);
 #endif
 
     port = new vsSerialPort(portDevice);
