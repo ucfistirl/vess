@@ -42,6 +42,8 @@ public:
                 vsTCPNetworkInterface(u_short port);
     virtual     ~vsTCPNetworkInterface();
 
+    virtual const char    *getClassName();
+
     void        allowConnections(int backlog);
     int         acceptConnection();
     void        enableBlockingOnClient(int clientID);
