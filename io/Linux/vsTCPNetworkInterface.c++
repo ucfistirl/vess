@@ -94,6 +94,12 @@ vsTCPNetworkInterface::vsTCPNetworkInterface(u_short port)
 // ------------------------------------------------------------------------
 vsTCPNetworkInterface::~vsTCPNetworkInterface()
 {
+    u_long   i;
+
+    // Close the client sockets
+    for (i=0; i < numClientSockets; i++)
+        close(clientSockets[i]);
+
     // Close the socket
     close(socketValue);
 }
