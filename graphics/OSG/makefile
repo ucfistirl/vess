@@ -33,6 +33,7 @@ LIBOBJS = \
           vsGeometry.o \
           vsGraphicsState.o \
           vsIntersect.o \
+          vsIntersectTraverser.o \
           vsLightAttribute.o \
           vsLocalLightCallback.o \
           vsLODAttribute.o \
@@ -43,13 +44,13 @@ LIBOBJS = \
           vsShadingAttribute.o \
           vsStateAttribute.o \
           vsSwitchAttribute.o \
+          vsTextBuilder.o \
           vsTextureAttribute.o \
           vsTransformAttribute.o \
           vsTransparencyAttribute.o \
           vsView.o \
           vsViewpointAttribute.o \
-          vsWireframeAttribute.o \
-          vsTextBuilder.o
+          vsWireframeAttribute.o
 
 LIBSRCS = $(LIBOBJS:.o=.c++)
 
@@ -934,9 +935,65 @@ vsIntersect.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osgUtil/Re
 vsIntersect.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/ColorMask
 vsIntersect.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osgUtil/RenderBin
 vsIntersect.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osgUtil/RenderStageLighting
+vsIntersect.o: vsIntersectTraverser.h++
 vsIntersect.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osgUtil/IntersectVisitor
 vsIntersect.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/LineSegment
+vsIntersect.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Sequence
+vsIntersect.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Switch
 vsIntersect.o: vsDynamicGeometry.h++
+vsIntersectTraverser.o: vsIntersectTraverser.h++
+vsIntersectTraverser.o: ../../util/common/vsGlobals.h++ /usr/include/math.h
+vsIntersectTraverser.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsIntersectTraverser.o: /usr/include/gnu/stubs.h /usr/include/bits/huge_val.h
+vsIntersectTraverser.o: /usr/include/bits/mathdef.h
+vsIntersectTraverser.o: /usr/include/bits/mathcalls.h
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osgUtil/IntersectVisitor
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/NodeVisitor
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Node
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Object
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Referenced
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Export
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/MemoryManager
+vsIntersectTraverser.o: /usr/include/stdlib.h
+vsIntersectTraverser.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsIntersectTraverser.o: /usr/include/bits/waitflags.h
+vsIntersectTraverser.o: /usr/include/bits/waitstatus.h /usr/include/endian.h
+vsIntersectTraverser.o: /usr/include/bits/endian.h /usr/include/alloca.h
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/CopyOp
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/ref_ptr
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/StateSet
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/StateAttribute
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/GL
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/BoundingSphere
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Vec3
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Math
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/NodeCallback
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Matrix
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Vec4
+vsIntersectTraverser.o: /usr/include/string.h
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/FrameStamp
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/LineSegment
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/BoundingBox
+vsIntersectTraverser.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/float.h
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Geode
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Drawable
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/State
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/DisplaySettings
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Polytope
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Plane
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/fast_back_stack
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Types
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Shape
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Quat
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Array
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Vec2
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/UByte4
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/buffered_value
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osgUtil/Export
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Sequence
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Switch
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Group
+vsIntersectTraverser.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/LOD
 vsLightAttribute.o: /usr/include/stdio.h /usr/include/features.h
 vsLightAttribute.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 vsLightAttribute.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
@@ -1485,6 +1542,101 @@ vsSwitchAttribute.o: ../../util/common/vsObjectMap.h++ vsNode.h++
 vsSwitchAttribute.o: ../../util/common/vsVector.h++
 vsSwitchAttribute.o: ../../util/common/vsMatrix.h++
 vsSwitchAttribute.o: ../../util/common/vsQuat.h++ vsComponent.h++
+vsTextBuilder.o: vsTextBuilder.h++ /usr/include/GL/glu.h /usr/include/GL/gl.h
+vsTextBuilder.o: /usr/include/GL/glext.h
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/src/osgText/FTVectoriser.h
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/src/osgText/FTGL.h
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/MemoryManager
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Export
+vsTextBuilder.o: /usr/include/stdlib.h /usr/include/features.h
+vsTextBuilder.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsTextBuilder.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsTextBuilder.o: /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h
+vsTextBuilder.o: /usr/include/endian.h /usr/include/bits/endian.h
+vsTextBuilder.o: /usr/include/alloca.h
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Referenced
+vsTextBuilder.o: /usr/include/ft2build.h
+vsTextBuilder.o: /usr/include/freetype2/freetype/config/ftheader.h
+vsTextBuilder.o: /usr/include/freetype2/freetype/internal/internal.h
+vsTextBuilder.o: /usr/include/freetype2/freetype/freetype.h
+vsTextBuilder.o: /usr/include/freetype2/freetype/config/ftconfig.h
+vsTextBuilder.o: /usr/include/freetype2/freetype/config/ftoption.h
+vsTextBuilder.o: /usr/include/freetype2/freetype/config/ftstdlib.h
+vsTextBuilder.o: /usr/include/limits.h
+vsTextBuilder.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/limits.h
+vsTextBuilder.o: /usr/include/bits/posix1_lim.h /usr/include/bits/local_lim.h
+vsTextBuilder.o: /usr/include/linux/limits.h /usr/include/bits/posix2_lim.h
+vsTextBuilder.o: /usr/include/bits/xopen_lim.h /usr/include/bits/stdio_lim.h
+vsTextBuilder.o: /usr/include/ctype.h /usr/include/bits/types.h
+vsTextBuilder.o: /usr/include/string.h /usr/include/stdio.h
+vsTextBuilder.o: /usr/include/libio.h /usr/include/_G_config.h
+vsTextBuilder.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+vsTextBuilder.o: /usr/include/gconv.h
+vsTextBuilder.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsTextBuilder.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
+vsTextBuilder.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+vsTextBuilder.o: /usr/include/bits/sigset.h
+vsTextBuilder.o: /usr/include/freetype2/freetype/fterrors.h
+vsTextBuilder.o: /usr/include/freetype2/freetype/ftmoderr.h
+vsTextBuilder.o: /usr/include/freetype2/freetype/fterrdef.h
+vsTextBuilder.o: /usr/include/freetype2/freetype/fttypes.h
+vsTextBuilder.o: /usr/include/freetype2/freetype/ftsystem.h
+vsTextBuilder.o: /usr/include/freetype2/freetype/ftimage.h
+vsTextBuilder.o: /usr/include/freetype2/freetype/ftglyph.h
+vsTextBuilder.o: /usr/include/freetype2/freetype/freetype.h
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/src/osgText/FTGlyph.h
+vsTextBuilder.o: /usr/include/freetype2/freetype/ftglyph.h
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/src/osgText/FTFace.h
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/src/osgText/FTSize.h
+vsTextBuilder.o: ../../util/common/vsVector.h++
+vsTextBuilder.o: ../../util/common/vsGlobals.h++ /usr/include/math.h
+vsTextBuilder.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsTextBuilder.o: /usr/include/bits/mathcalls.h ../../util/common/vsMatrix.h++
+vsTextBuilder.o: ../../util/common/vsQuat.h++ vsComponent.h++
+vsTextBuilder.o: ../../util/common/vsGrowableArray.h++ vsAttribute.h++
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/StateSet
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Object
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/CopyOp
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/ref_ptr
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/StateAttribute
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/GL
+vsTextBuilder.o: ../../util/common/vsObject.h++
+vsTextBuilder.o: ../../util/common/vsTreeMap.h++
+vsTextBuilder.o: ../../util/common/vsObjectMap.h++ vsNode.h++
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Group
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Node
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/BoundingSphere
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Vec3
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Math
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/NodeCallback
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/NodeVisitor
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Matrix
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Vec4
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/FrameStamp
+vsTextBuilder.o: vsGeometry.h++
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Geode
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Drawable
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/BoundingBox
+vsTextBuilder.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/float.h
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/State
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/DisplaySettings
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Polytope
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Plane
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/fast_back_stack
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Types
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Shape
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Quat
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Array
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Vec2
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/UByte4
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/buffered_value
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Geometry
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/PrimitiveSet
+vsTextBuilder.o: vsTransformAttribute.h++
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/MatrixTransform
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Transform
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/AnimationPath
+vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/DOFTransform
 vsTextureAttribute.o: /usr/include/stdio.h /usr/include/features.h
 vsTextureAttribute.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 vsTextureAttribute.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
@@ -1773,98 +1925,3 @@ vsWireframeAttribute.o: ../../util/common/vsObjectMap.h++ vsNode.h++
 vsWireframeAttribute.o: ../../util/common/vsVector.h++
 vsWireframeAttribute.o: ../../util/common/vsMatrix.h++
 vsWireframeAttribute.o: ../../util/common/vsQuat.h++
-vsTextBuilder.o: vsTextBuilder.h++ /usr/include/GL/glu.h /usr/include/GL/gl.h
-vsTextBuilder.o: /usr/include/GL/glext.h
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/src/osgText/FTVectoriser.h
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/src/osgText/FTGL.h
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/MemoryManager
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Export
-vsTextBuilder.o: /usr/include/stdlib.h /usr/include/features.h
-vsTextBuilder.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
-vsTextBuilder.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
-vsTextBuilder.o: /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h
-vsTextBuilder.o: /usr/include/endian.h /usr/include/bits/endian.h
-vsTextBuilder.o: /usr/include/alloca.h
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Referenced
-vsTextBuilder.o: /usr/include/ft2build.h
-vsTextBuilder.o: /usr/include/freetype2/freetype/config/ftheader.h
-vsTextBuilder.o: /usr/include/freetype2/freetype/internal/internal.h
-vsTextBuilder.o: /usr/include/freetype2/freetype/freetype.h
-vsTextBuilder.o: /usr/include/freetype2/freetype/config/ftconfig.h
-vsTextBuilder.o: /usr/include/freetype2/freetype/config/ftoption.h
-vsTextBuilder.o: /usr/include/freetype2/freetype/config/ftstdlib.h
-vsTextBuilder.o: /usr/include/limits.h
-vsTextBuilder.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/limits.h
-vsTextBuilder.o: /usr/include/bits/posix1_lim.h /usr/include/bits/local_lim.h
-vsTextBuilder.o: /usr/include/linux/limits.h /usr/include/bits/posix2_lim.h
-vsTextBuilder.o: /usr/include/bits/xopen_lim.h /usr/include/bits/stdio_lim.h
-vsTextBuilder.o: /usr/include/ctype.h /usr/include/bits/types.h
-vsTextBuilder.o: /usr/include/string.h /usr/include/stdio.h
-vsTextBuilder.o: /usr/include/libio.h /usr/include/_G_config.h
-vsTextBuilder.o: /usr/include/wchar.h /usr/include/bits/wchar.h
-vsTextBuilder.o: /usr/include/gconv.h
-vsTextBuilder.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
-vsTextBuilder.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
-vsTextBuilder.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
-vsTextBuilder.o: /usr/include/bits/sigset.h
-vsTextBuilder.o: /usr/include/freetype2/freetype/fterrors.h
-vsTextBuilder.o: /usr/include/freetype2/freetype/ftmoderr.h
-vsTextBuilder.o: /usr/include/freetype2/freetype/fterrdef.h
-vsTextBuilder.o: /usr/include/freetype2/freetype/fttypes.h
-vsTextBuilder.o: /usr/include/freetype2/freetype/ftsystem.h
-vsTextBuilder.o: /usr/include/freetype2/freetype/ftimage.h
-vsTextBuilder.o: /usr/include/freetype2/freetype/ftglyph.h
-vsTextBuilder.o: /usr/include/freetype2/freetype/freetype.h
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/src/osgText/FTGlyph.h
-vsTextBuilder.o: /usr/include/freetype2/freetype/ftglyph.h
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/src/osgText/FTFace.h
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/src/osgText/FTSize.h
-vsTextBuilder.o: ../../util/common/vsVector.h++
-vsTextBuilder.o: ../../util/common/vsGlobals.h++ /usr/include/math.h
-vsTextBuilder.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
-vsTextBuilder.o: /usr/include/bits/mathcalls.h ../../util/common/vsMatrix.h++
-vsTextBuilder.o: ../../util/common/vsQuat.h++ vsComponent.h++
-vsTextBuilder.o: ../../util/common/vsGrowableArray.h++ vsAttribute.h++
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/StateSet
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Object
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/CopyOp
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/ref_ptr
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/StateAttribute
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/GL
-vsTextBuilder.o: ../../util/common/vsObject.h++
-vsTextBuilder.o: ../../util/common/vsTreeMap.h++
-vsTextBuilder.o: ../../util/common/vsObjectMap.h++ vsNode.h++
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Group
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Node
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/BoundingSphere
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Vec3
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Math
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/NodeCallback
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/NodeVisitor
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Matrix
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Vec4
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/FrameStamp
-vsTextBuilder.o: vsGeometry.h++
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Geode
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Drawable
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/BoundingBox
-vsTextBuilder.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/float.h
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/State
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/DisplaySettings
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Polytope
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Plane
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/fast_back_stack
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Types
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Shape
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Quat
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Array
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Vec2
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/UByte4
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/buffered_value
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Geometry
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/PrimitiveSet
-vsTextBuilder.o: vsTransformAttribute.h++
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/MatrixTransform
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Transform
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/AnimationPath
-vsTextBuilder.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/DOFTransform
