@@ -426,6 +426,18 @@ void vsIS600::updateQuat(int trackerNum, vsQuat quat)
 }
 
 // ------------------------------------------------------------------------
+// Requests an update packet from the IS-600
+// ------------------------------------------------------------------------
+void vsIS600::ping()
+{
+    unsigned char buf;
+
+    buf = VS_IS_CMD_PING;
+
+    port->writePacket(&buf, 1);
+}
+
+// ------------------------------------------------------------------------
 // Update the motion tracker data with fresh data from the IS-600
 // ------------------------------------------------------------------------
 void vsIS600::updateSystem()
@@ -697,18 +709,6 @@ void vsIS600::forkTracking()
             forked = VS_TRUE;
             printf("vsIS600::forkTracking: Server PID is %d\n", serverPID);
     }
-}
-
-// ------------------------------------------------------------------------
-// Requests an update packet from the IS-600
-// ------------------------------------------------------------------------
-void vsIS600::ping()
-{
-    unsigned char buf;
-
-    buf = VS_IS_CMD_PING;
-
-    port->writePacket(&buf, 1);
 }
 
 // ------------------------------------------------------------------------

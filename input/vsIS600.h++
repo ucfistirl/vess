@@ -198,6 +198,8 @@ protected:
     void                 serverLoop();
     static void          quitServer(int arg);
 
+    // Measurement functions
+    void                 ping();
     void                 updateSystem();
 
 public:
@@ -206,8 +208,7 @@ public:
                                          int nTrackers);
     virtual                    ~vsIS600();
 
-    // IS-600 measurement functions
-    void                       ping();
+    // IS-600 stream control functions
     void                       startStream();
     void                       stopStream();
 

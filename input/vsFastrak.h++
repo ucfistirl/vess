@@ -167,6 +167,8 @@ protected:
     void                 serverLoop();
     static void          quitServer(int arg);
 
+    // Measurement functions
+    void                 ping();
     void                 updateSystem();
 
 public:
@@ -176,7 +178,6 @@ public:
     virtual                    ~vsFastrak();
 
     // FASTRAK measurement functions
-    void                       ping();
     void                       startStream();
     void                       stopStream();
 
@@ -191,7 +192,8 @@ public:
     void                       setMountingFrame(int station, 
                                    vsVector orientation);
     void                       setSyncMode(int syncMode);
-    void                       setHemisphere(int station, vsVector zenithVec);
+    void                       setActiveHemisphere(int station, 
+                                                   vsVector zenithVec);
     void                       setOutputFormat(int newFormat[], 
                                                int newFormatNum);
     void                       setUnits(int units);

@@ -456,6 +456,18 @@ void vsFastrak::updateQuat(int trackerNum, vsQuat quat)
 }
 
 // ------------------------------------------------------------------------
+// Requests an update packet from the FASTRAK
+// ------------------------------------------------------------------------
+void vsFastrak::ping()
+{
+    unsigned char buf;
+
+    buf = VS_FT_CMD_PING;
+
+    port->writePacket(&buf, 1);
+}
+
+// ------------------------------------------------------------------------
 // Update the motion tracker data with fresh data from the FASTRAK
 // ------------------------------------------------------------------------
 void vsFastrak::updateSystem()
@@ -730,18 +742,6 @@ void vsFastrak::forkTracking()
 }
 
 // ------------------------------------------------------------------------
-// Requests an update packet from the FASTRAK
-// ------------------------------------------------------------------------
-void vsFastrak::ping()
-{
-    unsigned char buf;
-
-    buf = VS_FT_CMD_PING;
-
-    port->writePacket(&buf, 1);
-}
-
-// ------------------------------------------------------------------------
 // Starts continuous data output from the FASTRAK
 // ------------------------------------------------------------------------
 void vsFastrak::startStream()
@@ -860,7 +860,7 @@ void vsFastrak::setSyncMode(int syncMode)
 // Set the active hemisphere of the given station to the one specified by 
 // the given vector
 // ------------------------------------------------------------------------
-void vsFastrak::setHemisphere(int station, vsVector zenithVec)
+void vsFastrak::setActiveHemisphere(int station, vsVector zenithVec)
 {
     unsigned char buf[VS_FT_SIZE_CMD_PACKET];
     int           index;

@@ -26,9 +26,11 @@ public:
                            vs6DInputDevice(void);
     virtual                ~vs6DInputDevice(void);
 
+    // Inherited methods
     virtual int            getNumAxes(void);
-
     virtual vsInputAxis    *getAxis(int index);
+
+    // Accessors
     virtual vsVector       getPositionVec();
     virtual vsVector       getOrientationVec(vsMathEulerAxisOrder axisOrder);
     virtual vsMatrix       getOrientationMat();

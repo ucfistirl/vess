@@ -1041,6 +1041,24 @@ void vsEthernetMotionStar::forkTracking()
 }
 
 // ------------------------------------------------------------------------
+// Request a data packet from the MotionStar.  This command is ignored if
+// the MotionStar is already streaming data.
+// ------------------------------------------------------------------------
+void vsEthernetMotionStar::ping()
+{
+    if ((!streaming) && (master))
+    {
+        // Update the system configuration if it has changed
+        if (!configured)
+        {
+            updateConfiguration();
+        }
+
+        sendCommand(VS_BN_MSG_SINGLE_SHOT, 0, NULL);
+    }
+}
+
+// ------------------------------------------------------------------------
 // Update the motion tracker data with fresh data from the MotionStar
 // ------------------------------------------------------------------------
 void vsEthernetMotionStar::updateSystem()
@@ -1164,24 +1182,6 @@ void vsEthernetMotionStar::updateSystem()
                     currentByte += 2;
             }
         }
-    }
-}
-
-// ------------------------------------------------------------------------
-// Request a data packet from the MotionStar.  This command is ignored if
-// the MotionStar is already streaming data.
-// ------------------------------------------------------------------------
-void vsEthernetMotionStar::ping()
-{
-    if ((!streaming) && (master))
-    {
-        // Update the system configuration if it has changed
-        if (!configured)
-        {
-            updateConfiguration();
-        }
-
-        sendCommand(VS_BN_MSG_SINGLE_SHOT, 0, NULL);
     }
 }
 

@@ -375,6 +375,8 @@ protected:
     void                    updatePosMatrix(int trackerIndex, short birdData[]);
     void                    updatePosQuat(int trackerIndex, short birdData[]);
 
+    // Measurement functions
+    void                    ping();
     void                    updateSystem();
 
 public:
@@ -388,8 +390,7 @@ public:
     // Function to split the MotionStar operations into two separate processes
     void                       forkTracking();
 
-    // Measurement functions
-    void                       ping();
+    // Streaming control functions
     void                       startStream();
     void                       stopStream();
 

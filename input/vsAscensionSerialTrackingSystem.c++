@@ -1205,6 +1205,32 @@ void vsAscensionSerialTrackingSystem::updatePosQuat(int trackerIndex,
 }
 
 // ------------------------------------------------------------------------
+// Request a data packet from the flock.  
+// ------------------------------------------------------------------------
+void vsAscensionSerialTrackingSystem::ping()
+{
+    unsigned char buf;
+    int           trackerNum;
+
+    buf = VS_AS_CMD_POINT;
+
+    if (multiSerial)
+    {
+        // Send the ping to each bird
+        for (trackerNum = 0; trackerNum < numTrackers; trackerNum++)
+        {
+            if ((trackerNum + 1 < ercAddress) || (ercAddress == 0))
+                port[trackerNum + 1]->writePacket(&buf, 1);
+            else
+                port[trackerNum + 2]->writePacket(&buf, 1);
+        }
+    }
+    else
+        // Send the ping to the master bird
+        port[0]->writePacket(&buf, 1);
+}
+
+// ------------------------------------------------------------------------
 // Update the motion tracker data with fresh data from the flock
 // ------------------------------------------------------------------------
 void vsAscensionSerialTrackingSystem::updateSystem()
@@ -1435,34 +1461,6 @@ void vsAscensionSerialTrackingSystem::forkTracking()
 
 
 // ------------------------------------------------------------------------
-// Request a data packet from the flock.  
-//
-// NOTE:  This function is also used to stop the system from streaming.
-// ------------------------------------------------------------------------
-void vsAscensionSerialTrackingSystem::ping()
-{
-    unsigned char buf;
-    int           trackerNum;
-
-    buf = VS_AS_CMD_POINT;
-
-    if (multiSerial)
-    {
-        // Send the ping to each bird
-        for (trackerNum = 0; trackerNum < numTrackers; trackerNum++)
-        {
-            if ((trackerNum + 1 < ercAddress) || (ercAddress == 0))
-                port[trackerNum + 1]->writePacket(&buf, 1);
-            else
-                port[trackerNum + 2]->writePacket(&buf, 1);
-        }
-    }
-    else
-        // Send the ping to the master bird
-        port[0]->writePacket(&buf, 1);
-}
-
-// ------------------------------------------------------------------------
 // Start the flock continuously streaming data.  The flock should be run in
 // a separate process when using this mode.  This command is invalid in a
 // multiple serial port configuration.
@@ -1478,6 +1476,21 @@ void vsAscensionSerialTrackingSystem::startStream()
         port[0]->writePacket(&buf, 1);
 
         streaming = VS_TRUE;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Stop the flock from streaming data.  
+// ------------------------------------------------------------------------
+void vsAscensionSerialTrackingSystem::stopStream()
+{
+    if (streaming)
+    {
+        // If we're streaming, we must be using a single serial port, so
+        // don't bother checking for multiSerial
+        ping();
+
+        streaming = VS_FALSE;
     }
 }
 

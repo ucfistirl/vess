@@ -243,7 +243,8 @@ protected:
     void                 updatePosMatrix(int trackerIndex, short flockData[]);
     void                 updatePosQuat(int trackerIndex, short flockData[]);
 
-    // Function to update the data from the tracking hardware
+    // Functions to update the data from the tracking hardware
+    void                 ping();
     void                 updateSystem();
     
 public:
@@ -259,9 +260,9 @@ public:
     // Function to split the TrackingSystem into two separate processes
     void                       forkTracking();
 
-    // Measurement functions
-    void                       ping();
+    // Streaming control functions
     void                       startStream();
+    void                       stopStream();
 
     // Other useful FOB functions
     void                       setDataFormat(int format);
