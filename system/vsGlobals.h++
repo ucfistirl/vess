@@ -14,7 +14,7 @@
 //    VESS Module:  vsGlobals.h++
 //
 //    Description:  Global header file for defining commonly-used
-//		    constants and macros
+//                  constants and macros
 //
 //    Author(s):    Bryan Kline, Jason Daly
 //
@@ -22,6 +22,8 @@
 
 #ifndef VS_GLOBALS_HPP
 #define VS_GLOBALS_HPP
+
+#include <math.h>
 
 // Functions under this access specifier are for VESS internal use
 // only and should not be called by the end user.
@@ -60,6 +62,9 @@ enum
 
 // Convert from radians to degrees
 #define VS_RAD2DEG(x)  ( (x) * 180.0 / VS_PI )
+
+// Determine if two floating-point values are close enough to be equal
+#define VS_EQUAL(x,y)  ( fabs((x) - (y)) < 1E-6 )
 
 
 // Constants for use in conversion to/from Euler rotations
