@@ -131,7 +131,7 @@ vsSystem::vsSystem(vsClusterConfig *config)
     if (screenCount > 1)
         pfMultipipe(screenCount);
     
-    if(config && config->isValid())
+    if ((config) && (config->isValid()))
     {
         cluster = config;
         slaves = (vsTCPNetworkInterface**)calloc(cluster->numSlaves(),
@@ -635,10 +635,8 @@ void vsSystem::drawFrame()
         {
             remoteInterface->update();
         }
-        
     }
 
-    
     // Wait until the next frame boundary
     pfSync();
     
