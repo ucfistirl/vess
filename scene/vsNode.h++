@@ -7,6 +7,7 @@ class vsNode;
 
 #include <Performer/pf/pfNode.h>
 #include "vsAttributeList.h++"
+#include "vsVector.h++"
 
 #define VS_NODE_MAX_PARENTS     32
 #define VS_NODE_NAME_MAX_LENGTH 80
@@ -50,6 +51,8 @@ public:
     void              setName(const char *newName);
     const char        *getName();
     virtual vsNode    *findNodeByName(const char *targetName) = 0;
+    
+    virtual void      getBoundSphere(vsVector *centerPoint, double *radius) = 0;
 };
 
 #endif

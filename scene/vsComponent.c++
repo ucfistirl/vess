@@ -335,6 +335,24 @@ vsNode *vsComponent::getChild(int index)
 }
 
 // ------------------------------------------------------------------------
+// Retrieves the center point and radius of a sphere that encompasses all
+// of the geometry within this object.
+// ------------------------------------------------------------------------
+void vsComponent::getBoundSphere(vsVector *centerPoint, double *radius)
+{
+    pfSphere boundSphere;
+    
+    topGroup->getBound(&boundSphere);
+    
+    if (centerPoint)
+	centerPoint->set(boundSphere.center[PF_X], boundSphere.center[PF_Y],
+	    boundSphere.center[PF_Z]);
+
+    if (radius)
+	*radius = boundSphere.radius;
+}
+
+// ------------------------------------------------------------------------
 // Attempts to add the given attribute to the component's list of
 // attributes. If successful, also notifies the attribute that it has been
 // added to a component.
