@@ -161,6 +161,29 @@ libvsGraphics.so: libvsGraphics.a
 	rm -f $@
 	$(CXX) $(LDFLAGS) $(AM_LDFLAGS) -shared -o $@ @SO_LINK@ libvsGraphics.a @SO_NO_LINK@
 
+# Make target to install the extra headers specified above
+install-data-local:
+	@list='$(EXTRA_HEADERS)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f="`echo $$p | sed -e 's|^.*/||'`"; \
+	    s="`echo $$p | awk -F \/ '{print $$1}'`"; \
+	    if test x$$s = x@SG@ ; then \
+	      echo " $(includeHEADERS_INSTALL) $$p $(DESTDIR)$(includedir)/$$f"; \
+	      $(includeHEADERS_INSTALL) $$p $(DESTDIR)$(includedir)/$$f; \
+            else :; fi \
+	  else :; fi; \
+	done
+
+# Make target to uninstall the extra headers specified above
+uninstall-local:
+	@list='$(EXTRA_HEADERS)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f="`echo $$p | sed -e 's|^.*/||'`"; \
+	    echo " rm -f $(DESTDIR)$(includedir)/$$f"; \
+	    rm -f $(DESTDIR)$(includedir)/$$f; \
+	  else :; fi; \
+	done
+
 # Override automake's install rule for the libraries.  This is done to
 # keep automake from running ranlib on the shared library (since we're
 # not using libtool, automake doesn't know that libvess.so is a shared
