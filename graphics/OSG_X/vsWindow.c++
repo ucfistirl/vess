@@ -43,6 +43,8 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     : childPaneList(1, 1)
 {
     vsPipe *parentPipe;
+    GLXFBConfig *configList;
+    int configCount;
     Display *xWindowDisplay;
     XVisualInfo *visual;
     Window xWindowID;
@@ -57,24 +59,29 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     XEvent event;
     int result;
 
+    // Indicate that the window is not off-screen
+    isOffScreenWindow = false;
+
     // Default frame buffer configuration
-    static int attributeList[20] =
+    int frameBufferAttributes[20] =
     {
-        GLX_RGBA,
+        GLX_RENDER_TYPE, GLX_RGBA_BIT,
         GLX_RED_SIZE, 8,
         GLX_GREEN_SIZE, 8,
         GLX_BLUE_SIZE, 8,
         GLX_DEPTH_SIZE, 24,
-        GLX_STENCIL_SIZE, 1,
-        GLX_DOUBLEBUFFER,
+        GLX_STENCIL_SIZE, 8,
+        GLX_DOUBLEBUFFER, 1,
+        GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
         0
     };
-
-    // If stereo is requested, add that to the configuration attribute list
+                                                                                                                                                             
+    // If stereo is requested, add that to the attribute list
     if (stereo)
     {
-        attributeList[12] = GLX_STEREO;
-        attributeList[13] = 0;
+        frameBufferAttributes[16] = GLX_STEREO;
+        frameBufferAttributes[17] = 1;
+        frameBufferAttributes[18] = 0;
     }
     
     // Initialize the pane count
@@ -91,40 +98,43 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     
     // Get the X display connection from the parent pipe
     xWindowDisplay = parentPipe->getXDisplay();
-                   
-    // Choose an XVisual most closely matching the default attributes
-    visual = glXChooseVisual(xWindowDisplay, parentScreen->getScreenIndex(), 
-        attributeList);
-
-    // Make sure the visual is valid
-    if (visual == NULL)
+ 
+    // Get the list of frame buffer configurations for this display
+    configList = glXChooseFBConfig(xWindowDisplay,
+        parentScreen->getScreenIndex(), frameBufferAttributes, &configCount);
+                                                                                                                                                             
+    // Make sure the buffer configuration is valid
+    if (configCount == 0)
     {
-        // Invalid visual, print an error
+        // Invalid frame-buffer configuration list, print an error
         printf("vsWindow::vsWindow: Unable to choose an appropriate frame-"
                "buffer configuration!\n");
-
-        // Flag this window object as not valid
-        validObject = false;
-
+                                                                                                                                                             
         // Bail out
         return;
     }
-
+                                                                                                                                                             
+    // Save the first element of the config list
+    fbConfig = configList[0];                                                                                                                                                                 
+    // Free the memory used for the config list
+    XFree(configList);
+                                                                                                                                                         
+    // Retrieve a XVisualInfo from the frame buffer configuration
+    visual = glXGetVisualFromFBConfig(xWindowDisplay, fbConfig);
+                                                                                                                                                             
     // Create an OpenGL rendering context using direct rendering
-    glContext = glXCreateContext(xWindowDisplay, visual, NULL, GL_TRUE);
-
+    glContext = glXCreateNewContext(xWindowDisplay, fbConfig, GLX_RGBA_TYPE,
+        NULL, GL_TRUE);
+                                                                                                                                                             
     // Make sure the context is valid
     if (glContext == NULL)
     {
         // Invalid context, print an error
         printf("vsWindow::vsWindow:  Unable to create an OpenGL context!\n");
-
-        // Flag this window object as invalid
-        validObject = false;
-
+                                                                                                                                                             
         // Bail out
         return;
-    }
+    }                  
 
     // Create a color map for the window
     colorMap = XCreateColormap(xWindowDisplay, 
@@ -136,9 +146,6 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     {
         // Invalid colormap, print an error
         printf("vsWindow::vsWindow:  Unable to create colormap for visual!\n");
-
-        // Signal this window object is not valid
-        validObject = false;
 
         // Bail out
         return;
@@ -161,9 +168,6 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     {
         // Print an error
         printf("vsWindow::vsWindow:  Unable to create X Window!\n");
-
-        // Signal that this window object is not valid
-        validObject = false;
 
         // Bail out
         return;
@@ -200,7 +204,6 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
                             (unsigned char *) &motifHints,
                             PROP_MOTIF_WM_HINTS_ELEMENTS);
         }
-        
     }
 
     // Map (ie: open) the window and wait for it to finish mapping
@@ -283,6 +286,10 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
         widthOffset = 0;
         heightOffset = 0;
     }
+
+    // Create a new GLXWindow to use as the drawable for this vsWindow
+    drawable = (GLXDrawable)glXCreateWindow(xWindowDisplay, fbConfig, xWindow,
+        NULL);
 }
 
 // ------------------------------------------------------------------------
@@ -298,6 +305,8 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
 {
     vsPipe *parentPipe;
     Display *xWindowDisplay;
+    GLXFBConfig *configList;
+    int configCount;
     XVisualInfo *visual;
     Window xWindowID;
     Window *childPointer;
@@ -311,24 +320,29 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     XEvent event;
     int result;
 
-    // Default attributes
-    static int attributeList[20] =
+    // Indicate that the window is not off-screen
+    isOffScreenWindow = false;
+                                                                                                                                                             
+    // Default frame buffer configuration
+    int frameBufferAttributes[20] =
     {
-        GLX_RGBA,
+        GLX_RENDER_TYPE, GLX_RGBA_BIT,
         GLX_RED_SIZE, 8,
         GLX_GREEN_SIZE, 8,
         GLX_BLUE_SIZE, 8,
         GLX_DEPTH_SIZE, 24,
-        GLX_STENCIL_SIZE, 1,
-        GLX_DOUBLEBUFFER,
+        GLX_STENCIL_SIZE, 8,
+        GLX_DOUBLEBUFFER, 1,
+        GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
         0
     };
 
     // If stereo is requested, add that to the attribute list
     if (stereo)
     {
-        attributeList[12] = GLX_STEREO;
-        attributeList[13] = 0;
+        frameBufferAttributes[16] = GLX_STEREO;
+        frameBufferAttributes[17] = 1;
+        frameBufferAttributes[18] = 0;
     }
     
     // Initialize the pane count
@@ -347,36 +361,40 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     
     // Get the X display connection from the pipe
     xWindowDisplay = parentPipe->getXDisplay();
-                   
-    // Choose an XVisual most closely matching the default attributes
-    visual = glXChooseVisual(xWindowDisplay, parentScreen->getScreenIndex(), 
-        attributeList);
-
-    // Make sure the visual is valid
-    if (visual == NULL)
+         
+    // Get the list of frame buffer configurations for this display
+    configList = glXChooseFBConfig(xWindowDisplay,
+        parentScreen->getScreenIndex(), frameBufferAttributes, &configCount);
+                                                                                                                                                             
+    // Make sure the buffer configuration is valid
+    if (configCount == 0)
     {
-        // Invalid visual, print an error
+        // Invalid frame-buffer configuration list, print an error
         printf("vsWindow::vsWindow: Unable to choose an appropriate frame-"
                "buffer configuration!\n");
-
-        // Flag this window object as invalid
-        validObject = false;
-
+                                                                                                                                                             
         // Bail out
         return;
     }
+                                                                                                                                                             
+    // Save the first element of the config list
+    fbConfig = configList[0];
+                                                                                                                                                             
+    // Free the memory used for the config list
+    XFree(configList);
 
+    // Retrieve a XVisualInfo from the frame buffer configuration
+    visual = glXGetVisualFromFBConfig(xWindowDisplay, fbConfig);
+     
     // Create an OpenGL rendering context using direct rendering
-    glContext = glXCreateContext(xWindowDisplay, visual, NULL, GL_TRUE);
+    glContext = glXCreateNewContext(xWindowDisplay, fbConfig, GLX_RGBA_TYPE,
+        NULL, GL_TRUE);
 
     // Make sure the context is valid
     if (glContext == NULL)
     {
         // Invalid context, print an error
         printf("vsWindow::vsWindow:  Unable to create an OpenGL context!\n");
-
-        // Flag this object as invalid
-        validObject = false;
 
         // Bail out
         return;
@@ -392,9 +410,6 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     {
         // Invalid context, print an error
         printf("vsWindow::vsWindow:  Unable to create colormap for visual!\n");
-
-        // Signal this window object is not valid
-        validObject = false;
 
         // Bail out
         return;
@@ -415,9 +430,6 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     {
         // Print an error
         printf("vsWindow::vsWindow:  Unable to create X Window!\n");
-
-        // Signal that this window object is not valid
-        validObject = false;
 
         // Bail out
         return;
@@ -537,6 +549,117 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
         widthOffset = 0;
         heightOffset = 0;
     }
+
+    // Create a new GLXWindow to use as the drawable for this vsWindow
+    drawable = (GLXDrawable)glXCreateWindow(xWindowDisplay, fbConfig, xWindow,
+        NULL);
+}
+
+// ------------------------------------------------------------------------
+// Constructor - Creates a window for off-screen rendering. It does so by
+// generating a frame buffer configuration appropriate to the X Display and
+// using these objects to create and maintain a GLXPbuffer for memory
+// rendering.
+// ------------------------------------------------------------------------
+vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
+ : childPaneList(1, 1)
+{
+    vsPipe *parentPipe;
+    Display *display;
+    XVisualInfo *visual;
+    GLXFBConfig *configList;
+    int configCount;
+
+    // Indicate that the window is off-screen
+    isOffScreenWindow = true;
+
+    // Default frame buffer configuration
+    int frameBufferAttributes[17] =
+    {
+        GLX_RENDER_TYPE, GLX_RGBA_BIT,
+        GLX_RED_SIZE, 8,
+        GLX_GREEN_SIZE, 8,
+        GLX_BLUE_SIZE, 8,
+        GLX_DEPTH_SIZE, 24,
+        GLX_STENCIL_SIZE, 8,
+        GLX_DOUBLEBUFFER, 1,
+        GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT,
+        0
+    };
+
+    // pBuffer configuration: This will create a pBuffer of the requested
+    // width and height. Its contents are preserved, meaning images held
+    // should survive screen modifications. Also this will not create the
+    // largest available pBuffer if there is not enough memory. It will
+    // give an invalid context instead.
+    int pBufferAttributes[8] =
+    {
+        GLX_PBUFFER_WIDTH, offScreenWidth,
+        GLX_PBUFFER_HEIGHT, offScreenHeight,
+        GLX_PRESERVED_CONTENTS, GL_TRUE,
+        GLX_LARGEST_PBUFFER, GL_FALSE
+    };
+
+    // An off-screen window has no offsets because it does not have an
+    // X Window associated with it
+    widthOffset = 0;
+    heightOffset = 0;
+    xPositionOffset = 0;
+    yPositionOffset = 0;
+
+    // Set the drawable width and height
+    drawableWidth = offScreenWidth;
+    drawableHeight = offScreenHeight;
+
+    // Initialize the pane count
+    childPaneCount = 0;
+    
+    // Assign this window an index and increment the window count.
+    // Note: this procedure may need to be protected for thread-safeness 
+    // if OSG becomes multi-threaded.
+    windowNumber = windowCount++;
+    
+    // Save the parent screen and get the parent pipe object from the screen
+    parentScreen = parent;
+    parentPipe = parentScreen->getParentPipe();
+    
+    // Get the X display connection from the parent pipe
+    display = parentPipe->getXDisplay();
+
+    // Flush the X Display
+    XFlush(display);
+                                                                                                                                                             
+    // Add this window to the parent screen
+    parentScreen->addWindow(this);
+ 
+    // Get the list of frame buffer configurations for this display
+    configList = glXChooseFBConfig(display, parentScreen->getScreenIndex(),
+        frameBufferAttributes, &configCount);
+                  
+    // Make sure the buffer configuration is valid
+    if (configCount == 0)
+    {
+        // Invalid frame-buffer configuration list, print an error
+        printf("vsWindow::vsWindow: Unable to choose an appropriate frame-"
+               "buffer configuration!\n");
+
+        // Bail out
+        return;
+    }
+
+    // Save the first element of the config list
+    fbConfig = configList[0];
+
+    // Free the memory used for the config list
+    XFree(configList);
+
+    // Create the Pbuffer
+    drawable = (GLXDrawable)glXCreatePbuffer(display, fbConfig,
+        pBufferAttributes);
+
+    // Create the rendering context for the pBuffer
+    glContext = glXCreateNewContext(display, fbConfig, GLX_RGBA_TYPE,
+        NULL, GL_TRUE);
 }
 
 // ------------------------------------------------------------------------
@@ -552,11 +675,16 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
     XVisualInfo visualTemplate;
     int visualsMatched;
     XVisualInfo *visualList;
+    GLXFBConfig *configList;
+    int configCount;
     Window xWindowID;
     Window *childPointer;
     unsigned int childCount;
     Window parentID, rootID;
     int result;
+
+    // Indicate that the window is not off-screen
+    isOffScreenWindow = false;
 
     // Check the value of the xWin parameter, and print a warning if it
     // looks like the user is trying to use the old vsWindow constructor
@@ -598,52 +726,45 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
     // Get the Visual's ID from the window
     visualID = XVisualIDFromVisual(winXAttr.visual);
 
-    // Now, find the XVisualInfo structure that matches the window's visual
-    // ID
-    visualTemplate.visualid = visualID;
-    visualList = XGetVisualInfo(xWindowDisplay, VisualIDMask, &visualTemplate, 
-        &visualsMatched);
-
-    // If we can't match the visual, then we can't create an OpenGL context 
-    // for the window, so give up.
-    if (visualsMatched <= 0)
+    // Specify that our frame buffer must match the visual ID of the window
+    // passed in to the constructor
+    int frameBufferAttributes[3] =
     {
-        // Print an error
-        printf("vsWindow::vsWindow:  Unable to match visual ID of the given X "
-            "Window!\n");
+        GLX_VISUAL_ID, visualID,
+        0
+    };
 
-        // Flag this object as invalid
-        validObject = false;
+    // Get the list of frame buffer configurations for this display
+    configList = glXChooseFBConfig(xWindowDisplay,
+        parentScreen->getScreenIndex(), frameBufferAttributes, &configCount);
 
+    // Make sure the buffer configuration is valid
+    if (configCount == 0)
+    {
+        // Invalid frame-buffer configuration list, print an error
+        printf("vsWindow::vsWindow: Unable to choose an appropriate frame-"
+               "buffer configuration!\n");
+                                                                                                                                                             
         // Bail out
         return;
     }
-    else
-    {
-        // Print status
-        printf("X Window has VisualID 0x%x\n", visualID);
-        printf("Matching %d visual(s), choosing visual 0x%x\n", visualsMatched,
-            visualList[0].visualid);
-    }
+                                                                                                                                                             
+    // Save the first element of the config list
+    fbConfig = configList[0];
 
-    // Create an OpenGL rendering context using direct rendering.  Assume
-    // the first visual matched is the one we want, since we queried by
-    // exact ID number.
-    glContext = glXCreateContext(xWindowDisplay, &(visualList[0]), NULL, 
-        GL_TRUE);
+    // Free the memory used for the config list
+    XFree(configList);
 
-    // At this point, we shouldn't need the visual list anymore; get rid of it.
-    XFree(visualList);
-
+    // Create an OpenGL rendering context using direct rendering
+    glContext = glXCreateNewContext(xWindowDisplay, fbConfig, GLX_RGBA_TYPE,
+        NULL, GL_TRUE);
+                                                                                                                                                             
     // Make sure the context is valid
     if (glContext == NULL)
     {
         // Invalid context, print an error
         printf("vsWindow::vsWindow:  Unable to create an OpenGL context!\n");
-
-        // Flag this object as invalid
-        validObject = false;
-
+                                                                                                                                                             
         // Bail out
         return;
     }
@@ -715,6 +836,10 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
         widthOffset = 0;
         heightOffset = 0;
     }
+
+    // Create a new GLXWindow to use as the drawable for this vsWindow
+    drawable = (GLXDrawable)glXCreateWindow(xWindowDisplay, fbConfig, xWindow,
+        NULL);
 }
 
 // ------------------------------------------------------------------------
@@ -736,9 +861,21 @@ vsWindow::~vsWindow()
     // Remove the window from its screen
     parentScreen->removeWindow(this);
 
-    // Destroy the window
+    // Destroy the rendering context
     glXDestroyContext(display, glContext);
-    XDestroyWindow(display, xWindow);
+
+    // Treat off screen and on screen windows differently
+    if(isOffScreenWindow)
+    {
+        // Destroy the off screen component
+        glXDestroyPbuffer(display, drawable);
+    }
+    else
+    {
+        // Destroy the window itself
+        glXDestroyWindow(display, drawable);
+        XDestroyWindow(display, xWindow);
+    }
 }
     
 // ------------------------------------------------------------------------
@@ -797,14 +934,44 @@ vsPane *vsWindow::getChildPane(int index)
 // ------------------------------------------------------------------------
 void vsWindow::setSize(int width, int height)
 {
-    Display *xWindowDisplay;
+    Display *display;
 
-    // Obtain the X Display object
-    xWindowDisplay = parentScreen->getParentPipe()->getXDisplay();
+    display = parentScreen->getParentPipe()->getXDisplay();
 
-    // Send the request for X to resize the window
-    XResizeWindow(xWindowDisplay, xWindow, width - widthOffset, 
-        height - heightOffset);
+    // If the window is off-screen, the buffer must be recreated
+    if(isOffScreenWindow)
+    {
+        // Destroy the old pBuffer and rendering context
+        glXDestroyContext(display, glContext);
+        glXDestroyPbuffer(display, drawable);
+
+        // Set the new pBuffer configuration
+        int pBufferAttributes[8] =
+        {
+            GLX_PBUFFER_WIDTH, width,
+            GLX_PBUFFER_HEIGHT, height,
+            GLX_LARGEST_PBUFFER, false,
+            GLX_PRESERVED_CONTENTS, true
+        };
+
+        // Recreate the drawable with the new width and height
+        drawable = (GLXDrawable)glXCreatePbuffer(display, fbConfig,
+            pBufferAttributes);
+
+        // Create the new context
+        glContext = glXCreateNewContext(display, fbConfig, GLX_RGBA_TYPE,
+            NULL, GL_TRUE);
+
+        // Update the drawable width and height
+        drawableWidth = width;
+        drawableHeight = height;
+    }
+    else
+    {
+        // Send the request for X to resize the window
+        XResizeWindow(display, xWindow, width - widthOffset, 
+            height - heightOffset);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -816,23 +983,33 @@ void vsWindow::getSize(int *width, int *height)
     Display *xWindowDisplay;
     XWindowAttributes xattr;
     int x, y;
-    
-    // Get the X display connection from the screen's parent pipe
-    xWindowDisplay = parentScreen->getParentPipe()->getXDisplay();
 
-    // Query the window attributes from X, and make sure the query
-    // succeeds
-    if (XGetWindowAttributes(xWindowDisplay, topWindowID, &xattr) == 0)
+    // If the window is off-screen its size is stored rather than queried
+    if(isOffScreenWindow)
     {
-        // The query failed, return zeroes as default
-        x = 0;
-        y = 0;
+        // Set the values for width and height
+        x = drawableWidth;
+        y = drawableHeight;
     }
     else
     {
-        // Get the window size from the attributes structure
-        x = xattr.width;
-        y = xattr.height;
+        // Get the X display connection from the screen's parent pipe
+        xWindowDisplay = parentScreen->getParentPipe()->getXDisplay();
+
+        // Query the window attributes from X, and make sure the query
+        // succeeds
+        if (XGetWindowAttributes(xWindowDisplay, topWindowID, &xattr) == 0)
+        {
+            // The query failed, return zeroes as default
+            x = 0;
+            y = 0;
+        }
+        else
+        {
+            // Get the window size from the attributes structure
+            x = xattr.width;
+            y = xattr.height;
+        }
     }
 
     // Return the width if requested
@@ -853,23 +1030,33 @@ void vsWindow::getDrawableSize(int *width, int *height)
     Display *xWindowDisplay;
     XWindowAttributes xattr;
     int x, y;
-    
-    // Get the X display connection from the screen's parent pipe
-    xWindowDisplay = parentScreen->getParentPipe()->getXDisplay();
 
-    // Query the window attributes from X, and make sure the query
-    // succeeds
-    if (XGetWindowAttributes(xWindowDisplay, xWindow, &xattr) == 0)
+    // If the window is off-screen its size is stored rather than queried
+    if(isOffScreenWindow)
     {
-        // The query failed, return zeroes as default
-        x = 0;
-        y = 0;
+        // Set the values for width and height
+        x = drawableWidth;
+        y = drawableHeight;
     }
     else
     {
-        // Get the window size from the attributes structure
-        x = xattr.width;
-        y = xattr.height;
+        // Get the X display connection from the screen's parent pipe
+        xWindowDisplay = parentScreen->getParentPipe()->getXDisplay();
+
+        // Query the window attributes from X, and make sure the query
+        // succeeds
+        if (XGetWindowAttributes(xWindowDisplay, xWindow, &xattr) == 0)
+        {
+            // The query failed, return zeroes as default
+            x = 0;
+            y = 0;
+        }
+        else
+        {
+            // Get the window size from the attributes structure
+            x = xattr.width;
+            y = xattr.height;
+        }
     }
 
     // Return the width if requested
@@ -889,15 +1076,16 @@ void vsWindow::setPosition(int xPos, int yPos)
 {
     Display *xWindowDisplay;
 
-    // Obtain the X Display object
-    xWindowDisplay = parentScreen->getParentPipe()->getXDisplay();
+    // If the window is offScreen, position is irrelevant
+    if(!isOffScreenWindow)
+    {
+        // Obtain the X Display object
+        xWindowDisplay = parentScreen->getParentPipe()->getXDisplay();
 
-    // Send the request for X to reposition the window
-    //XMoveWindow(xWindowDisplay, xWindow, xPos + xPositionOffset, 
-    //    yPos + yPositionOffset);
-    XMoveWindow(xWindowDisplay, xWindow, xPos, yPos);
+        // Send the request for X to reposition the window
+        XMoveWindow(xWindowDisplay, xWindow, xPos, yPos);
+    }
 }
-
 // ------------------------------------------------------------------------
 // Retrieves the position of the window on the screen, in pixels from the
 // top-left cornder of the screen. NULL pointers may be passed in for
@@ -909,22 +1097,32 @@ void vsWindow::getPosition(int *xPos, int *yPos)
     XWindowAttributes xattr;
     int x, y;
 
-    // Get the X display connection from the screen's parent pipe
-    xWindowDisplay = parentScreen->getParentPipe()->getXDisplay();
-
-    // Query the window attributes from X, and make sure the query
-    // succeeds
-    if (XGetWindowAttributes(xWindowDisplay, topWindowID, &xattr) == 0)
+    // If the window is offScreen, position is irrelevant
+    if(isOffScreenWindow)
     {
-        // Query failed, return zeroes as default
+        // Set default values for x and y
         x = 0;
         y = 0;
     }
     else
     {
-        // Get the window position from the attributes structure
-        x = xattr.x;
-        y = xattr.y;
+        // Get the X display connection from the screen's parent pipe
+        xWindowDisplay = parentScreen->getParentPipe()->getXDisplay();
+
+        // Query the window attributes from X, and make sure the query
+        // succeeds
+        if (XGetWindowAttributes(xWindowDisplay, topWindowID, &xattr) == 0)
+        {
+            // Query failed, return zeroes as default
+            x = 0;
+            y = 0;
+        }
+        else
+        {
+            // Get the window position from the attributes structure
+            x = xattr.x;
+            y = xattr.y;
+        }
     }
 
     // Return the X position if requested
@@ -962,12 +1160,16 @@ void vsWindow::setName(char *newName)
     XTextProperty nameProperty;
     Display *xWindowDisplay;
 
-    // Obtain the X Display and Window objects for this window
-    xWindowDisplay = parentScreen->getParentPipe()->getXDisplay();
+    // Off-screen windows do not have names
+    if(!isOffScreenWindow)
+    {
+        // Obtain the X Display and Window objects for this window
+        xWindowDisplay = parentScreen->getParentPipe()->getXDisplay();
 
-    // Call the X window manager to display the new name of the window
-    XStringListToTextProperty(&newName, 1, &nameProperty);
-    XSetWMName(xWindowDisplay, xWindow, &nameProperty);
+        // Call the X window manager to display the new name of the window
+        XStringListToTextProperty(&newName, 1, &nameProperty);
+        XSetWMName(xWindowDisplay, xWindow, &nameProperty);
+    }
 }
 
 
@@ -1016,7 +1218,7 @@ vsImage * vsWindow::getImage()
     getSize(&width, &height);
     width -= widthOffset;
     height -= heightOffset;
-    
+
     // Allocate our temporary buffer
     unsigned char * buffer = new unsigned char[ width * height * 3 ];
 
@@ -1108,27 +1310,44 @@ int vsWindow::getWindowNumber()
 void vsWindow::makeCurrent()
 {
     Bool result;
-
+	
     // Try to make this window's GLX context current
     result = glXMakeCurrent(parentScreen->getParentPipe()->getXDisplay(), 
-        xWindow, glContext);
+        drawable, glContext);
 
     // Print an error if the makeCurrent failed
     if (!result)
     {
         printf("vsWindow::makeCurrent:  Unable to attach OpenGL context to "
-            "window!\n");
+            "drawable surface!\n");
     }
 }
 
 // ------------------------------------------------------------------------
 // Internal function
-// Swaps the drawing buffers on this window
+// Swaps the drawing buffers on this window if the window is on-screen.
+// Note: OSG always draws to the back buffer, so off-screen windows must be
+// double-buffered under OSG. However, when rendering single frames, as one
+// might wish to do with an off-screen window, the double-buffering adds a
+// single frame of delay. The check made here eliminates that delay.
 // ------------------------------------------------------------------------
 void vsWindow::swapBuffers()
 {
-    // Call GLX to swap the buffers on the X Window
-    glXSwapBuffers(parentScreen->getParentPipe()->getXDisplay(), xWindow);
+    // Make sure the window is on-screen before trying to swap
+    if(!isOffScreenWindow)
+    {
+        // Call GLX to swap the buffers on the X Window
+        glXSwapBuffers(parentScreen->getParentPipe()->getXDisplay(), drawable);
+    }
+}
+
+// ------------------------------------------------------------------------
+// Internal function
+// Returns true if the window is declared as off-screen
+// ------------------------------------------------------------------------
+bool vsWindow::isOffScreen()
+{
+    return isOffScreenWindow;
 }
 
 // ------------------------------------------------------------------------
@@ -1140,18 +1359,22 @@ void vsWindow::update()
     XEvent event;
     int    i;
 
-    // Check for X events on this window
-    while (XCheckWindowEvent(parentScreen->getParentPipe()->getXDisplay(), 
-        xWindow, StructureNotifyMask, &event))
+    // Function does not apply to off-screen windows
+    if(!isOffScreenWindow)
     {
-        // Got an event, check the type
-        switch (event.type)
+        // Check for X events on this window
+        while (XCheckWindowEvent(parentScreen->getParentPipe()->getXDisplay(), 
+            xWindow, StructureNotifyMask, &event))
         {
-            case ConfigureNotify:
-                // Resize each pane to match the new window dimensions
-                for (i = 0; i < childPaneCount; i++)
-                    ((vsPane *)childPaneList[i])->resize();
-                break;
+            // Got an event, check the type
+            switch (event.type)
+            {
+                case ConfigureNotify:
+                    // Resize each pane to match the new window dimensions
+                    for (i = 0; i < childPaneCount; i++)
+                        ((vsPane *)childPaneList[i])->resize();
+                    break;
+            }
         }
     }
 }

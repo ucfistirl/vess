@@ -47,20 +47,23 @@ private:
     int                childPaneCount;
 
     int                windowNumber;
-    
+
     Window             xWindow;
+    GLXDrawable        drawable;
     GLXContext         glContext;
-    
+    GLXFBConfig        fbConfig;
+
     Window             topWindowID;
 
     int                xPositionOffset, yPositionOffset;
     int                widthOffset, heightOffset;
-
-    bool               validObject;
+    int                drawableWidth, drawableHeight;
 
     static int         windowCount;
 
     static Bool        waitForMap(Display *display, XEvent *event, char *arg);
+
+    bool               isOffScreenWindow;
 
 VS_INTERNAL:
 
@@ -71,6 +74,7 @@ VS_INTERNAL:
     void          makeCurrent();
     void          swapBuffers();
 
+    bool          isOffScreen();
     void          update();
 
 public:
@@ -79,6 +83,8 @@ public:
                                    bool stereo);
                           vsWindow(vsScreen *parent, int x, int y, int width, 
                                    int height, bool hideBorder, bool stereo);
+                          vsWindow(vsScreen *parent, int offScreenWidth,
+                          		   int offScreenHeight);
                           vsWindow(vsScreen *parent, Window xWin);
     virtual               ~vsWindow();
 
