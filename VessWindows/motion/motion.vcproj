@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="n:\usr\jdaly\osg\0.9.2\OpenSceneGraph\include;..\..\io\OSG_Windows;..\..\io\Windows;..\..\io\common;..\..\graphics\OSG_Windows;..\..\graphics\OSG;..\..\graphics\common;..\..\util\Windows;..\..\util\common"
+				AdditionalIncludeDirectories="&quot;C:\Documents and Settings\Glenn Martin\Desktop\Haptics\winosg\include&quot;;..\..\io\OSG_Windows;..\..\io\Windows;..\..\io\common;..\..\graphics\OSG_Windows;..\..\graphics\OSG;..\..\graphics\common;..\..\util\Windows;..\..\util\common"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_MOTION_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -105,7 +105,7 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
+			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
 				RelativePath="..\..\motion\common\vs3TrackerArm.c++">
 			</File>
@@ -151,7 +151,7 @@
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc">
+			Filter="h++;h;hpp;hxx;hm;inl;inc">
 			<File
 				RelativePath="..\..\motion\common\vs3TrackerArm.h++">
 			</File>
