@@ -316,6 +316,32 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
     double offsetFactor;
     double offsetUnits;
 
+        osgGroup = (osg::Group *)node;
+
+            osg::LOD *lodGroup = (osg::LOD *)node;
+            
+            osg::Sequence *sequenceGroup = (osg::Sequence *)node;
+            vsSequenceAttribute *sequenceAttr = new vsSequenceAttribute();
+            float speed;
+            int nReps;
+            osg::Sequence::LoopMode loopMode;
+            int begin, end;
+            
+            osg::Switch *switchGroup = (osg::Switch *)node;
+            vsSwitchAttribute *switchAttr = new vsSwitchAttribute();
+            
+            vsTransformAttribute *xformAttr = new vsTransformAttribute();
+            osg::Matrix osgMat;
+            vsMatrix xformMat, tempMat;
+
+                osg::DOFTransform *dofXformGroup = (osg::DOFTransform *)node;
+
+                osg::MatrixTransform *matrixXformGroup =
+                    (osg::MatrixTransform *)node;
+                
+                osg::PositionAttitudeTransform *posAttXformGroup =
+                    (osg::PositionAttitudeTransform *)node;
+
     if (!node)
         return NULL;
     
@@ -333,8 +359,6 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
     }
     else if (dynamic_cast<osg::Group *>(node))
     {
-        osgGroup = (osg::Group *)node;
-
         // This is a group (or subtype); start with a vsComponent and
         // go from there
         newComponent = new vsComponent();
@@ -393,9 +417,9 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
         // provided that subtype is one of the ones that we can handle.
         if (dynamic_cast<osg::LOD *>(node))
         {
-            // vsLODAttribute
-            osg::LOD *lodGroup = (osg::LOD *)node;
-            
+            // LOD, cast the node to an osg::LOD
+            lodGroup = (osg::LOD *)node;
+
             // Converting an LOD node is potentially very complex, due to
             // how OSG handles them. Hand the conversion process off to a
             // dedicated function.
@@ -403,16 +427,14 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
         }
         else if (dynamic_cast<osg::Sequence *>(node))
         {
-            // vsSequenceAttribute
             // Sequence must be checked for before Switch, because in
-            // OSG Sequence is derived from Switch
-            osg::Sequence *sequenceGroup = (osg::Sequence *)node;
-            vsSequenceAttribute *sequenceAttr = new vsSequenceAttribute();
-            float speed;
-            int nReps;
-            osg::Sequence::LoopMode loopMode;
-            int begin, end;
-            
+            // OSG, Sequence is derived from Switch
+
+            // Cast the node to an osg::Sequence and create a sequence
+            // attribute
+            sequenceGroup = (osg::Sequence *)node;
+            sequenceAttr = new vsSequenceAttribute();
+
             // Add the attribute _before_ setting its data, because the
             // attribute checks the number of children on the component
             // before setting any values
@@ -434,10 +456,11 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
         }
         else if (dynamic_cast<osg::Switch *>(node))
         {
-            // vsSwitchAttribute
-            osg::Switch *switchGroup = (osg::Switch *)node;
-            vsSwitchAttribute *switchAttr = new vsSwitchAttribute();
-            
+            // Switch, cast the node to an osg::Switch and create a switch
+            // attribute
+            switchGroup = (osg::Switch *)node;
+            switchAttr = new vsSwitchAttribute();
+
             // Add the attribute _before_ setting its data, because the
             // attribute checks the number of children on the component
             // before setting any values
@@ -454,11 +477,9 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
         }
         else if (dynamic_cast<osg::Transform *>(node))
         {
-            // vsTransformAttribute
-            vsTransformAttribute *xformAttr = new vsTransformAttribute();
-            osg::Matrix osgMat;
-            vsMatrix xformMat, tempMat;
-            
+            // Transform, create a transform attribute and add it to the
+            // component
+            xformAttr = new vsTransformAttribute();
             newComponent->addAttribute(xformAttr);
             
             // There are three different types of transforms in OSG;
@@ -466,7 +487,8 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
             
             if (dynamic_cast<osg::DOFTransform *>(node))
             {
-                osg::DOFTransform *dofXformGroup = (osg::DOFTransform *)node;
+                // DOFTransform, cast the node to a DOFTransform node
+                dofXformGroup = (osg::DOFTransform *)node;
 
                 // Set the pre-transform data
                 osgMat = dofXformGroup->getPutMatrix();
@@ -484,9 +506,9 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
             }
             else if (dynamic_cast<osg::MatrixTransform *>(node))
             {
-                osg::MatrixTransform *matrixXformGroup =
-                    (osg::MatrixTransform *)node;
-                
+                // MatrixTransform, cast the node to an MatrixTransform node
+                matrixXformGroup = (osg::MatrixTransform *)node;
+
                 // Set the transform data
                 osgMat = matrixXformGroup->getMatrix();
                 for (loop = 0; loop < 4; loop++)
@@ -496,8 +518,8 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
             }
             else if (dynamic_cast<osg::PositionAttitudeTransform *>(node))
             {
-                osg::PositionAttitudeTransform *posAttXformGroup =
-                    (osg::PositionAttitudeTransform *)node;
+                // PositionAttitudeTransform, cast the node appropriately
+                posAttXformGroup = (osg::PositionAttitudeTransform *)node;
 
                 // * Create a transformation matrix by interpreting the
                 // position and attitude data
@@ -542,6 +564,8 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
         result = newComponent;
     } // if (dynamic_cast<osg::Geode *>(node))
 
+    // Return NULL if the conversion didn't go correctly (in which case
+    // we'll have a NULL result here)
     if (!result)
         return NULL;
     
@@ -552,6 +576,8 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
     if (importanceCheck(node))
         result->setName(node->getName().c_str());
 
+    // Copy the node's node mask and use it for the vsNode's intersect
+    // value
     result->setIntersectValue(node->getNodeMask());
     
     // Store the result of this operation in the node map, so that we
@@ -655,6 +681,8 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     offsetArray = (double *)(malloc(sizeof(double) * geode->getNumDrawables()));
     offsetArraySize = 0;
 
+    // Convert each osg::Geometry into one or more vsGeometry objects (one
+    // per PrimitiveSet)
     for (loop = 0; loop < geode->getNumDrawables(); loop++)
     {
         // Obtain the loop'th Geometry. (If it's not a Geometry, ignore it.)
@@ -708,6 +736,8 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
             // that contains the same information
             for (sloop = 0; sloop < osgGeometry->getNumPrimitiveSets(); sloop++)
             {
+                // Create a new vsGeometry and get the next PrimitiveSet
+                // from the osg::Geometry object
                 geometry = new vsGeometry();
                 osgPrimitiveSet = osgGeometry->getPrimitiveSet(sloop);
                 
@@ -823,6 +853,7 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     // We're done with the polygon offset values
     free(offsetArray);
     
+    // Return the component
     return geodeComponent;
 }
 
@@ -837,10 +868,29 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     const osg::StateSet::RefAttributePair *osgRefAttrPair;
     unsigned int overrideFlag;
 
-    // Fog
     osg::Fog *osgFog;
     vsFogAttribute *vsFogAttr;
+
+    osg::Material *osgMaterial;
+    vsMaterialAttribute *vsMaterialAttr;
+
+    osg::Texture *osgTexture;
+    osg::TexEnv *osgTexEnv;
+    vsTextureAttribute *vsTextureAttr;
+
+    vsTransparencyAttribute *vsTransparencyAttr;
+
+    osg::CullFace *osgCullFace;
+    int cullfaceMode;
+    vsBackfaceAttribute *vsBackfaceAttr;
+
+    osg::ShadeModel *osgShadeModel;
+    vsShadingAttribute *vsShadingAttr;
+
+    osg::PolygonMode *osgPolyMode, *newPolyMode;
+    vsWireframeAttribute *vsWireframeAttr;
     
+    // Fog
     osgFog = dynamic_cast<osg::Fog *>
         (stateSet->getAttribute(osg::StateAttribute::FOG));
     if (osgFog)
@@ -880,9 +930,6 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     }
     
     // Material
-    osg::Material *osgMaterial;
-    vsMaterialAttribute *vsMaterialAttr;
-    
     osgMaterial = dynamic_cast<osg::Material *>
         (stateSet->getAttribute(osg::StateAttribute::MATERIAL));
     if (osgMaterial)
@@ -913,10 +960,6 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     }
     
     // Texture
-    osg::Texture *osgTexture;
-    osg::TexEnv *osgTexEnv;
-    vsTextureAttribute *vsTextureAttr;
-    
     // Note here that we're dynamic-casting to a Texture2D object, not just
     // any Texture type. If the texture isn't a Texture2D, the cast will
     // fail and return a NULL, which will make the function think that there's
@@ -969,8 +1012,6 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     }
     
     // Transparency
-    vsTransparencyAttribute *vsTransparencyAttr;
-    
     // Check to see if a render bin has been specified for this node
     if (stateSet->useRenderBinDetails())
     {
@@ -991,10 +1032,6 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     }
 
     // Backface (Cull Face)
-    osg::CullFace *osgCullFace;
-    int cullfaceMode;
-    vsBackfaceAttribute *vsBackfaceAttr;
-    
     // Check to see if the cull face mode for this node is not inherited
     cullfaceMode = stateSet->getMode(GL_CULL_FACE);
     if (!(cullfaceMode & osg::StateAttribute::INHERIT))
@@ -1045,9 +1082,6 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     }
 
     // Shading
-    osg::ShadeModel *osgShadeModel;
-    vsShadingAttribute *vsShadingAttr;
-    
     // Check for a shading model on this node
     osgShadeModel = dynamic_cast<osg::ShadeModel *>
         (stateSet->getAttribute(osg::StateAttribute::SHADEMODEL));
@@ -1072,9 +1106,6 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     }
     
     // Wireframe (Polygon Mode)
-    osg::PolygonMode *osgPolyMode, *newPolyMode;
-    vsWireframeAttribute *vsWireframeAttr;
-    
     // Check for a polygon mode attribute on this node
     osgPolyMode = dynamic_cast<osg::PolygonMode *>
         (stateSet->getAttribute(osg::StateAttribute::POLYGONMODE));
@@ -1428,6 +1459,7 @@ int vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
         return -1;
     }
 
+    // Get the number of primitives and vertices in the primitive set
     primCount = osgPrimitiveSet->getNumPrimitives();
     vertCount = osgPrimitiveSet->getNumIndices();
 
@@ -1461,6 +1493,8 @@ int vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
             break;
     }
     
+    // Set the new size of the vsGeometry's data list to the size we computed
+    // above
     targetGeometry->setDataListSize(targetDataType, copySize);
     
     // Copy all of the data values this geometry uses
@@ -1554,5 +1588,7 @@ int vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
         }
     } // for (loop = 0; loop < copySize; loop++)
 
+    // Return the number of elements copied, so the source index can
+    // be updated for the next primitive set
     return copySize;
 }
