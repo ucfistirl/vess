@@ -22,6 +22,7 @@
 #ifndef VS_CAL3D_BONE_LOADER_HPP
 #define VS_CAL3D_BONE_LOADER_HPP
 
+#include "vsObject.h++"
 #include "vsSkeleton.h++"
 #include "vsComponent.h++"
 
