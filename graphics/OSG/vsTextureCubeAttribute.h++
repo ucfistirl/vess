@@ -26,6 +26,7 @@
 #include <osg/TextureCubeMap>
 #include <osg/Texture>
 #include <osg/TexEnv>
+#include <osg/TexEnvCombine>
 #include <osg/Image>
 #include "vsStateAttribute.h++"
 #include "vsTextureAttribute.h++"
@@ -48,6 +49,7 @@ private:
 
     osg::TextureCubeMap    *osgTextureCube;
     osg::TexEnv            *osgTexEnv;
+    osg::TexEnvCombine     *osgTexEnvCombine;
     osg::TexGen            *osgTexGen;
     osg::Image             *osgTexImage[VS_TEXTURE_CUBE_SIDES];
 
@@ -58,9 +60,10 @@ private:
 VS_INTERNAL:
 
                           vsTextureCubeAttribute(unsigned int unit,
-                                                 osg::TextureCubeMap *texObject,
-                                                 osg::TexEnv *texEnvObject,
-                                                 osg::TexGen *texGenObject);
+                                       osg::TextureCubeMap *texObject,
+                                       osg::TexEnv *texEnvObject,
+                                       osg::TexEnvCombine *texEnvCombineObject,
+                                       osg::TexGen *texGenObject);
 
     virtual void          attach(vsNode *node);
     virtual void          detach(vsNode *node);

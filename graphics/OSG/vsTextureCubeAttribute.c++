@@ -42,6 +42,7 @@ vsTextureCubeAttribute::vsTextureCubeAttribute()
     osgTextureCube->ref();
     osgTexEnv = new osg::TexEnv();
     osgTexEnv->ref();
+    osgTexEnvCombine = NULL;
     osgTexGen = new osg::TexGen();
     osgTexGen->ref();
 
@@ -86,6 +87,7 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit)
     osgTextureCube->ref();
     osgTexEnv = new osg::TexEnv();
     osgTexEnv->ref();
+    osgTexEnvCombine = NULL;
     osgTexGen = new osg::TexGen();
     osgTexGen->ref();
 
@@ -101,10 +103,16 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit)
 
     // Initialize the texture attribute
     setBoundaryMode(VS_TEXTURE_DIRECTION_ALL, VS_TEXTURE_BOUNDARY_CLAMP);
-    setApplyMode(VS_TEXTURE_APPLY_DECAL);
     setMagFilter(VS_TEXTURE_MAGFILTER_LINEAR);
     setMinFilter(VS_TEXTURE_MINFILTER_LINEAR);
     setGenMode(VS_TEXTURE_GEN_REFLECTION_MAP);
+
+    // Initialize the apply mode to MODULATE if we're on a texture unit other
+    // than 0, so that textures are blended together by default
+    if (unit > 0)
+        setApplyMode(VS_TEXTURE_APPLY_MODULATE);
+    else
+        setApplyMode(VS_TEXTURE_APPLY_DECAL);
 }
 
 // ------------------------------------------------------------------------
@@ -113,7 +121,7 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit)
 // ------------------------------------------------------------------------
 vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit,
     osg::TextureCubeMap *texObject, osg::TexEnv *texEnvObject,
-    osg::TexGen *texGenObject)
+    osg::TexEnvCombine *texEnvCombineObject, osg::TexGen *texGenObject)
 {
     // Set to the specified texture unit.
     if ((unit >= 0) && (unit < VS_MAXIMUM_TEXTURE_UNITS))
@@ -129,7 +137,11 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit,
     osgTextureCube = texObject;
     osgTextureCube->ref();
     osgTexEnv = texEnvObject;
-    osgTexEnv->ref();
+    if (osgTexEnv)
+        osgTexEnv->ref();
+    osgTexEnvCombine = texEnvCombineObject;
+    if (osgTexEnvCombine)
+        osgTexEnvCombine->ref();
     osgTexGen = texGenObject;
     osgTexGen->ref();
 
@@ -158,7 +170,10 @@ vsTextureCubeAttribute::~vsTextureCubeAttribute()
 {
     // Unreference the Texture2D and TexEnv objects
     osgTextureCube->unref();
-    osgTexEnv->unref();
+    if (osgTexEnv)
+        osgTexEnv->unref();
+    if (osgTexEnvCombine)
+        osgTexEnvCombine->unref();
     osgTexGen->unref();
 
     // Unreference the texture image data if it exists
@@ -404,22 +419,54 @@ int vsTextureCubeAttribute::getBoundaryMode(int whichDirection)
 // ------------------------------------------------------------------------
 void vsTextureCubeAttribute::setApplyMode(int applyMode)
 {
-    // Translate the applyMode to an OSG value and set it on the TexEnv
-    switch (applyMode)
+    // See if we're working with a regular TexEnv or a TexEnvCombine object
+    if (osgTexEnv)
     {
-        case VS_TEXTURE_APPLY_DECAL:
-            osgTexEnv->setMode(osg::TexEnv::DECAL);
-            break;
-        case VS_TEXTURE_APPLY_MODULATE:
-            osgTexEnv->setMode(osg::TexEnv::MODULATE);
-            break;
-        case VS_TEXTURE_APPLY_REPLACE:
-            osgTexEnv->setMode(osg::TexEnv::REPLACE);
-            break;
-        default:
-            printf("vsTextureCubeAttribute::setApplyMode: Bad apply mode "
-                "value\n");
-            return;
+        // Translate the applyMode to an OSG value and set it on the TexEnv
+        switch (applyMode)
+        {
+            case VS_TEXTURE_APPLY_DECAL:
+                osgTexEnv->setMode(osg::TexEnv::DECAL);
+                break;
+            case VS_TEXTURE_APPLY_MODULATE:
+                osgTexEnv->setMode(osg::TexEnv::MODULATE);
+                break;
+            case VS_TEXTURE_APPLY_REPLACE:
+                osgTexEnv->setMode(osg::TexEnv::REPLACE);
+                break;
+            default:
+                printf("vsTextureCubeAttribute::setApplyMode: Bad apply mode "
+                    "value\n");
+                return;
+        }
+    }
+    else
+    {
+        // Translate the applyMode to an OSG value and set it on the
+        // TexEnvCombine
+        switch (applyMode)
+        {
+            case VS_TEXTURE_APPLY_DECAL:
+                osgTexEnvCombine->
+                    setCombine_RGB(osg::TexEnvCombine::INTERPOLATE);
+                osgTexEnvCombine->
+                    setCombine_Alpha(osg::TexEnvCombine::REPLACE);
+                break;
+            case VS_TEXTURE_APPLY_MODULATE:
+                osgTexEnvCombine->setCombine_RGB(osg::TexEnvCombine::MODULATE);
+                osgTexEnvCombine->
+                    setCombine_Alpha(osg::TexEnvCombine::MODULATE);
+                break;
+            case VS_TEXTURE_APPLY_REPLACE:
+                osgTexEnvCombine->setCombine_RGB(osg::TexEnvCombine::REPLACE);
+                osgTexEnvCombine->
+                    setCombine_Alpha(osg::TexEnvCombine::REPLACE);
+                break;
+            default:
+                printf("vsTextureCubeAttribute::setApplyMode: Bad apply mode "
+                    "value\n");
+                return;
+        }
     }
 }
 
@@ -428,16 +475,34 @@ void vsTextureCubeAttribute::setApplyMode(int applyMode)
 // ------------------------------------------------------------------------
 int vsTextureCubeAttribute::getApplyMode()
 {
-    // Fetch and translate the osg::TexEnv's apply mode.  Return the
-    // translated value.
-    switch (osgTexEnv->getMode())
+    // See if we're using an osg::TexEnv or an osg::TexEnvCombine
+    if (osgTexEnv)
     {
-        case osg::TexEnv::DECAL:
-            return VS_TEXTURE_APPLY_DECAL;
-        case osg::TexEnv::MODULATE:
-            return VS_TEXTURE_APPLY_MODULATE;
-        case osg::TexEnv::REPLACE:
-            return VS_TEXTURE_APPLY_REPLACE;
+        // Fetch and translate the osg::TexEnv's apply mode.  Return the
+        // translated value.
+        switch (osgTexEnv->getMode())
+        {
+            case osg::TexEnv::DECAL:
+                return VS_TEXTURE_APPLY_DECAL;
+            case osg::TexEnv::MODULATE:
+                return VS_TEXTURE_APPLY_MODULATE;
+            case osg::TexEnv::REPLACE:
+                return VS_TEXTURE_APPLY_REPLACE;
+        }
+    }
+    else
+    {
+        // Fetch and translate the osg::TexEnvCombine's combine mode.
+        // Return the translated value.
+        switch (osgTexEnvCombine->getCombine_RGB())
+        {
+            case osg::TexEnvCombine::INTERPOLATE:
+                return VS_TEXTURE_APPLY_DECAL;
+            case osg::TexEnvCombine::MODULATE:
+                return VS_TEXTURE_APPLY_MODULATE;
+            case osg::TexEnvCombine::REPLACE:
+                return VS_TEXTURE_APPLY_REPLACE;
+        }
     }
 
     // Return -1 if we don't recognize the TexEnv's mode

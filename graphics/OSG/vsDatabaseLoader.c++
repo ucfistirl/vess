@@ -36,6 +36,7 @@
 #include <osg/Material>
 #include <osg/Texture2D>
 #include <osg/TexEnv>
+#include <osg/TexEnvCombine>
 #include <osg/TexGen>
 #include <osg/PolygonMode>
 #include <osg/PolygonOffset>
@@ -922,6 +923,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     osg::Texture *osgTexture;
     osg::TexEnv *osgTexEnv;
     osg::TexGen *osgTexGen;
+    osg::TexEnvCombine *osgTexEnvCombine;
     vsTextureAttribute *vsTextureAttr;
     vsTextureCubeAttribute *vsTextureCubeAttr;
 
@@ -1009,6 +1011,23 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     for (textureUnit = 0; textureUnit < VS_MAXIMUM_TEXTURE_UNITS; textureUnit++)
     {
         // Texture
+
+        // Only one of these two will be non-NULL (or possibly both).  
+        // Unfortunately, TexEnv and TexEnvCombine are not related to each 
+        // other by type, so this gets a bit ugly.  However, they both carry
+        // out the same function, so it's not a total mess.
+        osgTexEnv = dynamic_cast<osg::TexEnv *>
+            (stateSet->getTextureAttribute(textureUnit,
+            osg::StateAttribute::TEXENV));
+        osgTexEnvCombine = dynamic_cast<osg::TexEnvCombine *>
+            (stateSet->getTextureAttribute(textureUnit,
+            osg::StateAttribute::TEXENV));
+
+        // See if there's a texture coordinate generator attached.
+        osgTexGen = dynamic_cast<osg::TexGen *>
+            (stateSet->getTextureAttribute(textureUnit,
+            osg::StateAttribute::TEXGEN));
+
         // Note here that we're dynamic-casting to a Texture2D object, not just
         // any Texture type. If the texture isn't a Texture2D, the cast will
         // fail and return a NULL, which will make the function then test if it
@@ -1016,13 +1035,6 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
         // think that there's no texture at all. Since VESS currently only
         // supports 2-dimensional textures and texture cube maps anyway, this
         // is considered acceptable behavior.
-        osgTexEnv = dynamic_cast<osg::TexEnv *>
-            (stateSet->getTextureAttribute(textureUnit,
-            osg::StateAttribute::TEXENV));
-        osgTexGen = dynamic_cast<osg::TexGen *>
-            (stateSet->getTextureAttribute(textureUnit,
-            osg::StateAttribute::TEXGEN));
-
         if (osgTexture = dynamic_cast<osg::Texture2D *>
             (stateSet->getTextureAttribute(textureUnit,
             osg::StateAttribute::TEXTURE)))
@@ -1041,13 +1053,24 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
                 // with the texture object, because it's possible that the
                 // TexEnv may have been used in other places that the Texture
                 // wasn't.)
-                if (!osgTexEnv)
+                if ((!osgTexEnv) && (!osgTexEnvCombine))
                 {
                     osgTexEnv = new osg::TexEnv();
-                    osgTexEnv->setMode(osg::TexEnv::DECAL);
+
+                    // If this is the first texture layer (texture unit 0), 
+                    // use DECAL for the apply mode, otherwise default to
+                    // MODULATE, so the texture layers are properly
+                    // blended.
+                    if (textureUnit > 0)
+                        osgTexEnv->setMode(osg::TexEnv::MODULATE);
+                    else
+                        osgTexEnv->setMode(osg::TexEnv::DECAL);
                 }
-                else
+                else if (osgTexEnv)
                     osgTexEnv = new osg::TexEnv(*osgTexEnv);
+                else if (osgTexEnvCombine)
+                    osgTexEnvCombine = 
+                        new osg::TexEnvCombine(*osgTexEnvCombine);
 
                 // Create a new texture generator object for use by the texture
                 // attribute. (We don't want to use the one that came with the
@@ -1058,7 +1081,8 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
 
                 vsTextureAttr = 
                     new vsTextureAttribute(textureUnit,
-                    (osg::Texture2D *)osgTexture, osgTexEnv, osgTexGen);
+                    (osg::Texture2D *)osgTexture, osgTexEnv, osgTexEnvCombine,
+                    osgTexGen);
 
                 // Check the status of the override flag
                 osgRefAttrPair = stateSet->getTextureAttributePair(textureUnit,
@@ -1094,13 +1118,24 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
                 // came with the texture object, because it's possible that
                 // the TexEnv may have been used in other places that the
                 // Texture wasn't.)
-                if (!osgTexEnv)
+                if ((!osgTexEnv) && (!osgTexEnvCombine))
                 {
                     osgTexEnv = new osg::TexEnv();
-                    osgTexEnv->setMode(osg::TexEnv::DECAL);
+
+                    // If this is the first texture layer (texture unit 0), 
+                    // use DECAL for the apply mode, otherwise default to
+                    // MODULATE, so the texture layers are properly
+                    // blended.
+                    if (textureUnit > 0)
+                        osgTexEnv->setMode(osg::TexEnv::MODULATE);
+                    else
+                        osgTexEnv->setMode(osg::TexEnv::DECAL);
                 }
-                else
+                else if (osgTexEnv)
                     osgTexEnv = new osg::TexEnv(*osgTexEnv);
+                else if (osgTexEnvCombine)
+                    osgTexEnvCombine = 
+                        new osg::TexEnvCombine(*osgTexEnvCombine);
 
                 // Create a new texture generator object for use by the
                 // texture attribute. (We don't want to use the one that 
@@ -1117,7 +1152,8 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
 
                 vsTextureCubeAttr =
                     new vsTextureCubeAttribute(textureUnit,
-                    (osg::TextureCubeMap *) osgTexture, osgTexEnv, osgTexGen);
+                    (osg::TextureCubeMap *) osgTexture, osgTexEnv, 
+                    osgTexEnvCombine, osgTexGen);
 
                 // Check the status of the override flag
                 osgRefAttrPair = stateSet->getTextureAttributePair(

@@ -26,6 +26,7 @@
 #include <osg/Texture2D>
 #include <osg/Texture>
 #include <osg/TexEnv>
+#include <osg/TexEnvCombine>
 #include <osg/TexGen>
 #include <osg/Image>
 #include "vsStateAttribute.h++"
@@ -86,23 +87,25 @@ class VS_GRAPHICS_DLL vsTextureAttribute : public vsStateAttribute
 {
 private:
 
-    osg::Texture2D    *osgTexture;
-    osg::TexEnv       *osgTexEnv;
-    osg::TexGen       *osgTexGen;
-    osg::Image        *osgTexImage;
+    osg::Texture2D        *osgTexture;
+    osg::TexEnv           *osgTexEnv;
+    osg::TexGen           *osgTexGen;
+    osg::TexEnvCombine    *osgTexEnvCombine;
+    osg::Image            *osgTexImage;
 
-    unsigned int      textureUnit;
+    unsigned int          textureUnit;
 
-    bool              removeTexGen;
+    bool                  removeTexGen;
 
-    virtual void      setOSGAttrModes(vsNode *node);
+    virtual void          setOSGAttrModes(vsNode *node);
 
 VS_INTERNAL:
 
                       vsTextureAttribute(unsigned int unit,
-                                         osg::Texture2D *texObject,
-                                         osg::TexEnv *texEnvObject,
-                                         osg::TexGen *texGenObject);
+                                       osg::Texture2D *texObject,
+                                       osg::TexEnv *texEnvObject,
+                                       osg::TexEnvCombine *texEnvCombineObject,
+                                       osg::TexGen *texGenObject);
 
     virtual void      attach(vsNode *node);
     virtual void      detach(vsNode *node);
