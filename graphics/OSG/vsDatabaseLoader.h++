@@ -50,7 +50,9 @@ private:
 
     int                loaderModes;
 
-    int                importanceCheck(osg::Node *targetNode);
+    bool               importanceCheck(osg::Node *targetNode);
+
+    char               *stringDup(char *from);
 
     vsNode             *convertGeode(osg::Geode *geode,
                                      vsObjectMap *attrMap);

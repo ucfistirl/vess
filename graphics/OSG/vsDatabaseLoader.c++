@@ -67,7 +67,7 @@ vsDatabaseLoader::vsDatabaseLoader() : nodeNames(0, 50)
     // Get the default loader path from the environment variable; the path
     // variable is intiialized to something just to give the clearPath()
     // function something to delete.
-    loaderFilePath = strdup(".");
+    loaderFilePath = stringDup(".");
     clearPath();
     
     unitMode = VS_DATABASE_UNITS_METERS;
@@ -88,6 +88,23 @@ vsDatabaseLoader::~vsDatabaseLoader()
 }
 
 // ------------------------------------------------------------------------
+// Replaces strdup because, for some reason, that function is incompatible
+// in Windows
+// ------------------------------------------------------------------------
+char *vsDatabaseLoader::stringDup(char *from)
+{
+    char *to;
+
+    // Allocate the memory
+    to = (char *) malloc(sizeof(char) * (strlen(from) + 1));
+
+    // Copy the string
+    strcpy(to, from);
+
+    return to;
+}
+
+// ------------------------------------------------------------------------
 // Gets a string representation of this object's class name
 // ------------------------------------------------------------------------
 const char *vsDatabaseLoader::getClassName()
@@ -103,7 +120,7 @@ const char *vsDatabaseLoader::getClassName()
 void vsDatabaseLoader::addImportantNodeName(char *newName)
 {
     // Allocate space for and duplicate the given name
-    nodeNames[nodeNameCount] = strdup(newName);
+    nodeNames[nodeNameCount] = stringDup(newName);
 
     // Check for failure
     if (!(nodeNames[nodeNameCount]))
@@ -186,11 +203,11 @@ void vsDatabaseLoader::clearPath()
     // Attempt to get the default path from the environment; if not found,
     // default to just this directory.
     if (envPath = getenv("OSG_FILE_PATH"))
-        loaderFilePath = strdup(envPath);
+        loaderFilePath = stringDup(envPath);
     else if (envPath = getenv("OSGFILEPATH"))
-        loaderFilePath = strdup(envPath);
+        loaderFilePath = stringDup(envPath);
     else
-        loaderFilePath = strdup(".");
+        loaderFilePath = stringDup(".");
 }
 
 // ------------------------------------------------------------------------
@@ -289,7 +306,7 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
 // specified that Transforms are automatically important. The name check is
 // case sensitive.
 // ------------------------------------------------------------------------
-int vsDatabaseLoader::importanceCheck(osg::Node *targetNode)
+bool vsDatabaseLoader::importanceCheck(osg::Node *targetNode)
 {
     int loop;
     const char *targetName;

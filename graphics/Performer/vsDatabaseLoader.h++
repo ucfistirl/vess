@@ -67,6 +67,8 @@ private:
 
     bool               importanceCheck(pfNode *targetNode);
 
+    char               *stringDup(char *from);
+
     vsNode             *convertGeode(pfGeode *geode, vsObjectMap *attrMap);
     void               convertAttrs(vsGeometry *geometry, 
                                     pfGeoState *geoState,
