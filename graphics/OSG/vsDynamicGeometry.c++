@@ -54,6 +54,10 @@ vsDynamicGeometry::vsDynamicGeometry() : parentList(5, 5)
     osgGeometry = new osg::Geometry();
     osgGeometry->ref();
     osgGeode->addDrawable(osgGeometry);
+    
+    // Since this geometry is dynamic (i.e.: it will change every frame), 
+    // disable display listing of the geometry data. 
+    osgGeometry->setUseDisplayList(false);
 
     // Color array
     colorList = new osg::Vec4Array();
