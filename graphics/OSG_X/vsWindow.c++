@@ -640,6 +640,31 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
         return;
     }
 
+    // Create the window
+    setWinAttrs.colormap = colorMap;
+    setWinAttrs.border_pixel = 0;
+    setWinAttrs.event_mask = StructureNotifyMask;
+    xWindow = XCreateWindow(xWindowDisplay, RootWindow(xWindowDisplay, 
+                            visual->screen), VS_WINDOW_DEFAULT_XPOS, 
+                            VS_WINDOW_DEFAULT_YPOS, VS_WINDOW_DEFAULT_WIDTH, 
+                            VS_WINDOW_DEFAULT_HEIGHT, 0, visual->depth, 
+                            InputOutput, visual->visual, 
+                            CWBorderPixel|CWColormap|CWEventMask, 
+                            &setWinAttrs);
+
+    // Make sure the X window is valid
+    if (xWindow == 0)
+    {
+        // Print an error
+        printf("vsWindow::vsWindow:  Unable to create X Window!\n");
+
+        // Signal that this window object is not valid
+        validObject = VS_FALSE;
+
+        // Bail out
+        return;
+    }
+
     // Make the border hidden if requested
     if (hideBorder)
     {
@@ -666,25 +691,13 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
 
             // Change the property
             propertyType = property;
-            XChangeProperty(xWindowDisplay, xWindowID, property, propertyType,
+            XChangeProperty(xWindowDisplay, xWindow, property, propertyType,
                             sizeof(unsigned long) * 8, PropModeReplace, 
                             (unsigned char *) &motifHints,
                             PROP_MOTIF_WM_HINTS_ELEMENTS);
         }
         
     }
-
-    // Create the window
-    setWinAttrs.colormap = colorMap;
-    setWinAttrs.border_pixel = 0;
-    setWinAttrs.event_mask = StructureNotifyMask;
-    xWindow = XCreateWindow(xWindowDisplay, RootWindow(xWindowDisplay, 
-                            visual->screen), VS_WINDOW_DEFAULT_XPOS, 
-                            VS_WINDOW_DEFAULT_YPOS, VS_WINDOW_DEFAULT_WIDTH, 
-                            VS_WINDOW_DEFAULT_HEIGHT, 0, visual->depth, 
-                            InputOutput, visual->visual, 
-                            CWBorderPixel|CWColormap|CWEventMask, 
-                            &setWinAttrs);
 
     // Map (ie: open) the window and wait for it to finish mapping
     XMapWindow(xWindowDisplay, xWindow);
@@ -884,6 +897,30 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
         return;
     }
 
+    // Create the window
+    setWinAttrs.colormap = colorMap;
+    setWinAttrs.border_pixel = 0;
+    setWinAttrs.event_mask = StructureNotifyMask;
+    xWindow = XCreateWindow(xWindowDisplay, RootWindow(xWindowDisplay, 
+                            visual->screen), xPosition, yPosition,
+                            width, height, 0, visual->depth, InputOutput, 
+                            visual->visual, 
+                            CWBorderPixel|CWColormap|CWEventMask, 
+                            &setWinAttrs);
+
+    // Make sure the X window is valid
+    if (xWindow == 0)
+    {
+        // Print an error
+        printf("vsWindow::vsWindow:  Unable to create X Window!\n");
+
+        // Signal that this window object is not valid
+        validObject = VS_FALSE;
+
+        // Bail out
+        return;
+    }
+
     // Make the border hidden if requested
     if (hideBorder)
     {
@@ -910,24 +947,13 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
 
             // Change the property
             propertyType = property;
-            XChangeProperty(xWindowDisplay, xWindowID, property, propertyType,
+            XChangeProperty(xWindowDisplay, xWindow, property, propertyType,
                             sizeof(unsigned long) * 8, PropModeReplace, 
                             (unsigned char *) &motifHints,
                             PROP_MOTIF_WM_HINTS_ELEMENTS);
         }
         
     }
-
-    // Create the window
-    setWinAttrs.colormap = colorMap;
-    setWinAttrs.border_pixel = 0;
-    setWinAttrs.event_mask = StructureNotifyMask;
-    xWindow = XCreateWindow(xWindowDisplay, RootWindow(xWindowDisplay, 
-                            visual->screen), xPosition, yPosition,
-                            width, height, 0, visual->depth, InputOutput, 
-                            visual->visual, 
-                            CWBorderPixel|CWColormap|CWEventMask, 
-                            &setWinAttrs);
 
     // Map (ie: open) the window and wait for it to finish mapping
     XMapWindow(xWindowDisplay, xWindow);
@@ -1500,22 +1526,11 @@ void vsWindow::makeCurrent()
 
 // ------------------------------------------------------------------------
 // Internal function
-// Swaps the drawing buffers on this window
-// ------------------------------------------------------------------------
-void vsWindow::swapBuffers()
-{
-    // Call GLX to swap the buffers on the X Window
-    glXSwapBuffers(parentScreen->getParentPipe()->getXDisplay(), xWindow);
-}
-
-// ------------------------------------------------------------------------
-// Internal function
 // Processes X events on this window
 // ------------------------------------------------------------------------
 void vsWindow::update()
 {
     XEvent event;
-    int    width, height;
     int    i;
 
     // Check for X events on this window
@@ -1526,14 +1541,7 @@ void vsWindow::update()
         switch (event.type)
         {
             case ConfigureNotify:
-
-                // Configure notify event, this means that the configuration
-                // of the window changed.  Get the new width and height of 
-                // the window
-                width = event.xconfigure.width;
-                height = event.xconfigure.height;
-
-                // Resize each pane to match
+                // Resize each pane to match the new window dimensions
                 for (i = 0; i < childPaneCount; i++)
                     ((vsPane *)childPaneList[i])->resize();
                 break;
