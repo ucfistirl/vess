@@ -76,3 +76,10 @@ vsUDPUnicastNetworkInterface::~vsUDPUnicastNetworkInterface()
 {
 }
 
+// ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsUDPUnicastNetworkInterface::getClassName()
+{
+    return "vsUDPUnicastNetworkInterface";
+}

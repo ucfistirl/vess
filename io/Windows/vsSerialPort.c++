@@ -135,6 +135,14 @@ vsSerialPort::~vsSerialPort()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsSerialPort::getClassName()
+{
+    return "vsSerialPort";
+}
+
+// ------------------------------------------------------------------------
 // Set the port to the current set of communcations attributes
 // ------------------------------------------------------------------------
 int vsSerialPort::setAttributes(DCB *newDCB, COMMTIMEOUTS *newTimeouts)

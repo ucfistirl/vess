@@ -24,10 +24,11 @@
 
 #include <windows.h>
 #include "vsGlobals.h++"
+#include "vsObject.h++"
 
 #define VS_SERIAL_NUM_READ_RETRYS  320000
 
-class VS_IO_DLL vsSerialPort
+class VS_IO_DLL vsSerialPort : public vsObject
 {
 private:
 
@@ -49,6 +50,8 @@ public:
                               char parity, int stopBits);
     virtual      ~vsSerialPort(void);
       
+    virtual const char    *getClassName();
+
     int          writePacket(unsigned char *string, int length);
     int          readPacket(unsigned char *string, int length);
 

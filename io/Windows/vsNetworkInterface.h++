@@ -31,12 +31,14 @@
 #include <fcntl.h>
 #include <string.h>
 #include "vsGlobals.h++"
+#include "vsObject.h++"
 
 #define MAX_PACKET_SIZE   65000
 
-class VS_IO_DLL vsNetworkInterface
+class VS_IO_DLL vsNetworkInterface : public vsObject
 {
 protected:
+
     SOCKET                socketValue;
     struct sockaddr_in    readName;
     struct sockaddr_in    writeName;
