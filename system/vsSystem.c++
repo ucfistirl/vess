@@ -2,6 +2,7 @@
 
 #include "vsSystem.h++"
 
+#include <sys/time.h>
 #include <X11/Xlib.h>
 #include <Performer/pf.h>
 #include <Performer/pfutil.h>
@@ -22,6 +23,7 @@ vsSystem::vsSystem(vsDatabaseLoader *fileLoader)
 {
     pfWSConnection winConnection;
     int numScreens, loop;
+    struct timeval timeStruct;
     
     if (systemObject)
     {
@@ -69,6 +71,11 @@ vsSystem::vsSystem(vsDatabaseLoader *fileLoader)
     }
     
     nodeMap = new vsObjectMap();
+
+    // Initialize the current time
+    gettimeofday(&timeStruct, NULL);
+    lastFrameTimestamp = timeStruct.tv_sec + (timeStruct.tv_usec / 1000000.0);
+    lastFrameDuration = 0.0;
 }
 
 // ------------------------------------------------------------------------
@@ -105,6 +112,7 @@ vsSystem::vsSystem(char *databaseFilename, char **nameList, char *windowTitle,
     vsVector viewPt, upDir;
     vsNode *scene;
     vsLightAttribute *globalLight;
+    struct timeval timeStruct;
 
     if (systemObject)
     {
@@ -189,7 +197,12 @@ vsSystem::vsSystem(char *databaseFilename, char **nameList, char *windowTitle,
     globalLight->setScope(VS_LIGHT_MODE_GLOBAL);
     globalLight->on();
     scene->addAttribute(globalLight);
-    
+
+    // Initialize the current time
+    gettimeofday(&timeStruct, NULL);
+    lastFrameTimestamp = timeStruct.tv_sec + (timeStruct.tv_usec / 1000000.0);
+    lastFrameDuration = 0.0;
+
     // Return the requested values and finish
     if (sceneGraph)
         *sceneGraph = scene;
@@ -347,6 +360,8 @@ void vsSystem::drawFrame()
     vsWindow *targetWindow;
     vsPane *targetPane;
     vsNode *scene;
+    struct timeval timeStruct;
+    double currentTime;
     
     // Update the viewpoint of each pane by its vsView object
     for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
@@ -369,8 +384,26 @@ void vsSystem::drawFrame()
         }
     }
     
-    // Last step is to let Performer do its thing
+    // Wait until the next frame boundary
+    pfSync();
+    
+    // Check how much time has elapsed since the last time we were here
+    gettimeofday(&timeStruct, NULL);
+    currentTime = timeStruct.tv_sec + (timeStruct.tv_usec / 1000000.0);
+    lastFrameDuration = currentTime - lastFrameTimestamp;
+    lastFrameTimestamp = currentTime;
+    
+    // Start the processing for this frame
     pfFrame();
+}
+
+// ------------------------------------------------------------------------
+// Returns the amount of elapsed time between the last two calls to
+// drawFrame.
+// ------------------------------------------------------------------------
+double vsSystem::getFrameTime()
+{
+    return lastFrameDuration;
 }
 
 // ------------------------------------------------------------------------

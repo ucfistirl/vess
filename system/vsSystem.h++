@@ -27,6 +27,9 @@ private:
     vsObjectMap         *nodeMap;
     vsGraphicsState     *graphicsState;
     
+    double		lastFrameTimestamp;
+    double		lastFrameDuration;
+    
     void                preFrameTraverse(vsNode *node);
     
     void                writeBlanks(FILE *outfile, int count);
@@ -56,6 +59,8 @@ public:
     vsNode              *loadDatabase(char *databaseFilename);
     
     void                drawFrame();
+    
+    double		getFrameTime();
     
     void                printScene(vsNode *targetNode, FILE *outputFile);
 };
