@@ -97,16 +97,33 @@ vsWindow *vsScreen::getChildWindow(int index)
 // ------------------------------------------------------------------------
 void vsScreen::getScreenSize(int *width, int *height)
 {
-    int x, y;
+    int xSize, ySize;
     
-    // Ask the pfPipe for its screen size
-    parentPipe->getBaseLibraryObject()->getSize(&x, &y);
+    // Normally, we would ask Performer for the screen size, but, in this
+    // initial version of Performer for Windows at least, it seems to be
+    // returning bogus values.  So, we'll get the screen size through
+    // Windows.
     
-    // Return the width and height, if requested
-    if (width)
-        *width = x;
-    if (height)
-        *height = y;
+    // There is no concept of a "virtual screen" with multiple display
+    // monitors under Windows 95 or NT 4.0, so we'll need to check for
+    // that here
+    #if (WINVER >= 0x0500)
+        // We're using Windows 98/ME or Windows 2000/XP, so use the virtual
+        // screen size
+        xSize = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+        ySize = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    #else
+        // We're using Windows 95 or Windows NT, so use the size of the
+        // primary display (multiple displays are not supported)
+        xSize = GetSystemMetrics(SM_CXSCREEN);
+        ySize = GetSystemMetrics(SM_CYSCREEN);
+    #endif
+    
+    // Return the size in the parameters
+    if (width != NULL)
+        *width = xSize;
+    if (height != NULL)
+        *height = ySize;
 }
 
 // ------------------------------------------------------------------------
