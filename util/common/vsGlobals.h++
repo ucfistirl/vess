@@ -43,8 +43,9 @@ enum
 
 #define VS_PI    (3.14159265358979)
 
-#define VS_DEFAULT_TOLERANCE    (1E-6)
+#define VS_DEFAULT_TOLERANCE    (1E-12)
 
+#define VS_MAXIMUM_TEXTURE_UNITS 8
 
 // Various useful macros
 
