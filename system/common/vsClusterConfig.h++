@@ -23,9 +23,9 @@
 #ifndef VS_CLUSTERCONFIG_HPP
 #define VS_CLUSTERCONFIG_HPP
 
-//#define VS_IPLIST_MAX_SLAVES 256
+#include "vsGlobals.h++"
 
-class vsClusterConfig
+class VS_SYSTEM_DLL vsClusterConfig
 {
 private:
 
