@@ -1037,6 +1037,24 @@ vsVector &vsMatrix::operator[](int index)
 }
 
 // ------------------------------------------------------------------------
+// Retrieves one row of the matrix as a vsVector reference. Useful in
+// conjunction with the vsVector's operator[] to access one specific
+// element of the matrix.
+// ------------------------------------------------------------------------
+const vsVector &vsMatrix::operator[](int index) const
+{
+    // Bounds checking
+    if ((index < 0) || (index >= 4))
+    {
+        printf("vsMatrix::operator[]: Invalid index\n");
+        return data[0];
+    }
+    
+    // Return the desired row
+    return data[index];
+}
+
+// ------------------------------------------------------------------------
 // Adds the specified matrix to this matrix, returning the result
 // Equivalent to getSum(addend)
 // ------------------------------------------------------------------------
