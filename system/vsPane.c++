@@ -294,7 +294,7 @@ void vsPane::updateView()
 
     sceneView->updateFromAttribute();
     
-    viewMatrix = sceneView->getBasisRotationMat();
+    viewMatrix.setQuatRotation(sceneView->getRotationQuat());
     viewPos = sceneView->getViewpoint();
     for (loop = 0; loop < 3; loop++)
         viewMatrix[loop][3] = viewPos[loop];
