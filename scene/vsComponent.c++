@@ -373,25 +373,6 @@ int vsComponent::getNodeType()
 }
 
 // ------------------------------------------------------------------------
-// Searches the component and the hierarchy under it for a node with the
-// given name
-// ------------------------------------------------------------------------
-vsNode *vsComponent::findNodeByName(const char *targetName)
-{
-    int loop;
-    vsNode *result;
-
-    if (!strcmp(targetName, getName()))
-        return this;
-
-    for (loop = 0; loop < childCount; loop++)
-        if (result = ((vsNode *)(childList[loop]))->findNodeByName(targetName))
-            return result;
-
-    return NULL;
-}
-
-// ------------------------------------------------------------------------
 // Adds the given node as a child of this component
 // ------------------------------------------------------------------------
 void vsComponent::addChild(vsNode *newChild)
@@ -741,6 +722,33 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
 pfGroup *vsComponent::getBaseLibraryObject()
 {
     return topGroup;
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Searches this node and its children for the idx'th occurrence of a node
+// with the given name. The idx value is decremented after each match;
+// success only occurs once idx reaches zero. Returns a pointer to this
+// node if a match is found and idx is zero, NULL otherwise.
+// ------------------------------------------------------------------------
+vsNode *vsComponent::nodeSearch(const char *name, int *idx)
+{
+    int loop;
+    vsNode *result;
+
+    if (!strcmp(name, getName()))
+    {
+	if ((*idx) > 0)
+	    (*idx)--;
+	else
+	    return this;
+    }
+
+    for (loop = 0; loop < childCount; loop++)
+        if (result = ((vsNode *)(childList[loop]))->nodeSearch(name, idx))
+            return result;
+
+    return NULL;
 }
 
 // ------------------------------------------------------------------------

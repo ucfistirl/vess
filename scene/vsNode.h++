@@ -47,7 +47,7 @@ protected:
     int                parentCount;
 
     char               nodeName[VS_NODE_NAME_MAX_LENGTH];
-    
+
     vsGrowableArray    attributeList;
     int                attributeCount;
 
@@ -55,43 +55,46 @@ protected:
 
 VS_INTERNAL:
 
-    void            addParent(vsComponent *newParent);
-    void            removeParent(vsComponent *targetParent);
+    virtual vsNode    *nodeSearch(const char *name, int *idx) = 0;
 
-    virtual void    saveCurrentAttributes();
-    virtual void    applyAttributes();
-    virtual void    restoreSavedAttributes();
-    
-    void            dirty();
-    void            clean();
-    int             isDirty();
+    void              addParent(vsComponent *newParent);
+    void              removeParent(vsComponent *targetParent);
 
-    void            dirtyUp();
-    virtual void    dirtyDown();
+    virtual void      saveCurrentAttributes();
+    virtual void      applyAttributes();
+    virtual void      restoreSavedAttributes();
+
+    void              dirty();
+    void              clean();
+    int               isDirty();
+
+    void              dirtyUp();
+    virtual void      dirtyDown();
 
 public:
 
                         vsNode();
     virtual             ~vsNode();
-    
+
     virtual vsNode      *cloneTree();
 
     virtual int         getNodeType() = 0;
 
     int                 getParentCount();
     vsComponent         *getParent(int index);
-    
+
     void                setName(const char *newName);
     const char          *getName();
-    virtual vsNode      *findNodeByName(const char *targetName) = 0;
-    
+    virtual vsNode      *findNodeByName(const char *targetName);
+    virtual vsNode      *findNodeByName(const char *targetName, int index);
+
     virtual void        getBoundSphere(vsVector *centerPoint,
                                        double *radius) = 0;
     virtual vsMatrix    getGlobalXform() = 0;
-    
+
     virtual void            setIntersectValue(unsigned int newValue) = 0;
     virtual unsigned int    getIntersectValue() = 0;
-    
+
     virtual void            setVisibilityValue(unsigned int newValue) = 0;
     virtual unsigned int    getVisibilityValue() = 0;
 
@@ -106,4 +109,3 @@ public:
 };
 
 #endif
-

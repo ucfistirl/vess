@@ -437,18 +437,6 @@ int vsGeometry::getNodeType()
 }
 
 // ------------------------------------------------------------------------
-// Check this node to see if its name matches the given name, and returns
-// a pointer to this node if so.
-// ------------------------------------------------------------------------
-vsNode *vsGeometry::findNodeByName(const char *targetName)
-{
-    if (!strcmp(targetName, getName()))
-        return this;
-    else
-        return NULL;
-}
-
-// ------------------------------------------------------------------------
 // Sets the type of geometric primitive that this object contains
 // ------------------------------------------------------------------------
 void vsGeometry::setPrimitiveType(int newType)
@@ -1374,6 +1362,29 @@ void vsGeometry::inflateFlatGeometry()
             performerGeoset->setPrimType(PFGS_TRIFANS);
             break;
     }
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Searches this node for the idx'th occurrence of a node with the given
+// name. The idx value is decremented after each match; success only occurs
+// once idx reaches zero. Returns a pointer to this node if a match is
+// found and idx is zero, NULL otherwise.
+// ------------------------------------------------------------------------
+vsNode *vsGeometry::nodeSearch(const char *name, int *idx)
+{
+    if (!strcmp(name, getName()))
+    {
+        if ((*idx) > 0)
+        {
+            (*idx)--;
+            return NULL;
+        }
+        else
+            return this;
+    }
+
+    return NULL;
 }
 
 // ------------------------------------------------------------------------

@@ -41,21 +41,24 @@ private:
     pfGroup            *lightHook;
     pfGroup            *bottomGroup;
 
+
 VS_INTERNAL:
 
-                    vsComponent(pfGroup *targetGraph,
-                                vsDatabaseLoader *nameDirectory);
+                      vsComponent(pfGroup *targetGraph,
+                                  vsDatabaseLoader *nameDirectory);
 
-    int             handleName(pfNode *targetNode,
-                               vsDatabaseLoader *nameDirectory);
+    virtual vsNode    *nodeSearch(const char *name, int *idx);
 
-    pfGroup         *getTopGroup();
-    pfGroup         *getLightHook();
-    pfGroup         *getBottomGroup();
-    void            setBottomGroup(pfGroup *newBottom);
-    void            replaceBottomGroup(pfGroup *newGroup);
+    int               handleName(pfNode *targetNode,
+                                 vsDatabaseLoader *nameDirectory);
 
-    virtual void    dirtyDown();
+    pfGroup           *getTopGroup();
+    pfGroup           *getLightHook();
+    pfGroup           *getBottomGroup();
+    void              setBottomGroup(pfGroup *newBottom);
+    void              replaceBottomGroup(pfGroup *newGroup);
+
+    virtual void      dirtyDown();
 
 public:
 
@@ -66,7 +69,6 @@ public:
     void                deleteTree();
 
     virtual int         getNodeType();
-    virtual vsNode      *findNodeByName(const char *targetName);
 
     void                addChild(vsNode *newChild);
     void                insertChild(vsNode *newChild, int index);

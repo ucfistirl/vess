@@ -105,6 +105,30 @@ const char *vsNode::getName()
 }
 
 // ------------------------------------------------------------------------
+// Checks this node (and its children, if applicable) for nodes with the
+// given name, and returns the first such node found, if it exists. Returns
+// NULL otherwise.
+// ------------------------------------------------------------------------
+vsNode *vsNode::findNodeByName(const char *targetName)
+{
+    int idx = 0;
+
+    return nodeSearch(targetName, &idx);
+}
+
+// ------------------------------------------------------------------------
+// Checks this node (and its children, if applicable) for nodes with the
+// given name, and returns the index'th such node found, if it exists.
+// Returns NULL otherwise.
+// ------------------------------------------------------------------------
+vsNode *vsNode::findNodeByName(const char *targetName, int index)
+{
+    int idx = index;
+
+    return nodeSearch(targetName, &idx);
+}
+
+// ------------------------------------------------------------------------
 // Adds the specified attribute to the node's list, and notifies the
 // attribute that it has been added.
 // ------------------------------------------------------------------------
@@ -155,7 +179,7 @@ vsAttribute *vsNode::getAttribute(int index)
         printf("vsNode::getAttribute: Index out of bounds\n");
         return NULL;
     }
-    
+
     return (vsAttribute *)(attributeList[index]);
 }
 
@@ -167,7 +191,7 @@ vsAttribute *vsNode::getAttribute(int index)
 vsAttribute *vsNode::getTypedAttribute(int attribType, int index)
 {
     int loop, count;
-    
+
     count = 0;
     for (loop = 0; loop < attributeCount; loop++)
         if (attribType ==
@@ -190,7 +214,7 @@ vsAttribute *vsNode::getTypedAttribute(int attribType, int index)
 vsAttribute *vsNode::getCategoryAttribute(int attribCategory, int index)
 {
     int loop, count;
-    
+
     count = 0;
     for (loop = 0; loop < attributeCount; loop++)
         if (attribCategory ==
@@ -211,12 +235,12 @@ vsAttribute *vsNode::getCategoryAttribute(int attribCategory, int index)
 vsAttribute *vsNode::getNamedAttribute(char *attribName)
 {
     int loop;
-    
+
     for (loop = 0; loop < attributeCount; loop++)
         if (!strcmp(attribName,
             ((vsAttribute *)(attributeList[loop]))->getName()))
             return (vsAttribute *)(attributeList[loop]);
-    
+
     return NULL;
 }
 
@@ -236,7 +260,7 @@ void vsNode::addParent(vsComponent *newParent)
 void vsNode::removeParent(vsComponent *targetParent)
 {
     int loop, sloop;
-    
+
     for (loop = 0; loop < parentCount; loop++)
         if (targetParent == parentList[loop])
         {
@@ -254,7 +278,7 @@ void vsNode::removeParent(vsComponent *targetParent)
 void vsNode::saveCurrentAttributes()
 {
     int loop;
-    
+
     for (loop = 0; loop < attributeCount; loop++)
         ((vsAttribute *)(attributeList[loop]))->saveCurrent();
 }
@@ -266,7 +290,7 @@ void vsNode::saveCurrentAttributes()
 void vsNode::applyAttributes()
 {
     int loop;
-    
+
     for (loop = 0; loop < attributeCount; loop++)
         ((vsAttribute *)(attributeList[loop]))->apply();
 }
@@ -278,7 +302,7 @@ void vsNode::applyAttributes()
 void vsNode::restoreSavedAttributes()
 {
     int loop;
-    
+
     for (loop = 0; loop < attributeCount; loop++)
         ((vsAttribute *)(attributeList[loop]))->restoreSaved();
 }
@@ -303,7 +327,7 @@ void vsNode::dirty()
 void vsNode::clean()
 {
     int loop, flag;
-    
+
     flag = 1;
     for (loop = 0; loop < parentCount; loop++)
         if (((vsNode *)(parentList[loop]))->isDirty())
@@ -329,9 +353,9 @@ int vsNode::isDirty()
 void vsNode::dirtyUp()
 {
     int loop;
-    
+
     dirtyFlag = VS_TRUE;
-    
+
     for (loop = 0; loop < parentCount; loop++)
         ((vsNode *)(parentList[loop]))->dirtyUp();
 }

@@ -63,31 +63,33 @@ class vsGeometry : public vsNode
 {
 private:
 
-    pfGeode         *performerGeode;
-    pfGeoSet        *performerGeoset;
-    pfGeoState      *performerGeostate;
-    
-    pfVec4          *colorList;
-    int             colorListSize;
-    pfVec3          *normalList;
-    int             normalListSize;
-    pfVec2          *texCoordList;
-    int             texCoordListSize;
-    pfVec3          *vertexList;
-    int             vertexListSize;
-    int             *lengthsList;
-    
-    pfLight         **lightsList;
+    pfGeode       *performerGeode;
+    pfGeoSet      *performerGeoset;
+    pfGeoState    *performerGeostate;
 
-    void            inflateFlatGeometry();
+    pfVec4        *colorList;
+    int           colorListSize;
+    pfVec3        *normalList;
+    int           normalListSize;
+    pfVec2        *texCoordList;
+    int           texCoordListSize;
+    pfVec3        *vertexList;
+    int           vertexListSize;
+    int           *lengthsList;
+
+    pfLight       **lightsList;
+
+    void          inflateFlatGeometry();
 
 VS_INTERNAL:
 
-                    vsGeometry(pfGeode *targetGeode);
+                      vsGeometry(pfGeode *targetGeode);
 
-    virtual void    applyAttributes();
-    
-    static int      geostateCallback(pfGeoState *gstate, void *userData);
+    virtual vsNode    *nodeSearch(const char *name, int *idx);
+
+    virtual void      applyAttributes();
+
+    static int        geostateCallback(pfGeoState *gstate, void *userData);
 
 public:
 
@@ -95,7 +97,6 @@ public:
     virtual             ~vsGeometry();
 
     virtual int         getNodeType();
-    virtual vsNode      *findNodeByName(const char *targetName);
 
     void                setPrimitiveType(int newType);
     int                 getPrimitiveType();
