@@ -23,7 +23,6 @@
 
 #include "vsSystem.h++"
 
-#include <sys/time.h>
 #include <Performer/pf.h>
 #include <Performer/pfutil.h>
 #include <Performer/pfdu.h>
@@ -71,7 +70,12 @@ vsSystem::vsSystem()
 
     // Configure the system for the available number of graphics pipelines
     winConnection = pfGetCurWSConnection();
+#ifdef WIN32
+    // Performer under windows currently supports only 1 screen
+    screenCount = 1;
+#else
     screenCount = ScreenCount(winConnection);
+#endif
 
     // Activate multipipe mode if appropriate
     if (screenCount > 1)
@@ -131,7 +135,12 @@ vsSystem::vsSystem(vsClusterConfig *config)
 
     // Configure the system for the available number of graphics pipelines
     winConnection = pfGetCurWSConnection();
+#ifdef WIN32
+    // Performer under windows currently supports only 1 screen
+    screenCount = 1;
+#else
     screenCount = ScreenCount(winConnection);
+#endif
 
     // Activate multipipe mode if appropriate
     if (screenCount > 1)
@@ -487,6 +496,9 @@ vsSequencer *vsSystem::getSequencer()
 // ------------------------------------------------------------------------
 void vsSystem::drawFrame()
 {
+#ifdef WIN32
+    MSG message;
+#endif
     int numSlavesReportedIn;
     int screenLoop, windowLoop, paneLoop;
     int windowCount, paneCount;
@@ -696,6 +708,16 @@ void vsSystem::drawFrame()
     
     // Start the processing for this frame
     pfFrame();
+    
+#ifdef WIN32
+    // Windows only:  the message pump.  Check for Windows messages
+    // in the message queue, and dispatch them to the message handler 
+    // if any are waiting.
+    while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE))
+    {
+        DispatchMessage(&message);
+    }
+#endif
 }
 
 // ------------------------------------------------------------------------
