@@ -24,14 +24,14 @@
 #ifndef VS_SCENT_MANAGER_HPP
 #define VS_SCENT_MANAGER_HPP
 
-#include "vsObject.h++"
+#include "vsUpdatable.h++"
 #include "vsScent.h++"
 #include "vsScentSourceAttribute.h++"
 #include "vsScentDetectorAttribute.h++"
 
 #define VS_SM_MAX_SCENTS 20
 
-class vsScentManager : public vsObject
+class vsScentManager : public vsUpdatable
 {
 protected:
 
