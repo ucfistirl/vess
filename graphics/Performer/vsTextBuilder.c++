@@ -64,6 +64,7 @@ vsTextBuilder::vsTextBuilder(char *newFont)
     setColor(vsVector(1.0, 1.0, 1.0, 1.0));
 
     // Attempt to set the font to the given one.
+    font = NULL;
     setFont(newFont);
 
     // Initialize the transform to the identity so it does not alter
@@ -87,6 +88,7 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor)
     setColor(newColor);
 
     // Attempt to set the font to the given one.
+    font = NULL;
     setFont(newFont);
 
     // Initialize the transform to the identity so it does not alter
@@ -112,6 +114,7 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor,
     setColor(newColor);
 
     // Attempt to set the font to the given one.
+    font = NULL;
     setFont(newFont);
 
     // Initialize the transform to the given matrix.
@@ -131,6 +134,14 @@ vsTextBuilder::~vsTextBuilder()
 
     // Delete the loader.
     delete loader;
+}
+
+// ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsTextBuilder::getClassName()
+{
+    return "vsTextBuilder";
 }
 
 // ------------------------------------------------------------------------
