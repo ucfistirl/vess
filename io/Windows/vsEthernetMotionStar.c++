@@ -68,7 +68,8 @@ vsEthernetMotionStar::vsEthernetMotionStar(char *serverName, int port,
     coordXform = quat2 * quat1;
 
     // Open ethernet link
-    net = new vsUDPUnicastNetworkInterface(serverName, port, VS_TRUE);
+    net = new vsUDPNetworkInterface(serverName, port);
+    net->enableBlocking();
 
     // Make sure it opened, print an error if not
     if (net)
@@ -306,7 +307,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
     while (responseRequired)
     {
         // Send the packet
-        result = net->writePacket((unsigned char *)packet, packetLength);
+        result = net->write((unsigned char *)packet, packetLength);
 
         // Wait for hardware
         Sleep(10);
@@ -328,7 +329,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
         if (responseRequired)
         {
             // Read the response
-            result = net->readPacket((unsigned char *)&responsePacket,
+            result = net->read((unsigned char *)&responsePacket,
                  sizeof(vsBirdnetPacket));
 
             // Make sure the response is at least as big as a BirdNet
@@ -1294,8 +1295,7 @@ void vsEthernetMotionStar::updateSystem()
     }
 
     // Read the data packet
-    net->readPacket((unsigned char *)&dataPacket,
-        sizeof(vsBirdnetPacket));
+    net->read((unsigned char *)&dataPacket, sizeof(vsBirdnetPacket));
 
     // Make sure the packet is the correct type
     if ((dataPacket.header.type == VS_BN_DATA_PACKET_MULTI) ||
@@ -1448,8 +1448,7 @@ void vsEthernetMotionStar::stopStream()
         while ((trashPacket.header.type != VS_BN_DATA_PACKET_SINGLE) &&
             (trashPacket.header.type != VS_BN_DATA_PACKET_MULTI))
         {
-            net->readPacket((unsigned char *)&trashPacket, 
-                sizeof(vsBirdnetPacket));
+            net->read((unsigned char *)&trashPacket, sizeof(vsBirdnetPacket));
 
             // Increment the sequence number
             currentSequence = trashPacket.header.sequence + 1;
