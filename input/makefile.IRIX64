@@ -15,13 +15,7 @@
 #----------------------------------------------------------------------
 #                       Name of the library
 #----------------------------------------------------------------------
-LIBNAME = libvsInput
-STATICEXT = .a
-SHAREDEXT = .so
-MAJORVER = 1
-MINORVER = 0
-MICROVER = 0
-VERSION = $(MAJORVER).$(MINORVER).$(MICROVER)
+LIBNAME = libvsInput.a
 
 #----------------------------------------------------------------------
 #			All Source and Object files
@@ -108,6 +102,7 @@ ARFLAGS = -rulc
 include ../libpaths.IRIX64
 
 INCS = \
+       -I. \
        -I../system \
        -I../scene \
        -I../math \
@@ -122,12 +117,7 @@ all: $(LIBNAME)
 #			Library archive rules
 #----------------------------------------------------------------------
 $(LIBNAME): $(OBJS)
-	ar $(ARFLAGS) $(LIBNAME)$(STATICEXT) $(OBJS)
-#	$(CXX) -shared -Wl,"-soname,libvsInput$(SHAREDEXT).$(MAJORVER)" \
-#            -o libvsInput$(SHAREDEXT).$(VERSION) $(OBJS)
-#	ln -sf libvsInput$(SHAREDEXT).$(VERSION) libvsInput$(SHAREDEXT)
-#	ln -sf libvsInput$(SHAREDEXT).$(VERSION) \
-#            libvsInput$(SHAREDEXT).$(MAJORVER)
+	ar $(ARFLAGS) $(LIBNAME) $(OBJS)
 
 #----------------------------------------------------------------------
 #			Inference Rules

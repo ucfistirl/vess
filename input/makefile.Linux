@@ -102,7 +102,7 @@ ARFLAGS = -rulc
 include ../libpaths.Linux
 
 INCS = \
-       -I.. \
+       -I. \
        -I../math \
        -I../scene \
        -I../system \

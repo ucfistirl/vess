@@ -102,6 +102,7 @@ ARFLAGS = -rulc
 include ../libpaths.IRIX
 
 INCS = \
+       -I. \
        -I../system \
        -I../scene \
        -I../math \
