@@ -93,9 +93,12 @@ void vsGrowableArray::setSize(int newSize)
 
         if (storage)
         {
-            // Clear the newly-allocated memory
-            memset(&storage[currentSize], 0, 
-                sizeof(void *) * (newSize - currentSize));
+            // If the list has grown, clear the newly-allocated memory
+            if (newSize > currentSize)
+            {
+                memset(&storage[currentSize], 0, 
+                    sizeof(void *) * (newSize - currentSize));
+            }
 
             currentSize = newSize;
         }
