@@ -34,6 +34,7 @@
 #include "vsWireframeAttribute.h++"
 #include "vsLightAttribute.h++"
 #include "vsGrowableArray.h++"
+#include "vsGeometry.h++"
 
 class VS_GRAPHICS_DLL vsGraphicsState : public vsObject
 {
