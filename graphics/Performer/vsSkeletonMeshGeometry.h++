@@ -18,7 +18,7 @@
 //                  coordinates, colors, and face normals.  This version
 //                  uses Performer's pfFlux to handle dynamic geometry.
 //
-//    Author(s):    Bryan Kline, Jason Daly, Duvan Cope
+//    Author(s):    Duvan Cope, Bryan Kline, Jason Daly
 //
 //------------------------------------------------------------------------
 
@@ -27,13 +27,15 @@
 
 #include <Performer/pr/pfFlux.h>
 #include <Performer/pf/pfGeode.h>
-#include <Performer/pr/pfGeoArray.h>
+#include <Performer/pr/pfGeoSet.h>
 #include "vsVector.h++"
 #include "vsAttribute.h++"
 #include "vsGeometry.h++"
 
-#define VS_WEIGHT_ATTRIBUTE_INDEX    1
-#define VS_BONE_ATTRIBUTE_INDEX      7
+#define VS_GEOMETRY_SKIN_VERTEX_COORDS 1000
+#define VS_GEOMETRY_SKIN_NORMALS       1001
+                                                                                
+#define VS_GEOMETRY_BONE_INDICES       VS_GEOMETRY_USER_DATA1
 
 class VS_GRAPHICS_DLL vsSkeletonMeshGeometry : public vsNode
 {
@@ -44,7 +46,7 @@ private:
 
     pfGeode            *performerGeode;
     pfFlux             *performerFlux;
-    pfGeoArray         *performerGeoarray;
+    pfGeoSet           *performerGeoset;
     pfGeoState         *performerGeostate;
 
     pfVec4             *colorList;
@@ -64,10 +66,6 @@ private:
     pfVec4             *weightList;
     int                weightListSize;
 
-    // Attributes for the pfGeoArray to hold the bone and weight values. 
-    pfVertexAttr       *weightAttr;
-    pfVertexAttr       *boneAttr;
-
     // Storage for some of the geometry attributes that
     // may stay static
     int                primitiveType;
@@ -81,7 +79,7 @@ private:
 
     int                renderBin;
 
-    static int         initFluxedGeoArray(pfFluxMemory *fluxMem);
+    static int         initFluxedGeoSet(pfFluxMemory *fluxMem);
 
     void               inflateFlatGeometry();
 

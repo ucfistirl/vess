@@ -47,22 +47,22 @@ vsSkeletonMeshGeometry::vsSkeletonMeshGeometry() : parentList(5, 5)
     performerGeode = new pfGeode();
     performerGeode->ref();
 
-    // Create a pfFlux for the pfGeoArrays to manage the changes in the 
-    // pfGeoArrays as they progress through the different processes in the 
+    // Create a pfFlux for the pfGeoSets to manage the changes in the 
+    // pfGeoSets as they progress through the different processes in the 
     // Performer pipeline
-    performerFlux = new pfFlux(initFluxedGeoArray, PFFLUX_DEFAULT_NUM_BUFFERS);
+    performerFlux = new pfFlux(initFluxedGeoSet, PFFLUX_DEFAULT_NUM_BUFFERS);
     performerFlux->ref();
+// DAC
     performerFlux->setMode(PFFLUX_COPY_LAST_DATA, PF_ON);
 
     // Create a pfGeoState
     performerGeostate = new pfGeoState();
     performerGeostate->ref();
 
-    // Extract the first pfGeoArray from the pfFlux and attach the pfGeoState
+    // Extract the first pfGeoSet from the pfFlux and attach the pfGeoState
     // to it
-    performerGeoarray = (pfGeoArray *)performerFlux->getCurData();
-    performerGeode->addGSet(performerGeoarray);
-    performerGeoarray->setGState(performerGeostate);
+    performerGeoset = (pfGeoSet *)performerFlux->getCurData();
+    performerGeode->addGSet(performerGeoset);
 
     // Initialize the attribute lists to NULL and size 0
     colorList = NULL;
@@ -89,22 +89,12 @@ vsSkeletonMeshGeometry::vsSkeletonMeshGeometry() : parentList(5, 5)
 
     // Initialize the primitive count to zero
     setPrimitiveCount(0);
- 
+    
     // Initialize the attribute bindings
     colorBinding = VS_GEOMETRY_BIND_NONE;
     normalBinding = VS_GEOMETRY_BIND_PER_VERTEX;
     vertexBinding = VS_GEOMETRY_BIND_PER_VERTEX;
-
-    // Create the generic attributes to use for the bone and weight data.
-    weightAttr = pfGeoArray::addGenericAttrType("weights",
-        VS_WEIGHT_ATTRIBUTE_INDEX);
-    performerGeoarray->addAttr(weightAttr, 4, GL_FLOAT, 0, weightList);
-//printf("weightAttr: %p\n", weightAttr);
-
-    boneAttr = pfGeoArray::addGenericAttrType("bones", VS_BONE_ATTRIBUTE_INDEX);
-    performerGeoarray->addAttr(boneAttr, 4, GL_FLOAT, 0, boneList);
-//printf("boneAttr: %p\n", boneAttr);
- 
+    
     // Take care of lights and other graphics state initialization
     lightsList = (pfLight **)
         (pfMemory::malloc(sizeof(pfLight *) * PF_MAX_LIGHTS));
@@ -114,10 +104,10 @@ vsSkeletonMeshGeometry::vsSkeletonMeshGeometry() : parentList(5, 5)
     // Set up a pre-callback for the Performer GeoState.  This allows
     // VESS to track state changes and set node attributes appropriately.
     performerGeostate->setFuncs(geostateCallback, NULL, lightsList);
- 
+    
     // Make sure the "force flat shading" draw mode is off since we don't
     // want all geometry to be drawn flat shaded.
-    performerGeoarray->setDrawMode(PFGS_FLATSHADE, PF_OFF);
+    performerGeoset->setDrawMode(PFGS_FLATSHADE, PF_OFF);
 
     // Enable lighting (by default)
     enableLighting();
@@ -138,7 +128,7 @@ vsSkeletonMeshGeometry::~vsSkeletonMeshGeometry()
     deleteAttributes();
 
     // Unlink and destroy the Performer objects.  pfDelete()'ing the pfFlux
-    // will (should) take care of the pfGeoArrays attached to it.
+    // will (should) take care of the pfGeoSets attached to it.
     performerGeode->unref();
     pfDelete(performerGeode);
     performerFlux->unref();
@@ -148,7 +138,7 @@ vsSkeletonMeshGeometry::~vsSkeletonMeshGeometry()
 
     if (originalVertexList)
         pfMemory::free(originalVertexList);
-
+                                                                                
     if (originalNormalList)
         pfMemory::free(originalNormalList);
     
@@ -194,7 +184,7 @@ vsNode *vsSkeletonMeshGeometry::getParent(int index)
 }
 
 // ------------------------------------------------------------------------
-// Begins a new state/frame of the dynamic geometry.  Creates a new GeoArray
+// Begins a new state/frame of the dynamic geometry.  Creates a new GeoSet
 // and copies the current state for primitiveType, primitiveCount, and 
 // attribute bindings.  The remaining attributes are extracted from the 
 // performerFlux and may be in an initial state (set up by 
@@ -210,51 +200,31 @@ void vsSkeletonMeshGeometry::beginNewState()
     int            min;
     int            *lengths;
 
-    // Get the first writable flux buffer and cast it to a pfGeoArray
-    performerGeoarray = (pfGeoArray *)performerFlux->getWritableData();
+    // Get the first writable flux buffer and cast it to a pfGeoSet
+    performerGeoset = (pfGeoSet *)performerFlux->getWritableData();
 
     // Set the primitive type and number of primitives
-    performerGeoarray->setPrimType(primitiveType);
-    performerGeoarray->setNumPrims(primitiveCount);
+    performerGeoset->setPrimType(primitiveType);
+    performerGeoset->setNumPrims(primitiveCount);
 
     // Retrieve the existing attribute data lists 
-    performerGeoarray->getAttrLists(PFGS_COLOR4, (void **)&colorList, &dummy);
-    colorListSize = performerGeoarray->getAttrRange(PFGS_COLOR4, NULL, NULL);
-    performerGeoarray->getAttrLists(PFGS_NORMAL3, (void **)&normalList, &dummy);
-    normalListSize = performerGeoarray->getAttrRange(PFGS_NORMAL3, NULL, NULL);
+    performerGeoset->getAttrLists(PFGS_COLOR4, (void **)&colorList, &dummy);
+    colorListSize = performerGeoset->getAttrRange(PFGS_COLOR4, NULL, NULL);
+    performerGeoset->getAttrLists(PFGS_NORMAL3, (void **)&normalList, &dummy);
+    normalListSize = performerGeoset->getAttrRange(PFGS_NORMAL3, NULL, NULL);
     for (unit = 0; unit < VS_MAXIMUM_TEXTURE_UNITS; unit++)
     {
-        performerGeoarray->getMultiAttrLists(PFGS_TEXCOORD2, unit,
+        performerGeoset->getMultiAttrLists(PFGS_TEXCOORD2, unit,
             (void **)&(texCoordList[unit]), &dummy);
-        texCoordListSize[unit] = 
-            performerGeoarray->getMultiAttrRange(PFGS_TEXCOORD2, unit, 
+        texCoordListSize[unit] =
+            performerGeoset->getMultiAttrRange(PFGS_TEXCOORD2, unit,
                 NULL, NULL);
     }
-    performerGeoarray->getAttrLists(PFGS_COORD3, (void **)&vertexList, &dummy);
-    vertexListSize = performerGeoarray->getAttrRange(PFGS_COORD3, NULL, NULL);
+    performerGeoset->getAttrLists(PFGS_COORD3, (void **)&vertexList, &dummy);
+    vertexListSize = performerGeoset->getAttrRange(PFGS_COORD3, NULL, NULL);
 
-/*
-    performerGeoarray->addAttr(weightAttr, 4, GL_FLOAT, 0, weightList);
-    performerGeoarray->addAttr(boneAttr, 4, GL_FLOAT, 0, boneList);
-*/
-/*
-printf("Getting weight (%p) pointer ", weightAttr);
-fflush(stdout);
-    weightList = (pfVec4 *) performerGeoarray->getAttrPtr(weightAttr,
-        0);
-//        VS_WEIGHT_ATTRIBUTE_INDEX);
-printf("Got: %p\n", weightList);
-printf("Getting bone (%p) pointer ", boneAttr);
-fflush(stdout);
-    boneList = (pfVec4 *) performerGeoarray->getAttrPtr(boneAttr,
-        0);
-//        VS_BONE_ATTRIBUTE_INDEX);
-printf("Got: %p\n", boneList);
-fflush(stdout);
-*/
-
-    // Copy the lengths list from the pfGeoArray, if it has one
-    lengths = performerGeoarray->getPrimLengths();
+    // Copy the lengths list from the pfGeoSet, if it has one
+    lengths = performerGeoset->getPrimLengths();
     if (lengths == NULL)
         lengthsList = NULL;
     else
@@ -268,7 +238,7 @@ fflush(stdout);
     setBinding(VS_GEOMETRY_VERTEX_COORDS, vertexBinding);
 
     // Attach the current GeoState
-    performerGeoarray->setGState(performerGeostate);
+    performerGeoset->setGState(performerGeostate);
 }
 
 // ------------------------------------------------------------------------
@@ -277,7 +247,7 @@ fflush(stdout);
 // ------------------------------------------------------------------------
 void vsSkeletonMeshGeometry::finishNewState()
 {
-    // Signal the pfFlux that all changes to the current pfGeoArray are 
+    // Signal the pfFlux that all changes to the current pfGeoSet are 
     // complete
     performerFlux->writeComplete();
 }
@@ -288,53 +258,53 @@ void vsSkeletonMeshGeometry::finishNewState()
 void vsSkeletonMeshGeometry::setPrimitiveType(int newType)
 {
     // Translate the VESS primitive type to the performer counterpart
-    // and set the Performer GeoArray to use it
+    // and set the Performer GeoSet to use it
     switch (newType)
     {
         case VS_GEOMETRY_TYPE_POINTS:
-            performerGeoarray->setPrimType(PFGS_POINTS);
+            performerGeoset->setPrimType(PFGS_POINTS);
             primitiveType = PFGS_POINTS;
             break;
         case VS_GEOMETRY_TYPE_LINES:
-            performerGeoarray->setPrimType(PFGS_LINES);
+            performerGeoset->setPrimType(PFGS_LINES);
             primitiveType = PFGS_LINES;
             break;
         case VS_GEOMETRY_TYPE_LINE_STRIPS:
-            performerGeoarray->setPrimType(PFGS_LINESTRIPS);
+            performerGeoset->setPrimType(PFGS_LINESTRIPS);
             primitiveType = PFGS_LINESTRIPS;
             break;
         case VS_GEOMETRY_TYPE_LINE_LOOPS:
             printf("vsSkeletonMeshGeometry::setPrimitiveType: "
                 "VS_GEOMETRY_TYPE_LINE_LOOPS type not supported under "
                 "Performer operation\n");
-            performerGeoarray->setPrimType(PFGS_LINESTRIPS);
+            performerGeoset->setPrimType(PFGS_LINESTRIPS);
             primitiveType = PFGS_LINESTRIPS;
             break;
         case VS_GEOMETRY_TYPE_TRIS:
-            performerGeoarray->setPrimType(PFGS_TRIS);
+            performerGeoset->setPrimType(PFGS_TRIS);
             primitiveType = PFGS_TRIS;
             break;
         case VS_GEOMETRY_TYPE_TRI_STRIPS:
-            performerGeoarray->setPrimType(PFGS_TRISTRIPS);
+            performerGeoset->setPrimType(PFGS_TRISTRIPS);
             primitiveType = PFGS_TRISTRIPS;
             break;
         case VS_GEOMETRY_TYPE_TRI_FANS:
-            performerGeoarray->setPrimType(PFGS_TRIFANS);
+            performerGeoset->setPrimType(PFGS_TRIFANS);
             primitiveType = PFGS_TRIFANS;
             break;
         case VS_GEOMETRY_TYPE_QUADS:
-            performerGeoarray->setPrimType(PFGS_QUADS);
+            performerGeoset->setPrimType(PFGS_QUADS);
             primitiveType = PFGS_QUADS;
             break;
         case VS_GEOMETRY_TYPE_QUAD_STRIPS:
             printf("vsSkeletonMeshGeometry::setPrimitiveType: "
                 "VS_GEOMETRY_TYPE_QUAD_STRIPS type not supported under"
                 "Performer operation\n");
-            performerGeoarray->setPrimType(PFGS_QUADS);
+            performerGeoset->setPrimType(PFGS_QUADS);
             primitiveType = PFGS_QUADS;
             break;
         case VS_GEOMETRY_TYPE_POLYS:
-            performerGeoarray->setPrimType(PFGS_POLYS);
+            performerGeoset->setPrimType(PFGS_POLYS);
             primitiveType = PFGS_POLYS;
             break;
         default:
@@ -383,8 +353,8 @@ int vsSkeletonMeshGeometry::getPrimitiveType()
 // ------------------------------------------------------------------------
 void vsSkeletonMeshGeometry::setPrimitiveCount(int newCount)
 {
-    // Set the primitive count on the pfGeoArray to the new value
-    performerGeoarray->setNumPrims(newCount);
+    // Set the primitive count on the pfGeoSet to the new value
+    performerGeoset->setNumPrims(newCount);
 
     // Store the new count
     primitiveCount = newCount;
@@ -420,8 +390,8 @@ void vsSkeletonMeshGeometry::setPrimitiveCount(int newCount)
             sizeof(int) * newCount));
     }
     
-    // Update the lengths array on the pfGeoArray
-    performerGeoarray->setPrimLengths(lengthsList);
+    // Update the lengths array on the pfGeoSet
+    performerGeoset->setPrimLengths(lengthsList);
 }
 
 // ------------------------------------------------------------------------
@@ -583,7 +553,7 @@ void vsSkeletonMeshGeometry::setBinding(int whichData, int binding)
     }
 
     // Translate the whichData parameter into its Performer counterpart
-    // and alter the pfGeoArray's binding appropriately
+    // and alter the pfGeoSet's binding appropriately
     switch (whichData)
     {
         case VS_GEOMETRY_SKIN_VERTEX_COORDS:
@@ -642,7 +612,7 @@ void vsSkeletonMeshGeometry::setBinding(int whichData, int binding)
             }
 
             // Set the vertex coordinate binding to the given value
-            performerGeoarray->setAttr(PFGS_COORD3, performerBinding,
+            performerGeoset->setAttr(PFGS_COORD3, performerBinding,
                 vertexList, NULL);
             vertexBinding = performerBinding;
             break;
@@ -658,7 +628,7 @@ void vsSkeletonMeshGeometry::setBinding(int whichData, int binding)
             }
 
             // Set the normal binding to the given value
-            performerGeoarray->setAttr(PFGS_NORMAL3, performerBinding,
+            performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
                 normalList, NULL);
             normalBinding = performerBinding;
             break;
@@ -666,7 +636,7 @@ void vsSkeletonMeshGeometry::setBinding(int whichData, int binding)
         case VS_GEOMETRY_COLORS:
 
             // Set the color binding to the given value
-            performerGeoarray->setAttr(PFGS_COLOR4, performerBinding,
+            performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
                 colorList, NULL);
             colorBinding = performerBinding;
             break;
@@ -681,6 +651,14 @@ void vsSkeletonMeshGeometry::setBinding(int whichData, int binding)
         case VS_GEOMETRY_TEXTURE7_COORDS:
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return;
+            }
                                                                                 
             // Texture coordinate binding must be none or per-vertex
             // (no other binding makes sense).
@@ -694,9 +672,44 @@ void vsSkeletonMeshGeometry::setBinding(int whichData, int binding)
             }
 
             // Set the texture coordinate binding to the given value
-            performerGeoarray->setMultiAttr(PFGS_TEXCOORD2, unit, 
+            performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit, 
                 performerBinding, texCoordList[unit], NULL);
             texCoordBinding[unit] = performerBinding;
+            break;
+
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::setBinding: Alternate colors not supported "
+                "under Performer.\n");
+            break;
+
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::setBinding: Fog coordinates not supported "
+                "under Performer.\n");
+            break;
+
+        case VS_GEOMETRY_USER_DATA0:
+            printf("vsGeometry::setBinding: User data attributes not "
+                "supported under Performer.\n");
+            break;
+
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::setBinding: Generic attributes not supported "
+                "under Performer.\n");
             break;
 
         default:
@@ -722,16 +735,17 @@ int vsSkeletonMeshGeometry::getBinding(int whichData)
         case VS_GEOMETRY_SKIN_NORMALS:
         case VS_GEOMETRY_VERTEX_WEIGHTS:
         case VS_GEOMETRY_BONE_INDICES:
-            return VS_GEOMETRY_BIND_PER_VERTEX;
         case VS_GEOMETRY_VERTEX_COORDS:
-            result = vertexBinding;
-            break;
+            return VS_GEOMETRY_BIND_PER_VERTEX;
+
         case VS_GEOMETRY_NORMALS:
             result = normalBinding;
             break;
+
         case VS_GEOMETRY_COLORS:
             result = colorBinding;
             break;
+
         case VS_GEOMETRY_TEXTURE0_COORDS:
         case VS_GEOMETRY_TEXTURE1_COORDS:
         case VS_GEOMETRY_TEXTURE2_COORDS:
@@ -743,8 +757,52 @@ int vsSkeletonMeshGeometry::getBinding(int whichData)
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
                                                                                 
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return VS_GEOMETRY_BIND_NONE;
+            }
+                                                                                
             result = texCoordBinding[unit];
             break;
+
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::getBinding: Alternate colors not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::getBinding: Fog coordinates not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_USER_DATA0:
+            printf("vsGeometry::getBinding: User data attributes not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::getBinding: Generic attributes not supported "
+                "under Performer.\n");
+            break;
+
         default:
             printf("vsSkeletonMeshGeometry::getBinding: Unrecognized data "
                 "value\n");
@@ -774,7 +832,7 @@ int vsSkeletonMeshGeometry::getBinding(int whichData)
 // the index specifies which data point is to be altered. The index of
 // the first data point is 0.
 // ------------------------------------------------------------------------
-void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex, 
+void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
                                      vsVector data)
 {
     unsigned int unit;
@@ -859,7 +917,6 @@ void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
             for (loop = 0; loop < 4; loop++)
                 (weightList[dataIndex])[loop] = data[loop];
 
-            performerGeoarray->updateData();
             break;
 
         case VS_GEOMETRY_BONE_INDICES:
@@ -878,7 +935,6 @@ void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
             for (loop = 0; loop < 4; loop++)
                 (boneList[dataIndex])[loop] = data[loop];
 
-            performerGeoarray->updateData();
             break;
 
         case VS_GEOMETRY_VERTEX_COORDS:
@@ -925,6 +981,14 @@ void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
                                                                                 
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return;
+            }
+
             // Validate the index
             if (dataIndex >= texCoordListSize[unit])
             {
@@ -944,6 +1008,41 @@ void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
             // Copy the data from the vector into the texture coordinate list
             for (loop = 0; loop < 2; loop++)
                 (texCoordList[unit][dataIndex])[loop] = data[loop];
+            break;
+
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::setData: Alternate colors not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::setData: Fog coordinates not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_USER_DATA0:
+            printf("vsGeometry::setData: User data attributes not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::setData: Generic attributes not supported "
+                "under Performer.\n");
             break;
 
         default:
@@ -1020,10 +1119,10 @@ vsVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
                     "bounds\n");
                 return result;
             }
-                                                                                
+
             // Set the result vector's size to 4
             result.setSize(4);
-                                                                                
+
             // Copy the vertex in question
             for (loop = 0; loop < 3; loop++)
                 result[loop] = (boneList[dataIndex])[loop];
@@ -1112,6 +1211,14 @@ vsVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
 
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return result;
+            }
+                                                                                
             // Validate the index
             if (dataIndex >= texCoordListSize[unit])
             {
@@ -1126,6 +1233,41 @@ vsVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
             // Copy the texture coordinate in question 
             for (loop = 0; loop < 2; loop++)
                 result[loop] = (texCoordList[unit][dataIndex])[loop];
+            break;
+
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::getData: Alternate colors not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::getData: Fog coordinates not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_USER_DATA0:
+            printf("vsGeometry::getData: User data attributes not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::getData: Generic attributes not supported "
+                "under Performer.\n");
             break;
 
         default:
@@ -1158,6 +1300,7 @@ void vsSkeletonMeshGeometry::setDataList(int whichData, vsVector *dataList)
                     vertexList[loop][sloop] = dataList[loop][sloop];
                 }
             break;
+
         case VS_GEOMETRY_SKIN_NORMALS:
             for (loop = 0; loop < normalListSize; loop++)
                 for (sloop = 0; sloop < 3; sloop++)
@@ -1166,32 +1309,36 @@ void vsSkeletonMeshGeometry::setDataList(int whichData, vsVector *dataList)
                     normalList[loop][sloop] = dataList[loop][sloop];
                 }
             break;
+
         case VS_GEOMETRY_VERTEX_WEIGHTS:
             for (loop = 0; loop < weightListSize; loop++)
                 for (sloop = 0; sloop < 4; sloop++)
                     weightList[loop][sloop] = dataList[loop][sloop];
 
-            performerGeoarray->updateData();
             break;
+
         case VS_GEOMETRY_BONE_INDICES:
             for (loop = 0; loop < boneListSize; loop++)
                 for (sloop = 0; sloop < 4; sloop++)
                     boneList[loop][sloop] = dataList[loop][sloop];
 
-            performerGeoarray->updateData();
             break;
+
         case VS_GEOMETRY_VERTEX_COORDS:
             printf("vsSkeletonMeshGeometry::setData: Cannot set vertex coords, "                   "they are generated based on bone positions.\n");
             break;
+
         case VS_GEOMETRY_NORMALS:
             printf("vsSkeletonMeshGeometry::setData: Cannot set normals, "
                    "they are generated based on bone positions.\n");
             break;
+
         case VS_GEOMETRY_COLORS:
             for (loop = 0; loop < colorListSize; loop++)
                 for (sloop = 0; sloop < 4; sloop++)
                     colorList[loop][sloop] = dataList[loop][sloop];
             break;
+
         case VS_GEOMETRY_TEXTURE0_COORDS:
         case VS_GEOMETRY_TEXTURE1_COORDS:
         case VS_GEOMETRY_TEXTURE2_COORDS:
@@ -1203,10 +1350,54 @@ void vsSkeletonMeshGeometry::setDataList(int whichData, vsVector *dataList)
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
                                                                                 
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return;
+            }
+                                                                                
             for (loop = 0; loop < texCoordListSize[unit]; loop++)
                 for (sloop = 0; sloop < 2; sloop++)
                     texCoordList[unit][loop][sloop] = dataList[loop][sloop];
             break;
+
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::setDataList: Alternate colors not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::setDataList: Fog coordinates not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_USER_DATA0:
+            printf("vsGeometry::setDataList: User data attributes not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::setDataList: Generic attributes not supported "
+                "under Performer.\n");
+            break;
+
         default:
             printf("vsSkeletonMeshGeometry::setDataList: Unrecognized data "
                 "type\n");
@@ -1295,6 +1486,14 @@ void vsSkeletonMeshGeometry::getDataList(int whichData, vsVector *dataBuffer)
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
                                                                                 
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return;
+            }
+                                                                                
             for (loop = 0; loop < texCoordListSize[unit]; loop++)
             {
                 dataBuffer[loop].setSize(2);
@@ -1302,6 +1501,42 @@ void vsSkeletonMeshGeometry::getDataList(int whichData, vsVector *dataBuffer)
                     dataBuffer[loop][sloop] = texCoordList[unit][loop][sloop];
             }
             break;
+
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::getDataList: Alternate colors not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::getDataList: Fog coordinates not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_USER_DATA0:
+            printf("vsGeometry::getDataList: User data attributes not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::getDataList: Generic attributes not supported "
+                "under Performer.\n");
+            break;
+
         default:
             printf("vsSkeletonMeshGeometry::getDataList: Unrecognized data "
                 "type\n");
@@ -1320,7 +1555,7 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
     int binding, performerBinding;
     
     // Get the requested list's data binding (required by Performer's
-    // setAttr() method for its pfGeoArray data lists)
+    // setAttr() method for its pfGeoSet data lists)
     binding = getBinding(whichData);
     switch (binding)
     {
@@ -1367,20 +1602,9 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
                 // Modify the length of the existing list using realloc.
                 // If the list doesn't exist, the realloc call will do
                 // nothing, since the requested size is also zero.
-//printf("Reallocating weightList\n");
                 weightList = (pfVec4 *)(pfMemory::realloc(weightList,
                     sizeof(pfVec4) * newSize));
             }
-
-            // Set the newly-resized weight list on the pfGeoArray
-//printf("Attempting to add weight Attr\n");
-            performerGeoarray->removeAttr(weightAttr, 0);
-            performerGeoarray->addAttr(weightAttr, 4, GL_FLOAT, 0, weightList);
-/**
-            performerGeoarray->setAttrPtr(weightAttr, weightList,
-                0);
-//                VS_BONE_ATTRIBUTE_INDEX);
-/**/
 
             // Store the new list size
             weightListSize = newSize;
@@ -1412,20 +1636,9 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
                 // Modify the length of the existing list using realloc.
                 // If the list doesn't exist, the realloc call will do
                 // nothing, since the requested size is also zero.
-//printf("Reallocating boneList\n");
                 boneList = (pfVec4 *)(pfMemory::realloc(boneList,
                     sizeof(pfVec4) * newSize));
             }
-
-            // Set the newly-resized bone list on the pfGeoArray
-//printf("Attempting to add bone Attr\n");
-            performerGeoarray->removeAttr(boneAttr, 0);
-            performerGeoarray->addAttr(boneAttr, 4, GL_FLOAT, 0, boneList);
-/**
-            performerGeoarray->setAttrPtr(boneAttr, boneList,
-                0);
-//                VS_WEIGHT_ATTRIBUTE_INDEX);
-/**/
 
             // Store the new list size
             boneListSize = newSize;
@@ -1454,16 +1667,16 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
                     originalVertexList = (pfVec3 *)(pfMemory::realloc(
                         originalVertexList, sizeof(pfVec3) * newSize));
                 }
-
+                                                                                
                 // Set the newly-created vertex list on the pfGeoArray
-                performerGeoarray->setAttr(PFGS_COORD3, performerBinding,
+                performerGeoset->setAttr(PFGS_COORD3, performerBinding,
                     vertexList, NULL);
             }
             else if (!newSize && vertexList)
             {
                 // List exists, but the requested new size is zero, so
                 // delete the existing list
-                performerGeoarray->setAttr(PFGS_COORD3, performerBinding,
+                performerGeoset->setAttr(PFGS_COORD3, performerBinding,
                     NULL, NULL);
                 pfMemory::unref(vertexList);
                 pfMemory::free(vertexList);
@@ -1486,7 +1699,7 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
                 // If the list doesn't exist, the realloc call will do
                 // nothing, since the requested size is also zero.
                 pfMemory::ref(vertexList);
-                performerGeoarray->setAttr(PFGS_COORD3, performerBinding,
+                performerGeoset->setAttr(PFGS_COORD3, performerBinding,
                     NULL, NULL);
                 vertexList = (pfVec3 *)(pfMemory::realloc(vertexList,
                     sizeof(pfVec3) * newSize));
@@ -1503,7 +1716,7 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
                         originalVertexList, sizeof(pfVec3) * newSize));
 
                 // Set the newly-resized vertex list on the pfGeoArray
-                performerGeoarray->setAttr(PFGS_COORD3, performerBinding,
+                performerGeoset->setAttr(PFGS_COORD3, performerBinding,
                     vertexList, NULL);
             }
 
@@ -1536,14 +1749,14 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
                 }
 
                 // Set the newly-created normal list on the pfGeoArray
-                performerGeoarray->setAttr(PFGS_NORMAL3, performerBinding,
+                performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
                     normalList, NULL);
             }
             else if (!newSize && normalList)
             {
                 // List exists, but the requested new size is zero, so
                 // delete the existing normal list
-                performerGeoarray->setAttr(PFGS_NORMAL3, performerBinding,
+                performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
                     NULL, NULL);
                 pfMemory::unref(normalList);
                 pfMemory::free(normalList);
@@ -1564,12 +1777,12 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
                 // If the list doesn't exist, the realloc call will do
                 // nothing, since the requested size is also zero.
                 pfMemory::ref(normalList);
-                performerGeoarray->setAttr(PFGS_NORMAL3, performerBinding,
+                performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
                     NULL, NULL);
                 normalList = (pfVec3 *)(pfMemory::realloc(normalList,
                     sizeof(pfVec3) * newSize));
                 pfMemory::unref(normalList);
-
+                                                                                
                 if (originalNormalList == NULL)
                 {
                     originalNormalList = (pfVec3 *)(pfMemory::malloc(
@@ -1579,9 +1792,9 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
                 else
                     originalNormalList = (pfVec3 *)(pfMemory::realloc(
                         originalNormalList, sizeof(pfVec3) * newSize));
-
+                                                                                
                 // Set the newly-resized normal list on the pfGeoArray
-                performerGeoarray->setAttr(PFGS_NORMAL3, performerBinding,
+                performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
                     normalList, NULL);
             }
 
@@ -1599,16 +1812,16 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
                 colorList = (pfVec4 *)(pfMemory::malloc(
                     sizeof(pfVec4) * newSize));
                 pfMemory::ref(colorList);
-
-                // Set the newly-created color list on the pfGeoArray
-                performerGeoarray->setAttr(PFGS_COLOR4, performerBinding,
+                                                                                
+                // Set the newly-created color list on the pfGeoSet
+                performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
                     colorList, NULL);
             }
             else if (!newSize && colorList)
             {
                 // List exists, but the requested new size is zero, so
                 // delete the existing color list
-                performerGeoarray->setAttr(PFGS_COLOR4, performerBinding,
+                performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
                     NULL, NULL);
                 pfMemory::unref(colorList);
                 pfMemory::free(colorList);
@@ -1622,14 +1835,14 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
                 // If the list doesn't exist, the realloc call will do
                 // nothing, since the requested size is also zero.
                 pfMemory::ref(colorList);
-                performerGeoarray->setAttr(PFGS_COLOR4, performerBinding,
+                performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
                     NULL, NULL);
                 colorList = (pfVec4 *)(pfMemory::realloc(colorList,
                     sizeof(pfVec4) * newSize));
                 pfMemory::unref(colorList);
-
-                // Set the newly-resized color list on the pfGeoArray
-                performerGeoarray->setAttr(PFGS_COLOR4, performerBinding,
+                                                                                
+                // Set the newly-resized color list on the pfGeoSet
+                performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
                     colorList, NULL);
             }
 
@@ -1648,6 +1861,14 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
                                                                                 
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return;
+            }
+                                                                                
             // Check the current texture coordinate list size and the 
             // requested new size, and reallocate the list as appropriate
             if (newSize && !texCoordList[unit])
@@ -1656,17 +1877,17 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
                 texCoordList[unit] = (pfVec2 *)(pfMemory::malloc(
                     sizeof(pfVec2) * newSize));
                 pfMemory::ref(texCoordList[unit]);
-
+                                                                                
                 // Set the newly-created texture coordinate list on the
-                // pfGeoArray
-                performerGeoarray->setMultiAttr(PFGS_TEXCOORD2, unit,
+                // pfGeoSet
+                performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit,
                     performerBinding, texCoordList[unit], NULL);
             }
             else if (!newSize && texCoordList[unit])
             {
                 // List exists, but the requested new size is zero, so
                 // delete the existing texture coordinate list
-                performerGeoarray->setMultiAttr(PFGS_TEXCOORD2, unit,
+                performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit,
                     performerBinding, NULL, NULL);
                 pfMemory::unref(texCoordList[unit]);
                 pfMemory::free(texCoordList[unit]);
@@ -1680,20 +1901,55 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
                 // If the list doesn't exist, the realloc call will do
                 // nothing, since the requested size is also zero.
                 pfMemory::ref(texCoordList[unit]);
-                performerGeoarray->setMultiAttr(PFGS_TEXCOORD2, unit,
+                performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit,
                     performerBinding, NULL, NULL);
                 texCoordList[unit] = (pfVec2 *)(pfMemory::realloc(
                     texCoordList[unit], sizeof(pfVec2) * newSize));
                 pfMemory::unref(texCoordList[unit]);
-
+                                                                                
                 // Set the newly-resized texture coordinate list on the
-                // pfGeoArray
-                performerGeoarray->setMultiAttr(PFGS_TEXCOORD2, unit,
+                // pfGeoSet
+                performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit,
                     performerBinding, texCoordList[unit], NULL);
             }
 
             // Store the new list size
             texCoordListSize[unit] = newSize;
+            break;
+
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::setDataListSize: Alternate colors not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::setDataListSize: Fog coordinates not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_USER_DATA0:
+            printf("vsGeometry::setDataListSize: User data attributes not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::setDataListSize: Generic attributes not "
+                "supported under Performer.\n");
             break;
 
         default:
@@ -1716,16 +1972,21 @@ int vsSkeletonMeshGeometry::getDataListSize(int whichData)
     {
         case VS_GEOMETRY_VERTEX_WEIGHTS:
             return weightListSize;
+
         case VS_GEOMETRY_BONE_INDICES:
             return boneListSize;
+
         case VS_GEOMETRY_SKIN_VERTEX_COORDS:
         case VS_GEOMETRY_VERTEX_COORDS:
             return vertexListSize;
+
         case VS_GEOMETRY_SKIN_NORMALS:
         case VS_GEOMETRY_NORMALS:
             return normalListSize;
+
         case VS_GEOMETRY_COLORS:
             return colorListSize;
+
         case VS_GEOMETRY_TEXTURE0_COORDS:
         case VS_GEOMETRY_TEXTURE1_COORDS:
         case VS_GEOMETRY_TEXTURE2_COORDS:
@@ -1737,7 +1998,51 @@ int vsSkeletonMeshGeometry::getDataListSize(int whichData)
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
 
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return 0;
+            }
+                                                                                
             return texCoordListSize[unit];
+
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::setDataListSize: Alternate colors not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::setDataListSize: Fog coordinates not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_USER_DATA0:
+            printf("vsGeometry::setDataListSize: User data attributes not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::setDataListSize: Generic attributes not "
+                "supported under Performer.\n");
+            break;
+
         default:
             printf("vsSkeletonMeshGeometry::getDataListSize: Unrecognized data "
                 "value\n");
@@ -1791,8 +2096,8 @@ void vsSkeletonMeshGeometry::setRenderBin(int binNum)
     // Store the bin number
     renderBin = binNum;
 
-    // Set the pfGeoArray to use the given bin
-    performerGeoarray->setDrawBin((short)binNum);
+    // Set the pfGeoSet to use the given bin
+    performerGeoset->setDrawBin((short)binNum);
 
     // Set the sort order on the draw bin to a default value to force
     // a bin mode update.  This is necessary because Performer will not
@@ -1812,8 +2117,7 @@ int vsSkeletonMeshGeometry::getRenderBin()
 // Retrieves the center point and radius of a sphere that encompasses all
 // of the geometry within this object.
 // ------------------------------------------------------------------------
-void vsSkeletonMeshGeometry::getBoundSphere(vsVector *centerPoint,
-                                            double *radius)
+void vsSkeletonMeshGeometry::getBoundSphere(vsVector *centerPoint, double *radius)
 {
     pfSphere boundSphere;
     
@@ -2018,18 +2322,18 @@ pfGeode *vsSkeletonMeshGeometry::getBaseLibraryObject()
 
 // ------------------------------------------------------------------------
 // Private, static function
-// Initializes a pfGeoArray that will occupy one of the data areas of the
+// Initializes a pfGeoSet that will occupy one of the data areas of the
 // performerFlux object.
 // ------------------------------------------------------------------------
-int vsSkeletonMeshGeometry::initFluxedGeoArray(pfFluxMemory *fluxMem)
+int vsSkeletonMeshGeometry::initFluxedGeoSet(pfFluxMemory *fluxMem)
 {
-    // If the fluxMemory is NULL, return the size of a fluxed pfGeoArray.
+    // If the fluxMemory is NULL, return the size of a fluxed pfGeoSet.
     // This is standard procedure for Performer fluxes (see the man page
     // for pfFlux::pfFlux()).
     if (fluxMem == NULL)
         return pfFluxedGSetInit(fluxMem);
 
-    // Initialize the fluxMemory to a pfGeoArray
+    // Initialize the fluxMemory to a pfGeoSet
     pfFluxedGSetInit(fluxMem);
 
     // Return 0 if the pfFluxMemory is valid and we have initialized it
@@ -2151,7 +2455,7 @@ void vsSkeletonMeshGeometry::applySkin(vsGrowableArray *boneMatrices,
                 // Get the bone index
                 bone = (int)(boneList[vertexIndex][dataIndex]);
 
-                // Get the bone matrix and the inverse transpose for this 
+                // Get the bone matrix and the inverse transpose for this
                 // data index
                 boneMatrix = ((vsMatrix *)boneMatrices->getData(bone));
                 itBoneMatrix = ((vsMatrix *)ITBoneMatrices->getData(bone));
