@@ -481,13 +481,21 @@ void *vsAvatar::makeGeometry()
         {
             // Make all nodes important
             sscanf(cfgLine, "%*s %d", &intValue);
-            dbLoader->setLoaderMode(VS_DATABASE_MODE_NAME_ALL, intValue);
+            
+            if (intValue == 0)
+				dbLoader->setLoaderMode(VS_DATABASE_MODE_NAME_ALL, false);
+			else
+				dbLoader->setLoaderMode(VS_DATABASE_MODE_NAME_ALL, true);
         }
         else if (!strcmp(token, "allxforms"))
         {
             // Make all nodes with transforms important
             sscanf(cfgLine, "%*s %d", &intValue);
-            dbLoader->setLoaderMode(VS_DATABASE_MODE_NAME_XFORM, intValue);
+            
+            if (intValue == 0)
+				dbLoader->setLoaderMode(VS_DATABASE_MODE_NAME_XFORM, false);
+            else
+				dbLoader->setLoaderMode(VS_DATABASE_MODE_NAME_XFORM, true);
         }
         else if (!strcmp(token, "units"))
         {
