@@ -89,7 +89,7 @@ vsMouse::vsMouse(int nAxes, int nButtons, int xSize, int ySize)
         if (i < numButtons)
             button[i] = new vsInputButton();
         else
-            axis[i] = NULL;
+            button[i] = NULL;
     }
 }
 
