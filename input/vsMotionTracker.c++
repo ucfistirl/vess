@@ -70,19 +70,19 @@ void vsMotionTracker::setOrientation(vsVector ornVec,
 }
 
 // ------------------------------------------------------------------------
-// Set the orientation of this motion tracker using a quaternion
-// ------------------------------------------------------------------------
-void vsMotionTracker::setOrientation(vsQuat ornQuat)
-{
-    orientation = ornQuat;
-}
-
-// ------------------------------------------------------------------------
 // Set the orientation of this motion tracker using a rotation matrix
 // ------------------------------------------------------------------------
 void vsMotionTracker::setOrientation(vsMatrix ornMat)
 {
     orientation.setMatrixRotation(ornMat);
+}
+
+// ------------------------------------------------------------------------
+// Set the orientation of this motion tracker using a quaternion
+// ------------------------------------------------------------------------
+void vsMotionTracker::setOrientation(vsQuat ornQuat)
+{
+    orientation = ornQuat;
 }
 
 // ------------------------------------------------------------------------
