@@ -112,7 +112,7 @@ void vsGraphicsState::applyState(osg::StateSet *stateSet)
 {
     // Set the given OSG StateSet to inherit all of its state attributes
     // from it's node's parents
-    stateSet->setAllToInherit();
+    stateSet->clear();
 
     // Apply transparency if one exists in the current graphics state
     if (transparencyAttr)

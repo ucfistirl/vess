@@ -120,7 +120,7 @@ void vsDecalCallback::checkSize(int newSize)
         // New, empty StateSet
         osgStateSet = new osg::StateSet();
         osgStateSet->ref();
-        osgStateSet->setAllToInherit();
+        osgStateSet->clear();
 
         // New PolygonOffset with offset multiplier equal to array position
         osgPolyOffset = new osg::PolygonOffset();
