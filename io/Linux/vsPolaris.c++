@@ -56,9 +56,9 @@ vsPolaris::vsPolaris(int portNumber, long baud, int nTrackers)
         printf("vsPolaris::vsPolaris:  WARNING -- Only %d trackers found,"
             " expecting %d.\n", numTrackers, nTrackers);
     }
-    else if (numTrackers > nTrackers)
+    else if ((numTrackers > nTrackers) && (nTrackers != 0))
     {
-        printf("vsPolaris::vsPolaris:  Configuring %d of %d trackers.",
+        printf("vsPolaris::vsPolaris:  Configuring %d of %d trackers.\n",
             numTrackers, nTrackers);
     }
 
@@ -113,13 +113,16 @@ vsPolaris::~vsPolaris()
 
     // If we haven't forked a server process, stop tracking and reset
     // the Polaris now.
-    printf("  Resetting Polaris\n");
-    stopTracking();
-    resetSystem();
+    if (!forked)
+    {
+        printf("  Resetting Polaris\n");
+        stopTracking();
+        resetSystem();
 
-    // Close the serial port
-    printf("  Closing serial port\n");
-    delete port;
+        // Close the serial port
+        printf("  Closing serial port\n");
+        delete port;
+    }
 }
 
 // ------------------------------------------------------------------------
