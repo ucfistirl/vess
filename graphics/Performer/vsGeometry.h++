@@ -96,14 +96,15 @@ private:
 
 VS_INTERNAL:
 
-    static int      binModesChanged;
+    static int          binModesChanged;
+    static vsTreeMap    *getBinModeList();
 
-    virtual int     addParent(vsNode *newParent);
-    virtual int     removeParent(vsNode *targetParent);
+    virtual int         addParent(vsNode *newParent);
+    virtual int         removeParent(vsNode *targetParent);
 
-    virtual void    applyAttributes();
+    virtual void        applyAttributes();
 
-    static int      geostateCallback(pfGeoState *gstate, void *userData);
+    static int          geostateCallback(pfGeoState *gstate, void *userData);
 
 public:
 
