@@ -51,28 +51,32 @@ private:
     osg::TexGen            *osgTexGen;
     osg::Image             *osgTexImage[VS_TEXTURE_CUBE_SIDES];
 
+    unsigned int           textureUnit;
+
     virtual void           setOSGAttrModes(vsNode *node);
 
 VS_INTERNAL:
 
-                          vsTextureCubeAttribute(osg::TextureCubeMap *texObject,
+                          vsTextureCubeAttribute(unsigned int unit,
+                                                 osg::TextureCubeMap *texObject,
                                                  osg::TexEnv *texEnvObject,
                                                  osg::TexGen *texGenObject);
 
-    virtual void           attach(vsNode *node);
-    virtual void           detach(vsNode *node);
+    virtual void          attach(vsNode *node);
+    virtual void          detach(vsNode *node);
 
-    virtual void           attachDuplicate(vsNode *theNode);
+    virtual void          attachDuplicate(vsNode *theNode);
 
-    virtual bool           isEquivalent(vsAttribute *attribute);
+    virtual bool          isEquivalent(vsAttribute *attribute);
 
-    void                   setOSGImage(int face, osg::Image *osgImage);
+    void                  setOSGImage(int face, osg::Image *osgImage);
 
-    osg::TextureCubeMap    *getBaseLibraryObject();
+    osg::TextureCubeMap   *getBaseLibraryObject();
 
 public:
 
                           vsTextureCubeAttribute();
+                          vsTextureCubeAttribute(unsigned int unit);
     virtual               ~vsTextureCubeAttribute();
 
     virtual const char    *getClassName();
@@ -101,6 +105,8 @@ public:
 
     void                  setGenMode(int genMode);
     int                   getGenMode();
+
+    unsigned int          getTextureUnit();
 };
 
 #endif

@@ -26,12 +26,59 @@
 #include "vsNode.h++"
 
 // ------------------------------------------------------------------------
-// Default Constructor - Creates the Performer texture objects and
+// Default Constructor - Creates the OSG texture objects and
 // initializes default settings
 // ------------------------------------------------------------------------
 vsTextureCubeAttribute::vsTextureCubeAttribute()
 {
     int loop;
+
+    // Default unit is 0, the first texture.
+    textureUnit = 0;
+
+    // Create and reference new OSG Texture2D and TexEnv objects
+    osgTextureCube = new osg::TextureCubeMap();
+    osgTextureCube->ref();
+    osgTexEnv = new osg::TexEnv();
+    osgTexEnv->ref();
+    osgTexGen = new osg::TexGen();
+    osgTexGen->ref();
+
+    // Start with no image data
+    for (loop = 0; loop < VS_TEXTURE_CUBE_SIDES; loop++)
+    {
+        osgTexImage[loop] = NULL;
+    }
+
+    //Initialize the osg::TextureCubeMap
+    osgTextureCube->setBorderColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
+    osgTextureCube->setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
+
+    // Initialize the texture attribute
+    setBoundaryMode(VS_TEXTURE_DIRECTION_ALL, VS_TEXTURE_BOUNDARY_CLAMP);
+    setApplyMode(VS_TEXTURE_APPLY_DECAL);
+    setMagFilter(VS_TEXTURE_MAGFILTER_LINEAR);
+    setMinFilter(VS_TEXTURE_MINFILTER_LINEAR);
+    setGenMode(VS_TEXTURE_GEN_REFLECTION_MAP);
+}
+
+// ------------------------------------------------------------------------
+// Constructor - Creates the OSG texture cube objects and
+// initializes default settings
+// ------------------------------------------------------------------------
+vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit)
+{
+    int loop;
+
+    // Set to the specified texture unit.
+    if ((unit >= 0) && (unit < VS_MAXIMUM_TEXTURE_UNITS))
+        textureUnit = unit;
+    else
+    {
+        printf("vsTextureCubeAttribute::vsTextureCubeAttribute: Invalid "
+            "texture unit, using default of 0\n");
+        textureUnit = 0;
+    }
 
     // Create and reference new OSG Texture2D and TexEnv objects
     osgTextureCube = new osg::TextureCubeMap();
@@ -63,9 +110,20 @@ vsTextureCubeAttribute::vsTextureCubeAttribute()
 // Internal function
 // Constructor - Sets the texture attribute up as already attached
 // ------------------------------------------------------------------------
-vsTextureCubeAttribute::vsTextureCubeAttribute(osg::TextureCubeMap *texObject,
-    osg::TexEnv *texEnvObject, osg::TexGen *texGenObject)
+vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit,
+    osg::TextureCubeMap *texObject, osg::TexEnv *texEnvObject,
+    osg::TexGen *texGenObject)
 {
+    // Set to the specified texture unit.
+    if ((unit >= 0) && (unit < VS_MAXIMUM_TEXTURE_UNITS))
+        textureUnit = unit;
+    else
+    {
+        printf("vsTextureCubeAttribute::vsTextureCubeAttribute: Invalid "
+            "texture unit, using default of 0\n");
+        textureUnit = 0;
+    }
+
     // Save and reference the TextureCubeMap, TexEnv, and TexGen objects
     osgTextureCube = texObject;
     osgTextureCube->ref();
@@ -532,6 +590,14 @@ int vsTextureCubeAttribute::getGenMode()
 }
 
 // ------------------------------------------------------------------------
+// Return the texture unit used in the texture attribute
+// ------------------------------------------------------------------------
+unsigned int vsTextureCubeAttribute::getTextureUnit()
+{
+    return textureUnit;
+}
+
+// ------------------------------------------------------------------------
 // Private function
 // Sets the modes on the StateSet of this node's OSG node to reflect the
 // settings of this attribute
@@ -554,9 +620,10 @@ void vsTextureCubeAttribute::setOSGAttrModes(vsNode *node)
 
     // Set the Texture and TexEnv attributes and the StateAttribute mode
     // on the node's StateSet
-    osgStateSet->setTextureAttributeAndModes(0, osgTextureCube, attrMode);
-    osgStateSet->setTextureAttributeAndModes(0, osgTexEnv, attrMode);
-    osgStateSet->setTextureAttributeAndModes(0, osgTexGen, attrMode);
+    osgStateSet->setTextureAttributeAndModes(textureUnit, osgTextureCube,
+        attrMode);
+    osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexEnv, attrMode);
+    osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexGen, attrMode);
 }
 
 // ------------------------------------------------------------------------
@@ -586,11 +653,11 @@ void vsTextureCubeAttribute::detach(vsNode *node)
     osgStateSet = getOSGStateSet(node);
 
     // Reset the Texture and TexEnv states to INHERIT
-    osgStateSet->setTextureAttributeAndModes(0, osgTextureCube,
+    osgStateSet->setTextureAttributeAndModes(textureUnit, osgTextureCube,
         osg::StateAttribute::INHERIT);
-    osgStateSet->setTextureAttributeAndModes(0, osgTexEnv,
+    osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexEnv,
         osg::StateAttribute::INHERIT);
-    osgStateSet->setTextureAttributeAndModes(0, osgTexGen,
+    osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexGen,
         osg::StateAttribute::INHERIT);
 
     // Finish with standard StateAttribute detaching
@@ -679,6 +746,12 @@ bool vsTextureCubeAttribute::isEquivalent(vsAttribute *attribute)
     // Compare minification filter modes
     val1 = getMinFilter();
     val2 = attr->getMinFilter();
+    if (val1 != val2)
+        return false;
+
+    // Compare texture unit
+    val1 = getTextureUnit();
+    val2 = attr->getTextureUnit();
     if (val1 != val2)
         return false;
 

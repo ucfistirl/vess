@@ -91,13 +91,16 @@ private:
     osg::TexGen       *osgTexGen;
     osg::Image        *osgTexImage;
 
+    unsigned int      textureUnit;
+
     bool              removeTexGen;
 
     virtual void      setOSGAttrModes(vsNode *node);
 
 VS_INTERNAL:
 
-                      vsTextureAttribute(osg::Texture2D *texObject,
+                      vsTextureAttribute(unsigned int unit,
+                                         osg::Texture2D *texObject,
                                          osg::TexEnv *texEnvObject,
                                          osg::TexGen *texGenObject);
 
@@ -115,6 +118,7 @@ VS_INTERNAL:
 public:
 
                           vsTextureAttribute();
+                          vsTextureAttribute(unsigned int unit);
     virtual               ~vsTextureAttribute();
 
     virtual const char    *getClassName();
@@ -143,6 +147,8 @@ public:
     
     void                  setGenMode(int genMode);
     int                   getGenMode();
+
+    unsigned int          getTextureUnit();
 };
 
 #endif
