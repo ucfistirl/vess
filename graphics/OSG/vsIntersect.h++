@@ -47,7 +47,7 @@ struct VS_GRAPHICS_DLL vsIntersectSegment
     vsVector end;
 };
 
-class VS_GRAPHICS_DLL vsIntersect
+class VS_GRAPHICS_DLL vsIntersect : public vsObject
 {
 private:
 
@@ -75,6 +75,8 @@ public:
 
                        vsIntersect();
     virtual            ~vsIntersect();
+
+    virtual const char *getClassName();
 
     void               setSegListSize(int newSize);
     int                getSegListSize();
