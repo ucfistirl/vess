@@ -26,6 +26,7 @@ SRCS = \
        vsEthernetMotionStar.c++ \
        vsFastrak.c++ \
        vsFlockOfBirds.c++ \
+       vsChordGloves.c++ \
        vsIS600.c++ \
        vsISTJoystickBox.c++ \
        vsInputAxis.c++ \
@@ -37,6 +38,7 @@ SRCS = \
        vsKeyboard.c++ \
        vsMotionTracker.c++ \
        vsMouse.c++ \
+       vsPinchGloveBox.c++ \
        vsSerialMotionStar.c++ \
        vsSerialPort.c++ \
        vsSharedInputData.c++ \
@@ -55,6 +57,7 @@ OBJS = \
        vsEthernetMotionStar.o \
        vsFastrak.o \
        vsFlockOfBirds.o \
+       vsChordGloves.o \
        vsIS600.o \
        vsISTJoystickBox.o \
        vsInputAxis.o \
@@ -66,6 +69,7 @@ OBJS = \
        vsKeyboard.o \
        vsMotionTracker.o \
        vsMouse.o \
+       vsPinchGloveBox.o \
        vsSerialMotionStar.o \
        vsSerialPort.o \
        vsSharedInputData.o \
