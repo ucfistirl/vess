@@ -218,7 +218,6 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
     vsComponent *result;
     pfNode *performerGraph;
     vsObjectMap *nodeMap, *attrMap;
-    vsOptimizer *optimizer;
 
     // Set the file search path
     pfFilePath(loaderFilePath);
@@ -676,13 +675,13 @@ vsNode *vsDatabaseLoader::convertNode(pfNode *node, vsObjectMap *nodeMap,
 // ------------------------------------------------------------------------
 vsNode *vsDatabaseLoader::convertGeode(pfGeode *geode, vsObjectMap *attrMap)
 {
-    vsComponent *geodeComponent, *childComponent;
+    vsComponent *geodeComponent;
     vsGeometry *geometry;
-    int loop, sloop, tloop;
+    int loop;
     pfGeoSet *geoSet;
     pfBillboard *performerBillboard;
     vsBillboardAttribute *billboardAttr;
-    int primType, primCount, vertCount;
+    int primType, primCount;
     pfGeoState *performerState;
     pfVec3 vec3;
     int flatFlag;
@@ -1244,7 +1243,6 @@ pfGeoSet *vsDatabaseLoader::inflateFlatGeometry(pfGeoSet *geoSet)
     int *lengthsList;
     int *newLengths;
     int listSize;
-    vsShadingAttribute *shading;
 
     // Create a new GeoSet that will hold the inflated data
     tempGeoSet = new pfGeoSet();
@@ -1537,7 +1535,6 @@ void vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
     pfGeoSet *geoSet, int sourceBinding, void *sourceArray, ushort *indexArray)
 {
     int loop;
-    int offset;
     int arraySize;
     pfVec2 *pfVec2Array;
     pfVec3 *pfVec3Array;
