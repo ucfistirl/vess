@@ -117,6 +117,9 @@
 				RelativePath="..\..\sound\OpenAL\vsSoundListenerAttribute.c++">
 			</File>
 			<File
+				RelativePath="..\..\sound\OpenAL\vsSoundManager.c++">
+			</File>
+			<File
 				RelativePath="..\..\sound\OpenAL\vsSoundPipe.c++">
 			</File>
 			<File
@@ -137,6 +140,9 @@
 			</File>
 			<File
 				RelativePath="..\..\sound\OpenAL\vsSoundListenerAttribute.h++">
+			</File>
+			<File
+				RelativePath="..\..\sound\OpenAL\vsSoundManager.h++">
 			</File>
 			<File
 				RelativePath="..\..\sound\OpenAL\vsSoundPipe.h++">
