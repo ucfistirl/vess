@@ -30,6 +30,7 @@ class vsWindow;
 #include "vsScreen.h++"
 #include "vsPane.h++"
 #include "vsGrowableArray.h++"
+#include "vsImage.h++"
 
 #define VS_WINDOW_DEFAULT_WIDTH  640
 #define VS_WINDOW_DEFAULT_HEIGHT 480
@@ -97,6 +98,7 @@ public:
     void               setName(char *newName);
 
     void               saveImage(char *filename);
+    vsImage *          getImage( );
 
     Window             getBaseLibraryObject();
 };

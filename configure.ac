@@ -240,7 +240,7 @@ case "$SG" in
 
         dnl Set the graphics library directories
         GFX_INCLUDE_DIR="-I$OSG_PATH/include -I$OSG_PATH/src/osgText"
-        GFX_LIB_DIR="-L$OSG_PATH/lib -L$OSG_PATH/lib/osgPlugins"
+        GFX_LIB_DIR="-L$x_libraries -L$OSG_PATH/lib -L$OSG_PATH/lib/osgPlugins"
         GFX_LIB="-lXi -lXm -lXt -lGLU -lGL -losg -losgDB -losgUtil -losgText -lfreetype -lXext -lXmu -lX11 -ldl"
         
         dnl Check the OSG libraries to see if they're where they are
@@ -496,6 +496,36 @@ if test x$XML_ERROR = xyes ; then
   There is a problem with the libxml2 libraries.  Either they are not
   installed correctly, or they have not been compiled.  VESS will not
   compile without the libxml2 libraries.
+
+  E-mail vess@ist.ucf.edu if you think you've received this message in
+  error.
+
+])
+fi
+
+dnl JPEG options**************************************************************
+
+dnl Provide the option to specify the location of the JPEG library.
+AC_ARG_WITH(jpeg,
+[[  --with-jpeg=PREFIX   Specify the location of libjpeg [/usr]]],, with_libjpeg=/usr)
+if test x$with_libjpeg != x/usr; then
+   GFX_INCLUDE_DIR="$GFX_LIB_DIR -I$with_libjpeg/include"
+   GFX_LIB_DIR="$GFX_LIB_DIR -L$with_libjpeg/lib"
+fi
+GFX_LIB="$GFX_LIB -ljpeg"
+
+dnl Check the libjpeg libraries
+JPEG_ERROR=no
+LIBS=
+AC_CHECK_LIB(jpeg, jpeg_read_header,,JPEG_ERROR=yes)
+
+dnl Print a warning if the check fails
+if test x$JPEG_ERROR = xyes ; then
+   AC_MSG_ERROR([
+
+  There is a problem with the libjpeg libraries.  Either they are not
+  installed correctly, or they have not been compiled.  VESS will not
+  compile without the libjpeg libraries.
 
   E-mail vess@ist.ucf.edu if you think you've received this message in
   error.

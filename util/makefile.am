@@ -4,6 +4,7 @@ lib_LIBRARIES = libvsUtil.a libvsUtil.so
 # Sources for libvsUtil.a
 libvsUtil_a_SOURCES = \
                       common/vsGrowableArray.c++ \
+                      common/vsImage.c++ \
                       common/vsMatrix.c++ \
                       common/vsObject.c++ \
                       common/vsObjectMap.c++ \
@@ -19,6 +20,7 @@ libvsUtil_so_SOURCES = $(libvsUtil_a_SOURCES)
 # Header files
 include_HEADERS = \
                   common/vsGrowableArray.h++ \
+                  common/vsImage.h++ \
                   common/vsMatrix.h++ \
                   common/vsObject.h++ \
                   common/vsObjectMap.h++ \
