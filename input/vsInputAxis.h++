@@ -73,6 +73,7 @@ public:
     // Calibration functions
     void         setIdlePosition();
     void         setIdlePosition(double newOffset);
+    double       getIdlePosition();
 
     void         passiveCalibrate(int enable);
 };

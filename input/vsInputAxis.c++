@@ -258,6 +258,14 @@ void vsInputAxis::setIdlePosition(double newOffset)
 }
 
 // ------------------------------------------------------------------------
+// Get the idle position of the input device on this axis
+// ------------------------------------------------------------------------
+double vsInputAxis::getIdlePosition()
+{
+    return offset;
+}
+
+// ------------------------------------------------------------------------
 // Turn on/off passive calibration.  Passive calibration constantly updates
 // the axis's range extents to provide ever more accurate axis data.
 // ------------------------------------------------------------------------
