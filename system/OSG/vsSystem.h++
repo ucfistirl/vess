@@ -31,6 +31,7 @@
 #include "vsClusterConfig.h++"
 #include "vsRemoteInterface.h++"
 #include "vsTCPNetworkInterface.h++"
+#include "vsSequencer.h++"
 
 enum VS_SYSTEM_DLL vsMultiprocessMode
 {
@@ -59,6 +60,7 @@ private:
     double              simTime;
     
     vsRemoteInterface   *remoteInterface;
+    vsSequencer         *rootSequencer;
 
     void                preFrameTraverse(vsNode *node);
     
