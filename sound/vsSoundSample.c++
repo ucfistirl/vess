@@ -76,3 +76,12 @@ ALuint vsSoundSample::getBufferID()
 {
     return bufferID;
 }
+
+// ------------------------------------------------------------------------
+// Returns the corresponding base library object (an OpenAL buffer ID
+// as an ALuint in this case)
+// ------------------------------------------------------------------------
+ALuint vsSoundSample::getBaseLibraryObject()
+{
+    return bufferID;
+}
