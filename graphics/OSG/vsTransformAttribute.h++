@@ -25,7 +25,7 @@
 #define VS_TRANSFORM_ATTRIBUTE_HPP
 
 #include <osg/MatrixTransform>
-#include <osg/DOFTransform>
+#include <osgSim/DOFTransform>
 #include <osg/Group>
 #include "vsMatrix.h++"
 #include "vsComponent.h++"
