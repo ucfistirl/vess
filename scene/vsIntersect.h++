@@ -36,6 +36,13 @@ class vsIntersect;
 
 #define VS_INTERSECT_SEGS_MAX 32
 
+enum vsIntersectFacingMode
+{
+    VS_INTERSECT_IGNORE_NONE,
+    VS_INTERSECT_IGNORE_FRONTFACE,
+    VS_INTERSECT_IGNORE_BACKFACE
+};
+
 class vsIntersect
 {
 private:
@@ -44,6 +51,7 @@ private:
     int                segListSize;
 
     int                pathsEnabled;
+    int                facingMode;
 
     // Intersection results
     int                validFlag[VS_INTERSECT_SEGS_MAX];
@@ -78,6 +86,9 @@ public:
     
     void               enablePaths();
     void               disablePaths();
+    
+    void               setFacingMode(int newMode);
+    int                getFacingMode();
 
     void               intersect(vsNode *targetNode);
 

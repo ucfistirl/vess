@@ -37,6 +37,8 @@ vsIntersect::vsIntersect()
     pathsEnabled = 0;
     for (loop = 0; loop < VS_INTERSECT_SEGS_MAX; loop++)
         sectPath[loop] = NULL;
+
+    facingMode = VS_INTERSECT_IGNORE_NONE;
     
     performerSegSet.mode = PFTRAV_IS_PRIM | PFTRAV_IS_NORM;
     performerSegSet.userData = NULL;
@@ -350,6 +352,24 @@ void vsIntersect::disablePaths()
 }
 
 // ------------------------------------------------------------------------
+// Sets the facing mode for the intersection object. The face mode tells
+// the object if it should ignore intersections with a particular side
+// of a polygon.
+// ------------------------------------------------------------------------
+void vsIntersect::setFacingMode(int newMode)
+{
+    facingMode = newMode;
+}
+
+// ------------------------------------------------------------------------
+// Gets the facing mode for the intersection object
+// ------------------------------------------------------------------------
+int vsIntersect::getFacingMode()
+{
+    return facingMode;
+}
+
+// ------------------------------------------------------------------------
 // Initiates an intersection traversal over the indicated geometry tree.
 // The results of the traversal are stored and can be retrieved with the
 // getIsect* functions.
@@ -377,7 +397,6 @@ void vsIntersect::intersect(vsNode *targetNode)
     vsGrowableArray *performerPath;
     pfSegSet secondIsectSegs;
     pfHit **secondHits[PFIS_MAX_SEGS];
-    int i, j, result;
 
     // This is where the fun begins
     
@@ -392,6 +411,11 @@ void vsIntersect::intersect(vsNode *targetNode)
         performerSegSet.mode = PFTRAV_IS_PRIM | PFTRAV_IS_NORM | PFTRAV_IS_PATH;
     else
         performerSegSet.mode = PFTRAV_IS_PRIM | PFTRAV_IS_NORM;
+
+    if (facingMode == VS_INTERSECT_IGNORE_FRONTFACE)
+	performerSegSet.mode |= PFTRAV_IS_CULL_FRONT;
+    else if (facingMode == VS_INTERSECT_IGNORE_BACKFACE)
+	performerSegSet.mode |= PFTRAV_IS_CULL_BACK;
 
     // Run the intersection traversal
     performerNode->isect(&performerSegSet, hits);
@@ -516,8 +540,7 @@ void vsIntersect::intersect(vsNode *targetNode)
                         
                         // Run the intersection with the new segment from
                         // the previous node in the path.
-                        result = 
-                            newIsectNode->isect(&secondIsectSegs, secondHits);
+                        newIsectNode->isect(&secondIsectSegs, secondHits);
 
                         // Query the path again
                         (secondHits[0][0])->query(PFQHIT_FLAGS, &flags);
