@@ -47,6 +47,9 @@ vsIntersect::vsIntersect() : segList(5, 10)
     // modes for sequence, switches, and LOD's
     traverser = new vsIntersectTraverser();
     traverser->ref();
+
+    // Set the facing mode to accept intersections with both sides by default
+    facingMode = VS_INTERSECT_IGNORE_NONE;
 }
 
 // ------------------------------------------------------------------------
@@ -559,6 +562,7 @@ void vsIntersect::intersect(vsNode *targetNode)
         // intersections
         if (facingMode != VS_INTERSECT_IGNORE_NONE)
         {
+printf("Culling mode...\n");
             // Set up a vector indicating the view direction for this segment
             viewRay = ((osg::LineSegment *)segList[loop])->end() -
                       ((osg::LineSegment *)segList[loop])->start();
@@ -607,6 +611,7 @@ void vsIntersect::intersect(vsNode *targetNode)
         }
         else
         {
+printf("No-cull mode...\n");
             // The first hit is always valid in this mode
             validHit = 0;
         }
@@ -615,6 +620,7 @@ void vsIntersect::intersect(vsNode *targetNode)
         // values and skip to the next segment if there aren't any
         if ((hitList.empty()) || (validHit == -1))
         {
+printf("Failure (list size = %d)\n", hitList.size());
             validFlag[loop] = false;
             sectPoint[loop].set(0, 0, 0);
             sectNorm[loop].set(0, 0, 0);
@@ -626,6 +632,7 @@ void vsIntersect::intersect(vsNode *targetNode)
         }
         else
         {
+printf("Using hit %d\n", validHit);
             // Get the first valid hit from the list
             hit = hitList.at(validHit);
 
