@@ -99,13 +99,13 @@ void vsBackfaceAttribute::disable()
 // ------------------------------------------------------------------------
 // Retrieves a flag stating if backfacing is enabled
 // ------------------------------------------------------------------------
-int vsBackfaceAttribute::isEnabled()
+bool vsBackfaceAttribute::isEnabled()
 {
     // Backfacing is on if Performer face culling is off
     if (cullfaceVal == PFCF_OFF)
-        return VS_TRUE;
+        return true;
 
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------
@@ -192,22 +192,22 @@ void vsBackfaceAttribute::setState(pfGeoState *state)
 // Determines if the specified attribute has state information that is
 // equivalent to what this attribute has
 // ------------------------------------------------------------------------
-int vsBackfaceAttribute::isEquivalent(vsAttribute *attribute)
+bool vsBackfaceAttribute::isEquivalent(vsAttribute *attribute)
 {
     vsBackfaceAttribute *attr;
-    int val1, val2;
+    bool val1, val2;
     
     // NULL check
     if (!attribute)
-        return VS_FALSE;
+        return false;
 
     // Equal pointer check
     if (this == attribute)
-        return VS_TRUE;
+        return true;
     
     // Type check
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_BACKFACE)
-        return VS_FALSE;
+        return false;
 
     // Type cast
     attr = (vsBackfaceAttribute *)attribute;
@@ -216,8 +216,8 @@ int vsBackfaceAttribute::isEquivalent(vsAttribute *attribute)
     val1 = isEnabled();
     val2 = attr->isEnabled();
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Attributes are equivalent if all checks pass
-    return VS_TRUE;
+    return true;
 }

@@ -54,7 +54,7 @@ protected:
     vsGrowableArray    attributeList;
     int                attributeCount;
 
-    int                dirtyFlag;
+    bool               dirtyFlag;
 
     void               detachFromParents();
     void               deleteAttributes();
@@ -64,8 +64,8 @@ VS_INTERNAL:
     static vsObjectMap *getMap();
     static void        deleteMap();
 
-    virtual int        addParent(vsNode *newParent);
-    virtual int        removeParent(vsNode *targetParent);
+    virtual bool       addParent(vsNode *newParent);
+    virtual bool       removeParent(vsNode *targetParent);
 
     virtual void       saveCurrentAttributes();
     virtual void       applyAttributes();
@@ -73,7 +73,7 @@ VS_INTERNAL:
 
     void               dirty();
     void               clean();
-    int                isDirty();
+    bool               isDirty();
 
     void               dirtyUp();
     virtual void       dirtyDown();
@@ -88,10 +88,10 @@ public:
 
     virtual int         getNodeType() = 0;
 
-    virtual int         addChild(vsNode *newChild);
-    virtual int         insertChild(vsNode *newChild, int index);
-    virtual int         removeChild(vsNode *targetChild);
-    virtual int         replaceChild(vsNode *targetChild, vsNode *newChild);
+    virtual bool        addChild(vsNode *newChild);
+    virtual bool        insertChild(vsNode *newChild, int index);
+    virtual bool        removeChild(vsNode *targetChild);
+    virtual bool        replaceChild(vsNode *targetChild, vsNode *newChild);
 
     virtual int         getParentCount();
     virtual vsNode      *getParent(int index);

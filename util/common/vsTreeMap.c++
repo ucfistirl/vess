@@ -50,12 +50,12 @@ vsTreeMap::~vsTreeMap()
 // Adds a new mapping from key to value to the tree. Returns true if
 // successful, or false if a mapping for that key already exists.
 // ------------------------------------------------------------------------
-int vsTreeMap::addEntry(void *key, void *value)
+bool vsTreeMap::addEntry(void *key, void *value)
 {
     // Make sure that a node with the given key isn't already in
     // the tree.
     if (containsKey(key))
-        return VS_FALSE;
+        return false;
 
     // Create the new node using the given key and value. New nodes
     // are initially colored red.
@@ -75,7 +75,7 @@ int vsTreeMap::addEntry(void *key, void *value)
         treeRoot = newNode;
         treeRoot->color = VS_TREE_MAP_BLACK;
         treeSize++;
-        return VS_TRUE;
+        return true;
     }
     
     // The tree isn't empty. Do a binary search on the tree to determine
@@ -124,14 +124,14 @@ int vsTreeMap::addEntry(void *key, void *value)
 
     // Increase entry cound by one and return success
     treeSize++;
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
 // Removes the mapping associated with the given key from the tree. Returns
 // true if successful, or false if the key is not in the tree.
 // ------------------------------------------------------------------------
-int vsTreeMap::deleteEntry(void *key)
+bool vsTreeMap::deleteEntry(void *key)
 {
     vsTreeMapNode *targetNode;
     
@@ -139,7 +139,7 @@ int vsTreeMap::deleteEntry(void *key)
     // is no such node.
     targetNode = findNode(treeRoot, key);
     if (targetNode == NULL)
-        return VS_FALSE;
+        return false;
 
     // Call an internal function to do the actual deletion
     deleteNode(targetNode);
@@ -152,7 +152,7 @@ int vsTreeMap::deleteEntry(void *key)
 
     // Decrease entry count by one and return success
     treeSize--;
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
@@ -167,13 +167,13 @@ int vsTreeMap::getEntryCount()
 // Checks if a mapping for the given key is present in the tree. Returns
 // true if so, false if not.
 // ------------------------------------------------------------------------
-int vsTreeMap::containsKey(void *key)
+bool vsTreeMap::containsKey(void *key)
 {
     // Call our helper function to find the node with the given key
     if (findNode(treeRoot, key) != NULL)
-        return VS_TRUE;
+        return true;
     else
-        return VS_FALSE;
+        return false;
 }
 
 // ------------------------------------------------------------------------
@@ -198,18 +198,18 @@ void *vsTreeMap::getValue(void *key)
 // Return true if successful, false if the given key is not present within
 // the tree.
 // ------------------------------------------------------------------------
-int vsTreeMap::changeValue(void *key, void *newValue)
+bool vsTreeMap::changeValue(void *key, void *newValue)
 {
     vsTreeMapNode *node;
     
     // Call our helper function to find the node with the given key
     node = findNode(treeRoot, key);
     if (!node)
-        return VS_FALSE;
+        return false;
 
     // If found, change the value of the node and return success
     node->nodeValue = newValue;
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

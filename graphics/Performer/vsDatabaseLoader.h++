@@ -65,7 +65,7 @@ private:
 
     int                loaderModes;
 
-    int                importanceCheck(pfNode *targetNode);
+    bool               importanceCheck(pfNode *targetNode);
 
     vsNode             *convertGeode(pfGeode *geode, vsObjectMap *attrMap);
     void               convertAttrs(vsGeometry *geometry, 
@@ -111,7 +111,7 @@ public:
     const char         *getPath();
 
     void               setLoaderMode(int whichMode, int modeVal);
-    int                getLoaderMode(int whichMode);
+    bool               getLoaderMode(int whichMode);
 
     vsComponent        *loadDatabase(char *databaseFilename);
 };

@@ -252,7 +252,7 @@ double vsVector::getValue(int index) const
 // must be the same size. Two elements are considered equal if they are
 // within a small default tolerance value of each other.
 // ------------------------------------------------------------------------
-int vsVector::isEqual(const vsVector &operand) const
+bool vsVector::isEqual(const vsVector &operand) const
 {
     int i;
 
@@ -260,17 +260,17 @@ int vsVector::isEqual(const vsVector &operand) const
     if (vecSize != operand.vecSize)
     {
         printf("vsVector::isEqual: Vector size mismatch\n");
-        return VS_FALSE;
+        return false;
     }
 
     // Check each pair of values (this vector's and the operand vector's)
     // for almost-equality; return false if a pair doesn't match up.
     for (i = 0; i < vecSize; i++)
         if (fabs(data[i] - operand.data[i]) > VS_DEFAULT_TOLERANCE)
-            return VS_FALSE;
+            return false;
 
     // If all the pairs match, return true
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
@@ -278,7 +278,7 @@ int vsVector::isEqual(const vsVector &operand) const
 // must be the same size. Two elements are considered equal if they are
 // within the specified tolerance value of each other.
 // ------------------------------------------------------------------------
-int vsVector::isAlmostEqual(const vsVector &operand, double tolerance) const
+bool vsVector::isAlmostEqual(const vsVector &operand, double tolerance) const
 {
     int i;
 
@@ -286,7 +286,7 @@ int vsVector::isAlmostEqual(const vsVector &operand, double tolerance) const
     if (vecSize != operand.vecSize)
     {
         printf("vsVector::isAlmostEqual: Vector size mismatch\n");
-        return VS_FALSE;
+        return false;
     }
 
     // Check each pair of values (this vector's and the operand vector's)
@@ -294,10 +294,10 @@ int vsVector::isAlmostEqual(const vsVector &operand, double tolerance) const
     // value. Return false if a pair doesn't match up.
     for (i = 0; i < vecSize; i++)
         if (fabs(data[i] - operand.data[i]) > tolerance)
-            return VS_FALSE;
+            return false;
 
     // If all the pairs match, return true
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
@@ -760,7 +760,7 @@ void vsVector::operator*=(double multiplier)
 // within a small default tolerance value of each other.
 // Equivalent to isEqual(operand)
 // ------------------------------------------------------------------------
-int vsVector::operator==(const vsVector &operand) const
+bool vsVector::operator==(const vsVector &operand) const
 {
     int i;
 
@@ -768,17 +768,17 @@ int vsVector::operator==(const vsVector &operand) const
     if (vecSize != operand.vecSize)
     {
         printf("vsVector::operator==: Vector size mismatch\n");
-        return VS_FALSE;
+        return false;
     }
 
     // Check each pair of values (this vector's and the operand vector's)
     // for almost-equality; return false if a pair doesn't match up.
     for (i = 0; i < vecSize; i++)
         if (fabs(data[i] - operand.data[i]) > VS_DEFAULT_TOLERANCE)
-            return VS_FALSE;
+            return false;
 
     // If all the pairs match, return true
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

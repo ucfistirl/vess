@@ -49,7 +49,7 @@ protected:
     int                objectCount;
     void               addObjectToArrays(void *object, char *name, char *type);
 
-    int                isInitted;
+    bool               isInitted;
     
     vsComponent        *geometryRoot;
 

@@ -77,7 +77,7 @@ void vsObjectMap::registerLink(void *firstObject, void *secondObject)
 // whichList constant specifies which list of objects the function should
 // search in for the link to delete.
 // ------------------------------------------------------------------------
-int vsObjectMap::removeLink(void *theObject, int whichList)
+bool vsObjectMap::removeLink(void *theObject, int whichList)
 {
     void *otherListObjPtr;
 
@@ -94,7 +94,7 @@ int vsObjectMap::removeLink(void *theObject, int whichList)
                 otherListObjPtr = firstList->getValue(theObject);
                 firstList->deleteEntry(theObject);
                 secondList->deleteEntry(otherListObjPtr);
-                return VS_TRUE;
+                return true;
             }
             break;
 
@@ -108,7 +108,7 @@ int vsObjectMap::removeLink(void *theObject, int whichList)
                 otherListObjPtr = secondList->getValue(theObject);
                 secondList->deleteEntry(theObject);
                 firstList->deleteEntry(otherListObjPtr);
-                return VS_TRUE;
+                return true;
             }
             break;
 
@@ -123,7 +123,7 @@ int vsObjectMap::removeLink(void *theObject, int whichList)
                 otherListObjPtr = firstList->getValue(theObject);
                 firstList->deleteEntry(theObject);
                 secondList->deleteEntry(otherListObjPtr);
-                return VS_TRUE;
+                return true;
             }
             if (secondList->containsKey(theObject))
             {
@@ -133,12 +133,12 @@ int vsObjectMap::removeLink(void *theObject, int whichList)
                 otherListObjPtr = secondList->getValue(theObject);
                 secondList->deleteEntry(theObject);
                 firstList->deleteEntry(otherListObjPtr);
-                return VS_TRUE;
+                return true;
             }
             break;
     }
 
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------

@@ -1156,14 +1156,14 @@ void vsDynamicGeometry::disableLighting()
 // ------------------------------------------------------------------------
 // Returns if lighting is enabled for this geometry
 // ------------------------------------------------------------------------
-int vsDynamicGeometry::isLightingEnabled()
+bool vsDynamicGeometry::isLightingEnabled()
 {
     // Check the local GeoState to see if the lighting state is inherited.
     // If not, it is locally disabled.
     if ((performerGeostate->getInherit() & PFSTATE_ENLIGHTING))
-        return VS_TRUE;
+        return true;
     else
-        return VS_FALSE;
+        return false;
 }
 
 // ------------------------------------------------------------------------
@@ -1373,20 +1373,20 @@ int vsDynamicGeometry::initFluxedGeoSet(pfFluxMemory *fluxMem)
 // Internal function
 // Adds a node to this node's list of parent nodes
 // ------------------------------------------------------------------------
-int vsDynamicGeometry::addParent(vsNode *newParent)
+bool vsDynamicGeometry::addParent(vsNode *newParent)
 {
     // Add the given node to the parent list and reference it
     parentList[parentCount++] = newParent;
 
     // Return success
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
 // Internal function
 // Removes a node from this node's list of parent nodes
 // ------------------------------------------------------------------------
-int vsDynamicGeometry::removeParent(vsNode *targetParent)
+bool vsDynamicGeometry::removeParent(vsNode *targetParent)
 {
     int loop, sloop;
 
@@ -1406,12 +1406,12 @@ int vsDynamicGeometry::removeParent(vsNode *targetParent)
             parentCount--;
 
             // Return success
-            return VS_TRUE;
+            return true;
         }
     }
 
     // Couldn't find the target parent, return failure
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------

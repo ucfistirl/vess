@@ -253,7 +253,7 @@ void vsFogAttribute::setState(pfGeoState *state)
 // Determines if the specified attribute has state information that is
 // equivalent to what this attribute has
 // ------------------------------------------------------------------------
-int vsFogAttribute::isEquivalent(vsAttribute *attribute)
+bool vsFogAttribute::isEquivalent(vsAttribute *attribute)
 {
     vsFogAttribute *attr;
     int val1, val2;
@@ -262,15 +262,15 @@ int vsFogAttribute::isEquivalent(vsAttribute *attribute)
     
     // NULL check
     if (!attribute)
-        return VS_FALSE;
+        return false;
 
     // Equal pointer check
     if (this == attribute)
-        return VS_TRUE;
+        return true;
     
     // Type check
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_FOG)
-        return VS_FALSE;
+        return false;
 
     // Type cast
     attr = (vsFogAttribute *)attribute;
@@ -279,20 +279,20 @@ int vsFogAttribute::isEquivalent(vsAttribute *attribute)
     val1 = getEquationType();
     val2 = attr->getEquationType();
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Color check
     getColor(&r1, &g1, &b1);
     attr->getColor(&r2, &g2, &b2);
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
-        return VS_FALSE;
+        return false;
 
     // Range check
     getRanges(&near1, &far1);
     attr->getRanges(&near2, &far2);
     if (!VS_EQUAL(near1,near2) || !VS_EQUAL(far1,far2))
-        return VS_FALSE;
+        return false;
 
     // Attributes are equivalent if all checks pass
-    return VS_TRUE;
+    return true;
 }

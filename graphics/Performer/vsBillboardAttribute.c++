@@ -153,12 +153,12 @@ vsVector vsBillboardAttribute::getAxis()
 // Internal function
 // Returns if this attribute is available to be attached to a node
 // ------------------------------------------------------------------------
-int vsBillboardAttribute::canAttach()
+bool vsBillboardAttribute::canAttach()
 {
     if (attachedFlag)
-        return VS_FALSE;
+        return false;
 
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

@@ -47,7 +47,7 @@ vsLightAttribute::vsLightAttribute()
     setSpecularColor(0.0, 0.0, 0.0);
     
     // Light start out off
-    lightOn = VS_FALSE;
+    lightOn = false;
     
     // Performer light starts out off
     lightNode->off();
@@ -364,7 +364,7 @@ int vsLightAttribute::getScope()
 void vsLightAttribute::on()
 {
     // Set this light as on
-    lightOn = VS_TRUE;
+    lightOn = true;
 
     // Global lights are simply turned off; local lights must be
     // activated by a pass of the VESS traverser
@@ -380,7 +380,7 @@ void vsLightAttribute::on()
 void vsLightAttribute::off()
 {
     // Set this light as off
-    lightOn = VS_FALSE;
+    lightOn = false;
 
     // Global lights are simply turned off; local lights must be
     // deactivated by a pass of the VESS traverser
@@ -393,7 +393,7 @@ void vsLightAttribute::off()
 // ------------------------------------------------------------------------
 // Returns a flag indicating if this light source is currently active
 // ------------------------------------------------------------------------
-int vsLightAttribute::isOn()
+bool vsLightAttribute::isOn()
 {
     return lightOn;
 }
@@ -402,14 +402,14 @@ int vsLightAttribute::isOn()
 // Internal function
 // Returns if this attribute is available to be attached to a node
 // ------------------------------------------------------------------------
-int vsLightAttribute::canAttach()
+bool vsLightAttribute::canAttach()
 {
     // This attribute is not available to be attached if it is already
     // attached to another node
     if (attachedFlag)
-        return VS_FALSE;
+        return false;
 
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

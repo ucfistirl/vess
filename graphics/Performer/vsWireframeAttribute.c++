@@ -85,13 +85,13 @@ void vsWireframeAttribute::disable()
 // ------------------------------------------------------------------------
 // Returns a flag specifying is transparency is enabled
 // ------------------------------------------------------------------------
-int vsWireframeAttribute::isEnabled()
+bool vsWireframeAttribute::isEnabled()
 {
     // Interpret the current wireframe value
     if (wireValue == PFTR_ON)
-        return VS_TRUE;
+        return true;
     else
-        return VS_FALSE;
+        return false;
 }
 
 // ------------------------------------------------------------------------
@@ -177,22 +177,22 @@ void vsWireframeAttribute::setState(pfGeoState *state)
 // Determines if the specified attribute has state information that is
 // equivalent to what this attribute has
 // ------------------------------------------------------------------------
-int vsWireframeAttribute::isEquivalent(vsAttribute *attribute)
+bool vsWireframeAttribute::isEquivalent(vsAttribute *attribute)
 {
     vsWireframeAttribute *attr;
-    int val1, val2;
+    bool val1, val2;
     
     // NULL check
     if (!attribute)
-        return VS_FALSE;
+        return false;
 
     // Equal pointer check
     if (this == attribute)
-        return VS_TRUE;
+        return true;
     
     // Type check
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_WIREFRAME)
-        return VS_FALSE;
+        return false;
 
     // Type cast
     attr = (vsWireframeAttribute *)attribute;
@@ -201,8 +201,8 @@ int vsWireframeAttribute::isEquivalent(vsAttribute *attribute)
     val1 = isEnabled();
     val2 = attr->isEnabled();
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Attributes are equivalent if all checks pass
-    return VS_TRUE;
+    return true;
 }

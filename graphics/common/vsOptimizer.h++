@@ -54,7 +54,7 @@ private:
     void        mergeLODs(vsComponent *componentNode);
 
     void        mergeGeometry(vsComponent *componentNode);
-    int         isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo);
+    bool        isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo);
     void        addGeometry(vsGeometry *destGeo, vsGeometry *srcGeo);
 
     void        condenseGeoData(vsGeometry *geometry, int whichData);

@@ -49,8 +49,8 @@ public:
     
     void        setValue(int index, double value);
     double      getValue(int index) const;
-    int         isEqual(const vsQuat &operand) const;
-    int         isAlmostEqual(const vsQuat &operand, double tolerance) const;
+    bool        isEqual(const vsQuat &operand) const;
+    bool        isAlmostEqual(const vsQuat &operand, double tolerance) const;
 
     void        add(const vsQuat &addend);
     vsQuat      getSum(const vsQuat &addend) const;
@@ -96,7 +96,7 @@ public:
     void        operator+=(const vsQuat &addend);
     void        operator-=(const vsQuat &subtrahend);
     void        operator*=(const vsQuat &operand);
-    int         operator==(const vsQuat &operand) const;
+    bool        operator==(const vsQuat &operand) const;
 
     void        print() const;
     void        print(FILE *fp) const;

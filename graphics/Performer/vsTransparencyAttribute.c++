@@ -32,7 +32,7 @@ vsTransparencyAttribute::vsTransparencyAttribute()
 {
     // Initialize the attribute to its default value of enabled
     quality = VS_TRANSP_QUALITY_DEFAULT;
-    occlusion = VS_TRUE;
+    occlusion = true;
     transpValue = PFTR_ON;
 }
 
@@ -79,7 +79,7 @@ void vsTransparencyAttribute::enable()
     }
 
     // Modify the transparency value if occlusion is disabled
-    if (occlusion == VS_FALSE)
+    if (occlusion == false)
         transpValue |= PFTR_NO_OCCLUDE;
     
     // Mark the nodes that have this attribute attached as needing
@@ -103,13 +103,13 @@ void vsTransparencyAttribute::disable()
 // ------------------------------------------------------------------------
 // Returns a flag specifying if transparency is enabled
 // ------------------------------------------------------------------------
-int vsTransparencyAttribute::isEnabled()
+bool vsTransparencyAttribute::isEnabled()
 {
     // Interpret the transparency value
     if (transpValue != PFTR_OFF)
-        return VS_TRUE;
+        return true;
     else
-        return VS_FALSE;
+        return false;
 }
 
 // ------------------------------------------------------------------------
@@ -150,7 +150,7 @@ int vsTransparencyAttribute::getQuality()
 void vsTransparencyAttribute::enableOcclusion()
 {
     // Set the occlusion value
-    occlusion = VS_TRUE;
+    occlusion = true;
 
     // If transparency is currently enabled, then call the enable()
     // function to recompute the transparency value
@@ -164,7 +164,7 @@ void vsTransparencyAttribute::enableOcclusion()
 void vsTransparencyAttribute::disableOcclusion()
 {
     // Set the occlusion value
-    occlusion = VS_FALSE;
+    occlusion = false;
 
     // If transparency is currently enabled, then call the enable()
     // function to recompute the transparency value
@@ -175,7 +175,7 @@ void vsTransparencyAttribute::disableOcclusion()
 // ------------------------------------------------------------------------
 // Returns a flag specifying if occlusion is enabled
 // ------------------------------------------------------------------------
-int vsTransparencyAttribute::isOcclusionEnabled()
+bool vsTransparencyAttribute::isOcclusionEnabled()
 {
     return occlusion;
 }
@@ -272,22 +272,22 @@ void vsTransparencyAttribute::setState(pfGeoState *state)
 // Determines if the specified attribute has state information that is
 // equivalent to what this attribute has
 // ------------------------------------------------------------------------
-int vsTransparencyAttribute::isEquivalent(vsAttribute *attribute)
+bool vsTransparencyAttribute::isEquivalent(vsAttribute *attribute)
 {
     vsTransparencyAttribute *attr;
-    int val1, val2;
+    bool val1, val2;
     
     // NULL check
     if (!attribute)
-        return VS_FALSE;
+        return false;
 
     // Equal pointer check
     if (this == attribute)
-        return VS_TRUE;
+        return true;
     
     // Type check
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_TRANSPARENCY)
-        return VS_FALSE;
+        return false;
 
     // Type cast
     attr = (vsTransparencyAttribute *)attribute;
@@ -296,20 +296,20 @@ int vsTransparencyAttribute::isEquivalent(vsAttribute *attribute)
     val1 = isEnabled();
     val2 = attr->isEnabled();
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Quality check
     val1 = getQuality();
     val2 = attr->getQuality();
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Occlusion check
     val1 = isOcclusionEnabled();
     val2 = attr->isOcclusionEnabled();
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Attributes are equivalent if all checks pass
-    return VS_TRUE;
+    return true;
 }

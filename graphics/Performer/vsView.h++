@@ -56,7 +56,7 @@ VS_INTERNAL:
     void        getProjectionData(int *mode, double *horizVal,
                                   double *vertiVal);
 
-    int         attachViewAttribute(vsViewpointAttribute *theAttribute);
+    bool        attachViewAttribute(vsViewpointAttribute *theAttribute);
     void        detachViewAttribute();
     void        updateFromAttribute();
 

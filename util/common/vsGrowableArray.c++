@@ -205,13 +205,13 @@ int vsGrowableArray::getMaxSize()
 // if the index is valid. Also checks if the array is allocated at the
 // desired index, and grows the array to cover the index if needed.
 // ------------------------------------------------------------------------
-inline int vsGrowableArray::access(int index)
+inline bool vsGrowableArray::access(int index)
 {
     // Array bounds check
     if ((index < 0) || (index >= maxSize))
     {
         printf("vsGrowableArray::access: Array index out of bounds\n");
-        return VS_FALSE;
+        return false;
     }
 
     // Allocated space check
@@ -222,7 +222,7 @@ inline int vsGrowableArray::access(int index)
         if (stepSize <= 0)
         {
             printf("vsGrowableArray::access: Array index out of bounds\n");
-            return VS_FALSE;
+            return false;
         }
 
         // Determine how big the new array should be by repeatedly
@@ -242,11 +242,11 @@ inline int vsGrowableArray::access(int index)
 
         // Check for allocation failure
         if (currentSize == 0)
-            return VS_FALSE;
+            return false;
     }
 
     // Return success
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

@@ -367,19 +367,19 @@ void vsView::getProjectionData(int *mode, double *horizVal, double *vertiVal)
 // Signals to this viewpoint object that its data is being controlled
 // by the indicated viewpoint attribute.
 // ------------------------------------------------------------------------
-int vsView::attachViewAttribute(vsViewpointAttribute *theAttribute)
+bool vsView::attachViewAttribute(vsViewpointAttribute *theAttribute)
 {
     // Fail if a viewpoint attribute is already attached
     if (viewAttribute)
     {
         printf("vsView::attachViewAttribute: View object is already "
             "controlled by a vsViewpointAttribute\n");
-        return VS_FALSE;
+        return false;
     }
     
     // Keep track of the viewpoint attribute we're attaching to
     viewAttribute = theAttribute;
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

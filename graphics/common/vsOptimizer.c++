@@ -580,9 +580,9 @@ void vsOptimizer::mergeGeometry(vsComponent *componentNode)
 // ------------------------------------------------------------------------
 // Compares two geometry objects for similarity; used by the geometry merge
 // routine to determine when two geometries can be merged. If the two
-// geometry pointers are the same, VS_FALSE is returned.
+// geometry pointers are the same, false is returned.
 // ------------------------------------------------------------------------
-int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
+bool vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
 {
     int firstVal, secondVal;
     vsVector firstVec, secondVec;
@@ -595,29 +595,29 @@ int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
     // caller to get the bright idea of trying to merge the object with
     // itself. Return false in this case.
     if (firstGeo == secondGeo)
-        return VS_FALSE;
+        return false;
 
     // If either geometry node is named, return false
     if (strlen(firstGeo->getName()) > 0)
-        return VS_FALSE;
+        return false;
     if (strlen(secondGeo->getName()) > 0)
-        return VS_FALSE;
+        return false;
 
     // Compare primitive types
     firstVal = firstGeo->getPrimitiveType();
     secondVal = secondGeo->getPrimitiveType();
     if (firstVal != secondVal)
-        return VS_FALSE;
+        return false;
 
     // Compare attribute counts
     firstVal = firstGeo->getAttributeCount();
     secondVal = secondGeo->getAttributeCount();
     if (firstVal != secondVal)
-        return VS_FALSE;
+        return false;
 
     // Check to make sure that both geometry nodes have the same parent(s)
     if (firstGeo->getParentCount() != secondGeo->getParentCount())
-        return VS_FALSE;
+        return false;
     for (loop = 0; loop < firstGeo->getParentCount(); loop++)
     {
         // Start with no match
@@ -635,7 +635,7 @@ int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
         
         // If there wasn't a match, then the geometeries aren't compatible
         if (!matchFlag)
-            return VS_FALSE;
+            return false;
     }
 
     // Compare the two geometries' attributes
@@ -646,20 +646,20 @@ int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
 
         // Only graphics state attributes can be merged in this way
         if (firstAttr->getAttributeCategory() != VS_ATTRIBUTE_CATEGORY_STATE)
-            return VS_FALSE;
+            return false;
 
         // For each attribute in the first geometry, the second geometry
         // must have a corresponding attribute of the same type
         firstType = firstAttr->getAttributeType();
         secondAttr = secondGeo->getTypedAttribute(firstType, 0);
         if (!secondAttr)
-            return VS_FALSE;
+            return false;
 
         // Consult the state attribute's isEquivalent() function to
         // determine if the two attributes are the same
         stateAttr = (vsStateAttribute *)firstAttr;
         if (!(stateAttr->isEquivalent(secondAttr)))
-            return VS_FALSE;
+            return false;
     }
 
     // * Compare geometric data bindings
@@ -667,7 +667,7 @@ int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
     firstVal = firstGeo->getBinding(VS_GEOMETRY_NORMALS);
     secondVal = secondGeo->getBinding(VS_GEOMETRY_NORMALS);
     if (firstVal != secondVal)
-        return VS_FALSE;
+        return false;
     if (firstVal == VS_GEOMETRY_BIND_OVERALL)
     {
         // If normals have overall binding, then we need to verify that
@@ -677,14 +677,14 @@ int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
 
         // Compare for equality
         if (!(firstVec == secondVec))
-            return VS_FALSE;
+            return false;
     }
 
     // Color binding
     firstVal = firstGeo->getBinding(VS_GEOMETRY_COLORS);
     secondVal = secondGeo->getBinding(VS_GEOMETRY_COLORS);
     if (firstVal != secondVal)
-        return VS_FALSE;
+        return false;
     if (firstVal == VS_GEOMETRY_BIND_OVERALL)
     {
         // If colors have overall binding, then we need to verify that
@@ -694,17 +694,17 @@ int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
 
         // Compare for equality
         if (!(firstVec == secondVec))
-            return VS_FALSE;
+            return false;
     }
 
     // Texture coordinate binding
     firstVal = firstGeo->getBinding(VS_GEOMETRY_TEXTURE_COORDS);
     secondVal = secondGeo->getBinding(VS_GEOMETRY_TEXTURE_COORDS);
     if (firstVal != secondVal)
-        return VS_FALSE;
+        return false;
 
     // If we've gotten this far, then the geometries should be compatible
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

@@ -205,13 +205,13 @@ void vsDatabaseLoader::setLoaderMode(int whichMode, int modeVal)
 // ------------------------------------------------------------------------
 // Retrieves the value of the specified loader mode
 // ------------------------------------------------------------------------
-int vsDatabaseLoader::getLoaderMode(int whichMode)
+bool vsDatabaseLoader::getLoaderMode(int whichMode)
 {
     // Check the desired mode against our mode variable
     if (loaderModes & whichMode)
-        return VS_TRUE;
+        return true;
     else
-        return VS_FALSE;
+        return false;
 }
 
 // ------------------------------------------------------------------------
@@ -404,7 +404,7 @@ void vsDatabaseLoader::fltLoaderCallback(pfNode *node, int mgOp, int *cbs,
 // specified that DCS's are automatically important. The name check is case
 // sensitive.
 // ------------------------------------------------------------------------
-int vsDatabaseLoader::importanceCheck(pfNode *targetNode)
+bool vsDatabaseLoader::importanceCheck(pfNode *targetNode)
 {
     int loop;
     const char *targetName;
@@ -415,20 +415,20 @@ int vsDatabaseLoader::importanceCheck(pfNode *targetNode)
     // Return TRUE immediately if the loader is set to make all nodes
     // important
     if (loaderModes & VS_DATABASE_MODE_NAME_ALL)
-        return VS_TRUE;
+        return true;
 
     // Return TRUE if the node's name is in our important name list
     for (loop = 0; loop < nodeNameCount; loop++)
         if ( targetName && !strcmp((char *)(nodeNames[loop]), targetName))
-            return VS_TRUE;
+            return true;
 
     // Return TRUE if the node is a transform node
     if ((targetNode->isOfType(pfDCS::getClassType())) &&
         (loaderModes & VS_DATABASE_MODE_NAME_XFORM))
-        return VS_TRUE;
+        return true;
 
     // Otherwise, the node isn't important
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------
@@ -702,7 +702,7 @@ vsNode *vsDatabaseLoader::convertGeode(pfGeode *geode, vsObjectMap *attrMap)
     int primType, primCount;
     pfGeoState *performerState;
     pfVec3 vec3;
-    int flatFlag;
+    bool flatFlag;
     void *attrList;
     pfGeoSet *sourceGeoSet;
     unsigned short *indexList;
@@ -769,7 +769,7 @@ vsNode *vsDatabaseLoader::convertGeode(pfGeode *geode, vsObjectMap *attrMap)
             // Initialize the flatFlag to false.  This will be set to
             // true if the Performer primitive type specifies flat
             // shading.
-            flatFlag = VS_FALSE;
+            flatFlag = false;
 
             // If this GeoSet has a GeoState attached, convert it now
             performerState = geoSet->getGState();
@@ -843,7 +843,7 @@ vsNode *vsDatabaseLoader::convertGeode(pfGeode *geode, vsObjectMap *attrMap)
             {
                 // Set the flatFlag, so we remember to add a flat shading
                 // attribute to the resulting vsGeometry
-                flatFlag = VS_TRUE;
+                flatFlag = true;
 
                 // Preprocess the GeoSet to remove the "flat" features
                 sourceGeoSet = inflateFlatGeometry(geoSet);
@@ -914,7 +914,7 @@ void vsDatabaseLoader::convertAttrs(vsGeometry *geometry, pfGeoState *geoState,
     pfTexEnv *texEnv;
     vsTextureAttribute *textureAttr;
     int transpMode;
-    int transpFlag;
+    bool transpFlag;
     vsTransparencyAttribute *transpAttr;
     int loop;
     vsVector color;
@@ -1101,13 +1101,13 @@ void vsDatabaseLoader::convertAttrs(vsGeometry *geometry, pfGeoState *geoState,
         // No transparency attribute set.  We still need to check if we 
         // need a transparency attribute based on material, color, or
         // texture parameters.  First, assume no transparency.
-        transpFlag = VS_FALSE;
+        transpFlag = false;
 
         // Check the material alpha value for less than full opacity
         if ((materialAttr != NULL) &&
             (materialAttr->getAlpha(VS_MATERIAL_SIDE_FRONT) < 1.0))
         {
-            transpFlag = VS_TRUE;
+            transpFlag = true;
         }
 
         // If we haven't detected transparency yet...
@@ -1126,7 +1126,7 @@ void vsDatabaseLoader::convertAttrs(vsGeometry *geometry, pfGeoState *geoState,
                 // (opaque)
                 if (fabs(color[3] - 1.0) > 1.0E-6)
                 {
-                    transpFlag = VS_TRUE;
+                    transpFlag = true;
                 }
             }
         }
@@ -1160,7 +1160,7 @@ void vsDatabaseLoader::convertAttrs(vsGeometry *geometry, pfGeoState *geoState,
                     // we need transparency
                     if (imageData[(texLoop * 4) + 3] < 255)
                     {
-                        transpFlag = VS_TRUE;
+                        transpFlag = true;
                         break;
                     }
                 }

@@ -446,7 +446,7 @@ void vsTextureAttribute::setState(pfGeoState *state)
 // Determines if the specified attribute has state information that is
 // equivalent to what this attribute has
 // ------------------------------------------------------------------------
-int vsTextureAttribute::isEquivalent(vsAttribute *attribute)
+bool vsTextureAttribute::isEquivalent(vsAttribute *attribute)
 {
     vsTextureAttribute *attr;
     unsigned char *image1, *image2;
@@ -454,15 +454,15 @@ int vsTextureAttribute::isEquivalent(vsAttribute *attribute)
     
     // NULL check
     if (!attribute)
-        return VS_FALSE;
+        return false;
 
     // Equal pointer check
     if (this == attribute)
-        return VS_TRUE;
+        return true;
     
     // Type check
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_TEXTURE)
-        return VS_FALSE;
+        return false;
 
     // Type cast
     attr = (vsTextureAttribute *)attribute;
@@ -472,38 +472,38 @@ int vsTextureAttribute::isEquivalent(vsAttribute *attribute)
     attr->getImage(&image2, &xval2, &yval2, &val2);
     if ((image1 != image2) || (xval1 != xval2) || (yval1 != val2) ||
         (val1 != val2))
-        return VS_FALSE;
+        return false;
 
     // Horizontal boundary mode check
     val1 = getBoundaryMode(VS_TEXTURE_DIRECTION_S);
     val2 = attr->getBoundaryMode(VS_TEXTURE_DIRECTION_S);
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Vertical boundary mode check
     val1 = getBoundaryMode(VS_TEXTURE_DIRECTION_T);
     val2 = attr->getBoundaryMode(VS_TEXTURE_DIRECTION_T);
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Apply mode check
     val1 = getApplyMode();
     val2 = attr->getApplyMode();
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Magnification filter check
     val1 = getMagFilter();
     val2 = attr->getMagFilter();
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Minification filter check
     val1 = getMinFilter();
     val2 = attr->getMinFilter();
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Attributes are equivalent if all checks pass
-    return VS_TRUE;
+    return true;
 }

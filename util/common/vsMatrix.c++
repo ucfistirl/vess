@@ -128,7 +128,7 @@ double vsMatrix::getValue(int row, int column) const
 // Checks for element-wise equality between two matricies. Two elements
 // are considered equal if they are within a small default tolerance value.
 // ------------------------------------------------------------------------
-int vsMatrix::isEqual(const vsMatrix &operand) const
+bool vsMatrix::isEqual(const vsMatrix &operand) const
 {
     int i;
 
@@ -136,17 +136,17 @@ int vsMatrix::isEqual(const vsMatrix &operand) const
     // for almost-equality; return false if a pair doesn't match up.
     for (i = 0; i < 4; i++)
         if (!(data[i].isEqual(operand.data[i])))
-            return VS_FALSE;
+            return false;
 
     // If all the pairs match, return true
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
 // Checks for element-wise equality between two matricies. Two elements
 // are considered equal if they are within the specified tolerance value.
 // ------------------------------------------------------------------------
-int vsMatrix::isAlmostEqual(const vsMatrix &operand, double tolerance) const
+bool vsMatrix::isAlmostEqual(const vsMatrix &operand, double tolerance) const
 {
     int i;
 
@@ -155,10 +155,10 @@ int vsMatrix::isAlmostEqual(const vsMatrix &operand, double tolerance) const
     // value. Return false if a pair doesn't match up.
     for (i = 0; i < 4; i++)
         if (!(data[i].isAlmostEqual(operand.data[i], tolerance)))
-            return VS_FALSE;
+            return false;
 
     // If all the pairs match, return true
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
@@ -1151,7 +1151,7 @@ void vsMatrix::print(FILE *fp) const
 // are considered equal if they are within a small default tolerance value.
 // Equivalent to isEqual(operand)
 // ------------------------------------------------------------------------
-int vsMatrix::operator==(const vsMatrix &operand) const
+bool vsMatrix::operator==(const vsMatrix &operand) const
 {
     int i;
 
@@ -1159,8 +1159,8 @@ int vsMatrix::operator==(const vsMatrix &operand) const
     // for almost-equality; return false if a pair doesn't match up.
     for (i = 0; i < 4; i++)
         if (!(data[i].isEqual(operand.data[i])))
-            return VS_FALSE;
+            return false;
 
     // If all the pairs match, return true
-    return VS_TRUE;
+    return true;
 }

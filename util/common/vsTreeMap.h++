@@ -76,13 +76,13 @@ public:
                 vsTreeMap();
                 ~vsTreeMap();
 
-    int         addEntry(void *key, void *value);
-    int         deleteEntry(void *key);
+    bool        addEntry(void *key, void *value);
+    bool        deleteEntry(void *key);
     int         getEntryCount();
     
-    int         containsKey(void *key);
+    bool        containsKey(void *key);
     void        *getValue(void *key);
-    int         changeValue(void *key, void *newValue);
+    bool        changeValue(void *key, void *newValue);
 
     void        clear();
 

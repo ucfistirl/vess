@@ -36,7 +36,7 @@ protected:
     vsGrowableArray    ownerList;
     int                ownerCount;
     
-    int                overrideFlag;
+    bool               overrideFlag;
     
     void               markOwnersDirty();
 
@@ -45,7 +45,7 @@ VS_INTERNAL:
     virtual void    attach(vsNode *theNode);
     virtual void    detach(vsNode *theNode);
 
-    virtual int     isEquivalent(vsAttribute *attribute) = 0;
+    virtual bool    isEquivalent(vsAttribute *attribute) = false;
 
 public:
 
@@ -55,7 +55,7 @@ public:
     virtual int    getAttributeCategory();
     
     void           setOverride(int override);
-    int            getOverride();
+    bool           getOverride();
 };
 
 #endif

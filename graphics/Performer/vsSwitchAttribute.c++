@@ -154,43 +154,43 @@ void vsSwitchAttribute::disableAll()
 // Returns a flag indicating if the child with the specified index is
 // enabled. The index of the first child is 0.
 // ------------------------------------------------------------------------
-int vsSwitchAttribute::isEnabled(int index)
+bool vsSwitchAttribute::isEnabled(int index)
 {
     // Unattached switches can't be manipulated
     if (!attachedFlag)
     {
         printf("vsSwitchAttribute::isEnabled: Attribute must be attached "
             "before switch can be manipulated\n");
-        return VS_FALSE;
+        return false;
     }
 
     // Bounds check
     if ((index < 0) || (index >= performerSwitch->getNumChildren()))
     {
         printf("vsSwitchAttribute::isEnabled: Index out of bounds\n");
-        return VS_FALSE;
+        return false;
     }
 
     // The child is on if that one child is on or if they are all on
     if ((performerSwitch->getVal() == PFSWITCH_ON) ||
         (performerSwitch->getVal() == index))
-        return VS_TRUE;
+        return true;
     else
-        return VS_FALSE;
+        return false;
 }
 
 // ------------------------------------------------------------------------
 // Internal function
 // Returns if this attribute is available to be attached to a node
 // ------------------------------------------------------------------------
-int vsSwitchAttribute::canAttach()
+bool vsSwitchAttribute::canAttach()
 {
     // This attribute is not available to be attached if it is already
     // attached to another node
     if (attachedFlag)
-        return VS_FALSE;
+        return false;
 
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

@@ -66,7 +66,7 @@ vsAvatar::vsAvatar()
     objNameArray = NULL;
     objTypeArray = NULL;
     objectCount = 0;
-    isInitted = 0;
+    isInitted = false;
     geometryRoot = NULL;
 }
 
@@ -82,7 +82,7 @@ vsAvatar::vsAvatar(vsNode *scene)
     objNameArray = NULL;
     objTypeArray = NULL;
     objectCount = 0;
-    isInitted = 0;
+    isInitted = false;
     geometryRoot = NULL;
 }
 
@@ -125,7 +125,7 @@ void vsAvatar::init(char *configFile)
         return;
     }
 
-    isInitted = 1;
+    isInitted = true;
 
     // Check to see if the user wants to go without a config file
     if (configFile == NULL)
@@ -238,7 +238,7 @@ int vsAvatar::readCfgLine(char *buffer)
 {
     char *p;
     char inBuffer[256], keyword[256];
-    int goodLine = 0;
+    bool goodLine = false; 
     
     // If there's no currently open configuration file, then just return
     // an 'end' value
@@ -446,7 +446,7 @@ void *vsAvatar::makeGeometry()
     int optFlag = 1;
     unsigned int isectVal = 0xFFFFFFFF;
     int autoAdd = 0;
-    int emptyFlag = VS_FALSE;
+    bool emptyFlag = false;
     
     // Create a database loader
     dbLoader = new vsDatabaseLoader();
@@ -510,7 +510,7 @@ void *vsAvatar::makeGeometry()
         else if (!strcmp(token, "empty"))
         {
             // Signify that there will be no geometry
-            emptyFlag = VS_TRUE;
+            emptyFlag = true;
         }
         else if (!strcmp(token, "optimize"))
         {
@@ -3367,7 +3367,7 @@ void *vsAvatar::makeVsWalkInPlace()
     double backThresh = VS_WIP_DEFAULT_BCK_THRESH;
     double sideThresh = VS_WIP_DEFAULT_SS_THRESH;
     double moveAllow = VS_WIP_DEFAULT_ALLOWANCE;
-    int moveLimitEnable = VS_TRUE;
+    bool moveLimitEnable = true;
     vsWalkInPlace *result;
     
     // Initialize the motion trackers

@@ -33,7 +33,7 @@ private:
     int         currentSize, stepSize, maxSize;
     void        *nowhere;
     
-    int         access(int index);
+    bool        access(int index);
 
 public:
 

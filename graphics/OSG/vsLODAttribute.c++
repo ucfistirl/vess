@@ -195,7 +195,7 @@ void vsLODAttribute::attach(vsNode *theNode)
             (1000.0 * (double)(loop+1) / (double)childCount));
 
     // Set the attached flag to true
-    attachedFlag = VS_TRUE;
+    attachedFlag = true;
 }
 
 // ------------------------------------------------------------------------
@@ -220,7 +220,7 @@ void vsLODAttribute::detach(vsNode *theNode)
     osgLOD = NULL;
     
     // Clear the attached flag
-    attachedFlag = VS_FALSE;
+    attachedFlag = false;
 }
 
 // ------------------------------------------------------------------------

@@ -70,7 +70,7 @@ private:
     pfSegSet           performerSegSet;
     int                segListSize;
 
-    int                pathsEnabled;
+    bool               pathsEnabled;
     int                facingMode;
     int                switchMode;
     int                seqMode;

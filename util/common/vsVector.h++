@@ -58,8 +58,8 @@ public:
     int         getSize() const;
     void        setValue(int index, double value);
     double      getValue(int index) const;
-    int         isEqual(const vsVector &operand) const;
-    int         isAlmostEqual(const vsVector &operand, double tolerance) const;
+    bool        isEqual(const vsVector &operand) const;
+    bool        isAlmostEqual(const vsVector &operand, double tolerance) const;
 
     void        add(const vsVector &addend);
     vsVector    getSum(const vsVector &addend) const;
@@ -84,7 +84,7 @@ public:
     void        operator+=(const vsVector &addend);
     void        operator-=(const vsVector &subtrahend);
     void        operator*=(double multiplier);
-    int         operator==(const vsVector &operand) const;
+    bool        operator==(const vsVector &operand) const;
 
     void        print() const;
     void        print(FILE *fp) const;

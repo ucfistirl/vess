@@ -1,4 +1,4 @@
-//------------------------------------------------------------------------
+
 //
 //    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
 //
@@ -370,7 +370,7 @@ unsigned int vsIntersect::getMask()
 // ------------------------------------------------------------------------
 void vsIntersect::enablePaths()
 {
-    pathsEnabled = VS_TRUE;
+    pathsEnabled = true;
 }
 
 // ------------------------------------------------------------------------
@@ -379,7 +379,7 @@ void vsIntersect::enablePaths()
 // ------------------------------------------------------------------------
 void vsIntersect::disablePaths()
 {
-    pathsEnabled = VS_FALSE;
+    pathsEnabled = false;
 }
 
 // ------------------------------------------------------------------------

@@ -45,7 +45,7 @@ public:
                 ~vsObjectMap();
 
     void        registerLink(void *firstObject, void *secondObject);
-    int         removeLink(void *theObject, int whichList);
+    bool        removeLink(void *theObject, int whichList);
     void        removeAllLinks();
 
     void        *mapFirstToSecond(void *firstObject);

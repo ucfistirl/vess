@@ -82,7 +82,7 @@ VS_INTERNAL:
 
     static vsObjectMap    *getMap();
 
-    virtual int           canAttach();
+    virtual bool          canAttach();
     virtual void          attach(vsNode *theNode);
     virtual void          detach(vsNode *theNode);
 
@@ -101,7 +101,7 @@ public:
     virtual int    getAttributeType() = 0;
     virtual int    getAttributeCategory() = 0;
 
-    int            isAttached();
+    bool           isAttached();
 
     void           setName(char *newName);
     const char     *getName();

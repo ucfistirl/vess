@@ -122,7 +122,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
     int geoType, geoCount;
     int geoBinding;
     vsVector geoVec;
-    int attrData;
+    bool attrData;
     
     // Type
     switch (targetNode->getNodeType())

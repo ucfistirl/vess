@@ -147,7 +147,7 @@ int vsComponent::getNodeType()
 // ------------------------------------------------------------------------
 // Adds the given node as a child of this component
 // ------------------------------------------------------------------------
-int vsComponent::addChild(vsNode *newChild)
+bool vsComponent::addChild(vsNode *newChild)
 {
     vsComponent *childComponent;
     vsGeometry *childGeometry;
@@ -155,11 +155,11 @@ int vsComponent::addChild(vsNode *newChild)
 
     // Notify the newChild node that it is getting a new parent. This might
     // fail, as the child node is permitted to object to getting a parent.
-    if (newChild->addParent(this) == VS_FALSE)
+    if (newChild->addParent(this) == false)
     {
 	printf("vsComponent::addChild: 'newChild' node may not have any "
 	    "more parent nodes\n");
-	return VS_FALSE;
+	return false;
     }
 
     // Connect the Performer nodes together. The type can't be a vsScene,
@@ -188,7 +188,7 @@ int vsComponent::addChild(vsNode *newChild)
     newChild->dirty();
     
     // Return success
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
@@ -196,7 +196,7 @@ int vsComponent::addChild(vsNode *newChild)
 // the component's child list. All children currently in the list at that
 // index or greater are moved over by one.
 // ------------------------------------------------------------------------
-int vsComponent::insertChild(vsNode *newChild, int index)
+bool vsComponent::insertChild(vsNode *newChild, int index)
 {
     vsComponent *childComponent;
     vsGeometry *childGeometry;
@@ -207,16 +207,16 @@ int vsComponent::insertChild(vsNode *newChild, int index)
     if (index < 0)
     {
         printf("vsComponent::insertChild: Index out of bounds\n");
-        return VS_FALSE;
+        return false;
     }
 
     // Notify the newChild node that it is getting a new parent. This might
     // fail, as the child node is permitted to object to getting a parent.
-    if (newChild->addParent(this) == VS_FALSE)
+    if (newChild->addParent(this) == false)
     {
 	printf("vsComponent::insertChild: 'newChild' node may not have any "
 	    "more parent nodes\n");
-	return VS_FALSE;
+	return false;
     }
     
     // If the index is greater than the current number of children on this
@@ -256,13 +256,13 @@ int vsComponent::insertChild(vsNode *newChild, int index)
     newChild->dirty();
     
     // Return success
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
 // Removes the given node from the list of children for this component
 // ------------------------------------------------------------------------
-int vsComponent::removeChild(vsNode *targetChild)
+bool vsComponent::removeChild(vsNode *targetChild)
 {
     int loop, sloop;
     vsComponent *childComponent;
@@ -311,17 +311,17 @@ int vsComponent::removeChild(vsNode *targetChild)
 	    
 	    // Check for errors as we remove this component from the
 	    // child's parent list
-	    if (targetChild->removeParent(this) == VS_FALSE)
+	    if (targetChild->removeParent(this) == false)
 		printf("vsComponent::removeChild: Scene graph inconsistency: "
 		    "child to be removed does not have this component as "
 		    "a parent\n");
 
             // Return success
-            return VS_TRUE;
+            return true;
         }
 
     // Couldn't find the child, return failure
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------
@@ -329,7 +329,7 @@ int vsComponent::removeChild(vsNode *targetChild)
 // this component. The new node occupies the same idex that the previous
 // node did.
 // ------------------------------------------------------------------------
-int vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
+bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
 {
     int loop;
     vsComponent *childComponent;
@@ -344,11 +344,11 @@ int vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
 	    // Notify the newChild node that it is getting a new parent.
 	    // This might fail, as the child node is permitted to object to
 	    // getting a parent.
-	    if (newChild->addParent(this) == VS_FALSE)
+	    if (newChild->addParent(this) == false)
 	    {
 		printf("vsComponent::replaceChild: 'newChild' node may not "
 		    "have any more parent nodes\n");
-		return VS_FALSE;
+		return false;
 	    }
 
             // Mark the entire portion of the tree that has any connection
@@ -406,7 +406,7 @@ int vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
 
 	    // Check for errors as we remove this component from the
 	    // child's parent list
-	    if (targetChild->removeParent(this) == VS_FALSE)
+	    if (targetChild->removeParent(this) == false)
 		printf("vsComponent::replaceChild: Scene graph inconsistency: "
 		    "child to be removed does not have this component as "
 		    "a parent\n");
@@ -416,11 +416,11 @@ int vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
             newChild->dirty();
 
             // Return success
-            return VS_TRUE;
+            return true;
         }
 
     // Couldn't find the target child, return failure
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------
@@ -715,28 +715,28 @@ void vsComponent::replaceBottomGroup(pfGroup *newGroup)
 // Internal function
 // Adds a node to this node's list of parent nodes
 // ------------------------------------------------------------------------
-int vsComponent::addParent(vsNode *newParent)
+bool vsComponent::addParent(vsNode *newParent)
 {
     // If we already have a parent, fail
     if (parentNode)
-	return VS_FALSE;
+	return false;
 
     // Otherwise, set the new parent and return success
     parentNode = newParent;
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
 // Internal function
 // Removes a node from this node's list of parent nodes
 // ------------------------------------------------------------------------
-int vsComponent::removeParent(vsNode *targetParent)
+bool vsComponent::removeParent(vsNode *targetParent)
 {
     // If the current parent doesn't match the target, return failure
     if (parentNode != targetParent)
-	return VS_FALSE;
+	return false;
 
     // Otherwise, clear the parentNode pointer and return success
     parentNode = NULL;
-    return VS_TRUE;
+    return true;
 }

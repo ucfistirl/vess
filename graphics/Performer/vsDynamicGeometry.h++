@@ -75,8 +75,8 @@ private:
 
 VS_INTERNAL:
 
-    virtual int     addParent(vsNode *newParent);
-    virtual int     removeParent(vsNode *targetParent);
+    virtual bool    addParent(vsNode *newParent);
+    virtual bool    removeParent(vsNode *targetParent);
 
     virtual void    applyAttributes();
 
@@ -120,7 +120,7 @@ public:
 
     void                  enableLighting();
     void                  disableLighting();
-    int                   isLightingEnabled();
+    bool                  isLightingEnabled();
 
     void                  setRenderBin(int binNum);
     int                   getRenderBin();

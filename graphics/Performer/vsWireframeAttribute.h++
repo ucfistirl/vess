@@ -40,7 +40,7 @@ VS_INTERNAL:
     virtual void    restoreSaved();
     virtual void    setState(pfGeoState *state);
 
-    virtual int     isEquivalent(vsAttribute *attribute);
+    virtual bool    isEquivalent(vsAttribute *attribute);
 
 public:
 
@@ -53,7 +53,7 @@ public:
 
     void                  enable();
     void                  disable();
-    int                   isEnabled();
+    bool                  isEnabled();
     
 };
 

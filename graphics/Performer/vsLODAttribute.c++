@@ -128,14 +128,14 @@ double vsLODAttribute::getRangeEnd(int childNum)
 // Internal function
 // Returns if this attribute is available to be attached to a node
 // ------------------------------------------------------------------------
-int vsLODAttribute::canAttach()
+bool vsLODAttribute::canAttach()
 {
     // This attribute is not available to be attached if it is already
     // attached to another node
     if (attachedFlag)
-        return VS_FALSE;
+        return false;
 
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

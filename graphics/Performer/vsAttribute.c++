@@ -51,7 +51,7 @@ vsAttribute::~vsAttribute()
 // ------------------------------------------------------------------------
 // Retrieves the value of the 'attached' flag for this attribute
 // ------------------------------------------------------------------------
-int vsAttribute::isAttached()
+bool vsAttribute::isAttached()
 {
     return attachedFlag;
 }
@@ -91,9 +91,9 @@ vsObjectMap *vsAttribute::getMap()
 // ------------------------------------------------------------------------
 // Internal function
 // ------------------------------------------------------------------------
-int vsAttribute::canAttach()
+bool vsAttribute::canAttach()
 {
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

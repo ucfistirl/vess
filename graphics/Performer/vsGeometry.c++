@@ -36,7 +36,7 @@
 #include "vsGraphicsState.h++"
 
 vsTreeMap *vsGeometry::binModeList = NULL;
-int vsGeometry::binModesChanged = VS_FALSE;
+bool vsGeometry::binModesChanged = false;
 
 // ------------------------------------------------------------------------
 // Default Constructor - Creates a Performer geode and geoset and connects
@@ -1035,14 +1035,14 @@ void vsGeometry::disableLighting()
 // ------------------------------------------------------------------------
 // Returns if lighting is enabled for this geometry
 // ------------------------------------------------------------------------
-int vsGeometry::isLightingEnabled()
+bool vsGeometry::isLightingEnabled()
 {
     // Check the local GeoState to see if the lighting state is inherited.
     // If not, it is locally disabled.
     if ((performerGeostate->getInherit() & PFSTATE_ENLIGHTING))
-        return VS_TRUE;
+        return true;
     else
-        return VS_FALSE;
+        return false;
 }
 
 // ------------------------------------------------------------------------
@@ -1092,7 +1092,7 @@ void vsGeometry::setBinSortMode(int binNum, int sortMode)
 
     // Signal that the bin modes have changed and need to be redistributed
     // to all pfChannels
-    binModesChanged = VS_TRUE;
+    binModesChanged = true;
 }
 
 // ------------------------------------------------------------------------
@@ -1127,7 +1127,7 @@ void vsGeometry::clearBinSortModes()
     {
         delete binModeList;
         binModeList = NULL;
-        binModesChanged = VS_TRUE;
+        binModesChanged = true;
     }
 }
 
@@ -1298,20 +1298,20 @@ vsTreeMap *vsGeometry::getBinModeList()
 // Internal function
 // Adds a node to this node's list of parent nodes
 // ------------------------------------------------------------------------
-int vsGeometry::addParent(vsNode *newParent)
+bool vsGeometry::addParent(vsNode *newParent)
 {
     // Add the parent to the list and increment the parent count
     parentList[parentCount++] = newParent;
 
     // Return success
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
 // Internal function
 // Removes a node from this node's list of parent nodes
 // ------------------------------------------------------------------------
-int vsGeometry::removeParent(vsNode *targetParent)
+bool vsGeometry::removeParent(vsNode *targetParent)
 {
     int loop, sloop;
 
@@ -1329,12 +1329,12 @@ int vsGeometry::removeParent(vsNode *targetParent)
             parentCount--;
 
             // Return success
-            return VS_TRUE;
+            return true;
         }
     }
 
     // Couldn't find the target parent, return failure
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------

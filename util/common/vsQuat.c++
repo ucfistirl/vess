@@ -135,7 +135,7 @@ double vsQuat::getValue(int index) const
 // are considered equal if they are within a small default tolerance value
 // of each other.
 // ------------------------------------------------------------------------
-int vsQuat::isEqual(const vsQuat &operand) const
+bool vsQuat::isEqual(const vsQuat &operand) const
 {
     int i;
 
@@ -143,10 +143,10 @@ int vsQuat::isEqual(const vsQuat &operand) const
     // almost-equality; return false if a pair doesn't match up.
     for (i = 0; i < 4; i++)
         if (fabs(data[i] - operand.data[i]) > VS_DEFAULT_TOLERANCE)
-            return VS_FALSE;
+            return false;
 
     // If all the pairs match, return true
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
@@ -154,7 +154,7 @@ int vsQuat::isEqual(const vsQuat &operand) const
 // are considered equal if they are within the specified tolerance value
 // of each other.
 // ------------------------------------------------------------------------
-int vsQuat::isAlmostEqual(const vsQuat &operand, double tolerance) const
+bool vsQuat::isAlmostEqual(const vsQuat &operand, double tolerance) const
 {
     int i;
     
@@ -163,10 +163,10 @@ int vsQuat::isAlmostEqual(const vsQuat &operand, double tolerance) const
     // value. Return false if a pair doesn't match up.
     for (i = 0; i < 4; i++)
         if (fabs(data[i] - operand.data[i]) > tolerance)
-            return VS_FALSE;
+            return false;
 
     // If all the pairs match, return true
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
@@ -1066,7 +1066,7 @@ void vsQuat::print(FILE *fp) const
 // of each other.
 // Equivalent to isEqual(operand)
 // ------------------------------------------------------------------------
-int vsQuat::operator==(const vsQuat &operand) const
+bool vsQuat::operator==(const vsQuat &operand) const
 {
     int i;
 
@@ -1074,8 +1074,8 @@ int vsQuat::operator==(const vsQuat &operand) const
     // almost-equality; return false if a pair doesn't match up.
     for (i = 0; i < 4; i++)
         if (fabs(data[i] - operand.data[i]) > VS_DEFAULT_TOLERANCE)
-            return VS_FALSE;
+            return false;
 
     // If all the pairs match, return true
-    return VS_TRUE;
+    return true;
 }

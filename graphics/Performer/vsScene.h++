@@ -47,10 +47,10 @@ public:
 
     virtual vsNode          *cloneTree();
 
-    virtual int             addChild(vsNode *newChild);
-    virtual int             insertChild(vsNode *newChild, int index);
-    virtual int             removeChild(vsNode *targetChild);
-    virtual int             replaceChild(vsNode *targetChild,
+    virtual bool            addChild(vsNode *newChild);
+    virtual bool            insertChild(vsNode *newChild, int index);
+    virtual bool            removeChild(vsNode *targetChild);
+    virtual bool            replaceChild(vsNode *targetChild,
                                          vsNode *newChild);
 
     virtual int             getChildCount();

@@ -51,8 +51,8 @@ public:
     
     void        setValue(int row, int column, double value);
     double      getValue(int row, int column) const;
-    int         isEqual(const vsMatrix &operand) const;
-    int         isAlmostEqual(const vsMatrix &operand, double tolerance) const;
+    bool        isEqual(const vsMatrix &operand) const;
+    bool        isAlmostEqual(const vsMatrix &operand, double tolerance) const;
 
     void        add(const vsMatrix &addend);
     vsMatrix    getSum(const vsMatrix &addend) const;
@@ -93,7 +93,7 @@ public:
     vsMatrix    operator*(const vsMatrix &operand) const;
     void        operator+=(const vsMatrix &addend);
     void        operator-=(const vsMatrix &subtrahend);
-    int         operator==(const vsMatrix &operand) const;
+    bool        operator==(const vsMatrix &operand) const;
 
     void        printRow(int rowNum) const;
     void        printRow(int rowNum, FILE *fp) const;
