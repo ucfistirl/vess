@@ -11,7 +11,7 @@
 //
 //------------------------------------------------------------------------
 //
-//    VESS Module:  vsIPList.c++
+//    VESS Module:  vsClusterConfig.c++
 //
 //    Description:  Contains a listing of the IP addresses of machines in a
 //                  cluster.
@@ -22,7 +22,13 @@
 //------------------------------------------------------------------------
 
 #include "vsClusterConfig.h++"
-#include <netdb.h>
+
+#ifdef WIN32
+    #include <winsock.h>
+#else
+    #include <netdb.h>
+#endif
+
 #include <malloc.h>
 #include <stdio.h>
 #include <string.h>
@@ -37,6 +43,13 @@ vsClusterConfig::vsClusterConfig(const char *master, const int slaveCount,
 {
     struct hostent  *ip;
     int             i;
+    
+#ifdef WIN32
+    // Windows requires that we start up the Winsock library before making
+    // any networking calls
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(1,1), &wsaData);
+#endif
     
     legitimate = false;
     
@@ -102,6 +115,11 @@ vsClusterConfig::~vsClusterConfig(void)
         // Delete the array of addresses
         free(slaveAddress);
     }
+
+#ifdef WIN32
+    // Windows requires that we clean up the Winsock library 
+    WSACleanup();
+#endif
 }
 
 // ------------------------------------------------------------------------
