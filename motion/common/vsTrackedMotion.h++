@@ -49,8 +49,8 @@ protected:
     vsKinematics       *kinematics;
 
     // Flags to indicate if position or orientation tracking is enabled
-    int                positionEnabled;
-    int                orientationEnabled;
+    bool               positionEnabled;
+    bool               orientationEnabled;
     
     // User-specified offsets from the actual tracker position
     vsVector           positionOffset;

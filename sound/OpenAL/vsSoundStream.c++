@@ -22,8 +22,8 @@ vsSoundStream::vsSoundStream(int bufSize, int bufFormat, int bufFreq)
     alGenBuffers(1, &backBuffer);
 
     // Initialize
-    frontBufferEmpty = VS_TRUE;
-    backBufferEmpty = VS_TRUE;
+    frontBufferEmpty = true;
+    backBufferEmpty = true;
     sourceID = 0xFFFFFFFF;
 }
 
@@ -83,12 +83,12 @@ void vsSoundStream::flushBuffers()
     memset(zeroBuf, 0, sizeof(zeroBuf));
 
     // Flush the front buffer
-    frontBufferEmpty = VS_TRUE;
+    frontBufferEmpty = true;
     alBufferData(frontBuffer, bufferFormat, zeroBuf, bufferSize, 
         bufferFrequency);
 
     // Flush the back buffer
-    backBufferEmpty = VS_TRUE;
+    backBufferEmpty = true;
     alBufferData(backBuffer, bufferFormat, zeroBuf, bufferSize, 
         bufferFrequency);
 
@@ -100,7 +100,7 @@ void vsSoundStream::flushBuffers()
 // VESS internal function -- Swaps the front and back buffers and marks the
 // back buffer empty
 // ------------------------------------------------------------------------
-int vsSoundStream::swapBuffers()
+bool vsSoundStream::swapBuffers()
 {
     int tempBuffer;
 
@@ -109,11 +109,11 @@ int vsSoundStream::swapBuffers()
     {
         // The back buffer is not ready, so just mark the front
         // buffer empty as well
-        frontBufferEmpty = VS_TRUE;
+        frontBufferEmpty = true;
 
         // Return false to indicate that we're out of data (the stream is
         // starved)
-        return VS_FALSE;
+        return false;
     }
 
     // Swap the buffers
@@ -122,10 +122,10 @@ int vsSoundStream::swapBuffers()
     backBuffer = tempBuffer;
 
     // Mark the (new) back buffer empty
-    backBufferEmpty = VS_TRUE;
+    backBufferEmpty = true;
 
     // Return true to indicate success (the stream has data available)
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
@@ -147,11 +147,11 @@ int vsSoundStream::getBufferSize()
 
 // ------------------------------------------------------------------------
 // Fills the front or back buffer with the given data and queues it for 
-// playing.  Returns VS_TRUE if successful or VS_FALSE if not.  May fail if
+// playing.  Returns true if successful or false if not.  May fail if
 // there is no empty buffer to hold the audio, or if no 
 // vsSoundSourceAttribute has been created with this vsSoundStream instance
 // ------------------------------------------------------------------------
-int vsSoundStream::queueBuffer(void *audioData)
+bool vsSoundStream::queueBuffer(void *audioData)
 {
     // Make sure we are bound to a valid OpenAL source
     if (!alIsSource(sourceID))
@@ -160,7 +160,7 @@ int vsSoundStream::queueBuffer(void *audioData)
             " to stream to\n");
 
         // Return false to indicate the queue operation failed
-        return VS_FALSE;
+        return false;
     }
 
     // Fill the front buffer if it's empty
@@ -173,10 +173,10 @@ int vsSoundStream::queueBuffer(void *audioData)
         alSourceQueueBuffers(sourceID, 1, &frontBuffer);
 
         // Mark the front buffer as full
-        frontBufferEmpty = VS_FALSE;
+        frontBufferEmpty = false;
 
         // Return true to indicate the queue operation succeeded.
-        return VS_TRUE;
+        return true;
     }
 
     // Otherwise, fill the back buffer if it's empty
@@ -189,10 +189,10 @@ int vsSoundStream::queueBuffer(void *audioData)
         alSourceQueueBuffers(sourceID, 1, &backBuffer);
 
         // Mark the back buffer as full
-        backBufferEmpty = VS_FALSE;
+        backBufferEmpty = false;
 
         // Return true to indicate that the queue operation succeeded
-        return VS_TRUE;
+        return true;
     }
 
     // Neither buffer is empty, so print an error
@@ -200,5 +200,5 @@ int vsSoundStream::queueBuffer(void *audioData)
         " audio data\n");
 
     // Return false to indicate the queue operation failed
-    return VS_FALSE;
+    return false;
 }

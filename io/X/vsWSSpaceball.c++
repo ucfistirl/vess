@@ -29,7 +29,7 @@
 // ------------------------------------------------------------------------
 vsWSSpaceball::vsWSSpaceball(vsWindowSystem *ws, int nButtons)
 {
-    int result;
+    bool result;
 
     // Get the display and window
     display = ws->getDisplay();
@@ -80,7 +80,7 @@ const char *vsWSSpaceball::getClassName()
 // ------------------------------------------------------------------------
 // Use the X11 Input Extension to find and communicate with the spaceball
 // ------------------------------------------------------------------------
-int vsWSSpaceball::initializeSpaceball()
+bool vsWSSpaceball::initializeSpaceball()
 {
     XDeviceInfoPtr deviceInfo;
     XEventClass    eventClasses[3];
@@ -105,7 +105,7 @@ int vsWSSpaceball::initializeSpaceball()
     if (!sbDevice)
     {
         // Oops, no spaceball connected
-        return VS_FALSE;
+        return false;
     }
 
     // Generate the spaceball event classes
@@ -121,7 +121,7 @@ int vsWSSpaceball::initializeSpaceball()
     // Select the events for receiving
     XSelectExtensionEvent(display, window, eventClasses, 3);
 
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

@@ -449,7 +449,7 @@ void vsSystem::drawFrame()
         }
         
         // Now that we've done our job, don't do it again next frame
-        vsGeometry::binModesChanged = VS_FALSE;
+        vsGeometry::binModesChanged = false;
     }
     
     // Update the viewpoint of each pane by its vsView object and

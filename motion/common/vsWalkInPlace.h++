@@ -44,9 +44,9 @@
 // Maximum movement distance (in database units)
 #define VS_WIP_DEFAULT_ALLOWANCE   2.0
 
-// Default state of the movementLimited flag (VS_TRUE means movement is 
+// Default state of the movementLimited flag (true means movement is 
 // limited by the distance in maxAllowance)
-#define VS_WIP_DEFAULT_LIMIT_STATE VS_TRUE
+#define VS_WIP_DEFAULT_LIMIT_STATE true
 
 class VS_MOTION_DLL vsWalkInPlace : public vsMotionModel
 {
@@ -64,9 +64,9 @@ protected:
     double             lastTrackerHeading;
 
     // Motion restriction flags
-    int                forwardAllowed;
-    int                backwardAllowed;
-    int                sideStepAllowed;
+    bool               forwardAllowed;
+    bool               backwardAllowed;
+    bool               sideStepAllowed;
 
     // Motion speed values
     double             forwardSpeed;
@@ -85,7 +85,7 @@ protected:
     double             moveAllowance;
 
     // Flag to indicate whether movement allowance is enabled or not
-    int                movementLimited;
+    bool               movementLimited;
 
 public: 
 

@@ -44,7 +44,7 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundSample *buffer, int loop)
     loopSource = loop;
 
     // Remember whether we are streaming or not
-    streamingSource = VS_FALSE;
+    streamingSource = false;
 
     // Initialize class members
     offsetMatrix.setIdentity();
@@ -96,7 +96,7 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundStream *buffer)
     soundBuffer = buffer;
 
     // Remember whether we are streaming or not
-    streamingSource = VS_TRUE;
+    streamingSource = true;
 
     // Initialize class members
     offsetMatrix.setIdentity();
@@ -397,7 +397,7 @@ void vsSoundSourceAttribute::rewind()
 // ------------------------------------------------------------------------
 // Returns true if the source is currently playing
 // ------------------------------------------------------------------------
-int vsSoundSourceAttribute::isPlaying()
+bool vsSoundSourceAttribute::isPlaying()
 {
     int srcState;
 
@@ -406,16 +406,16 @@ int vsSoundSourceAttribute::isPlaying()
 
     // Return true if playing, false otherwise
     if (srcState == AL_PLAYING)
-        return VS_TRUE;
+        return true;
     else
-        return VS_FALSE;
+        return false;
 }
 
 // ------------------------------------------------------------------------
 // Returns true if the source is currently stopped (or if it has been
 // paused and then rewound)
 // ------------------------------------------------------------------------
-int vsSoundSourceAttribute::isStopped()
+bool vsSoundSourceAttribute::isStopped()
 {
     int srcState;
 
@@ -429,15 +429,15 @@ int vsSoundSourceAttribute::isStopped()
     // STOPPED and INITIAL.  Note that rewinding a PAUSED source will
     // make it INITIAL, thus VESS will then consider it STOPPED.
     if ((srcState == AL_STOPPED) || (srcState == AL_INITIAL))
-        return VS_TRUE;
+        return true;
     else
-        return VS_FALSE;
+        return false;
 }
 
 // ------------------------------------------------------------------------
 // Returns true if the source is currently paused (not stopped)
 // ------------------------------------------------------------------------
-int vsSoundSourceAttribute::isPaused()
+bool vsSoundSourceAttribute::isPaused()
 {
     int srcState;
 
@@ -446,15 +446,15 @@ int vsSoundSourceAttribute::isPaused()
 
     // Return true if paused, false otherwise
     if (srcState == AL_PAUSED)
-        return VS_TRUE;
+        return true;
     else
-        return VS_FALSE;
+        return false;
 }
 
 // ------------------------------------------------------------------------
 // Returns whether or not this source is looping
 // ------------------------------------------------------------------------
-int vsSoundSourceAttribute::isLooping()
+bool vsSoundSourceAttribute::isLooping()
 {
     ALint looping;
 

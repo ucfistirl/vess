@@ -65,7 +65,7 @@ vsKinematics::vsKinematics(vsComponent *theComponent)
     angularVelocity.clear();
 
     // Default inertia to false
-    inertia = VS_FALSE;
+    inertia = false;
 }
 
 // ------------------------------------------------------------------------
@@ -88,7 +88,7 @@ const char *vsKinematics::getClassName()
 // ------------------------------------------------------------------------
 void vsKinematics::enableInertia()
 {
-    inertia = VS_TRUE;
+    inertia = true;
 }
 
 // ------------------------------------------------------------------------
@@ -96,7 +96,7 @@ void vsKinematics::enableInertia()
 // ------------------------------------------------------------------------
 void vsKinematics::disableInertia()
 {
-    inertia = VS_FALSE;
+    inertia = false;
 }
 
 // ------------------------------------------------------------------------

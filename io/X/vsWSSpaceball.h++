@@ -52,7 +52,7 @@ protected:
     int              sbButtonPress;
     int              sbButtonRelease;
 
-    int              initializeSpaceball();
+    bool             initializeSpaceball();
 
 public:
 

@@ -42,8 +42,8 @@ vsRelativeMouseMotion::vsRelativeMouseMotion(vsMouse * mouse,
     axisChange[ 1 ] = 90.0;
 
     // Axis limits
-    axisLimits[ 0 ] = VS_FALSE;
-    axisLimits[ 1 ] = VS_TRUE;
+    axisLimits[ 0 ] = false;
+    axisLimits[ 1 ] = true;
     kinMin[ 1 ] = -90.0;
     kinMax[ 1 ] = 90.0;
 
@@ -219,10 +219,10 @@ void vsRelativeMouseMotion::setAxisLimits( int axis,
     if( axis>=0 && axis<NUMBER_OF_AXES )
     {
         if( maxLimit <= minLimit )
-            axisLimits[axis] = VS_FALSE;
+            axisLimits[axis] = false;
         else
         {
-            axisLimits[axis] = VS_TRUE;
+            axisLimits[axis] = true;
             kinMin[axis] = minLimit;
             kinMax[axis] = maxLimit;
         }

@@ -35,8 +35,8 @@ protected:
     int       bufferFrequency;
 
     // Maintains whether each buffer is empty and ready for data or not.
-    int       frontBufferEmpty;
-    int       backBufferEmpty;
+    bool      frontBufferEmpty;
+    bool      backBufferEmpty;
 
 VS_INTERNAL:
 
@@ -53,7 +53,7 @@ VS_INTERNAL:
     // Swaps the front and back buffers, making the back buffer ready
     // to receive more data and be requeued.  Return value indicates
     // success or failure.
-    int       swapBuffers();
+    bool      swapBuffers();
 
 public:
 
@@ -75,7 +75,7 @@ public:
 
     // Fills the back buffer with the given audio data and queues it for
     // playing.  Return value indicates success or failure.
-    int         queueBuffer(void *audioData);
+    bool        queueBuffer(void *audioData);
 };
 
 #endif

@@ -39,7 +39,7 @@ protected:
     // The sound data
     vsSoundBuffer    *soundBuffer;
     int              loopSource;
-    int              streamingSource;
+    bool             streamingSource;
 
     // Our alSource ID number
     ALuint           sourceID;
@@ -99,12 +99,12 @@ public:
     void                  stop();
     void                  pause();
     void                  rewind();
-    int                   isPlaying();
-    int                   isStopped();
-    int                   isPaused();
+    bool                  isPlaying();
+    bool                  isStopped();
+    bool                  isPaused();
 
     // Loop control
-    int                   isLooping();
+    bool                  isLooping();
     void                  setLooping(int looping);
 
     // Volume and distance attenuation parameters

@@ -45,7 +45,7 @@ private:
     vsVector	            angularVelocity;
 
     // Inertia on or off
-    int                     inertia;
+    bool                    inertia;
     
 public:
 

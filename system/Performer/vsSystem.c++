@@ -422,7 +422,7 @@ void vsSystem::drawFrame()
         }
 
         // Clear the flag that states the bin modes have changed
-        vsGeometry::binModesChanged = VS_FALSE;
+        vsGeometry::binModesChanged = false;
     }
 
     // Update the viewpoint of each pane by its vsView object

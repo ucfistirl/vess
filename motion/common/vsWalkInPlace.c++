@@ -46,9 +46,9 @@ vsWalkInPlace::vsWalkInPlace(vsMotionTracker *back, vsMotionTracker *left,
     }
 
     // Set movement allowed flags
-    forwardAllowed = VS_TRUE;
-    backwardAllowed = VS_TRUE;
-    sideStepAllowed = VS_TRUE;
+    forwardAllowed = true;
+    backwardAllowed = true;
+    sideStepAllowed = true;
 
     // Set movement speed values
     forwardSpeed = VS_WIP_DEFAULT_FWD_SPD;
@@ -91,7 +91,7 @@ const char *vsWalkInPlace::getClassName()
 // ------------------------------------------------------------------------
 void vsWalkInPlace::enableForward()
 {
-    forwardAllowed = VS_TRUE;
+    forwardAllowed = true;
 }
 
 // ------------------------------------------------------------------------
@@ -99,7 +99,7 @@ void vsWalkInPlace::enableForward()
 // ------------------------------------------------------------------------
 void vsWalkInPlace::disableForward()
 {
-    forwardAllowed = VS_FALSE;
+    forwardAllowed = false;
 }
 
 // ------------------------------------------------------------------------
@@ -107,7 +107,7 @@ void vsWalkInPlace::disableForward()
 // ------------------------------------------------------------------------
 void vsWalkInPlace::enableBackward()
 {
-    backwardAllowed = VS_TRUE;
+    backwardAllowed = true;
 }
 
 // ------------------------------------------------------------------------
@@ -115,7 +115,7 @@ void vsWalkInPlace::enableBackward()
 // ------------------------------------------------------------------------
 void vsWalkInPlace::disableBackward()
 {
-    backwardAllowed = VS_FALSE;
+    backwardAllowed = false;
 }
 
 // ------------------------------------------------------------------------
@@ -123,7 +123,7 @@ void vsWalkInPlace::disableBackward()
 // ------------------------------------------------------------------------
 void vsWalkInPlace::enableSideStep()
 {
-    sideStepAllowed = VS_TRUE;
+    sideStepAllowed = true;
 }
 
 // ------------------------------------------------------------------------
@@ -131,7 +131,7 @@ void vsWalkInPlace::enableSideStep()
 // ------------------------------------------------------------------------
 void vsWalkInPlace::disableSideStep()
 {
-    sideStepAllowed = VS_FALSE;
+    sideStepAllowed = false;
 }
 
 // ------------------------------------------------------------------------
@@ -251,7 +251,7 @@ void vsWalkInPlace::setMovementAllowance(double distance)
 // ------------------------------------------------------------------------
 void vsWalkInPlace::enableMovementLimit()
 {
-    movementLimited = VS_TRUE;
+    movementLimited = true;
 }
 
 // ------------------------------------------------------------------------
@@ -259,7 +259,7 @@ void vsWalkInPlace::enableMovementLimit()
 // ------------------------------------------------------------------------
 void vsWalkInPlace::disableMovementLimit()
 {
-    movementLimited = VS_FALSE;
+    movementLimited = false;
 }
 
 // ------------------------------------------------------------------------
@@ -276,7 +276,7 @@ void vsWalkInPlace::update()
     double               deltaX, deltaY, deltaZ;
     double               deltaTime;
     vsVector             v;
-    int                  motionFlag;
+    bool                 motionFlag;
     double               moveSpeed;
     double               moveDistance;
     vsQuat               currentOrientation;
@@ -316,7 +316,7 @@ void vsWalkInPlace::update()
 
     // Initialize speed, velocity, and the motion flag
     moveSpeed = 0.0;
-    motionFlag = VS_FALSE;
+    motionFlag = false;
     v.setSize(3);
     v.clear();
 
@@ -341,7 +341,7 @@ void vsWalkInPlace::update()
         }
 
         // Signal that motion is happening this frame
-        motionFlag = VS_TRUE;
+        motionFlag = true;
     }
     else if ((fabs(deltaY) > backwardThresh) && (backwardAllowed))
     {
@@ -354,7 +354,7 @@ void vsWalkInPlace::update()
         v.set(0.0, -moveSpeed, 0.0);
 
         // Signal that motion is happening this frame
-        motionFlag = VS_TRUE;
+        motionFlag = true;
     }
     else if ((fabs(deltaZ) > forwardThresh) && (forwardAllowed))
     {
@@ -367,7 +367,7 @@ void vsWalkInPlace::update()
         v.set(0.0, moveSpeed, 0.0);
 
         // Signal that motion is happening this frame
-        motionFlag = VS_TRUE;
+        motionFlag = true;
     }
 
     // Compute the distance that will be moved this frame

@@ -137,9 +137,9 @@ void vsAxisRotation::update()
         {
             // If not normalized, set to normalized temporarily and
             // get the position
-            headingAxis->setNormalized(VS_TRUE);
+            headingAxis->setNormalized(true);
             headingPos = headingAxis->getPosition();
-            headingAxis->setNormalized(VS_FALSE);
+            headingAxis->setNormalized(false);
         }
     }
 
@@ -156,9 +156,9 @@ void vsAxisRotation::update()
         {
             // If not normalized, set to normalized temporarily and
             // get the position
-            pitchAxis->setNormalized(VS_TRUE);
+            pitchAxis->setNormalized(true);
             pitchPos = pitchAxis->getPosition();
-            pitchAxis->setNormalized(VS_FALSE);
+            pitchAxis->setNormalized(false);
         }
     }
 

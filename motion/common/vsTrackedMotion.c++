@@ -43,8 +43,8 @@ vsTrackedMotion::vsTrackedMotion(vsMotionTracker *theTracker,
     }
 
     // Enable position and orientation tracking by default
-    positionEnabled = VS_TRUE;
-    orientationEnabled = VS_TRUE;
+    positionEnabled = true;
+    orientationEnabled = true;
     
     // Set the offsets to identity
     positionOffset.set(0.0, 0.0, 0.0);
@@ -76,7 +76,7 @@ const char *vsTrackedMotion::getClassName()
 // ------------------------------------------------------------------------
 void vsTrackedMotion::enablePositionTracking()
 {
-    positionEnabled = VS_TRUE;
+    positionEnabled = true;
 }
 
 // ------------------------------------------------------------------------
@@ -84,7 +84,7 @@ void vsTrackedMotion::enablePositionTracking()
 // ------------------------------------------------------------------------
 void vsTrackedMotion::disablePositionTracking()
 {
-    positionEnabled = VS_FALSE;
+    positionEnabled = false;
 }
 
 // ------------------------------------------------------------------------
@@ -92,7 +92,7 @@ void vsTrackedMotion::disablePositionTracking()
 // ------------------------------------------------------------------------
 void vsTrackedMotion::enableOrientationTracking()
 {
-    orientationEnabled = VS_TRUE;
+    orientationEnabled = true;
 }
 
 // ------------------------------------------------------------------------
@@ -100,7 +100,7 @@ void vsTrackedMotion::enableOrientationTracking()
 // ------------------------------------------------------------------------
 void vsTrackedMotion::disableOrientationTracking()
 {
-    orientationEnabled = VS_FALSE;
+    orientationEnabled = false;
 }
 
 // ------------------------------------------------------------------------
