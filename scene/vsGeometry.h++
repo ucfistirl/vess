@@ -1,4 +1,25 @@
-// File vsGeometry.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsGeometry.h++
+//
+//    Description:  vsNode subclass that is a leaf node in a VESS scene
+//                  graph. Stores geometry data such as vertex and texture
+//                  coordinates, colors, and face normals.
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_GEOMETRY_HPP
 #define VS_GEOMETRY_HPP
@@ -56,7 +77,7 @@ private:
     int             vertexListSize;
     int             *lengthsList;
     
-    pfLight	    **lightsList;
+    pfLight         **lightsList;
 
     void            inflateFlatGeometry();
 
@@ -66,7 +87,7 @@ VS_INTERNAL:
 
     virtual void    applyAttributes();
     
-    static int	    geostateCallback(pfGeoState *gstate, void *userData);
+    static int      geostateCallback(pfGeoState *gstate, void *userData);
 
 public:
 

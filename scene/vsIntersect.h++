@@ -1,4 +1,24 @@
-// File vsIntersect.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsIntersect.h++
+//
+//    Description:  Class for performing intersection tests between line
+//                  segments and a whole or part of a VESS scene graph
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_INTERSECT_HPP
 #define VS_INTERSECT_HPP

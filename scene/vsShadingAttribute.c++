@@ -1,4 +1,24 @@
-// File vsShadingAttribute.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsShadingAttribute.c++
+//
+//    Description:  Attribute that specifies the shading model used for
+//                  the geometry
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsShadingAttribute.h++"
 
@@ -86,7 +106,7 @@ void vsShadingAttribute::restoreSaved()
 void vsShadingAttribute::setState(pfGeoState *state)
 {
     if (shadeVal == VS_SHADING_FLAT)
-	state->setMode(PFSTATE_SHADEMODEL, PFSM_FLAT);
+        state->setMode(PFSTATE_SHADEMODEL, PFSM_FLAT);
     else
-	state->setMode(PFSTATE_SHADEMODEL, PFSM_GOURAUD);
+        state->setMode(PFSTATE_SHADEMODEL, PFSM_GOURAUD);
 }

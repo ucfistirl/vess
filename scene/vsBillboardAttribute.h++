@@ -1,4 +1,24 @@
-// File vsBillbaordAttribute
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsBillboardAttribute.h++
+//
+//    Description:  Attribute that specifies that the geometry below the
+//                  component be rotated to face the viewer at all times
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_BILLBOARD_ATTRIBUTE_HPP
 #define VS_BILLBOARD_ATTRIBUTE_HPP

@@ -1,4 +1,24 @@
-// File vsNode.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsNode.c++
+//
+//    Description:  Abstract parent class for all objects that can be a
+//                  part of a VESS scene graph
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsNode.h++"
 
@@ -176,11 +196,11 @@ void vsNode::clean()
     
     flag = 1;
     for (loop = 0; loop < parentCount; loop++)
-	if (((vsNode *)(parentList[loop]))->isDirty())
-	    flag = 0;
+        if (((vsNode *)(parentList[loop]))->isDirty())
+            flag = 0;
 
     if (flag)
-	dirtyFlag = VS_FALSE;
+        dirtyFlag = VS_FALSE;
 }
 
 // ------------------------------------------------------------------------
@@ -203,7 +223,7 @@ void vsNode::dirtyUp()
     dirtyFlag = VS_TRUE;
     
     for (loop = 0; loop < parentCount; loop++)
-	((vsNode *)(parentList[loop]))->dirtyUp();
+        ((vsNode *)(parentList[loop]))->dirtyUp();
 }
 
 // ------------------------------------------------------------------------

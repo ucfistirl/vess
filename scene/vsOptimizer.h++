@@ -1,4 +1,24 @@
-// File vsOptimizer.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsOptimizer.h++
+//
+//    Description:  Class for reorganizing a VESS scene graph in order to
+//                  increase rendering speed
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_OPTIMIZER_HPP
 #define VS_OPTIMIZER_HPP
@@ -23,8 +43,8 @@ private:
 
     void        optimizeNode(vsNode *node);
 
-    void	cleanChildren(vsComponent *componentNode);
-    void	zapComponent(vsComponent *targetComponent);
+    void        cleanChildren(vsComponent *componentNode);
+    void        zapComponent(vsComponent *targetComponent);
 
     void        mergeDecals(vsComponent *componentNode);
 

@@ -1,4 +1,25 @@
-// File vsTransparencyAttribute.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsTransparencyAttribute.c++
+//
+//    Description:  Attribute that specifies that geometry contains
+//                  transparent or translucent parts and should be drawn
+//                  accordingly
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsTransparencyAttribute.h++"
 

@@ -1,4 +1,23 @@
-// File vsStateAttribute.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsStateAttribute.c++
+//
+//    Description:  Abstract base class for all state-category attributes
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsNode.h++"
 #include "vsStateAttribute.h++"
@@ -37,7 +56,7 @@ void vsStateAttribute::markOwnersDirty()
     int loop;
     
     for (loop = 0; loop < ownerCount; loop++)
-	((vsNode *)(ownerList[loop]))->dirty();
+        ((vsNode *)(ownerList[loop]))->dirty();
 }
 
 // ------------------------------------------------------------------------
@@ -65,14 +84,14 @@ void vsStateAttribute::detach(vsNode *theNode)
     
     for (loop = 0; loop < ownerCount; loop++)
     {
-	if (theNode == ownerList[loop])
-	{
-	    ownerList[loop] = ownerList[ownerCount-1];
-	    ownerCount--;
-	    theNode->dirty();
-	    
-	    vsAttribute::detach(theNode);
-	    return;
-	}
+        if (theNode == ownerList[loop])
+        {
+            ownerList[loop] = ownerList[ownerCount-1];
+            ownerCount--;
+            theNode->dirty();
+
+            vsAttribute::detach(theNode);
+            return;
+        }
     }
 }

@@ -1,4 +1,24 @@
-// File vsMaterialAttribute.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsMaterialAttribute.h++
+//
+//    Description:  Specifies that geometry should be drawn with the
+//                  material properties given in this attribute
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_MATERIAL_ATTRIBUTE_HPP
 #define VS_MATERIAL_ATTRIBUTE_HPP

@@ -1,4 +1,24 @@
-// File vsNode.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsNode.h++
+//
+//    Description:  Abstract parent class for all objects that can be a
+//                  part of a VESS scene graph
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_NODE_HPP
 #define VS_NODE_HPP
@@ -43,7 +63,7 @@ VS_INTERNAL:
     void            clean();
     int             isDirty();
 
-    void	    dirtyUp();
+    void            dirtyUp();
     virtual void    dirtyDown();
 
 public:

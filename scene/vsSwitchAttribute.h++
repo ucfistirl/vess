@@ -1,4 +1,24 @@
-// File vsSwitchAttribute.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsSwitchAttribute.h++
+//
+//    Description:  Attribute that specifies which of the children of this
+//                  component are to be drawn
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_SWITCH_ATTRIBUTE_HPP
 #define VS_SWITCH_ATTRIBUTE_HPP

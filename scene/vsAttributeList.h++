@@ -1,4 +1,26 @@
-// File vsAttributeList.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsAttributeList.h++
+//
+//    Description:  Class that stores and manages a list of attribute
+//                  objects. Although this class can be instantiated
+//                  directly, it is more useful as the base class for
+//                  vsNode objects.
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_ATTRIBUTE_LIST_HPP
 #define VS_ATTRIBUTE_LIST_HPP

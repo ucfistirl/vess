@@ -1,4 +1,25 @@
-// File vsViewpointAttribute.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsViewpointAttribute.c++
+//
+//    Description:  Attribute that binds a vsView object to a certain
+//                  node in the scene. The vsView is automatically updated
+//                  with the transform affecting the node every frame.
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsViewpointAttribute.h++"
 

@@ -1,4 +1,26 @@
-// File vsSequenceAttribute.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsSequenceAttribute.c++
+//
+//    Description:  Attribute that specifies that the children of the
+//                  component are multiple frames of an animation
+//                  sequence and should be drawn sequentially for the
+//                  specified periods of time rather than all at once.
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsSequenceAttribute.h++"
 

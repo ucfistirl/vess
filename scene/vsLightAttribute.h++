@@ -1,4 +1,25 @@
-// File vsLightAttribute.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsLightAttribute.h++
+//
+//    Description:  Specifies that geometry should be drawn as if lit with
+//                  the parameters in this object. Multiple lights can
+//                  affect the same geometry.
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_LIGHT_ATTRIBUTE_HPP
 #define VS_LIGHT_ATTRIBUTE_HPP

@@ -1,4 +1,25 @@
-// File vsGeometry.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsGeometry.c++
+//
+//    Description:  vsNode subclass that is a leaf node in a VESS scene
+//                  graph. Stores geometry data such as vertex and texture
+//                  coordinates, colors, and face normals.
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsGeometry.h++"
 
@@ -42,11 +63,10 @@ vsGeometry::vsGeometry()
     lengthsList = NULL;
     
     lightsList = (pfLight **)
-	(pfMemory::malloc(sizeof(pfLight *) * PF_MAX_LIGHTS));
+        (pfMemory::malloc(sizeof(pfLight *) * PF_MAX_LIGHTS));
     for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
-	lightsList[loop] = NULL;
+        lightsList[loop] = NULL;
     performerGeostate->setFuncs(geostateCallback, NULL, lightsList);
-//    performerGeostate->setAttr(PFSTATE_LIGHTS, lightsList);
     
     performerGeoset->setDrawMode(PFGS_FLATSHADE, PF_OFF);
     
@@ -261,10 +281,10 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
     {
         transMode = geostate->getMode(PFSTATE_TRANSPARENCY);
         transAttrib = new vsTransparencyAttribute();
-	if (transMode == PFTR_OFF)
-	    transAttrib->disable();
-	else
-	    transAttrib->enable();
+        if (transMode == PFTR_OFF)
+            transAttrib->disable();
+        else
+            transAttrib->enable();
 
         addAttribute(transAttrib);
     }
@@ -309,7 +329,7 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
         if (tResult)
         {
             transAttrib = new vsTransparencyAttribute();
-	    transAttrib->enable();
+            transAttrib->enable();
             addAttribute(transAttrib);
         }
     }
@@ -318,8 +338,8 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
     if ((geostate->getInherit() & PFSTATE_CULLFACE) == 0)
     {
         cullMode = geostate->getMode(PFSTATE_CULLFACE);
-	backAttrib = new vsBackfaceAttribute();
-	
+        backAttrib = new vsBackfaceAttribute();
+        
         if (cullMode == PFCF_OFF)
             backAttrib->enable();
         else
@@ -334,10 +354,10 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
     {
         shadeMode = geostate->getMode(PFSTATE_SHADEMODEL);
         shadeAttrib = new vsShadingAttribute();
-	if (shadeMode == PFSM_FLAT)
-	    shadeAttrib->setShading(VS_SHADING_FLAT);
-	else
-	    shadeAttrib->setShading(VS_SHADING_GOURAUD);
+        if (shadeMode == PFSM_FLAT)
+            shadeAttrib->setShading(VS_SHADING_FLAT);
+        else
+            shadeAttrib->setShading(VS_SHADING_GOURAUD);
         addAttribute(shadeAttrib);
     }
     performerGeoset->setDrawMode(PFGS_FLATSHADE, PF_OFF);
@@ -347,9 +367,9 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
     performerGeoset->setGState(performerGeostate);
     
     lightsList = (pfLight **)
-	(pfMemory::malloc(sizeof(pfLight *) * PF_MAX_LIGHTS));
+        (pfMemory::malloc(sizeof(pfLight *) * PF_MAX_LIGHTS));
     for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
-	lightsList[loop] = NULL;
+        lightsList[loop] = NULL;
     performerGeostate->setFuncs(geostateCallback, NULL, lightsList);
 
     pfDelete(geostate);
@@ -1361,7 +1381,7 @@ void vsGeometry::applyAttributes()
     vsNode::applyAttributes();
     
     (vsSystem::systemObject)->getGraphicsState()->applyState(
-	performerGeostate);
+        performerGeostate);
 }
 
 // ------------------------------------------------------------------------
@@ -1378,8 +1398,8 @@ int vsGeometry::geostateCallback(pfGeoState *gstate, void *userData)
     lightList = (pfLight **)userData;
     
     for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
-	if (lightList[loop] != NULL)
-	    (lightList[loop])->on();
+        if (lightList[loop] != NULL)
+            (lightList[loop])->on();
 
     return 0;
 }

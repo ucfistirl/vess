@@ -1,4 +1,25 @@
-// File vsLightAttribute.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsLightAttribute.c++
+//
+//    Description:  Specifies that geometry should be drawn as if lit with
+//                  the parameters in this object. Multiple lights can
+//                  affect the same geometry.
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsLightAttribute.h++"
 
@@ -380,7 +401,7 @@ void vsLightAttribute::apply()
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
     if (lightScope == VS_LIGHT_MODE_LOCAL)
-	gState->addLight(this);
+        gState->addLight(this);
 }
 
 // ------------------------------------------------------------------------
@@ -392,7 +413,7 @@ void vsLightAttribute::restoreSaved()
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
     if (lightScope == VS_LIGHT_MODE_LOCAL)
-	gState->removeLight(this);
+        gState->removeLight(this);
 }
 
 // ------------------------------------------------------------------------
@@ -410,9 +431,9 @@ void vsLightAttribute::setState(pfGeoState *state)
     lightList = (pfLight **)data;
 
     for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
-	if (lightList[loop] == NULL)
-	{
-	    lightList[loop] = lightObject;
-	    return;
-	}
+        if (lightList[loop] == NULL)
+        {
+            lightList[loop] = lightObject;
+            return;
+        }
 }

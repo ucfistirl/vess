@@ -1,4 +1,24 @@
-// File vsBackfaceAttribute.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsBackfaceAttribute.h++
+//
+//    Description:  Attribute for specifying the visibility of back-facing
+//                  geometry
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_BACKFACE_ATTRIBUTE_HPP
 #define VS_BACKFACE_ATTRIBUTE_HPP

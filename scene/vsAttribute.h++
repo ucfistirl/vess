@@ -1,4 +1,27 @@
-// File vsAttribute.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsAttribute.h++
+//
+//    Description:  Abstract base class for all objects that can be
+//                  attached to various points on the scene graph.
+//                  Attributes are attached to nodes in order to specify
+//                  some alteration to the geometry at and below that
+//                  node.
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_ATTRIBUTE_HPP
 #define VS_ATTRIBUTE_HPP
@@ -9,7 +32,7 @@
 
 class vsNode;
 
-#define VS_ATTRIBUTE_NAME_MAX_LENGTH    80
+#define VS_ATTRIBUTE_NAME_MAX_LENGTH 80
 
 enum vsAttributeType
 {

@@ -1,4 +1,24 @@
-// File vsBillboardAttribute.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsBillboardAttribute.c++
+//
+//    Description:  Attribute that specifies that the geometry below the
+//                  component be rotated to face the viewer at all times
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsBillboardAttribute.h++"
 
@@ -66,7 +86,7 @@ vsBillboardAttribute::vsBillboardAttribute(pfBillboard *billboard)
 vsBillboardAttribute::~vsBillboardAttribute()
 {
     if (isAttached())
-	detach(NULL);
+        detach(NULL);
 }
 
 // ------------------------------------------------------------------------

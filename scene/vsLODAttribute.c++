@@ -1,4 +1,28 @@
-// File vsLODAttribute.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsLODAttribute.c++
+//
+//    Description:  Specifies that the children of the component are all
+//                  levels-of-detail of the same object and are not to be
+//                  drawn all at the same time; only one of the children
+//                  should be drawn, with the determination of which to
+//                  draw based on the distance from the viewer to the
+//                  object.
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsLODAttribute.h++"
 

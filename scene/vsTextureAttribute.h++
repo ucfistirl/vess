@@ -1,4 +1,24 @@
-// File vsTextureAttribute.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsTextureAttribute.h++
+//
+//    Description:  Attribute that specifies which texture should be used
+//                  to cover geometry
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_TEXTURE_ATTRIBUTE_HPP
 #define VS_TEXTURE_ATTRIBUTE_HPP
