@@ -53,7 +53,7 @@ private:
     vsInputButton    *resetButton;
 
     // The kinematics to be rotated
-    vsKinematics     *kin;
+    vsKinematics     *kinematics;
 
     // Maximum rotation extends
     double           headingHalfWidth;
