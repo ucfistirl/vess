@@ -180,6 +180,14 @@ void vsRemoteInterface::processXMLDocument()
         {
             processStats(doc, current);
         }
+        else if (xmlStrcmp(current->name, (const xmlChar *) "readytosync") == 0)
+        {
+            processReadyToSync(doc, current);
+        }
+        else if (xmlStrcmp(current->name, (const xmlChar *) "releasesync") == 0)
+        {
+            processReleaseSync(doc, current);
+        }
 
         // Get the next child of the root element
         current = current->next;
@@ -221,6 +229,16 @@ void vsRemoteInterface::processStats(xmlDocPtr doc, xmlNodePtr current)
         vsScreen::getScreen(screenIndex)->getChildWindow(windowIndex)->
             getChildPane(paneIndex)->disableStats();
     }
+}
+
+
+void vsRemoteInterface::processReadyToSync(xmlDocPtr doc, xmlNodePtr current)
+{
+}
+
+
+void vsRemoteInterface::processReleaseSync(xmlDocPtr doc, xmlNodePtr current)
+{
 }
 
 

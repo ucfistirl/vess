@@ -29,6 +29,10 @@ protected:
 
     void                     processXMLDocument();
     void                     processStats(xmlDocPtr doc, xmlNodePtr current);
+    void                     processReadyToSync(xmlDocPtr doc, 
+                                                xmlNodePtr current);
+    void                     processReleaseSync(xmlDocPtr doc, 
+                                                xmlNodePtr current);
 
 public:
     vsRemoteInterface();
