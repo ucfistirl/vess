@@ -200,7 +200,6 @@ vsSystem::~vsSystem()
     osgFrameStamp->unref();
     
     // Delete statically-created objects in the various VESS classes
-    vsTextBuilder::deleteVertexArray();
     vsGeometry::clearBinSortModes();
     vsGraphicsState::deleteInstance();
     vsViewpointAttribute::deleteMap();
@@ -760,7 +759,7 @@ void vsSystem::drawFrame()
                     setFrameStamp(osgFrameStamp);
 
                 // Do app and cull traversals
-                targetPane->getBaseLibraryObject()->app();
+                targetPane->getBaseLibraryObject()->update();
                 targetPane->getBaseLibraryObject()->cull();
 
                 // Only draw the pane if the visibility flag is true
