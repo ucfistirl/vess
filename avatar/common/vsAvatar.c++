@@ -1079,6 +1079,7 @@ void *vsAvatar::makeVsFlockOfBirds()
     int baud = 9600;
     int mode = VS_AS_MODE_FLOCK;
     int hemisphere = -1;
+    int intValue;
     bool multiFlag = false;
     bool forkFlag = false;
     vsFlockOfBirds *result;
@@ -1161,7 +1162,12 @@ void *vsAvatar::makeVsFlockOfBirds()
         else if (!strcmp(token, "fork"))
         {
             // Set whether the object should be run in a forked process
-            sscanf(cfgLine, "%*s %d", &forkFlag);
+            sscanf(cfgLine, "%*s %d", &intValue);
+
+            if (intValue == 0)
+                forkFlag = false;
+            else
+                forkFlag = true;
         }
         else if (!strcmp(token, "hemisphere"))
         {
@@ -1235,6 +1241,7 @@ void *vsAvatar::makeVsSerialMotionStar()
     int dataFormat = VS_AS_DATA_POS_QUAT;
     int baud = 9600;
     int hemisphere = -1;
+    int intValue;
     bool multiFlag = false;
     bool forkFlag = false;
     vsSerialMotionStar *result;
@@ -1304,7 +1311,12 @@ void *vsAvatar::makeVsSerialMotionStar()
         else if (!strcmp(token, "fork"))
         {
             // Set whether the object should be run in a forked process
-            sscanf(cfgLine, "%*s %d", &forkFlag);
+            sscanf(cfgLine, "%*s %d", &intValue);
+
+            if (intValue == 0)
+                forkFlag = false;
+            else
+                forkFlag = true;
         }
         else if (!strcmp(token, "hemisphere"))
         {
@@ -1374,6 +1386,7 @@ void *vsAvatar::makeVsFastrak()
     int portNumber = -1;
     int baud = 9600;
     int nTrackers = 0;
+    int intValue;
     bool forkFlag = false;
     vsVector hemiVectors[VS_FT_MAX_TRACKERS];
     int stationNum, loop;
@@ -1411,7 +1424,12 @@ void *vsAvatar::makeVsFastrak()
         {
             // Set whether the system should be run from a
             // forked process
-            sscanf(cfgLine, "%*s %d", &forkFlag);
+            sscanf(cfgLine, "%*s %d", &intValue);
+
+            if (intValue == 0)
+                forkFlag = false;
+            else
+                forkFlag = true;
         }
         else if (!strcmp(token, "trackerHemi"))
         {
@@ -1461,6 +1479,7 @@ void *vsAvatar::makeVsIS600()
     int portNumber = -1;
     int baud = 9600;
     int nTrackers = 0;
+    int intValue;
     bool forkFlag = false;
     vsIS600 *result;
 
@@ -1494,7 +1513,12 @@ void *vsAvatar::makeVsIS600()
         else if (!strcmp(token, "fork"))
         {
             // Set whether the system should be run from a forked process
-            sscanf(cfgLine, "%*s %d", &forkFlag);
+            sscanf(cfgLine, "%*s %d", &intValue);
+
+            if (intValue == 0)
+                forkFlag = false;
+            else
+                forkFlag = true;
         }
         else
             printf("vsAvatar::makeVsIS600: Unrecognized token '%s'\n",
