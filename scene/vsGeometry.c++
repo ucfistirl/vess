@@ -51,6 +51,7 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
     vsTransparencyAttribute *transAttrib;
     vsBackfaceAttribute *backAttrib;
     ushort *temp;
+    int loop, tResult;
 
     performerGeode = targetGeode;
     performerGeoset = targetGeode->getGSet(0);
@@ -114,6 +115,8 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
         newBack = new pfMaterial();
         if (backMaterial)
             newBack->copy(backMaterial);
+	else if (frontMaterial)
+	    newBack->copy(frontMaterial);
 
         materialAttrib = new vsMaterialAttribute(newFront, newBack);
         vsAttributeList::addAttribute(materialAttrib);
@@ -142,6 +145,19 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
         transMode = geostate->getMode(PFSTATE_TRANSPARENCY);
         transAttrib = new vsTransparencyAttribute(transMode);
         vsAttributeList::addAttribute(transAttrib);
+    }
+    else
+    {
+	// Determine by hand if transparency is needed
+	tResult = 0;
+	for (loop = 0; loop < colorListSize; loop++)
+	    if (fabs(colorList[loop][3] - 1.0) > 1E-6)
+		tResult = 1;
+	if (tResult)
+	{
+	    transAttrib = new vsTransparencyAttribute(PFTR_BLEND_ALPHA);
+	    vsAttributeList::addAttribute(transAttrib);
+	}
     }
     
     // Backface (Cull Face)
@@ -842,6 +858,24 @@ int vsGeometry::getDataListSize(int whichData)
     }
     
     return -1;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the center point and radius of a sphere that encompasses all
+// of the geometry within this object.
+// ------------------------------------------------------------------------
+void vsGeometry::getBoundSphere(vsVector *centerPoint, double *radius)
+{
+    pfSphere boundSphere;
+    
+    performerGeode->getBound(&boundSphere);
+    
+    if (centerPoint)
+	centerPoint->set(boundSphere.center[PF_X], boundSphere.center[PF_Y],
+	    boundSphere.center[PF_Z]);
+
+    if (radius)
+	*radius = boundSphere.radius;
 }
 
 // ------------------------------------------------------------------------

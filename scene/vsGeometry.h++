@@ -95,6 +95,8 @@ public:
     void              setDataListSize(int whichData, int newSize);
     int               getDataListSize(int whichData);
     
+    void              getBoundSphere(vsVector *centerPoint, double *radius);
+
     virtual void      addAttribute(vsAttribute *newAttribute);
     virtual void      removeAttribute(vsAttribute *targetAttribute);
 
