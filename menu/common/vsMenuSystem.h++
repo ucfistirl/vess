@@ -72,7 +72,8 @@ private:
     vsInputAxis       *yAxis;
 
     vsInputButton     *inputButtons[VS_MENU_ACTION_COUNT];
-    bool              pressed[VS_MENU_ACTION_COUNT];
+    bool              actionValid[VS_MENU_ACTION_COUNT];
+    bool              actionRepeatable[VS_MENU_ACTION_COUNT];
 
     vsMenuTree        *menuTree;
     vsMenuFrame       *menuFrame;
@@ -109,6 +110,7 @@ public:
 
     void                  setMenuButton(vsMenuAction action,
                               vsInputButton *newButton);
+    void                  setRepeatable(vsMenuAction action, bool repeatable);
 
     void                  show();
     void                  hide();

@@ -55,7 +55,11 @@ vsMenuSystem::vsMenuSystem()
 
     // Initialize all of the buttons to NULL
     for (i = 0; i < VS_MENU_ACTION_COUNT; i++)
-        setMenuButton((vsMenuAction)i, NULL);
+    {
+        inputButtons[i] = NULL;
+        actionValid[i] = false;
+        actionRepeatable[i] = false;
+    }
 
     // Initially, set the tree to null
     menuTree = NULL;
@@ -136,7 +140,11 @@ vsMenuSystem::vsMenuSystem(vsPane *pane, vsWindowSystem *windowSystem)
 
     // Initialize all of the buttons to NULL
     for (i = 0; i < VS_MENU_ACTION_COUNT; i++)
-        setMenuButton((vsMenuAction)i, NULL);
+    {
+        inputButtons[i] = NULL;
+        actionValid[i] = false;
+        actionRepeatable[i] = false;
+    }
 
     // Initially, set the tree to null
     menuTree = NULL;
@@ -274,11 +282,12 @@ void vsMenuSystem::rebuildMenu()
         while (destObj)
         {
             // Add the component of the object as a child
-            if (destObj->getComponent())
+            if (destObj->isEnabled() && destObj->getComponent())
                 menuComponent->addChild(destObj->getComponent());
 
             // Select the first selectable object by default
-            if ((selectedObj == NULL) && (destObj->isSelectable()))
+            if ((selectedObj == NULL) && (destObj->isSelectable()) &&
+                (destObj->isEnabled()))
                 selectedObj = destObj;
 
             // Move on to the next child
@@ -326,7 +335,16 @@ void vsMenuSystem::setMenuButton(vsMenuAction action, vsInputButton *button)
 {
     // Store the button and initialize it to pressed
     inputButtons[action] = button;
-    pressed[action] = true;
+    actionValid[action] = actionRepeatable[action];
+}
+
+// ------------------------------------------------------------------------
+// Sets whether a specific action can be carried out in repeat updates
+// without its button being released in between.
+// ------------------------------------------------------------------------
+void vsMenuSystem::setRepeatable(vsMenuAction action, bool repeatable)
+{
+    actionRepeatable[action] = repeatable;
 }
 
 // ------------------------------------------------------------------------
@@ -423,7 +441,7 @@ void vsMenuSystem::update()
                 selectedObj = prevObj;
 
                 // Make sure the movement only happens once
-                pressed[VS_MENU_ACTION_PREVIOUS] = true;
+                actionValid[VS_MENU_ACTION_PREVIOUS] = false;
             }
         }
 
@@ -437,7 +455,7 @@ void vsMenuSystem::update()
                 selectedObj = curObj;
 
                 // Make sure the movement only happens once
-                pressed[VS_MENU_ACTION_NEXT] = true;
+                actionValid[VS_MENU_ACTION_NEXT] = false;
             }
         }
 
@@ -447,6 +465,8 @@ void vsMenuSystem::update()
 
         // Move on to the next child
         menuIter->advance();
+//        while (menuIter->getObject() && !menuIter->getObject()->isEnabled())
+//            menuIter->advance();
         curObj = menuIter->getObject();
     }
 
@@ -492,7 +512,12 @@ void vsMenuSystem::update()
     for (i = 0; i < VS_MENU_ACTION_COUNT; i++)
     {
         if (inputButtons[i])
-            pressed[i] = inputButtons[i]->isPressed();
+        {
+            if (!inputButtons[i]->isPressed() || actionRepeatable[i])
+                actionValid[i] = true;
+            else
+                actionValid[i] = false;
+        }
     }
 }
 
@@ -508,7 +533,7 @@ bool vsMenuSystem::processAction(vsMenuAction action)
     {
         // Return true if and only if the button is currently pressed but
         // was not pressed on the last update
-        return (inputButtons[action]->isPressed() && !pressed[action]);
+        return (inputButtons[action]->isPressed() && actionValid[action]);
     }
 
     // If the action does not have a button assigned, return false by default
