@@ -17,7 +17,7 @@
 // ------------------------------------------------------------------------
 vsComponent::vsComponent() : childList(32, 32)
 {
-    childCount = 0;
+    // Create the Performer group objects and tie them together
     topGroup = new pfGroup();
     topGroup->ref();
     lightHook = new pfGroup();
@@ -27,6 +27,7 @@ vsComponent::vsComponent() : childList(32, 32)
     topGroup->addChild(lightHook);
     lightHook->addChild(bottomGroup);
 
+    childCount = 0;
     ((vsSystem::systemObject)->getNodeMap())->registerLink(this, topGroup);
 }
 
@@ -267,6 +268,8 @@ vsComponent::~vsComponent()
     ((vsSystem::systemObject)->getNodeMap())->removeLink(this,
         VS_OBJMAP_FIRST_LIST);
 
+
+    // Unlink and destroy the Performer objects
     topGroup->removeChild(lightHook);
     lightHook->removeChild(bottomGroup);
     topGroup->unref();
@@ -329,6 +332,8 @@ void vsComponent::addChild(vsNode *newChild)
     
     newChild->addParent(this);
     
+    // Finally, mark the entire tree above and below this node as needing
+    // of an update
     newChild->dirty();
 }
 
@@ -348,6 +353,7 @@ void vsComponent::insertChild(vsNode *newChild, int index)
         printf("vsComponent::insertChild: Index out of bounds\n");
         return;
     }
+
     // If the index is greater than the current number of children on this
     // component, simply add the new child on the end normally
     if (index >= childCount)
@@ -376,6 +382,8 @@ void vsComponent::insertChild(vsNode *newChild, int index)
     
     newChild->addParent(this);
     
+    // Finally, mark the entire tree above and below this node as needing
+    // of an update
     newChild->dirty();
 }
 
@@ -391,8 +399,13 @@ void vsComponent::removeChild(vsNode *targetChild)
     for (loop = 0; loop < childCount; loop++)
         if (targetChild == childList[loop])
         {
-	    targetChild->dirty();
-	
+            // Mark the entire portion of the tree that has any connection
+            // to this node as needing of an update
+            targetChild->dirty();
+        
+            // Detach the Performer nodes; checks for the type of the
+            // component because the getBaseLibraryObject call is
+            // not virtual.
             if (targetChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
             {
                 childComponent = (vsComponent *)targetChild;
@@ -406,9 +419,11 @@ void vsComponent::removeChild(vsNode *targetChild)
                     childGeometry->getBaseLibraryObject());
             }
 
+            // 'Slide' the rest of the children down to fill in the gap
             for (sloop = loop; sloop < childCount-1; sloop++)
                 childList[sloop] = childList[sloop+1];
         
+            // Finish the VESS detachment
             childCount--;
             targetChild->removeParent(this);
             return;
@@ -430,8 +445,13 @@ void vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
     for (loop = 0; loop < childCount; loop++)
         if (targetChild == childList[loop])
         {
-	    targetChild->dirty();
-	
+            // Mark the entire portion of the tree that has any connection
+            // to the old node as needing of an update
+            targetChild->dirty();
+        
+            // Replace the Performer nodes; checks for the type of the
+            // component because the getBaseLibraryObject call is
+            // not virtual.
             if (targetChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
             {
                 childComponent = (vsComponent *)targetChild;
@@ -456,12 +476,15 @@ void vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
             
             bottomGroup->replaceChild(oldNode, newNode);
             
+            // Change the connection in the VESS nodes
             childList[loop] = newChild;
 
             targetChild->removeParent(this);
             newChild->addParent(this);
-	    
-	    newChild->dirty();
+            
+            // Mark the entire portion of the tree that has any connection
+            // to the new node as needing of an update
+            newChild->dirty();
             return;
         }
 }
@@ -517,6 +540,8 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
     int attrType, attrCat;
     int loop;
 
+    // Ask the attribute if it's willing to be added; if it returns false,
+    // it's probably already attached somewhere else.
     if (!(newAttribute->canAttach()))
     {
         printf("vsComponent::addAttribute: Attribute is already in use\n");
@@ -538,6 +563,8 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
                     return;
                 }
             break;
+
+        // Component may only contain one of any of these
         case VS_ATTRIBUTE_CATEGORY_GROUPING:
             if (getCategoryAttribute(VS_ATTRIBUTE_CATEGORY_GROUPING, 0))
             {
@@ -610,7 +637,9 @@ void vsComponent::setBottomGroup(pfGroup *newBottom)
 // VESS internal function
 // Checks to see if a node name is important enough to merit getting its
 // own component during the VESS graph construction process. May set the
-// component's name if it does not already have one.
+// component's name if it does not already have one. Returns VS_TRUE if the
+// node can be safely encapsulated, VS_FALSE if it requires special
+// attention.
 // ------------------------------------------------------------------------
 int vsComponent::handleName(pfNode *targetNode, vsDatabaseLoader *nameDirectory)
 {
@@ -642,6 +671,7 @@ void vsComponent::replaceBottomGroup(pfGroup *newGroup)
     pfNode *childNode;
     pfGroup *parentGroup;
 
+    // Move the children of the current bottomGroup to the newGroup
     while (bottomGroup->getNumChildren() > 0)
     {
         childNode = bottomGroup->getChild(0);
@@ -649,6 +679,7 @@ void vsComponent::replaceBottomGroup(pfGroup *newGroup)
         newGroup->addChild(childNode);
     }
 
+    // Replace bottomGroup with newGroup
     parentGroup = bottomGroup->getParent(0);
     parentGroup->replaceChild(bottomGroup, newGroup);
     
@@ -669,5 +700,5 @@ void vsComponent::dirtyDown()
     dirtyFlag = VS_TRUE;
     
     for (loop = 0; loop < childCount; loop++)
-	((vsNode *)(childList[loop]))->dirtyDown();
+        ((vsNode *)(childList[loop]))->dirtyDown();
 }
