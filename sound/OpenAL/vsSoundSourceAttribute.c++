@@ -27,6 +27,10 @@
     #include <values.h>
 #endif
 
+#ifdef WIN32
+    #include <float.h>
+#endif
+
 #include "vsSoundSourceAttribute.h++"
 #include "vsSoundManager.h++"
 #include "vsNode.h++"
