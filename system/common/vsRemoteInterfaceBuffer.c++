@@ -10,6 +10,9 @@
 #include "vsKinematics.h++"
 
 
+#define   VS_VESS_XML_VERSION   "1.0"
+
+
 // ------------------------------------------------------------------------
 // Constructor - Initializes variables (we don't use a DTD)
 // ------------------------------------------------------------------------
@@ -197,10 +200,12 @@ void vsRemoteInterfaceBuffer::getOrientation(xmlDocPtr doc, xmlNodePtr current,
 // Go through the sequence tree recursive and build up a representation
 // of it
 // ------------------------------------------------------------------------
-void vsRemoteInterfaceBuffer::getSequenceTree(vsSequencer *currentSequencer)
+void vsRemoteInterfaceBuffer::getSequenceTree(vsSequencer *currentSequencer,
+                                              char *sequenceTreeBuffer)
 {
     u_long         i;
     vsUpdatable    *updatable;
+    char           updatableStr[255];
 
     // Loop through the updatables in this sequencer
     for (i=0; i < currentSequencer->getUpdatableCount(); i++)
@@ -212,9 +217,22 @@ void vsRemoteInterfaceBuffer::getSequenceTree(vsSequencer *currentSequencer)
         // to process this new sequencer; otherwise, just add the
         // updatable to the built up structure
         if (strcmp(updatable->getClassName(), "vsSequencer") == 0)
-            getSequenceTree((vsSequencer *) updatable);
+        {
+            // Add an hierarchy level to the XML document we're building up
+            strcat(sequenceTreeBuffer, "<sequence>");
+
+            // Go down in the tree sequence
+            getSequenceTree((vsSequencer *) updatable, sequenceTreeBuffer);
+
+            // Close the hierarchy level to the XML document we're building up
+            strcat(sequenceTreeBuffer, "</sequence>");
+        }
         else
         {
+            // Add in the XML code for this updatable
+            sprintf(updatableStr, "<updatable name=\"%s\"></updatable>",
+                    currentSequencer->getUpdatableName(updatable));
+            strcat(sequenceTreeBuffer, updatableStr);
         }
     }
 }
@@ -359,11 +377,14 @@ void vsRemoteInterfaceBuffer::processPlaceComponent(xmlDocPtr doc,
     xform = (vsTransformAttribute *) node->getTypedAttribute(
         VS_ATTRIBUTE_TYPE_TRANSFORM, 0);
 
-    // Check to make sure we got a transform; otherwise,
+    // Check to make sure we got a transform; otherwise, make one and attach
+    // it to the node
     if (xform == NULL)
     {
-        printf("Don't have a transform\n");
-        return;
+        // Create a new transform attribute and add it to the node that
+        // was found
+        xform = new vsTransformAttribute();
+        node->addAttribute(xform);
     }
 
     // Get the matrix from the transform and get the position and orientation
@@ -406,12 +427,25 @@ void vsRemoteInterfaceBuffer::processQuerySequence(xmlDocPtr doc,
                                                    xmlNodePtr current)
 {
     vsSequencer   *rootSequencer;
+    char          *treeBuffer;
+
+    // Allocate some space
+    treeBuffer = (char *) calloc(1024, sizeof(char));
 
     // Get the "root" sequencer
     rootSequencer = vsSystem::systemObject->getSequencer();
 
+    // Initialize the buffer for the response
+    sprintf(treeBuffer, "<sequence>");
+
     // Go through and collect the state of the sequencer
-    getSequenceTree(rootSequencer);
+    getSequenceTree(rootSequencer, treeBuffer);
+
+    // Put the ending on the response XML 
+    strcat(treeBuffer, "</sequence>");
+
+    // Copy the tree buffer into the responses buffer that will be sent back
+    strcat((char *) xmlResponses, (char *) treeBuffer);
 }
 
 
@@ -534,12 +568,13 @@ void vsRemoteInterfaceBuffer::processStats(xmlDocPtr doc, xmlNodePtr current)
 // Take in a buffer and process it by adding to the local XML buffer
 // and seeing if it has a complete XML document
 // ------------------------------------------------------------------------
-void vsRemoteInterfaceBuffer::processBuffer(u_char *buffer, int lengthRead)
+u_char *vsRemoteInterfaceBuffer::processBuffer(u_char *buffer, int lengthRead)
 {
     u_char   *nextNull;
     u_char   *endTag;
     int      partialChunkSize;
     int      numWhiteSpace;
+    char     header[255];
 
     // Go through and eradicate NULL characters (the XML library will
     // consider it the end of the document)
@@ -569,6 +604,10 @@ void vsRemoteInterfaceBuffer::processBuffer(u_char *buffer, int lengthRead)
     endTag = (u_char *) strstr((const char *) buffer, "</vessxml>");
     if (endTag != NULL)
     {
+        // Initialize the responses buffer (we will collect any responses
+        // from the XML elements into this buffer and send them back)
+        xmlResponses[0] = '\0';
+
         // We need to loop in case there are multiple documents within 
         // the buffer
         while (endTag != NULL)
@@ -628,5 +667,26 @@ void vsRemoteInterfaceBuffer::processBuffer(u_char *buffer, int lengthRead)
         memcpy(&xmlBuffer[xmlBufferSize], buffer, lengthRead);
         xmlBufferSize += lengthRead;
     }
+
+    // Add on the XML header and footer to the responses (if we have responses)
+    if (strlen((char *) xmlResponses) > 0)
+    {
+        // Create the xml header info
+        sprintf(header, "<?xml version=\"1.0\"?><vessxml version=\"%s\">",
+                VS_VESS_XML_VERSION);
+
+        // Move the responses over to make room for the header
+        memmove(&xmlResponses[strlen(header)], &xmlResponses[0], 
+                strlen(header));
+
+        // Copy the header in
+        memcpy(&xmlResponses[0], header, strlen(header));
+
+        // Add the xml footer
+        strcat((char *) xmlResponses, "</vessxml>");
+    }
+
+    // Return the responses that were collected
+    return xmlResponses;
 }
 

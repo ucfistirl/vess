@@ -52,8 +52,7 @@ vsRemoteInterface::~vsRemoteInterface()
 
 // ------------------------------------------------------------------------
 // The main update loop that reads the network and buffers it up to get
-// a full XML document, which is then calls processXMLDocument() to
-// process
+// a full XML document, which is then calls the buffer to process
 // ------------------------------------------------------------------------
 void vsRemoteInterface::update()
 {
@@ -61,6 +60,7 @@ void vsRemoteInterface::update()
     int      lengthRead;
     u_long   i;
     u_char   buffer[VS_RI_MAX_XML_DOCUMENT_SIZE + VS_RI_MAX_BUFFER_SIZE];
+    u_char   *response;
 
     // See if somebody wants to connect through the TCP interface
     tempClientID = tcpInterface->acceptConnection();
@@ -108,7 +108,15 @@ void vsRemoteInterface::update()
         else if (lengthRead > 0)
         {
             // We received at least part of an XML document so process it
-            tcpClientBuffers[i]->processBuffer(buffer, lengthRead);
+            response = tcpClientBuffers[i]->processBuffer(buffer, lengthRead);
+
+            // Write the response if there is one
+            if (strlen((char *) response) > 0)
+            {
+                // Send the output out the tcp interface we are processing
+                tcpInterface->write(tcpClientIDs[i], response, 
+                                    strlen((char *) response));
+            }
         }
     }
 }
@@ -121,6 +129,7 @@ void vsRemoteInterface::send(u_char *buffer, u_long bufferLen)
 {
     u_long   i;
 
+    // Loop through the connected clients
     for (i=0; i < numClients; i++)
     {
         // Write out the buffer to the network

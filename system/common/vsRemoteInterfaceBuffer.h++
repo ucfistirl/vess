@@ -19,11 +19,14 @@ protected:
     xmlDtdPtr                xmlDTD;
     xmlValidCtxt             xmlContext;
 
+    u_char                   xmlResponses[VS_RI_MAX_XML_DOCUMENT_SIZE];
+
     void                     getPosition(xmlDocPtr doc, xmlNodePtr node,
                                          double *x, double *y, double *z);
     void                     getOrientation(xmlDocPtr doc, xmlNodePtr node,
                                             vsQuat *quat);
-    void                     getSequenceTree(vsSequencer *currentSequencer);
+    void                     getSequenceTree(vsSequencer *currentSequencer,
+                                             char *sequenceTreeBuffer);
 
     void                     processXMLDocument();
     void                     processPlaceComponent(xmlDocPtr doc, 
@@ -39,7 +42,7 @@ public:
     vsRemoteInterfaceBuffer(char *dtdFilename);
     virtual ~vsRemoteInterfaceBuffer();
 
-    void    processBuffer(u_char *buffer, int lengthRead);
+    u_char *    processBuffer(u_char *buffer, int lengthRead);
 };
 
 #endif
