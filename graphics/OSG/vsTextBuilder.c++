@@ -34,6 +34,9 @@ vsVector         vsTextBuilder::currentColor;
 double           vsTextBuilder::letterOffset;
 int              vsTextBuilder::primitiveLength;
 
+vsGrowableArray  *vsTextBuilder::combinedVertices = new vsGrowableArray(50, 10);
+int              vsTextBuilder::combinedVertexCount;
+
 // ------------------------------------------------------------------------
 // Default Constructor - Sets the font size to the defaults, and sets the
 // color to white.  Must still set the font.
@@ -457,7 +460,7 @@ void CALLBACK vsTextBuilder::tesselateError(GLenum type)
 // ------------------------------------------------------------------------
 void CALLBACK vsTextBuilder::tesselateVertex(void *vertexData)
 {
-    vsVector  *vertex;
+    vsVector *vertex;
 
     // Create a VESS vector from the data.  Give z the y values so
     // the text is on the x and z axis like Performer's text.
@@ -548,6 +551,10 @@ void CALLBACK vsTextBuilder::tesselateEnd()
     {
         primitiveGeometry->setData(VS_GEOMETRY_VERTEX_COORDS, loop,
             *((vsVector *)vertexArray->getData(loop)));
+
+        // After the data has been copied to the geometry, we don't need the
+        // the vector that was holding it.
+        delete ((vsVector *)(vertexArray->getData(loop)));
     }
 
     // Set the geometry to the color we have stored.
@@ -584,6 +591,10 @@ void CALLBACK vsTextBuilder::tesselateCombine(GLdouble coords[3],
 
     // Set the outData to point to the newly allocated vertex.
     *outData = vertex;
+
+    // Keep track of the allocated vertex in our list so that we can
+    // delete it later
+    combinedVertices->setData(combinedVertexCount++, vertex);
 }
 
 // ------------------------------------------------------------------------
@@ -702,6 +713,9 @@ double vsTextBuilder::tesselateLetter(FT_Glyph glyph)
     // polygons.
     gluTessNormal(tobj, 0.0, 0.0, 1.0);
 
+    // Initialize calls to tesselateCombine to zero
+    combinedVertexCount = 0;
+
     // Begin a polygon.
     gluTessBeginPolygon(tobj, NULL);
 
@@ -728,12 +742,19 @@ double vsTextBuilder::tesselateLetter(FT_Glyph glyph)
     // End the polygon.
     gluTessEndPolygon(tobj);
 
+    // Delete memory created by the tesselateCombine callback
+    for (loop = 0; loop < combinedVertexCount; loop++)
+        free(combinedVertices->getData(loop));
+
     // Delete the OpenGL tesselator.
     gluDeleteTess(tobj);
 
     // Free the allocated space.
     free(data);
     free(contourLength);
+
+    // Free the FreeType glyph object
+    FT_Done_Glyph(glyph);
 
     // Return the amount of space this glyph takes in the X axis.
     return(advance);
@@ -751,5 +772,12 @@ void vsTextBuilder::deleteVertexArray()
     {
         delete vertexArray;
         vertexArray = NULL;
+    }
+
+    // If there is a combined vertex pointer, delete what it points to.
+    if (combinedVertices)
+    {
+        delete combinedVertices;
+        combinedVertices = NULL;
     }
 }

@@ -65,6 +65,9 @@ private:
     static int              primitiveLength;
     static double           letterOffset;
 
+    static vsGrowableArray  *combinedVertices;
+    static int              combinedVertexCount;
+
     FTFace                  face;
     vsVector                color;
     vsMatrix                transformMatrix;
