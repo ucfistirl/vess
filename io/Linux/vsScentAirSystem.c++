@@ -52,34 +52,29 @@ vsScentAirSystem::vsScentAirSystem(int portNumber)
     parallelPortDataByte( 0x0 )
 {
     char portDevice[30];
+    int i;
 
-    // Determine the platform-dependent parallel device
-    // name
-    // FIXME: I don't know what these should be for other platforms yet
-
-#ifdef IRIX
-    sprintf(portDevice, "/dev/ttyd%d", portNumber);
-#endif
-
-#ifdef IRIX64
-    sprintf(portDevice, "/dev/ttyd%d", portNumber);
-#endif
-
-#ifdef __linux__
+    // Open the requested parallel port
     sprintf(portDevice, "/dev/parport%d", portNumber - 1);
-#endif
-
-#ifdef WIN32
-    sprintf(portDevice, "LPT%d", portNumber );
-#endif
-
     port = new vsParallelPort(portDevice);
 
     // If the port is open, set up our scent channels
     if( port->isPortOpen() )
+    {
+        // Set up the scent channels
         setNumberOfScentChannels( VS_DEFAULT_NUMBER_OF_SCENT_CHANNELS );
+
+	// Turn all scents off
+	for (i = 0; i < 8; i++)
+            setParallelPin(i, false);
+	port->setDataLines(parallelPortDataByte);
+    }
     else
+    {
+        printf("vsScentAirSystem::vsScentAirSystem:  Unable to open port "
+            "%s\n", portDevice);
         setNumberOfScentChannels( 0 );
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -87,11 +82,22 @@ vsScentAirSystem::vsScentAirSystem(int portNumber)
 // ------------------------------------------------------------------------
 vsScentAirSystem::~vsScentAirSystem()
 {
+    int i;
+
     // Clean up all the data we stored on the scent channels
     setNumberOfScentChannels( 0 );
 
-    // Close the port
-    delete port;
+    // Close the port, making sure all scents are off first
+    if (port)
+    {
+	// Turn all scents off
+	for (i = 0; i < 8; i++)
+            setParallelPin(i, false);
+	port->setDataLines(parallelPortDataByte);
+
+	// Delete the port object
+        delete port;
+    }
 }
 
 // ------------------------------------------------------------------------
