@@ -34,6 +34,7 @@ vsPhantomSystem::vsPhantomSystem(char *serverName, u_short port,
     forces = false;
     connected = false;
 
+    // Create a network interface and connect to the phantom server.
     netInterface = new vsTCPNetworkInterface(serverName, port);
     if (netInterface->makeConnection() == -1)
     {
@@ -49,9 +50,12 @@ vsPhantomSystem::vsPhantomSystem(char *serverName, u_short port,
         connected = true;
     }
 
+    // Initialize the position scale to 1, which changes nothing.
+    positionScale = 1.0;
+
+    // Allocate the space for the receive and send buffers.
     receiveBufferLength = PS_MAX_COMMAND_LENGTH;
     receiveBuffer = (u_char *) malloc(receiveBufferLength);
-
     sendBufferLength = PS_MAX_COMMAND_LENGTH;
     sendBuffer = (u_char *) malloc(sendBufferLength);
 
@@ -63,11 +67,14 @@ vsPhantomSystem::vsPhantomSystem(char *serverName, u_short port,
     vsToGstRotation = vsMatrix();
     vsToGstRotation.setEulerRotation(VS_EULER_ANGLES_XYZ_R, -90.0, 0.0, 0.0);
 
+    // Create the phantom object which will store all the phantom information.
     phantom = new vsPhantom();
 
+    // Initialize its position and orientation to nothing (zero).
     phantom->setPosition(vsVector(0.0, 0.0, 0.0));
     phantom->setOrientation(vsVector(0.0, 0.0, 0.0), VS_EULER_ANGLES_XYZ_R);
 
+    // If a connection was established, perform initialization for the phantom.
     if (connected)
     {
         printf("Attempting to initialize Phantom: %s\n", phantomName);
@@ -76,18 +83,21 @@ vsPhantomSystem::vsPhantomSystem(char *serverName, u_short port,
         writeCommand(PS_PROTOCOL_VERSION, PS_COMMAND_INITIALIZE,
           (u_char) strlen(phantomName)+1, (u_char *) phantomName);
 
+        // If we got an acknowledge packet, no errors, then it worked.
         if (readAcknowledge())
         {
             initialized = true;
 
             printf("Phantom: %s, initialized!\n", phantomName);
 
+            // If the phantom needs a reset, print the message.
             if (isResetNeeded())
             {
                 printf("vsPhantomSystem::vsPhantomSystem: "
                   "Phantom reset needed\n");
             }
         }
+        // Else there must have been an error, so print an error message.
         else
         {
             printf("vsPhantomSystem::vsPhantomSystem: "
@@ -98,13 +108,14 @@ vsPhantomSystem::vsPhantomSystem(char *serverName, u_short port,
 
 vsPhantomSystem::~vsPhantomSystem(void)
 {
+    // If the phantom object was crested, delete it.
     if (phantom)
     {
         delete phantom;
     }
 
+    // Free the other resources.
     delete netInterface;
-
     free(receiveBuffer);
     free(sendBuffer);
 }
@@ -308,6 +319,16 @@ bool vsPhantomSystem::readAcknowledge(void)
 vsPhantom *vsPhantomSystem::getPhantom(void)
 {
     return(phantom);
+}
+
+void vsPhantomSystem::setScale(double newScale)
+{
+    positionScale = newScale;
+}
+
+double vsPhantomSystem::getScale(void)
+{
+    return(positionScale);
 }
 
 bool vsPhantomSystem::setForce(vsVector force)
@@ -526,7 +547,7 @@ bool vsPhantomSystem::resetPhantom(void)
     // If the phantom has been initialized.
     if (initialized)
     {
-        printf("Reseting Phantom to its current position.\n");
+        printf("Resetting Phantom to its current position.\n");
 
         // Set the phantom device information to reset values.
         phantom->setPosition(vsVector(0.0, 0.0, 0.0));
@@ -539,7 +560,7 @@ bool vsPhantomSystem::resetPhantom(void)
             initialized = false;
             forces = false;
 
-            printf("vsPhantomSystem::resetPhantom: Error reseting phantom\n");
+            printf("vsPhantomSystem::resetPhantom: Error resetting phantom\n");
         }
     }
 
@@ -554,6 +575,7 @@ void vsPhantomSystem::update(void)
     u_char       *data;
     PhantomState *phantomState;
     vsVector     position;
+    vsVector     velocity;
     vsMatrix     vsStylusMatrix;
     int          i;
     int          j;
@@ -577,6 +599,14 @@ void vsPhantomSystem::update(void)
             {
                 phantom->getButton(0)->setReleased();
             }
+
+            // Create the velocity vector.
+            velocity = vsVector(ntohd(phantomState->velocityData[0]),
+              ntohd(phantomState->velocityData[1]),
+              ntohd(phantomState->velocityData[2]));
+
+            // Convert the velocity vector to VESS space.
+            velocity = gstToVsRotation.getVectorXform(velocity);
 
             // Get the position and orientation of the phantom stylus.
             // Create a VESS matrix from the GHOST data.  As we transfer
@@ -605,7 +635,11 @@ void vsPhantomSystem::update(void)
             position[VS_Z] = vsStylusMatrix.getValue(2,3);
 
             // Set the phantom position values to the VESS device.
-            phantom->setPosition(position);
+            // Scale it according to the set position scale.
+            phantom->setPosition(position * positionScale);
+
+            // Set the phantom velocity values to the VESS device.
+            phantom->setVelocity(velocity * positionScale);
 
             // Set the phantom orientation to the VESS device.
             phantom->setOrientation(vsStylusMatrix);

@@ -77,6 +77,7 @@ protected:
     bool                     forces;
     vsMatrix                 gstToVsRotation;
     vsMatrix                 vsToGstRotation;
+    double                   positionScale;
     u_char                   *receiveBuffer;
     int                      receiveBufferLength;
     u_char                   *sendBuffer;
@@ -100,6 +101,9 @@ public:
     virtual const char    *getClassName(void);
 
     vsPhantom             *getPhantom(void);
+
+    void                  setScale(double newScale);
+    double                getScale(void);
 
     bool                  setForce(vsVector force);
     bool                  enableForces(void);
