@@ -764,7 +764,6 @@ void vsIS600::clearStation(int stationNum)
 void vsIS600::clearConstellation()
 {
     unsigned char buf[4];
-    int           index;
 
     buf[0] = VS_IS_CMD_MFR_SPECIFIC;
     buf[1] = VS_IS_CMD_CONFIGURE;
@@ -834,8 +833,8 @@ void vsIS600::addSoniDisc(int stationNum, int discNum, vsVector pos,
     index += sprintf((char *)&buf[index], "%0.4lf,%0.4lf,%0.4lf,", pos[VS_X],
                      pos[VS_Y], pos[VS_Z]);
 
-    index += sprintf((char *)&buf[index], "%0.4lf,0.4lf,0.4lf,", normal[VS_X],
-                     normal[VS_Y], normal[VS_Z]);
+    index += sprintf((char *)&buf[index], "%0.4lf,%0.4lf,%0.4lf,", 
+                     normal[VS_X], normal[VS_Y], normal[VS_Z]);
 
     index += sprintf((char *)&buf[index], "%d\r", discID);
 
@@ -903,7 +902,7 @@ void vsIS600::removeReceiverPod(int podNum, int podID)
 
     index = 3;
 
-    index += sprintf((char *)&buf[index], "%d,%d\r", podNum);
+    index += sprintf((char *)&buf[index], "%d,%d\r", podNum, podID);
 
     port->writePacket(buf, index);
 }
