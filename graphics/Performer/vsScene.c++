@@ -527,8 +527,11 @@ unsigned int vsScene::getIntersectValue()
 // ------------------------------------------------------------------------
 void vsScene::addAttribute(vsAttribute *newAttribute)
 {
-    int attrCat, attrType;
+    int newAttrType, newAttrCat
+    int attrType;
     int loop;
+    int textureUnit, newTextureUnit;
+    vsAttribute *attribute;
 
     // See if the attribute will let us attach it
     if (!(newAttribute->canAttach()))
@@ -539,9 +542,9 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
 
     // Scenes may not receive grouping, transform, or container attributes
     // (primarily because these don't make sense at the root of a scene)
-    attrCat = newAttribute->getAttributeCategory();
-    if ((attrCat != VS_ATTRIBUTE_CATEGORY_STATE) &&
-        (attrCat != VS_ATTRIBUTE_CATEGORY_OTHER))
+    newAttrCat = newAttribute->getAttributeCategory();
+    if ((newAttrCat != VS_ATTRIBUTE_CATEGORY_STATE) &&
+        (newAttrCat != VS_ATTRIBUTE_CATEGORY_OTHER))
     {
         printf("vsScene::addAttribute: Scene nodes may not contain "
             "attributes of that type\n");
@@ -550,14 +553,70 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
 
     // Make sure we're not attaching more than one of the same type of
     // attribute
-    attrType = newAttribute->getAttributeType();
-    for (loop = 0; loop < getAttributeCount(); loop++)
-        if ((getAttribute(loop))->getAttributeType() == attrType)
+    newAttrType = newAttribute->getAttributeType();
+    if ((newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE) ||
+        (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE))
+
+        // Initialize the texture unit to invalid maximum.
+        textureUnit = VS_MAXIMUM_TEXTURE_UNITS;
+        newTextureUnit = VS_MAXIMUM_TEXTURE_UNITS+1;
+
+        // Get the new attribute's type.
+        newAttrType = newAttribute->getAttributeType();
+
+        // Get the texture unit of the new attribute, if it is
+        // a texture attribute.
+        if (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE)
         {
-            printf("vsScene::addAttribute: Scene node already "
-                "contains that type of attribute\n");
-            return;
+            newTextureUnit =
+                ((vsTextureAttribute *) newAttribute)->getTextureUnit();
         }
+        else if (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE)
+        {
+            newTextureUnit = ((vsTextureCubeAttribute *)
+                newAttribute)->getTextureUnit();
+        }
+
+        // Check each attribute we have.
+        for (loop = 0; loop < getAttributeCount(); loop++)
+        {
+            attribute = getAttribute(loop);
+            attrType = attribute->getAttributeType();
+
+            // Get the texture unit of the current attribute, if it
+            // is a texture attribute.
+            if (attrType == VS_ATTRIBUTE_TYPE_TEXTURE)
+            {
+                textureUnit = ((vsTextureAttribute *)
+                    attribute)->getTextureUnit();
+            }
+            else if (attrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE)
+            {
+                textureUnit = ((vsTextureCubeAttribute *)
+                    attribute)->getTextureUnit();
+            }
+
+            // If the texture units are equal then they both must
+            // have been texture type attributes and had the same
+            // unit.  We don't want that to be allowed so print
+            // error and return.
+            if (textureUnit == newTextureUnit)
+            {
+                printf("vsScene::addAttribute: Geometry node "
+                    "already contains a texture attribute on unit %d\n",
+                    textureUnit);
+                return;
+            }
+        }
+    }
+    else
+        for (loop = 0; loop < getAttributeCount(); loop++)
+            if ((getAttribute(loop))->getAttributeType() == attrType)
+            {
+                printf("vsScene::addAttribute: Scene node already "
+                    "contains that type of attribute\n");
+                return;
+            }
 
     // If we made it this far, it must be okay to add the attribute in
     vsNode::addAttribute(newAttribute);
