@@ -80,6 +80,9 @@ public:
     virtual unsigned int    getIntersectValue();
 
     virtual void          addAttribute(vsAttribute *newAttribute);
+    
+    virtual void          enableLighting();
+    virtual void          disableLighting();
 
     virtual void          enableCull();
     virtual void          disableCull();
