@@ -1092,6 +1092,9 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
     glContext = glXCreateContext(xWindowDisplay, &(visualList[0]), NULL, 
         GL_TRUE);
 
+    // At this point, we shouldn't need the visual list anymore; get rid of it.
+    XFree(visualList);
+
     // Make sure the context is valid
     if (glContext == NULL)
     {
