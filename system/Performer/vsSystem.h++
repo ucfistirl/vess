@@ -32,14 +32,14 @@
 #include "vsTCPNetworkInterface.h++"
 #include "vsSequencer.h++"
 
-enum vsMultiprocessMode
+enum VS_SYSTEM_DLL vsMultiprocessMode
 {
     VS_MPROC_DEFAULT,
     VS_MPROC_SINGLE,
     VS_MPROC_MULTI
 };
 
-class vsSystem
+class VS_SYSTEM_DLL vsSystem
 {
 private:
 
