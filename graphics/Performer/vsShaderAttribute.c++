@@ -89,11 +89,11 @@ vsShaderAttribute::~vsShaderAttribute()
 
     // Delete the programs and parameters if they exist.
     if (vertexProgram)
-        delete vertexProgram;
+        pfDelete(vertexProgram);
     if (vertexParameters)
         delete vertexParameters;
     if (fragmentProgram)
-        delete fragmentProgram;
+        pfDelete(fragmentProgram);
     if (fragmentParameters)
         delete fragmentParameters;
 }
