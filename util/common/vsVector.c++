@@ -608,7 +608,7 @@ vsVector vsVector::getCrossProduct(const vsVector &operand) const
     if ((vecSize < 3) || (operand.vecSize < 3))
     {
         printf("vsVector::getCrossProduct: Both vectors must be at least "
-	    "size 3\n");
+            "size 3\n");
         return result;
     }
 
@@ -641,6 +641,12 @@ double vsVector::getAngleBetween(const vsVector &endVector) const
     // Compute the magnitudes of both vectors
     startMag = getMagnitude();
     endMag = endVector.getMagnitude();
+
+    // Special case: if one or both vectors are zero vectors, then trying to
+    // find the angle between them is essentially undefined. Return a zero
+    // result if this happens.
+    if ((startMag < VS_DEFAULT_TOLERANCE) || (endMag < VS_DEFAULT_TOLERANCE))
+        return 0.0;
 
     // The final angle is the inverse cosine of the quotient of the dot
     // product and magnitude product
