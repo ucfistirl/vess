@@ -20,8 +20,9 @@
 //
 //------------------------------------------------------------------------
 
-#include <stdio.h>
 #include "vsSerialPort.h++"
+#include <stdio.h>
+#include <mmsystem.h>
 
 // ------------------------------------------------------------------------
 // Opens the serial port with the specified device name
@@ -259,6 +260,45 @@ int vsSerialPort::readCharacter()
     else
         return -1;
 }
+
+// ------------------------------------------------------------------------
+// Is there any data waiting to be read
+// ------------------------------------------------------------------------
+bool vsSerialPort::isDataWaiting(double secondsToWait)
+{
+	COMSTAT portStatus;
+	DWORD portErrors;
+	DWORD startTime, curTime, waitTime;
+	
+    // Figure out how much time to wait (our resolution is milliseconds)
+	if( fabs(secondsToWait) < 1e-6 )
+		waitTime = 0;
+	else
+		waitTime = (DWORD)(secondsToWait*1000.0);
+
+    // Get the starting time
+	startTime = timeGetTime();
+
+	// Keep checking for data on the serial port for the given time	
+	do
+	{
+		if (ClearCommError(portDescriptor,&portErrors,&portStatus))
+		{
+            // Is there any data in the input queue?
+			if (portStatus.cbInQue > 0)
+				return true;
+		}
+		else
+			return false;
+		
+		curTime = timeGetTime();
+	}
+    // Loop while we still have time left
+	while ( (curTime - startTime) < waitTime );
+	
+	return false;
+}
+
 
 // ------------------------------------------------------------------------
 // Set the communication speed
