@@ -1,0 +1,72 @@
+#!/bin/make
+
+INCDIRS =   -I../corelib
+FLAGS = -g -O -ansi -D__linux__ -D_XOPEN_SOURCE -D_BSD_SOURCE -D_MISC_SOURCE -DPF_CPLUSPLUS_API=1 $(INCDIRS)
+
+LIBOBJS = vsVector.o vsQuat.o vsMatrix.o vsVecQuat.o
+LIBSRCS = vsVector.c++ vsQuat.c++ vsMatrix.c++ vsVecQuat.c++
+
+LIBNAME = libvsMath.a
+
+all: $(LIBNAME)
+
+$(LIBNAME): $(LIBOBJS)
+	ar -rc libvsMath.a $(LIBOBJS)
+
+.SUFFIXES: .c .c++ .o .h .h++
+
+dep: depend
+depend:
+	makedepend -f makefile.Linux -- $(FLAGS) -- $(LIBSRCS)
+
+clean:
+	rm -f *.o *.a $(LIBNAME) makefile.*.bak
+
+
+.c++.o:
+	g++ $(FLAGS) -c $< -o ./$*.o
+
+.c.o:
+	g++ $(FLAGS) -c $< -o ./$*.o
+
+
+#----------------------------------------------------------------------
+# DO NOT DELETE
+
+vsVector.o: /usr/include/stdio.h /usr/include/features.h
+vsVector.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsVector.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stddef.h
+vsVector.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stdarg.h
+vsVector.o: /usr/include/bits/types.h /usr/include/libio.h
+vsVector.o: /usr/include/_G_config.h /usr/include/bits/stdio_lim.h
+vsVector.o: /usr/include/getopt.h /usr/include/math.h
+vsVector.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsVector.o: /usr/include/bits/mathcalls.h
+vsVector.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/float.h
+vsVector.o: vsVector.h++ ../corelib/vsGlobals.h++
+vsQuat.o: /usr/include/math.h /usr/include/features.h
+vsQuat.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsQuat.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsQuat.o: /usr/include/bits/mathcalls.h
+vsQuat.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/float.h
+vsQuat.o: /usr/include/stdio.h
+vsQuat.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stddef.h
+vsQuat.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stdarg.h
+vsQuat.o: /usr/include/bits/types.h /usr/include/libio.h
+vsQuat.o: /usr/include/_G_config.h /usr/include/bits/stdio_lim.h
+vsQuat.o: /usr/include/getopt.h vsQuat.h++ ../corelib/vsGlobals.h++
+vsQuat.o: vsMatrix.h++ vsVector.h++
+vsMatrix.o: /usr/include/math.h /usr/include/features.h
+vsMatrix.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsMatrix.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsMatrix.o: /usr/include/bits/mathcalls.h
+vsMatrix.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/float.h
+vsMatrix.o: /usr/include/stdio.h
+vsMatrix.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stddef.h
+vsMatrix.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stdarg.h
+vsMatrix.o: /usr/include/bits/types.h /usr/include/libio.h
+vsMatrix.o: /usr/include/_G_config.h /usr/include/bits/stdio_lim.h
+vsMatrix.o: /usr/include/getopt.h ../corelib/vsGlobals.h++ vsMatrix.h++
+vsMatrix.o: vsVector.h++ vsQuat.h++
+vsVecQuat.o: vsVecQuat.h++ vsMatrix.h++ ../corelib/vsGlobals.h++ vsVector.h++
+vsVecQuat.o: vsQuat.h++
