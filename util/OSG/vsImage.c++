@@ -19,11 +19,21 @@
 //
 //------------------------------------------------------------------------
 
-#include "vsImage.h++"
-
 #include <string.h>
 #include <stdlib.h>
-#include "jpeglib.h"
+#include <stdio.h>
+
+#ifdef WIN32
+    // Need this for the JPEG library headers to work properly
+    #define __WIN32
+#endif
+
+extern "C"
+{
+    #include "jpeglib.h"
+}
+
+#include "vsImage.h++"
 
 // ---------------------------------------------------------------------------
 // Constructor:
