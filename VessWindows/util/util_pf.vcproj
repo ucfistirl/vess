@@ -36,6 +36,7 @@
 				AdditionalDependencies="libjpeg.lib winmm.lib"
 				OutputFile="$(OutDir)/vsUtil.dll"
 				LinkIncremental="2"
+				IgnoreDefaultLibraryNames="libc.lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/util.pdb"
 				SubSystem="2"
@@ -67,6 +68,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
+				AdditionalIncludeDirectories="..\..\util\common;..\..\util\Windows;..\..\util\OSG"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_UTIL_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -79,6 +81,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libjpeg.lib winmm.lib"
 				OutputFile="$(OutDir)/util.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
@@ -186,10 +189,10 @@
 			<File
 				RelativePath="..\..\util\common\vsVector.h++">
 			</File>
-		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
+			<Filter
+				Name="Resource Files"
+				Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

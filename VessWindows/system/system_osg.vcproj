@@ -59,7 +59,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="Release"
+			OutputDirectory="../lib"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
 			CharacterSet="2">
@@ -68,11 +68,13 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
+				AdditionalIncludeDirectories="../../system/OSG;../../system/common;../../avatar/common;../../motion/common;../../sound/OpenAL;../../io/OSG_Windows;../../io/Windows;../../io/common;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../llio/Windows;../../util/Windows;../../util/common;../../util/OSG"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_SYSTEM_EXPORTS"
 				StringPooling="TRUE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
-				UsePrecompiledHeader="3"
+				RuntimeTypeInfo="TRUE"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
@@ -80,8 +82,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="osg.lib osgDB.lib osgUtil.lib wsock32.lib libxml2.lib"
 				OutputFile="$(OutDir)/system.dll"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\lib"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"

@@ -57,7 +57,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="Release"
+			OutputDirectory="../lib"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
 			CharacterSet="2">
@@ -66,10 +66,12 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
+				AdditionalIncludeDirectories="../../motion/common;../../sound/OpenAL;../../io/OSG_Windows;../../io/Windows;../../io/common;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../llio/Windows;../../util/Windows;../../util/common;../../util/OSG"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_AVATAR_EXPORTS"
 				StringPooling="TRUE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
+				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"

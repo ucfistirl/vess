@@ -68,11 +68,12 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
+				AdditionalIncludeDirectories="../../system/Performer;../../system/common;../../avatar/common;../../motion/common;../../sound/OpenAL;../../io/Performer_Windows;../../io/Windows;../../io/common;../../graphics/Performer_Windows;../../graphics/Performer;../../graphics/common;../../llio/Windows;../../util/Windows;../../util/common;../../util/Performer"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_SYSTEM_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
-				UsePrecompiledHeader="3"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
@@ -80,6 +81,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libpf.lib libpfdu-util.lib libpfflt.lib wsock32.lib libxml2.lib"
 				OutputFile="$(OutDir)/system.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
@@ -109,9 +111,6 @@
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
-				RelativePath="..\..\system\common\vsClusterConfig.c++">
-			</File>
-			<File
 				RelativePath="..\..\system\common\vsRemoteInterface.c++">
 			</File>
 			<File
@@ -124,9 +123,6 @@
 		<Filter
 			Name="Header Files"
 			Filter="h++;h;hpp;hxx;hm;inl;inc">
-			<File
-				RelativePath="..\..\system\common\vsClusterConfig.h++">
-			</File>
 			<File
 				RelativePath="..\..\system\common\vsRemoteInterface.h++">
 			</File>

@@ -66,6 +66,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
+				AdditionalIncludeDirectories="../../motion/common;../../sound/OpenAL;../../io/Performer_Windows;../../io/Windows;../../io/common;../../graphics/Performer_Windows;../../graphics/Performer;../../graphics/common;../../llio/Windows;../../util/Windows;../../util/common;../../util/Performer"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_AVATAR_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"

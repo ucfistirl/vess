@@ -33,7 +33,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="vsGraphics.lib libpf.lib wsock32.lib winmm.lib libVHTDevice.lib libVHTCore.lib vtidmCore.lib vtidmCoreimp.lib libRegistry.lib opengl32.lib"
+				AdditionalDependencies="wsock32.lib winmm.lib libpf.lib"
 				OutputFile="$(OutDir)/vsIO.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../lib"
@@ -68,6 +68,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
+				AdditionalIncludeDirectories="..\..\graphics\common;..\..\graphics\Performer;..\..\graphics\Performer_Windows;..\..\util\Windows;..\..\util\Performer;..\..\util\common;..\..\util\Performer;..\..\llio\Windows;..\..\io\Windows;..\..\io\Performer_Windows;..\..\io\common"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_IO_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -80,6 +81,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="wsock32.lib winmm.lib libpf.lib"
 				OutputFile="$(OutDir)/io.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
@@ -125,6 +127,18 @@
 			</File>
 			<File
 				RelativePath="..\..\io\Windows\vsCyberGrasp.c++">
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\io\Windows\vsEthernetMotionStar.c++">

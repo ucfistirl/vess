@@ -33,10 +33,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libpf.lib libpfdu-util.lib libpfflt.lib opengl32.lib glu32.lib"
+				AdditionalDependencies="libpf.lib libpfdu-util.lib libpfflt.lib opengl32.lib glu32.lib libmpeg2.lib libvo.lib"
 				OutputFile="$(OutDir)/vsGraphics.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;C:\Documents and Settings\JDALY\My Documents\OpenSceneGraph-0.9.2\lib&quot;;&quot;C:\Documents and Settings\JDALY\My Documents\OpenSceneGraph-0.9.2\lib\osgPlugins&quot;;&quot;C:\Documents and Settings\JDALY\My Documents\OpenSceneGraph-0.9.2\bin&quot;;../lib"
+				AdditionalLibraryDirectories="../lib"
 				IgnoreDefaultLibraryNames="libcmt.lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/graphics.pdb"
@@ -69,6 +69,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
+				AdditionalIncludeDirectories=".;../../graphics/Performer_Windows;../../graphics/Performer;../../graphics/common;../../llio/Windows;../../util/common;../../util/Performer"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_GRAPHICS_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -81,8 +82,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libpf.lib libpfdu-util.lib libpfflt.lib opengl32.lib glu32.lib libmpeg2.lib libvo.lib"
 				OutputFile="$(OutDir)/graphics.dll"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="../lib"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -147,6 +150,9 @@
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer\vsLightAttribute.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsMPEGReader.c++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer\vsMaterialAttribute.c++">
@@ -256,6 +262,9 @@
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer\vsLightAttribute.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsMPEGReader.h++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer\vsMaterialAttribute.h++">

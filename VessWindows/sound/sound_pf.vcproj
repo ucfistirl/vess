@@ -68,6 +68,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
+				AdditionalIncludeDirectories="..\..\graphics\Performer_Windows;..\..\graphics\Performer;..\..\graphics\common;..\..\util\Windows;..\..\util\common;..\..\util\Performer"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_SOUND_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -80,6 +81,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="openal32.lib alut.lib "
 				OutputFile="$(OutDir)/sound.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"

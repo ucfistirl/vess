@@ -33,10 +33,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wsock32.lib winmm.lib libVHTDevice.lib libVHTCore.lib vtidmCore.lib vtidmCoreimp.lib libRegistry.lib opengl32.lib"
+				AdditionalDependencies="wsock32.lib winmm.lib "
 				OutputFile="$(OutDir)/vsIO.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;C:\Program Files\VirtualHand\SDK\Development\lib\winnt_386&quot;"
+				AdditionalLibraryDirectories="..\lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/io.pdb"
 				SubSystem="2"
@@ -59,7 +59,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="Release"
+			OutputDirectory="../lib"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
 			CharacterSet="2">
@@ -68,10 +68,12 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
+				AdditionalIncludeDirectories="..\..\graphics\common;..\..\graphics\OSG;..\..\graphics\OSG_Windows;..\..\util\Windows;..\..\util\common;..\..\util\OSG;..\..\llio\Windows;..\..\io\Windows;..\..\io\OSG_Windows;..\..\io\common"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_IO_EXPORTS"
 				StringPooling="TRUE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
+				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
@@ -80,8 +82,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="wsock32.lib winmm.lib "
 				OutputFile="$(OutDir)/io.dll"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\lib"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -125,6 +129,18 @@
 			</File>
 			<File
 				RelativePath="..\..\io\Windows\vsCyberGrasp.c++">
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\io\Windows\vsEthernetMotionStar.c++">

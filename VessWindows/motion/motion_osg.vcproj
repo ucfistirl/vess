@@ -57,7 +57,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="Release"
+			OutputDirectory="../lib"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
 			CharacterSet="2">
@@ -66,10 +66,12 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
+				AdditionalIncludeDirectories="..\..\io\OSG_Windows;..\..\io\Windows;..\..\io\common;..\..\graphics\OSG_Windows;..\..\graphics\OSG;..\..\graphics\common;..\..\util\Windows;..\..\util\common;..\..\util\OSG"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_MOTION_EXPORTS"
 				StringPooling="TRUE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
+				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
@@ -108,11 +110,6 @@
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
 				RelativePath="..\..\motion\common\vs3TrackerArm.c++">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsAxisRotation.c++">
@@ -134,11 +131,6 @@
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsHandCollision.c++">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsKinematics.c++">
@@ -148,11 +140,6 @@
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsRelativeObjectMotion.c++">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsSphericalMotion.c++">
