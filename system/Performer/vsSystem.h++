@@ -27,6 +27,7 @@
 #include "vsPipe.h++"
 #include "vsScreen.h++"
 #include "vsTimer.h++"
+#include "vsRemoteInterface.h++"
 
 enum vsMultiprocessMode
 {
@@ -44,6 +45,8 @@ private:
 
     double              lastFrameDuration;
     
+    vsRemoteInterface   *remoteInterface;
+
     void                preFrameTraverse(vsNode *node);
 
 public:

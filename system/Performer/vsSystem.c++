@@ -76,6 +76,13 @@ vsSystem::vsSystem()
     // Activate multipipe mode if appropriate
     if (screenCount > 1)
         pfMultipipe(screenCount);
+
+    // Initialize the remote interface
+#ifdef VESS_DEBUG
+    remoteInterface = new vsRemoteInterface("vessxml.dtd");
+#else
+    remoteInterface = new vsRemoteInterface();
+#endif
 }
 
 // ------------------------------------------------------------------------
@@ -97,6 +104,9 @@ vsSystem::~vsSystem()
     vsWindowSystem::deleteMap();
     vsScreen::done();
     vsPipe::done();
+
+    // Delete the remote interface
+    delete remoteInterface;
 
 #ifdef VESS_DEBUG
     FILE *outfile = fopen("vess_objects.log", "w");
@@ -333,17 +343,6 @@ void vsSystem::preFrameTraverse(vsNode *node)
 // ------------------------------------------------------------------------
 void vsSystem::drawFrame()
 {
-    // Do nothing if this isn't a real system object
-    if (!validObject)
-        return;
-        
-    // Do nothing if the object hasn't been initialized
-    if (!isInitted)
-    {
-	printf("vsSystem::drawFrame: System object is not initialized\n");
-	return;
-    }
-
     int screenLoop, windowLoop, paneLoop;
     int windowCount, paneCount;
     vsScreen *targetScreen;
@@ -356,6 +355,20 @@ void vsSystem::drawFrame()
     vsGrowableArray modeList(1, 1);
     int binLoop;
     int binNum, binMode;
+
+    // Do nothing if this isn't a real system object
+    if (!validObject)
+        return;
+        
+    // Do nothing if the object hasn't been initialized
+    if (!isInitted)
+    {
+	printf("vsSystem::drawFrame: System object is not initialized\n");
+	return;
+    }
+
+    // Have the remote interface process any requests, etc.
+    remoteInterface->update();
 
     // Get the bin mode list from the vsGeometry class
     binModeList = vsGeometry::getBinModeList();
