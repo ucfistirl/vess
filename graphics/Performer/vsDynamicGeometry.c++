@@ -1046,11 +1046,19 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
                 // No list exists, create a new list
                 vertexList = (pfVec3 *)(pfMemory::malloc(
                     sizeof(pfVec3) * newSize));
+                pfMemory::ref(vertexList);
+                                                                                
+                // Set the newly-created vertex list on the pfGeoSet
+                performerGeoset->setAttr(PFGS_COORD3, performerBinding,
+                    vertexList, NULL);
             }
             else if (!newSize && vertexList)
             {
                 // List exists, but the requested new size is zero, so
                 // delete the existing list
+                performerGeoset->setAttr(PFGS_COORD3, performerBinding,
+                    NULL, NULL);
+                pfMemory::unref(vertexList);
                 pfMemory::free(vertexList);
                 vertexList = NULL;
             }
@@ -1061,13 +1069,19 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
                 // Modify the length of the existing list using realloc.
                 // If the list doesn't exist, the realloc call will do
                 // nothing, since the requested size is also zero.
+                pfMemory::ref(vertexList);
+                performerGeoset->setAttr(PFGS_COORD3, performerBinding,
+                    NULL, NULL);
                 vertexList = (pfVec3 *)(pfMemory::realloc(vertexList,
                     sizeof(pfVec3) * newSize));
+                pfMemory::unref(vertexList);
+                                                                                
+                // Set the newly-resized vertex list on the pfGeoSet
+                performerGeoset->setAttr(PFGS_COORD3, performerBinding,
+                    vertexList, NULL);
             }
 
-            // Set the newly-resized vertex list on the pfGeoSet
-            performerGeoset->setAttr(PFGS_COORD3, performerBinding,
-                vertexList, NULL);
+            // Store the new list size
             vertexListSize = newSize;
             break;
 
@@ -1080,11 +1094,19 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
                 // No list exists, create a new normal list
                 normalList = (pfVec3 *)(pfMemory::malloc(
                     sizeof(pfVec3) * newSize));
+                pfMemory::ref(normalList);
+                                                                                
+                // Set the newly-created normal list on the pfGeoSet
+                performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
+                    normalList, NULL);
             }
             else if (!newSize && normalList)
             {
                 // List exists, but the requested new size is zero, so
                 // delete the existing normal list
+                performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
+                    NULL, NULL);
+                pfMemory::unref(normalList);
                 pfMemory::free(normalList);
                 normalList = NULL;
             }
@@ -1095,13 +1117,19 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
                 // Modify the length of the existing list using realloc.
                 // If the list doesn't exist, the realloc call will do
                 // nothing, since the requested size is also zero.
+                pfMemory::ref(normalList);
+                performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
+                    NULL, NULL);
                 normalList = (pfVec3 *)(pfMemory::realloc(normalList,
                     sizeof(pfVec3) * newSize));
+                pfMemory::unref(normalList);
+                                                                                
+                // Set the newly-resized normal list on the pfGeoSet
+                performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
+                    normalList, NULL);
             }
 
-            // Set the newly-resized normal list on the pfGeoSet
-            performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
-                normalList, NULL);
+            // Store the new list size
             normalListSize = newSize;
             break;
 
@@ -1114,11 +1142,19 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
                 // No list exists, create a new color list
                 colorList = (pfVec4 *)(pfMemory::malloc(
                     sizeof(pfVec4) * newSize));
+                pfMemory::ref(colorList);
+                                                                                
+                // Set the newly-created color list on the pfGeoSet
+                performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
+                    colorList, NULL);
             }
             else if (!newSize && colorList)
             {
                 // List exists, but the requested new size is zero, so
                 // delete the existing color list
+                performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
+                    NULL, NULL);
+                pfMemory::unref(colorList);
                 pfMemory::free(colorList);
                 colorList = NULL;
             }
@@ -1129,13 +1165,19 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
                 // Modify the length of the existing list using realloc.
                 // If the list doesn't exist, the realloc call will do
                 // nothing, since the requested size is also zero.
+                pfMemory::ref(colorList);
+                performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
+                    NULL, NULL);
                 colorList = (pfVec4 *)(pfMemory::realloc(colorList,
                     sizeof(pfVec4) * newSize));
+                pfMemory::unref(colorList);
+                                                                                
+                // Set the newly-resized color list on the pfGeoSet
+                performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
+                    colorList, NULL);
             }
 
-            // Set the newly-resized color list on the pfGeoSet
-            performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
-                colorList, NULL);
+            // Store the new list size
             colorListSize = newSize;
             break;
 
@@ -1157,11 +1199,20 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
                 // No list exists, create a new texture coordinate list
                 texCoordList[unit] = (pfVec2 *)(pfMemory::malloc(
                     sizeof(pfVec2) * newSize));
+                pfMemory::ref(texCoordList[unit]);
+                                                                                
+                // Set the newly-created texture coordinate list on the
+                // pfGeoSet
+                performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit,
+                    performerBinding, texCoordList[unit], NULL);
             }
             else if (!newSize && texCoordList[unit])
             {
                 // List exists, but the requested new size is zero, so
                 // delete the existing texture coordinate list
+                performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit,
+                    performerBinding, NULL, NULL);
+                pfMemory::unref(texCoordList[unit]);
                 pfMemory::free(texCoordList[unit]);
                 texCoordList[unit] = NULL;
             }
@@ -1172,13 +1223,20 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
                 // Modify the length of the existing list using realloc.
                 // If the list doesn't exist, the realloc call will do
                 // nothing, since the requested size is also zero.
+                pfMemory::ref(texCoordList[unit]);
+                performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit,
+                    performerBinding, NULL, NULL);
                 texCoordList[unit] = (pfVec2 *)(pfMemory::realloc(
                     texCoordList[unit], sizeof(pfVec2) * newSize));
+                pfMemory::unref(texCoordList[unit]);
+                                                                                
+                // Set the newly-resized texture coordinate list on the
+                // pfGeoSet
+                performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit,
+                    performerBinding, texCoordList[unit], NULL);
             }
 
-            // Set the newly-resized texture coordinate list on the pfGeoSet
-            performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit,
-                performerBinding, texCoordList[unit], NULL);
+            // Store the new list size
             texCoordListSize[unit] = newSize;
             break;
 
@@ -1385,36 +1443,85 @@ unsigned int vsDynamicGeometry::getIntersectValue()
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::addAttribute(vsAttribute *newAttribute)
 {
-    int attrCat, attrType;
+    int newAttrCat, newAttrType, attrType;
     int loop;
+    vsAttribute *attribute;
+    unsigned int textureUnit, newTextureUnit;
 
-    // Make sure we can attach this attribute
+    // Verify that the attribute is willing to be attached
     if (!(newAttribute->canAttach()))
     {
         printf("vsDynamicGeometry::addAttribute: Attribute is already in "
             "use\n");
         return;
     }
-    
-    // Make sure this attribute isn't a state attribute (these don't belong
-    // on geometry nodes)
-    attrCat = newAttribute->getAttributeCategory();
-    if (attrCat != VS_ATTRIBUTE_CATEGORY_STATE)
+
+    // vsGeometries can only contain state attributes for now
+    newAttrCat = newAttribute->getAttributeCategory();
+    if (newAttrCat != VS_ATTRIBUTE_CATEGORY_STATE)
     {
         printf("vsDynamicGeometry::addAttribute: Geometry nodes may not "
             "contain attributes of that type\n");
         return;
     }
-    
-    // Make sure we don't already have an attribute of that type
-    attrType = newAttribute->getAttributeType();
+
+    // Initialize the texture unit to invalid maximum.
+    textureUnit = VS_MAXIMUM_TEXTURE_UNITS;
+    newTextureUnit = VS_MAXIMUM_TEXTURE_UNITS+1;
+
+    // Get the new attribute's type.
+    newAttrType = newAttribute->getAttributeType();
+
+    // Get the texture unit of the new attribute, if it is a texture
+    // attribute.
+    if (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE)
+    {
+        newTextureUnit =
+            ((vsTextureAttribute *) newAttribute)->getTextureUnit();
+    }
+    else if (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE)
+    {
+        newTextureUnit =
+            ((vsTextureCubeAttribute *) newAttribute)->getTextureUnit();
+    }
+
+    // Check each attribute we have.
     for (loop = 0; loop < getAttributeCount(); loop++)
-        if ((getAttribute(loop))->getAttributeType() == attrType)
+    {
+        attribute = getAttribute(loop);
+        attrType = attribute->getAttributeType();
+
+        // Get the texture unit of the current attribute, if it is a texture
+        // attribute.
+        if (attrType == VS_ATTRIBUTE_TYPE_TEXTURE)
         {
-            printf("vsDynamicGeometry::addAttribute: Geometry node already "
-                "contains that type of attribute\n");
+            textureUnit = ((vsTextureAttribute *) attribute)->getTextureUnit();
+        }
+        else if (attrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE)
+        {
+            textureUnit =
+                ((vsTextureCubeAttribute *) attribute)->getTextureUnit();
+        }
+        // Else they were not texture type attributes so print error and
+        // return if they are equal.
+        else if (attrType == newAttrType)
+        {
+            printf("vsGeometry::addAttribute: Geometry node "
+                "already contains that type of attribute\n");
             return;
         }
+
+        // If the texture units are equal then they both must have been texture
+        // type attributes and had the same unit.  We don't want that to be
+        // allowed so print error and return.
+        if (textureUnit == newTextureUnit)
+        {
+            printf("vsGeometry::addAttribute: Geometry node "
+                "already contains a texture attribute on unit %d\n",
+                textureUnit);
+            return;
+        }
+    }
 
     // If we made it this far, it must be okay to add the attribute in
     vsNode::addAttribute(newAttribute);
