@@ -24,7 +24,6 @@
 #ifndef VS_MENU_LABEL_HPP
 #define VS_MENU_LABEL_HPP
 
-#include "vsBackfaceAttribute.h++"
 #include "vsComponent.h++"
 #include "vsGlobals.h++"
 #include "vsKinematics.h++"
@@ -38,6 +37,8 @@ private:
 
     char             *labelText;
     vsTextBuilder    *textBuilder;
+
+    vsComponent      *textComponent;
 
 VS_INTERNAL:
 

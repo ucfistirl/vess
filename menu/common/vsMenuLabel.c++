@@ -23,18 +23,36 @@
 
 #include "vsMenuLabel.h++"
 
+#include "vsBackfaceAttribute.h++"
+
 // ------------------------------------------------------------------------
 // Constructor - This constructor initializes a menu label with the given
 // text builder and text. The string can be null to create a blank label.
 // ------------------------------------------------------------------------
 vsMenuLabel::vsMenuLabel(vsTextBuilder *newTextBuilder, char *text)
 {
-    labelText = NULL;
+    vsBackfaceAttribute *backface;
+
+    // Store and reference the text builder so it is not prematurely deleted
     textBuilder = newTextBuilder;
+    textBuilder->ref();
 
-    menuComponent = NULL;
-    menuKinematics = NULL;
+    // Create a blank menu component and a kinematics to manage it
+    menuComponent = new vsComponent();
+    menuKinematics = new vsKinematics(menuComponent);
 
+    // Reference the components so they won't be accidentally deleted
+    menuComponent->ref();
+    menuKinematics->ref();
+
+    // Attach a backface attribute to the menu component
+    backface = new vsBackfaceAttribute();
+    backface->enable();
+    menuComponent->addAttribute(backface);
+
+    // Initialize the label text variable to NULL before attempting to set it
+    labelText = NULL;
+    textComponent = NULL;
     setText(text);
 }
 
@@ -51,6 +69,9 @@ vsMenuLabel::~vsMenuLabel()
         vsObject::unrefDelete(menuKinematics);
     if (menuComponent)
         vsObject::unrefDelete(menuComponent);
+
+    // Attempt to delete the text builder
+    vsObject::unrefDelete(textBuilder);
 }
 
 // ------------------------------------------------------------------------
@@ -95,7 +116,6 @@ vsTextBuilder *vsMenuLabel::getTextBuilder()
 // ------------------------------------------------------------------------
 void vsMenuLabel::setText(char *text)
 {
-    vsBackfaceAttribute *backface;
     vsVector centerOfMass;
     double radius;
 
@@ -103,12 +123,15 @@ void vsMenuLabel::setText(char *text)
     if (labelText)
         free(labelText);
 
-    // Delete the old kinematics object and rendering component if they are
-    // in existence and not being referenced elsewhere
-    if (menuKinematics)
-        vsObject::unrefDelete(menuKinematics);
-    if (menuComponent)
-        vsObject::unrefDelete(menuComponent);
+    // Remove the old text object from this component
+    if (textComponent)
+    {
+        // Remove the old text from the scene
+        menuComponent->removeChild(textComponent);
+
+        // Delete the old text
+        vsObject::checkDelete(textComponent);
+    }
 
     if (textBuilder)
     {
@@ -122,35 +145,23 @@ void vsMenuLabel::setText(char *text)
 
             // Use the text builder to create the text, storing it as the
             // component (since this is a vsMenuObject)
-            menuComponent = textBuilder->buildText(labelText);
-            menuKinematics = new vsKinematics(menuComponent);
+            textComponent = textBuilder->buildText(labelText);
+            menuComponent->addChild(textComponent);
 
             // Set the kinematics object to the center of mass
-            menuComponent->getBoundSphere(&centerOfMass, &radius);
+            textComponent->getBoundSphere(&centerOfMass, &radius);
             menuKinematics->setCenterOfMass(centerOfMass);
-
-            // Attach a backface attribute to the text geometry
-            backface = new vsBackfaceAttribute();
-            backface->enable();
-            menuComponent->addAttribute(backface);
-
-            // Reference the kinematics and component objects so that they
-            // won't be deleted accidentally
-            menuKinematics->ref();
-            menuComponent->ref();
         }
         else
         {
             labelText = NULL;
-            menuComponent = NULL;
-            menuKinematics = NULL;
+            textComponent = NULL;
         }
     }
     else
     {
         labelText = NULL;
-        menuComponent = NULL;
-        menuKinematics = NULL;
+        textComponent = NULL;
 
         // Print a notification that the text builder is null
         printf("vsMenuLabel::setText: Cannot set text due to undefined text "
