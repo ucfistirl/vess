@@ -154,23 +154,27 @@ vsMenuTreeNode *vsMenuTree::getNode(vsMenuFrame *frame)
     // Begin at the root node of this tree
     currentNode = rootNode;
 
-    for (depth = 0; depth < frame->getDepth(); depth++)
+    // If the menu frame is null just break with the root node
+    if (frame)
     {
-        // Descend one level for each index described by the frame
-        currentNode = currentNode->child;
-
-        // Make sure the node is still valid
-        if (currentNode == NULL)
-            return NULL;
-
-        // Move over by the indicated number of children
-        for (pos = 0; pos < frame->getIndex(depth); pos++)
+        for (depth = 0; depth < frame->getDepth(); depth++)
         {
-            currentNode = currentNode->sibling;
+            // Descend one level for each index described by the frame
+            currentNode = currentNode->child;
 
             // Make sure the node is still valid
             if (currentNode == NULL)
                 return NULL;
+
+            // Move over by the indicated number of children
+            for (pos = 0; pos < frame->getIndex(depth); pos++)
+            {
+                currentNode = currentNode->sibling;
+
+                // Make sure the node is still valid
+                if (currentNode == NULL)
+                    return NULL;
+            }
         }
     }
 
