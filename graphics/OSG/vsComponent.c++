@@ -640,7 +640,6 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
 	// attribute is one of these categories, make sure there's not
 	// another one of the same type already
         case VS_ATTRIBUTE_CATEGORY_STATE:
-        case VS_ATTRIBUTE_CATEGORY_XFORM:
             for (loop = 0; loop < getAttributeCount(); loop++)
                 if ((getAttribute(loop))->getAttributeType() == attrType)
                 {
