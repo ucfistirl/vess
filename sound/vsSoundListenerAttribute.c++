@@ -163,7 +163,7 @@ void vsSoundListenerAttribute::update()
         if (groupPtr->isOfType(pfSCS::getClassType()))
         {
             scsMatPtr = ((pfSCS *)groupPtr)->getMatPtr();
-            xform.preMult(*scsMatPtr);
+            xform.postMult(*scsMatPtr);
         }
         
         groupPtr = groupPtr->getParent(0);
