@@ -17,6 +17,8 @@ libvsMotion_a_SOURCES = \
                         common/vsTerrainFollow.c++ \
                         common/vsTrackballMotion.c++ \
                         common/vsTrackedMotion.c++ \
+                        common/vsPhantomMotion.c++ \
+                        common/vsPhantomCollision.c++ \
                         common/vsWalkArticulation.c++ \
                         common/vsWalkInPlace.c++
 
@@ -39,6 +41,8 @@ include_HEADERS = \
                   common/vsTerrainFollow.h++ \
                   common/vsTrackballMotion.h++ \
                   common/vsTrackedMotion.h++ \
+                  common/vsPhantomMotion.h++ \
+                  common/vsPhantomCollision.h++ \
                   common/vsWalkArticulation.h++ \
                   common/vsWalkInPlace.h++
 
