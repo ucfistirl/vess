@@ -141,8 +141,6 @@ int vsSerialPort::readPacket(unsigned char *packet, int length)
     int bytesRead;
     int timeoutCounter;
 
-    struct timespec ts;
-
     bytesRead = 0;
     timeoutCounter = VS_SERIAL_NUM_READ_RETRYS;
 
