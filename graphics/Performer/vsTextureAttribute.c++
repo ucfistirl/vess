@@ -16,7 +16,7 @@
 //    Description:  Attribute that specifies which texture should be used
 //                  to cover geometry
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Duvan Cope
 //
 //------------------------------------------------------------------------
 
@@ -36,6 +36,7 @@ vsTextureAttribute::vsTextureAttribute()
     performerTexEnv = new pfTexEnv();
     performerTexEnv->ref();
     performerTexEnv->setMode(PFTE_DECAL);
+    performerTexGen = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -43,7 +44,7 @@ vsTextureAttribute::vsTextureAttribute()
 // Constructor - Sets the texture attribute up as already attached
 // ------------------------------------------------------------------------
 vsTextureAttribute::vsTextureAttribute(pfTexture *texObject,
-    pfTexEnv *texEnvObject)
+    pfTexEnv *texEnvObject, pfTexGen *texGenObject)
 {
     // Store pointers to the specified Performer texture and texture
     // environment objects
@@ -51,6 +52,9 @@ vsTextureAttribute::vsTextureAttribute(pfTexture *texObject,
     performerTexture->ref();
     performerTexEnv = texEnvObject;
     performerTexEnv->ref();
+    performerTexGen = texGenObject;
+    if (performerTexGen)
+        performerTexGen->ref();
 }
 
 // ------------------------------------------------------------------------
@@ -63,6 +67,11 @@ vsTextureAttribute::~vsTextureAttribute()
     pfDelete(performerTexture);
     performerTexEnv->unref();
     pfDelete(performerTexEnv);
+    if (performerTexGen)
+    {
+        performerTexGen->unref();
+        pfDelete(performerTexGen);
+    }
 
     // Try removing a link between this attribute and one of the Performer
     // textures, in the case that the vsGeometry constructor put one in
@@ -385,6 +394,108 @@ int vsTextureAttribute::getMinFilter()
 }
 
 // ------------------------------------------------------------------------
+// Sets the texture coordinate generation mode of the texture
+// ------------------------------------------------------------------------
+void vsTextureAttribute::setGenMode(int genMode)
+{
+    // Translate the genMode to a Performer value and set it on the pfTexGen
+    switch (genMode)
+    {
+        case VS_TEXTURE_GEN_OBJECT_LINEAR:
+            if (performerTexGen == NULL)
+            {
+                performerTexGen = new pfTexGen();
+                performerTexGen->ref();
+            }
+            performerTexGen->setMode(PF_S, PFTG_OBJECT_LINEAR);
+            performerTexGen->setMode(PF_T, PFTG_OBJECT_LINEAR);
+            performerTexGen->setMode(PF_R, PFTG_OBJECT_LINEAR);
+            break;
+        case VS_TEXTURE_GEN_EYE_LINEAR:
+            if (performerTexGen == NULL)
+            {
+                performerTexGen = new pfTexGen();
+                performerTexGen->ref();
+            }
+            performerTexGen->setMode(PF_S, PFTG_EYE_LINEAR);
+            performerTexGen->setMode(PF_T, PFTG_EYE_LINEAR);
+            performerTexGen->setMode(PF_R, PFTG_EYE_LINEAR);
+            break;
+        case VS_TEXTURE_GEN_SPHERE_MAP:
+            if (performerTexGen == NULL)
+            {
+                performerTexGen = new pfTexGen();
+                performerTexGen->ref();
+            }
+            performerTexGen->setMode(PF_S, PFTG_SPHERE_MAP);
+            performerTexGen->setMode(PF_T, PFTG_SPHERE_MAP);
+            performerTexGen->setMode(PF_R, PFTG_SPHERE_MAP);
+            break;
+        case VS_TEXTURE_GEN_NORMAL_MAP:
+            if (performerTexGen == NULL)
+            {
+                performerTexGen = new pfTexGen();
+                performerTexGen->ref();
+            }
+            performerTexGen->setMode(PF_S, PFTG_NORMAL_MAP);
+            performerTexGen->setMode(PF_T, PFTG_NORMAL_MAP);
+            performerTexGen->setMode(PF_R, PFTG_NORMAL_MAP);
+            break;
+        case VS_TEXTURE_GEN_REFLECTION_MAP:
+            if (performerTexGen == NULL)
+            {
+                performerTexGen = new pfTexGen();
+                performerTexGen->ref();
+            }
+            performerTexGen->setMode(PF_S, PFTG_REFLECTION_MAP);
+            performerTexGen->setMode(PF_T, PFTG_REFLECTION_MAP);
+            performerTexGen->setMode(PF_R, PFTG_REFLECTION_MAP);
+            break;
+        case VS_TEXTURE_GEN_OFF:
+            if (performerTexGen)
+            {
+                performerTexGen->setMode(PF_S, PFTG_OFF);
+                performerTexGen->setMode(PF_T, PFTG_OFF);
+                performerTexGen->setMode(PF_R, PFTG_OFF);
+            }
+            break;
+        default:
+            printf("vsTextureAttribute::setGenMode: Bad generation mode "
+                "value\n");
+            return;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the texture coordinate generation mode of the texture
+// ------------------------------------------------------------------------
+int vsTextureAttribute::getGenMode()
+{
+    if (performerTexGen)
+    {
+        // Translate the current texture coordinate generation mode on the
+        // pfTexGen into a VESS value and return it
+        switch (performerTexGen->getMode(PF_S))
+        {
+            case PFTG_OBJECT_LINEAR:
+                return VS_TEXTURE_GEN_OBJECT_LINEAR;
+            case PFTG_EYE_LINEAR:
+                return VS_TEXTURE_GEN_EYE_LINEAR;
+            case PFTG_SPHERE_MAP:
+                return VS_TEXTURE_GEN_SPHERE_MAP;
+            case PFTG_NORMAL_MAP:
+                return VS_TEXTURE_GEN_NORMAL_MAP;
+            case PFTG_REFLECTION_MAP:
+                return VS_TEXTURE_GEN_REFLECTION_MAP;
+            case PFTG_OFF:
+                return VS_TEXTURE_GEN_OFF;
+        }
+    }
+    else
+        return VS_TEXTURE_GEN_OFF;
+}
+
+// ------------------------------------------------------------------------
 // Internal function
 // Attaches a duplicate of this attribute to the given node
 // ------------------------------------------------------------------------
@@ -467,6 +578,8 @@ void vsTextureAttribute::setState(pfGeoState *state)
     state->setMode(PFSTATE_ENTEXTURE, PF_ON);
     state->setAttr(PFSTATE_TEXENV, performerTexEnv);
     state->setAttr(PFSTATE_TEXTURE, performerTexture);
+    if (performerTexGen)
+        state->setAttr(PFSTATE_TEXGEN, performerTexGen);
 }
 
 // ------------------------------------------------------------------------
@@ -511,6 +624,12 @@ bool vsTextureAttribute::isEquivalent(vsAttribute *attribute)
     // Vertical boundary mode check
     val1 = getBoundaryMode(VS_TEXTURE_DIRECTION_T);
     val2 = attr->getBoundaryMode(VS_TEXTURE_DIRECTION_T);
+    if (val1 != val2)
+        return false;
+
+    // Texture coordinate generation mode check
+    val1 = getGenMode();
+    val2 = attr->getGenMode();
     if (val1 != val2)
         return false;
 

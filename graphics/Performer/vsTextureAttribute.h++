@@ -16,7 +16,7 @@
 //    Description:  Attribute that specifies which texture should be used
 //                  to cover geometry
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Duvan Cope
 //
 //------------------------------------------------------------------------
 
@@ -68,17 +68,29 @@ enum VS_GRAPHICS_DLL vsTextureMinificationFilter
     VS_TEXTURE_MINFILTER_MIPMAP_LINEAR
 };
 
+enum VS_GRAPHICS_DLL vsTextureGenMode
+{
+    VS_TEXTURE_GEN_OBJECT_LINEAR,
+    VS_TEXTURE_GEN_EYE_LINEAR,
+    VS_TEXTURE_GEN_SPHERE_MAP,
+    VS_TEXTURE_GEN_NORMAL_MAP,
+    VS_TEXTURE_GEN_REFLECTION_MAP,
+    VS_TEXTURE_GEN_OFF
+};
+
 class VS_GRAPHICS_DLL vsTextureAttribute : public vsStateAttribute
 {
 private:
 
     pfTexture    *performerTexture;
     pfTexEnv     *performerTexEnv;
+    pfTexGen     *performerTexGen;
 
 VS_INTERNAL:
 
                     vsTextureAttribute(pfTexture *texObject,
-                                       pfTexEnv *texEnvObject);
+                                       pfTexEnv *texEnvObject, 
+                                       pfTexGen *texGenObject);
 
     virtual void    attachDuplicate(vsNode *theNode);
 
@@ -117,6 +129,10 @@ public:
     int                   getMagFilter();
     void                  setMinFilter(int newFilter);
     int                   getMinFilter();
+
+    void                  setGenMode(int genMode);
+    int                   getGenMode();
+
 };
 
 #endif
