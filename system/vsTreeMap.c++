@@ -70,7 +70,7 @@ int vsTreeMap::addEntry(void *key, void *value)
     {
         treeRoot = newNode;
         treeRoot->color = VS_TREE_MAP_BLACK;
-	treeSize++;
+        treeSize++;
         return VS_TRUE;
     }
     
@@ -155,9 +155,9 @@ int vsTreeMap::getEntryCount()
 int vsTreeMap::containsKey(void *key)
 {
     if (findNode(treeRoot, key) != NULL)
-	return VS_TRUE;
+        return VS_TRUE;
     else
-	return VS_FALSE;
+        return VS_FALSE;
 }
 
 // ------------------------------------------------------------------------
@@ -205,6 +205,33 @@ void vsTreeMap::clear()
     
     treeRoot = NULL;
     treeSize = 0;
+}
+
+// ------------------------------------------------------------------------
+// Fills the keyList and valueList arrays with the keys and values from
+// the tree, respectively. Each element of one list corresponds to the
+// element with the same index from the other list. Corresponding element
+// pairs are sorted in ascending key order. Also sets the size of each
+// array to the number of elements in the tree.
+// ------------------------------------------------------------------------
+void vsTreeMap::getSortedList(vsGrowableArray *keyList,
+    vsGrowableArray *valueList)
+{
+    int arrayPos;
+
+    keyList->setSize(treeSize);
+    valueList->setSize(treeSize);
+    
+    if (treeSize == 0)
+        return;
+
+    arrayPos = 0;
+    
+    fillArrays(treeRoot, &arrayPos, keyList, valueList);
+    
+    if (arrayPos != treeSize)
+        printf("vsTreeMap::getSortedList: Tree Inconsistency: Number of "
+            "entries in tree is not equal to the tree's stated size\n");
 }
 
 // ------------------------------------------------------------------------
@@ -282,7 +309,7 @@ void vsTreeMap::rebalanceInsert(vsTreeMapNode *node)
     nodeChildType = getChildType(node);
     if (parentChildType == VS_TREE_MAP_LEFTCHILD)
     {
-	// Force node to be a left-child, if it isn't already
+        // Force node to be a left-child, if it isn't already
         if (nodeChildType == VS_TREE_MAP_RIGHTCHILD)
         {
             rotateLeft(parent);
@@ -290,15 +317,15 @@ void vsTreeMap::rebalanceInsert(vsTreeMapNode *node)
             parent = node->parent;
         }
 
-	// A right rotation at grandparent and a color swap should fix
-	// the red-red problem without introducing any other problems
+        // A right rotation at grandparent and a color swap should fix
+        // the red-red problem without introducing any other problems
         rotateRight(grandparent);
         parent->color = VS_TREE_MAP_BLACK;
         grandparent->color = VS_TREE_MAP_RED;
     }
     else
     {
-	// Force node to be a right-child, if it isn't already
+        // Force node to be a right-child, if it isn't already
         if (nodeChildType == VS_TREE_MAP_LEFTCHILD)
         {
             rotateRight(parent);
@@ -306,8 +333,8 @@ void vsTreeMap::rebalanceInsert(vsTreeMapNode *node)
             parent = node->parent;
         }
 
-	// A left rotation at grandparent and a color swap should fix
-	// the red-red problem without introducing any other problems
+        // A left rotation at grandparent and a color swap should fix
+        // the red-red problem without introducing any other problems
         rotateLeft(grandparent);
         parent->color = VS_TREE_MAP_BLACK;
         grandparent->color = VS_TREE_MAP_RED;
@@ -353,8 +380,8 @@ void vsTreeMap::rebalanceDelete(vsTreeMapNode *parent, int deletedChildType)
     {
         sibling = parent->rightChild;
 
-	// If it isn't already, force the sibling to be black by rotatng
-	// the subtree and swapping colors around.
+        // If it isn't already, force the sibling to be black by rotatng
+        // the subtree and swapping colors around.
         if (sibling->color == VS_TREE_MAP_RED)
         {
             rotateLeft(parent);
@@ -365,10 +392,10 @@ void vsTreeMap::rebalanceDelete(vsTreeMapNode *parent, int deletedChildType)
         
         // Case 1: Sibling's children are both black
 
-	// If both of the children of the sibling node are black (or
-	// nonexistant), then we can color the sibling red. However,
-	// this effectively chases the problem farther up the tree,
-	// so rebalance there.
+        // If both of the children of the sibling node are black (or
+        // nonexistant), then we can color the sibling red. However,
+        // this effectively chases the problem farther up the tree,
+        // so rebalance there.
         if ( ((sibling->leftChild == NULL) ||
               (sibling->leftChild->color == VS_TREE_MAP_BLACK)) &&
              ((sibling->rightChild == NULL) ||
@@ -379,12 +406,12 @@ void vsTreeMap::rebalanceDelete(vsTreeMapNode *parent, int deletedChildType)
             return;
         }
         
-	// Case 2: At least one of sibling's children is red
+        // Case 2: At least one of sibling's children is red
 
-	// If sibling's left child is red, then manipulate the
-	// tree so that only the right child is red. This can
-	// temporarily create a red-red violation, but the next block
-	// of code will fix that.
+        // If sibling's left child is red, then manipulate the
+        // tree so that only the right child is red. This can
+        // temporarily create a red-red violation, but the next block
+        // of code will fix that.
         if ((sibling->leftChild) &&
             (sibling->leftChild->color == VS_TREE_MAP_RED))
         {
@@ -394,8 +421,8 @@ void vsTreeMap::rebalanceDelete(vsTreeMapNode *parent, int deletedChildType)
             sibling = parent->rightChild;
         }
         
-	// Sibling's right child must be red; the imbalance can be
-	// repaired here by a rotation and some color swapping.
+        // Sibling's right child must be red; the imbalance can be
+        // repaired here by a rotation and some color swapping.
         rotateLeft(parent);
         sibling->color = parent->color;
         parent->color = VS_TREE_MAP_BLACK;
@@ -405,8 +432,8 @@ void vsTreeMap::rebalanceDelete(vsTreeMapNode *parent, int deletedChildType)
     {
         sibling = parent->leftChild;
 
-	// If it isn't already, force the sibling to be black by rotatng
-	// the subtree and swapping colors around.
+        // If it isn't already, force the sibling to be black by rotatng
+        // the subtree and swapping colors around.
         if (sibling->color == VS_TREE_MAP_RED)
         {
             rotateRight(parent);
@@ -417,10 +444,10 @@ void vsTreeMap::rebalanceDelete(vsTreeMapNode *parent, int deletedChildType)
         
         // Case 1: Sibling's children are both black
 
-	// If both of the children of the sibling node are black (or
-	// nonexistant), then we can color the sibling red. However,
-	// this effectively chases the problem farther up the tree,
-	// so rebalance there.
+        // If both of the children of the sibling node are black (or
+        // nonexistant), then we can color the sibling red. However,
+        // this effectively chases the problem farther up the tree,
+        // so rebalance there.
         if ( ((sibling->leftChild == NULL) ||
               (sibling->leftChild->color == VS_TREE_MAP_BLACK)) &&
              ((sibling->rightChild == NULL) ||
@@ -431,12 +458,12 @@ void vsTreeMap::rebalanceDelete(vsTreeMapNode *parent, int deletedChildType)
             return;
         }
         
-	// Case 2: At least one of sibling's children is red
+        // Case 2: At least one of sibling's children is red
 
-	// If sibling's left child is red, then manipulate the
-	// tree so that only the right child is red. This can
-	// temporarily create a red-red violation, but the next block
-	// of code will fix that.
+        // If sibling's right child is red, then manipulate the
+        // tree so that only the left child is red. This can
+        // temporarily create a red-red violation, but the next block
+        // of code will fix that.
         if ((sibling->rightChild) &&
             (sibling->rightChild->color == VS_TREE_MAP_RED))
         {
@@ -446,8 +473,8 @@ void vsTreeMap::rebalanceDelete(vsTreeMapNode *parent, int deletedChildType)
             sibling = parent->leftChild;
         }
         
-	// Sibling's left child must be red; the imbalance can be
-	// repaired here by a rotation and some color swapping.
+        // Sibling's left child must be red; the imbalance can be
+        // repaired here by a rotation and some color swapping.
         rotateRight(parent);
         sibling->color = parent->color;
         parent->color = VS_TREE_MAP_BLACK;
@@ -468,8 +495,8 @@ void vsTreeMap::deleteNode(vsTreeMapNode *node)
 
     if ((node->leftChild == NULL) && (node->rightChild == NULL))
     {
-	// Case 1: node to delete has no children
-	// Remove the node and rebalance
+        // Case 1: node to delete has no children
+        // Remove the node and rebalance
     
         if (childType == VS_TREE_MAP_LEFTCHILD)
             parent->leftChild = NULL;
@@ -485,9 +512,9 @@ void vsTreeMap::deleteNode(vsTreeMapNode *node)
     }
     else if ((node->leftChild == NULL) || (node->rightChild == NULL))
     {
-	// Case 2: node to delete has one child
-	// Move the child node into the location that the node to
-	// be deleted is in, and rebalance
+        // Case 2: node to delete has one child
+        // Move the child node into the location that the node to
+        // be deleted is in, and rebalance
 
         if (node->leftChild)
             child = node->leftChild;
@@ -510,10 +537,10 @@ void vsTreeMap::deleteNode(vsTreeMapNode *node)
     }
     else
     {
-	// Case 3: node to delete has two children
-	// Rather than deleting the node, instead find the node with
-	// the next-higher key value, transplant that value into the
-	// node that would have been deleted, and delete that other node.
+        // Case 3: node to delete has two children
+        // Rather than deleting the node, instead find the node with
+        // the next-higher key value, transplant that value into the
+        // node that would have been deleted, and delete that other node.
 
         child = getInorderSuccessor(node);
         
@@ -678,4 +705,24 @@ int vsTreeMap::getChildType(vsTreeMapNode *node)
     printf("vsTreeMap::getChildType: Tree Inconsistency: 'node' is not "
         "a child of its own parent!\n");
     return -1;
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Traverses the tree rooted at the given node, copying map entries into
+// the given two arrays at the specified position
+// ------------------------------------------------------------------------
+void vsTreeMap::fillArrays(vsTreeMapNode *node, int *arrayPos,
+    vsGrowableArray *keyList, vsGrowableArray *valueList)
+{
+    if (!node)
+        return;
+
+    fillArrays(node->leftChild, arrayPos, keyList, valueList);
+    
+    (*keyList)[(*arrayPos)] = node->nodeKey;
+    (*valueList)[(*arrayPos)] = node->nodeValue;
+    (*arrayPos)++;
+    
+    fillArrays(node->rightChild, arrayPos, keyList, valueList);
 }

@@ -24,6 +24,8 @@
 #ifndef VS_TREE_MAP_HPP
 #define VS_TREE_MAP_HPP
 
+#include "vsGrowableArray.h++"
+
 enum vsTreeMapColor
 {
     VS_TREE_MAP_BLACK,
@@ -53,7 +55,7 @@ class vsTreeMap
 private:
 
     vsTreeMapNode    *treeRoot;
-    int		     treeSize;
+    int              treeSize;
     
     vsTreeMapNode    *findNode(vsTreeMapNode *node, void *key);
     void             rebalanceInsert(vsTreeMapNode *node);
@@ -65,6 +67,9 @@ private:
     void             rotateRight(vsTreeMapNode *node);
     void             deleteTree(vsTreeMapNode *node);
     int              getChildType(vsTreeMapNode *node);
+    void             fillArrays(vsTreeMapNode *node, int *arrayPos,
+                                vsGrowableArray *keyList,
+                                vsGrowableArray *valueList);
 
 public:
 
@@ -73,13 +78,16 @@ public:
 
     int         addEntry(void *key, void *value);
     int         deleteEntry(void *key);
-    int		getEntryCount();
+    int         getEntryCount();
     
     int         containsKey(void *key);
     void        *getValue(void *key);
     int         changeValue(void *key, void *newValue);
-    
+
     void        clear();
+
+    void        getSortedList(vsGrowableArray *keyList,
+                              vsGrowableArray *valueList);
 };
 
 
