@@ -83,19 +83,19 @@ private:
 
 VS_INTERNAL:
 
-                    vsTextureAttribute(osg::Texture2D *texObject,
-                                       osg::TexEnv *texEnvObject);
+                      vsTextureAttribute(osg::Texture2D *texObject,
+                                         osg::TexEnv *texEnvObject);
 
-    virtual void    attach(vsNode *node);
-    virtual void    detach(vsNode *node);
+    virtual void      attach(vsNode *node);
+    virtual void      detach(vsNode *node);
 
-    virtual void    attachDuplicate(vsNode *theNode);
+    virtual void      attachDuplicate(vsNode *theNode);
 
-    virtual bool    isEquivalent(vsAttribute *attribute);
+    virtual bool      isEquivalent(vsAttribute *attribute);
 
-    void            setOSGImage(osg::Image *osgImage);
+    void              setOSGImage(osg::Image *osgImage);
 
-    osg::Texture    *getBaseLibraryObject();
+    osg::Texture2D    *getBaseLibraryObject();
 
 public:
 
