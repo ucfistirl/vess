@@ -583,7 +583,7 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
     isOffScreenWindow = true;
 
     // An off-screen window has no X Window
-    xWindow = NULL;
+    xWindow = 0;
 
     // Default frame buffer configuration
     int frameBufferAttributes[17] =
