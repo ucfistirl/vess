@@ -21,12 +21,8 @@
 //------------------------------------------------------------------------
 
 #include <stdio.h>
-#include <unistd.h>
 #include <string.h>
-#include <netdb.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/param.h>
 #include "vsUDPNetworkInterface.h++"
 
 // ------------------------------------------------------------------------
@@ -34,7 +30,7 @@
 // ------------------------------------------------------------------------
 vsUDPNetworkInterface::vsUDPNetworkInterface(char *address, u_short port)
 {
-    char             hostname[MAXHOSTNAMELEN];
+    char             hostname[MAXGETHOSTSTRUCT];
     struct hostent   *host;
 
     // Open the socket
@@ -82,7 +78,7 @@ vsUDPNetworkInterface::vsUDPNetworkInterface(u_short port)
 
     // Set the options we need for broadcasting
     on = 1;
-    if (setsockopt(socketValue, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on)) < 0)
+    if (setsockopt(socketValue, SOL_SOCKET, SO_BROADCAST, (char *)&on, sizeof(on)) < 0)
         printf("Unable to set broadcasting on socket.\n");
 
     // Bind to the port
@@ -98,7 +94,15 @@ vsUDPNetworkInterface::vsUDPNetworkInterface(u_short port)
 vsUDPNetworkInterface::~vsUDPNetworkInterface()
 {
     // Close the socket
-    close(socketValue);
+    closesocket(socketValue);
+}
+
+// ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsUDPNetworkInterface::getClassName()
+{
+    return "vsUDPNetworkInterface";
 }
 
 // ------------------------------------------------------------------------
@@ -116,12 +120,12 @@ const char *vsUDPNetworkInterface::getClassName()
 int vsUDPNetworkInterface::read(u_char *buffer, u_long len)
 {
     struct sockaddr_in    fromAddress;
-    socklen_t             fromAddressLength;
+    int                   fromAddressLength;
     int                   packetLength;
 
     // Get a packet
     fromAddressLength = sizeof(fromAddress);
-    packetLength = recvfrom(socketValue, buffer, len, 0, 
+    packetLength = recvfrom(socketValue, (char *)buffer, len, 0, 
                             (struct sockaddr *) &fromAddress, 
                             &fromAddressLength);
 
@@ -138,7 +142,7 @@ int vsUDPNetworkInterface::write(u_char *buffer, u_long len)
     int    lengthWritten;
 
     // Write the packet
-    lengthWritten = sendto(socketValue, buffer, len, 0, 
+    lengthWritten = sendto(socketValue, (char *)buffer, len, 0, 
                            (struct sockaddr *) &writeName, writeNameLength);
 
     // Tell user how many bytes we wrote (-1 if error)
