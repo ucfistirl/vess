@@ -54,8 +54,8 @@ vsRelativeMouseMotion::vsRelativeMouseMotion(vsMouse * mouse,
     // see header files - these reflect on the way that the calculated
     // orientation is combined with the current orientation on the kinematics
     // object
-    prePost[ 0 ] = 0;
-    prePost[ 1 ] = 1;
+    prePost[ 0 ] = false;
+    prePost[ 1 ] = true;
     
     // Initialize class variables
     throttleAxis = NULL;
@@ -232,7 +232,7 @@ void vsRelativeMouseMotion::setAxisLimits( int axis,
 // ------------------------------------------------------------------------
 // Set How the orientation transformation is applied (see header file)
 // ------------------------------------------------------------------------
-void vsRelativeMouseMotion::setAxisPrePost( int axis, int isPost )
+void vsRelativeMouseMotion::setAxisPrePost( int axis, bool isPost )
 {
     if( axis>=0 && axis<NUMBER_OF_AXES )
         prePost[axis] = isPost;
@@ -241,12 +241,12 @@ void vsRelativeMouseMotion::setAxisPrePost( int axis, int isPost )
 // ------------------------------------------------------------------------
 // Get How the orientation transformation is applied (see header file)
 // ------------------------------------------------------------------------
-int vsRelativeMouseMotion::getAxisPrePost( int axis )
+bool vsRelativeMouseMotion::getAxisPrePost( int axis )
 {
     if( axis>=0 && axis<NUMBER_OF_AXES )
         return prePost[axis];
     else
-        return 0;
+        return false;
 }
 
 // ------------------------------------------------------------------------

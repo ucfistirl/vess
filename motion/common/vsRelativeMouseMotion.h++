@@ -46,11 +46,11 @@ private:
 
     // prePost affects how the orientation transformation is applied.
     // Whether or not to do pre- or post-multiplication
-    //  PRE=0  =  newOrientation = transform * currentOrientation
-    //  POST=1 =  newOrientation = currentOrientation * transform
+    //  PRE=false =  newOrientation = transform * currentOrientation
+    //  POST=true =  newOrientation = currentOrientation * transform
     //    * Rotate around FIXED axis in space
-    int     prePost[NUMBER_OF_AXES];
-	
+    bool    prePost[NUMBER_OF_AXES];
+
     // Enforce axis limits (i.e. can't turn head past certain angle)
     double  axisLimits[NUMBER_OF_AXES];
     double  kinMin[NUMBER_OF_AXES];
@@ -103,8 +103,8 @@ public:
                                 double minLimit=0.0, double maxLimit=-1.0 );
 
     // Apply the transformation with (pre|post)modify?
-    void                setAxisPrePost( int axis, int isPost );
-    int                 getAxisPrePost( int axis );
+    void                setAxisPrePost( int axis, bool isPost );
+    bool                getAxisPrePost( int axis );
 
     // For every 1.0 movement of the vsInputAxis, rotate scaleFactor degrees
     void                setAxisChange( int axis, double scaleFactor );
