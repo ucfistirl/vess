@@ -240,6 +240,14 @@ void vsSphere::enclosePoints(vsVector *points, int pointCount)
     // Keep iterating as long as the function result is changing
     do
     {
+        // Error check: if the result sphere ever becomes empty, then there
+        // was a problem; abort.
+        if (result.getRadius() == -1.0)
+        {
+            printf("vsSphere::enclosePoints: Unable to compute enclosing sphere\n");
+            break;
+        }
+
         // Initialization
         going = 0;
         maxSqrDist = -1.0;
@@ -319,6 +327,14 @@ void vsSphere::encloseSpheres(vsSphere *spheres, int sphereCount)
     // Keep iterating as long as the function result is changing
     do
     {
+        // Error check: if the result sphere ever becomes empty, then there
+        // was a problem; abort.
+        if (result.getRadius() == -1.0)
+        {
+            printf("vsSphere::encloseSpheres: Unable to compute enclosing sphere\n");
+            break;
+        }
+
         // Initialization
         going = 0;
         maxDist = -1.0;
@@ -611,6 +627,18 @@ vsSphere vsSphere::calcSphereOn(vsVector *points, int pointCount)
         }
     }
 
+    // Sanity check: Make sure that the determinant of the linear system
+    // matrix is not (virtually) zero; if it is, then the matrix can't be
+    // inverted, and this function fails.
+    if (VS_EQUAL(linSysMat.getDeterminant(), 0.0))
+    {
+        printf("vsSphere::calcSphereOn: Can't solve singular matrix "
+            "(data underflow)\n");
+
+        // Return an empty sphere
+        return result;
+    }
+
     // Solve the linear system by inverting the matrix and multiplying
     // by the vector
     linSysMat.invert();
@@ -670,6 +698,12 @@ vsSphere vsSphere::moveToFront(vsVector *points, int pointCount,
     // by the basis points
     for (loop = 0; loop < pointCount; loop++)
     {
+        // Make sure that the result sphere is still valid; if it ever becomes
+        // empty for some reason, then there must have been a problem at some
+        // point in the algorithm, and we need to abort.
+        if (result.getRadius() == -1.0)
+            break;
+
         if (!result.isPointInside(points[loop]))
         {
             // If the point is outside our sphere, add that point to the basis
@@ -781,6 +815,18 @@ vsSphere vsSphere::calcSphereAround(vsSphere *spheres, int sphereCount)
                         dotMatrix[loop][loop]) / 2.0 );
     }
 
+    // Sanity check: Make sure that the determinant of the dot product
+    // matrix is not (virtually) zero; if it is, then the matrix can't be
+    // inverted, and this function fails.
+    if (VS_EQUAL(dotMatrix.getDeterminant(), 0.0))
+    {
+        printf("vsSphere::calcSphereAround: Can't solve singular matrix "
+            "(data underflow)\n");
+
+        // Return an empty sphere
+        return result;
+    }
+
     // Invert the dot product matrix and transform both vectors by it
     dotMatrixInv = dotMatrix.getInverse();
     mvec = dotMatrixInv.getFullXform(mvec);
@@ -859,6 +905,12 @@ vsSphere vsSphere::moveToFront(vsSphere *spheres, int sphereCount,
     // outside of the sphere indicated by the basis spheres
     for (loop = 0; loop < sphereCount; loop++)
     {
+        // Make sure that the result sphere is still valid; if it ever becomes
+        // empty for some reason, then there must have been a problem at some
+        // point in the algorithm, and we need to abort.
+        if (result.getRadius() == -1.0)
+            break;
+
         if (!result.isSphereInside(spheres[loop]))
         {
             // If the sphere is outside our sphere, add that sphere to the
