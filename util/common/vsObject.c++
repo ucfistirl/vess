@@ -20,9 +20,6 @@
 //------------------------------------------------------------------------
 
 #include <stdio.h>
-#ifdef VESS_DEBUG
-#include <stdlib.h>
-#endif
 #include "vsGlobals.h++"
 
 #include "vsObject.h++"
@@ -59,19 +56,9 @@ vsObject::~vsObject()
 {
     // Error checking
     if (magicNumber != VS_OBJ_MAGIC_NUMBER)
-    {
         printf("vsObject::~vsObject: Deletion of invalid object\n");
-#ifdef VESS_DEBUG
-        abort();
-#endif
-    }
     else if (refCount != 0)
-    {
         printf("vsObject::~vsObject: Deletion of referenced object\n");
-#ifdef VESS_DEBUG
-        abort();
-#endif
-    }
 
     // Remove the magic number so VESS knows this isn't a valid object
     // anymore
@@ -93,9 +80,6 @@ void vsObject::ref()
     if (magicNumber != VS_OBJ_MAGIC_NUMBER)
     {
         printf("vsObject::ref: Operation on invalid object\n");
-#ifdef VESS_DEBUG
-        abort();
-#endif
         return;
     }
     
@@ -112,18 +96,12 @@ void vsObject::unref()
     if (magicNumber != VS_OBJ_MAGIC_NUMBER)
     {
         printf("vsObject::unref: Operation on invalid object\n");
-#ifdef VESS_DEBUG
-        abort();
-#endif
         return;
     }
     // Reference count verify
     if (refCount < 1)
     {
         printf("vsObject::unref: Called on unreferenced object\n");
-#ifdef VESS_DEBUG
-        abort();
-#endif
         return;
     }
     
