@@ -38,6 +38,8 @@ private:
 
     osg::Fog        *osgFog;
 
+    void            recalcDensity();
+
     virtual void    setOSGAttrModes(vsNode *node);
 
 VS_INTERNAL:

@@ -88,6 +88,8 @@ void vsFogAttribute::setEquationType(int equType)
                 "type\n");
             break;
     }
+
+    recalcDensity();
 }
 
 // ------------------------------------------------------------------------
@@ -144,6 +146,8 @@ void vsFogAttribute::setRanges(double near, double far)
 {
     osgFog->setStart(near);
     osgFog->setEnd(far);
+
+    recalcDensity();
 }
 
 // ------------------------------------------------------------------------
@@ -156,6 +160,55 @@ void vsFogAttribute::getRanges(double *near, double *far)
         *near = osgFog->getStart();
     if (far)
         *far = osgFog->getEnd();
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Recalculates the GL fog density value for this attribute, using the far
+// fog range and the fog calculation mode values.
+// ------------------------------------------------------------------------
+void vsFogAttribute::recalcDensity()
+{
+    //                                          -(density * z)
+    // The equation for exponential fog is f = e              , where f is
+    // the visiblity of the fogged object (in the range 0.0 [completely
+    // obscured] to 1.0 [completely visible]), and z is the distance from
+    // that object to the viewer. In order to calculate the density value,
+    // we assume a very small value for f (not zero, because that would
+    // require that the exponent be infinite), and take z to be the far
+    // fog range value. Both of those values plugged into the fog equation
+    // yield an equation for the desired density. (The procedure for the
+    // exponential-squared fog equation is similar, with just the exponent
+    // (density * z) being squared.)
+
+    double farFogRange;
+    double noVisibilityConstant = 0.01;
+    double density;
+
+    // Obtain the far fog range
+    getRanges(NULL, &farFogRange);
+
+    // Calculate the density based on the fog equation mode
+    switch (getEquationType())
+    {
+        case VS_FOG_EQTYPE_LINEAR:
+           // The linear fog mode doesn't use the density value; set it to
+           // a default
+           osgFog->setDensity(1.0);
+           break;
+
+        case VS_FOG_EQTYPE_EXP:
+           // density = -(ln f) / z
+           density = (-1.0 * log(noVisibilityConstant)) / farFogRange;
+           osgFog->setDensity(density);
+           break;
+
+        case VS_FOG_EQTYPE_EXP2:
+           // density = -sqrt(ln f) / z
+           density = (-1.0 * sqrt(log(noVisibilityConstant))) / farFogRange;
+           osgFog->setDensity(density);
+           break;
+    }
 }
 
 // ------------------------------------------------------------------------
