@@ -80,7 +80,7 @@ const char * vsSequencer::getClassName()
 // Add the specified updatable to the end of this sequencer.
 // Set the time to 0, which means run as fast as you can.
 // ------------------------------------------------------------------------
-void vsSequencer::addUpdatable(vsUpdatable *updatable, char *name)
+void vsSequencer::addUpdatable(vsUpdatable *updatable, const char *name)
 {
     addUpdatable(updatable, 0.0, name);
 }
@@ -89,7 +89,8 @@ void vsSequencer::addUpdatable(vsUpdatable *updatable, char *name)
 // Add the specified updatable to the end of this sequencer.
 // Set how much time it should take as well.
 // ------------------------------------------------------------------------
-void vsSequencer::addUpdatable(vsUpdatable *updatable, double time, char *name)
+void vsSequencer::addUpdatable(vsUpdatable *updatable, double time,
+                               const char *name)
 {
     UpdatableEntry  *tempEntry;
 
@@ -284,7 +285,7 @@ char *vsSequencer::getUpdatableName(vsUpdatable *updatable)
 // ------------------------------------------------------------------------
 // Set the name the specified updatable should take.
 // ------------------------------------------------------------------------
-void vsSequencer::setUpdatableName(vsUpdatable *updatable, char *name)
+void vsSequencer::setUpdatableName(vsUpdatable *updatable, const char *name)
 {
     UpdatableEntry  *tempEntry;
     bool            found;
@@ -507,7 +508,7 @@ unsigned long vsSequencer::getUpdatableCount(void)
 // ------------------------------------------------------------------------
 // Return the updatable with this name.  NULL if not found.
 // ------------------------------------------------------------------------
-vsUpdatable *vsSequencer::getUpdatableByName(char *name)
+vsUpdatable *vsSequencer::getUpdatableByName(const char *name)
 {
     UpdatableEntry  *tempEntry;
     bool            found;

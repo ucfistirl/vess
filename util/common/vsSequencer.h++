@@ -60,16 +60,16 @@ public:
 
     const char      *getClassName();
 
-    void            addUpdatable(vsUpdatable *updatable, char *name);
+    void            addUpdatable(vsUpdatable *updatable, const char *name);
     void            addUpdatable(vsUpdatable *updatable, double time, 
-                                 char *name);
+                                 const char *name);
 
     void            removeUpdatable(vsUpdatable *updatable);
 
     double          getUpdatableTime(vsUpdatable *updatable);
     void            setUpdatableTime(vsUpdatable *updatable, double time);
 
-    void            setUpdatableName(vsUpdatable *updatable, char *name);
+    void            setUpdatableName(vsUpdatable *updatable, const char *name);
     char            *getUpdatableName(vsUpdatable *updatable);
 
     void            setUpdatablePosition(vsUpdatable *updatable,
@@ -78,7 +78,7 @@ public:
 
     unsigned long   getUpdatableCount(void);
     vsUpdatable     *getUpdatable(unsigned long i);
-    vsUpdatable     *getUpdatableByName(char *name);
+    vsUpdatable     *getUpdatableByName(const char *name);
 
     virtual void    update(void);
 };
