@@ -35,6 +35,36 @@ vsMenuFrame::vsMenuFrame()
 }
 
 // ------------------------------------------------------------------------
+// Constructor - This constructor initializes a vsMenuFrame from a string
+// describing its path indices.
+// ------------------------------------------------------------------------
+vsMenuFrame::vsMenuFrame(char *path)
+{
+    // Initialize the storage variables to their defaults
+    pathIndices = (int *)malloc(sizeof(int));
+    maxDepth = 1;
+    pathDepth = 0;
+
+    // Set the path based on the argument
+    setFrame(path);
+}
+
+// ------------------------------------------------------------------------
+// Constructor - This constructor initializes a vsMenuFrame from a string
+// describing its path indices.
+// ------------------------------------------------------------------------
+vsMenuFrame::vsMenuFrame(int *indices, int depth)
+{
+    // Initialize the storage variables to their defaults
+    pathIndices = (int *)malloc(sizeof(int));
+    maxDepth = 1;
+    pathDepth = 0;
+
+    // Set the path based on the argument
+    setFrame(indices, depth);
+}
+
+// ------------------------------------------------------------------------
 // Constructor - This constructor initializes a vsMenuFrame that points to
 // the same location as the provided vsMenuFrame
 // ------------------------------------------------------------------------
@@ -102,19 +132,27 @@ void vsMenuFrame::setFrame(int *indices, int depth)
 // ------------------------------------------------------------------------
 void vsMenuFrame::setFrame(char *path)
 {
+    char *string;
     char *token;
     int i;
 
     // Initialize the path to its empty state
     pathDepth = 0;
 
+    // Copy the string so we can destroy it with strtok
+    string = (char *)malloc((strlen(path) + 1) * sizeof(char));
+    strcpy(string, path);
+
     // Traverse the string, adding its elements one by one
-    token = strtok(path, " \0");
+    token = strtok(string, " ");
     while (token)
     {
         appendIndex(atoi(token));
-        token = strtok(NULL, " \0");
+        token = strtok(NULL, " ");
     }
+
+    // Free the memory on the duplicate string
+    free(string);
 }
 
 // ------------------------------------------------------------------------

@@ -38,6 +38,8 @@ private:
 public:
 
                 vsMenuFrame();
+                vsMenuFrame(char *path);
+                vsMenuFrame(int *indices, int depth);
                 vsMenuFrame(vsMenuFrame *frame);
     virtual     ~vsMenuFrame();
 
