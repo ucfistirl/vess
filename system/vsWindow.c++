@@ -117,7 +117,6 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
 // ------------------------------------------------------------------------
 vsWindow::vsWindow(vsScreen *parent, pfPipeWindow *pWin) : childPaneList(1, 1)
 {
-    vsPipe *parentPipe;
     Display *xWindowDisplay;
     Window xWindowID;
     Window *childPointer;
@@ -130,7 +129,6 @@ vsWindow::vsWindow(vsScreen *parent, pfPipeWindow *pWin) : childPaneList(1, 1)
     
     // Get the parent screen
     parentScreen = parent;
-    parentPipe = parentScreen->getParentPipe();
     
     // Reference the pfPipeWindow
     performerPipeWindow = pWin;
@@ -245,7 +243,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
         fbConfigAttrs[7] = PFFB_STENCIL_SIZE;
         fbConfigAttrs[8] = 1;
 
-        fbConfigAttrs[9] = NULL;
+        fbConfigAttrs[9] = 0;
 
         performerPipeWindow->setFBConfigAttrs(fbConfigAttrs);
     }
