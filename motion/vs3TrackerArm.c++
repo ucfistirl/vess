@@ -35,18 +35,22 @@ vs3TrackerArm::vs3TrackerArm(vsMotionTracker *backTracker,
                              vsMotionTracker *handTracker,
                              vsKinematics *wristJoint)
 {
+    // Store the traker pointers
     backTrack = backTracker;
     elbowTrack = elbowTracker;
     handTrack = handTracker;
     
+    // Store the kinematics object pointers
     shoulderKin = shoulderJoint;
     elbowKin = elbowJoint;
     wristKin = wristJoint;
     
+    // Initialize the position offset values
     shoulderOffset.set(0.0, 0.0, 0.0);
     elbowOffset.set(0.0, 0.0, 0.0);
     wristOffset.set(0.0, 0.0, 0.0);
 
+    // Initialize the rotation offset values
     shoulderPreRot.set(0.0, 0.0, 0.0, 1.0);
     shoulderPostRot.set(0.0, 0.0, 0.0, 1.0);
     elbowPreRot.set(0.0, 0.0, 0.0, 1.0);
@@ -68,6 +72,8 @@ vs3TrackerArm::~vs3TrackerArm()
 // ------------------------------------------------------------------------
 void vs3TrackerArm::setShoulderOffset(vsVector newOffset)
 {
+    // Copy the offset from the specified vector, and force the resulting
+    // vector to have a size of 3.
     shoulderOffset.clearCopy(newOffset);
     shoulderOffset.setSize(3);
 }
@@ -86,6 +92,8 @@ vsVector vs3TrackerArm::getShoulderOffset()
 // ------------------------------------------------------------------------
 void vs3TrackerArm::setElbowOffset(vsVector newOffset)
 {
+    // Copy the offset from the specified vector, and force the resulting
+    // vector to have a size of 3.
     elbowOffset.clearCopy(newOffset);
     elbowOffset.setSize(3);
 }
@@ -104,6 +112,8 @@ vsVector vs3TrackerArm::getElbowOffset()
 // ------------------------------------------------------------------------
 void vs3TrackerArm::setWristOffset(vsVector newOffset)
 {
+    // Copy the offset from the specified vector, and force the resulting
+    // vector to have a size of 3.
     wristOffset.clearCopy(newOffset);
     wristOffset.setSize(3);
 }
@@ -231,28 +241,44 @@ void vs3TrackerArm::update()
     
     vsQuat coordFix;
 
-    // * Compute the locations of the joints
+    // * Determine where each of the person's joints is in real-space by
+    // transforming each joint's tracker-to-joint offset by the current
+    // orientation of the tracker, and then adding in the current tracker
+    // translation.
+
+    // Shoulder
     backPos = backTrack->getPositionVec();
     backOri = backTrack->getOrientationQuat();
     shoulderPoint = backOri.rotatePoint(shoulderOffset);
     shoulderPoint += backPos;
 
+    // Elbow
     elbowPos = elbowTrack->getPositionVec();
     elbowOri = elbowTrack->getOrientationQuat();
     elbowPoint = elbowOri.rotatePoint(elbowOffset);
     elbowPoint += elbowPos;
 
+    // Wrist
     handPos = handTrack->getPositionVec();
     handOri = handTrack->getOrientationQuat();
     wristPoint = handOri.rotatePoint(wristOffset);
     wristPoint += handPos;
     
-    // * Compute the delta vectors
+    // * Compute the delta vectors. These vectors, which represent
+    // translations from one joint to another, are used in the rotation
+    // calculation process.
     shoulderToElbowVec = elbowPoint - shoulderPoint;
     elbowToWristVec = wristPoint - elbowPoint;
     elbowToShoulderVec = shoulderPoint - elbowPoint;
 
     // * Compute the shoulder rotation
+    // The rotation is determined by using the vsQuat class'
+    // setVecsRotation() function, which takes two pairs of vectors and
+    // returns the rotation that rotates the first pair to the second.
+    // In this case, the first pair are the default directions for the
+    // arm, and the second pair are the current way the person's arm is
+    // positioned, based on the tracker data.
+
     // The arm's standard direction is down, with the 'top' of it
     // aimed forward.
     forwardVec.set(0.0, 0.0, -1.0);

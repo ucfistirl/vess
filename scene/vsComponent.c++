@@ -39,6 +39,7 @@
 vsComponent::vsComponent() : childList(32, 32)
 {
     // Create the Performer group objects and tie them together
+    // (topGroup) -> (lightHook) -> (bottomGroup)
     topGroup = new pfGroup();
     topGroup->ref();
     lightHook = new pfGroup();
@@ -49,6 +50,8 @@ vsComponent::vsComponent() : childList(32, 32)
     lightHook->addChild(bottomGroup);
 
     childCount = 0;
+
+    // Register a connection between this node and its Performer node
     ((vsSystem::systemObject)->getNodeMap())->registerLink(this, topGroup);
 }
 
@@ -72,6 +75,8 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
     vsDecalAttribute *decalAttrib;
     vsBillboardAttribute *billAttrib;
 
+    // Call a helper function to copy the Performer node's name to this
+    // node if that name is conspdered important
     handleName(targetGraph, nameDirectory);
 
     // Set the 'topGroup' group. If the group at the top of the targetGraph
@@ -87,9 +92,13 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
         topGroup = new pfGroup();
         while (targetGraph->getNumParents() > 0)
         {
+            // Replace the target group with a new one in the parent's
+	    // child list
             parentGroup = targetGraph->getParent(0);
             parentGroup->replaceChild(targetGraph, topGroup);
         }
+
+        // Add the target group as a child of the new group
         topGroup->addChild(targetGraph);
     }
 
@@ -97,16 +106,28 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
     // if there is one.
     previousGroup = topGroup;
     currentNode = topGroup->getChild(0);
+
+    // Besides being a transform, the target node must not be important
+    // if a previous node was (limit one important node per VESS node),
+    // and must have no more than one parent
     if ( currentNode->isOfType(pfSCS::getClassType()) &&
          handleName(currentNode, nameDirectory) &&
          (currentNode->getNumParents() < 2) )
     {
+        // Call the transform attribute's copy constructor to manipulate
+	// the node at an below the target node into the shape that
+	// a transform attribute likes
         xformAttrib = new vsTransformAttribute((pfSCS *)currentNode,
             this, nameDirectory);
 
+        // Add the transform attribute to this component without going
+	// through the usual attach mechanism
         attributeList[attributeCount++] = xformAttrib;
         xformAttrib->ref();
         
+        // Step past all pfSCS (or derivative classes) nodes in our path,
+	// under the assumption that the transform attribute has dealt
+	// with them already
         while (currentNode->isOfType(pfSCS::getClassType()))
         {
             previousGroup = (pfGroup *)currentNode;
@@ -115,12 +136,14 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
     }
     
     // Set the 'lightHook' middle group. Same restrictions as the top group,
-    // with added checks for name and multiple parents
+    // with added checks for name, multiple parents, and multiple children
     if ( currentNode->isExactType(pfGroup::getClassType()) &&
          (((pfGroup *)currentNode)->getNumChildren() == 1) &&
          (currentNode->getNumParents() < 2) &&
          handleName(currentNode, nameDirectory) )
     {
+        // Store the lightHook group pointer, and set our focus to
+	// the next node down
         lightHook = (pfGroup *)currentNode;
         previousGroup = lightHook;
         currentNode = lightHook->getChild(0);
@@ -146,20 +169,26 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
          (currentNode->getNumParents() > 1) ||
          (!(handleName(currentNode, nameDirectory))) )
     {
-        // Sweep the offending node past the bottom group and into the
-        // next component
+	// Create a new node between the last one and the one we're currently
+	// looking at. This effectively 'pushes' the unwanted node out of
+	// this component and into unprocessed space so that the next
+	// iteration of the conversion process will examine the node again
+	// when it's better prepared to handle it.
         bottomGroup = new pfGroup();
         previousGroup->replaceChild(currentNode, bottomGroup);
         bottomGroup->addChild(currentNode);
     }
     else
     {
+        // Check for grouping-category attribute stuff
         if (currentNode->isOfType(pfSwitch::getClassType()))
         {
             // Switch attribute
             switchAttrib = new vsSwitchAttribute((pfSwitch *)currentNode);
             attributeList[attributeCount++] = switchAttrib;
             switchAttrib->ref();
+
+            // Store the current node at the bottom group of the component
             bottomGroup = (pfGroup *)currentNode;
         }
         else if (currentNode->isOfType(pfSequence::getClassType()))
@@ -168,6 +197,8 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
             seqAttrib = new vsSequenceAttribute((pfSequence *)currentNode);
             attributeList[attributeCount++] = seqAttrib;
             seqAttrib->ref();
+
+            // Store the current node at the bottom group of the component
             bottomGroup = (pfGroup *)currentNode;
         }
         else if (currentNode->isOfType(pfLOD::getClassType()))
@@ -176,6 +207,8 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
             detailAttrib = new vsLODAttribute((pfLOD *)currentNode);
             attributeList[attributeCount++] = detailAttrib;
             detailAttrib->ref();
+
+            // Store the current node at the bottom group of the component
             bottomGroup = (pfGroup *)currentNode;
         }
         else if (currentNode->isOfType(pfLayer::getClassType()))
@@ -184,10 +217,15 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
             decalAttrib = new vsDecalAttribute((pfLayer *)currentNode);
             attributeList[attributeCount++] = decalAttrib;
             decalAttrib->ref();
+
+            // Store the current node at the bottom group of the component
             bottomGroup = (pfGroup *)currentNode;
         }
         else
+        {
+            // Store the current node at the bottom group of the component
             bottomGroup = (pfGroup *)currentNode;
+        }
     }
 
     // The component is finished. Register this component with the system,
@@ -196,23 +234,30 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
     
     ((vsSystem::systemObject)->getNodeMap())->registerLink(this, topGroup);
 
+    // Process all of the children of this node
     childCount = 0;
     for (loop = 0; loop < (bottomGroup->getNumChildren()); loop++)
     {
+        // Get the loop'th child of the bottom Performer group
         currentNode = bottomGroup->getChild(loop);
+
+        // Check to see if we've encountered this node before
         myNode = (vsNode *)(((vsSystem::systemObject)->getNodeMap())->
             mapSecondToFirst(currentNode));
         
+        // Process this node if it's unfamiliar
         if (!myNode)
         {
+            // Check for a pfBillboard node
             if (currentNode->isOfType(pfBillboard::getClassType()))
             {
                 // * Deal with the billboard here
                 
                 // First, check to see if the component above has more than
                 // one child; billboard attributes must get moved up to
-                // their parent components but should not affect the other
-                // children of that component
+                // their parent components but they should not affect the
+		// other children of that component. (In VESS, billboards
+		// go on components, not geometry like in Performer.)
                 if (bottomGroup->getNumChildren() > 1)
                 {
                     // Add a group between the parent and the billboard; the
@@ -226,13 +271,17 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
                 else
                 {
                     // Create a billboard attribute from the pfBillboard and
-                    // add it to this component
+                    // add it to this component to compensate for the
+		    // (eventual) removal of the billboard from the
+		    // Performer geometry.
                     billAttrib = new vsBillboardAttribute(
                         (pfBillboard *)currentNode);
                     addAttribute(billAttrib);
                 }
             }
         
+            // Figure out what type of node we're looking at and handle
+	    // it accordingly
             if (currentNode->isOfType(pfGroup::getClassType()))
             {
                 // Create new component
@@ -265,6 +314,8 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
         myNode->addParent(this);
     }
 
+    // Reference the Performer objects to lessen the chance that someone
+    // else will delete them without us knowing
     topGroup->ref();
     lightHook->ref();
     bottomGroup->ref();
@@ -299,13 +350,16 @@ vsComponent::~vsComponent()
         parent->removeChild(this);
     }
 
-    // Detach all remaining children; don't delete any.
+    // Detach all remaining children; don't delete any (in case someone
+    // else is using them).
     while (getChildCount() > 0)
     {
         child = getChild(0);
         removeChild(child);
     }
 
+    // Remove the link between this VESS node and the corresponding
+    // Performer node
     ((vsSystem::systemObject)->getNodeMap())->removeLink(this,
         VS_OBJMAP_FIRST_LIST);
 
@@ -357,6 +411,7 @@ vsNode *vsComponent::cloneTree()
         attr->attachDuplicate(result);
     }
     
+    // Return the cloned tree
     return result;
 }
 
@@ -369,15 +424,20 @@ void vsComponent::deleteTree()
 {
     vsNode *node;
     
+    // Delete all children of this node
     while (getChildCount() > 0)
     {
+        // Get the first child
         node = getChild(0);
 
+        // If it's a component, recurse
         if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
             ((vsComponent *)node)->deleteTree();
 
+        // Remove the child from this node
         removeChild(node);
 
+        // Delete the child if it's now unowned
         if (node->getParentCount() == 0)
             delete node;
     }
@@ -400,7 +460,9 @@ void vsComponent::addChild(vsNode *newChild)
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
 
-    // First connect the Performer nodes together
+    // First, connect the Performer nodes together: determine what type
+    // the child node is, get the corresponding Performer node, and add
+    // that Performer node as a child of this component's bottom group.
     if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
     {
         childComponent = (vsComponent *)newChild;
@@ -420,7 +482,6 @@ void vsComponent::addChild(vsNode *newChild)
     // Then make the connection in the VESS nodes
     childList[childCount++] = newChild;
     newChild->ref();
-    
     newChild->addParent(this);
     
     // Finally, mark the entire tree above and below this node as needing
@@ -440,6 +501,7 @@ void vsComponent::insertChild(vsNode *newChild, int index)
     vsDynamicGeometry *childDynamicGeometry;
     int loop;
     
+    // Bounds check
     if (index < 0)
     {
         printf("vsComponent::insertChild: Index out of bounds\n");
@@ -454,7 +516,9 @@ void vsComponent::insertChild(vsNode *newChild, int index)
         return;
     }
 
-    // First connect the Performer nodes together
+    // First, connect the Performer nodes together: determine what type
+    // the child node is, get the corresponding Performer node, and insert
+    // that Performer node as a child of this component's bottom group.
     if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
     {
         childComponent = (vsComponent *)newChild;
@@ -472,13 +536,14 @@ void vsComponent::insertChild(vsNode *newChild, int index)
             childDynamicGeometry->getBaseLibraryObject());
     }
 
-    // Then make the connection in the VESS nodes
+    // Mkae room in the component's child list for the new child
     for (loop = childCount; loop > index; loop--)
         childList[loop] = childList[loop-1];
+
+    // Then make the connection in the VESS nodes
     childList[index] = newChild;
     childCount++;
     newChild->ref();
-    
     newChild->addParent(this);
     
     // Finally, mark the entire tree above and below this node as needing
@@ -496,6 +561,7 @@ void vsComponent::removeChild(vsNode *targetChild)
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
     
+    // Search the child list for the target child
     for (loop = 0; loop < childCount; loop++)
         if (targetChild == childList[loop])
         {
@@ -503,9 +569,11 @@ void vsComponent::removeChild(vsNode *targetChild)
             // to this node as needing of an update
             targetChild->dirty();
         
-            // Detach the Performer nodes; checks for the type of the
+            // Detach the Performer nodes; check for the type of the
             // component because the getBaseLibraryObject call is
-            // not virtual.
+            // not virtual. Then get the Performer node from the
+	    // child node and remove that from the component's bottom
+	    // group.
             if (targetChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
             {
                 childComponent = (vsComponent *)targetChild;
@@ -551,6 +619,7 @@ void vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
     vsDynamicGeometry *childDynamicGeometry;
     pfNode *oldNode, *newNode;
     
+    // Search the child list for the target child
     for (loop = 0; loop < childCount; loop++)
         if (targetChild == childList[loop])
         {
@@ -558,9 +627,9 @@ void vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
             // to the old node as needing of an update
             targetChild->dirty();
         
-            // Replace the Performer nodes; checks for the type of the
-            // component because the getBaseLibraryObject call is
-            // not virtual.
+	    // Get the Performer node corresponding to the child to be
+	    // removed; we need to check the node type because the
+	    // getBaseLibraryObject call is not virtual
             if (targetChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
             {
                 childComponent = (vsComponent *)targetChild;
@@ -578,6 +647,9 @@ void vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
                 oldNode = childDynamicGeometry->getBaseLibraryObject();
             }
 
+	    // Get the Performer node corresponding to the child to be
+	    // added; we need to check the node type because the
+	    // getBaseLibraryObject call is not virtual
             if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
             {
                 childComponent = (vsComponent *)newChild;
@@ -594,14 +666,15 @@ void vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
                 newNode = childDynamicGeometry->getBaseLibraryObject();
             }
             
+            // Replace the old child with the new one on this component's
+	    // bottom group
             bottomGroup->replaceChild(oldNode, newNode);
             
-            // Change the connection in the VESS nodes
+            // Adjust the child list in this component, as well as the
+	    // parent lists in the two children, to reflect the change
             childList[loop] = newChild;
-            
             targetChild->unref();
             newChild->ref();
-
             targetChild->removeParent(this);
             newChild->addParent(this);
             
@@ -626,12 +699,14 @@ int vsComponent::getChildCount()
 // ------------------------------------------------------------------------
 vsNode *vsComponent::getChild(int index)
 {
+    // Bounds check
     if ((index < 0) || (index >= childCount))
     {
         printf("vsComponent::getChild: Bad child index\n");
         return NULL;
     }
     
+    // Return the requested child
     return (vsNode *)(childList[index]);
 }
 
@@ -643,12 +718,15 @@ void vsComponent::getBoundSphere(vsVector *centerPoint, double *radius)
 {
     pfSphere boundSphere;
     
+    // Get the geometry bounding sphere from the Performer group
     topGroup->getBound(&boundSphere);
     
+    // Copy the sphere center point to the result vector, if there is one
     if (centerPoint)
         centerPoint->set(boundSphere.center[PF_X], boundSphere.center[PF_Y],
             boundSphere.center[PF_Z]);
 
+    // Copy the sphere radius to the result value, if there is one
     if (radius)
         *radius = boundSphere.radius;
 }
@@ -666,24 +744,37 @@ vsMatrix vsComponent::getGlobalXform()
     vsMatrix result;
     int loop, sloop;
 
+    // Start at this component's bottomGroup with an identity matrix
     xform.makeIdent();
     nodePtr = bottomGroup;
     
+    // Starting at this component's bottomGroup, run through all of the
+    // nodes in the Performer scene graph and accumulate transforms
+    // from every pfSCS (or pfDCS, which is derived from pfSCS) along
+    // the way. The assumption here is that each node will only have
+    // one parent. (Not always the case, but if there is more then we
+    // wouldn't know which one to use anyway.)
     while (nodePtr->getNumParents() > 0)
     {
+        // Check if the node is a pfSCS (or subclass of one)
         if (nodePtr->isOfType(pfSCS::getClassType()))
         {
+            // Multiply the pfSCS's matrix into our matrix
             scsMatPtr = ((pfSCS *)nodePtr)->getMatPtr();
             xform.postMult(*scsMatPtr);
         }
         
+        // Move to the node's (first) parent
         nodePtr = nodePtr->getParent(0);
     }
     
+    // Copy the resulting Performer matrix to a VESS one, transposing as
+    // we go
     for (loop = 0; loop < 4; loop++)
         for (sloop = 0; sloop < 4; sloop++)
             result[loop][sloop] = xform[sloop][loop];
 
+    // Return the resulting matrix
     return result;
 }
 
@@ -695,6 +786,7 @@ vsMatrix vsComponent::getGlobalXform()
 // ------------------------------------------------------------------------
 void vsComponent::setIntersectValue(unsigned int newValue)
 {
+    // Set the intersection mask on the Performer node
     topGroup->setTravMask(PFTRAV_ISECT, newValue, PFTRAV_SELF, PF_SET);
 }
 
@@ -703,6 +795,7 @@ void vsComponent::setIntersectValue(unsigned int newValue)
 // ------------------------------------------------------------------------
 unsigned int vsComponent::getIntersectValue()
 {
+    // Get the intersection mask from the Performer node
     return (topGroup->getTravMask(PFTRAV_ISECT));
 }
 
@@ -715,6 +808,7 @@ unsigned int vsComponent::getIntersectValue()
 // ------------------------------------------------------------------------
 void vsComponent::setVisibilityValue(unsigned int newValue)
 {
+    // Set the visibility mask on the Performer node
     topGroup->setTravMask(PFTRAV_DRAW, newValue, PFTRAV_SELF, PF_SET);
 }
 
@@ -723,6 +817,7 @@ void vsComponent::setVisibilityValue(unsigned int newValue)
 // ------------------------------------------------------------------------
 unsigned int vsComponent::getVisibilityValue()
 {
+    // Get the visibility mask from the Performer node
     return (topGroup->getTravMask(PFTRAV_DRAW));
 }
 
@@ -744,11 +839,15 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
         return;
     }
     
+    // Check for a conflict between the attribute to be added and the
+    // ones already on the component
     attrCat = newAttribute->getAttributeCategory();
     attrType = newAttribute->getAttributeType();
     switch (attrCat)
     {
-        // Component may only contain one of each of these
+        // Component may only contain one of each of these; if the new
+	// attribute is one of these categories, make sure there's not
+	// another one of the same type already
         case VS_ATTRIBUTE_CATEGORY_STATE:
         case VS_ATTRIBUTE_CATEGORY_XFORM:
             for (loop = 0; loop < getAttributeCount(); loop++)
@@ -760,7 +859,9 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
                 }
             break;
 
-        // Component may only contain one of any of these
+        // Component may only contain one of any of these; if the new
+	// attribute is this category, make sure there's not another one
+	// of the same category already
         case VS_ATTRIBUTE_CATEGORY_GROUPING:
             if (getCategoryAttribute(VS_ATTRIBUTE_CATEGORY_GROUPING, 0))
             {
@@ -794,18 +895,23 @@ vsNode *vsComponent::nodeSearch(const char *name, int *idx)
     int loop;
     vsNode *result;
 
+    // Check if this is the node we're looking for
     if (!strcmp(name, getName()))
     {
+	// Check if this is the desired instance of the nodes with the
+	// target name by examining the idx value
         if ((*idx) > 0)
             (*idx)--;
         else
             return this;
     }
 
+    // If not found, search the children
     for (loop = 0; loop < childCount; loop++)
         if (result = ((vsNode *)(childList[loop]))->nodeSearch(name, idx))
             return result;
 
+    // NULL result if the node was not found
     return NULL;
 }
 
@@ -905,6 +1011,8 @@ void vsComponent::replaceBottomGroup(pfGroup *newGroup)
     parentGroup = bottomGroup->getParent(0);
     parentGroup->replaceChild(bottomGroup, newGroup);
     
+    // Delete the old bottom group, and set the bottomGroup pointer to
+    // point to the new one
     bottomGroup->unref();
     pfDelete(bottomGroup);
     bottomGroup = newGroup;
@@ -919,8 +1027,10 @@ void vsComponent::dirtyDown()
 {
     int loop;
     
+    // Dirty this node
     dirtyFlag = VS_TRUE;
     
+    // Dirty the children of this node
     for (loop = 0; loop < childCount; loop++)
         ((vsNode *)(childList[loop]))->dirtyDown();
 }

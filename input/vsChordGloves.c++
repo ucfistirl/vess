@@ -31,6 +31,7 @@ vsChordGloves::vsChordGloves()
 {
     int i, j;
 
+    // Initialize the contact matrix
     memset(contactMatrix, 0, sizeof(contactMatrix));
 
     // Create a matrix of vsInputButtons in the upper section of the matrix
@@ -52,6 +53,7 @@ vsChordGloves::~vsChordGloves()
 {
     int i, j;
 
+    // Delete the input buttons in the contact matrix
     for (i = 0; i < VS_CG_MAX_DIGITS - 1; i++)
     {
         for (j = i+1; j < VS_CG_MAX_DIGITS; j++)
@@ -64,6 +66,7 @@ vsChordGloves::~vsChordGloves()
 // ------------------------------------------------------------------------
 void vsChordGloves::connect(int first, int second)
 {
+    // Validate the parameters, complain if invalid
     if (((first > VS_CG_MAX_DIGITS) || (second > VS_CG_MAX_DIGITS)) ||
          (first == second))
     {
@@ -86,6 +89,7 @@ void vsChordGloves::connect(int first, int second)
 // ------------------------------------------------------------------------
 void vsChordGloves::disconnect(int first, int second)
 {
+    // Validate the parameters, complain if invalid
     if (((first > VS_CG_MAX_DIGITS) || (second > VS_CG_MAX_DIGITS)) ||
          (first == second))
     {
@@ -110,6 +114,7 @@ void vsChordGloves::clearContacts()
 {
     int i, j;
 
+    // Set all the contacts to disconnected
     for (i = 0; i < VS_CG_MAX_DIGITS - 1; i++)
     {
         for (j = i+1; j < VS_CG_MAX_DIGITS; j++)
@@ -122,6 +127,7 @@ void vsChordGloves::clearContacts()
 // ------------------------------------------------------------------------
 int vsChordGloves::getNumAxes()
 {
+    // NEEDS COMMENT: WHY ALWAYS ZERO?
     return 0;
 }
 
@@ -130,6 +136,7 @@ int vsChordGloves::getNumAxes()
 // ------------------------------------------------------------------------
 int vsChordGloves::getNumButtons()
 {
+    // Compute and return the number of buttons in the matrix
     return (2*VS_CG_MAX_DIGITS - 1);
 }
 
@@ -138,6 +145,7 @@ int vsChordGloves::getNumButtons()
 // ------------------------------------------------------------------------
 vsInputAxis *vsChordGloves::getAxis(int index)
 {
+    // No axes on chord gloves
     return NULL;
 }
 
@@ -162,6 +170,7 @@ vsInputButton *vsChordGloves::getButton(int index)
     thisRowStart = 0;
     nextRowStart = VS_CG_MAX_DIGITS - (row+1);
 
+    // Count down the matrix to find the correct row
     while (index >= nextRowStart)
     {
         row++;
@@ -169,6 +178,8 @@ vsInputButton *vsChordGloves::getButton(int index)
         nextRowStart += VS_CG_MAX_DIGITS - (row+1);
     }
 
+    // Compute the column from the row and the difference between
+    // the given button index and the starting index of the row
     col = row + (index - thisRowStart) + 1;
 
     // Call the alternative getButton() with the row and column
@@ -201,6 +212,7 @@ int vsChordGloves::getContactPairs(int *pairs, int maxSize)
     int numPairs;
     int i, j;
 
+    // Make sure the pairs array is valid
     if (pairs == NULL)
     {
         printf("vsChordGloves::getContactPairs:  pairs array is NULL!\n");
@@ -208,6 +220,7 @@ int vsChordGloves::getContactPairs(int *pairs, int maxSize)
         return 0;
     }
 
+    // Initialize the number of contact pairs
     numPairs = 0;
 
     // Scan the contactMatrix looking for VS_TRUE's
@@ -215,6 +228,7 @@ int vsChordGloves::getContactPairs(int *pairs, int maxSize)
     {
         for (j = i + 1; j < VS_CG_MAX_DIGITS; j++)
         {
+            // Check button i,j to see if it is pressed
             if (getButton(i, j)->isPressed())
             {
                 // Found a contact pair, add it to the array if there's room
@@ -230,5 +244,6 @@ int vsChordGloves::getContactPairs(int *pairs, int maxSize)
         }
     }
 
+    // Return the number of pairs we found
     return numPairs;
 }

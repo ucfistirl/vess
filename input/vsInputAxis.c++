@@ -50,6 +50,7 @@ vsInputAxis::vsInputAxis(double minPos, double maxPos)
 {
     char errStr[100];
 
+    // Validate the axis ranges
     if (minPos < maxPos) 
     {
         // Initialize variables
@@ -64,12 +65,9 @@ vsInputAxis::vsInputAxis(double minPos, double maxPos)
     }
     else
     {
-        sprintf(errStr, "vsInputAxis::vsInputAxis:  Invalid axis range");
-        strcat(errStr, "specfied.");
-        puts(errStr);
-        sprintf(errStr, "vsInputAxis::vsInputAxis:  Using non-normalized");
-        strcat(errStr, "mode.");
-        puts(errStr);
+        // Print an error message indicating the axis range is not valid
+        printf("vsInputAxis::vsInputAxis:  Invalid axis range specfied.\n");
+        printf("    Using non-normalized axis mode.\n");
 
         // Initialize variables
         axisMin = 0.0;
@@ -95,16 +93,18 @@ vsInputAxis::~vsInputAxis(void)
 // ------------------------------------------------------------------------
 void vsInputAxis::setPosition(double rawPos)
 {
-    // Invert axis value if necessary
+    // Invert axis value if configured
     if (inverted)
         rawPos = -rawPos;
 
     // Do calibration if it's enabled
     if (passiveCalibration)
     {
+        // Adjust the minimum axis extent
         if (rawPos < axisMin)
             axisMin = rawPos;
 
+        // Adjust the maximum axis extent
         if (rawPos > axisMax)
             axisMax = rawPos;
 
@@ -129,6 +129,7 @@ double vsInputAxis::getPosition(void)
     double temp1, temp2;
     double normalizedPos;
 
+    // Check to see if the axis should be normalized
     if (normalized)
     { 
         // Determine if the axis position is on the negative or positive
@@ -199,11 +200,15 @@ void vsInputAxis::setNormalized(int normOn)
 {
     char errMsg[100];
 
+    // Check the parameter value to see whether we should enable or disable
+    // normalization
     if (normOn)
     {
-        // Check for valid extents
+        // Enabling normalization,  make sure we have a valid axis range
+        // and that the idle position is within the axis range
         if ((axisMin >= axisMax) || (offset < axisMin) || (offset > axisMax))
         {
+            // Invalid range or idle position set
             sprintf(errMsg, "vsInputAxis::setNormalized:  ");
             strcat(errMsg, "Invalid range and/or offset values\n");
             puts(errMsg);
@@ -211,15 +216,18 @@ void vsInputAxis::setNormalized(int normOn)
             strcat(errMsg, "Using non-normalized mode.\n");
             puts(errMsg);
 
+            // Normalization is not possible
             normalized = VS_FALSE;
         }
         else
         {
+            // Enable normalization
             normalized = VS_TRUE;
         }
     }
     else
     {
+        // Disable normalization
         normalized = VS_FALSE;
     }
 }
@@ -253,6 +261,7 @@ int vsInputAxis::isInverted()
 // ------------------------------------------------------------------------
 void vsInputAxis::setRange(double minPos, double maxPos)
 {
+    // Make sure the minimum extent is less than the maximum
     if (minPos >= maxPos)
     {
         printf("vsInputAxis::setRange: "
@@ -260,6 +269,7 @@ void vsInputAxis::setRange(double minPos, double maxPos)
     }
     else
     {
+        // Set the range extents
         axisMin = minPos;
         axisMax = maxPos;
     }
@@ -270,6 +280,7 @@ void vsInputAxis::setRange(double minPos, double maxPos)
 // ------------------------------------------------------------------------
 void vsInputAxis::getRange(double *minPos, double *maxPos)
 {
+    // Only return a range if the range is valid
     if (minPos >= maxPos)
     {
         *minPos = 0;
@@ -288,11 +299,13 @@ void vsInputAxis::getRange(double *minPos, double *maxPos)
 // ------------------------------------------------------------------------
 void vsInputAxis::setIdlePosition()
 {
+    // Set the idle position to the current axis position
     offset = position;
 
-    // Reset calibration data
+    // Check to see if we're calibrating
     if (passiveCalibration)
     {
+        // Calibration is now invalid, so reinitialize the axis extents
         axisMin = offset - 0.01;
         axisMax = offset + 0.01;
     }
@@ -303,11 +316,13 @@ void vsInputAxis::setIdlePosition()
 // ------------------------------------------------------------------------
 void vsInputAxis::setIdlePosition(double newOffset)
 {
+    // Set the idle position to the given value
     offset = newOffset;
 
-    // Reset calibration data
+    // Check to see if we're calibrating
     if (passiveCalibration)
     {
+        // Calibration is now invalid, so reinitialize the axis extents
         axisMin = offset - 0.01;
         axisMax = offset + 0.01;
     }
@@ -345,15 +360,19 @@ double vsInputAxis::getThreshold()
 // ------------------------------------------------------------------------
 void vsInputAxis::passiveCalibrate(int enable)
 {
+    // Check the parameter to see if we should enable or disable calibration
     if (enable)
     {
+        // Initialize the axis extents for calibration
         axisMin = offset - 0.01;
         axisMax = offset + 0.01;
 
+        // Enable calibration
         passiveCalibration = VS_TRUE;
     }
     else
     {
+        // Disable calibration
         passiveCalibration = VS_FALSE;
     }
 }

@@ -32,13 +32,18 @@ vsArticulationGlove::vsArticulationGlove(int estDistal)
 {
     int i;
 
+    // Save the estimateDistal parameter
     estimateDistal = estDistal;
+
+    // Initialize the calibrating flag to false (not calibrating)
     calibrating = VS_FALSE;
 
-    // Start with a reasonable range
+    // Construct sensor axes, start with a reasonable range, which will
+    // be more closely calibrated later
     for (i = 0; i < VS_AG_NUM_SENSORS; i++)
         sensors[i] = new vsInputAxis(1, 255);
 
+    // Construct input buttons
     for (i = 0; i < VS_AG_NUM_BUTTONS; i++)
         buttons[i] = new vsInputButton();
 }
@@ -50,9 +55,11 @@ vsArticulationGlove::~vsArticulationGlove()
 {
     int i;
 
+    // Destroy sensor axes
     for (i = 0; i < VS_AG_NUM_SENSORS; i++)
         delete sensors[i];
 
+    // Destroy buttons
     for (i = 0; i < VS_AG_NUM_BUTTONS; i++)
         delete buttons[i];
 }
@@ -67,12 +74,18 @@ void vsArticulationGlove::update()
     double deg1, deg2;
     vsQuat quat1, quat2;
 
-    // If we're calibrating, see if we need to update any idle positions
-    // If not, make sure the axis values don't go negative
+    // A calibrated glove has all axis idle positions at the beginning of
+    // the range of motion (joints fully extended).  If we're currently 
+    // calibrating, we need to see if we need to update any idle positions
+    // to have a smaller axis value.  If we're not calibrating, we need to
+    // make sure the axis values don't go negative.
     for (i = 0; i < VS_AG_NUM_SENSORS; i++)
     {
+        // See if the axis value is negative
         if (sensors[i]->getPosition() < 0.0)
         {
+            // Adjust the idle position if we're calibrating, or clamp
+            // the axis value to zero if not
             if (calibrating)
             {
                 // Change the idle position to the current sensor position if
@@ -81,6 +94,8 @@ void vsArticulationGlove::update()
             }
             else
             {
+                // The axis is behind the idle position, so clamp it to the
+                // idle position
                 sensors[i]->setPosition(sensors[i]->getIdlePosition());
             }
         }
@@ -90,8 +105,7 @@ void vsArticulationGlove::update()
     deg1 = sensors[VS_AG_SENSOR_THUMB_MJ]->getPosition() * 90.0;
 
     // Compute the joint angle
-    joints[VS_AG_JOINT_THUMB_MJ].setAxisAngleRotation(0, 1, 0, 90.0);
-    
+    joints[VS_AG_JOINT_THUMB_MJ].setAxisAngleRotation(0, 1, 0, deg1);
 
     // Read the thumb MPJ sensor
     deg1 = sensors[VS_AG_SENSOR_THUMB_MPJ]->getPosition() * VS_AG_MPJ_LIMIT;
@@ -117,6 +131,7 @@ void vsArticulationGlove::update()
     // Compute the joint angle
     joints[VS_AG_JOINT_INDEX_PIJ].setAxisAngleRotation(1, 0, 0, deg2);
 
+    // Estimate the distal joint if set to do so
     if (estimateDistal)
     {
         // Average the two values
@@ -138,6 +153,7 @@ void vsArticulationGlove::update()
     // Compute the joint angle
     joints[VS_AG_JOINT_MIDDLE_PIJ].setAxisAngleRotation(1, 0, 0, deg2);
 
+    // Estimate the distal joint if set to do so
     if (estimateDistal)
     {
         // Average the two values
@@ -159,6 +175,7 @@ void vsArticulationGlove::update()
     // Compute the joint angle
     joints[VS_AG_JOINT_RING_PIJ].setAxisAngleRotation(1, 0, 0, deg2);
 
+    // Estimate the distal joint if set to do so
     if (estimateDistal)
     {
         // Average the two values
@@ -180,6 +197,7 @@ void vsArticulationGlove::update()
     // Compute the joint angle
     joints[VS_AG_JOINT_PINKY_PIJ].setAxisAngleRotation(1, 0, 0, deg2);
 
+    // Estimate the distal joint if set to do so
     if (estimateDistal)
     {
         // Average the two values
@@ -222,20 +240,23 @@ void vsArticulationGlove::update()
         joints[VS_AG_JOINT_PINKY_DIJ].setAxisAngleRotation(1, 0, 0, deg1);
     }
 
-    // Read the wrist sensors
-    deg1 = sensors[VS_AG_SENSOR_WRIST_PITCH]->getPosition() * -140.0 + 100.0;
-    deg2 = sensors[VS_AG_SENSOR_WRIST_YAW]->getPosition() * -40.0 + 10.0;
+    // Read the wrist sensors, the scale factors and offsets correspond to
+    // the typical human range of motion for wrist flexion/extension and 
+    // abduction/adduction
+    deg1 = sensors[VS_AG_SENSOR_WRIST_PITCH]->getPosition() * 
+        -VS_AG_WRIST_FLEX_SCALE + VS_AG_WRIST_FLEX_OFFSET;
+    deg2 = sensors[VS_AG_SENSOR_WRIST_YAW]->getPosition() * 
+        -VS_AG_WRIST_ABD_SCALE + VS_AG_WRIST_ABD_OFFSET;
 
     // Compute the joint angle
     quat1.setAxisAngleRotation(1, 0, 0, deg1);
     quat2.setAxisAngleRotation(0, 0, 1, deg2);
     joints[VS_AG_JOINT_WRIST] = quat2 * quat1;
 
-    // Palm Arch (not yet)
+    // Palm Arch not yet supported
     joints[VS_AG_JOINT_PALM_ARCH].setAxisAngleRotation(0, 0, 0, 1);
 
-    // Update the abduction values
-    // (not yet)
+    // Abduction values not yet supported
 }
 
 // ------------------------------------------------------------------------
@@ -259,6 +280,7 @@ int vsArticulationGlove::getNumButtons()
 // ------------------------------------------------------------------------
 vsInputAxis *vsArticulationGlove::getAxis(int index)
 {
+    // Verify the index is valid, return NULL if not
     if ((index >= 0) && (index < VS_AG_NUM_SENSORS))
         return sensors[index];
     else
@@ -270,6 +292,7 @@ vsInputAxis *vsArticulationGlove::getAxis(int index)
 // ------------------------------------------------------------------------
 vsInputButton *vsArticulationGlove::getButton(int index)
 {
+    // Verify the index is valid, return NULL if not
     if ((index >= 0) && (index < VS_AG_NUM_BUTTONS))
         return buttons[index];
     else
@@ -281,6 +304,7 @@ vsInputButton *vsArticulationGlove::getButton(int index)
 // ------------------------------------------------------------------------
 vsQuat vsArticulationGlove::getJoint(int index)
 {
+    // Verify the index is valid, return NULL if not
     if ((index >= 0) && (index < VS_AG_NUM_JOINTS))
         return joints[index];
     else
@@ -294,9 +318,28 @@ void vsArticulationGlove::passiveCalibrate(int enable)
 {
     int i;
 
+    // The calibration procedure for the glove is as follows.  Set the
+    // idle position of each sensor to maximum (255), and enable passive
+    // calibration on the sensor axis.  As each sensor measurement is
+    // taken (in update()), if the sensor value is less than the current
+    // idle position, the idle position is adjusted to match.  The result
+    // is that each sensor of the glove will have an idle position of the 
+    // minimum sensor value and an axis maximum of the maximum sensor value 
+    // based on the user's range of motion.
+    //
+    // The proper calibration procedure is to extend all joints of the hand
+    // as much as possible, enable calibration, flex all joints as much as
+    // possible (make a tight fist with the glove), disable calibration.
+    // This gives good results.
+
+    // Check the enable flag to see if we should enable or disable calibration
     if (enable)
     {
+        // Enabling calibration.  Set the flag to true.
         calibrating = VS_TRUE;
+
+        // Set all idle positions to the maximum sensor value and enable 
+        // calibration on the input axes
         for (i = 0; i < VS_AG_NUM_SENSORS; i++)
         {
             sensors[i]->setIdlePosition(255);
@@ -305,7 +348,10 @@ void vsArticulationGlove::passiveCalibrate(int enable)
     }
     else
     {
+        // Disabling calibration.  Set the flag to false.
         calibrating = VS_FALSE;
+
+        // Disable calibration on the input axes
         for (i = 0; i < VS_AG_NUM_SENSORS; i++)
         {
             sensors[i]->passiveCalibrate(VS_FALSE);

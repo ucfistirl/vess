@@ -38,6 +38,7 @@ vsWSSpaceball::vsWSSpaceball(vsWindowSystem *ws, int nButtons)
     spaceball = NULL;
     sbDevice = NULL;
 
+    // Create the spaceball device
     spaceball = new vsSpaceball(nButtons);
 
     // Initialize the spaceball events and such
@@ -92,10 +93,9 @@ int vsWSSpaceball::initializeSpaceball()
             sbDevice = XOpenDevice(display, deviceInfo[i].id);
         }
     }
-
     if (!sbDevice)
     {
-        // Oops, not there
+        // Oops, no spaceball connected
         return VS_FALSE;
     }
 
@@ -141,12 +141,16 @@ void vsWSSpaceball::update()
     // Check for and process any motion events
     while (XCheckTypedWindowEvent(display, window, sbMotion, &event))
     {
+        // Get the event
         motionEvent = (XDeviceMotionEvent *)&event;
 
+        // Make sure this event matches our Spaceball
         if (motionEvent->deviceid = sbDevice->device_id)
         {
+            // Make sure the axis count is valid
             if (motionEvent->axes_count != 1)
             {
+                // Copy the motion data from the event structure
                 for (i = 0; i < motionEvent->axes_count; i++)
                 {
                     sbData[motionEvent->first_axis + i] = 
@@ -158,14 +162,12 @@ void vsWSSpaceball::update()
                 tempVec[VS_X] = (float)sbData[0] / 32767.0f;
                 tempVec[VS_Y] = (float)sbData[1] / 32767.0f;
                 tempVec[VS_Z] = (float)sbData[2] / 32767.0f;
-
                 spaceball->setPosition(tempVec);
 
                 // Process orientation
                 tempVec[VS_H] = (float)sbData[3] / 32767.0f;
                 tempVec[VS_P] = (float)sbData[4] / 32767.0f;
                 tempVec[VS_R] = (float)sbData[5] / 32767.0f;
-
                 spaceball->setOrientation(tempVec, VS_EULER_ANGLES_ZXY_R);
             }
         }
@@ -174,8 +176,10 @@ void vsWSSpaceball::update()
     // Check for and process any button press events
     while (XCheckTypedWindowEvent(display, window, sbButtonPress, &event))
     {
+        // Get the event
         buttonEvent = (XDeviceButtonEvent *)&event;
 
+        // Get the button number
         buttonNumber = buttonEvent->button;
 
         // Button 9 is the PICK button (the one on the ball itself)
@@ -188,6 +192,7 @@ void vsWSSpaceball::update()
         }
         else 
         {
+            // Not the pick button, just set the specified button to released
             button = spaceball->getButton(buttonNumber);
             if (button)
                 button->setPressed();
@@ -197,8 +202,10 @@ void vsWSSpaceball::update()
     // Check for and process any button release events
     while (XCheckTypedWindowEvent(display, window, sbButtonRelease, &event))
     {
+        // Get the event
         buttonEvent = (XDeviceButtonEvent *)&event;
 
+        // Get the button number
         buttonNumber = buttonEvent->button;
 
         // Button 9 is the PICK button (the one on the ball itself)
@@ -211,6 +218,7 @@ void vsWSSpaceball::update()
         }
         else 
         {
+            // Not the pick button, just set the specified button to released
             button = spaceball->getButton(buttonNumber);
             if (button)
                 button->setReleased();

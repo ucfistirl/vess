@@ -34,11 +34,13 @@ vsKeyboard::vsKeyboard(int kbMode)
     numButtons = VS_KB_MAX_BUTTONS;
     commandKey = -1;
 
+    // Make sure the keyboard format is valid (default to button mode)
     if (kbMode == VS_KB_MODE_TERMINAL)
         mode = VS_KB_MODE_TERMINAL;
     else
         mode = VS_KB_MODE_BUTTON;
 
+    // Clear the command string
     sprintf(command, "");
 
     // Create a  vsInputButton for each key
@@ -53,6 +55,7 @@ vsKeyboard::~vsKeyboard()
 {
     int i;
 
+    // Delete all the buttons
     for (i = 0; i < VS_KB_MAX_BUTTONS; i++)
     {
         if (button[i])
@@ -65,9 +68,26 @@ vsKeyboard::~vsKeyboard()
 // ------------------------------------------------------------------------
 int vsKeyboard::mapToButton(KeySym keySym)
 {
+    // Attempt to map the given X KeySym to the appropriate VS_KEY_*
+    // symbol defined in the header file.  
+    // 
+    // Step 1 is to check to see if the key is within one of the 
+    // supported KeySym ranges (modifier key, function key, alphanumeric 
+    // key, etc.).  
+    // 
+    // If so, step 2 is to return the proper VS_KEY_* symbol according to
+    // the keySym passed in.  
+    //
+    // If the KeySym is not recognized, a -1 is returned, indicating an 
+    // error.
+    //
+    // See /usr/include/X11/keysymdef.h to see all the possible KeySyms
+    // that X Windows supports.  See vsKeyboard.h++ to see the keys that
+    // VESS supports.
     if (((keySym >= XK_Shift_L) && (keySym <= XK_Caps_Lock)) ||
         ((keySym >= XK_Alt_L) && (keySym <= XK_Alt_R)))
     {
+        // Modifier keys
         switch (keySym)
         {
             case XK_Shift_L:
@@ -88,10 +108,12 @@ int vsKeyboard::mapToButton(KeySym keySym)
     }
     else if ((keySym >= XK_F1) && (keySym <= XK_F12))
     {
+        // Function keys
         return (keySym - XK_F1 + 1);
     }
     else if ((keySym >= XK_Home) && (keySym <= XK_End))
     {
+        // Cursor keys
         switch (keySym)
         {
             case XK_Home:
@@ -114,6 +136,7 @@ int vsKeyboard::mapToButton(KeySym keySym)
     }
     else if ((keySym >= XK_BackSpace) && (keySym <= XK_Escape))
     {
+        // "Command" keys
         switch (keySym)
         {
             case XK_BackSpace:
@@ -133,31 +156,37 @@ int vsKeyboard::mapToButton(KeySym keySym)
     }
     else if (keySym == XK_Insert)
     {
+        // Insert
         return VS_KEY_INSERT;
     }
     else if (keySym == XK_Delete)
     {
+        // Delete
         return VS_KEY_DELETE;
     }
     else if (keySym == XK_Num_Lock)
     {
+        // Num Lock
         return VS_KEY_NUMLOCK;
     }
     else if ((keySym == XK_Print) || (keySym == XK_Sys_Req))
     {
+        // Print Screen
         return VS_KEY_PRTSC;
     }
     else if ((keySym >= XK_0) && (keySym <= XK_9))
     {
+        // Numeric keys
         return keySym;
     }
     else if ((keySym >= XK_A) && (keySym <= XK_Z))
     {
+        // Upper-case letter
         return keySym;
     }
     else if ((keySym >= XK_a) && (keySym <= XK_z))
     {
-        // Shift the lower-case KeySym to upper-case
+        // Lower-case letter, shift the lower-case KeySym to upper-case
         return (keySym - 0x20);
     }
     else if (((keySym >= XK_space) && (keySym <= XK_slash)) ||
@@ -165,6 +194,7 @@ int vsKeyboard::mapToButton(KeySym keySym)
         ((keySym >= XK_bracketleft) && (keySym <= XK_quoteleft)) ||
         ((keySym >= XK_braceleft) && (keySym <= XK_asciitilde)))
     {
+        // Punctuation and stuff
         switch (keySym)
         {
             case XK_asciitilde:
@@ -215,6 +245,7 @@ int vsKeyboard::mapToButton(KeySym keySym)
     }
     else if ((keySym >= XK_KP_Enter) && (keySym <= XK_KP_Divide))
     {
+        // Numeric keypad non-numbers
         switch (keySym)
         {
             case XK_KP_Insert:
@@ -254,6 +285,7 @@ int vsKeyboard::mapToButton(KeySym keySym)
     }
     else if ((keySym >= XK_KP_0) && (keySym <= XK_KP_9))
     {
+        // Numeric keypad numbers
         return (VS_KEY_KP0 + (keySym - XK_KP_0));
     }
 
@@ -289,13 +321,24 @@ void vsKeyboard::pressKey(KeySym keySym, char *string)
     // Process the key
     if (index >= 0)
     {
+        // Press the corresponding input button
         (button[index])->setPressed();
+
+        // Set the state to "just pressed"
         keyState[index] = VS_KB_JUST_PRESSED;
 
+        // Check the keyboard mode (terminal or button).  
+        // In button mode, the keyboard simply keeps track of the state of
+        // each keyboard "button".  In terminal mode, the keyboard also 
+        // accumulates a command string that terminated and stored for the 
+        // application when the ENTER key is pressed.
         if (mode == VS_KB_MODE_TERMINAL)
         {
+            // Get the length of the current command
             cmdLength = strlen(command);
 
+            // Check the key to see if this is a keystroke we should add
+            // to the command string
             if (((cmdLength + strlen(string)) < VS_KB_COMMAND_LENGTH) &&
                 (((index >= ' ') && (index <= '~')) ||
                  ((index >= VS_KEY_KP0) && (index <= VS_KEY_KPADD))))
@@ -303,6 +346,7 @@ void vsKeyboard::pressKey(KeySym keySym, char *string)
                 // Add the latest key to the command string
                 strcat(command, string);
 
+                // Redraw the prompt with the current command appended
                 redrawPrompt();
             }
             else if (index == VS_KEY_BACKSPACE)
@@ -311,6 +355,7 @@ void vsKeyboard::pressKey(KeySym keySym, char *string)
                 if (cmdLength > 0)
                     command[cmdLength - 1] = '\0';
 
+                // Redraw the prompt with the current command appended
                 redrawPrompt();
             }
             else if ((index == VS_KEY_ENTER) || (index == VS_KEY_KPENTER))
@@ -319,22 +364,31 @@ void vsKeyboard::pressKey(KeySym keySym, char *string)
                 printf("\n");
                 if (strlen(command) > 0)
                 {
+                    // Copy the current command to lastCommand, from which it
+                    // can be retrieved by the application
                     strcpy(lastCommand, command);
+
+                    // Clear the current command
                     sprintf(command, "");
+
+                    // Set the command ready flag
                     commandReady = VS_TRUE;
                 }
             }
         }
         else
         {
+            // Check if this keystroke is the designated command key
             if (index == commandKey)
             {
-                // Switch to terminal mode to obtain a command
+                // Switch to terminal mode to obtain the command
                 modeToggled = VS_TRUE;
                 mode = VS_KB_MODE_TERMINAL;
 
+                // Clear the command string
                 sprintf(command, "");
 
+                // Draw the command prompt
                 redrawPrompt();
             }
         }
@@ -351,8 +405,10 @@ void vsKeyboard::releaseKey(KeySym keySym)
     // Map the Keysym to an index in the vsInputButton array
     index = mapToButton(keySym);
 
+    // Make sure the key is valid
     if (index >= 0)
     {
+        // Set the key to "just released" if it is currently pressed
         if ((button[index])->isPressed())
         {
             keyState[index] = VS_KB_JUST_RELEASED;
@@ -361,7 +417,7 @@ void vsKeyboard::releaseKey(KeySym keySym)
 }
 
 // ------------------------------------------------------------------------
-// Return the number of input axes (zero).
+// Return the number of input axes (zero since the keyboard has no axes).
 // ------------------------------------------------------------------------
 int vsKeyboard::getNumAxes()
 {
@@ -373,6 +429,7 @@ int vsKeyboard::getNumAxes()
 // ------------------------------------------------------------------------
 int vsKeyboard::getNumButtons()
 {
+    // Return the number of buttons (the number of keys on the keyboard)
     return numButtons;
 }
 
@@ -389,12 +446,15 @@ vsInputAxis *vsKeyboard::getAxis(int index)
 // ------------------------------------------------------------------------
 vsInputButton *vsKeyboard::getButton(int index)
 {
-    if (index < numButtons)
+    // Check to see if the specified button index is valid
+    if ((index >= 0) && (index < numButtons))
     {
+        // Return the corresponding button
         return button[index];
     }
     else
     {
+        // Invalid index specified
         return NULL;
     }
 }
@@ -408,21 +468,32 @@ void vsKeyboard::update()
 
     // Make sure a key press is acknowledged for at least one frame
     // This helps account for slow frame rates
+
+    // For each key...
     for (i = 0; i < numButtons; i++)
     {
+        // If this key is currently pressed...
         if (button[i]->isPressed())
         {
+            // Process the key based on its current state
             if (keyState[i] == VS_KB_STILL_RELEASED)
             {
+                // The key has been released for one complete frame,
+                // so we can safely release the button now.
                 keyState[i] = VS_KB_STABLE;
                 (button[i])->setReleased();
             }
             else if (keyState[i] == VS_KB_JUST_RELEASED)
             {
+                // The key was just released, so set its state to
+                // "still released."  We'll actually release it next
+                // frame.
                 keyState[i] = VS_KB_STILL_RELEASED;
             }
             else if (keyState[i] == VS_KB_JUST_PRESSED)
             {
+                // We're not so worried about presses, just set
+                // it to stable immediately.
                 keyState[i] = VS_KB_STABLE;
             }
         }
@@ -456,7 +527,9 @@ char *vsKeyboard::getCommand()
 }
 
 // ------------------------------------------------------------------------
-// Change the keyboard operational mode to newMode.
+// Change the keyboard operational mode to newMode.  See the pressKey()
+// method above for a brief description of keyboard modes.  See the VESS
+// User's Guide for a more thorough description.
 // ------------------------------------------------------------------------
 void vsKeyboard::setMode(int newMode)
 {
@@ -477,11 +550,14 @@ int vsKeyboard::getMode()
 // ------------------------------------------------------------------------
 void vsKeyboard::setCommandKey(int keyIndex)
 {
-    if (keyIndex < numButtons)
+    // Check the key index to see if it is valid
+    if ((keyIndex >= 0) && (keyIndex < numButtons))
     {
+        // If the key is a lower-case letter, change it to upper-case
         if ((keyIndex >= 'a') && (keyIndex <= 'z'))
             keyIndex -= 0x20;
 
+        // Set the command key to the specified key
         commandKey = keyIndex;
     }
 }

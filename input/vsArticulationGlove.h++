@@ -51,9 +51,9 @@
 // This class endeavors to take the information from these sensors and
 // calculate rotation values for a virtual hand model.  The model should
 // have all the joints mentioned above (including the extra four distal
-// interphalangial joints (DIJ)) as degrees of freedom.  If the DIP joints
+// interphalangial joints (DIJ)) as degrees of freedom.  If the DIJ 
 // are not explicitly measured, their values will be estimated from the
-// PIP and MP joint values.
+// PIJ and MPJ joint values.
 //
 // The computed joint angles are stored and returned as vsQuat's and can
 // be accessed with the getJoint() method.  The standard vsInputDevice
@@ -69,6 +69,11 @@
 #define VS_AG_MPJ_LIMIT 75.0
 #define VS_AG_PIJ_LIMIT 80.0
 #define VS_AG_DIJ_LIMIT 60.0
+
+#define VS_AG_WRIST_FLEX_SCALE  140.0
+#define VS_AG_WRIST_FLEX_OFFSET 100.0
+#define VS_AG_WRIST_ABD_SCALE    40.0
+#define VS_AG_WRIST_ABD_OFFSET   10.0
 
 #include "vsInputDevice.h++"
 #include "vsQuat.h++"

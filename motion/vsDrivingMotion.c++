@@ -31,6 +31,7 @@ vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis,
                                  vsInputAxis *throttleAxis, 
                                  vsKinematics *kin)
 {
+    // Initialize class variables
     steering = steeringAxis;
     throttle = throttleAxis;
     accelButton = NULL;
@@ -38,6 +39,7 @@ vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis,
     stopButton = NULL;
     kinematics = kin;
 
+    // Make sure all the axes passed in are in normalized mode
     if (((steering != NULL) && (!steering->isNormalized())) ||
         ((throttle != NULL) && (!throttle->isNormalized())))
     {
@@ -45,11 +47,11 @@ vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis,
             "normalized\n");
     }
 
+    // Set the motion parameters to defaults
     accelerationRate = VS_DM_DEFAULT_ACCEL_RATE;
     steeringRate = VS_DM_DEFAULT_STEER_RATE;
     maxSpeed = VS_DM_DEFAULT_MAX_SPEED;
     currentSpeed = 0.0;
-    
     throttleMode = VS_DM_DEFAULT_THROTTLE_MODE;
     steeringMode = VS_DM_DEFAULT_STEERING_MODE;
 }
@@ -63,6 +65,7 @@ vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis,
                                  vsInputButton *stopBtn,
                                  vsKinematics *kin)
 {
+    // Initialize class variables
     steering = steeringAxis;
     throttle = NULL;
     accelButton = accelBtn;
@@ -70,6 +73,7 @@ vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis,
     stopButton = stopBtn;
     kinematics = kin;
 
+    // Make sure all the axes passed in are in normalized mode
     if (((steering != NULL) && (!steering->isNormalized())) ||
         ((throttle != NULL) && (!throttle->isNormalized())))
     {
@@ -77,14 +81,11 @@ vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis,
             "normalized\n");
     }
 
-    lastSteeringVal = 0.0;
-    lastThrottleVal = 0.0;
-
+    // Set the motion parameters to defaults
     accelerationRate = VS_DM_DEFAULT_ACCEL_RATE;
     steeringRate = VS_DM_DEFAULT_STEER_RATE;
     maxSpeed = VS_DM_DEFAULT_MAX_SPEED;
     currentSpeed = 0.0;
-    
     throttleMode = VS_DM_DEFAULT_THROTTLE_MODE;
     steeringMode = VS_DM_DEFAULT_STEERING_MODE;
 }
@@ -94,13 +95,17 @@ vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis,
 // ------------------------------------------------------------------------
 vsDrivingMotion::vsDrivingMotion(vsMouse *mouse, vsKinematics *kin)
 {
+    // Initialize class variables
     steering = mouse->getAxis(0);
     throttle = NULL;
+
+    // Use a default button configuration
     accelButton = mouse->getButton(0);
     decelButton = mouse->getButton(2);
     stopButton = mouse->getButton(1);
     kinematics = kin;
 
+    // Make sure all the axes passed in are in normalized mode
     if (((steering != NULL) && (!steering->isNormalized())) ||
         ((throttle != NULL) && (!throttle->isNormalized())))
     {
@@ -108,11 +113,11 @@ vsDrivingMotion::vsDrivingMotion(vsMouse *mouse, vsKinematics *kin)
             "normalized\n");
     }
 
+    // Set the motion parameters to defaults
     accelerationRate = VS_DM_DEFAULT_ACCEL_RATE;
     steeringRate = VS_DM_DEFAULT_STEER_RATE;
     maxSpeed = VS_DM_DEFAULT_MAX_SPEED;
     currentSpeed = 0.0;
-    
     throttleMode = VS_DM_DEFAULT_THROTTLE_MODE;
     steeringMode = VS_DM_DEFAULT_STEERING_MODE;
 }
@@ -124,13 +129,17 @@ vsDrivingMotion::vsDrivingMotion(vsMouse *mouse, int accelButtonIndex,
                                  int decelButtonIndex, int stopButtonIndex,
                                  vsKinematics *kin)
 {
+    // Initialize class variables
     steering = mouse->getAxis(0);
     throttle = NULL;
+
+    // Use the given button index
     accelButton = mouse->getButton(accelButtonIndex);
     decelButton = mouse->getButton(decelButtonIndex);
     stopButton = mouse->getButton(stopButtonIndex);
     kinematics = kin;
 
+    // Make sure all the axes passed in are in normalized mode
     if (((steering != NULL) && (!steering->isNormalized())) ||
         ((throttle != NULL) && (!throttle->isNormalized())))
     {
@@ -138,11 +147,11 @@ vsDrivingMotion::vsDrivingMotion(vsMouse *mouse, int accelButtonIndex,
             "normalized\n");
     }
 
+    // Set the motion parameters to defaults
     accelerationRate = VS_DM_DEFAULT_ACCEL_RATE;
     steeringRate = VS_DM_DEFAULT_STEER_RATE;
     maxSpeed = VS_DM_DEFAULT_MAX_SPEED;
     currentSpeed = 0.0;
-    
     throttleMode = VS_DM_DEFAULT_THROTTLE_MODE;
     steeringMode = VS_DM_DEFAULT_STEERING_MODE;
 }
@@ -253,9 +262,10 @@ void vsDrivingMotion::update()
     // Get elapsed time
     interval = vsSystem::systemObject->getFrameTime();
 
-    // Adjust heading according to the current axis mode
+    // If we have a valid steering axis
     if (steering != NULL)
     {
+        // Adjust heading according to the current axis mode
         if (steeringMode == VS_DM_STEER_RELATIVE)
         {
             dHeading = -(steering->getPosition()) * steeringRate * 
@@ -277,13 +287,19 @@ void vsDrivingMotion::update()
     // Handle the throttle axis
     if (throttle != NULL)
     {
+        // Adjust speed according to the current throttle axis mode
         if (throttleMode == VS_DM_THROTTLE_ACCELERATION)
         {
+            // Compute the change in speed from the axis position, time 
+            // interval and current acceleration rate.  Add the change
+            // to the current speed.
             currentSpeed += throttle->getPosition() * accelerationRate *
                 interval;
         }
         else
         {
+            // Compute the new speed from the axis position and maximum
+            // speed values
             currentSpeed = throttle->getPosition() * maxSpeed;
         }
     }
@@ -291,18 +307,26 @@ void vsDrivingMotion::update()
     // Handle the buttons
     if ((accelButton != NULL) && (accelButton->isPressed()))
     {
+        // Adjust speed according to the button state and the current
+        // throttle axis mode
         if (throttleMode == VS_DM_THROTTLE_ACCELERATION)
         {
+            // Scale the acceleration rate by the frame time interval and add
+            // this value to the current speed.
             currentSpeed += accelerationRate * interval;
         }
         else
         {
             if ((decelButton != NULL) && (decelButton->isPressed()))
             {
+                // Set speed to zero if both accelerate and decelerate
+                // buttons are pressed
                 currentSpeed = 0;
             }
             else
             {
+                // Only the acceleration button pressed.  In velocity mode
+                // this sets the speed to maximum
                 currentSpeed = maxSpeed;
             }
         }
@@ -310,23 +334,32 @@ void vsDrivingMotion::update()
 
     if ((decelButton != NULL) && (decelButton->isPressed()))
     {
+        // Adjust speed according to the button state and the current
+        // throttle axis mode
         if (throttleMode == VS_DM_THROTTLE_ACCELERATION)
         {
+            // Scale the acceleration rate by the frame time interval and
+            // subtract this value from the current speed
             currentSpeed -= accelerationRate * interval;
         }
         else
         {
             if ((accelButton != NULL) && (accelButton->isPressed()))
             {
+                // Set speed to zero if both accelerate and decelerate
+                // buttons are pressed
                 currentSpeed = 0;
             }
             else
             {
+                // Only the deceleration button pressed.  In velocity mode,
+                // this sets the speed to maximum in reverse.
                 currentSpeed = -maxSpeed;
             }
         }
     }
 
+    // Stop if the stop button is pressed
     if ((stopButton != NULL) && (stopButton->isPressed()))
     {
         currentSpeed = 0;
@@ -337,7 +370,6 @@ void vsDrivingMotion::update()
     {
         currentSpeed = maxSpeed;
     }
-
     if (currentSpeed < -maxSpeed)
     {
         currentSpeed = -maxSpeed;

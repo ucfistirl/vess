@@ -22,6 +22,7 @@
 
 #include "vsJoystick.h++"
 #include <stdio.h>
+#include <string.h>
 
 // ------------------------------------------------------------------------
 // Construct a vsJoystick with the specified number of axes and buttons and 
@@ -36,6 +37,10 @@ vsJoystick::vsJoystick(int nAxes, int nButtons, double axisMin, double axisMax)
     numAxes = nAxes;
     numButtons = nButtons;
 
+    // Zero the axis and button arrays
+    memset(axis, 0, sizeof(axis));
+    memset(button, 0, sizeof(button));
+
     // Create axes and buttons
     for (i = 0; i < numAxes; i++)
     {
@@ -44,7 +49,6 @@ vsJoystick::vsJoystick(int nAxes, int nButtons, double axisMin, double axisMax)
         else
             axis[i] = new vsInputAxis();
     }
-
     for (i = 0; i < numButtons; i++)
     {
         button[i] = new vsInputButton();
@@ -64,12 +68,15 @@ vsJoystick::vsJoystick(int nAxes, int nButtons)
     numAxes = nAxes;
     numButtons = nButtons;
 
+    // Zero the axis and button arrays
+    memset(axis, 0, sizeof(axis));
+    memset(button, 0, sizeof(button));
+
     // Create axes and buttons
     for (i = 0; i < numAxes; i++)
     {
         axis[i] = new vsInputAxis();
     }
-
     for (i = 0; i < numButtons; i++)
     {
         button[i] = new vsInputButton();
@@ -89,7 +96,6 @@ vsJoystick::~vsJoystick()
         if (axis[i])
             delete axis[i];
     }
-
     for (i = 0; i < VS_JS_MAX_BUTTONS; i++)
     {
         if (button[i])
@@ -110,12 +116,16 @@ int vsJoystick::getNumAxes()
 // ------------------------------------------------------------------------
 vsInputAxis *vsJoystick::getAxis(int index)
 {
-    if (index < numAxes)
+    // Validate the index, make sure it refers to one of the joystick's
+    // axes
+    if ((index >= 0) && (index < numAxes))
     {
+        // Return the requested axis
         return axis[index];
     }
     else
     {
+        // Invalid axis index
         return NULL;
     }
 }
@@ -133,12 +143,16 @@ int vsJoystick::getNumButtons()
 // ------------------------------------------------------------------------
 vsInputButton *vsJoystick::getButton(int index)
 {
-    if (index < numButtons)
+    // Validate the index, making sure it refers to one of the joystick's
+    // buttons
+    if ((index >= 0) && (index < numButtons))
     {
+        // Return the requested button
         return button[index];
     }
     else
     {
+        // Invalid button index
         return NULL;
     }
 }
@@ -150,6 +164,8 @@ void vsJoystick::setIdlePosition()
 {
     int i;
 
+    // Call the setIdlePosition() method on each joystick axis
+    // to set the joystick's current position as the idle position
     for (i = 0; i < numAxes; i++)
     {
         axis[i]->setIdlePosition();
@@ -163,6 +179,7 @@ void vsJoystick::setThreshold(double newThreshold)
 {
     int i;
 
+    // Set the specified threshold value on each joystick axis
     for (i = 0; i < numAxes; i++)
     {
         axis[i]->setThreshold(newThreshold);

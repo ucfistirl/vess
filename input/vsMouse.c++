@@ -38,7 +38,6 @@ vsMouse::vsMouse(int nAxes, int nButtons)
         else
             axis[i] = NULL;
     }
-
     numButtons = nButtons;
     for (i = 0; i < numButtons; i++)
     {
@@ -61,26 +60,32 @@ vsMouse::vsMouse(int nAxes, int nButtons, int xSize, int ySize)
     numAxes = nAxes;
     for (i = 0; i < VS_MOUSE_MAX_AXES; i++)
     {
+        // Construct the specified number of axes, initialize the rest
+        // of the axes in the axis array to NULL
         if (i < numAxes)
         {
             if (i == 0)
             {
+                // Construct the x axis normalized between 0 and xSize
                 axis[i] = new vsInputAxis(0, xSize);
             }
             else if (i == 1)
             {
+                // Construct the y axis normalized between 0 and ySize
                 axis[i] = new vsInputAxis(0, ySize);
             } 
             else
+                // Construct additional axes non-normalized
                 axis[i] = new vsInputAxis();
         }
         else
             axis[i] = NULL;
     }
-
     numButtons = nButtons;
     for (i = 0; i < numButtons; i++)
     {
+        // Construct the specified number of buttons, initialize the rest
+        // of the buttons in the button array to NULL
         if (i < numButtons)
             button[i] = new vsInputButton();
         else
@@ -95,12 +100,14 @@ vsMouse::~vsMouse()
 {
     int i;
 
+    // Delete all the axes we created
     for (i = 0; i < numAxes; i++)
     {
         if (axis[i])
             delete axis[i];
     }
 
+    // Delete all the button we created
     for (i = 0; i < numButtons; i++)
     {
         if (button[i])
@@ -109,10 +116,12 @@ vsMouse::~vsMouse()
 }
 
 // ------------------------------------------------------------------------
-// Change the value of the vsInputAxes to the given positions.
+// Change the value of the first two vsInputAxes to the given positions.
 // ------------------------------------------------------------------------
 void vsMouse::moveTo(int xPos, int yPos)
 {
+    // This function makes no sense unless we have at least two axes
+    // (x and y)
     if (numAxes >= 2)
     {
         axis[0]->setPosition(xPos);

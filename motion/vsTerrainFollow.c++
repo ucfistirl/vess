@@ -22,6 +22,35 @@
 
 #include "vsTerrainFollow.h++"
 
+void printMat(vsMatrix mat)
+{
+    int rowNum;
+
+    for (rowNum = 0; rowNum < 4; rowNum++)
+    {
+        printf("%8.4lf%8.4lf%8.4lf%8.4lf", mat[rowNum][0], mat[rowNum][1],
+            mat[rowNum][2], mat[rowNum][3]);
+        printf("\n");
+    }
+}
+
+void printVec(vsVector vec)
+{
+    int i, vecSize;
+
+    vecSize = vec.getSize();
+
+    // Enclose the components of the vector in angle brackets
+    printf("<");
+
+    // Print all but the last component with a trailing comma and space
+    for (i = 0; i < vecSize-1; i++)
+        printf("%0.4lf, ", vec[i]);
+
+    // Print the last component and close with an angle bracket
+    printf("%0.4lf>", vec[vecSize-1]);
+}
+
 // ------------------------------------------------------------------------
 // Constructor - Stores the given pointers, creates an intersection object,
 // and sets initial values with defaults.
@@ -124,9 +153,7 @@ void vsTerrainFollow::update()
     objectComp = kinematics->getComponent();
     globalXform = objectComp->getGlobalXform();
 
-    basePoint.set(0.0, 0.0, 0.0);
-    basePoint += pointOffset;
-    basePoint = globalXform.getPointXform(basePoint);
+    basePoint = globalXform.getPointXform(pointOffset);
     
     // Create a segment, starting at 'stepHeight' above the base point,
     // and going straight down a long way.
@@ -135,14 +162,33 @@ void vsTerrainFollow::update()
     
     downVec.set(0.0, 0.0, -1.0);
     intersect->setSeg(0, topPoint, downVec, 10000.0);
+
+    printf("Terrain Follow:\n");
+    printf("  globalXform:\n");
+    printMat(globalXform);
+    printf("  basePoint: ");
+    printVec(basePoint);
+    printf("\n");
+    printf("  topPoint: "); 
+    printVec(topPoint);
+    printf("\n");
+    printf("  downVec: ");
+    printVec(downVec);
+    printf("\n");
     
     intersect->intersect(scene);
     
     if (intersect->getIsectValid(0))
     {
         hitPoint = intersect->getIsectPoint(0);
+        printf("  HIT!  hitPoint:");
+        printVec(hitPoint);
+        printf("\n");
         hitPoint[2] += VS_TFOLLOW_FLOAT_HEIGHT;
         groundOffset = hitPoint - basePoint;
+        printf("        groundOffset: ");
+        printVec(groundOffset);
+        printf("\n");
         kinematics->modifyPosition(groundOffset);
     }
     

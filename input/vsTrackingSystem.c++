@@ -23,10 +23,8 @@
 
 vsTrackingSystem::vsTrackingSystem()
 {
-
 }
 
 vsTrackingSystem::~vsTrackingSystem()
 {
-
 }

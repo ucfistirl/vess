@@ -37,12 +37,16 @@
 // ------------------------------------------------------------------------
 vsDatabaseLoader::vsDatabaseLoader() : nodeNames(0, 50)
 {
+    // Important name list starts empty
     nodeNameCount = 0;
     
+    // Default unit mode is meters
     unitMode = VS_DATABASE_UNITS_METERS;
     
+    // 'Transforms are important' mode defaults to off
     importantXformMode = VS_FALSE;
     
+    // System is not initialized yet
     inittedFlag = 0;
 }
 
@@ -51,6 +55,7 @@ vsDatabaseLoader::vsDatabaseLoader() : nodeNames(0, 50)
 // ------------------------------------------------------------------------
 vsDatabaseLoader::~vsDatabaseLoader()
 {
+    // Delete all important names
     clearNames();
 }
 
@@ -64,6 +69,8 @@ void vsDatabaseLoader::initExtension(char *fileExtension)
     fltRegisterNodeT callbackPtr;
     void *callbackHandle;
 
+    // Can't initialize an extension after the system object finishes
+    // its initialization
     if (inittedFlag)
     {
         printf("vsDatabaseLoader::initExtension: Can't initialize extensions "
@@ -71,21 +78,25 @@ void vsDatabaseLoader::initExtension(char *fileExtension)
         return;
     }
 
+    // Attempt the initialization of the specified loader
     if (!pfdInitConverter(fileExtension))
     {
         printf("vsDatabaseLoader::initExtension: Unable to initialize '%s' "
 	    "loader\n", fileExtension);
         return;
     }
+
+    // Perform extra initialization based on the particular loader
     if (classifyExtension(fileExtension) == VS_DATABASE_TYPE_FLT)
     {
+        // OpenFlight specific stuff: custom callback, flatten and
+	// clean modes disabled
         callbackPtr = fltLoaderCallback;
         callbackHandle = &callbackPtr;
         pfdConverterAttr_flt(PFFLT_REGISTER_NODE, callbackHandle);
         pfdConverterMode_flt(PFFLT_FLATTEN, PF_OFF);
         pfdConverterMode_flt(PFFLT_CLEAN, PF_OFF);
     }
-
 }
 
 // ------------------------------------------------------------------------
@@ -95,7 +106,11 @@ void vsDatabaseLoader::initExtension(char *fileExtension)
 // ------------------------------------------------------------------------
 void vsDatabaseLoader::addImportantNodeName(char *newName)
 {
+    // Allocate memory for the new name and copy the name to the new memory
     nodeNames[nodeNameCount] = strdup(newName);
+
+    // Verify that the allocation was successful; increment the list size
+    // if so.
     if (!(nodeNames[nodeNameCount]))
         printf("vsDatabaseLoader::addImportantNodeName: Error allocating "
             "space for node name string\n");
@@ -110,9 +125,11 @@ void vsDatabaseLoader::clearNames()
 {
     int loop;
     
+    // Delete all names in the list
     for (loop = 0; loop < nodeNameCount; loop++)
         free(nodeNames[loop]);
 
+    // Set the list size to empty
     nodeNameCount = 0;
 }
 
@@ -134,9 +151,13 @@ void vsDatabaseLoader::addPath(char *filePath)
     const char *performerPath;
     char *fullPath;
     
+    // Get the current file path from Performer
     performerPath = pfGetFilePath();
+
+    // Determine if the current path is empty or not
     if (!performerPath)
     {
+	// No existing path; create a new one that contains just a '.'
 	fullPath = (char *)(malloc(strlen(filePath) + 5));
 	if (!fullPath)
 	{
@@ -147,6 +168,7 @@ void vsDatabaseLoader::addPath(char *filePath)
     }
     else
     {
+	// Path already exists; copy what's there into our new buffer
 	fullPath = (char *)
 	    (malloc(strlen(filePath) + strlen(pfGetFilePath()) + 5));
 	if (!fullPath)
@@ -157,12 +179,16 @@ void vsDatabaseLoader::addPath(char *filePath)
         strcpy(fullPath, pfGetFilePath());
     }
 
+    // Append the new path
     strcat(fullPath, ":");
     strcat(fullPath, filePath);
     
+    // Set the Performer path to our newly calculated path
     pfFilePath(fullPath);
     printf("Path is: %s\n", fullPath);
     
+    // Delete the memory needed by the path; Performer should have copied
+    // the path into to its own data area by now.
     free(fullPath);
 }
 
@@ -171,6 +197,7 @@ void vsDatabaseLoader::addPath(char *filePath)
 // ------------------------------------------------------------------------
 void vsDatabaseLoader::clearPath()
 {
+    // Set the current Performer path to the application directory only
     pfFilePath(".");
 }
 
@@ -179,6 +206,7 @@ void vsDatabaseLoader::clearPath()
 // ------------------------------------------------------------------------
 void vsDatabaseLoader::setLoaderMode(int whichMode, int modeVal)
 {
+    // Interpret the whichMode constant
     switch (whichMode)
     {
         case VS_DATABASE_MODE_NAME_XFORM:
@@ -192,12 +220,14 @@ void vsDatabaseLoader::setLoaderMode(int whichMode, int modeVal)
 // ------------------------------------------------------------------------
 int vsDatabaseLoader::getLoaderMode(int whichMode)
 {
+    // Interpret the whichMode constant
     switch (whichMode)
     {
         case VS_DATABASE_MODE_NAME_XFORM:
             return importantXformMode;
     }
     
+    // If the constant is unrecognized, return a default value
     return 0;
 }
 
@@ -213,6 +243,7 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
     vsComponent *result;
     pfNode *performerGraph;
 
+    // Verify that the system object has been intialized
     if (!inittedFlag)
     {
         printf("vsDatabaseLoader::loadDatabase: Can't load database until "
@@ -220,6 +251,7 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
         return NULL;
     }
 
+    // Do loader specific work here
     if (classifyExtension(databaseFilename) == VS_DATABASE_TYPE_FLT)
     {
         // Is an OpenFlight file...  set the database units
@@ -237,6 +269,7 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
         }
     }
 
+    // Attempt to load the specified file
     performerGraph = pfdLoadFile(databaseFilename);
     if (!performerGraph)
     {
@@ -245,6 +278,7 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
         return NULL;
     }
 
+    // Do loader specific work here
     if (classifyExtension(databaseFilename) == VS_DATABASE_TYPE_FLT)
     {
         // Is an OpenFlight file...  fix the DOF/DCS nodes
@@ -255,7 +289,7 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
     // slightly but ultimately the scene graph is easier to handle this way.
     fixGeodes(performerGraph);
 
-    // Bottle the Performer graph into a VESS tree
+    // Translate the Performer graph into a VESS tree
     if (performerGraph->isOfType(pfGroup::getClassType()))
         dbRoot = new vsComponent((pfGroup *)performerGraph, this);
     else if (performerGraph->isOfType(pfGeode::getClassType()))
@@ -269,13 +303,15 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
 
     // * Replace all pfBillboards in the Performer scene with pfGeodes; the
     // database loader should have extracted all of the relavant information
-    // into vsBillboardAttributes by now.
+    // into vsBillboardAttributes by now, so the pfBillboards should be
+    // removes so they don't get in the way.
     replaceBillboards(performerGraph);
 
     // Package the resulting database into its own component and return
     result = new vsComponent();
     result->addChild(dbRoot);
 
+    // Return the loaded scene graph
     return result;
 }
 
@@ -291,6 +327,7 @@ int vsDatabaseLoader::classifyExtension(char *name)
 {
     char *fileExtension;
 
+    // Search for the last . in the extension name
     fileExtension = strrchr(name, '.');
 
     // OpenFlight
@@ -318,10 +355,24 @@ void vsDatabaseLoader::fixPerformerFltDOF(pfNode *node)
     pfSCS *aboveSCS, *belowSCS;
     vsdbMatrixBlock *myData;
 
+    // The Performer OpenFlight loader doesn't handle DOF beads correctly.
+    // Specifically, it ignores the put matrices in the DOF that allow the
+    // object to rotate around some point other than the origin. To get
+    // around this, we have a loader callback that extracts these matrices
+    // from the DOFs during the load process, and stores them in the user
+    // data block of the pfDCS node associated with the DOF. This function
+    // searches the Performer scene for pfDCSs with these matrix data
+    // blocks attached to them, extracts the matrices, creates a pair of
+    // pfSCS nodes bracketing the pfDCS that utilize the matrix data, and
+    // gets rid of the data block when it's done.
+
     // First, if this node is a group, recurse down through the scene
     if (node->isOfType(pfGroup::getClassType()))
     {
+        // Type cast
         groupNode = (pfGroup *)node;
+
+        // Call this function on each child of the group
         childCount = groupNode->getNumChildren();
         for (loop = 0; loop < childCount; loop++)
             fixPerformerFltDOF(groupNode->getChild(loop));
@@ -330,7 +381,10 @@ void vsDatabaseLoader::fixPerformerFltDOF(pfNode *node)
     // Second, if this node is a DCS, apply the fix
     if (node->isOfType(pfDCS::getClassType()))
     {
+        // Type cast
         DCSNode = (pfDCS *)node;
+
+        // Get the matrix data block from the pfDCS
         myData = (vsdbMatrixBlock *)(DCSNode->getUserData());
         if (!myData || (strcmp(myData->magicString, "DOF")))
         {
@@ -340,17 +394,24 @@ void vsDatabaseLoader::fixPerformerFltDOF(pfNode *node)
             return;
         }
 
+        // Create two new pfSCS groups from the matrix data in the block
         aboveSCS = new pfSCS(myData->aboveMatrix);
         belowSCS = new pfSCS(myData->belowMatrix);
 
         // Move all of the children of the DCS to the 'below' SCS
         while (DCSNode->getNumChildren() > 0)
         {
+            // Get the first child of the pfDCS, remove it from the
+	    // DCS, and add it to the 'below' SCS
             childNode = DCSNode->getChild(0);
             DCSNode->removeChild(childNode);
             belowSCS->addChild(childNode);
         }
 
+	// Put the new pfSCS nodes into place by setting the parent of
+	// the DCS to point to the 'above' SCS instead, setting the
+	// DCS as the child of the 'above' SCS, and setting the 'below'
+	// SCS as a child of the DCS.
         parentGroup = DCSNode->getParent(0);
         parentGroup->replaceChild(DCSNode, aboveSCS);
         aboveSCS->addChild(DCSNode);
@@ -377,32 +438,45 @@ void vsDatabaseLoader::fixGeodes(pfNode *targetGraph)
     pfGroup *newMasterGroup, *parentGroup;
     pfGeoSet *tempGeoset;
     
+    // Determine the type of the Performer node
     if (targetGraph->isOfType(pfGroup::getClassType()))
     {
+	// Recurse on the group's children
         childCount = ((pfGroup *)targetGraph)->getNumChildren();
         for (loop = 0; loop < childCount; loop++)
             fixGeodes(((pfGroup *)targetGraph)->getChild(loop));
     }
     else if (targetGraph->isOfType(pfGeode::getClassType()))
     {
+        // Store the source geode
         oldGeode = (pfGeode *)targetGraph;
 
+	// Nothing to do if there's only one geoset on this geode
         if (oldGeode->getNumGSets() > 1)
         {
-            // 'Fix' the geode by creating one geode for every geoset
+	    // Create a new group that will hold all of the new geodes
             newMasterGroup = new pfGroup();
+
+            // Set each parent of the source geode to point to our
+	    // new group instead
             while (oldGeode->getNumParents() > 0)
             {
                 parentGroup = oldGeode->getParent(0);
                 parentGroup->replaceChild(oldGeode, newMasterGroup);
             }
             
+            // 'Fix' the geode by creating one geode for every geoset,
+	    // and adding those geodes to the new group
             while (oldGeode->getNumGSets() > 0)
             {
+                // Get the first geoset on the geode
                 tempGeoset = oldGeode->getGSet(0);
+
+                // Check to see if this geode is actually a pfBillboard
                 if (oldGeode->isOfType(pfBillboard::getClassType()))
                 {
-                    // Copy the relevant old billboard data
+		    // Create a new pfBillboard object and copy all of
+		    // the billboard parameters to it
                     oldBillboard = (pfBillboard *)oldGeode;
                     newBillboard = new pfBillboard();
                     oldBillboard->getPos(0, data);
@@ -414,12 +488,21 @@ void vsDatabaseLoader::fixGeodes(pfNode *targetGraph)
                     newGeode = newBillboard;
                 }
                 else
+                {
+                    // Create a new pfGeode object
                     newGeode = new pfGeode();
+                }
+
+                // Move the target geoset from the original geode
+		// to its very own geode: the one we just created. Also
+		// add the new geode to our master group.
                 oldGeode->removeGSet(tempGeoset);
                 newGeode->addGSet(tempGeoset);
                 newMasterGroup->addChild(newGeode);
             }
 
+            // By now the source geode should be empty and is no
+	    // longer needed
             pfDelete(oldGeode);
         }
     }
@@ -442,9 +525,11 @@ void vsDatabaseLoader::replaceBillboards(pfNode *targetGraph)
     vsGeometry *boundGeom;
     pfGroup *parentGroup;
     vsObjectMap *nodeMap;
-    
+
+    // Determine the type of the Performer node
     if (targetGraph->isOfType(pfGroup::getClassType()))
     {
+	// Recurse on the group's children
         childCount = ((pfGroup *)targetGraph)->getNumChildren();
         for (loop = 0; loop < childCount; loop++)
             fixGeodes(((pfGroup *)targetGraph)->getChild(loop));
@@ -495,6 +580,7 @@ void vsDatabaseLoader::replaceBillboards(pfNode *targetGraph)
 // ------------------------------------------------------------------------
 void vsDatabaseLoader::init()
 {
+    // Take note that the system object has been initialized
     inittedFlag = 1;
 }
 
@@ -545,6 +631,7 @@ void vsDatabaseLoader::fltLoaderCallback(pfNode *node, int mgOp, int *cbs,
 
         case CB_CLEANNODE:
             *cbs = TRUE;
+
         case CB_CLONE:
             break;
         
@@ -569,14 +656,20 @@ int vsDatabaseLoader::importanceCheck(pfNode *targetNode)
     int loop;
     const char *targetName;
     
+    // Get the name of the node
     targetName = targetNode->getName();
 
+    // Compare the node's name to each important name; return true if
+    // there's a match
     for (loop = 0; loop < nodeNameCount; loop++)
         if (!strcmp((char *)(nodeNames[loop]), targetName))
             return VS_TRUE;
 
+    // Check the type of the node; if the node is a DCS, and the
+    // 'transforms are important' mode is on, then the node is important
     if (importantXformMode && targetNode->isOfType(pfDCS::getClassType()))
         return VS_TRUE;
 
+    // If we got this far, then the node must not be important
     return VS_FALSE;
 }

@@ -39,9 +39,11 @@ vsDecalAttribute::vsDecalAttribute()
 // ------------------------------------------------------------------------
 vsDecalAttribute::vsDecalAttribute(pfLayer *layerGroup)
 {
+    // Store the pointer to the pfLayer object
     performerLayer = layerGroup;
     performerLayer->ref();
     
+    // Mark this attribute as attached
     attachedFlag = 1;
 }
 
@@ -74,6 +76,8 @@ int vsDecalAttribute::getAttributeCategory()
 // ------------------------------------------------------------------------
 int vsDecalAttribute::canAttach()
 {
+    // This attribute is not available to be attached if it is already
+    // attached to another node
     if (attachedFlag)
         return VS_FALSE;
 
@@ -87,12 +91,14 @@ int vsDecalAttribute::canAttach()
 // ------------------------------------------------------------------------
 void vsDecalAttribute::attach(vsNode *theNode)
 {
+    // Verify that we're not already attached to something
     if (attachedFlag)
     {
         printf("vsDecalAttribute::attach: Attribute is already attached\n");
         return;
     }
 
+    // Switch attributes may not be attached to geometry nodes
     if ((theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY) ||
         (theNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY))
     {
@@ -101,12 +107,15 @@ void vsDecalAttribute::attach(vsNode *theNode)
         return;
     }
     
-    // Replace the bottom group with a layer group
+    // Replace the bottom group with a new layer group
     performerLayer = new pfLayer();
     ((vsComponent *)theNode)->replaceBottomGroup(performerLayer);
 
+    // Set the mode of the pfLayer object to use the 'displacement with
+    // constant offset' depth value manipulation mode
     performerLayer->setMode(PFDECAL_BASE_DISPLACE | PFDECAL_LAYER_OFFSET);
 
+    // Mark this attribute as attached
     attachedFlag = 1;
 }
 
@@ -119,6 +128,7 @@ void vsDecalAttribute::detach(vsNode *theNode)
 {
     pfGroup *newGroup;
 
+    // Can't detach an attribute that is not attached
     if (!attachedFlag)
     {
         printf("vsDecalAttribute::attach: Attribute is not attached\n");
@@ -130,6 +140,7 @@ void vsDecalAttribute::detach(vsNode *theNode)
     ((vsComponent *)theNode)->replaceBottomGroup(newGroup);
     performerLayer = NULL;
     
+    // Mark this attribute as unattached
     attachedFlag = 0;
 }
 
@@ -141,7 +152,9 @@ void vsDecalAttribute::attachDuplicate(vsNode *theNode)
 {
     vsDecalAttribute *newAttrib;
 
+    // Create a duplicate decal attribute
     newAttrib = new vsDecalAttribute();
 
+    // Attach the duplicate attribute to the specified node
     theNode->addAttribute(newAttrib);
 }

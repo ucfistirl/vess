@@ -32,6 +32,7 @@
 // ------------------------------------------------------------------------
 vsTreeMap::vsTreeMap()
 {
+    // Tree initially has not root node and no nodes
     treeRoot = NULL;
     treeSize = 0;
 }
@@ -41,6 +42,7 @@ vsTreeMap::vsTreeMap()
 // ------------------------------------------------------------------------
 vsTreeMap::~vsTreeMap()
 {
+    // Delete all tree entries
     clear();
 }
 
@@ -68,6 +70,8 @@ int vsTreeMap::addEntry(void *key, void *value)
     // If the tree is empty, then the new node becomes the root.
     if (treeRoot == NULL)
     {
+        // Set the root node, color it black (root nodes are always black),
+	// increment the entry count, and return success.
         treeRoot = newNode;
         treeRoot->color = VS_TREE_MAP_BLACK;
         treeSize++;
@@ -79,29 +83,38 @@ int vsTreeMap::addEntry(void *key, void *value)
     vsTreeMapNode *nodeParent = treeRoot;
     while (1)
     {
+        // Branch left or right based on key comparison
         if (newNode->nodeKey < nodeParent->nodeKey)
         {
             // Left subtree
             if (nodeParent->leftChild == NULL)
             {
+                // Place the new node as the left child
                 nodeParent->leftChild = newNode;
                 newNode->parent = nodeParent;
                 break;
             }
             else
+	    {
+		// Move to the left child and keep searching
                 nodeParent = nodeParent->leftChild;
+	    }
         }
         else
         {
             // Right subtree
             if (nodeParent->rightChild == NULL)
             {
+                // Place the new node as the right child
                 nodeParent->rightChild = newNode;
                 newNode->parent = nodeParent;
                 break;
             }
             else
+	    {
+		// Move to the right child and keep searching
                 nodeParent = nodeParent->rightChild;
+	    }
         }
     }
     
@@ -109,6 +122,7 @@ int vsTreeMap::addEntry(void *key, void *value)
     rebalanceInsert(newNode);
     treeRoot->color = VS_TREE_MAP_BLACK;
 
+    // Increase entry cound by one and return success
     treeSize++;
     return VS_TRUE;
 }
@@ -136,6 +150,7 @@ int vsTreeMap::deleteEntry(void *key)
     if (treeRoot)
         treeRoot->color = VS_TREE_MAP_BLACK;
 
+    // Decrease entry count by one and return success
     treeSize--;
     return VS_TRUE;
 }
@@ -154,6 +169,7 @@ int vsTreeMap::getEntryCount()
 // ------------------------------------------------------------------------
 int vsTreeMap::containsKey(void *key)
 {
+    // Call our helper function to find the node with the given key
     if (findNode(treeRoot, key) != NULL)
         return VS_TRUE;
     else
@@ -168,10 +184,12 @@ void *vsTreeMap::getValue(void *key)
 {
     vsTreeMapNode *node;
     
+    // Call our helper function to find the node with the given key
     node = findNode(treeRoot, key);
     if (node)
         return (node->nodeValue);
 
+    // Return NULL if the target key wasn't found
     return NULL;
 }
 
@@ -184,10 +202,12 @@ int vsTreeMap::changeValue(void *key, void *newValue)
 {
     vsTreeMapNode *node;
     
+    // Call our helper function to find the node with the given key
     node = findNode(treeRoot, key);
     if (!node)
         return VS_FALSE;
 
+    // If found, change the value of the node and return success
     node->nodeValue = newValue;
     return VS_TRUE;
 }
@@ -197,12 +217,14 @@ int vsTreeMap::changeValue(void *key, void *newValue)
 // ------------------------------------------------------------------------
 void vsTreeMap::clear()
 {
+    // No work to do if the tree is already empty
     if (treeRoot == NULL)
         return;
 
     // The deleteTree function does all of the actual work
     deleteTree(treeRoot);
     
+    // Set the tree to empty
     treeRoot = NULL;
     treeSize = 0;
 }
@@ -219,16 +241,22 @@ void vsTreeMap::getSortedList(vsGrowableArray *keyList,
 {
     int arrayPos;
 
+    // Set the sizes of the return arrays to the number of entries in the
+    // tree
     keyList->setSize(treeSize);
     valueList->setSize(treeSize);
     
+    // No work to do if the tree is empty
     if (treeSize == 0)
         return;
 
+    // Initialize the array position temporary variable
     arrayPos = 0;
     
+    // Call a helper function to copy the tree data to the arrays
     fillArrays(treeRoot, &arrayPos, keyList, valueList);
     
+    // Error checking
     if (arrayPos != treeSize)
         printf("vsTreeMap::getSortedList: Tree Inconsistency: Number of "
             "entries in tree is not equal to the tree's stated size\n");
@@ -241,12 +269,17 @@ void vsTreeMap::getSortedList(vsGrowableArray *keyList,
 // ------------------------------------------------------------------------
 vsTreeMapNode *vsTreeMap::findNode(vsTreeMapNode *node, void *key)
 {
+    // If the target node is NULL, then this definitely isn't the
+    // node we're looking for
     if (node == NULL)
         return NULL;
 
+    // If the keys match, return the target node
     if (node->nodeKey == key)
         return node;
 
+    // Otherwise, search a child for the key; which child to search is
+    // determined by comparing key values
     if (key > node->nodeKey)
         return findNode(node->rightChild, key);
     else
@@ -378,6 +411,7 @@ void vsTreeMap::rebalanceDelete(vsTreeMapNode *parent, int deletedChildType)
     // the deletion.
     if (deletedChildType == VS_TREE_MAP_LEFTCHILD)
     {
+        // Get the sibling
         sibling = parent->rightChild;
 
         // If it isn't already, force the sibling to be black by rotatng
@@ -430,6 +464,7 @@ void vsTreeMap::rebalanceDelete(vsTreeMapNode *parent, int deletedChildType)
     }
     else
     {
+        // Get the sibling
         sibling = parent->leftChild;
 
         // If it isn't already, force the sibling to be black by rotatng
@@ -493,11 +528,13 @@ void vsTreeMap::deleteNode(vsTreeMapNode *node)
     vsTreeMapNode *parent = node->parent;
     vsTreeMapNode *child;
 
+    // Switch based on the number of children the node has
     if ((node->leftChild == NULL) && (node->rightChild == NULL))
     {
         // Case 1: node to delete has no children
         // Remove the node and rebalance
-    
+
+        // Remove the node
         if (childType == VS_TREE_MAP_LEFTCHILD)
             parent->leftChild = NULL;
         else if (childType == VS_TREE_MAP_RIGHTCHILD)
@@ -505,9 +542,11 @@ void vsTreeMap::deleteNode(vsTreeMapNode *node)
         else
             treeRoot = NULL;
         
+        // Rebalance the tree if needed
         if (node->color == VS_TREE_MAP_BLACK)
             rebalanceDelete(parent, childType);
         
+        // Delete the removed node
         delete node;
     }
     else if ((node->leftChild == NULL) || (node->rightChild == NULL))
@@ -516,13 +555,16 @@ void vsTreeMap::deleteNode(vsTreeMapNode *node)
         // Move the child node into the location that the node to
         // be deleted is in, and rebalance
 
+        // Get the child node
         if (node->leftChild)
             child = node->leftChild;
         else
             child = node->rightChild;
 
+        // Reparent the child node
         child->parent = parent;
 
+        // Rechild the parent node
         if (childType == VS_TREE_MAP_LEFTCHILD)
             parent->leftChild = child;
         else if (childType == VS_TREE_MAP_RIGHTCHILD)
@@ -530,9 +572,11 @@ void vsTreeMap::deleteNode(vsTreeMapNode *node)
         else
             treeRoot = child;
         
+        // Rebalance the tree if needed
         if (node->color == VS_TREE_MAP_BLACK)
             rebalanceDelete(parent, childType);
 
+        // Delete the removed node
         delete node;
     }
     else
@@ -542,11 +586,15 @@ void vsTreeMap::deleteNode(vsTreeMapNode *node)
         // the next-higher key value, transplant that value into the
         // node that would have been deleted, and delete that other node.
 
+        // Find the node with the 'next' value
         child = getInorderSuccessor(node);
         
+        // Move the 'next' node's data to the one that would have been
+	// deleted
         node->nodeKey = child->nodeKey;
         node->nodeValue = child->nodeValue;
         
+        // Delete the 'next' node instead
         deleteNode(child);
     }
 }
@@ -568,6 +616,7 @@ vsTreeMapNode *vsTreeMap::getInorderSuccessor(vsTreeMapNode *node)
     while (result->leftChild)
         result = result->leftChild;
 
+    // Return the node
     return result;
 }
 
@@ -591,6 +640,7 @@ void vsTreeMap::rotateLeft(vsTreeMapNode *node)
     vsTreeMapNode *left, *right, *child, *parent;
     int childType;
     
+    // 'right' must not be NULL
     if (node->rightChild == NULL)
     {
         printf("vsTreeMap::rotateLeft: Can't rotate left on a node with no "
@@ -598,13 +648,16 @@ void vsTreeMap::rotateLeft(vsTreeMapNode *node)
         return;
     }
     
+    // Assign temporary pointers
     left = node;
     right = left->rightChild;
     child = right->leftChild;
     parent = left->parent;
     
+    // Determine what kind of child the target node is
     childType = getChildType(node);
     
+    // Perform the rotation
     left->rightChild = child;
     left->parent = right;
     right->leftChild = left;
@@ -612,6 +665,7 @@ void vsTreeMap::rotateLeft(vsTreeMapNode *node)
     if (child)
         child->parent = left;
     
+    // Correct which node the parent points to
     if (childType == VS_TREE_MAP_LEFTCHILD)
         parent->leftChild = right;
     else if (childType == VS_TREE_MAP_RIGHTCHILD)
@@ -640,6 +694,7 @@ void vsTreeMap::rotateRight(vsTreeMapNode *node)
     vsTreeMapNode *left, *right, *child, *parent;
     int childType;
     
+    // 'left' must not be NULL
     if (node->leftChild == NULL)
     {
         printf("vsTreeMap::rotateRight: Can't rotate right on a node with "
@@ -647,13 +702,16 @@ void vsTreeMap::rotateRight(vsTreeMapNode *node)
         return;
     }
     
+    // Assign temporary pointers
     right = node;
     left = right->leftChild;
     child = left->rightChild;
     parent = right->parent;
     
+    // Determine what kind of child the target node is
     childType = getChildType(node);
 
+    // Perform the rotation
     right->leftChild = child;
     right->parent = left;
     left->rightChild = right;
@@ -661,6 +719,7 @@ void vsTreeMap::rotateRight(vsTreeMapNode *node)
     if (child)
         child->parent = right;
     
+    // Correct which node the parent points to
     if (childType == VS_TREE_MAP_LEFTCHILD)
         parent->leftChild = left;
     else if (childType == VS_TREE_MAP_RIGHTCHILD)
@@ -676,12 +735,15 @@ void vsTreeMap::rotateRight(vsTreeMapNode *node)
 // ------------------------------------------------------------------------
 void vsTreeMap::deleteTree(vsTreeMapNode *node)
 {
+    // No tree, no work
     if (node == NULL)
         return;
 
+    // Recurse on the node's children
     deleteTree(node->leftChild);
     deleteTree(node->rightChild);
     
+    // Destroy this node
     delete node;
 }
 
@@ -695,6 +757,7 @@ int vsTreeMap::getChildType(vsTreeMapNode *node)
 {
     vsTreeMapNode *parent = node->parent;
     
+    // Figure out which child of its parent the node is
     if (parent == NULL)
         return VS_TREE_MAP_ROOTNODE;
     if (parent->leftChild == node)
@@ -702,6 +765,7 @@ int vsTreeMap::getChildType(vsTreeMapNode *node)
     if (parent->rightChild == node)
         return VS_TREE_MAP_RIGHTCHILD;
 
+    // Error checking
     printf("vsTreeMap::getChildType: Tree Inconsistency: 'node' is not "
         "a child of its own parent!\n");
     return -1;
@@ -715,14 +779,19 @@ int vsTreeMap::getChildType(vsTreeMapNode *node)
 void vsTreeMap::fillArrays(vsTreeMapNode *node, int *arrayPos,
     vsGrowableArray *keyList, vsGrowableArray *valueList)
 {
+    // No work to do if there's no tree
     if (!node)
         return;
 
+    // Inorder - traverse left child
     fillArrays(node->leftChild, arrayPos, keyList, valueList);
     
+    // Copy this node's data to the array, and increment the current
+    // write position index
     (*keyList)[(*arrayPos)] = node->nodeKey;
     (*valueList)[(*arrayPos)] = node->nodeValue;
     (*arrayPos)++;
     
+    // Inorder - traverse right child
     fillArrays(node->rightChild, arrayPos, keyList, valueList);
 }

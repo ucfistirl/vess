@@ -91,7 +91,7 @@ enum
     VS_KEY_PGUP       = 30,
     VS_KEY_PGDN       = 31,
 
-    // Printable characters will map to KeySyms (ASCII code)
+    // Printable characters will map to KeySyms (ASCII code) directly
 
     // Cursor keys
     VS_KEY_UP         = 97,

@@ -99,12 +99,14 @@ void vsQuat::clear()
 // ------------------------------------------------------------------------
 void vsQuat::setValue(int index, double value)
 {
+    // Bounds checking
     if ((index < 0) || (index > 3))
     {
         printf("vsQuat::setValue: Bad index\n");
         return;
     }
     
+    // Set the specified value
     data[index] = value;
 }
 
@@ -113,12 +115,14 @@ void vsQuat::setValue(int index, double value)
 // ------------------------------------------------------------------------
 double vsQuat::getValue(int index)
 {
+    // Bounds checking
     if ((index < 0) || (index > 3))
     {
         printf("vsQuat::getValue: Bad index\n");
         return data[0];
     }
     
+    // Return the desired value
     return data[index];
 }
 
@@ -131,10 +135,13 @@ int vsQuat::isEqual(vsQuat operand)
 {
     int loop;
     
+    // Check each pair of values (this quat's and the operand quat's) for
+    // almost-equality; return false if a pair doesn't match up.
     for (loop = 0; loop < 4; loop++)
         if (fabs(data[loop] - operand[loop]) > VS_MATH_DEFAULT_TOLERANCE)
             return VS_FALSE;
 
+    // If all the pairs match, return true
     return VS_TRUE;
 }
 
@@ -147,10 +154,14 @@ int vsQuat::isAlmostEqual(vsQuat operand, double tolerance)
 {
     int loop;
     
+    // Check each pair of values (this quat's and the operand quat's) for
+    // almost-equality, 'almost' being specified by a given tolerance
+    // value. Return false if a pair doesn't match up.
     for (loop = 0; loop < 4; loop++)
         if (fabs(data[loop] - operand[loop]) > tolerance)
             return VS_FALSE;
 
+    // If all the pairs match, return true
     return VS_TRUE;
 }
 
@@ -160,6 +171,7 @@ int vsQuat::isAlmostEqual(vsQuat operand, double tolerance)
 // ------------------------------------------------------------------------
 void vsQuat::add(vsQuat addend)
 {
+    // Add each element of the addend quat to this quat
     for (int i = 0; i < 4; i++)
         data[i] += addend[i];
 }
@@ -172,9 +184,12 @@ vsQuat vsQuat::getSum(vsQuat addend)
     int loop;
     vsQuat result;
     
+    // Create the target quat by adding each element of this quat to the
+    // corresponding element of the addend quat
     for (loop = 0; loop < 4; loop++)
         result[loop] = data[loop] + addend[loop];
 
+    // Return the target quat
     return result;
 }
 
@@ -184,6 +199,7 @@ vsQuat vsQuat::getSum(vsQuat addend)
 // ------------------------------------------------------------------------
 void vsQuat::subtract(vsQuat subtrahend)
 {
+    // Subtract each element of the subtrahend quat from this quat
     for (int i = 0; i < 4; i++)
         data[i] -= subtrahend[i];
 }
@@ -196,9 +212,12 @@ vsQuat vsQuat::getDifference(vsQuat subtrahend)
     int loop;
     vsQuat result;
     
+    // Create the target quat by subtracting each element of the subtrahend
+    // from the corresponding element of this quat
     for (loop = 0; loop < 4; loop++)
         result[loop] = data[loop] - subtrahend[loop];
 
+    // Return the target quat
     return result;
 }
 
@@ -208,6 +227,7 @@ vsQuat vsQuat::getDifference(vsQuat subtrahend)
 // ------------------------------------------------------------------------
 void vsQuat::scale(double multiplier)
 {
+    // Multiply each element of this quat by the given scalar
     for (int i = 0; i < 4; i++)
         data[i] *= multiplier;
 }
@@ -221,9 +241,12 @@ vsQuat vsQuat::getScaled(double multiplier)
     int loop;
     vsQuat result;
     
+    // Create the target quat by multiplying each element of this quat
+    // by the given scalar
     for (loop = 0; loop < 4; loop++)
         result[loop] = data[loop] * multiplier;
 
+    // Return the target quat
     return result;
 }
 
@@ -282,6 +305,8 @@ void vsQuat::multiplyQuat(vsQuat operand)
 // ------------------------------------------------------------------------
 vsQuat vsQuat::getMultipliedQuat(vsQuat operand)
 {
+    // Create a duplicate of this quat, multiply in the operand quat, and
+    // return the result
     vsQuat result(data);
     result.multiplyQuat(operand);
     return result;
@@ -294,9 +319,11 @@ double vsQuat::getMagnitude()
 {
     double result = 0.0;
 
+    // Compute the squared magnitude of this quaternion
     for (int i = 0; i < 4; i++)
         result += VS_SQR(data[i]);
 
+    // Return the square root of the square of the magnitude
     return sqrt(result);
 }
 
@@ -309,10 +336,13 @@ vsQuat vsQuat::getNormalized()
     double mag;
     int loop;
     
+    // Create the target quat by dividing the elements of this quat
+    // by this quat's magnitude
     mag = getMagnitude();
     for (loop = 0; loop < 4; loop++)
         result[loop] = data[loop] / mag;
 
+    // Return the target quat
     return result;
 }
 
@@ -324,6 +354,7 @@ void vsQuat::normalize()
     double mag;
     int loop;
     
+    // Divide this quat by its magnitude
     mag = getMagnitude();
     for (loop = 0; loop < 4; loop++)
         data[loop] /= mag;
@@ -339,6 +370,7 @@ void vsQuat::conjugate()
 {
     int loop;
     
+    // Negate the vector portion of this quat
     for (loop = 0; loop < 3; loop++)
         data[loop] = -(data[loop]);
 }
@@ -354,6 +386,8 @@ vsQuat vsQuat::getConjugate()
     vsQuat result;
     int loop;
     
+    // Create the target quat by copying the values from this quat to the
+    // target quat, negating the vector elements as we go.
     for (loop = 0; loop < 4; loop++)
     {
         if (loop == 3)
@@ -362,6 +396,7 @@ vsQuat vsQuat::getConjugate()
             result[loop] = -data[loop];
     }
 
+    // Return the target quat
     return result;
 }
 
@@ -374,8 +409,10 @@ void vsQuat::invert()
     double mag;
     int loop;
     
+    // Get the magnitude of this quat
     mag = getMagnitude();
 
+    // Invert this quat
     conjugate();
     for (loop = 0; loop < 4; loop++)
         data[loop] /= (mag * mag);
@@ -387,6 +424,7 @@ void vsQuat::invert()
 // ------------------------------------------------------------------------
 vsQuat vsQuat::getInverse()
 {
+    // Create a duplicate of this quaternion, invert that, and return it
     vsQuat result(data);
     result.invert();
     return result;
@@ -453,6 +491,8 @@ void vsQuat::setEulerRotation(vsMathEulerAxisOrder axisOrder,
 
     vsQuat firstQuat, secondQuat, thirdQuat, resultQuat;
     
+    // Create three quaternions representing the separate rotations
+    // around each axis
     switch (axisOrder)
     {
         case VS_EULER_ANGLES_XYZ_S:
@@ -562,6 +602,8 @@ void vsQuat::getEulerRotation(vsMathEulerAxisOrder axisOrder,
     // whatever that returns.
     vsMatrix theMatrix;
     
+    // Set the temp matrix's rotation to the same rotation that this
+    // quat contains, and get the Euler rotations from that
     theMatrix.setQuatRotation(*this);
     theMatrix.getEulerRotation(axisOrder, axis1Degrees, axis2Degrees,
         axis3Degrees);
@@ -590,6 +632,7 @@ void vsQuat::setAxisAngleRotation(double x, double y, double z,
         return;
     }
 
+    // Axes of rotation must always be normalized
     axis.normalize();
 
     // Compte the final quaternion, which consists of a vector part of
@@ -637,6 +680,8 @@ void vsQuat::getAxisAngleRotation(double *x, double *y, double *z,
     axis.normalize();
     degrees = VS_RAD2DEG(acos(data[3]) * 2.0);
     
+    // Check which return values are desired and copy the function results
+    // into the specified locations
     if (x)
 	*x = axis[0];
     if (y)
@@ -678,6 +723,7 @@ void vsQuat::setVecsRotation(vsVector originForward, vsVector originUp,
     endUp.setSize(3);
     endUp.normalize();
 
+    // Initialize this quat and some utility vectors
     set(0.0, 0.0, 0.0, 1.0);
     zeroVector.set(0.0, 0.0, 0.0);
     yVector.set(0.0, 1.0, 0.0);
@@ -687,6 +733,9 @@ void vsQuat::setVecsRotation(vsVector originForward, vsVector originUp,
     // to match
     if (!(startDir == endDir))
     {
+        // The first axis of rotation is equal to the cross product of
+	// the starting forward direction vector and the ending forward
+	// direction vector
         rotAxis = startDir.getCrossProduct(endDir);
 
         // Special case: check to see if the originForward and targetForward
@@ -710,8 +759,14 @@ void vsQuat::setVecsRotation(vsVector originForward, vsVector originUp,
             rotAngle = 180.0;
         }
         else
+        {
+            // Amount to rotate is equal to the angle between the starting
+	    // and ending forward vectors
             rotAngle = startDir.getAngleBetween(endDir);
+        }
 
+        // Call one of the quat's functions to set this quat as the
+	// first rotation
         setAxisAngleRotation(rotAxis[0], rotAxis[1], rotAxis[2], rotAngle);
     }
 
@@ -759,6 +814,7 @@ void vsQuat::setVecsRotation(vsVector originForward, vsVector originUp,
 	    else
 		rotAngle = newUp.getAngleBetween(endUp);
 
+            // Create the second rotation quat as the roll rotation
 	    roll.setAxisAngleRotation(rotAxis[0], rotAxis[1], rotAxis[2],
 		rotAngle);
 
@@ -800,6 +856,7 @@ vsVector vsQuat::rotatePoint(vsVector targetPoint)
     for (loop = 0; (loop < targetPoint.getSize()) && (loop < 3); loop++)
         resultPt[loop] = resultQuat[loop];
 
+    // Return the resulting point
     return resultPt;
 }
 
@@ -817,6 +874,7 @@ vsQuat vsQuat::slerp(vsQuat destination, double parameter)
     double theta, q1val, q2val;
     int loop;
     
+    // Bounds checking
     if ((parameter < 0.0) || (parameter > 1.0))
     {
         printf("vsQuat::slerp: 'parameter' must be in range 0.0 - 1.0\n");
@@ -858,12 +916,14 @@ vsQuat vsQuat::slerp(vsQuat destination, double parameter)
 // ------------------------------------------------------------------------
 double &vsQuat::operator[](int index)
 {
+    // Bounds checking
     if ((index < 0) || (index > 3))
     {
         printf("vsQuat::operator[]: Illegal subscript\n");
         return data[0];
     }
     
+    // Return a reference to the desired data value
     return data[index];
 }
 
@@ -876,9 +936,12 @@ vsQuat vsQuat::operator+(vsQuat addend)
     int loop;
     vsQuat result;
     
+    // Create the target quat by adding each element of this quat to the
+    // corresponding element of the addend quat
     for (loop = 0; loop < 4; loop++)
         result[loop] = data[loop] + addend[loop];
 
+    // Return the target quat
     return result;
 }
 
@@ -891,9 +954,12 @@ vsQuat vsQuat::operator-(vsQuat subtrahend)
     int loop;
     vsQuat result;
     
+    // Create the target quat by subtracting each element of the subtrahend
+    // from the corresponding element of this quat
     for (loop = 0; loop < 4; loop++)
         result[loop] = data[loop] - subtrahend[loop];
 
+    // Return the target quat
     return result;
 }
 
@@ -905,6 +971,8 @@ vsQuat vsQuat::operator-(vsQuat subtrahend)
 // ------------------------------------------------------------------------
 vsQuat vsQuat::operator*(vsQuat operand)
 {
+    // Create a duplicate of this quat, multiply in the operand quat, and
+    // return the result
     vsQuat result(data);
     result.multiplyQuat(operand);
     return result;
@@ -917,6 +985,7 @@ vsQuat vsQuat::operator*(vsQuat operand)
 // ------------------------------------------------------------------------
 void vsQuat::operator+=(vsQuat addend)
 {
+    // Add each element of the addend quat to this quat
     for (int i = 0; i < 4; i++)
         data[i] += addend[i];
 }
@@ -928,6 +997,7 @@ void vsQuat::operator+=(vsQuat addend)
 // ------------------------------------------------------------------------
 void vsQuat::operator-=(vsQuat subtrahend)
 {
+    // Subtract each element of the subtrahend quat from this quat
     for (int i = 0; i < 4; i++)
         data[i] -= subtrahend[i];
 }
@@ -939,6 +1009,8 @@ void vsQuat::operator-=(vsQuat subtrahend)
 // ------------------------------------------------------------------------
 void vsQuat::operator*=(vsQuat operand)
 {
+    // The multiplyQuat function is too complex to duplicate here; just
+    // call it instead.
     multiplyQuat(operand);
 }
 
@@ -952,9 +1024,12 @@ int vsQuat::operator==(vsQuat operand)
 {
     int loop;
     
+    // Check each pair of values (this quat's and the operand quat's) for
+    // almost-equality; return false if a pair doesn't match up.
     for (loop = 0; loop < 4; loop++)
         if (fabs(data[loop] - operand[loop]) > VS_MATH_DEFAULT_TOLERANCE)
             return VS_FALSE;
 
+    // If all the pairs match, return true
     return VS_TRUE;
 }

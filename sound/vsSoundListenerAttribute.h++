@@ -40,9 +40,8 @@ protected:
     // The component we're attached to
     vsComponent    *parentComponent;
 
-    // Previous location/orientation
+    // Previous frame's location
     vsVector       lastPos;
-    vsVector       lastOrn;
 
     // Time of last update (in seconds)
     double         lastTime;

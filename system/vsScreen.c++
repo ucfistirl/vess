@@ -30,8 +30,11 @@
 // ------------------------------------------------------------------------
 vsScreen::vsScreen(vsPipe *parent) : childWindowList(1, 1)
 {
+    // Start with no windows
     childWindowCount = 0;
 
+    // Store the parent pipe pointer and add this screen to the pipe's
+    // child screen list
     parentPipe = parent;
     parentPipe->setScreen(this);
 }
@@ -71,12 +74,14 @@ int vsScreen::getChildWindowCount()
 // ------------------------------------------------------------------------
 vsWindow *vsScreen::getChildWindow(int index)
 {
+    // Bounds check
     if ((index < 0) || (index >= childWindowCount))
     {
         printf("vsScreen::getChildWindow: Index out of bounds\n");
         return NULL;
     }
 
+    // Return the desired child window
     return (vsWindow *)(childWindowList[index]);
 }
 
@@ -88,8 +93,11 @@ void vsScreen::getScreenSize(int *width, int *height)
 {
     int x, y;
     
+    // Get the size of the screen from the parent pipe object's
+    // Performer pfPipe object
     parentPipe->getBaseLibraryObject()->getSize(&x, &y);
     
+    // Return the desired values
     if (width)
         *width = x;
     if (height)
@@ -115,14 +123,18 @@ void vsScreen::removeWindow(vsWindow *targetWindow)
     // Remove window from screen's internal list
     int loop, sloop;
     
+    // Search the child window list for the target window
     for (loop = 0; loop < childWindowCount; loop++)
         if (targetWindow == childWindowList[loop])
         {
+            // Remove the target window from the list by sliding the
+	    // rest of the windows over the removed window
             for (sloop = loop; sloop < (childWindowCount-1); sloop++)
                 childWindowList[sloop] = childWindowList[sloop+1];
             childWindowCount--;
             return;
         }
 
+    // Error check
     printf("vsScreen::removeWindow: Specified window not part of screen\n");
 }

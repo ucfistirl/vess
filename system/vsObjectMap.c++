@@ -30,6 +30,7 @@
 // ------------------------------------------------------------------------
 vsObjectMap::vsObjectMap()
 {
+    // Create a pair of tree maps to hold the object associations
     firstList = new vsTreeMap();
     secondList = new vsTreeMap();
 }
@@ -39,6 +40,7 @@ vsObjectMap::vsObjectMap()
 // ------------------------------------------------------------------------
 vsObjectMap::~vsObjectMap()
 {
+    // Destroy the tree maps
     delete firstList;
     delete secondList;
 }
@@ -49,13 +51,13 @@ vsObjectMap::~vsObjectMap()
 // ------------------------------------------------------------------------
 void vsObjectMap::registerLink(void *firstObject, void *secondObject)
 {
+    // Check for duplicates
     if (firstList->containsKey(firstObject))
     {
         printf("vsObjectMap::registerLink: firstObject already appears in "
             "first object list\n");
         return;
     }
-    
     if (secondList->containsKey(secondObject))
     {
         printf("vsObjectMap::registerLink: secondObject already appears in "
@@ -63,6 +65,9 @@ void vsObjectMap::registerLink(void *firstObject, void *secondObject)
         return;
     }
     
+    // Add a connection from the first object to the second object to
+    // the first map, and a connection from the second object to the
+    // first object to the second map
     firstList->addEntry(firstObject, secondObject);
     secondList->addEntry(secondObject, firstObject);
 }
@@ -76,11 +81,16 @@ int vsObjectMap::removeLink(void *theObject, int whichList)
 {
     void *otherListObjPtr;
 
+    // Interpret the whichList constant
     switch (whichList)
     {
         case VS_OBJMAP_FIRST_LIST:
+            // Search the first map for the specified key
             if (firstList->containsKey(theObject))
             {
+                // Determine which object in the second map corresponds
+		// to the object in the first, and remove each object
+		// from its associated map
                 otherListObjPtr = firstList->getValue(theObject);
                 firstList->deleteEntry(theObject);
                 secondList->deleteEntry(otherListObjPtr);
@@ -89,8 +99,12 @@ int vsObjectMap::removeLink(void *theObject, int whichList)
             break;
 
         case VS_OBJMAP_SECOND_LIST:
+            // Search the second map for the specified key
             if (secondList->containsKey(theObject))
             {
+                // Determine which object in the first map corresponds
+		// to the object in the second, and remove each object
+		// from its associated map
                 otherListObjPtr = secondList->getValue(theObject);
                 secondList->deleteEntry(theObject);
                 firstList->deleteEntry(otherListObjPtr);
@@ -99,8 +113,13 @@ int vsObjectMap::removeLink(void *theObject, int whichList)
             break;
 
         case VS_OBJMAP_EITHER_LIST:
+            // Search the first map for the specified key, and the second
+	    // map if the key isn't found in the first
             if (firstList->containsKey(theObject))
             {
+                // Determine which object in the second map corresponds
+		// to the object in the first, and remove each object
+		// from its associated map
                 otherListObjPtr = firstList->getValue(theObject);
                 firstList->deleteEntry(theObject);
                 secondList->deleteEntry(otherListObjPtr);
@@ -108,6 +127,9 @@ int vsObjectMap::removeLink(void *theObject, int whichList)
             }
             if (secondList->containsKey(theObject))
             {
+                // Determine which object in the first map corresponds
+		// to the object in the second, and remove each object
+		// from its associated map
                 otherListObjPtr = secondList->getValue(theObject);
                 secondList->deleteEntry(theObject);
                 firstList->deleteEntry(otherListObjPtr);
@@ -124,6 +146,7 @@ int vsObjectMap::removeLink(void *theObject, int whichList)
 // ------------------------------------------------------------------------
 void vsObjectMap::removeAllLinks()
 {
+    // Empty both maps
     firstList->clear();
     secondList->clear();
 }
@@ -134,6 +157,7 @@ void vsObjectMap::removeAllLinks()
 // ------------------------------------------------------------------------
 void *vsObjectMap::mapFirstToSecond(void *firstObject)
 {
+    // Get the object corresponding to the first object from the first map
     return (firstList->getValue(firstObject));
 }
 
@@ -143,5 +167,6 @@ void *vsObjectMap::mapFirstToSecond(void *firstObject)
 // ------------------------------------------------------------------------
 void *vsObjectMap::mapSecondToFirst(void *secondObject)
 {
+    // Get the object corresponding to the second object from the second map
     return (secondList->getValue(secondObject));
 }

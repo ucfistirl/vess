@@ -13,7 +13,8 @@
 //
 //    VESS Module:  vsSerialPort.c++
 //
-//    Description:  Class for handling serial port communications
+//    Description:  Class for handling serial port communications.  This
+//                  implementation uses the UNIX-standard termio library.
 //
 //    Author(s):    Jason Daly
 //
@@ -33,16 +34,21 @@
 // ------------------------------------------------------------------------
 vsSerialPort::vsSerialPort(char *deviceName)
 {
+    // Open the port
     portDescriptor = open(deviceName, O_RDWR);
+
+    // Check to see if the port opened properly
     if (portDescriptor < 0)
     {
         printf("vsSerialPort:  Error opening port %s\n", deviceName);
         return;
     }
    
+    // Save the current serial port configuration
     tcgetattr(portDescriptor, &oldAttributes);
     currentAttributes = oldAttributes;
    
+    // Set up the default configuration
     setDefaults(&currentAttributes);
     setAttributes(&currentAttributes);
 }
@@ -54,19 +60,25 @@ vsSerialPort::vsSerialPort(char *deviceName)
 vsSerialPort::vsSerialPort(char *deviceName, long baud, 
                            int wordLength, char parity, int stopBits)
 {
+    // Open the serial port
     portDescriptor = open(deviceName, O_RDWR);
+
+    // Check to see if the port opened properly
     if (portDescriptor < 0)
     {
         printf("vsSerialPort:  Error opening port %s\n", deviceName);
         return;
     }
 
+    // Save the current serial port configuration
     tcgetattr(portDescriptor, &oldAttributes);
     currentAttributes = oldAttributes;
    
+    // Set up the default configuration
     setDefaults(&currentAttributes);
     setAttributes(&currentAttributes);
 
+    // Set the attributes (baud, parity, etc.) passed in
     setBaudRate(baud);
     setParity(parity);
     setWordLength(wordLength);
@@ -79,7 +91,10 @@ vsSerialPort::vsSerialPort(char *deviceName, long baud,
 // ------------------------------------------------------------------------
 vsSerialPort::~vsSerialPort()
 {
+    // Restore the old port configuration
     setAttributes(&oldAttributes);
+
+    // Close the port
     close(portDescriptor);
 }
 
@@ -88,6 +103,7 @@ vsSerialPort::~vsSerialPort()
 // ------------------------------------------------------------------------
 int vsSerialPort::setAttributes(struct termios *desiredAttributes)
 {
+    // Configure the serial port according to the given attributes
     return tcsetattr(portDescriptor, TCSAFLUSH, desiredAttributes);
 }
 
@@ -96,9 +112,11 @@ int vsSerialPort::setAttributes(struct termios *desiredAttributes)
 // ------------------------------------------------------------------------
 void vsSerialPort::setDefaults(struct termios *tioStructure)
 {
+    // Set the port speed
     cfsetispeed(tioStructure, B9600);
     cfsetospeed(tioStructure, B9600);
 
+    // Set some other defaults (man termios for details)
     tioStructure->c_cflag      = CS8 | CREAD | CLOCAL;
     tioStructure->c_iflag      = IGNBRK | IGNPAR; 
     tioStructure->c_oflag      = 0;
@@ -141,14 +159,19 @@ int vsSerialPort::readPacket(unsigned char *packet, int length)
     int bytesRead;
     int timeoutCounter;
 
+    // Set up the byte and timeout counters
     bytesRead = 0;
     timeoutCounter = VS_SERIAL_NUM_READ_RETRYS;
 
+    // Keep reading until we read the specified number of bytes, or
+    // the timeout expires
     while ((bytesRead < length) && (timeoutCounter > 0)) 
     {
+        // Read from the port
         result = read(portDescriptor, &(packet[bytesRead]), 
             length - bytesRead);
 
+        // Add the number of bytes read on this loop
         if (result > 0)
             bytesRead += result;
 
@@ -169,8 +192,11 @@ int vsSerialPort::readCharacter()
     int  result;
     int  readFlag;
 
+    // Read a single byte from the port
     readFlag = read(portDescriptor, &character, 1);
 
+    // Return the character read if we successfully read a byte
+    // otherwise, return -1
     if (readFlag == 1)
     {
         result = character;
@@ -219,6 +245,8 @@ void vsSerialPort::setBaudRate(long baudRate)
         case 57600:
             flags = B57600;
             break;
+#endif
+#ifdef B115200
         case 115200:
             flags = B115200;
             break;
@@ -251,17 +279,25 @@ void vsSerialPort::setParity(char parity)
     // desired parity setting
     switch (parity)
     {
-        case 'E':                      // Even parity
+        case 'E':
+            // Even parity
             flags = PARENB;
             break;
-        case 'O':                      // Odd parity
+
+        case 'O':
+            // Odd parity
             flags = PARENB | PARODD;
             break;
-        case 'N':                      // No parity
+
+        case 'N':
+            // No parity
             flags = 0;
             break;
-        default:                       // Default:  no parity
+
+        default:
+            // Default:  no parity
             flags = 0;
+            break;
     };
 
     // Clear any current parity flags
@@ -356,17 +392,16 @@ void vsSerialPort::setRTS(int enable)
 {
     int status;
 
+    // Get the current control line status
     ioctl(portDescriptor, TIOCMGET, &status);
 
+    // Set the RTS bit appropriately
     if (enable)
-    {
         status |= TIOCM_RTS;
-    }
     else
-    {
         status &= ~TIOCM_RTS;
-    } 
 
+    // Set the control lines with the new bit setting
     ioctl(portDescriptor, TIOCMSET, &status);
 }
 
@@ -378,13 +413,16 @@ void vsSerialPort::setDTR(int enable)
 {
     int status;
 
+    // Get the current control line status
     ioctl(portDescriptor, TIOCMGET, &status);
 
+    // Set the DTR bit appropriately
     if (enable)
         status |= TIOCM_DTR;
     else
         status &= ~TIOCM_DTR;
 
+    // Set the control lines with the new bit setting
     ioctl(portDescriptor, TIOCMSET, &status);
 }
 

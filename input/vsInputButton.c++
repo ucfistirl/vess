@@ -29,6 +29,7 @@
 // ------------------------------------------------------------------------
 vsInputButton::vsInputButton(void)
 {
+    // Initialize variables
     pressed = VS_FALSE;
     lastPressedTime = 0.0;
     doubleClicked = VS_FALSE;
@@ -50,8 +51,10 @@ double vsInputButton::getTime()
     struct timeval tv;
     double currentTime;
 
+    // Query the system time
     gettimeofday(&tv, NULL);
 
+    // Convert the timeval struct to floating-point seconds
     currentTime = tv.tv_sec + (tv.tv_usec / 1000000.0);
 
     return currentTime;
@@ -83,6 +86,7 @@ void vsInputButton::setPressed(void)
     // Don't count this as a press if the button is already pressed
     if (!pressed)
     {
+        // Set the button to pressed
         pressed = VS_TRUE;
 
         // Calculate the time interval between this and the last press,
@@ -97,6 +101,7 @@ void vsInputButton::setPressed(void)
             doubleClicked = VS_FALSE;
         }
     
+        // Remember the time of this button press
         lastPressedTime = currentTime;
     }
 }

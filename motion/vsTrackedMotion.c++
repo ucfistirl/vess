@@ -30,24 +30,28 @@
 vsTrackedMotion::vsTrackedMotion(vsMotionTracker *theTracker,
     vsKinematics *kinObject)
 {
+    // Get the tracker and kinematics objects
     tracker = theTracker;   
     kinematics = kinObject;
 
+    // Complain if the tracker object is invalid
     if (tracker == NULL)
     {
         printf("vsTrackedMotion::vsTrackedMotion:  WARNING -- NULL motion "
             "tracker specified!\n");
     }
 
+    // Enable position and orientation tracking by default
     positionEnabled = VS_TRUE;
     orientationEnabled = VS_TRUE;
     
+    // Set the offsets to identity
     positionOffset.set(0.0, 0.0, 0.0);
     orientationOffset.set(0.0, 0.0, 0.0, 1.0);
-
     resetPosition.set(0.0, 0.0, 0.0);
     resetOrientation.set(0.0, 0.0, 0.0, 1.0);
 
+    // Initialize position scaling to identity as well
     positionScale = 1.0;
 }
 
@@ -95,6 +99,8 @@ void vsTrackedMotion::disableOrientationTracking()
 // ------------------------------------------------------------------------
 void vsTrackedMotion::setPositionOffset(vsVector newOffset)
 {
+    // Copy the new position offset and make sure the vector is
+    // the correct size
     positionOffset.clearCopy(newOffset);
     positionOffset.setSize(3);
 }

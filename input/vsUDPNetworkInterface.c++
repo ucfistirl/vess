@@ -27,12 +27,13 @@
 vsUDPNetworkInterface::vsUDPNetworkInterface(int blocking) 
                      : vsNetworkInterface()
 {
+    // Open the datagram socket, and print an error if this fails
     if ( (socketValue = socket(AF_INET, SOCK_DGRAM, 0)) < 0 )
         perror("socket");
 
+    // Set to non blocking, if so configured
     if (!blocking)
     {
-        // Set to non blocking
         if (fcntl(socketValue, F_SETFL, FNDELAY) < 0)
             perror("fcntl");
     }
@@ -44,6 +45,7 @@ vsUDPNetworkInterface::vsUDPNetworkInterface(int blocking)
 // ------------------------------------------------------------------------
 vsUDPNetworkInterface::~vsUDPNetworkInterface()
 {
+    // Close the socket
     close(socketValue);
 }
 
@@ -55,14 +57,20 @@ int vsUDPNetworkInterface::readPacket(u_char *buffer, int maxSize)
 {
     int length;
 
+    // Get the length of the socket structure for the origin of the packet
     readNameLength = sizeof(readName);
+
+    // Receive a packet from the socket
     length = recvfrom(socketValue, buffer, maxSize, 0,
                       (struct sockaddr *) &readName, 
                       (socklen_t *) &readNameLength);
 
+    // Check the length and error conditions, and print an error
+    // if anything is wrong
     if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
         perror("recvfrom");
 
+    // Return the length of the packet
     return (length);
 }
 
@@ -75,11 +83,17 @@ int vsUDPNetworkInterface::readPacket(u_char *buffer, int maxSize,
 {
     int length;
 
+    // Get the length of the socket structure for the origin of the packet
     readNameLength = sizeof(readName);
+
+    // Receive a packet from the socket
     length = recvfrom(socketValue, buffer, maxSize, 0,
                       (struct sockaddr *) &readName,
                       (socklen_t *) &readNameLength);
 
+    // Check the length and error conditions, and print an error
+    // if anything is wrong.  Otherwise, return the current system
+    // time in the packetTime field
     if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
         perror("recvfrom");
     else
@@ -95,21 +109,28 @@ int vsUDPNetworkInterface::readPacket(u_char *buffer, int maxSize,
 // ------------------------------------------------------------------------
 int vsUDPNetworkInterface::readPacket(u_char *buffer, int maxSize, char *origin)
 {
-   int    length;
-   char   *addr;
+    int    length;
+    char   *addr;
 
-   readNameLength = sizeof(readName);
-   length = recvfrom(socketValue, buffer, maxSize, 0,
-                     (struct sockaddr *) &readName,
-                     (socklen_t *) &readNameLength);
+    // Get the length of the socket structure for the origin of the packet
+    readNameLength = sizeof(readName);
 
-   if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
-      perror("recvfrom");
+    // Receive a packet from the socket
+    length = recvfrom(socketValue, buffer, maxSize, 0,
+                      (struct sockaddr *) &readName,
+                      (socklen_t *) &readNameLength);
 
-   addr = (char *) &readName.sin_addr.s_addr;
-   sprintf(origin, "%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]);
+    // Check the length and error conditions, and print an error
+    // if anything is wrong.
+    if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
+        perror("recvfrom");
 
-   return (length);
+    // Copy the packet's origin IP address into the origin field
+    addr = (char *) &readName.sin_addr.s_addr;
+    sprintf(origin, "%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]);
+
+    // Return the length of the packet
+    return (length);
 }
 
 // ------------------------------------------------------------------------
@@ -123,19 +144,27 @@ int vsUDPNetworkInterface::readPacket(u_char *buffer, int maxSize,
     int  length;
     char *addr;
 
+    // Get the length of the socket structure for the origin of the packet
     readNameLength = sizeof(readName);
+
+    // Receive a packet from the socket
     length = recvfrom(socketValue, buffer, maxSize, 0,
                       (struct sockaddr *) &readName,
                       (socklen_t *) &readNameLength);
 
+    // Check the length and error conditions, and print an error
+    // if anything is wrong.  Otherwise, return the current system
+    // time in the packetTime field
     if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
         perror("recvfrom");
     else
         gettimeofday(packetTime, NULL);
 
+    // Copy the packet's origin IP address into the origin field
     addr = (char *) &readName.sin_addr.s_addr;
     sprintf(origin, "%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]);
 
+    // Return the length of the packet
     return (length);
 }
 
@@ -147,12 +176,16 @@ int vsUDPNetworkInterface::writePacket(u_char *buffer, int length)
 {
     int error;
 
+    // Send the packet on the open socket
     error = sendto(socketValue, buffer, length, 0,
                    (struct sockaddr *) &writeName, writeNameLength);
 
+    // Check for any error condition, and print an error message if
+    // any exists
     if ( (error == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
         perror("sendto");
 
+    // Return the length of the packet
     return (error);
 }
 

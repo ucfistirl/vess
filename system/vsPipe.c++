@@ -31,6 +31,8 @@
 // ------------------------------------------------------------------------
 vsPipe::vsPipe(int index)
 {
+    // Get the pfPipe object with the specified index from the Performer
+    // library
     performerPipe = pfGetPipe(index);
 }
 
@@ -47,6 +49,8 @@ vsPipe::~vsPipe()
 // ------------------------------------------------------------------------
 vsScreen *vsPipe::getScreen(int index)
 {
+    // For now, pipes can only have one screen; signal an error if the
+    // caller is requesting something else
     if (index != 0)
         printf("vsPipe::getScreen: Bad screen index\n");
 

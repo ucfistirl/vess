@@ -33,8 +33,10 @@
 // ------------------------------------------------------------------------
 vsLODAttribute::vsLODAttribute()
 {
+    // Initialize the pfLOD pointer
     performerLOD = NULL;
     
+    // Mark this attribute as not attached
     attachedFlag = 0;
 }
 
@@ -45,11 +47,15 @@ vsLODAttribute::vsLODAttribute()
 // ------------------------------------------------------------------------
 vsLODAttribute::vsLODAttribute(pfLOD *lodGroup)
 {
+    // Store the pointer to the pfLOD
     performerLOD = lodGroup;
     performerLOD->ref();
     
+    // Set the first entry in the renge list to zero, which causes Performer
+    // to not have a 'too close' range within which the object can't be seen
     performerLOD->setRange(0, 0.0);
 
+    // Mark this attribute as attached
     attachedFlag = 1;
 }
 
@@ -84,6 +90,7 @@ int vsLODAttribute::getAttributeCategory()
 // ------------------------------------------------------------------------
 void vsLODAttribute::setRangeEnd(int childNum, double rangeLimit)
 {
+    // Unattached LODs can't be manipulated
     if (!attachedFlag)
     {
         printf("vsLODAttribute::setRangeEnd: Attribute must be attached "
@@ -91,12 +98,14 @@ void vsLODAttribute::setRangeEnd(int childNum, double rangeLimit)
         return;
     }
 
+    // Bounds check
     if ((childNum < 0) || (childNum >= performerLOD->getNumChildren()))
     {
         printf("vsLODAttribute::setRangeEnd: Index out of bounds\n");
         return;
     }
 
+    // Set the desired range value in the Performer object
     performerLOD->setRange(childNum+1, rangeLimit);
 }
 
@@ -106,6 +115,7 @@ void vsLODAttribute::setRangeEnd(int childNum, double rangeLimit)
 // ------------------------------------------------------------------------
 double vsLODAttribute::getRangeEnd(int childNum)
 {
+    // Unattached LODs can't be manipulated
     if (!attachedFlag)
     {
         printf("vsLODAttribute::getRangeEnd: Attribute must be attached "
@@ -113,12 +123,14 @@ double vsLODAttribute::getRangeEnd(int childNum)
         return 0.0;
     }
 
+    // Bounds check
     if ((childNum < 0) || (childNum >= performerLOD->getNumChildren()))
     {
         printf("vsLODAttribute::getRangeEnd: Index out of bounds\n");
         return 0.0;
     }
 
+    // Get the desired range value from the Performer object
     return performerLOD->getRange(childNum+1);
 }
 
@@ -128,6 +140,8 @@ double vsLODAttribute::getRangeEnd(int childNum)
 // ------------------------------------------------------------------------
 int vsLODAttribute::canAttach()
 {
+    // This attribute is not available to be attached if it is already
+    // attached to another node
     if (attachedFlag)
         return VS_FALSE;
 
@@ -143,12 +157,14 @@ void vsLODAttribute::attach(vsNode *theNode)
 {
     int loop, childCount;
 
+    // Verify that we're not already attached to something
     if (attachedFlag)
     {
         printf("vsLODAttribute::attach: Attribute is already attached\n");
         return;
     }
 
+    // LOD attributes may not be attached to geometry nodes
     if ((theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY) ||
         (theNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY))
     {
@@ -161,11 +177,13 @@ void vsLODAttribute::attach(vsNode *theNode)
     performerLOD = new pfLOD();
     ((vsComponent *)theNode)->replaceBottomGroup(performerLOD);
     
+    // Set the LOD ranges to default values
     childCount = performerLOD->getNumChildren();
     for (loop = 1; loop <= childCount; loop++)
         performerLOD->setRange(loop,
             ((1000.0 * (double)loop) / (double)childCount));
 
+    // Mark this attribute as attached
     attachedFlag = 1;
 }
 
@@ -178,6 +196,7 @@ void vsLODAttribute::detach(vsNode *theNode)
 {
     pfGroup *newGroup;
 
+    // Can't detach an attribute that is not attached
     if (!attachedFlag)
     {
         printf("vsLODAttribute::detach: Attribute is not attached\n");
@@ -189,6 +208,7 @@ void vsLODAttribute::detach(vsNode *theNode)
     ((vsComponent *)theNode)->replaceBottomGroup(newGroup);
     performerLOD = NULL;
     
+    // Mark this attribute as unattached
     attachedFlag = 0;
 }
 
@@ -202,15 +222,20 @@ void vsLODAttribute::attachDuplicate(vsNode *theNode)
     int loop;
     vsComponent *theComponent;
     
+    // Make sure that it's a component that we're getting copied to
     if (theNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
         theComponent = (vsComponent *)theNode;
     else
         return;
 
+    // Create a duplicate LOD attribute
     newAttrib = new vsLODAttribute(performerLOD);
 
+    // Attach the duplicate attribute to the specified node first, so that
+    // we can manipulate its values
     theNode->addAttribute(newAttrib);
 
+    // Copy the range values from this attribute to the duplicate
     for (loop = 0; loop < theComponent->getChildCount(); loop++)
         newAttrib->setRangeEnd(loop, getRangeEnd(loop));
 }

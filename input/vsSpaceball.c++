@@ -31,8 +31,8 @@ vsSpaceball::vsSpaceball(int nButtons)
 {
     int i;
   
+    // Copy and validate the number of buttons
     numButtons = nButtons;
-
     if (numButtons > VS_SB_MAX_BUTTONS)
         numButtons = VS_SB_MAX_BUTTONS;
 
@@ -50,6 +50,7 @@ vsSpaceball::~vsSpaceball(void)
 {
     int i;
 
+    // Delete the buttons
     for (i = 0; i < numButtons; i++)
     {
         if (button[i])
@@ -64,6 +65,7 @@ void vsSpaceball::setPosition(vsVector posVec)
 {
     int i;
 
+    // Set the position axes to the values specified in the position vector
     for (i = 0; i < 3; i++)
     {
         position[i].setPosition(posVec.getValue(i));
@@ -76,6 +78,8 @@ void vsSpaceball::setPosition(vsVector posVec)
 void vsSpaceball::setOrientation(vsVector ornVec, 
                                  vsMathEulerAxisOrder axisOrder)
 {
+    // Set the ball's orientation to the Euler angles specified in the 
+    // orientation vector, using the given axis order
     orientation.setEulerRotation(axisOrder, ornVec.getValue(0),
                                  ornVec.getValue(1), ornVec.getValue(2));
 }
@@ -85,6 +89,7 @@ void vsSpaceball::setOrientation(vsVector ornVec,
 // ------------------------------------------------------------------------
 void vsSpaceball::setOrientation(vsMatrix ornMat)
 {
+    // Set the ball's orientation to the given rotation matrix
     orientation.setMatrixRotation(ornMat);
 }
 
@@ -93,6 +98,7 @@ void vsSpaceball::setOrientation(vsMatrix ornMat)
 // ------------------------------------------------------------------------
 void vsSpaceball::setOrientation(vsQuat ornQuat)
 {
+    // Set the ball's orientation to the given quaternion
     orientation = ornQuat;
 }
 
@@ -109,12 +115,15 @@ int vsSpaceball::getNumButtons()
 // ------------------------------------------------------------------------
 vsInputButton *vsSpaceball::getButton(int index)
 {
-    if (index < numButtons)
+    // Make sure the index is valid
+    if ((index >= 0) && (index < numButtons))
     {
+        // Return the specified button
         return button[index];
     }
     else
     {
+        // Invalid button specified
         return NULL;
     }
 }

@@ -47,12 +47,15 @@ vsSharedInputData::vsSharedInputData(key_t ipcKey, int trackerCount,
     else
     {
         shmID = shmget(ipcKey, sizeof(vsInputData) * numEntries, 0);
+
+        // Keep trying until successful
         while (shmID == -1)
         {
             shmID = shmget(ipcKey, sizeof(vsInputData) * numEntries, 0);
         }
     }
 
+    // Print an error if we fail to create the segment
     if (shmID == -1)
     {
         printf("vsSharedInputData::vsSharedInputData: "
@@ -61,6 +64,13 @@ vsSharedInputData::vsSharedInputData(key_t ipcKey, int trackerCount,
 
     // Attach the data structure to the shared memory segment
     data = (vsInputData *)shmat(shmID, NULL, 0);
+
+    // Check to see if the data segment we get back is valid
+    if ((int)data == -1)
+    {
+        printf("vsSharedInputData::vsSharedInputData: "
+            "Unable to attach to shared memory segment\n");
+    }
 
     // Initialize the data structure
     for (i = 0; i < numEntries; i++)
@@ -75,13 +85,7 @@ vsSharedInputData::vsSharedInputData(key_t ipcKey, int trackerCount,
         data[i].quatData[3] = 1.0;
     }
 
-    if ((int)data == -1)
-    {
-        printf("vsSharedInputData::vsSharedInputData: "
-            "Unable to attach to shared memory segment\n");
-    }
-
-    // Get semaphores
+    // Get (or create) the associated semaphores
     if (server)
     {
         semID = semget(ipcKey, numEntries, 0666 | IPC_CREAT);
@@ -95,13 +99,14 @@ vsSharedInputData::vsSharedInputData(key_t ipcKey, int trackerCount,
         }
     }
 
+    // Print an error if we fail to create the semaphores
     if (semID == -1)
     {
         printf("vsSharedInputData::vsSharedInputData: "
             "Unable to create semaphores\n");
     }
 
-    // Initialize the semaphores
+    // Initialize the semaphores to zero
     if (server)
     {
         zero.val = 0;
@@ -119,10 +124,13 @@ vsSharedInputData::vsSharedInputData(key_t ipcKey, int trackerCount,
 // ------------------------------------------------------------------------
 vsSharedInputData::~vsSharedInputData()
 {
+    // Detach from shared memory
     shmdt((void *)data);
     
+    // Clean up shared memory if we're the server process
     if (server)
     {
+        // Remove the shared memory and semaphores
         shmctl(shmID, IPC_RMID, NULL);
         semctl(semID, numEntries, IPC_RMID, NULL);
     }

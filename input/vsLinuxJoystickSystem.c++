@@ -44,6 +44,8 @@ vsLinuxJoystickSystem::vsLinuxJoystickSystem(char *joystickPortName)
     char totalAxes;
     char totalButtons;
 
+    // Copy the port name (can't use the typical port number interface
+    // for this, since it could be any of several kinds of port)
     strcpy(portName, joystickPortName);
 
     // Open the joystick port in read only and non-blocking modes
@@ -112,18 +114,15 @@ void vsLinuxJoystickSystem::update()
         {
             // Handle axis events (joystick moved)
             case JS_EVENT_AXIS:
-
                 // Get the appropriate axis from the joystick
                 axis = joystick->getAxis(joystickEvent.number);
 
                 // Set the axis's position
                 axis->setPosition(joystickEvent.value);
-
                 break;
 
             // Handle button events (pressed or released)
             case JS_EVENT_BUTTON:
-
                 // Get the appropriate button from the joystick
                 button = joystick->getButton(joystickEvent.number);
 
@@ -132,11 +131,9 @@ void vsLinuxJoystickSystem::update()
                     button->setPressed();
                 else if (joystickEvent.value == VS_LINUX_JS_BUTTON_RELEASED)
                     button->setReleased();
-
                 break;
 
             default:
-
                 // Do nothing
                 break;
         }

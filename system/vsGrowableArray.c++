@@ -33,6 +33,7 @@ vsGrowableArray::vsGrowableArray(int initialSize, int sizeIncrement)
 {
     int startSize;
 
+    // Bounds check on initial size
     if (initialSize < 0)
     {
         printf("vsGrowableArray::vsGrowableArray: Invalid initial size\n");
@@ -41,12 +42,15 @@ vsGrowableArray::vsGrowableArray(int initialSize, int sizeIncrement)
     else
         startSize = initialSize;
 
+    // Store the grow step size
     stepSize = sizeIncrement;
 
+    // Maximum size defaults to 32767; clamp the start size to that value
     maxSize = 32767;
     if (startSize > maxSize)
         maxSize = startSize;
     
+    // Initialize the 'error result' pointer
     nowhere = NULL;
 
     // Allocate memory here
@@ -60,6 +64,7 @@ vsGrowableArray::vsGrowableArray(int initialSize, int sizeIncrement)
 // ------------------------------------------------------------------------
 vsGrowableArray::~vsGrowableArray()
 {
+    // Free the array storage, if it exists
     if (storage)
         free(storage);
 }
@@ -69,17 +74,22 @@ vsGrowableArray::~vsGrowableArray()
 // ------------------------------------------------------------------------
 void vsGrowableArray::setSize(int newSize)
 {
+    // Bounds check
     if (newSize < 0)
     {
         printf("vsGrowableArray::setSize: Invalid size\n");
         return;
     }
 
+    // If there's no size change, there's no work to do
     if (newSize == currentSize)
         return;
 
+    // Figure out what we need to do based on the requested size
     if (newSize > 0)
     {
+        // Check the current size to figure out if we need to make a new
+	// storage area or just resize the current one
         if (currentSize > 0)
         {
             // Modify
@@ -91,6 +101,7 @@ void vsGrowableArray::setSize(int newSize)
             storage = (void **)(malloc(newSize * sizeof(void *)));
         }
 
+        // Check for failed allocation
         if (storage)
         {
             // If the list has grown, clear the newly-allocated memory
@@ -100,10 +111,12 @@ void vsGrowableArray::setSize(int newSize)
                     sizeof(void *) * (newSize - currentSize));
             }
 
+            // Set the size
             currentSize = newSize;
         }
         else
         {
+            // Set size to zero and signal and error
             currentSize = 0;
             printf("vsGrowableArray::setSize: Unable to allocate memory for "
                 "internal array\n");
@@ -114,6 +127,7 @@ void vsGrowableArray::setSize(int newSize)
         // Destroy
         free(storage);
 
+        // Set size to zero and NULL the storage pointer
         currentSize = 0;
         storage = NULL;
     }
@@ -133,12 +147,14 @@ int vsGrowableArray::getSize()
 // ------------------------------------------------------------------------
 void vsGrowableArray::setSizeIncrement(int sizeIncrement)
 {
+    // Bounds check
     if (sizeIncrement <= 0)
     {
         printf("vsGrowableArray::setSizeIncrement: Invalid size increment\n");
         return;
     }
 
+    // Set the grow step size
     stepSize = sizeIncrement;
 }
 
@@ -157,14 +173,18 @@ int vsGrowableArray::getSizeIncrement()
 // ------------------------------------------------------------------------
 void vsGrowableArray::setMaxSize(int newMax)
 {
+    // Bounds check
     if (newMax <= 0)
     {
         printf("vsGrowableArray::setMaxSize: Invalid maximum size\n");
         return;
     }
 
+    // Set the maximum size
     maxSize = newMax;
     
+    // If the maximum size is less than the current size, then reduce the
+    // current size to match the new boundary
     if (maxSize < currentSize)
         setSize(newMax);
 }
@@ -203,6 +223,9 @@ inline int vsGrowableArray::access(int index)
             return FALSE;
         }
 
+        // Determine how big the new array should be by repeatedly
+	// incrementing the current size by the step size until the
+	// size is equal to or larger than the requested array position
         int newSize;
         newSize = currentSize;
         while (newSize <= index)
@@ -211,6 +234,8 @@ inline int vsGrowableArray::access(int index)
             if (newSize > maxSize)
                 newSize = maxSize;
         }
+
+        // Set the size of the array to the new, larger size
         setSize(newSize);
 
         // Check for allocation failure
@@ -218,6 +243,7 @@ inline int vsGrowableArray::access(int index)
             return VS_FALSE;
     }
 
+    // Return success
     return VS_TRUE;
 }
 
@@ -226,9 +252,11 @@ inline int vsGrowableArray::access(int index)
 // ------------------------------------------------------------------------
 void vsGrowableArray::setData(int index, void *data)
 {
+    // Verify that the desired position in the array is accessable
     if (!access(index))
         return;
 
+    // Set the entry in the array to the specified data
     storage[index] = data;
 }
 
@@ -237,9 +265,11 @@ void vsGrowableArray::setData(int index, void *data)
 // ------------------------------------------------------------------------
 void *vsGrowableArray::getData(int index)
 {
+    // Verify that the desired position in the array is accessable
     if (!access(index))
         return NULL;
 
+    // Return the specified data
     return (storage[index]);
 }
 
@@ -249,8 +279,11 @@ void *vsGrowableArray::getData(int index)
 // ------------------------------------------------------------------------
 void *&vsGrowableArray::operator[](int index)
 {
+    // Verify that the desired position in the array is accessable; if
+    // it's not, return a reference to our dummy data area
     if (!access(index))
         return nowhere;
 
+    // Return a reference to the specified data
     return (storage[index]);
 }

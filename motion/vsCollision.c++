@@ -30,16 +30,22 @@
 // ------------------------------------------------------------------------
 vsCollision::vsCollision(vsKinematics *objectKin, vsNode *theScene)
 {
+    // Store the given kinematics object and scene pointer
     kinematics = objectKin;
     scene = theScene;
 
+    // Start with zero hot points
     offsetCount = 0;
+
+    // Default collision behavior is to stop
     collisionMode = VS_COLLISION_MODE_STOP;
 
+    // Create and initialize the intersection object
     intersect = new vsIntersect();
     intersect->setSegListSize(0);
     intersect->setMask(0xffffffff);
     
+    // Set the default margin distance
     wallMargin = VS_COLLISION_DEFAULT_MARGIN;
 }
 
@@ -56,12 +62,15 @@ vsCollision::~vsCollision()
 // ------------------------------------------------------------------------
 void vsCollision::setPointCount(int numPoints)
 {
+    // Bounds checking
     if ((numPoints < 0) || (numPoints > VS_COLLISION_POINTS_MAX))
     {
         printf("vsCollision::setPointCount: Parameter out of bounds\n");
         return;
     }
     
+    // Set the number of hot points, and resize the intersection object's
+    // list of segments
     offsetCount = numPoints;
     intersect->setSegListSize(numPoints);
 }
@@ -80,12 +89,15 @@ int vsCollision::getPointCount()
 // ------------------------------------------------------------------------
 void vsCollision::setPoint(int index, vsVector newOffset)
 {
+    // Boudns checking
     if ((index < 0) || (index >= VS_COLLISION_POINTS_MAX))
     {
         printf("vsCollision::setPointCount: Index out of bounds\n");
         return;
     }
     
+    // Copy the point data to our offset point list, forcing the size
+    // of the vector to be 3.
     (offsetPoints[index]).clearCopy(newOffset);
     (offsetPoints[index]).setSize(3);
 }
@@ -98,12 +110,14 @@ vsVector vsCollision::getPoint(int index)
 {
     vsVector zero(0.0, 0.0, 0.0);
 
+    // Bounds checking
     if ((index < 0) || (index >= VS_COLLISION_POINTS_MAX))
     {
         printf("vsCollision::setPointCount: Index out of bounds\n");
         return zero;
     }
     
+    // Return the desired point
     return (offsetPoints[index]);
 }
 
@@ -130,6 +144,7 @@ int vsCollision::getCollisionMode()
 // ------------------------------------------------------------------------
 void vsCollision::setIntersectMask(unsigned int newMask)
 {
+    // Pass the mask to the vsIntersect object
     intersect->setMask(newMask);
 }
 
@@ -138,6 +153,7 @@ void vsCollision::setIntersectMask(unsigned int newMask)
 // ------------------------------------------------------------------------
 unsigned int vsCollision::getIntersectMask()
 {
+    // Get the mask from the vsIntersect object
     return (intersect->getMask());
 }
 
@@ -192,20 +208,24 @@ void vsCollision::update()
     if (currentVelocity.getMagnitude() < 1E-6)
         return;
 
-    // Calculate the starting point for each segment by taking the
-    // point in local coordinates and transforming it by the current
-    // local-to-global rotation
+    // Obtain the current local-to-global coordinate transform
     objectComp = kinematics->getComponent();
     globalXform = objectComp->getGlobalXform();
 
+    // Break the current velocity into direction and speed
     currentDirection = currentVelocity.getNormalized();
     currentSpeed = currentVelocity.getMagnitude();
 
+    // Compute actual distance travelled by factoring in the amount
+    // of time passed
     distLeft = (currentSpeed * (vsSystem::systemObject->getFrameTime()));
     positionDelta.set(0.0, 0.0, 0.0);
 
+    // Attempt to perform the desired movement
     while ((distLeft > 1E-6) && (passCount < VS_COLLISION_MAX_PASSES))
     {
+	// Determine how far we are permitted to move by checking
+	// for obstacles in our path
         distMoved = calcMoveAllowed(globalXform, positionDelta,
             currentDirection, distLeft, &collideNorm);
         distLeft -= distMoved;
@@ -213,6 +233,9 @@ void vsCollision::update()
         // Move the allowed distance
         positionDelta += (currentDirection.getScaled(distMoved));
 
+	// If there is any distance left to move, then we didn't get to
+	// go as far as we wanted, indicating that a collision occurred.
+	// Alter the current position and/or velocity as indicated.
         if (distLeft > 1E-6)
             switch (collisionMode)
             {
@@ -255,13 +278,17 @@ void vsCollision::update()
                     break;
             }
 
+        // Mark that we've completed (another) pass
         passCount++;
     }
     
     if (passCount < VS_COLLISION_MAX_PASSES)
     {
+        // Set our kinematics object's velocity to the computed direction
+	// and speed
         tempVec = currentDirection.getScaled(currentSpeed);
         kinematics->setVelocity(tempVec);
+
         // Set the new location so that we end up at the positionDelta
         // location _after_ the current velocity is applied. If there was
         // no collision this frame, then these two calls should cancel out.
@@ -271,6 +298,10 @@ void vsCollision::update()
     }
     else
     {
+	// Too many passes; either we're in a narrow area and bouncing
+	// back and forth between the walls, or there's some other
+	// unanticipated problem. In either case, give up and stop
+	// moving completely.
         tempVec.set(0.0, 0.0, 0.0);
         kinematics->setVelocity(tempVec);
     }
@@ -307,25 +338,37 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
     double resultDist, newDist;
     vsVector segmentDir;
     
+    // Clear the reported intersection normal
     hitNorm->set(0.0, 0.0, 0.0);
 
     // The first intersection test consists of rays fired in the direction
     // of movement from each key point
     for (loop = 0; loop < offsetCount; loop++)
     {
+        // Compute the world location of the hot point by transforming
+	// the point into global coordinates, and adding on any specified
+	// offset translation.
         startPoints[loop] = globalXform.getPointXform(offsetPoints[loop]);
         startPoints[loop] += posOffset;
+
+        // Set the intersection segment for the point as starting at
+	// the point's global position, and proceeding in the direction
+	// of movement an arbitrarily long distance.
         intersect->setSeg(loop, startPoints[loop], moveDir, 10000.0);
     }
 
+    // Run the intersection traversal
     intersect->intersect(scene);
 
+    // For each point, figure out if and where an intersection occurred
     for (loop = 0; loop < offsetCount; loop++)
     {
         if (intersect->getIsectValid(loop))
         {
+            // Obtain the point and normal of intersection
             hitPoints1[loop] = intersect->getIsectPoint(loop);
             normals[loop] = intersect->getIsectNorm(loop);
+
             // Check to see if we hit the back side of a poly; if so, we
             // need to invert the normal
             if (moveDir.getDotProduct(normals[loop]) > 0.0)
@@ -334,6 +377,8 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
         }
         else
         {
+            // If there was no intersection, set the valid flag to false
+	    // and zero the normal direction
             normals[loop].clear();
             valid1[loop] = 0;
         }
@@ -341,11 +386,23 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
     
     // The second intersection test consists of rays still fired from
     // the key points, but in the directions of the walls found by the
-    // first intersection.
+    // first intersection. This is needed because we often approach walls
+    // from an angle; the shortest distance from the plane of the wall
+    // to the moving object (calculated in the direction of the wall's
+    // normal) is needed to compute how far we can go before we're too
+    // close to the wall, but we also need to know if the wall itself
+    // extends out to that point of shortest distance to know if we should
+    // be concerned about it.
     for (loop = 0; loop < offsetCount; loop++)
     {
+        // Compute the world location of the hot point by transforming
+	// the point into global coordinates, and adding on any specified
+	// offset translation.
         startPoints[loop] = globalXform.getPointXform(offsetPoints[loop]);
         startPoints[loop] += posOffset;
+
+	// If the first intersection worked, use the calculated normal;
+	// if it failed, then use the direction of motion instead.
         if (valid1[loop])
             intersect->setSeg(loop, startPoints[loop],
                 normals[loop].getScaled(-1.0), 10000.0);
@@ -353,12 +410,15 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
             intersect->setSeg(loop, startPoints[loop], moveDir, 10000.0);
     }
     
+    // Run the intersection traversal
     intersect->intersect(scene);
 
+    // For each point, figure out if and where an intersection occurred
     for (loop = 0; loop < offsetCount; loop++)
     {
         if (intersect->getIsectValid(loop))
         {
+            // If the intersection hit something, record the point
             hitPoints2[loop] = intersect->getIsectPoint(loop);
             valid2[loop] = 1;
         }
@@ -375,8 +435,12 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
         // First intersection: straight distance
         if (valid1[loop])
         {
+            // Figure out the distance from the hot point to the
+	    // intersection point, accounting for the margin distance
             newDist = distance(startPoints[loop], hitPoints1[loop]);
             newDist -= wallMargin;
+
+            // Check if this is the shortest result so far
             if (newDist < resultDist)
             {
                 resultDist = newDist;
@@ -388,15 +452,24 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
         // and segment direction
         if (valid2[loop])
         {
+            // Figure out the distance from the hot point to the
+	    // intersection point, accounting for the margin distance
             newDist = distance(startPoints[loop], hitPoints2[loop]);
             newDist -= wallMargin;
+
             // Scale the distance by the inverse of the dot product of the
             // normal and movement direction vectors. This dot product is
             // always negative and so is negated before it is used so that we
-            // end up with a positive value.
+            // end up with a positive value. This scaling is done to take
+	    // into account the angle of approach of the obstacle; we can
+	    // go farther towards something if we're not going along the
+	    // shortest (perpendicular) distance towards it.
             newDist /= (-(moveDir.getDotProduct(normals[loop])));
+
             if (newDist < resultDist)
             {
+                // Store the shorter distance, and copy the intersection
+		// normal into the return data pointer location
                 resultDist = newDist;
                 (*hitNorm) = intersect->getIsectNorm(loop);
 		
@@ -414,5 +487,6 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
     if (resultDist < 0.0)
         return 0.0;
 
+    // Return the closest distance
     return resultDist;
 }

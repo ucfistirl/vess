@@ -26,7 +26,8 @@
 #include "vsMatrix.h++"
 
 // ------------------------------------------------------------------------
-// Default constructor - Clears the matrix to zero
+// Constructor
+// Clears the matrix to zero (not identity)
 // ------------------------------------------------------------------------
 vsMatrix::vsMatrix()
 {
@@ -34,7 +35,8 @@ vsMatrix::vsMatrix()
 }
 
 // ------------------------------------------------------------------------
-// Data constructor - Set matrix data to given two-dimensional array
+// Constructor
+// Sets the matrix data to the given two-dimensional array
 // ------------------------------------------------------------------------
 vsMatrix::vsMatrix(double values[4][4])
 {
@@ -49,10 +51,12 @@ vsMatrix::~vsMatrix()
 }
 
 // ------------------------------------------------------------------------
-// Sets matrix data to given two-dimensional array
+// Sets the matrix data to the given two-dimensional array
 // ------------------------------------------------------------------------
 void vsMatrix::set(double values[4][4])
 {
+    // Copy the matix values from the specified array to the matrix's
+    // internal storage area
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++)
             data[i][j] = values[i][j];
@@ -67,7 +71,7 @@ void vsMatrix::copy(vsMatrix source)
 }
 
 // ------------------------------------------------------------------------
-// Sets matrix data to zero
+// Sets the matrix data to zero
 // ------------------------------------------------------------------------
 void vsMatrix::clear()
 {
@@ -80,6 +84,7 @@ void vsMatrix::clear()
 // ------------------------------------------------------------------------
 void vsMatrix::setValue(int row, int column, double value)
 {
+    // Bounds checking
     if ((row < 0) || (row > 3))
     {
         printf("vsMatrix::setValue: Bad row index\n");
@@ -91,6 +96,7 @@ void vsMatrix::setValue(int row, int column, double value)
         return;
     }
     
+    // Set the specified value
     data[row][column] = value;
 }
 
@@ -99,6 +105,7 @@ void vsMatrix::setValue(int row, int column, double value)
 // ------------------------------------------------------------------------
 double vsMatrix::getValue(int row, int column)
 {
+    // Bounds checking
     if ((row < 0) || (row > 3))
     {
         printf("vsMatrix::getValue: Bad row index\n");
@@ -110,6 +117,7 @@ double vsMatrix::getValue(int row, int column)
         return data[0][0];
     }
     
+    // Return the desired value
     return data[row][column];
 }
 
@@ -121,11 +129,14 @@ int vsMatrix::isEqual(vsMatrix operand)
 {
     int i, j;
 
+    // Check each pair of values (this object's value and the operand's
+    // value) for almost-equality; return false if a pair doesn't match up.
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             if (fabs(data[i][j] - operand[i][j]) > VS_MATH_DEFAULT_TOLERANCE)
                 return VS_FALSE;
 
+    // If all the pairs match, return true
     return VS_TRUE;
 }
 
@@ -137,11 +148,15 @@ int vsMatrix::isAlmostEqual(vsMatrix operand, double tolerance)
 {
     int i, j;
 
+    // Check each pair of values (this object's value and the operand's
+    // value) for almost-equality, 'almost' being specified by a given
+    // tolerance value. Return false if a pair doesn't match up.
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             if (fabs(data[i][j] - operand[i][j]) > tolerance)
                 return VS_FALSE;
 
+    // If all the pairs match, return true
     return VS_TRUE;
 }
 
@@ -152,6 +167,7 @@ void vsMatrix::add(vsMatrix addend)
 {
     int i, j;
     
+    // Add each element of the addend matrix to this matrix
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             data[i][j] += addend[i][j];
@@ -165,10 +181,13 @@ vsMatrix vsMatrix::getSum(vsMatrix addend)
     int i, j;
     vsMatrix result;
     
+    // Create the target matrix by adding each element of this matrix
+    // to each element of the addend matrix
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             result[i][j] = data[i][j] + addend[i][j];
 
+    // Return the target matrix
     return result;
 }
 
@@ -179,6 +198,7 @@ void vsMatrix::subtract(vsMatrix subtrahend)
 {
     int i, j;
     
+    // Subtract each element of the subtrahend matrix from this matrix
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             data[i][j] -= subtrahend[i][j];
@@ -192,10 +212,13 @@ vsMatrix vsMatrix::getDifference(vsMatrix subtrahend)
     int i, j;
     vsMatrix result;
     
+    // Create the target matrix by subtracting each element of the
+    // subtrahend from each element of this matrix
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             result[i][j] = data[i][j] - subtrahend[i][j];
 
+    // Return the target matrix
     return result;
 }
 
@@ -206,6 +229,7 @@ void vsMatrix::scale(double multiplier)
 {
     int i, j;
     
+    // Multiply each element of this matrix by the given scalar
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             data[i][j] *= multiplier;
@@ -219,10 +243,13 @@ vsMatrix vsMatrix::getScaled(double multiplier)
     int i, j;
     vsMatrix result;
     
+    // Create the target matrix by multiplying each element of this matrix
+    // by the given scalar
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             result[i][j] = data[i][j] * multiplier;
 
+    // Return the target matrix
     return result;
 }
 
@@ -234,6 +261,7 @@ void vsMatrix::transpose()
     int i, j;
     double temp;
     
+    // Swap the elements of this matrix across its diagonal
     for (i = 0; i < 4; i++)
         for (j = 0; j < i; j++)
         {
@@ -251,10 +279,13 @@ vsMatrix vsMatrix::getTranspose()
     int i, j;
     vsMatrix result;
     
+    // Create the target matrix by copying the values from this matrix
+    // to the target matrix in a swapped-across-the-diagonal fashion
     for (i = 0; i < 4; i++)
         for (j = 0; j < i; j++)
             result[j][i] = data[i][j];
 
+    // Return the target matrix
     return result;
 }
 
@@ -263,6 +294,15 @@ vsMatrix vsMatrix::getTranspose()
 // ------------------------------------------------------------------------
 double vsMatrix::getDeterminant()
 {
+    // Cheat: Rather than coming up with a fancy algorithm for calculating
+    // the determinant, since the matrix is of fixed size I can just
+    // hardcode the pattern of multiplications.
+
+    // The values in this array represent column indices; the row indices
+    // are implied by the position of each index within its array. Each
+    // array of four numbers represents four values in the matrix that
+    // must be multiplied together, and the result added (or subtracted,
+    // for the second half of the entries) to the determinant total.
     int detArray[24][4] = { {0, 1, 2, 3}, {0, 2, 3, 1}, {0, 3, 1, 2},
 			    {1, 3, 2, 0}, {1, 0, 3, 2}, {1, 2, 0, 3},
 			    {2, 0, 1, 3}, {2, 1, 3, 0}, {2, 3, 0, 1},
@@ -271,21 +311,39 @@ double vsMatrix::getDeterminant()
 			    {1, 0, 2, 3}, {1, 2, 3, 0}, {1, 3, 0, 2},
 			    {2, 3, 1, 0}, {2, 0, 3, 1}, {2, 1, 0, 3},
 			    {3, 0, 1, 2}, {3, 1, 2, 0}, {3, 2, 0, 1} };
+
+    // For example, the third entry in the array is {0, 3, 1, 2}. This
+    // corresponds to the third term of the determinant calculation; this
+    // term is calculated by multiplying (data[0][0] * data[1][3] *
+    // data[2][1] * data[3][2]). Each value in the array entry is paired
+    // with its position within the entry to come up with the indices
+    // for the data values to multiply. Finally, after computing the
+    // product, the result is added to the determinant total, because the
+    // entry is one of the first twelve entries. (Had this been, say, the
+    // fifteenth entry instead, the product would be subtracted indtead.)
+
     double total, intermediate;
     int loop, sloop;
     
     total = 0.0;
+    // Cycle over the entries in the array and 'play back' the
+    // multiplications indicated therein
     for (loop = 0; loop < 24; loop++)
     {
+	// Multiply the four values
 	intermediate = 1.0;
 	for (sloop = 0; sloop < 4; sloop++)
 	    intermediate *= data[sloop][detArray[loop][sloop]];
+
+	// The first half of the array contains all of the positive
+	// products; the second half contains the negative ones
 	if (loop > 11)
 	    total -= intermediate;
 	else
 	    total += intermediate;
     }
     
+    // Return the total of the determinant calculation
     return total;
 }
 
@@ -300,6 +358,7 @@ void vsMatrix::invert()
     vsMatrix result;
     vsMatrix minorMatrix;
     
+    // A matrix with a zero determinant can't be inverted
     det = getDeterminant();
     if (fabs(det) < 1E-6)
     {
@@ -311,6 +370,15 @@ void vsMatrix::invert()
     for (loop = 0; loop < 4; loop++)
 	for (sloop = 0; sloop < 4; sloop++)
 	{
+            // Compute this value in the cofactor matrix by finding
+	    // the determinant of the minor matrix for this entry.
+
+	    // Since we're just going to do a determinant calculation
+	    // afterwards, the effect of creating a minor matrix can be
+	    // emulated by clearing the row and column of the matrix
+	    // that would have been removed intead to zero, except for
+	    // the value at the intersection of the row and column,
+	    // which is set to one.
 	    minorMatrix = (*this);
 	    for (tloop = 0; tloop < 4; tloop++)
 	    {
@@ -329,6 +397,7 @@ void vsMatrix::invert()
     // matrix to form the inverse
     result.scale(1.0 / getDeterminant());
     
+    // Assign the contents of the result matrix to this matrix
     (*this) = result;
 }
 
@@ -340,16 +409,20 @@ vsMatrix vsMatrix::getInverse()
 {
     vsMatrix result;
     
+    // If the determinant of the matrix is zero (or so close that it might
+    // as well be zero), then the matrix can't be inverted
     if (fabs(getDeterminant()) < 1E-6)
     {
 	result.clear();
     }
     else
     {
+	// Cheat: call the other version of the inverse function
 	result = (*this);
 	result.invert();
     }
     
+    // Return the inverted matrix
     return result;
 }
 
@@ -362,6 +435,10 @@ void vsMatrix::preMultiply(vsMatrix operand)
     double result[4][4];
     int i, j, k;
     
+    // Do a matrix-multiply operation between this matrix and the operand
+    // matrix, with this matrix second; place the results in a temporary
+    // matrix instead of this one so that we don't overwrite values that
+    // may be needed for later calculations.
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
         {
@@ -370,6 +447,7 @@ void vsMatrix::preMultiply(vsMatrix operand)
                 result[i][j] += (operand[i][k] * data[k][j]);
         }
 
+    // Copy the result from the temporary matrix back to this one
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             data[i][j] = result[i][j];
@@ -384,6 +462,9 @@ vsMatrix vsMatrix::getPreMultiplied(vsMatrix operand)
     vsMatrix result;
     int i, j, k;
     
+    // Do a matrix-multiply operation between this matrix and the operand
+    // matrix, with this matrix second; place the results in the target
+    // matrix.
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
         {
@@ -392,6 +473,7 @@ vsMatrix vsMatrix::getPreMultiplied(vsMatrix operand)
                 result[i][j] += (operand[i][k] * data[k][j]);
         }
 
+    // Return the target matrix
     return result;
 }
 
@@ -404,6 +486,10 @@ void vsMatrix::postMultiply(vsMatrix operand)
     double result[4][4];
     int i, j, k;
     
+    // Do a matrix-multiply operation between this matrix and the operand
+    // matrix, with this matrix first; place the results in a temporary
+    // matrix instead of this one so that we don't overwrite values that
+    // may be needed for later calculations.
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
         {
@@ -412,6 +498,7 @@ void vsMatrix::postMultiply(vsMatrix operand)
                 result[i][j] += (data[i][k] * operand[k][j]);
         }
 
+    // Copy the result from the temporary matrix back to this one
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             data[i][j] = result[i][j];
@@ -426,6 +513,9 @@ vsMatrix vsMatrix::getPostMultiplied(vsMatrix operand)
     vsMatrix result;
     int i, j, k;
     
+    // Do a matrix-multiply operation between this matrix and the operand
+    // matrix, with this matrix first; place the results in the target
+    // matrix.
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
         {
@@ -434,30 +524,35 @@ vsMatrix vsMatrix::getPostMultiplied(vsMatrix operand)
                 result[i][j] += (data[i][k] * operand[k][j]);
         }
 
+    // Return the target matrix
     return result;
 }
 
 // ------------------------------------------------------------------------
 // Transforms the given point by multiplying this matrix by the point as
 // a column vector on the right, returning the result. The fourth element
-// of the operand is considered to be one.
+// of the operand is assumed to be one.
 // ------------------------------------------------------------------------
 vsVector vsMatrix::getPointXform(vsVector operand)
 {
     vsVector result;
     int i, j;
 
+    // To be transformed in this manner, the operand vector must be
+    // at least size 3.
     if (operand.getSize() < 3)
     {
         printf("vsMatrix::getPointXForm: Operand vector is too small\n");
         return result;
     }
 
+    // Transform the vector by this matrix
     for (i = 0; i < 4; i++)
     {
         result[i] = 0.0;
         for (j = 0; j < 4; j++)
         {
+            // Assume the fourth value of the vector is one
             if (j == 3)
                 result[i] += data[i][j];
             else
@@ -465,6 +560,8 @@ vsVector vsMatrix::getPointXform(vsVector operand)
         }
     }
     
+    // Resize the result to match the size of the operand vector, and
+    // return it.
     result.setSize(operand.getSize());
     return result;
 }
@@ -472,26 +569,32 @@ vsVector vsMatrix::getPointXform(vsVector operand)
 // ------------------------------------------------------------------------
 // Transforms the given vector by multiplying this matrix by the vector as
 // a column vector on the right, returning the result. The fourth element
-// of the operand is considered to be zero.
+// of the operand is assumed to be zero.
 // ------------------------------------------------------------------------
 vsVector vsMatrix::getVectorXform(vsVector operand)
 {
     vsVector result;
     int i, j;
 
+    // To be transformed in this manner, the operand vector must be
+    // at least size 3.
     if (operand.getSize() < 3)
     {
         printf("vsMatrix::getVectorXForm: Operand vector is too small\n");
         return result;
     }
 
+    // Transform the vector by this matrix
     for (i = 0; i < 4; i++)
     {
         result[i] = 0.0;
+	// Ignore the fourth value of the vector, if there is one
         for (j = 0; j < 3; j++)
             result[i] += (data[i][j] * operand[j]);
     }
     
+    // Resize the result to match the size of the operand vector, and
+    // return it.
     result.setSize(operand.getSize());
     return result;
 }
@@ -506,12 +609,15 @@ vsVector vsMatrix::getFullXform(vsVector operand)
     vsVector result;
     int i, j;
 
+    // To be transformed in this manner, the operand vector must be
+    // at least size 4.
     if (operand.getSize() < 4)
     {
         printf("vsMatrix::getFullXForm: Operand vector is too small\n");
         return result;
     }
 
+    // Transform the vector by this matrix
     for (i = 0; i < 4; i++)
     {
         result[i] = 0.0;
@@ -519,6 +625,7 @@ vsVector vsMatrix::getFullXform(vsVector operand)
             result[i] += (data[i][j] * operand[j]);
     }
     
+    // Return the transformed vector
     return result;
 }
 
@@ -529,7 +636,10 @@ void vsMatrix::setIdentity()
 {
     int loop;
 
+    // Clear the matrix to all zeroes
     clear();
+
+    // Set the matrix entries along the diagonal to one
     for (loop = 0; loop < 4; loop++)
         data[loop][loop] = 1.0;
 }
@@ -549,10 +659,13 @@ void vsMatrix::setEulerRotation(vsMathEulerAxisOrder axisOrder,
     double axisDegrees[3];
     double tempVal;
     
+    // Place the degree values into an array to make then easier to
+    // iterate through
     axisDegrees[0] = axis1Degrees;
     axisDegrees[1] = axis2Degrees;
     axisDegrees[2] = axis3Degrees;
     
+    // Decompose the axisOrder constant into three separate rotation axes
     switch (axisOrder)
     {
         case VS_EULER_ANGLES_XYZ_S:
@@ -605,14 +718,20 @@ void vsMatrix::setEulerRotation(vsMathEulerAxisOrder axisOrder,
             break;
     }
     
+    // Compute a rotation matrix for each of the three rotations
     for (loop = 0; loop < 3; loop++)
     {
+        // Initialize the matrix to zero, with a one in the
+	// homogeneous scale position
         axisRotation[loop].clear();
         axisRotation[loop][3][3] = 1.0;
 
+        // Construct a rotation matrix based on the rotation degree
+	// value and the axis of rotation
         switch (axis[loop])
         {
             case 0:
+		// X-axis rotation matrix
                 axisRotation[loop][0][0] = 1.0;
 
 		tempVal = cos(VS_DEG2RAD(axisDegrees[loop]));
@@ -625,6 +744,7 @@ void vsMatrix::setEulerRotation(vsMathEulerAxisOrder axisOrder,
 
                 break;
             case 1:
+		// Y-axis rotation matrix
                 axisRotation[loop][1][1] = 1.0;
 
 		tempVal = cos(VS_DEG2RAD(axisDegrees[loop]));
@@ -637,6 +757,7 @@ void vsMatrix::setEulerRotation(vsMathEulerAxisOrder axisOrder,
 
                 break;
             case 2:
+		// Z-axis rotation matrix
                 axisRotation[loop][2][2] = 1.0;
 
 		tempVal = cos(VS_DEG2RAD(axisDegrees[loop]));
@@ -651,7 +772,9 @@ void vsMatrix::setEulerRotation(vsMathEulerAxisOrder axisOrder,
         }
     }
 
-    // Check for relative rotations; reverse the output if so
+    // Combine the three separate rotations into a composite rotation
+    // matrix. Also check for relative rotations; reverse the order of
+    // the matrices if a relative axis order is specified.
     if ((axisOrder >= VS_EULER_ANGLES_XYZ_R) &&
         (axisOrder <= VS_EULER_ANGLES_ZYZ_R))
         (*this) = axisRotation[0] * axisRotation[1] * axisRotation[2];
@@ -786,6 +909,7 @@ void vsMatrix::getEulerRotation(vsMathEulerAxisOrder axisOrder,
         result3 = tempDouble;
     }
     
+    // Copy the desired results to the designated locations
     if (axis1Degrees)
         *axis1Degrees = result1;
     if (axis2Degrees)
@@ -803,15 +927,21 @@ void vsMatrix::setQuatRotation(vsQuat quat)
     vsQuat theQuat;
     double x, y, z, w;
 
+    // Normalize the given quaternion and extract the values from it
     theQuat = quat.getNormalized();
     x = theQuat[0];
     y = theQuat[1];
     z = theQuat[2];
     w = theQuat[3];
     
+    // Initialize the matrix with zeroes and set the homogeneous
+    // coordinate scale to one
     clear();
     data[3][3] = 1.0;
     
+    // Compute the rotation matrix; the formula for doing this should
+    // be available from any decent source of information about
+    // quaternions.
     data[0][0] = 1.0 - (2.0 * VS_SQR(y)) - (2.0 * VS_SQR(z));
     data[0][1] = (2.0 * x * y) - (2.0 * w * z);
     data[0][2] = (2.0 * x * z) + (2.0 * w * y);
@@ -830,20 +960,25 @@ void vsMatrix::setTranslation(double dx, double dy, double dz)
 {
     int loop;
     
+    // Initialize the matrix to an identity matrix
     clear();
     for (loop = 0; loop < 4; loop++)
         data[loop][loop] = 1.0;
 
+    // Copy the translation values to the translation entries in the
+    // matrix
     data[0][3] = dx;
     data[1][3] = dy;
     data[2][3] = dz;
 }
 
 // ------------------------------------------------------------------------
-// Sets this matrix to a (not neccessarily uniform) scaling matrix
+// Sets this matrix to a (not necessarily uniform) scaling matrix
 // ------------------------------------------------------------------------
 void vsMatrix::setScale(double sx, double sy, double sz)
 {
+    // Clear the matrix, and set the values along the diagonal to the
+    // desired scale values
     clear();
     data[0][0] = sx;
     data[1][1] = sy;
@@ -858,12 +993,14 @@ void vsMatrix::setScale(double sx, double sy, double sz)
 // ------------------------------------------------------------------------
 vsVector &vsMatrix::operator[](int index)
 {
+    // Bounds checking
     if ((index < 0) || (index >= 4))
     {
         printf("vsMatrix::operator[]: Invalid index\n");
         return data[0];
     }
     
+    // Return the desired row
     return data[index];
 }
 
@@ -876,10 +1013,13 @@ vsMatrix vsMatrix::operator+(vsMatrix addend)
     int i, j;
     vsMatrix result;
     
+    // Create the target matrix by adding each element of this matrix
+    // to each element of the addend matrix
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             result[i][j] = data[i][j] + addend[i][j];
 
+    // Return the target matrix
     return result;
 }
 
@@ -892,10 +1032,13 @@ vsMatrix vsMatrix::operator-(vsMatrix subtrahend)
     int i, j;
     vsMatrix result;
     
+    // Create the target matrix by subtracting each element of the
+    // subtrahend from each element of this matrix
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             result[i][j] = data[i][j] - subtrahend[i][j];
 
+    // Return the target matrix
     return result;
 }
 
@@ -909,6 +1052,9 @@ vsMatrix vsMatrix::operator*(vsMatrix operand)
     vsMatrix result;
     int i, j, k;
     
+    // Do a matrix-multiply operation between this matrix and the operand
+    // matrix, with this matrix first; place the results in the target
+    // matrix.
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
         {
@@ -917,6 +1063,7 @@ vsMatrix vsMatrix::operator*(vsMatrix operand)
                 result[i][j] += (data[i][k] * operand[k][j]);
         }
 
+    // Return the target matrix
     return result;
 }
 
@@ -928,6 +1075,7 @@ void vsMatrix::operator+=(vsMatrix addend)
 {
     int i, j;
     
+    // Add each element of the addend matrix to this matrix
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             data[i][j] += addend[i][j];
@@ -941,6 +1089,7 @@ void vsMatrix::operator-=(vsMatrix subtrahend)
 {
     int i, j;
     
+    // Subtract each element of the subtrahend matrix from this matrix
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             data[i][j] -= subtrahend[i][j];
@@ -955,10 +1104,13 @@ int vsMatrix::operator==(vsMatrix operand)
 {
     int i, j;
 
+    // Check each pair of values (this object's value and the operand's
+    // value) for almost-equality; return false if a pair doesn't match up.
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             if (fabs(data[i][j] - operand[i][j]) > VS_MATH_DEFAULT_TOLERANCE)
                 return VS_FALSE;
 
+    // If all the pairs match, return true
     return VS_TRUE;
 }

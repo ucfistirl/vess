@@ -28,11 +28,11 @@
 // ------------------------------------------------------------------------
 vsFogAttribute::vsFogAttribute()
 {
+    // Create a new Performer fog object and set the default type and range
     performerFog = new pfFog();
+    performerFog->ref();
     performerFog->setFogType(PFFOG_PIX_LIN);
     performerFog->setRange(0.0, 10000.0);
-    
-    performerFog->ref();
 }
 
 // ------------------------------------------------------------------------
@@ -42,15 +42,17 @@ vsFogAttribute::vsFogAttribute()
 // ------------------------------------------------------------------------
 vsFogAttribute::vsFogAttribute(pfFog *fogObject)
 {
+    // Store the Performer fog object
     performerFog = fogObject;
+    performerFog->ref();
     
+    // We can't handle the spline-based fog density function; if that's
+    // what the type is set to, then change it to something we can handle
     if (performerFog->getFogType() == PFFOG_PIX_SPLINE)
     {
         performerFog->setFogType(PFFOG_PIX_LIN);
         performerFog->setRange(0.0, 10000.0);
     }
-    
-    performerFog->ref();
 }
 
 // ------------------------------------------------------------------------
@@ -58,6 +60,7 @@ vsFogAttribute::vsFogAttribute(pfFog *fogObject)
 // ------------------------------------------------------------------------
 vsFogAttribute::~vsFogAttribute()
 {
+    // Delete the Performer fog object
     performerFog->unref();
     pfDelete(performerFog);
 }
@@ -75,6 +78,7 @@ int vsFogAttribute::getAttributeType()
 // ------------------------------------------------------------------------
 void vsFogAttribute::setEquationType(int equType)
 {
+    // Translate the VESS constant to Performer
     switch (equType)
     {
         case VS_FOG_EQTYPE_LINEAR:
@@ -98,6 +102,7 @@ void vsFogAttribute::setEquationType(int equType)
 // ------------------------------------------------------------------------
 int vsFogAttribute::getEquationType()
 {
+    // Get the fog type from the Performer fog object and translate to VESS
     switch (performerFog->getFogType())
     {
         case PFFOG_PIX_LIN:
@@ -108,6 +113,7 @@ int vsFogAttribute::getEquationType()
             return VS_FOG_EQTYPE_EXP2;
     }
     
+    // If the fog type is unrecognized, return a default value
     return 0;
 }
 
@@ -116,6 +122,7 @@ int vsFogAttribute::getEquationType()
 // ------------------------------------------------------------------------
 void vsFogAttribute::setColor(double r, double g, double b)
 {
+    // Set the fog color on the Performer fog object
     performerFog->setColor(r, g, b);
 }
 
@@ -127,8 +134,10 @@ void vsFogAttribute::getColor(double *r, double *g, double *b)
 {
     float red, green, blue;
     
+    // Get the fog color from the Performer object
     performerFog->getColor(&red, &green, &blue);
     
+    // Return the elements of the fog color that the caller desires
     if (r)
         *r = red;
     if (g)
@@ -142,6 +151,7 @@ void vsFogAttribute::getColor(double *r, double *g, double *b)
 // ------------------------------------------------------------------------
 void vsFogAttribute::setRanges(double near, double far)
 {
+    // Set the fog ranges on the Performer object
     performerFog->setRange(near, far);
 }
 
@@ -153,8 +163,10 @@ void vsFogAttribute::getRanges(double *near, double *far)
 {
     float onset, opaque;
 
+    // Get the fog ranges from the Perofmer object
     performerFog->getRange(&onset, &opaque);
 
+    // Return the desired fog values
     if (near)
         *near = onset;
     if (far)
@@ -170,11 +182,14 @@ void vsFogAttribute::attachDuplicate(vsNode *theNode)
     vsFogAttribute *newAttrib;
     pfFog *newFog;
     
+    // Create a new Performer fog object as a duplicate of the current one
     newFog = new pfFog();
     newFog->copy(performerFog);
     
+    // Createa a new fog attribute using the new fog object
     newAttrib = new vsFogAttribute(newFog);
 
+    // Add the new fog attribute to the target node
     theNode->addAttribute(newAttrib);
 }
 
@@ -184,8 +199,10 @@ void vsFogAttribute::attachDuplicate(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsFogAttribute::saveCurrent()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
+    // Save the current fog state in our save list
     attrSaveList[attrSaveCount++] = gState->getFog();
 }
 
@@ -195,9 +212,13 @@ void vsFogAttribute::saveCurrent()
 // ------------------------------------------------------------------------
 void vsFogAttribute::apply()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
+    // Set the current fog state to this object
     gState->setFog(this);
+
+    // Lock the fog state if overriding is enabled
     if (overrideFlag)
         gState->lockFog(this);
 }
@@ -208,10 +229,14 @@ void vsFogAttribute::apply()
 // ------------------------------------------------------------------------
 void vsFogAttribute::restoreSaved()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
+    // Unlock the fog state if overriding was enabled
     if (overrideFlag)
         gState->unlockFog(this);
+
+    // Reset the current fog state to its previous value
     gState->setFog((vsFogAttribute *)(attrSaveList[--attrSaveCount]));
 }
 
@@ -221,6 +246,7 @@ void vsFogAttribute::restoreSaved()
 // ------------------------------------------------------------------------
 void vsFogAttribute::setState(pfGeoState *state)
 {
+    // Set fog to enabled and set the fog object on the Performer geostate
     state->setMode(PFSTATE_ENFOG, PFFOG_ON);
     state->setAttr(PFSTATE_FOG, performerFog);
 }
@@ -237,31 +263,39 @@ int vsFogAttribute::isEquivalent(vsAttribute *attribute)
     double r1, g1, b1, r2, g2, b2;
     double near1, far1, near2, far2;
     
+    // NULL check
     if (!attribute)
         return VS_FALSE;
 
+    // Equal pointer check
     if (this == attribute)
         return VS_TRUE;
     
+    // Type check
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_FOG)
         return VS_FALSE;
 
+    // Type cast
     attr = (vsFogAttribute *)attribute;
 
+    // Equation type check
     val1 = getEquationType();
     val2 = attr->getEquationType();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Color check
     getColor(&r1, &g1, &b1);
     attr->getColor(&r2, &g2, &b2);
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
         return VS_FALSE;
 
+    // Range check
     getRanges(&near1, &far1);
     attr->getRanges(&near2, &far2);
     if (!VS_EQUAL(near1,near2) || !VS_EQUAL(far1,far2))
         return VS_FALSE;
 
+    // Attributes are equivalent if all checks pass
     return VS_TRUE;
 }

@@ -96,12 +96,15 @@ vsVector::~vsVector()
 // ------------------------------------------------------------------------
 void vsVector::set(int size, double values[])
 {
+    // Bounds checking
     if ((size < 1) || (size > 4))
     {
         printf("vsVector::set(int, double[]): Invalid size parameter\n");
         return;
     }
 
+    // Copy the data values from the given array to the vector, setting
+    // the size of the vector and setting the unused entries to zero
     clear();
     setSize(size);
     for (int i = 0; i < size; i++)
@@ -110,10 +113,12 @@ void vsVector::set(int size, double values[])
 
 // ------------------------------------------------------------------------
 // Sets the size of the vector to 2, and sets the vector data to the given
-// data.
+// data
 // ------------------------------------------------------------------------
 void vsVector::set(double x, double y)
 {
+    // Copy the data values from the given array to the vector, setting the
+    // size of the vector to two and setting the unused entries to zero
     clear();
     setSize(2);
     data[0] = x;
@@ -122,10 +127,12 @@ void vsVector::set(double x, double y)
 
 // ------------------------------------------------------------------------
 // Sets the size of the vector to 3, and sets the vector data to the given
-// data.
+// data
 // ------------------------------------------------------------------------
 void vsVector::set(double x, double y, double z)
 {
+    // Copy the data values from the given array to the vector, setting the
+    // size of the vector to three and setting the unused entry to zero
     clear();
     setSize(3);
     data[0] = x;
@@ -135,10 +142,12 @@ void vsVector::set(double x, double y, double z)
 
 // ------------------------------------------------------------------------
 // Sets the size of the vector to 4, and sets the vector data to the given
-// data.
+// data
 // ------------------------------------------------------------------------
 void vsVector::set(double x, double y, double z, double w)
 {
+    // Copy the data values from the given array to the vector, setting the
+    // size of the vector to four
     setSize(4);
     data[0] = x;
     data[1] = y;
@@ -147,7 +156,7 @@ void vsVector::set(double x, double y, double z, double w)
 }
 
 // ------------------------------------------------------------------------
-// Makes this vector an exact duplicate of the source vector.
+// Makes this vector an exact duplicate of the source vector
 // ------------------------------------------------------------------------
 void vsVector::copy(vsVector source)
 {
@@ -155,7 +164,7 @@ void vsVector::copy(vsVector source)
 }
 
 // ------------------------------------------------------------------------
-// Clears the vector to zero.
+// Clears the vector to zero
 // ------------------------------------------------------------------------
 void vsVector::clear()
 {
@@ -173,6 +182,7 @@ void vsVector::clearCopy(vsVector source)
 {
     int loop;
     
+    // Clear the vector, and then copy its data into this vector
     clear();
     for (loop = 0; loop < source.getSize(); loop++)
         data[loop] = source[loop];
@@ -184,17 +194,19 @@ void vsVector::clearCopy(vsVector source)
 // ------------------------------------------------------------------------
 void vsVector::setSize(int size)
 {
+    // Bounds checking
     if ((size < 1) || (size > 4))
     {
         printf("vsVector::setSize: Invalid size parameter\n");
         return;
     }
 
+    // Set the vector size
     vecSize = size;
 }
 
 // ------------------------------------------------------------------------
-// Retrieves the size of this vector.
+// Retrieves the size of this vector
 // ------------------------------------------------------------------------
 int vsVector::getSize()
 {
@@ -202,30 +214,34 @@ int vsVector::getSize()
 }
 
 // ------------------------------------------------------------------------
-// Sets one specific value in the vector.
+// Sets one specific value in the vector
 // ------------------------------------------------------------------------
 void vsVector::setValue(int index, double value)
 {
+    // Bounds checking
     if ((index < 0) || (index >= vecSize))
     {
         printf("vsVector::setValue: Invalid index\n");
         return;
     }
     
+    // Set the specified value
     data[index] = value;
 }
 
 // ------------------------------------------------------------------------
-// Retrieves one specific value from the vector.
+// Retrieves one specific value from the vector
 // ------------------------------------------------------------------------
 double vsVector::getValue(int index)
 {
+    // Bounds checking
     if ((index < 0) || (index >= vecSize))
     {
         printf("vsVector::getValue: Invalid index\n");
         return data[0];
     }
     
+    // Return the desired value
     return data[index];
 }
 
@@ -236,16 +252,20 @@ double vsVector::getValue(int index)
 // ------------------------------------------------------------------------
 int vsVector::isEqual(vsVector operand)
 {
+    // Verify that the vectors are the same size
     if (vecSize != operand.getSize())
     {
         printf("vsVector::isEqual: Vector size mismatch\n");
         return VS_FALSE;
     }
 
+    // Check each pair of values (this vector's and the operand vector's)
+    // for almost-equality; return false if a pair doesn't match up.
     for (int i = 0; i < vecSize; i++)
         if (fabs(data[i] - operand[i]) > VS_MATH_DEFAULT_TOLERANCE)
             return VS_FALSE;
 
+    // If all the pairs match, return true
     return VS_TRUE;
 }
 
@@ -256,16 +276,21 @@ int vsVector::isEqual(vsVector operand)
 // ------------------------------------------------------------------------
 int vsVector::isAlmostEqual(vsVector operand, double tolerance)
 {
+    // Verify that the vectors are the same size
     if (vecSize != operand.getSize())
     {
         printf("vsVector::isEqual: Vector size mismatch\n");
         return VS_FALSE;
     }
 
+    // Check each pair of values (this vector's and the operand vector's)
+    // for almost-equality, 'almost' being specified by a given tolerance
+    // value. Return false if a pair doesn't match up.
     for (int i = 0; i < vecSize; i++)
         if (fabs(data[i] - operand[i]) > tolerance)
             return VS_FALSE;
 
+    // If all the pairs match, return true
     return VS_TRUE;
 }
 
@@ -275,12 +300,14 @@ int vsVector::isAlmostEqual(vsVector operand, double tolerance)
 // ------------------------------------------------------------------------
 void vsVector::add(vsVector addend)
 {
+    // Verify that the vectors are the same size
     if (vecSize != addend.getSize())
     {
         printf("vsVector::add: Vector size mismatch\n");
         return;
     }
 
+    // Add each element of the addend vector to this vector
     for (int i = 0; i < vecSize; i++)
         data[i] += addend[i];
 }
@@ -293,16 +320,20 @@ vsVector vsVector::getSum(vsVector addend)
 {
     vsVector result;
     
+    // Verify that the vectors are the same size
     if (vecSize != addend.getSize())
     {
         printf("vsVector::getSum: Vector size mismatch\n");
         return result;
     }
 
+    // Create the target vector by adding each element of this vector to
+    // the corresponding element of the addend vector
     result.setSize(vecSize);
     for (int i = 0; i < vecSize; i++)
         result[i] = data[i] + addend[i];
 
+    // Return the target vector
     return result;
 }
 
@@ -312,12 +343,14 @@ vsVector vsVector::getSum(vsVector addend)
 // ------------------------------------------------------------------------
 void vsVector::subtract(vsVector subtrahend)
 {
+    // Verify that the vectors are the same size
     if (vecSize != subtrahend.getSize())
     {
         printf("vsVector::subtract: Vector size mismatch\n");
         return;
     }
 
+    // Subtract each element of the subtrahend vector from this vector
     for (int i = 0; i < vecSize; i++)
         data[i] -= subtrahend[i];
 }
@@ -330,16 +363,20 @@ vsVector vsVector::getDifference(vsVector subtrahend)
 {
     vsVector result;
     
+    // Verify that the vectors are the same size
     if (vecSize != subtrahend.getSize())
     {
         printf("vsVector::operator-: Vector size mismatch\n");
         return result;
     }
 
+    // Create the target vector by subtracting each element of the
+    // subtrahend from the corresponding element of this vectur
     result.setSize(vecSize);
     for (int i = 0; i < vecSize; i++)
         result[i] = data[i] - subtrahend[i];
 
+    // Return the target vector
     return result;
 }
 
@@ -349,6 +386,7 @@ vsVector vsVector::getDifference(vsVector subtrahend)
 // ------------------------------------------------------------------------
 void vsVector::scale(double multiplier)
 {
+    // Multiply each element of this vector by the given scalar
     for (int i = 0; i < vecSize; i++)
         data[i] *= multiplier;
 }
@@ -361,10 +399,13 @@ vsVector vsVector::getScaled(double multiplier)
 {
     vsVector result;
     
+    // Create the target vector by multiplying each element of this vector
+    // by the given scalar
     result.setSize(vecSize);
     for (int i = 0; i < vecSize; i++)
         result[i] = data[i] * multiplier;
 
+    // Return the target vector
     return result;
 }
     
@@ -373,10 +414,12 @@ vsVector vsVector::getScaled(double multiplier)
 // ------------------------------------------------------------------------
 double vsVector::getMagnitude()
 {
+    // Compute the squared magnitude of this vector
     double total = 0.0;
     for (int i = 0; i < vecSize; i++)
         total += (data[i] * data[i]);
 
+    // Return the square root of the square of the magnitude
     return sqrt(total);
 }
 
@@ -385,10 +428,12 @@ double vsVector::getMagnitude()
 // ------------------------------------------------------------------------
 double vsVector::getMagnitudeSquared()
 {
+    // Compute the squared magnitude of this vector...
     double total = 0.0;
     for (int i = 0; i < vecSize; i++)
         total += (data[i] * data[i]);
 
+    // ...and return it.
     return total;
 }
 
@@ -400,15 +445,18 @@ double vsVector::getDotProduct(vsVector operand)
 {
     double total = 0.0;
 
+    // Verify that the vectors are the same size
     if (vecSize != operand.getSize())
     {
         printf("vsVector::getDotProduct: Vector size mismatch\n");
         return 0.0;
     }
 
+    // Compute the dot product
     for (int i = 0; i < vecSize; i++)
         total += (data[i] * operand[i]);
 
+    // Return the result
     return total;
 }
 
@@ -419,11 +467,14 @@ void vsVector::normalize()
 {
     double mag;
 
+    // Get the magnitude of this vector
     mag = getMagnitude();
     
+    // If the magnitude is zero, then normalization is undefined. Abort.
     if (mag == 0.0)
 	return;
     
+    // Divide each element of this vector by the magnitude
     for (int i = 0; i < vecSize; i++)
         data[i] /= mag;
 }
@@ -436,15 +487,22 @@ vsVector vsVector::getNormalized()
     vsVector result;
     double mag;
 
+    // Set the size of the result
     result.setSize(vecSize);
+
+    // Get the magnitude of this vector
     mag = getMagnitude();
     
+    // If the magnitude is zero, then normalization is undefined. Return
+    // a dummy zero vector result.
     if (mag == 0.0)
 	return result;
 
+    // Divide each element of the result vector by the magnitude
     for (int i = 0; i < vecSize; i++)
         result[i] = (data[i] / mag);
 
+    // Return the result vector
     return result;
 }
 
@@ -457,6 +515,7 @@ void vsVector::crossProduct(vsVector operand)
 {
     double result[3];
 
+    // Verify that both vectors are large enough
     if ((vecSize < 3) || (operand.getSize() < 3))
     {
         printf("vsVector::crossProduct: Both vectors must be at least size "
@@ -464,10 +523,12 @@ void vsVector::crossProduct(vsVector operand)
         return;
     }
 
+    // Compute the cross product, putting the result in a temporary array
     result[0] = (data[1] * operand[2]) - (data[2] * operand[1]);
     result[1] = (data[2] * operand[0]) - (data[0] * operand[2]);
     result[2] = (data[0] * operand[1]) - (data[1] * operand[0]);
     
+    // Copy the resulting product back into this vector
     data[0] = result[0];
     data[1] = result[1];
     data[2] = result[2];
@@ -481,6 +542,8 @@ vsVector vsVector::getCrossProduct(vsVector operand)
 {
     vsVector result;
 
+    // Verify that both vectors are at least size 3. Return a dummy zero
+    // vector if they're not.
     result.setSize(3);
     if ((vecSize < 3) || (operand.getSize() < 3))
     {
@@ -489,10 +552,12 @@ vsVector vsVector::getCrossProduct(vsVector operand)
         return result;
     }
 
+    // Compute the cross product...
     result[0] = (data[1] * operand[2]) - (data[2] * operand[1]);
     result[1] = (data[2] * operand[0]) - (data[0] * operand[2]);
     result[2] = (data[0] * operand[1]) - (data[1] * operand[0]);
     
+    // ...and return it.
     return result;
 }
 
@@ -502,11 +567,22 @@ vsVector vsVector::getCrossProduct(vsVector operand)
 // ------------------------------------------------------------------------
 double vsVector::getAngleBetween(vsVector endVector)
 {
+    // By one of the definitions of the cross product, the sine of the
+    // angle between two vectors is equal to the magnitude of their cross
+    // product divided by the product of their magnitudes. Similarly, the
+    // cosine of the angle between two vectors is equal to their dot
+    // product divided by the product of their magnitudes. Those two
+    // equations are combined here to generate the formula 'angle between
+    // two vectors = inverse tangent((cross product magnitude) /
+    // (dot product))'.
+
     double crossMag, dot;
-    
+
+    // Compute the cross product magnitude and dot product
     crossMag = (getCrossProduct(endVector)).getMagnitude();
     dot = getDotProduct(endVector);
     
+    // Return the inverse tangent of the quotient of the two products
     return VS_RAD2DEG(atan2(crossMag, dot));
 }
 
@@ -515,12 +591,14 @@ double vsVector::getAngleBetween(vsVector endVector)
 // ------------------------------------------------------------------------
 double &vsVector::operator[](int index)
 {
+    // Bounds checking
     if ((index < 0) || (index >= getSize()))
     {
         printf("vsVector::operator[]: Invalid index\n");
         return data[0];
     }
     
+    // Return a reference to the desired data value
     return data[index];
 }
 
@@ -533,16 +611,20 @@ vsVector vsVector::operator+(vsVector addend)
 {
     vsVector result;
     
+    // Verify that the vectors are the same size
     if (vecSize != addend.getSize())
     {
         printf("vsVector::operator+: Vector size mismatch\n");
         return result;
     }
 
+    // Create the target vector by adding each element of this vector to
+    // the corresponding element of the addend vector
     result.setSize(vecSize);
     for (int i = 0; i < vecSize; i++)
         result[i] = data[i] + addend[i];
 
+    // Return the target vector
     return result;
 }
 
@@ -555,16 +637,20 @@ vsVector vsVector::operator-(vsVector subtrahend)
 {
     vsVector result;
     
+    // Verify that the vectors are the same size
     if (vecSize != subtrahend.getSize())
     {
         printf("vsVector::operator-: Vector size mismatch\n");
         return result;
     }
 
+    // Create the target vector by subtracting each element of the
+    // subtrahend from the corresponding element of this vectur
     result.setSize(vecSize);
     for (int i = 0; i < vecSize; i++)
         result[i] = data[i] - subtrahend[i];
 
+    // Return the target vector
     return result;
 }
 
@@ -577,10 +663,13 @@ vsVector vsVector::operator*(double multiplier)
 {
     vsVector result;
     
+    // Create the target vector by multiplying each element of this vector
+    // by the given scalar
     result.setSize(vecSize);
     for (int i = 0; i < vecSize; i++)
         result[i] = data[i] * multiplier;
 
+    // Return the target vector
     return result;
 }
 
@@ -591,12 +680,14 @@ vsVector vsVector::operator*(double multiplier)
 // ------------------------------------------------------------------------
 void vsVector::operator+=(vsVector addend)
 {
+    // Verify that the vectors are the same size
     if (vecSize != addend.getSize())
     {
         printf("vsVector::operator+=: Vector size mismatch\n");
         return;
     }
 
+    // Add each element of the addend vector to this vector
     for (int i = 0; i < vecSize; i++)
         data[i] += addend[i];
 }
@@ -608,12 +699,14 @@ void vsVector::operator+=(vsVector addend)
 // ------------------------------------------------------------------------
 void vsVector::operator-=(vsVector subtrahend)
 {
+    // Verify that the vectors are the same size
     if (vecSize != subtrahend.getSize())
     {
         printf("vsVector::operator-=: Vector size mismatch\n");
         return;
     }
 
+    // Subtract each element of the subtrahend vector from this vector
     for (int i = 0; i < vecSize; i++)
         data[i] -= subtrahend[i];
 }
@@ -625,6 +718,7 @@ void vsVector::operator-=(vsVector subtrahend)
 // ------------------------------------------------------------------------
 void vsVector::operator*=(double multiplier)
 {
+    // Multiply each element of this vector by the given scalar
     for (int i = 0; i < vecSize; i++)
         data[i] *= multiplier;
 }
@@ -637,16 +731,20 @@ void vsVector::operator*=(double multiplier)
 // ------------------------------------------------------------------------
 int vsVector::operator==(vsVector operand)
 {
+    // Verify that the vectors are the same size
     if (vecSize != operand.getSize())
     {
         printf("vsVector::isEqual: Vector size mismatch\n");
         return VS_FALSE;
     }
 
+    // Check each pair of values (this vector's and the operand vector's)
+    // for almost-equality; return false if a pair doesn't match up.
     for (int i = 0; i < vecSize; i++)
         if (fabs(data[i] - operand[i]) > VS_MATH_DEFAULT_TOLERANCE)
             return VS_FALSE;
 
+    // If all the pairs match, return true
     return VS_TRUE;
 }
 
@@ -659,9 +757,12 @@ vsVector operator*(double multiplier, vsVector operand)
 {
     vsVector result;
     
+    // Create the target vector by multiplying each element of this vector
+    // by the given scalar
     result.setSize(operand.getSize());
     for (int i = 0; i < operand.getSize(); i++)
         result[i] = multiplier * operand[i];
 
+    // Return the target vector
     return result;
 }

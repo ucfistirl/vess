@@ -42,21 +42,27 @@ vsSoundSample::vsSoundSample(char *fileName)
 
     void      *soundData;
 
-    // Generate the buffer
+    // Generate a single OpenAL sound buffer for the audio data
     alGenBuffers(1, &bufferID);
 
+    // Load the WAV file and check for errors, keep track of the data format
+    // parameters as well
     errorFlag = alutLoadWAV(fileName, &soundData, &format, &size, &bits, &freq);
+
+    // Make sure the load succeeds
     if (errorFlag == AL_FALSE)
     {
+        // Load failed, print an error
         printf("vsSoundSample::vsSoundSample:  Unable to load file: %s\n", 
             fileName);
     }
     else
     {
+        // Pass the WAV file data and parameters to the buffer
         alBufferData(bufferID, format, soundData, size, freq);
 
         // OpenAL makes a local copy of the sound data once we fill an 
-        // alBuffer so...
+        // alBuffer so we can discard the local copy of the sound data.
         free(soundData);
     }
 }
@@ -66,6 +72,7 @@ vsSoundSample::vsSoundSample(char *fileName)
 // ------------------------------------------------------------------------
 vsSoundSample::~vsSoundSample()
 {
+    // Free the OpenAL buffer we generated
     alDeleteBuffers(1, &bufferID);
 }
 

@@ -37,10 +37,11 @@
 vsSphericalMotion::vsSphericalMotion(vsMouse *mouse, vsKinematics *kin)
                  : vsMotionModel()
 {
-     // Get the axes
+     // Get the input axes
      horizontal = mouse->getAxis(0);
      vertical = mouse->getAxis(1);
 
+     // Complain if any of the axes are not normalized
      if (((horizontal != NULL) && (!horizontal->isNormalized())) ||
          ((vertical != NULL) && (!vertical->isNormalized())))
      {
@@ -55,11 +56,13 @@ vsSphericalMotion::vsSphericalMotion(vsMouse *mouse, vsKinematics *kin)
      orbitButton = mouse->getButton(0);
      zoomButton = mouse->getButton(2);
 
+     // Initialize the target point
      targetPoint.setSize(3);
      targetPoint.clear();
      targetComp = NULL;
      targetMode = VS_SPHM_TARGET_POINT;
 
+     // Set motion defaults
      orbitConst = VS_SPHM_DEFAULT_ORBIT_CONST;
      zoomConst = VS_SPHM_DEFAULT_ZOOM_CONST;
      minRadius = VS_SPHM_DEFAULT_MIN_RADIUS;
@@ -73,10 +76,11 @@ vsSphericalMotion::vsSphericalMotion(vsMouse *mouse, int orbitButtonIndex,
                                      int zoomButtonIndex, vsKinematics *kin)
                  : vsMotionModel()
 {
-     // Get the axes
+     // Get the input axes
      horizontal = mouse->getAxis(0);
      vertical = mouse->getAxis(1);
 
+     // Complain if any of the axes are not normalized
      if (((horizontal != NULL) && (!horizontal->isNormalized())) ||
          ((vertical != NULL) && (!vertical->isNormalized())))
      {
@@ -89,11 +93,12 @@ vsSphericalMotion::vsSphericalMotion(vsMouse *mouse, int orbitButtonIndex,
      zoomButton = mouse->getButton(zoomButtonIndex);
      kinematics = kin;
 
-     // Initialize other variables to defaults
+     // Set the motion defaults
      orbitConst = VS_SPHM_DEFAULT_ORBIT_CONST;
      zoomConst = VS_SPHM_DEFAULT_ZOOM_CONST;
      minRadius = VS_SPHM_DEFAULT_MIN_RADIUS;
 
+     // Initialize the target point
      targetPoint.setSize(3);
      targetPoint.clear();
      targetComp = NULL;
@@ -115,6 +120,7 @@ vsSphericalMotion::vsSphericalMotion(vsInputAxis *horizAxis,
      horizontal = horizAxis;
      vertical = vertAxis;
 
+     // Complain if any of the axes are not normalized
      if (((horizontal != NULL) && (!horizontal->isNormalized())) ||
          ((vertical != NULL) && (!vertical->isNormalized())))
      {
@@ -127,11 +133,12 @@ vsSphericalMotion::vsSphericalMotion(vsInputAxis *horizAxis,
      zoomButton = zoomBtn;
      kinematics = kin;
 
-     // Initialize other variables to defaults
+     // Set the motion defaults
      orbitConst = VS_SPHM_DEFAULT_ORBIT_CONST;
      zoomConst = VS_SPHM_DEFAULT_ZOOM_CONST;
      minRadius = VS_SPHM_DEFAULT_MIN_RADIUS;
 
+     // Initialize the target point
      targetPoint.setSize(3);
      targetPoint.clear();
      targetComp = NULL;
@@ -143,7 +150,6 @@ vsSphericalMotion::vsSphericalMotion(vsInputAxis *horizAxis,
 // ------------------------------------------------------------------------
 vsSphericalMotion::~vsSphericalMotion()
 {
-
 }
 
 // ------------------------------------------------------------------------
@@ -151,8 +157,13 @@ vsSphericalMotion::~vsSphericalMotion()
 // ------------------------------------------------------------------------
 void vsSphericalMotion::setTargetPoint(vsVector targetPt)
 {
+    // Set the target point to the point passed in
     targetPoint = targetPt;
+
+    // Set the target mode to point (as opposed to component mode)
     targetMode = VS_SPHM_TARGET_POINT;
+
+    // Set the target component to NULL (we're using point mode now)
     targetComp = NULL;
 }
 
@@ -162,10 +173,18 @@ void vsSphericalMotion::setTargetPoint(vsVector targetPt)
 // ------------------------------------------------------------------------
 vsVector vsSphericalMotion::getTargetPoint()
 {
+    // Check the target mode to see if we're in point mode
     if (targetMode == VS_SPHM_TARGET_POINT)
+    {
+        // We're in point mode, return the current target point
         return targetPoint;
+    }
     else
+    {
+        // We're in component mode, return a zero vector for the target
+        // point
         return vsVector(0.0, 0.0, 0.0);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -173,10 +192,14 @@ vsVector vsSphericalMotion::getTargetPoint()
 // ------------------------------------------------------------------------
 void vsSphericalMotion::setTargetComponent(vsComponent *targetCmp)
 {
+    // Make sure the component exists
     if (targetComp != NULL)
     {
+        // Set the target component and mode
         targetComp = targetCmp;
         targetMode = VS_SPHM_TARGET_COMPONENT;
+
+        // Set the target point to a zero vector
         targetPoint.clear();
     }
     else
@@ -192,10 +215,17 @@ void vsSphericalMotion::setTargetComponent(vsComponent *targetCmp)
 // ------------------------------------------------------------------------
 vsComponent *vsSphericalMotion::getTargetComponent()
 {
+    // Make sure were in component targeting mode
     if (targetMode == VS_SPHM_TARGET_COMPONENT)
+    {
+        // Return the target component
         return targetComp;
+    }
     else
+    {
+        // Not in component mode, return NULL for the target
         return NULL;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -286,30 +316,49 @@ void vsSphericalMotion::update()
     if (interval <= 0.0)
         return;
 
-    // Get the amount of axis movement
+    // Initialize the horizontal and vertical delta variables
     dHoriz = 0.0;
     dVert = 0.0;
 
+    // Check the horizontal axis (skip horizontal if the axis doesn't exist)
     if (horizontal != NULL)
     {
+        // Subtract the current horizontal axis position from the previous
+        // one to get the amount of axis movement
         dHoriz = horizontal->getPosition() - lastHorizontal;
+
+        // Save the current axis position for next frame
         lastHorizontal = horizontal->getPosition();
     }
+
+    // Check the vertical axis (skip vertical if the axis doesn't exist)
     if (vertical != NULL)
     {
+        // Subtract the current vertical axis position from the previous
+        // one to get the amount of axis movement
         dVert = vertical->getPosition() - lastVertical;
+
+        // Save the current axis position for next frame
         lastVertical = vertical->getPosition();
     }
 
-    // Get the position of the target
+    // Get the position of the target.  The procedure to do this depends
+    // on the current targeting mode
     if (targetMode == VS_SPHM_TARGET_POINT)
     {
+        // Point mode, simply return the target point
         targetPos = targetPoint;
     }
     else
     {
+        // Component mode.  Start with a target point at the origin
         targetPos.set(0.0, 0.0, 0.0);
+
+        // Get the global transform of the target component
         targetXform = targetComp->getGlobalXform();
+
+        // Transform the target point by the global transform to obtain
+        // the target position in world space
         targetPos = targetXform.getPointXform(targetPos);
     }
 
@@ -375,7 +424,9 @@ void vsSphericalMotion::update()
             elevation = -elevation;
     }
 
-    // If any button is pressed, set all velocities to zero
+    // If any button is pressed, set all velocities to zero.  This is done
+    // in case the kinematics object has inertia enabled.  Otherwise, it
+    // would be difficult to control the motion.
     if (((orbitButton != NULL) && (orbitButton->isPressed())) ||
         ((zoomButton != NULL) && (zoomButton->isPressed()))) 
     {
@@ -423,6 +474,9 @@ void vsSphericalMotion::update()
         // Compute a zoom direction vector
         dPos = kinematics->getPosition() - targetPos;
 
+        // If the current position is very close to the target point, the
+        // zoom direction can be hard to determine, causing erratic behavior.
+        // See if we need to handle this special case.
         if (dPos.getMagnitude() < 1.0E-6)
         {
             // Use the current orientation as the zoom direction
@@ -446,12 +500,15 @@ void vsSphericalMotion::update()
         kinematics->setVelocity(dPos.getScaled(1.0/interval));
     }
 
-    // Compute the orientation
+    // Compute the orientation, get a direction vector from the new position
+    // to the target point or component
     tempVec = targetPos - newPos;
 
-    // If tempVec is too small, don't change the orientation
+    // Only change the orientation if the new direction vector has a 
+    // significant magnitude
     if (tempVec.getMagnitude() > 1.0E-6)
     {
+        // Compute the rotation quaternion from the direction vector
         rotationQuat.setVecsRotation(vsVector(0, 1, 0), vsVector(0, 0, 1),
             tempVec, vsVector(0, 0, 1));
 

@@ -82,12 +82,13 @@ vsWindowSystem::vsWindowSystem(vsWindow *mainWindow)
 // ------------------------------------------------------------------------
 vsWindowSystem::~vsWindowSystem()
 {
+    // Delete the keyboard and mouse
     if (keyboard)
         delete keyboard;
-
     if (mouse)
         delete mouse;
 
+    // Detach from the parent window
     vessWindow->removeWSystem();
 }
 
@@ -146,11 +147,12 @@ void vsWindowSystem::update()
     int               rootX, rootY, winX, winY;
     unsigned int      modMask;
     
-    // Check to make sure that we're valid
+    // Check to make sure that we have a valid display
     if (!display)
         return;
 
-    // Process all the events we're interested in
+    // Process all the events we're interested in in the order they were
+    // received
     while( XCheckWindowEvent( display, window, KeyReleaseMask | KeyPressMask |
                 ButtonPressMask | ButtonReleaseMask | 
                 EnterWindowMask | LeaveWindowMask |
@@ -159,7 +161,6 @@ void vsWindowSystem::update()
         switch( event.type )
         {
             case KeyPress:
-
                 // Look up the string representing the key
                 XLookupString(&(event.xkey), buffer, 
                     sizeof(buffer), &keySym, NULL); 
@@ -170,7 +171,6 @@ void vsWindowSystem::update()
                 break;
 
             case KeyRelease:
-
                 // Look up the string representing the key
                 XLookupString(&(event.xkey), buffer, 
                     sizeof(buffer), &keySym, NULL); 
@@ -181,7 +181,6 @@ void vsWindowSystem::update()
                 break;
 
             case ButtonPress:
-
                 // Press the appropriate vsInputButton on the mouse
                 switch (event.xbutton.button)
                 {
@@ -198,7 +197,6 @@ void vsWindowSystem::update()
                 break;
 
             case ButtonRelease:
-
                 // Release the appropriate vsInputButton on the mouse
                 switch (event.xbutton.button)
                 {
@@ -215,7 +213,6 @@ void vsWindowSystem::update()
                 break;
 
             case MotionNotify:        
-
                 // If we get a MotionNotify event, the mouse is definitely
                 // in the window
                 mouseInWindow = VS_TRUE;
@@ -230,21 +227,18 @@ void vsWindowSystem::update()
                 break;
 
             case EnterNotify:
-
                 // The mouse pointer has entered the window
                 mouseInWindow = VS_TRUE;
                 break;
 
             case LeaveNotify:
-
                 // The mouse pointer has left the window
                 mouseInWindow = VS_FALSE;
                 break;
         }
     }
 
-    // Check the size of the X Window and update the mouse's axis extents
-    // and idle position
+    // Update the size of the parent window
     if (XGetWindowAttributes(display, window, &xattr) == 0)
     {
         winX = 0;
@@ -256,6 +250,7 @@ void vsWindowSystem::update()
         winY = xattr.height;
     }
 
+    // Change the mouse's axis ranges to match the window's size
     if (mouse)
     {
         mouse->getAxis(0)->setRange(0, winX);

@@ -38,7 +38,8 @@ vsUnwinder::vsUnwinder(int portNumber, int joy1, int joy2)
         joystick[i] = NULL;
     }
 
-    // Construct joysticks
+    // Construct joysticks in normalized mode, using the default
+    // axis extents of the Unwinder
     if (joy1) 
     {
         numJoysticks++;
@@ -96,6 +97,7 @@ vsUnwinder::vsUnwinder(int portNumber, int joy1, int joy2)
     port->setBaudRate(38400);
     port->flushPort();
 
+    // Report status
     printf("vsUnwinder::vsUnwinder: Unwinder created on port %s\n", portDevice);
     printf("vsUnwinder::vsUnwinder:   with %d joystick(s)\n", numJoysticks);
 
@@ -110,6 +112,7 @@ vsUnwinder::~vsUnwinder(void)
 {
     unsigned char buf;
 
+    // If the serial port is valid
     if (port)
     {
         // Flush the serial port
@@ -160,8 +163,10 @@ int vsUnwinder::isCheckSumOK(vsUnwinderPacket *packet)
 {
     unsigned char sum;
 
+    // Initialize the sum
     sum = 0;
 
+    // Add the status and mode bytes
     sum += packet->status;
     sum += packet->mode;
 
@@ -214,10 +219,14 @@ void vsUnwinder::getReport(vsUnwinderPacket *packet)
     // Read status and mode bytes
     result = port->readPacket(&(packet->status), 2);
     
+    // Check to make sure we read correctly from the port
     if (result == 2)
     {
-
+        // Initialize the number of bytes received to 2 (we just
+        // got the status and mode bytes above)
         numBytes = 2; 
+
+        // Initialize the error flag to false
         error = VS_FALSE;
 
 #ifdef VS_UW_DEBUG
@@ -254,20 +263,24 @@ void vsUnwinder::getReport(vsUnwinderPacket *packet)
             if (result != 8)
                 error = VS_TRUE;
 
+            // Add the number of bytes for Joystick 0
             numBytes += 8;
         }
         else 
         {
+            // Flag an error if we should have data for Joystick 0
             if (isConnected(0))
                 error = VS_TRUE;
         }
 
+        // Report an error if anything went wrong
         if (error)
         {
             printf("vsUnwinder::getReport: "
                 "Error reading data for Joystick 1\n");
         }
 
+        // Reset the error flag for Joystick 1
         error = VS_FALSE;
 
         // Check the status byte to see if Joystick 1 data is present
@@ -297,14 +310,17 @@ void vsUnwinder::getReport(vsUnwinderPacket *packet)
             if (result != 8)
                 error = VS_TRUE;
 
+            // Add Joystick 1's bytes to the total
             numBytes += 8;
         }
         else
         {
+            // Flag an error if we should have data for Joystick 1
             if (isConnected(1))
                 error = VS_TRUE;
         }
 
+        // Report an error if anything went wrong
         if (error) 
         {
             printf("vsUnwinder::getReport: "
@@ -324,6 +340,7 @@ void vsUnwinder::getReport(vsUnwinderPacket *packet)
     }
     else
     {
+        // If we get nothing at all, report this
         printf("vsUnwinder::getReport:  No response from Unwinder\n");
     }
 }
@@ -343,8 +360,10 @@ vsJoystick *vsUnwinder::getJoystick()
 {
     int i;
 
+    // Check all joysticks to see which are connected
     for (i = 0; i < VS_UW_MAX_JOYSTICKS; i++)
     {
+        // If this one is connected, return it
         if (isConnected(i))
         {
             return joystick[i];
@@ -359,6 +378,7 @@ vsJoystick *vsUnwinder::getJoystick()
 // ------------------------------------------------------------------------
 vsJoystick *vsUnwinder::getJoystick(int index)
 {
+    // Check that the given joystick is connected
     if (isConnected(index))
     {
         return joystick[index];
@@ -397,20 +417,32 @@ void vsUnwinder::setIdlePosition(void)
     {
         if (isConnected(i))
         {
+            // Compute the x-axis position
             axisVal = packet.joyData[i].xMSB << 4;
             axisVal |= (packet.joyData[i].xyLSB & 0xF0) >> 4;
+
+            // Set the x-axis idle position
             joystick[i]->getAxis(0)->setIdlePosition((double)axisVal);
     
+            // Compute the y-axis position
             axisVal = packet.joyData[i].yMSB << 4;
             axisVal |= packet.joyData[i].xyLSB & 0x0F;
+
+            // Set the y-axis idle position
             joystick[i]->getAxis(1)->setIdlePosition((double)axisVal);
     
+            // Compute the z-axis position
             axisVal = packet.joyData[i].zMSB << 4;
             axisVal |= (packet.joyData[i].ztLSB & 0xF0) >> 4;
+
+            // Set the z-axis idle position
             joystick[i]->getAxis(2)->setIdlePosition((double)axisVal);
     
+            // Compute the t-axis position
             axisVal = packet.joyData[i].tMSB << 4;
             axisVal |= packet.joyData[i].ztLSB & 0x0F;
+
+            // Set the t-axis idle position
             joystick[i]->getAxis(3)->setIdlePosition((double)axisVal);
         }
     }
@@ -437,22 +469,27 @@ void vsUnwinder::update(void)
     {
         if (isConnected(i))
         {
+            // Compute and set the x-axis position
             axisVal = packet.joyData[i].xMSB << 4;
             axisVal |= (packet.joyData[i].xyLSB & 0xF0) >> 4;
             joystick[i]->getAxis(0)->setPosition((double)axisVal);
     
+            // Compute and set the y-axis position
             axisVal = packet.joyData[i].yMSB << 4;
             axisVal |= packet.joyData[i].xyLSB & 0x0F;
             joystick[i]->getAxis(1)->setPosition((double)axisVal);
     
+            // Compute and set the z-axis position
             axisVal = packet.joyData[i].zMSB << 4;
             axisVal |= (packet.joyData[i].ztLSB & 0xF0) >> 4;
             joystick[i]->getAxis(2)->setPosition((double)axisVal);
     
+            // Compute and set the t-axis (throttle) position
             axisVal = packet.joyData[i].tMSB << 4;
             axisVal |= packet.joyData[i].ztLSB & 0x0F;
             joystick[i]->getAxis(3)->setPosition((double)axisVal);
    
+            // Update the buttons
             if (packet.joyData[i].buttons & 0x01)
                 joystick[i]->getButton(0)->setPressed();
             else
@@ -475,5 +512,6 @@ void vsUnwinder::update(void)
         }
     }
 
+    // Ping for the next update
     ping();
 }

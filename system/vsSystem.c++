@@ -28,6 +28,9 @@
 #include <Performer/pf.h>
 #include <Performer/pfutil.h>
 #include "vsLightAttribute.h++"
+#include "vsTextureAttribute.h++"
+#include "vsTransformAttribute.h++"
+#include "vsMaterialAttribute.h++"
 #include "vsComponent.h++"
 #include "vsGeometry.h++"
 #include "vsOptimizer.h++"
@@ -44,8 +47,10 @@ vsSystem::vsSystem()
 {
     pfWSConnection winConnection;
 
+    // Start off uninitialized
     isInitted = 0;
 
+    // Singleton verification
     if (systemObject)
     {
         printf("vsSystem::vsSystem: Only one vsSystem object may be in "
@@ -54,18 +59,23 @@ vsSystem::vsSystem()
         return;
     }
     
+    // Save this system object in the class pointer variable
     validObject = 1;
     systemObject = this;
 
+    // Initialize Performer
     pfInit();
     pfuInit();
 
     // Configure the system for the available number of graphics pipelines
     winConnection = pfGetCurWSConnection();
     screenCount = ScreenCount(winConnection);
+
+    // Activate multipipe mode if appropriate
     if (screenCount > 1)
         pfMultipipe(screenCount);
     
+    // Create our database loader object
     databaseLoader = new vsDatabaseLoader();
 }
 
@@ -75,9 +85,11 @@ vsSystem::vsSystem()
 // ------------------------------------------------------------------------
 vsSystem::~vsSystem()
 {
+    // Do nothing if this isn't a real system object
     if (!validObject)
         return;
         
+    // Clear the class pointer and shut down Performer
     systemObject = NULL;
     pfExit();
 }
@@ -88,6 +100,7 @@ vsSystem::~vsSystem()
 // ------------------------------------------------------------------------
 void vsSystem::setMultiprocessMode(int mpMode)
 {
+    // Interpret the multiprocess constant
     switch (mpMode)
     {
 	case VS_MPROC_DEFAULT:
@@ -114,15 +127,18 @@ void vsSystem::init()
     int loop;
     struct timeval timeStruct;
 
+    // Do nothing if this isn't a real system object
     if (!validObject)
 	return;
 
+    // Do nothing if this object has already been initialized
     if (isInitted)
     {
 	printf("vsSystem::init: vsSystem object is already initialized\n");
 	return;
     }
 
+    // Initialize the database loader object
     databaseLoader->init();
 
     // * This call can potentially fork new processes, so every object
@@ -137,6 +153,7 @@ void vsSystem::init()
         (pipeArray[loop])->getBaseLibraryObject()->setScreen(loop);
     }
     
+    // Create our object map and graphics state objects
     nodeMap = new vsObjectMap();
     graphicsState = new vsGraphicsState();
 
@@ -145,6 +162,7 @@ void vsSystem::init()
     lastFrameTimestamp = timeStruct.tv_sec + (timeStruct.tv_usec / 1000000.0);
     lastFrameDuration = 0.0;
     
+    // Mark the object as initialized
     isInitted = 1;
 }
 
@@ -173,9 +191,11 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
     struct timeval timeStruct;
     vsOptimizer *optimizer;
 
+    // Do nothing if this isn't a real system object
     if (!validObject)
 	return;
 
+    // Do nothing if this object has already been initialized
     if (isInitted)
     {
 	printf("vsSystem::init: vsSystem object is already initialized\n");
@@ -199,9 +219,11 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
         (pipeArray[loop])->getBaseLibraryObject()->setScreen(loop);
     }
     
+    // Create our object map and graphics state objects
     nodeMap = new vsObjectMap();
     graphicsState = new vsGraphicsState();
 
+    // Mark the object as initialized
     isInitted = 1;
 
     // Quick start: Set up the default window, pane, and view objects
@@ -212,7 +234,6 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
         defaultWindow->setName(windowName);
     else
         defaultWindow->setName(databaseFilename);
-
     defaultPane = new vsPane(defaultWindow);
     defaultPane->autoConfigure(VS_PANE_PLACEMENT_FULL_WINDOW);
 
@@ -262,21 +283,25 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
 // ------------------------------------------------------------------------
 vsPipe *vsSystem::getPipe(int index)
 {
+    // Do nothing if this isn't a real system object
     if (!validObject)
         return NULL;
 
+    // Do nothing if the object hasn't been initialized
     if (!isInitted)
     {
 	printf("vsSystem::getPipe: System object is not initialized\n");
 	return NULL;
     }
         
+    // Bounds check
     if ((index < 0) || (index >= screenCount))
     {
         printf("vsSystem::getPipe: Bad pipe index\n");
         return NULL;
     }
     
+    // Reurn the desired pipe object
     return pipeArray[index];
 }
 
@@ -294,21 +319,25 @@ int vsSystem::getScreenCount()
 // ------------------------------------------------------------------------
 vsScreen *vsSystem::getScreen(int index)
 {
+    // Do nothing if this isn't a real system object
     if (!validObject)
         return NULL;
         
+    // Do nothing if the object hasn't been initialized
     if (!isInitted)
     {
 	printf("vsSystem::getScreen: System object is not initialized\n");
 	return NULL;
     }
 
+    // Bounds check
     if ((index < 0) || (index >= screenCount))
     {
         printf("vsSystem::getScreen: Bad screen index\n");
         return NULL;
     }
     
+    // Return the desired screen object
     return screenArray[index];
 }
 
@@ -317,9 +346,11 @@ vsScreen *vsSystem::getScreen(int index)
 // ------------------------------------------------------------------------
 vsDatabaseLoader *vsSystem::getLoader()
 {
+    // Do nothing if this isn't a real system object
     if (!validObject)
         return NULL;
         
+    // Return the database loader
     return databaseLoader;
 }
 
@@ -329,15 +360,19 @@ vsDatabaseLoader *vsSystem::getLoader()
 // ------------------------------------------------------------------------
 vsComponent *vsSystem::loadDatabase(char *databaseFilename)
 {
+    // Do nothing if this isn't a real system object
     if (!validObject)
         return NULL;
         
+    // Do nothing if the object hasn't been initialized
     if (!isInitted)
     {
 	printf("vsSystem::loadDatabase: System object is not initialized\n");
 	return NULL;
     }
 
+    // Call the database loader to load the specified file, and return
+    // whatever that returns
     return (databaseLoader->loadDatabase(databaseFilename));
 }
 
@@ -352,22 +387,29 @@ void vsSystem::preFrameTraverse(vsNode *node)
     vsNode *childNode;
     int loop;
     
+    // Mark this node as clean
     node->clean();
 
+    // Activate all of the attributes on the node
     node->saveCurrentAttributes();
     node->applyAttributes();
     
+    // If this node is a component, recurse on its children
     if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
     {
         component = (vsComponent *)node;
         for (loop = 0; loop < component->getChildCount(); loop++)
         {
+            // Get the loop'th child of the component
             childNode = component->getChild(loop);
+
+            // Recurse on the child if it needs to be cleaned
             if (childNode->isDirty())
                 preFrameTraverse(childNode);
         }
     }
     
+    // On the way back out, deactivate the attributes on the node
     node->restoreSavedAttributes();
 }
 
@@ -377,9 +419,11 @@ void vsSystem::preFrameTraverse(vsNode *node)
 // ------------------------------------------------------------------------
 vsObjectMap *vsSystem::getNodeMap()
 {
+    // Do nothing if this isn't a real system object
     if (!validObject)
         return NULL;
 
+    // Return the object map
     return nodeMap;
 }
 
@@ -389,9 +433,11 @@ vsObjectMap *vsSystem::getNodeMap()
 // ------------------------------------------------------------------------
 vsGraphicsState *vsSystem::getGraphicsState()
 {
+    // Do nothing if this isn't a real system object
     if (!validObject)
         return NULL;
 
+    // Return the graphics state
     return graphicsState;
 }
 
@@ -401,9 +447,11 @@ vsGraphicsState *vsSystem::getGraphicsState()
 // ------------------------------------------------------------------------
 void vsSystem::drawFrame()
 {
+    // Do nothing if this isn't a real system object
     if (!validObject)
         return;
         
+    // Do nothing if the object hasn't been initialized
     if (!isInitted)
     {
 	printf("vsSystem::drawFrame: System object is not initialized\n");
@@ -422,17 +470,25 @@ void vsSystem::drawFrame()
     // Update the viewpoint of each pane by its vsView object
     for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
     {
+        // Find the number of windows on the screen
         targetScreen = screenArray[screenLoop];
         windowCount = targetScreen->getChildWindowCount();
+
+        // Loop over all windows
         for (windowLoop = 0; windowLoop < windowCount; windowLoop++)
         {
+            // Find the number of panes on the window
             targetWindow = targetScreen->getChildWindow(windowLoop);
             paneCount = targetWindow->getChildPaneCount();
+
+            // Loop over all panes
             for (paneLoop = 0; paneLoop < paneCount; paneLoop++)
             {
+                // Update the viewpoint of the pane
                 targetPane = targetWindow->getChildPane(paneLoop);
                 targetPane->updateView();
 
+                // Run a VESS traversal over the pane's scene
                 scene = targetPane->getScene();
 		if (scene)
 		{
@@ -462,15 +518,18 @@ void vsSystem::drawFrame()
 // ------------------------------------------------------------------------
 double vsSystem::getFrameTime()
 {
+    // Do nothing if this isn't a real system object
     if (!validObject)
         return 0.0;
         
+    // Do nothing if the object hasn't been initialized
     if (!isInitted)
     {
 	printf("vsSystem::drawFrame: System object is not initialized\n");
 	return 0.0;
     }
 
+    // Return the frame time
     return lastFrameDuration;
 }
 
@@ -482,6 +541,7 @@ void vsSystem::printScene(vsNode *targetNode, FILE *outputFile)
 {
     int counts[256];
     
+    // Call out helper function to write the scene data
     writeScene(targetNode, outputFile,  0, counts);
 }
 
@@ -494,6 +554,41 @@ void vsSystem::writeBlanks(FILE *outfile, int count)
     for (int loop = 0; loop < count; loop++)
         fprintf(outfile, " ");
 }
+
+void printMatRow(FILE *fp, vsMatrix mat, int rowNum)
+{
+    fprintf(fp, "%8.4lf%8.4lf%8.4lf%8.4lf", mat[rowNum][0], mat[rowNum][1],
+        mat[rowNum][2], mat[rowNum][3]);
+}
+
+void printMat(FILE *fp, vsMatrix mat)
+{
+    int rowNum;
+
+    for (rowNum = 0; rowNum < 4; rowNum++)
+    {
+        printMatRow(fp, mat, rowNum);
+        fprintf(fp, "\n");
+    }
+}
+
+void printVec(FILE *fp, vsVector vec)
+{
+    int i, vecSize;
+
+    vecSize = vec.getSize();
+
+    // Enclose the components of the vector in angle brackets
+    fprintf(fp, "<");
+
+    // Print all but the last component with a trailing comma and space
+    for (i = 0; i < vecSize-1; i++)
+        fprintf(fp, "%0.4lf, ", vec[i]);
+
+    // Print the last component and close with an angle bracket
+    fprintf(fp, "%0.4lf>", vec[vecSize-1]);
+}
+
 
 // ------------------------------------------------------------------------
 // Private function
@@ -508,17 +603,34 @@ void vsSystem::writeScene(vsNode *targetNode, FILE *outfile, int treeDepth,
     vsGeometry *geometry;
     vsAttribute *attribute;
     int loop, sloop;
-    vsVector texCoord;
+    int size;
+    vsMatrix mat;
+    double r, g, b;
+    int mode;
     int geoType, geoCount;
     int geoBinding;
+    vsVector geoVec;
     int attrData;
-    
+
     // Type
-    if (targetNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
-        fprintf(outfile, "Geometry: ");
-    else
-        fprintf(outfile, "Component: ");
-    
+    switch (targetNode->getNodeType())
+    {
+        case VS_NODE_TYPE_GEOMETRY:
+            fprintf(outfile, "Geometry: ");
+            break;
+        case VS_NODE_TYPE_DYNAMIC_GEOMETRY:
+            fprintf(outfile, "Dynamic Geometry: ");
+            break;
+        case VS_NODE_TYPE_COMPONENT:
+            fprintf(outfile, "Component: ");
+            break;
+/*
+        case VS_NODE_TYPE_SCENE:
+            fprintf(outfile, "Scene: ");
+            break;
+*/
+    }
+
     // Name
     if (strlen(targetNode->getName()) > 0)
         fprintf(outfile, "\"%s\" ", targetNode->getName());
@@ -565,7 +677,7 @@ void vsSystem::writeScene(vsNode *targetNode, FILE *outfile, int treeDepth,
                 break;
             case VS_GEOMETRY_TYPE_TRI_FANS:
                 fprintf(outfile, "TRI FANS");
-                break;
+               break;
             case VS_GEOMETRY_TYPE_QUADS:
                 fprintf(outfile, "QUADS");
                 break;
@@ -580,23 +692,42 @@ void vsSystem::writeScene(vsNode *targetNode, FILE *outfile, int treeDepth,
                 break;
         }
         fprintf(outfile, "\n");
-        
+
+        // Print vertex coordinates
+        if (geoCount > 0)
+        {
+            writeBlanks(outfile, (treeDepth * 2) + 3);
+            fprintf(outfile, "{\n");
+            size = geometry->getDataListSize(VS_GEOMETRY_VERTEX_COORDS);
+            for (loop = 0; loop < size; loop++)
+            {
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                geoVec = geometry->getData(VS_GEOMETRY_VERTEX_COORDS, loop);
+                printVec(outfile, geoVec);
+                fprintf(outfile, "\n");
+            }
+            writeBlanks(outfile, (treeDepth * 2) + 3);
+            fprintf(outfile, "}\n");
+        }
+
         // Bindings
         for (loop = 0; loop < 3; loop++)
         {
             writeBlanks(outfile, (treeDepth * 2) + 1);
-            switch (loop)
+           switch (loop)
             {
                 case 0:
                     fprintf(outfile, "NORMALS (%d): ",
                         geometry->getDataListSize(VS_GEOMETRY_NORMALS));
                     geoType = VS_GEOMETRY_NORMALS;
                     break;
+
                 case 1:
                     fprintf(outfile, "COLORS (%d): ",
                         geometry->getDataListSize(VS_GEOMETRY_COLORS));
                     geoType = VS_GEOMETRY_COLORS;
                     break;
+
                 case 2:
                     fprintf(outfile, "TEXCOORDS (%d): ",
                         geometry->getDataListSize(VS_GEOMETRY_TEXTURE_COORDS));
@@ -620,6 +751,69 @@ void vsSystem::writeScene(vsNode *targetNode, FILE *outfile, int treeDepth,
                     break;
             }
             fprintf(outfile, "\n");
+
+            // Print out each of the remaining three data lists
+            switch (loop)
+            {
+                case 0:
+                    size = geometry->getDataListSize(VS_GEOMETRY_NORMALS);
+                    if (size > 0)
+                    {
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "{\n");
+                        for (sloop = 0; sloop < size; sloop++)
+                        {
+                            writeBlanks(outfile, (treeDepth * 2) + 5);
+                            geoVec = geometry->getData(VS_GEOMETRY_NORMALS,
+                                sloop);
+                            printVec(outfile, geoVec);
+                            fprintf(outfile, "\n");
+                        }
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "}\n");
+                    }
+                    break;
+
+                case 1:
+                    size = geometry->getDataListSize(VS_GEOMETRY_COLORS);
+                    if (size > 0)
+                    {
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "{\n");
+                        for (sloop = 0; sloop < size; sloop++)
+                        {
+                            writeBlanks(outfile, (treeDepth * 2) + 5);
+                            geoVec = geometry->getData(VS_GEOMETRY_COLORS,
+                                sloop);
+                            printVec(outfile, geoVec);
+                            fprintf(outfile, "\n");
+                        }
+                       writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "}\n");
+                    }
+                    break;
+
+                case 2:
+                    size = geometry->
+                        getDataListSize(VS_GEOMETRY_TEXTURE_COORDS);
+                    if (size > 0)
+                    {
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "{\n");
+                        for (sloop = 0; sloop < size; sloop++)
+                        {
+                            writeBlanks(outfile, (treeDepth * 2) + 5);
+                            geoVec =
+                                geometry->getData(VS_GEOMETRY_TEXTURE_COORDS,
+                                sloop);
+                            printVec(outfile, geoVec);
+                            fprintf(outfile, "\n");
+                        }
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "}\n");
+                    }
+                    break;
+            }
         }
     }
 
@@ -631,31 +825,242 @@ void vsSystem::writeScene(vsNode *targetNode, FILE *outfile, int treeDepth,
         fprintf(outfile, "Attribute: address %p, references %d, type ",
             attribute, attribute->isAttached());
         switch (attribute->getAttributeType())
-        {
+       {
             case VS_ATTRIBUTE_TYPE_TRANSFORM:
                 fprintf(outfile, "TRANSFORM\n");
+                writeBlanks(outfile, (treeDepth * 2) + 3);
+                mat = ((vsTransformAttribute *)attribute)->getPreTransform();
+                fprintf(outfile, "Pretransform:\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                printMatRow(outfile, mat, 0);
+                fprintf(outfile, "\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                printMatRow(outfile, mat, 1);
+                fprintf(outfile, "\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                printMatRow(outfile, mat, 2);
+                fprintf(outfile, "\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                printMatRow(outfile, mat, 3);
+                fprintf(outfile, "\n");
+                writeBlanks(outfile, (treeDepth * 2) + 3);
+                mat =
+                    ((vsTransformAttribute *)attribute)->getDynamicTransform();
+                fprintf(outfile, "Dynamic transform:\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                printMatRow(outfile, mat, 0);
+                fprintf(outfile, "\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                printMatRow(outfile, mat, 1);
+                fprintf(outfile, "\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                printMatRow(outfile, mat, 2);
+                fprintf(outfile, "\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                printMatRow(outfile, mat, 3);
+                fprintf(outfile, "\n");
+                writeBlanks(outfile, (treeDepth * 2) + 3);
+                mat = ((vsTransformAttribute *)attribute)->getPostTransform();
+                fprintf(outfile, "Posttransform:\n");
+               writeBlanks(outfile, (treeDepth * 2) + 5);
+                printMatRow(outfile, mat, 0);
+                fprintf(outfile, "\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                printMatRow(outfile, mat, 1);
+                fprintf(outfile, "\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                printMatRow(outfile, mat, 2);
+                fprintf(outfile, "\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                printMatRow(outfile, mat, 3);
+                fprintf(outfile, "\n");
                 break;
+
             case VS_ATTRIBUTE_TYPE_SWITCH:
                 fprintf(outfile, "SWITCH\n");
                 break;
+
             case VS_ATTRIBUTE_TYPE_SEQUENCE:
                 fprintf(outfile, "SEQUENCE\n");
                 break;
+
             case VS_ATTRIBUTE_TYPE_LOD:
                 fprintf(outfile, "LOD\n");
                 break;
+
             case VS_ATTRIBUTE_TYPE_LIGHT:
                 fprintf(outfile, "LIGHT\n");
                 break;
+
             case VS_ATTRIBUTE_TYPE_FOG:
                 fprintf(outfile, "FOG\n");
                 break;
+
             case VS_ATTRIBUTE_TYPE_MATERIAL:
                 fprintf(outfile, "MATERIAL\n");
+                writeBlanks(outfile, (treeDepth * 2) + 3);
+              fprintf(outfile, "Ambient:\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                fprintf(outfile, "Front:  ");
+                ((vsMaterialAttribute *)attribute)->
+                    getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_AMBIENT,
+                    &r, &g, &b);
+                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                fprintf(outfile, "Back:   ");
+                ((vsMaterialAttribute *)attribute)->
+                    getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_AMBIENT,
+                    &r, &g, &b);
+                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
+                writeBlanks(outfile, (treeDepth * 2) + 3);
+                fprintf(outfile, "Diffuse:\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                fprintf(outfile, "Front:  ");
+                ((vsMaterialAttribute *)attribute)->
+                    getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_DIFFUSE,
+                    &r, &g, &b);
+                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                fprintf(outfile, "Back:   ");
+                ((vsMaterialAttribute *)attribute)->
+                    getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_DIFFUSE,
+                    &r, &g, &b);
+                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
+                writeBlanks(outfile, (treeDepth * 2) + 3);
+                fprintf(outfile, "Specular:\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                fprintf(outfile, "Front:  ");
+                ((vsMaterialAttribute *)attribute)->
+                    getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_SPECULAR,                    &r, &g, &b);
+                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                fprintf(outfile, "Back:   ");
+                ((vsMaterialAttribute *)attribute)->
+                    getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_SPECULAR,
+                    &r, &g, &b);
+                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
+                writeBlanks(outfile, (treeDepth * 2) + 3);
+                fprintf(outfile, "Emissive:\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                fprintf(outfile, "Front:  ");
+                ((vsMaterialAttribute *)attribute)->
+                    getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_EMISSIVE,                    &r, &g, &b);
+                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                fprintf(outfile, "Back:   ");
+                ((vsMaterialAttribute *)attribute)->
+                    getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_EMISSIVE,
+                    &r, &g, &b);
+                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
+                writeBlanks(outfile, (treeDepth * 2) + 3);
+                fprintf(outfile, "Color Mode:\n");
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                fprintf(outfile, "Front:  ");
+                mode = ((vsMaterialAttribute *)attribute)->
+                    getColorMode(VS_MATERIAL_SIDE_FRONT);
+                switch (mode)
+                {
+                    case VS_MATERIAL_CMODE_AMBIENT:
+                        fprintf(outfile, "AMBIENT\n");
+                        break;
+                    case VS_MATERIAL_CMODE_DIFFUSE:
+                        fprintf(outfile, "DIFFUSE\n");
+                        break;
+                    case VS_MATERIAL_CMODE_SPECULAR:
+                        fprintf(outfile, "SPECULAR\n");
+                        break;
+                    case VS_MATERIAL_CMODE_EMISSIVE:
+                        fprintf(outfile, "EMISSIVE\n");
+                       break;
+                    case VS_MATERIAL_CMODE_AMBIENT_DIFFUSE:
+                        fprintf(outfile, "AMBIENT_DIFFUSE\n");
+                        break;
+                    case VS_MATERIAL_CMODE_NONE:
+                        fprintf(outfile, "NONE\n");
+                        break;
+                }
+                writeBlanks(outfile, (treeDepth * 2) + 5);
+                fprintf(outfile, "Back:   ");
+                mode = ((vsMaterialAttribute *)attribute)->
+                    getColorMode(VS_MATERIAL_SIDE_BACK);
+                switch (mode)
+                {
+                    case VS_MATERIAL_CMODE_AMBIENT:
+                        fprintf(outfile, "AMBIENT\n");
+                        break;
+                    case VS_MATERIAL_CMODE_DIFFUSE:
+                        fprintf(outfile, "DIFFUSE\n");
+                        break;
+                    case VS_MATERIAL_CMODE_SPECULAR:
+                        fprintf(outfile, "SPECULAR\n");
+                        break;
+                    case VS_MATERIAL_CMODE_EMISSIVE:
+                        fprintf(outfile, "EMISSIVE\n");
+                        break;
+                    case VS_MATERIAL_CMODE_AMBIENT_DIFFUSE:
+                        fprintf(outfile, "AMBIENT_DIFFUSE\n");
+                        break;
+                    case VS_MATERIAL_CMODE_NONE:
+                        fprintf(outfile, "NONE\n");
+                        break;
+                }
                 break;
+
             case VS_ATTRIBUTE_TYPE_TEXTURE:
                 fprintf(outfile, "TEXTURE\n");
+                writeBlanks(outfile, (treeDepth * 2) + 3);
+                fprintf(outfile, "Apply Mode: ");
+                switch (((vsTextureAttribute *)attribute)->getApplyMode())
+                {
+                    case VS_TEXTURE_APPLY_DECAL:
+                        fprintf(outfile, "DECAL\n");
+                        break;
+                    case VS_TEXTURE_APPLY_MODULATE:
+                        fprintf(outfile, "MODULATE\n");
+                        break;
+                    case VS_TEXTURE_APPLY_REPLACE:
+                        fprintf(outfile, "REPLACE\n");
+                        break;
+                    default:
+                        fprintf(outfile, "(Unknown Mode)\n");
+                        break;
+                }
+                writeBlanks(outfile, (treeDepth * 2) + 3);
+                fprintf(outfile, "Mag Filter: ");
+                switch (((vsTextureAttribute *)attribute)->getMagFilter())
+                {
+                    case VS_TEXTURE_MAGFILTER_NEAREST:
+                        fprintf(outfile, "NEAREST\n");
+                        break;
+                    case VS_TEXTURE_MAGFILTER_LINEAR:
+                        fprintf(outfile, "LINEAR\n");
+                        break;
+                    default:
+                        fprintf(outfile, "(Unknown Mode)\n");
+                        break;
+                }
+                writeBlanks(outfile, (treeDepth * 2) + 3);
+                fprintf(outfile, "Min Filter: ");
+                switch (((vsTextureAttribute *)attribute)->getMinFilter())
+                {
+                    case VS_TEXTURE_MINFILTER_NEAREST:
+                        fprintf(outfile, "NEAREST\n");
+                        break;
+                    case VS_TEXTURE_MINFILTER_LINEAR:
+                        fprintf(outfile, "LINEAR\n");
+                        break;
+                    case VS_TEXTURE_MINFILTER_MIPMAP_NEAREST:
+                        fprintf(outfile, "MIPMAP NEAREST\n");
+                        break;
+                    case VS_TEXTURE_MINFILTER_MIPMAP_LINEAR:
+                        fprintf(outfile, "MIPMAP LINEAR\n");
+                        break;
+                    default:
+                        fprintf(outfile, "(Unknown Mode)\n");
+                        break;
+                }
                 break;
+
             case VS_ATTRIBUTE_TYPE_TRANSPARENCY:
                 attrData = ((vsTransparencyAttribute *)attribute)->isEnabled();
                 if (attrData)
@@ -663,12 +1068,15 @@ void vsSystem::writeScene(vsNode *targetNode, FILE *outfile, int treeDepth,
                 else
                     fprintf(outfile, "TRANSPARENCY (off)\n");
                 break;
+
             case VS_ATTRIBUTE_TYPE_BILLBOARD:
                 fprintf(outfile, "BILLBOARD\n");
                 break;
+
             case VS_ATTRIBUTE_TYPE_VIEWPOINT:
                 fprintf(outfile, "VIEWPOINT\n");
                 break;
+
             case VS_ATTRIBUTE_TYPE_BACKFACE:
                 attrData = ((vsBackfaceAttribute *)attribute)->isEnabled();
                 if (attrData)
@@ -676,9 +1084,11 @@ void vsSystem::writeScene(vsNode *targetNode, FILE *outfile, int treeDepth,
                 else
                     fprintf(outfile, "BACKFACE (off)\n");
                 break;
+
             case VS_ATTRIBUTE_TYPE_DECAL:
                 fprintf(outfile, "DECAL\n");
                 break;
+
             case VS_ATTRIBUTE_TYPE_SHADING:
                 attrData = ((vsShadingAttribute *)attribute)->getShading();
                 if (attrData == VS_SHADING_FLAT)
@@ -686,25 +1096,36 @@ void vsSystem::writeScene(vsNode *targetNode, FILE *outfile, int treeDepth,
                 else
                     fprintf(outfile, "SHADING (gouraud)\n");
                 break;
+
             case VS_ATTRIBUTE_TYPE_SOUND_SOURCE:
                 fprintf(outfile, "SOUND_SOURCE\n");
                 break;
+
             case VS_ATTRIBUTE_TYPE_SOUND_LISTENER:
                 fprintf(outfile, "SOUND_LISTENER\n");
                 break;
+
+            case VS_ATTRIBUTE_TYPE_WIREFRAME:
+                fprintf(outfile, "WIREFRAME\n");
+                break;
+
             default:
                 fprintf(outfile, "<unknown type>\n");
                 break;
         }
     }
-    
-    // If the node is a vsComponent, take care of its children
+
+    // If the node has children, take care of them
+/*
+    if ((targetNode->getNodeType() == VS_NODE_TYPE_COMPONENT) ||
+        (targetNode->getNodeType() == VS_NODE_TYPE_SCENE))
+*/
     if (targetNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
     {
         component = (vsComponent *)targetNode;
         writeBlanks(outfile, treeDepth * 2);
         fprintf(outfile, "%d children:\n", component->getChildCount());
-        
+
         // For each child, call this function again
         for (loop = 0; loop < component->getChildCount(); loop++)
         {

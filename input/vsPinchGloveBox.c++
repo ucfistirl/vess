@@ -35,7 +35,7 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
     unsigned char buf[100];
     int           size;
 
-
+    // Initialize variables
     port = NULL;
     gloves = NULL;
 
@@ -54,8 +54,10 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
     // Open the serial port
     port = new vsSerialPort(portDevice, baud, 8, 'N', 1);
 
+    // Make sure it opened properly
     if (port)
     {
+        // Print status
         printf("Fakespace PINCH glove system opened on %s\n", portDevice);
 
         // Send bytes until we get a '?' back from the PINCH box
@@ -64,9 +66,14 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
         buf[1] = 0x00;
         while (buf[1] != '?')
         {
+            // Send an 'A'
             buf[0] = 'A';
             port->writePacket(buf, 1);
+
+            // Wait for the hardware
             usleep(100000);
+
+            // Read the response
             memset(buf, 0, 3);
             port->readPacket(buf, 3);
         }
@@ -95,6 +102,8 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
         usleep(1000);
 
         // Get the device information
+
+        // Firmware revision
         printf("Revision   :  ");
         buf[0] = VS_PG_CMD_CONFIG;
         port->writePacket(buf, 1);
@@ -107,6 +116,7 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
         printf("%s\n", (const char *) &buf[1]);
         usleep(1000);
 
+        // Left glove
         printf("Left Glove :  ");
         buf[0] = VS_PG_CMD_CONFIG;
         port->writePacket(buf, 1);
@@ -119,6 +129,7 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
         printf("%s\n", (const char *) &buf[1]);
         usleep(1000);
 
+        // Right glove
         printf("Right Glove:  ");
         buf[0] = VS_PG_CMD_CONFIG;
         port->writePacket(buf, 1);
@@ -131,6 +142,7 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
         printf("%s\n", (const char *) &buf[1]);
         usleep(1000);
 
+        // Create the gloves object and initialize it
         gloves = new vsChordGloves();
         gloves->clearContacts();
     }
@@ -141,9 +153,11 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
 // ------------------------------------------------------------------------
 vsPinchGloveBox::~vsPinchGloveBox()
 {
+    // Destroy the gloves object
     if (gloves)
         delete gloves;
 
+    // Close the serial port
     if (port)
         delete port;
 }
@@ -163,18 +177,22 @@ int vsPinchGloveBox::readPacket(unsigned char *buffer,
     int timeout;
     int goodByte;
 
+    // Try up to 10 times to read a packet
     timeout = 10;
 
     // Look for the packet header in the buffer.  If it's not already there
-    // poll the serial port
+    // poll the serial port for it
     while ((buffer[0] != packetHeader) && (timeout > 0))
     {
+        // Read a byte from the port
         goodByte = port->readPacket(&buffer[0], 1);
 
+        // Check the byte, if it isn't a packet header, then try again
         if ((!goodByte) || (buffer[0] != packetHeader))
             timeout--;
     }
 
+    // If we failed to get a header, print an error message and return
     if (timeout <= 0)
     {
         printf("vsPinchGloveBox::readPacket:  Error reading packet from glove"
@@ -183,19 +201,30 @@ int vsPinchGloveBox::readPacket(unsigned char *buffer,
         return 0;
     }
 
+    // Initialize the buffer index
     i = 0;
-    // Read and store bytes until the end of packet byte is encountered, or
-    // the buffer length is reached
+
+    // Read and store bytes until the end of packet byte is encountered,
+    // the buffer length is reached, or we run out of retrys
     while ((buffer[i] != VS_PG_END_PACKET) && 
            (i < (bufferSize-1)) && (timeout > 0))
     {
+        // Increment the buffer index
         i++;
+
+        // Read a byte
         goodByte = port->readPacket(&buffer[i], 1);
 
+        // If we didn't get a byte, decrement timeout and the buffer
+        // index, and try again
         if (!goodByte)  
+        {
             timeout--;
+            i--;
+        }
     }
 
+    // If we failed to read all the data, print an error and exit
     if (timeout <= 0)
     {
         printf("vsPinchGloveBox::readPacket:  Error reading packet from glove"
@@ -204,6 +233,7 @@ int vsPinchGloveBox::readPacket(unsigned char *buffer,
         return 0;
     }
 
+    // Return the number of bytes read
     return i;
 }
 
@@ -236,9 +266,11 @@ void vsPinchGloveBox::update()
     if (ch < 0)
         return;
 
+    // Also return if it's not a data packet
     if (((unsigned char)ch) != VS_PG_DATA_PACKET)
         return;
 
+    // Copy the first byte
     buf[0] = (unsigned char)ch;
 
     // Read the remainder of the packet
@@ -259,7 +291,10 @@ void vsPinchGloveBox::update()
     numContacts = 0;
     memset(contacts, 0, sizeof(contacts));
 
+    // Initialize the buffer index
     i = 1; 
+
+    // Read the contact state from the packet
     while ((i < size) && (buf[i] != VS_PG_END_PACKET))
     {
         // Check each digit to see if it is in this contact group

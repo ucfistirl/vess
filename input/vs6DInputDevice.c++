@@ -27,6 +27,7 @@
 // ------------------------------------------------------------------------
 vs6DInputDevice::vs6DInputDevice(void)
 {
+    // Initialize orientation to identity
     orientation.setAxisAngleRotation(0.0, 0.0, 0.0, 1.0);
 }
 
@@ -42,7 +43,8 @@ vs6DInputDevice::~vs6DInputDevice(void)
 // ------------------------------------------------------------------------
 int vs6DInputDevice::getNumAxes(void)
 {
-    return VS_6DINPUT_NUM_AXES;
+    // Every 6D input device has three axes to represent position
+    return 3;
 }
 
 // ------------------------------------------------------------------------
@@ -50,7 +52,9 @@ int vs6DInputDevice::getNumAxes(void)
 // ------------------------------------------------------------------------
 vsInputAxis *vs6DInputDevice::getAxis(int index)
 {
-    if (index < VS_6DINPUT_NUM_AXES)
+    // Validate and return the requested axis, or NULL if the index is
+    // out of bounds
+    if (index < 3)
         return &position[index];
     else
         return NULL;
@@ -63,10 +67,13 @@ vsVector vs6DInputDevice::getPositionVec()
 {
     vsVector vec;
    
+    // Create a vsVector with the current device position as read from
+    // the input axes
     vec.setSize(3);
     vec.set(position[0].getPosition(), position[1].getPosition(),
              position[2].getPosition());
 
+    // Return the position vector
     return vec;
 }
 
@@ -80,9 +87,12 @@ vsVector vs6DInputDevice::getOrientationVec(vsMathEulerAxisOrder axisOrder)
     vsVector vec;
     orientation.getEulerRotation(axisOrder, &h, &p, &r);
 
+    // Create a vsVector with the current device orientation represented
+    // as Euler angles
     vec.setSize(3);
     vec.set(h, p, r);
    
+    // Return the orientation vector
     return vec;
 }
 
@@ -93,8 +103,10 @@ vsMatrix vs6DInputDevice::getOrientationMat()
 {
     vsMatrix mat;
 
+    // Create a vsMatrix with the current device orientation
     mat.setQuatRotation(orientation);
 
+    // Return the orientation matrix
     return mat;
 }
 

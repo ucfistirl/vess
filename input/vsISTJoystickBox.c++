@@ -76,7 +76,7 @@ void vsISTJoystickBox::ping(void)
 {
     unsigned char buf;
  
-
+    // Send the ping command ('p') to the joystick box
     buf = 'p';
     port->writePacket(&buf, 1);
 }
@@ -101,13 +101,16 @@ void vsISTJoystickBox::getReport(unsigned char* x, unsigned char* y,
     //   xx = Y axis value in hex (00 to FF)
     //   bb = Button status in hex (00 to 03)
 
+    // Read the packet
     result = port->readPacket((unsigned char *)buf, 11);
    
+    // Check the size of the packet
     if (result != 11)
     {
         printf("vsISTJoystickBox::getReport()  Error reading joystick"
             "(%d of 11 bytes)\n", result);
 
+        // Return default values (axis centered, buttons released)
         if (x != NULL) 
             *x = 128;
         if (y != NULL) 
@@ -119,6 +122,9 @@ void vsISTJoystickBox::getReport(unsigned char* x, unsigned char* y,
     }
     else
     {
+        // Return the data in the packet.  For each element, we need to
+        // terminate the string fragment, then convert the two characters 
+        // to a byte.
         if (x != NULL)
         {
             buf[2] = '\0';
@@ -152,23 +158,38 @@ unsigned char vsISTJoystickBox::stringToByte(char *hexString)
     unsigned char nybble[2];
     int           i;
 
+    // Once for each char
     for (i = 0; i < 2; i++)
     {
         if ((hexString[i] >= '0') && (hexString[i] <= '9'))
+        {
+            // Numeric character
             nybble[i] = hexString[i] - '0';
+        }
         else if ((hexString[i] >= 'a') && (hexString[i] <= 'f'))
+        {
+            // Lower-case a-f
             nybble[i] = hexString[i] - 'a' + 10;
+        }
         else if ((hexString[i] >= 'A') && (hexString[i] <= 'F'))
+        {
+            // Upper-case A-F
             nybble[i] = hexString[i] - 'A' + 10;
+        }
         else 
+        {
+            // Invalid character
             nybble[i] = 0;
+        }
     }
 
+    // Compose the byte and return it
     return (unsigned char)((nybble[0] * 16) + nybble[1]);
 }
 
 // ------------------------------------------------------------------------
-// Returns the number of joysticks connected to this box (always 1)
+// Returns the number of joysticks connected to this box.  The IST joystick
+// box supports only one joystick, so this is always 1.
 // ------------------------------------------------------------------------
 int vsISTJoystickBox::getNumJoysticks()
 {
@@ -184,15 +205,18 @@ vsJoystick *vsISTJoystickBox::getJoystick()
 }
 
 // ------------------------------------------------------------------------
-// Returns the specified joystick object (only 0 accepted)
+// Returns the specified joystick object
 // ------------------------------------------------------------------------
 vsJoystick *vsISTJoystickBox::getJoystick(int index)
 {
+    // Only index 0 is valid, since there can be only one joystick 
+    // connected
     if (index == 0)
     {
         return joystick;
     }
 
+    // The index is invalid, so return NULL
     return NULL;
 }
 

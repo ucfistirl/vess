@@ -150,3 +150,912 @@ depend:
 	makedepend -f makefile.Linux -- $(CFLAGS) $(INCS) -- $(SRCS)
 
 
+# DO NOT DELETE
+
+vs6DInputDevice.o: vs6DInputDevice.h++ ../math/vsVector.h++
+vs6DInputDevice.o: ../system/vsGlobals.h++ /usr/include/math.h
+vs6DInputDevice.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vs6DInputDevice.o: /usr/include/gnu/stubs.h /usr/include/bits/huge_val.h
+vs6DInputDevice.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+vs6DInputDevice.o: ../math/vsMatrix.h++ ../math/vsQuat.h++ vsInputDevice.h++
+vs6DInputDevice.o: vsInputAxis.h++ vsInputButton.h++ /usr/include/stdlib.h
+vs6DInputDevice.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vs6DInputDevice.o: /usr/include/bits/waitflags.h
+vs6DInputDevice.o: /usr/include/bits/waitstatus.h /usr/include/endian.h
+vs6DInputDevice.o: /usr/include/bits/endian.h /usr/include/alloca.h
+vsArticulationGlove.o: vsArticulationGlove.h++ vsInputDevice.h++
+vsArticulationGlove.o: ../system/vsGlobals.h++ /usr/include/math.h
+vsArticulationGlove.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsArticulationGlove.o: /usr/include/gnu/stubs.h /usr/include/bits/huge_val.h
+vsArticulationGlove.o: /usr/include/bits/mathdef.h
+vsArticulationGlove.o: /usr/include/bits/mathcalls.h vsInputAxis.h++
+vsArticulationGlove.o: vsInputButton.h++ ../math/vsQuat.h++
+vsArticulationGlove.o: ../math/vsMatrix.h++ ../math/vsVector.h++
+vsArticulationGlove.o: /usr/include/stdio.h
+vsArticulationGlove.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsArticulationGlove.o: /usr/include/bits/types.h /usr/include/libio.h
+vsArticulationGlove.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsArticulationGlove.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsArticulationGlove.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsArticulationGlove.o: /usr/include/bits/stdio_lim.h
+vsArticulationGlove.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
+vsAscensionSerialTrackingSystem.o: /usr/include/stdio.h
+vsAscensionSerialTrackingSystem.o: /usr/include/features.h
+vsAscensionSerialTrackingSystem.o: /usr/include/sys/cdefs.h
+vsAscensionSerialTrackingSystem.o: /usr/include/gnu/stubs.h
+vsAscensionSerialTrackingSystem.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/types.h
+vsAscensionSerialTrackingSystem.o: /usr/include/libio.h
+vsAscensionSerialTrackingSystem.o: /usr/include/_G_config.h
+vsAscensionSerialTrackingSystem.o: /usr/include/wchar.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/wchar.h
+vsAscensionSerialTrackingSystem.o: /usr/include/gconv.h
+vsAscensionSerialTrackingSystem.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/stdio_lim.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/sys_errlist.h
+vsAscensionSerialTrackingSystem.o: /usr/include/getopt.h
+vsAscensionSerialTrackingSystem.o: /usr/include/signal.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/sigset.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/signum.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/sigaction.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/sigcontext.h
+vsAscensionSerialTrackingSystem.o: /usr/include/asm/sigcontext.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/sigstack.h
+vsAscensionSerialTrackingSystem.o: /usr/include/ucontext.h
+vsAscensionSerialTrackingSystem.o: /usr/include/sys/ucontext.h
+vsAscensionSerialTrackingSystem.o: /usr/include/unistd.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/posix_opt.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/confname.h
+vsAscensionSerialTrackingSystem.o: /usr/include/sys/types.h
+vsAscensionSerialTrackingSystem.o: /usr/include/time.h /usr/include/endian.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/endian.h
+vsAscensionSerialTrackingSystem.o: /usr/include/sys/select.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/select.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/time.h
+vsAscensionSerialTrackingSystem.o: /usr/include/sys/sysmacros.h
+vsAscensionSerialTrackingSystem.o: /usr/include/string.h
+vsAscensionSerialTrackingSystem.o: /usr/include/stdlib.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/waitflags.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/waitstatus.h
+vsAscensionSerialTrackingSystem.o: /usr/include/alloca.h
+vsAscensionSerialTrackingSystem.o: vsAscensionSerialTrackingSystem.h++
+vsAscensionSerialTrackingSystem.o: vsSerialPort.h++ /usr/include/termios.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/termios.h
+vsAscensionSerialTrackingSystem.o: /usr/include/sys/ttydefaults.h
+vsAscensionSerialTrackingSystem.o: vsMotionTracker.h++ vs6DInputDevice.h++
+vsAscensionSerialTrackingSystem.o: ../math/vsVector.h++
+vsAscensionSerialTrackingSystem.o: ../system/vsGlobals.h++
+vsAscensionSerialTrackingSystem.o: /usr/include/math.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/huge_val.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/mathdef.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/mathcalls.h
+vsAscensionSerialTrackingSystem.o: ../math/vsMatrix.h++ ../math/vsQuat.h++
+vsAscensionSerialTrackingSystem.o: vsInputDevice.h++ vsInputAxis.h++
+vsAscensionSerialTrackingSystem.o: vsInputButton.h++ vsTrackingSystem.h++
+vsAscensionSerialTrackingSystem.o: vsInputSystem.h++
+vsAscensionSerialTrackingSystem.o: ../system/vsUpdatable.h++
+vsAscensionSerialTrackingSystem.o: vsSharedInputData.h++
+vsAscensionSerialTrackingSystem.o: /usr/include/sys/ipc.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/ipc.h
+vsAscensionSerialTrackingSystem.o: /usr/include/sys/shm.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/shm.h
+vsAscensionSerialTrackingSystem.o: /usr/include/sys/sem.h
+vsAscensionSerialTrackingSystem.o: /usr/include/bits/sem.h
+vsChordGloves.o: vsChordGloves.h++ ../system/vsGlobals.h++
+vsChordGloves.o: /usr/include/math.h /usr/include/features.h
+vsChordGloves.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsChordGloves.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsChordGloves.o: /usr/include/bits/mathcalls.h vsInputDevice.h++
+vsChordGloves.o: vsInputAxis.h++ vsInputButton.h++ /usr/include/stdio.h
+vsChordGloves.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsChordGloves.o: /usr/include/bits/types.h /usr/include/libio.h
+vsChordGloves.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsChordGloves.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsChordGloves.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsChordGloves.o: /usr/include/bits/stdio_lim.h
+vsChordGloves.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
+vsChordGloves.o: /usr/include/string.h
+vsCyberGloveBox.o: vsCyberGloveBox.h++ vsArticulationGlove.h++
+vsCyberGloveBox.o: vsInputDevice.h++ ../system/vsGlobals.h++
+vsCyberGloveBox.o: /usr/include/math.h /usr/include/features.h
+vsCyberGloveBox.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsCyberGloveBox.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsCyberGloveBox.o: /usr/include/bits/mathcalls.h vsInputAxis.h++
+vsCyberGloveBox.o: vsInputButton.h++ ../math/vsQuat.h++ ../math/vsMatrix.h++
+vsCyberGloveBox.o: ../math/vsVector.h++ vsSerialPort.h++
+vsCyberGloveBox.o: /usr/include/termios.h /usr/include/bits/termios.h
+vsCyberGloveBox.o: /usr/include/sys/ttydefaults.h /usr/include/unistd.h
+vsCyberGloveBox.o: /usr/include/bits/posix_opt.h /usr/include/bits/types.h
+vsCyberGloveBox.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsCyberGloveBox.o: /usr/include/bits/confname.h /usr/include/getopt.h
+vsCyberGloveBox.o: vsInputSystem.h++ ../system/vsUpdatable.h++
+vsCyberGloveBox.o: /usr/include/stdio.h /usr/include/libio.h
+vsCyberGloveBox.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsCyberGloveBox.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsCyberGloveBox.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsCyberGloveBox.o: /usr/include/bits/stdio_lim.h
+vsCyberGloveBox.o: /usr/include/bits/sys_errlist.h
+vsEthernetMotionStar.o: /usr/include/stdio.h /usr/include/features.h
+vsEthernetMotionStar.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsEthernetMotionStar.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsEthernetMotionStar.o: /usr/include/bits/types.h /usr/include/libio.h
+vsEthernetMotionStar.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsEthernetMotionStar.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsEthernetMotionStar.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsEthernetMotionStar.o: /usr/include/bits/stdio_lim.h
+vsEthernetMotionStar.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
+vsEthernetMotionStar.o: /usr/include/signal.h /usr/include/bits/sigset.h
+vsEthernetMotionStar.o: /usr/include/bits/signum.h
+vsEthernetMotionStar.o: /usr/include/bits/sigaction.h
+vsEthernetMotionStar.o: /usr/include/bits/sigcontext.h
+vsEthernetMotionStar.o: /usr/include/asm/sigcontext.h
+vsEthernetMotionStar.o: /usr/include/bits/sigstack.h /usr/include/ucontext.h
+vsEthernetMotionStar.o: /usr/include/sys/ucontext.h /usr/include/stdlib.h
+vsEthernetMotionStar.o: /usr/include/bits/waitflags.h
+vsEthernetMotionStar.o: /usr/include/bits/waitstatus.h /usr/include/endian.h
+vsEthernetMotionStar.o: /usr/include/bits/endian.h /usr/include/alloca.h
+vsEthernetMotionStar.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+vsEthernetMotionStar.o: /usr/include/bits/confname.h /usr/include/time.h
+vsEthernetMotionStar.o: vsEthernetMotionStar.h++ vsMotionTracker.h++
+vsEthernetMotionStar.o: vs6DInputDevice.h++ ../math/vsVector.h++
+vsEthernetMotionStar.o: ../system/vsGlobals.h++ /usr/include/math.h
+vsEthernetMotionStar.o: /usr/include/bits/huge_val.h
+vsEthernetMotionStar.o: /usr/include/bits/mathdef.h
+vsEthernetMotionStar.o: /usr/include/bits/mathcalls.h ../math/vsMatrix.h++
+vsEthernetMotionStar.o: ../math/vsQuat.h++ vsInputDevice.h++ vsInputAxis.h++
+vsEthernetMotionStar.o: vsInputButton.h++ vsTrackingSystem.h++
+vsEthernetMotionStar.o: vsInputSystem.h++ ../system/vsUpdatable.h++
+vsEthernetMotionStar.o: vsSharedInputData.h++ /usr/include/sys/types.h
+vsEthernetMotionStar.o: /usr/include/sys/select.h /usr/include/bits/select.h
+vsEthernetMotionStar.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+vsEthernetMotionStar.o: /usr/include/sys/ipc.h /usr/include/bits/ipc.h
+vsEthernetMotionStar.o: /usr/include/sys/shm.h /usr/include/bits/shm.h
+vsEthernetMotionStar.o: /usr/include/sys/sem.h /usr/include/bits/sem.h
+vsEthernetMotionStar.o: vsUDPUnicastNetworkInterface.h++
+vsEthernetMotionStar.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+vsEthernetMotionStar.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+vsEthernetMotionStar.o: /usr/include/limits.h
+vsEthernetMotionStar.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/limits.h
+vsEthernetMotionStar.o: /usr/include/bits/posix1_lim.h
+vsEthernetMotionStar.o: /usr/include/bits/local_lim.h
+vsEthernetMotionStar.o: /usr/include/linux/limits.h
+vsEthernetMotionStar.o: /usr/include/bits/posix2_lim.h
+vsEthernetMotionStar.o: /usr/include/bits/xopen_lim.h
+vsEthernetMotionStar.o: /usr/include/bits/sockaddr.h
+vsEthernetMotionStar.o: /usr/include/asm/socket.h /usr/include/asm/sockios.h
+vsEthernetMotionStar.o: /usr/include/netinet/in.h /usr/include/stdint.h
+vsEthernetMotionStar.o: /usr/include/bits/wordsize.h /usr/include/bits/in.h
+vsEthernetMotionStar.o: /usr/include/bits/byteswap.h /usr/include/arpa/inet.h
+vsEthernetMotionStar.o: /usr/include/netdb.h /usr/include/rpc/netdb.h
+vsEthernetMotionStar.o: /usr/include/bits/netdb.h vsUDPNetworkInterface.h++
+vsEthernetMotionStar.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+vsEthernetMotionStar.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+vsEthernetMotionStar.o: vsNetworkInterface.h++ /usr/include/sys/time.h
+vsEthernetMotionStar.o: /usr/include/string.h /usr/include/errno.h
+vsEthernetMotionStar.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+vsEthernetMotionStar.o: /usr/include/asm/errno.h
+vsFastrak.o: vsFastrak.h++ vsSerialPort.h++ /usr/include/termios.h
+vsFastrak.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsFastrak.o: /usr/include/gnu/stubs.h /usr/include/bits/termios.h
+vsFastrak.o: /usr/include/sys/ttydefaults.h /usr/include/unistd.h
+vsFastrak.o: /usr/include/bits/posix_opt.h /usr/include/bits/types.h
+vsFastrak.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsFastrak.o: /usr/include/bits/confname.h /usr/include/getopt.h
+vsFastrak.o: vsMotionTracker.h++ vs6DInputDevice.h++ ../math/vsVector.h++
+vsFastrak.o: ../system/vsGlobals.h++ /usr/include/math.h
+vsFastrak.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsFastrak.o: /usr/include/bits/mathcalls.h ../math/vsMatrix.h++
+vsFastrak.o: ../math/vsQuat.h++ vsInputDevice.h++ vsInputAxis.h++
+vsFastrak.o: vsInputButton.h++ vsTrackingSystem.h++ vsInputSystem.h++
+vsFastrak.o: ../system/vsUpdatable.h++ vsSharedInputData.h++
+vsFastrak.o: /usr/include/sys/types.h /usr/include/time.h
+vsFastrak.o: /usr/include/endian.h /usr/include/bits/endian.h
+vsFastrak.o: /usr/include/sys/select.h /usr/include/bits/select.h
+vsFastrak.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+vsFastrak.o: /usr/include/sys/sysmacros.h /usr/include/sys/ipc.h
+vsFastrak.o: /usr/include/bits/ipc.h /usr/include/sys/shm.h
+vsFastrak.o: /usr/include/bits/shm.h /usr/include/sys/sem.h
+vsFastrak.o: /usr/include/bits/sem.h /usr/include/stdio.h
+vsFastrak.o: /usr/include/libio.h /usr/include/_G_config.h
+vsFastrak.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+vsFastrak.o: /usr/include/gconv.h
+vsFastrak.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsFastrak.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+vsFastrak.o: /usr/include/string.h /usr/include/stdlib.h
+vsFastrak.o: /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h
+vsFastrak.o: /usr/include/alloca.h /usr/include/signal.h
+vsFastrak.o: /usr/include/bits/signum.h /usr/include/bits/sigaction.h
+vsFastrak.o: /usr/include/bits/sigcontext.h /usr/include/asm/sigcontext.h
+vsFastrak.o: /usr/include/bits/sigstack.h /usr/include/ucontext.h
+vsFastrak.o: /usr/include/sys/ucontext.h
+vsFlockOfBirds.o: vsFlockOfBirds.h++ vsAscensionSerialTrackingSystem.h++
+vsFlockOfBirds.o: vsSerialPort.h++ /usr/include/termios.h
+vsFlockOfBirds.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsFlockOfBirds.o: /usr/include/gnu/stubs.h /usr/include/bits/termios.h
+vsFlockOfBirds.o: /usr/include/sys/ttydefaults.h /usr/include/unistd.h
+vsFlockOfBirds.o: /usr/include/bits/posix_opt.h /usr/include/bits/types.h
+vsFlockOfBirds.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsFlockOfBirds.o: /usr/include/bits/confname.h /usr/include/getopt.h
+vsFlockOfBirds.o: vsMotionTracker.h++ vs6DInputDevice.h++
+vsFlockOfBirds.o: ../math/vsVector.h++ ../system/vsGlobals.h++
+vsFlockOfBirds.o: /usr/include/math.h /usr/include/bits/huge_val.h
+vsFlockOfBirds.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+vsFlockOfBirds.o: ../math/vsMatrix.h++ ../math/vsQuat.h++ vsInputDevice.h++
+vsFlockOfBirds.o: vsInputAxis.h++ vsInputButton.h++ vsTrackingSystem.h++
+vsFlockOfBirds.o: vsInputSystem.h++ ../system/vsUpdatable.h++
+vsFlockOfBirds.o: vsSharedInputData.h++ /usr/include/sys/types.h
+vsFlockOfBirds.o: /usr/include/time.h /usr/include/endian.h
+vsFlockOfBirds.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+vsFlockOfBirds.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+vsFlockOfBirds.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+vsFlockOfBirds.o: /usr/include/sys/ipc.h /usr/include/bits/ipc.h
+vsFlockOfBirds.o: /usr/include/sys/shm.h /usr/include/bits/shm.h
+vsFlockOfBirds.o: /usr/include/sys/sem.h /usr/include/bits/sem.h
+vsIS600.o: vsIS600.h++ vsSerialPort.h++ /usr/include/termios.h
+vsIS600.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsIS600.o: /usr/include/gnu/stubs.h /usr/include/bits/termios.h
+vsIS600.o: /usr/include/sys/ttydefaults.h /usr/include/unistd.h
+vsIS600.o: /usr/include/bits/posix_opt.h /usr/include/bits/types.h
+vsIS600.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsIS600.o: /usr/include/bits/confname.h /usr/include/getopt.h
+vsIS600.o: vsMotionTracker.h++ vs6DInputDevice.h++ ../math/vsVector.h++
+vsIS600.o: ../system/vsGlobals.h++ /usr/include/math.h
+vsIS600.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsIS600.o: /usr/include/bits/mathcalls.h ../math/vsMatrix.h++
+vsIS600.o: ../math/vsQuat.h++ vsInputDevice.h++ vsInputAxis.h++
+vsIS600.o: vsInputButton.h++ vsTrackingSystem.h++ vsInputSystem.h++
+vsIS600.o: ../system/vsUpdatable.h++ vsSharedInputData.h++
+vsIS600.o: /usr/include/sys/types.h /usr/include/time.h /usr/include/endian.h
+vsIS600.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+vsIS600.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+vsIS600.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+vsIS600.o: /usr/include/sys/ipc.h /usr/include/bits/ipc.h
+vsIS600.o: /usr/include/sys/shm.h /usr/include/bits/shm.h
+vsIS600.o: /usr/include/sys/sem.h /usr/include/bits/sem.h
+vsIS600.o: /usr/include/stdio.h /usr/include/libio.h /usr/include/_G_config.h
+vsIS600.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+vsIS600.o: /usr/include/gconv.h
+vsIS600.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsIS600.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+vsIS600.o: /usr/include/string.h /usr/include/stdlib.h
+vsIS600.o: /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h
+vsIS600.o: /usr/include/alloca.h /usr/include/signal.h
+vsIS600.o: /usr/include/bits/signum.h /usr/include/bits/sigaction.h
+vsIS600.o: /usr/include/bits/sigcontext.h /usr/include/asm/sigcontext.h
+vsIS600.o: /usr/include/bits/sigstack.h /usr/include/ucontext.h
+vsIS600.o: /usr/include/sys/ucontext.h
+vsISTJoystickBox.o: vsISTJoystickBox.h++ vsJoystick.h++ vsInputDevice.h++
+vsISTJoystickBox.o: ../system/vsGlobals.h++ /usr/include/math.h
+vsISTJoystickBox.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsISTJoystickBox.o: /usr/include/gnu/stubs.h /usr/include/bits/huge_val.h
+vsISTJoystickBox.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+vsISTJoystickBox.o: vsInputAxis.h++ vsInputButton.h++ vsJoystickBox.h++
+vsISTJoystickBox.o: vsInputSystem.h++ ../system/vsUpdatable.h++
+vsISTJoystickBox.o: vsSerialPort.h++ /usr/include/termios.h
+vsISTJoystickBox.o: /usr/include/bits/termios.h
+vsISTJoystickBox.o: /usr/include/sys/ttydefaults.h /usr/include/unistd.h
+vsISTJoystickBox.o: /usr/include/bits/posix_opt.h /usr/include/bits/types.h
+vsISTJoystickBox.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsISTJoystickBox.o: /usr/include/bits/confname.h /usr/include/getopt.h
+vsISTJoystickBox.o: /usr/include/stdio.h /usr/include/libio.h
+vsISTJoystickBox.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsISTJoystickBox.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsISTJoystickBox.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsISTJoystickBox.o: /usr/include/bits/stdio_lim.h
+vsISTJoystickBox.o: /usr/include/bits/sys_errlist.h
+vsInputAxis.o: vsInputAxis.h++ ../system/vsGlobals.h++ /usr/include/math.h
+vsInputAxis.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsInputAxis.o: /usr/include/gnu/stubs.h /usr/include/bits/huge_val.h
+vsInputAxis.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+vsInputAxis.o: /usr/include/stdio.h
+vsInputAxis.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsInputAxis.o: /usr/include/bits/types.h /usr/include/libio.h
+vsInputAxis.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsInputAxis.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsInputAxis.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsInputAxis.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+vsInputAxis.o: /usr/include/getopt.h /usr/include/string.h
+vsInputButton.o: vsInputButton.h++ ../system/vsGlobals.h++
+vsInputButton.o: /usr/include/math.h /usr/include/features.h
+vsInputButton.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsInputButton.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsInputButton.o: /usr/include/bits/mathcalls.h /usr/include/sys/time.h
+vsInputButton.o: /usr/include/bits/types.h
+vsInputButton.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsInputButton.o: /usr/include/time.h /usr/include/bits/time.h
+vsInputButton.o: /usr/include/sys/select.h /usr/include/bits/select.h
+vsInputButton.o: /usr/include/bits/sigset.h /usr/include/stdio.h
+vsInputButton.o: /usr/include/libio.h /usr/include/_G_config.h
+vsInputButton.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+vsInputButton.o: /usr/include/gconv.h
+vsInputButton.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsInputButton.o: /usr/include/bits/stdio_lim.h
+vsInputButton.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
+vsInputDevice.o: vsInputDevice.h++ ../system/vsGlobals.h++
+vsInputDevice.o: /usr/include/math.h /usr/include/features.h
+vsInputDevice.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsInputDevice.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsInputDevice.o: /usr/include/bits/mathcalls.h vsInputAxis.h++
+vsInputDevice.o: vsInputButton.h++
+vsInputSystem.o: vsInputSystem.h++ ../system/vsUpdatable.h++
+vsJoystick.o: vsJoystick.h++ vsInputDevice.h++ ../system/vsGlobals.h++
+vsJoystick.o: /usr/include/math.h /usr/include/features.h
+vsJoystick.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsJoystick.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsJoystick.o: /usr/include/bits/mathcalls.h vsInputAxis.h++ vsInputButton.h++
+vsJoystick.o: /usr/include/stdio.h
+vsJoystick.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsJoystick.o: /usr/include/bits/types.h /usr/include/libio.h
+vsJoystick.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsJoystick.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsJoystick.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsJoystick.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+vsJoystick.o: /usr/include/getopt.h /usr/include/string.h
+vsJoystickBox.o: vsJoystickBox.h++ vsInputSystem.h++
+vsJoystickBox.o: ../system/vsUpdatable.h++ vsJoystick.h++ vsInputDevice.h++
+vsJoystickBox.o: ../system/vsGlobals.h++ /usr/include/math.h
+vsJoystickBox.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsJoystickBox.o: /usr/include/gnu/stubs.h /usr/include/bits/huge_val.h
+vsJoystickBox.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+vsJoystickBox.o: vsInputAxis.h++ vsInputButton.h++
+vsKeyboard.o: vsKeyboard.h++ vsInputDevice.h++ ../system/vsGlobals.h++
+vsKeyboard.o: /usr/include/math.h /usr/include/features.h
+vsKeyboard.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsKeyboard.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsKeyboard.o: /usr/include/bits/mathcalls.h vsInputAxis.h++ vsInputButton.h++
+vsKeyboard.o: /usr/X11R6/include/X11/Xlib.h /usr/include/sys/types.h
+vsKeyboard.o: /usr/include/bits/types.h
+vsKeyboard.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsKeyboard.o: /usr/include/time.h /usr/include/endian.h
+vsKeyboard.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+vsKeyboard.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+vsKeyboard.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+vsKeyboard.o: /usr/X11R6/include/X11/X.h /usr/X11R6/include/X11/Xfuncproto.h
+vsKeyboard.o: /usr/X11R6/include/X11/Xosdefs.h /usr/X11R6/include/X11/Xutil.h
+vsKeyboard.o: /usr/X11R6/include/X11/Xos.h /usr/include/string.h
+vsKeyboard.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+vsKeyboard.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+vsKeyboard.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+vsKeyboard.o: /usr/include/bits/confname.h /usr/include/getopt.h
+vsKeyboard.o: /usr/include/sys/time.h /usr/X11R6/include/X11/Xarch.h
+vsKeyboard.o: /usr/X11R6/include/X11/keysym.h
+vsKeyboard.o: /usr/X11R6/include/X11/keysymdef.h /usr/include/stdio.h
+vsKeyboard.o: /usr/include/libio.h /usr/include/_G_config.h
+vsKeyboard.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+vsKeyboard.o: /usr/include/gconv.h
+vsKeyboard.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsKeyboard.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+vsLinuxJoystickSystem.o: vsLinuxJoystickSystem.h++ vsInputSystem.h++
+vsLinuxJoystickSystem.o: ../system/vsUpdatable.h++ vsJoystick.h++
+vsLinuxJoystickSystem.o: vsInputDevice.h++ ../system/vsGlobals.h++
+vsLinuxJoystickSystem.o: /usr/include/math.h /usr/include/features.h
+vsLinuxJoystickSystem.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsLinuxJoystickSystem.o: /usr/include/bits/huge_val.h
+vsLinuxJoystickSystem.o: /usr/include/bits/mathdef.h
+vsLinuxJoystickSystem.o: /usr/include/bits/mathcalls.h vsInputAxis.h++
+vsLinuxJoystickSystem.o: vsInputButton.h++ /usr/include/linux/joystick.h
+vsLinuxJoystickSystem.o: /usr/include/asm/types.h /usr/include/linux/input.h
+vsLinuxJoystickSystem.o: /usr/include/sys/time.h /usr/include/bits/types.h
+vsLinuxJoystickSystem.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsLinuxJoystickSystem.o: /usr/include/time.h /usr/include/bits/time.h
+vsLinuxJoystickSystem.o: /usr/include/sys/select.h /usr/include/bits/select.h
+vsLinuxJoystickSystem.o: /usr/include/bits/sigset.h /usr/include/sys/ioctl.h
+vsLinuxJoystickSystem.o: /usr/include/bits/ioctls.h /usr/include/asm/ioctls.h
+vsLinuxJoystickSystem.o: /usr/include/asm/ioctl.h
+vsLinuxJoystickSystem.o: /usr/include/bits/ioctl-types.h
+vsLinuxJoystickSystem.o: /usr/include/sys/ttydefaults.h /usr/include/stdio.h
+vsLinuxJoystickSystem.o: /usr/include/libio.h /usr/include/_G_config.h
+vsLinuxJoystickSystem.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+vsLinuxJoystickSystem.o: /usr/include/gconv.h
+vsLinuxJoystickSystem.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsLinuxJoystickSystem.o: /usr/include/bits/stdio_lim.h
+vsLinuxJoystickSystem.o: /usr/include/bits/sys_errlist.h
+vsLinuxJoystickSystem.o: /usr/include/getopt.h /usr/include/string.h
+vsLinuxJoystickSystem.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+vsLinuxJoystickSystem.o: /usr/include/sys/types.h /usr/include/endian.h
+vsLinuxJoystickSystem.o: /usr/include/bits/endian.h
+vsLinuxJoystickSystem.o: /usr/include/sys/sysmacros.h /usr/include/sys/stat.h
+vsLinuxJoystickSystem.o: /usr/include/bits/stat.h /usr/include/unistd.h
+vsLinuxJoystickSystem.o: /usr/include/bits/posix_opt.h
+vsLinuxJoystickSystem.o: /usr/include/bits/confname.h
+vsMotionTracker.o: /usr/include/stdio.h /usr/include/features.h
+vsMotionTracker.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsMotionTracker.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsMotionTracker.o: /usr/include/bits/types.h /usr/include/libio.h
+vsMotionTracker.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsMotionTracker.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsMotionTracker.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsMotionTracker.o: /usr/include/bits/stdio_lim.h
+vsMotionTracker.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
+vsMotionTracker.o: vsMotionTracker.h++ vs6DInputDevice.h++
+vsMotionTracker.o: ../math/vsVector.h++ ../system/vsGlobals.h++
+vsMotionTracker.o: /usr/include/math.h /usr/include/bits/huge_val.h
+vsMotionTracker.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+vsMotionTracker.o: ../math/vsMatrix.h++ ../math/vsQuat.h++ vsInputDevice.h++
+vsMotionTracker.o: vsInputAxis.h++ vsInputButton.h++
+vsMouse.o: vsMouse.h++ vsInputDevice.h++ ../system/vsGlobals.h++
+vsMouse.o: /usr/include/math.h /usr/include/features.h
+vsMouse.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsMouse.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsMouse.o: /usr/include/bits/mathcalls.h vsInputAxis.h++ vsInputButton.h++
+vsMouse.o: /usr/include/stdio.h
+vsMouse.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsMouse.o: /usr/include/bits/types.h /usr/include/libio.h
+vsMouse.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsMouse.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsMouse.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsMouse.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+vsMouse.o: /usr/include/getopt.h
+vsNetworkInterface.o: vsNetworkInterface.h++ /usr/include/stdio.h
+vsNetworkInterface.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsNetworkInterface.o: /usr/include/gnu/stubs.h
+vsNetworkInterface.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsNetworkInterface.o: /usr/include/bits/types.h /usr/include/libio.h
+vsNetworkInterface.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsNetworkInterface.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsNetworkInterface.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsNetworkInterface.o: /usr/include/bits/stdio_lim.h
+vsNetworkInterface.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
+vsNetworkInterface.o: /usr/include/sys/types.h /usr/include/time.h
+vsNetworkInterface.o: /usr/include/endian.h /usr/include/bits/endian.h
+vsNetworkInterface.o: /usr/include/sys/select.h /usr/include/bits/select.h
+vsNetworkInterface.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+vsNetworkInterface.o: /usr/include/sys/sysmacros.h /usr/include/sys/socket.h
+vsNetworkInterface.o: /usr/include/sys/uio.h /usr/include/bits/uio.h
+vsNetworkInterface.o: /usr/include/bits/socket.h /usr/include/limits.h
+vsNetworkInterface.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/limits.h
+vsNetworkInterface.o: /usr/include/bits/posix1_lim.h
+vsNetworkInterface.o: /usr/include/bits/local_lim.h
+vsNetworkInterface.o: /usr/include/linux/limits.h
+vsNetworkInterface.o: /usr/include/bits/posix2_lim.h
+vsNetworkInterface.o: /usr/include/bits/xopen_lim.h
+vsNetworkInterface.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+vsNetworkInterface.o: /usr/include/asm/sockios.h /usr/include/sys/time.h
+vsNetworkInterface.o: /usr/include/netinet/in.h /usr/include/stdint.h
+vsNetworkInterface.o: /usr/include/bits/wordsize.h /usr/include/bits/in.h
+vsNetworkInterface.o: /usr/include/bits/byteswap.h /usr/include/string.h
+vsNetworkInterface.o: /usr/include/errno.h /usr/include/bits/errno.h
+vsNetworkInterface.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+vsPinchGloveBox.o: /usr/include/stdio.h /usr/include/features.h
+vsPinchGloveBox.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsPinchGloveBox.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsPinchGloveBox.o: /usr/include/bits/types.h /usr/include/libio.h
+vsPinchGloveBox.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsPinchGloveBox.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsPinchGloveBox.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsPinchGloveBox.o: /usr/include/bits/stdio_lim.h
+vsPinchGloveBox.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
+vsPinchGloveBox.o: /usr/include/string.h vsPinchGloveBox.h++
+vsPinchGloveBox.o: vsInputSystem.h++ ../system/vsUpdatable.h++
+vsPinchGloveBox.o: vsSerialPort.h++ /usr/include/termios.h
+vsPinchGloveBox.o: /usr/include/bits/termios.h /usr/include/sys/ttydefaults.h
+vsPinchGloveBox.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+vsPinchGloveBox.o: /usr/include/bits/confname.h vsChordGloves.h++
+vsPinchGloveBox.o: ../system/vsGlobals.h++ /usr/include/math.h
+vsPinchGloveBox.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsPinchGloveBox.o: /usr/include/bits/mathcalls.h vsInputDevice.h++
+vsPinchGloveBox.o: vsInputAxis.h++ vsInputButton.h++
+vsSerialMotionStar.o: vsSerialMotionStar.h++
+vsSerialMotionStar.o: vsAscensionSerialTrackingSystem.h++ vsSerialPort.h++
+vsSerialMotionStar.o: /usr/include/termios.h /usr/include/features.h
+vsSerialMotionStar.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsSerialMotionStar.o: /usr/include/bits/termios.h
+vsSerialMotionStar.o: /usr/include/sys/ttydefaults.h /usr/include/unistd.h
+vsSerialMotionStar.o: /usr/include/bits/posix_opt.h /usr/include/bits/types.h
+vsSerialMotionStar.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsSerialMotionStar.o: /usr/include/bits/confname.h /usr/include/getopt.h
+vsSerialMotionStar.o: vsMotionTracker.h++ vs6DInputDevice.h++
+vsSerialMotionStar.o: ../math/vsVector.h++ ../system/vsGlobals.h++
+vsSerialMotionStar.o: /usr/include/math.h /usr/include/bits/huge_val.h
+vsSerialMotionStar.o: /usr/include/bits/mathdef.h
+vsSerialMotionStar.o: /usr/include/bits/mathcalls.h ../math/vsMatrix.h++
+vsSerialMotionStar.o: ../math/vsQuat.h++ vsInputDevice.h++ vsInputAxis.h++
+vsSerialMotionStar.o: vsInputButton.h++ vsTrackingSystem.h++
+vsSerialMotionStar.o: vsInputSystem.h++ ../system/vsUpdatable.h++
+vsSerialMotionStar.o: vsSharedInputData.h++ /usr/include/sys/types.h
+vsSerialMotionStar.o: /usr/include/time.h /usr/include/endian.h
+vsSerialMotionStar.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+vsSerialMotionStar.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+vsSerialMotionStar.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+vsSerialMotionStar.o: /usr/include/sys/ipc.h /usr/include/bits/ipc.h
+vsSerialMotionStar.o: /usr/include/sys/shm.h /usr/include/bits/shm.h
+vsSerialMotionStar.o: /usr/include/sys/sem.h /usr/include/bits/sem.h
+vsSerialPort.o: /usr/include/stdio.h /usr/include/features.h
+vsSerialPort.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsSerialPort.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsSerialPort.o: /usr/include/bits/types.h /usr/include/libio.h
+vsSerialPort.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsSerialPort.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsSerialPort.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsSerialPort.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+vsSerialPort.o: /usr/include/getopt.h /usr/include/sys/types.h
+vsSerialPort.o: /usr/include/time.h /usr/include/endian.h
+vsSerialPort.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+vsSerialPort.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+vsSerialPort.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+vsSerialPort.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+vsSerialPort.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+vsSerialPort.o: /usr/include/sys/ioctl.h /usr/include/bits/ioctls.h
+vsSerialPort.o: /usr/include/asm/ioctls.h /usr/include/asm/ioctl.h
+vsSerialPort.o: /usr/include/bits/ioctl-types.h
+vsSerialPort.o: /usr/include/sys/ttydefaults.h vsSerialPort.h++
+vsSerialPort.o: /usr/include/termios.h /usr/include/bits/termios.h
+vsSerialPort.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+vsSerialPort.o: /usr/include/bits/confname.h
+vsSharedInputData.o: /usr/include/stdio.h /usr/include/features.h
+vsSharedInputData.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsSharedInputData.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsSharedInputData.o: /usr/include/bits/types.h /usr/include/libio.h
+vsSharedInputData.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsSharedInputData.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsSharedInputData.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsSharedInputData.o: /usr/include/bits/stdio_lim.h
+vsSharedInputData.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
+vsSharedInputData.o: vsSharedInputData.h++ /usr/include/sys/types.h
+vsSharedInputData.o: /usr/include/time.h /usr/include/endian.h
+vsSharedInputData.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+vsSharedInputData.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+vsSharedInputData.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+vsSharedInputData.o: /usr/include/sys/ipc.h /usr/include/bits/ipc.h
+vsSharedInputData.o: /usr/include/sys/shm.h /usr/include/bits/shm.h
+vsSharedInputData.o: /usr/include/sys/sem.h /usr/include/bits/sem.h
+vsSharedInputData.o: ../math/vsVector.h++ ../system/vsGlobals.h++
+vsSharedInputData.o: /usr/include/math.h /usr/include/bits/huge_val.h
+vsSharedInputData.o: /usr/include/bits/mathdef.h
+vsSharedInputData.o: /usr/include/bits/mathcalls.h ../math/vsQuat.h++
+vsSharedInputData.o: ../math/vsMatrix.h++
+vsSpaceball.o: vsSpaceball.h++ vs6DInputDevice.h++ ../math/vsVector.h++
+vsSpaceball.o: ../system/vsGlobals.h++ /usr/include/math.h
+vsSpaceball.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsSpaceball.o: /usr/include/gnu/stubs.h /usr/include/bits/huge_val.h
+vsSpaceball.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+vsSpaceball.o: ../math/vsMatrix.h++ ../math/vsQuat.h++ vsInputDevice.h++
+vsSpaceball.o: vsInputAxis.h++ vsInputButton.h++ /usr/include/stdio.h
+vsSpaceball.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsSpaceball.o: /usr/include/bits/types.h /usr/include/libio.h
+vsSpaceball.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsSpaceball.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsSpaceball.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsSpaceball.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+vsSpaceball.o: /usr/include/getopt.h
+vsTrackingSystem.o: vsTrackingSystem.h++ vsMotionTracker.h++
+vsTrackingSystem.o: vs6DInputDevice.h++ ../math/vsVector.h++
+vsTrackingSystem.o: ../system/vsGlobals.h++ /usr/include/math.h
+vsTrackingSystem.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsTrackingSystem.o: /usr/include/gnu/stubs.h /usr/include/bits/huge_val.h
+vsTrackingSystem.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+vsTrackingSystem.o: ../math/vsMatrix.h++ ../math/vsQuat.h++ vsInputDevice.h++
+vsTrackingSystem.o: vsInputAxis.h++ vsInputButton.h++ vsInputSystem.h++
+vsTrackingSystem.o: ../system/vsUpdatable.h++
+vsUDPNetworkInterface.o: vsUDPNetworkInterface.h++ /usr/include/unistd.h
+vsUDPNetworkInterface.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsUDPNetworkInterface.o: /usr/include/gnu/stubs.h
+vsUDPNetworkInterface.o: /usr/include/bits/posix_opt.h
+vsUDPNetworkInterface.o: /usr/include/bits/types.h
+vsUDPNetworkInterface.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsUDPNetworkInterface.o: /usr/include/bits/confname.h /usr/include/getopt.h
+vsUDPNetworkInterface.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+vsUDPNetworkInterface.o: /usr/include/sys/types.h /usr/include/time.h
+vsUDPNetworkInterface.o: /usr/include/endian.h /usr/include/bits/endian.h
+vsUDPNetworkInterface.o: /usr/include/sys/select.h /usr/include/bits/select.h
+vsUDPNetworkInterface.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+vsUDPNetworkInterface.o: /usr/include/sys/sysmacros.h /usr/include/sys/stat.h
+vsUDPNetworkInterface.o: /usr/include/bits/stat.h vsNetworkInterface.h++
+vsUDPNetworkInterface.o: /usr/include/stdio.h /usr/include/libio.h
+vsUDPNetworkInterface.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsUDPNetworkInterface.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsUDPNetworkInterface.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsUDPNetworkInterface.o: /usr/include/bits/stdio_lim.h
+vsUDPNetworkInterface.o: /usr/include/bits/sys_errlist.h
+vsUDPNetworkInterface.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+vsUDPNetworkInterface.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+vsUDPNetworkInterface.o: /usr/include/limits.h
+vsUDPNetworkInterface.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/limits.h
+vsUDPNetworkInterface.o: /usr/include/bits/posix1_lim.h
+vsUDPNetworkInterface.o: /usr/include/bits/local_lim.h
+vsUDPNetworkInterface.o: /usr/include/linux/limits.h
+vsUDPNetworkInterface.o: /usr/include/bits/posix2_lim.h
+vsUDPNetworkInterface.o: /usr/include/bits/xopen_lim.h
+vsUDPNetworkInterface.o: /usr/include/bits/sockaddr.h
+vsUDPNetworkInterface.o: /usr/include/asm/socket.h /usr/include/asm/sockios.h
+vsUDPNetworkInterface.o: /usr/include/sys/time.h /usr/include/netinet/in.h
+vsUDPNetworkInterface.o: /usr/include/stdint.h /usr/include/bits/wordsize.h
+vsUDPNetworkInterface.o: /usr/include/bits/in.h /usr/include/bits/byteswap.h
+vsUDPNetworkInterface.o: /usr/include/string.h /usr/include/errno.h
+vsUDPNetworkInterface.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+vsUDPNetworkInterface.o: /usr/include/asm/errno.h
+vsUDPUnicastNetworkInterface.o: vsUDPUnicastNetworkInterface.h++
+vsUDPUnicastNetworkInterface.o: /usr/include/sys/types.h
+vsUDPUnicastNetworkInterface.o: /usr/include/features.h
+vsUDPUnicastNetworkInterface.o: /usr/include/sys/cdefs.h
+vsUDPUnicastNetworkInterface.o: /usr/include/gnu/stubs.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/types.h
+vsUDPUnicastNetworkInterface.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsUDPUnicastNetworkInterface.o: /usr/include/time.h /usr/include/endian.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/endian.h
+vsUDPUnicastNetworkInterface.o: /usr/include/sys/select.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/select.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/sigset.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/time.h
+vsUDPUnicastNetworkInterface.o: /usr/include/sys/sysmacros.h
+vsUDPUnicastNetworkInterface.o: /usr/include/sys/socket.h
+vsUDPUnicastNetworkInterface.o: /usr/include/sys/uio.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/uio.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/socket.h
+vsUDPUnicastNetworkInterface.o: /usr/include/limits.h
+vsUDPUnicastNetworkInterface.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/limits.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/posix1_lim.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/local_lim.h
+vsUDPUnicastNetworkInterface.o: /usr/include/linux/limits.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/posix2_lim.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/xopen_lim.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/stdio_lim.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/sockaddr.h
+vsUDPUnicastNetworkInterface.o: /usr/include/asm/socket.h
+vsUDPUnicastNetworkInterface.o: /usr/include/asm/sockios.h
+vsUDPUnicastNetworkInterface.o: /usr/include/netinet/in.h
+vsUDPUnicastNetworkInterface.o: /usr/include/stdint.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/wchar.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/wordsize.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/in.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/byteswap.h
+vsUDPUnicastNetworkInterface.o: /usr/include/arpa/inet.h /usr/include/netdb.h
+vsUDPUnicastNetworkInterface.o: /usr/include/rpc/netdb.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/netdb.h
+vsUDPUnicastNetworkInterface.o: vsUDPNetworkInterface.h++
+vsUDPUnicastNetworkInterface.o: /usr/include/unistd.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/posix_opt.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/confname.h
+vsUDPUnicastNetworkInterface.o: /usr/include/getopt.h /usr/include/fcntl.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/fcntl.h
+vsUDPUnicastNetworkInterface.o: /usr/include/sys/stat.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/stat.h
+vsUDPUnicastNetworkInterface.o: vsNetworkInterface.h++ /usr/include/stdio.h
+vsUDPUnicastNetworkInterface.o: /usr/include/libio.h /usr/include/_G_config.h
+vsUDPUnicastNetworkInterface.o: /usr/include/wchar.h /usr/include/gconv.h
+vsUDPUnicastNetworkInterface.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/sys_errlist.h
+vsUDPUnicastNetworkInterface.o: /usr/include/sys/time.h /usr/include/string.h
+vsUDPUnicastNetworkInterface.o: /usr/include/errno.h
+vsUDPUnicastNetworkInterface.o: /usr/include/bits/errno.h
+vsUDPUnicastNetworkInterface.o: /usr/include/linux/errno.h
+vsUDPUnicastNetworkInterface.o: /usr/include/asm/errno.h
+vsUnwinder.o: vsUnwinder.h++ vsJoystickBox.h++ vsInputSystem.h++
+vsUnwinder.o: ../system/vsUpdatable.h++ vsJoystick.h++ vsInputDevice.h++
+vsUnwinder.o: ../system/vsGlobals.h++ /usr/include/math.h
+vsUnwinder.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsUnwinder.o: /usr/include/gnu/stubs.h /usr/include/bits/huge_val.h
+vsUnwinder.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+vsUnwinder.o: vsInputAxis.h++ vsInputButton.h++ vsSerialPort.h++
+vsUnwinder.o: /usr/include/termios.h /usr/include/bits/termios.h
+vsUnwinder.o: /usr/include/sys/ttydefaults.h /usr/include/unistd.h
+vsUnwinder.o: /usr/include/bits/posix_opt.h /usr/include/bits/types.h
+vsUnwinder.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsUnwinder.o: /usr/include/bits/confname.h /usr/include/getopt.h
+vsUnwinder.o: /usr/include/stdio.h /usr/include/libio.h
+vsUnwinder.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsUnwinder.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsUnwinder.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsUnwinder.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+vsWSSpaceball.o: vsWSSpaceball.h++ vsInputSystem.h++
+vsWSSpaceball.o: ../system/vsUpdatable.h++ vsSpaceball.h++
+vsWSSpaceball.o: vs6DInputDevice.h++ ../math/vsVector.h++
+vsWSSpaceball.o: ../system/vsGlobals.h++ /usr/include/math.h
+vsWSSpaceball.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsWSSpaceball.o: /usr/include/gnu/stubs.h /usr/include/bits/huge_val.h
+vsWSSpaceball.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+vsWSSpaceball.o: ../math/vsMatrix.h++ ../math/vsQuat.h++ vsInputDevice.h++
+vsWSSpaceball.o: vsInputAxis.h++ vsInputButton.h++ vsWindowSystem.h++
+vsWSSpaceball.o: /usr/X11R6/include/X11/Xlib.h /usr/include/sys/types.h
+vsWSSpaceball.o: /usr/include/bits/types.h
+vsWSSpaceball.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsWSSpaceball.o: /usr/include/time.h /usr/include/endian.h
+vsWSSpaceball.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+vsWSSpaceball.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+vsWSSpaceball.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+vsWSSpaceball.o: /usr/X11R6/include/X11/X.h
+vsWSSpaceball.o: /usr/X11R6/include/X11/Xfuncproto.h
+vsWSSpaceball.o: /usr/X11R6/include/X11/Xosdefs.h
+vsWSSpaceball.o: /usr/X11R6/include/X11/Xutil.h /usr/X11R6/include/X11/Xos.h
+vsWSSpaceball.o: /usr/include/string.h /usr/include/fcntl.h
+vsWSSpaceball.o: /usr/include/bits/fcntl.h /usr/include/sys/stat.h
+vsWSSpaceball.o: /usr/include/bits/stat.h /usr/include/unistd.h
+vsWSSpaceball.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+vsWSSpaceball.o: /usr/include/getopt.h /usr/include/sys/time.h
+vsWSSpaceball.o: /usr/X11R6/include/X11/Xarch.h ../system/vsWindow.h++
+vsWSSpaceball.o: /usr/include/Performer/pf/pfPipeWindow.h
+vsWSSpaceball.o: /usr/include/Performer/pf/pfUpdatable.h
+vsWSSpaceball.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
+vsWSSpaceball.o: /usr/include/stdio.h /usr/include/libio.h
+vsWSSpaceball.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsWSSpaceball.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsWSSpaceball.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsWSSpaceball.o: /usr/include/bits/stdio_lim.h
+vsWSSpaceball.o: /usr/include/bits/sys_errlist.h /usr/include/ulocks.h
+vsWSSpaceball.o: /usr/include/malloc.h /usr/include/limits.h
+vsWSSpaceball.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/limits.h
+vsWSSpaceball.o: /usr/include/bits/posix1_lim.h /usr/include/bits/local_lim.h
+vsWSSpaceball.o: /usr/include/linux/limits.h /usr/include/bits/posix2_lim.h
+vsWSSpaceball.o: /usr/include/bits/xopen_lim.h /usr/include/errno.h
+vsWSSpaceball.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+vsWSSpaceball.o: /usr/include/asm/errno.h /usr/include/GL/gl.h
+vsWSSpaceball.o: /usr/include/GL/glx.h /usr/include/GL/glxtokens.h
+vsWSSpaceball.o: /usr/include/GL/glu.h /usr/include/Performer/opengl.h
+vsWSSpaceball.o: /usr/include/Performer/linuxstubs.h
+vsWSSpaceball.o: /usr/include/Performer/image.h /usr/include/stdlib.h
+vsWSSpaceball.o: /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h
+vsWSSpaceball.o: /usr/include/alloca.h /usr/include/sys/prctl.h
+vsWSSpaceball.o: /usr/include/linux/prctl.h /usr/include/stdint.h
+vsWSSpaceball.o: /usr/include/bits/wordsize.h /usr/include/Performer/prmath.h
+vsWSSpaceball.o: /usr/include/Performer/prstats.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfLinMath.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfObject.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfMemory.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfType.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfStruct.h
+vsWSSpaceball.o: /usr/include/Performer/pfstats.h
+vsWSSpaceball.o: /usr/include/Performer/pf/pfBuffer.h
+vsWSSpaceball.o: /usr/include/Performer/pf/pfUpdate.h
+vsWSSpaceball.o: /usr/include/Performer/pf/pfLists.h
+vsWSSpaceball.o: /usr/include/Performer/pf/pfPipe.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfVideoChannel.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfList.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfCalligraphic.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfStats.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfDispList.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfGeoState.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfState.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfByteBank.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfGSetBank.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfWindow.h ../system/vsScreen.h++
+vsWSSpaceball.o: ../system/vsPipe.h++ ../system/vsGrowableArray.h++
+vsWSSpaceball.o: ../system/vsPane.h++ /usr/include/Performer/pf/pfChannel.h
+vsWSSpaceball.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
+vsWSSpaceball.o: /usr/include/Performer/pf/pfEarthSky.h
+vsWSSpaceball.o: /usr/include/Performer/pf/pfLODState.h
+vsWSSpaceball.o: /usr/include/Performer/pf/pfFrameStats.h
+vsWSSpaceball.o: /usr/include/Performer/pf/pfScene.h
+vsWSSpaceball.o: /usr/include/Performer/pf/pfGroup.h
+vsWSSpaceball.o: /usr/include/Performer/pf/pfNode.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfGeoMath.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfGeoSet.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfFlux.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfEngine.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfCycleBuffer.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfPassList.h
+vsWSSpaceball.o: /usr/include/Performer/pr/pfFBState.h ../system/vsView.h++
+vsWSSpaceball.o: ../system/vsSystem.h++ ../system/vsDatabaseLoader.h++
+vsWSSpaceball.o: /usr/include/Performer/pfdb/pfflt.h ../scene/vsNode.h++
+vsWSSpaceball.o: ../system/vsObject.h++ ../scene/vsAttribute.h++
+vsWSSpaceball.o: ../system/vsObjectMap.h++ ../system/vsTreeMap.h++
+vsWSSpaceball.o: ../system/vsGraphicsState.h++
+vsWSSpaceball.o: ../scene/vsBackfaceAttribute.h++
+vsWSSpaceball.o: ../scene/vsStateAttribute.h++ ../scene/vsFogAttribute.h++
+vsWSSpaceball.o: /usr/include/Performer/pr/pfFog.h
+vsWSSpaceball.o: ../scene/vsMaterialAttribute.h++
+vsWSSpaceball.o: /usr/include/Performer/pr/pfMaterial.h
+vsWSSpaceball.o: ../scene/vsShadingAttribute.h++
+vsWSSpaceball.o: ../scene/vsTextureAttribute.h++
+vsWSSpaceball.o: /usr/include/Performer/pr/pfTexture.h
+vsWSSpaceball.o: /usr/include/Performer/image.h
+vsWSSpaceball.o: ../scene/vsTransparencyAttribute.h++
+vsWSSpaceball.o: ../scene/vsWireframeAttribute.h++
+vsWSSpaceball.o: ../scene/vsLightAttribute.h++
+vsWSSpaceball.o: /usr/include/Performer/pr/pfLight.h
+vsWSSpaceball.o: /usr/include/Performer/pf/pfLightSource.h
+vsWSSpaceball.o: ../scene/vsViewpointAttribute.h++ ../scene/vsComponent.h++
+vsWSSpaceball.o: vsMouse.h++ vsKeyboard.h++ /usr/X11R6/include/X11/keysym.h
+vsWSSpaceball.o: /usr/X11R6/include/X11/keysymdef.h
+vsWSSpaceball.o: /usr/X11R6/include/X11/extensions/XI.h
+vsWSSpaceball.o: /usr/X11R6/include/X11/extensions/XInput.h
+vsWindowSystem.o: vsWindowSystem.h++ /usr/X11R6/include/X11/Xlib.h
+vsWindowSystem.o: /usr/include/sys/types.h /usr/include/features.h
+vsWindowSystem.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsWindowSystem.o: /usr/include/bits/types.h
+vsWindowSystem.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsWindowSystem.o: /usr/include/time.h /usr/include/endian.h
+vsWindowSystem.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+vsWindowSystem.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+vsWindowSystem.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+vsWindowSystem.o: /usr/X11R6/include/X11/X.h
+vsWindowSystem.o: /usr/X11R6/include/X11/Xfuncproto.h
+vsWindowSystem.o: /usr/X11R6/include/X11/Xosdefs.h
+vsWindowSystem.o: /usr/X11R6/include/X11/Xutil.h /usr/X11R6/include/X11/Xos.h
+vsWindowSystem.o: /usr/include/string.h /usr/include/fcntl.h
+vsWindowSystem.o: /usr/include/bits/fcntl.h /usr/include/sys/stat.h
+vsWindowSystem.o: /usr/include/bits/stat.h /usr/include/unistd.h
+vsWindowSystem.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+vsWindowSystem.o: /usr/include/getopt.h /usr/include/sys/time.h
+vsWindowSystem.o: /usr/X11R6/include/X11/Xarch.h vsInputSystem.h++
+vsWindowSystem.o: ../system/vsUpdatable.h++ ../system/vsWindow.h++
+vsWindowSystem.o: /usr/include/Performer/pf/pfPipeWindow.h
+vsWindowSystem.o: /usr/include/Performer/pf/pfUpdatable.h
+vsWindowSystem.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
+vsWindowSystem.o: /usr/include/stdio.h /usr/include/libio.h
+vsWindowSystem.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsWindowSystem.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsWindowSystem.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsWindowSystem.o: /usr/include/bits/stdio_lim.h
+vsWindowSystem.o: /usr/include/bits/sys_errlist.h /usr/include/ulocks.h
+vsWindowSystem.o: /usr/include/malloc.h /usr/include/limits.h
+vsWindowSystem.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/limits.h
+vsWindowSystem.o: /usr/include/bits/posix1_lim.h
+vsWindowSystem.o: /usr/include/bits/local_lim.h /usr/include/linux/limits.h
+vsWindowSystem.o: /usr/include/bits/posix2_lim.h
+vsWindowSystem.o: /usr/include/bits/xopen_lim.h /usr/include/errno.h
+vsWindowSystem.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+vsWindowSystem.o: /usr/include/asm/errno.h /usr/include/GL/gl.h
+vsWindowSystem.o: /usr/include/GL/glx.h /usr/include/GL/glxtokens.h
+vsWindowSystem.o: /usr/include/GL/glu.h /usr/include/Performer/opengl.h
+vsWindowSystem.o: /usr/include/Performer/linuxstubs.h
+vsWindowSystem.o: /usr/include/Performer/image.h /usr/include/stdlib.h
+vsWindowSystem.o: /usr/include/bits/waitflags.h
+vsWindowSystem.o: /usr/include/bits/waitstatus.h /usr/include/alloca.h
+vsWindowSystem.o: /usr/include/sys/prctl.h /usr/include/linux/prctl.h
+vsWindowSystem.o: /usr/include/stdint.h /usr/include/bits/wordsize.h
+vsWindowSystem.o: /usr/include/Performer/prmath.h /usr/include/math.h
+vsWindowSystem.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsWindowSystem.o: /usr/include/bits/mathcalls.h
+vsWindowSystem.o: /usr/include/Performer/prstats.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfLinMath.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfObject.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfMemory.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfType.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfStruct.h
+vsWindowSystem.o: /usr/include/Performer/pfstats.h
+vsWindowSystem.o: /usr/include/Performer/pf/pfBuffer.h
+vsWindowSystem.o: /usr/include/Performer/pf/pfUpdate.h
+vsWindowSystem.o: /usr/include/Performer/pf/pfLists.h
+vsWindowSystem.o: /usr/include/Performer/pf/pfPipe.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfVideoChannel.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfList.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfCalligraphic.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfStats.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfDispList.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfGeoState.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfState.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfByteBank.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfGSetBank.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfWindow.h ../system/vsScreen.h++
+vsWindowSystem.o: ../system/vsPipe.h++ ../system/vsGlobals.h++
+vsWindowSystem.o: ../system/vsGrowableArray.h++ ../system/vsPane.h++
+vsWindowSystem.o: /usr/include/Performer/pf/pfChannel.h
+vsWindowSystem.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
+vsWindowSystem.o: /usr/include/Performer/pf/pfEarthSky.h
+vsWindowSystem.o: /usr/include/Performer/pf/pfLODState.h
+vsWindowSystem.o: /usr/include/Performer/pf/pfFrameStats.h
+vsWindowSystem.o: /usr/include/Performer/pf/pfScene.h
+vsWindowSystem.o: /usr/include/Performer/pf/pfGroup.h
+vsWindowSystem.o: /usr/include/Performer/pf/pfNode.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfGeoMath.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfGeoSet.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfFlux.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfEngine.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfCycleBuffer.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfPassList.h
+vsWindowSystem.o: /usr/include/Performer/pr/pfFBState.h ../system/vsView.h++
+vsWindowSystem.o: ../system/vsSystem.h++ ../system/vsDatabaseLoader.h++
+vsWindowSystem.o: /usr/include/Performer/pfdb/pfflt.h ../scene/vsNode.h++
+vsWindowSystem.o: ../system/vsObject.h++ ../scene/vsAttribute.h++
+vsWindowSystem.o: ../math/vsVector.h++ ../math/vsMatrix.h++
+vsWindowSystem.o: ../math/vsQuat.h++ ../system/vsObjectMap.h++
+vsWindowSystem.o: ../system/vsTreeMap.h++ ../system/vsGraphicsState.h++
+vsWindowSystem.o: ../scene/vsBackfaceAttribute.h++
+vsWindowSystem.o: ../scene/vsStateAttribute.h++ ../scene/vsFogAttribute.h++
+vsWindowSystem.o: /usr/include/Performer/pr/pfFog.h
+vsWindowSystem.o: ../scene/vsMaterialAttribute.h++
+vsWindowSystem.o: /usr/include/Performer/pr/pfMaterial.h
+vsWindowSystem.o: ../scene/vsShadingAttribute.h++
+vsWindowSystem.o: ../scene/vsTextureAttribute.h++
+vsWindowSystem.o: /usr/include/Performer/pr/pfTexture.h
+vsWindowSystem.o: /usr/include/Performer/image.h
+vsWindowSystem.o: ../scene/vsTransparencyAttribute.h++
+vsWindowSystem.o: ../scene/vsWireframeAttribute.h++
+vsWindowSystem.o: ../scene/vsLightAttribute.h++
+vsWindowSystem.o: /usr/include/Performer/pr/pfLight.h
+vsWindowSystem.o: /usr/include/Performer/pf/pfLightSource.h
+vsWindowSystem.o: ../scene/vsViewpointAttribute.h++ ../scene/vsComponent.h++
+vsWindowSystem.o: vsMouse.h++ vsInputDevice.h++ vsInputAxis.h++
+vsWindowSystem.o: vsInputButton.h++ vsKeyboard.h++
+vsWindowSystem.o: /usr/X11R6/include/X11/keysym.h
+vsWindowSystem.o: /usr/X11R6/include/X11/keysymdef.h

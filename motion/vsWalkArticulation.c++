@@ -39,8 +39,10 @@ vsWalkArticulation::vsWalkArticulation(vsKinematics *objectKin,
     int loop;
     vsWalkArticData *keyData;
 
+    // Store the given root kinematics object
     rootKin = objectKin;
 
+    // Initialize the six joint kinematics objects to 'not present'
     leftHipKin = NULL;
     leftKneeKin = NULL;
     leftAnkleKin = NULL;
@@ -59,8 +61,11 @@ vsWalkArticulation::vsWalkArticulation(vsKinematics *objectKin,
     {
         while (!feof(datafile))
         {
-            keyData = (vsWalkArticData *)
-                (malloc(sizeof(vsWalkArticData)));
+            // Create a walk articulation data structure to hold the
+	    // frame information
+            keyData = (vsWalkArticData *)(malloc(sizeof(vsWalkArticData)));
+
+            // Read the articulation data, one line for each joint
             for (loop = 0; loop < 6; loop++)
             {
                 // Animation data for each frame is in the form 'heading
@@ -96,6 +101,8 @@ vsWalkArticulation::vsWalkArticulation(vsKinematics *objectKin,
             getLine(datafile, lineBuffer);
             sscanf(lineBuffer, "%lf", &(keyData->distance));
 
+            // Store the articulation information in our keyframe array, and
+	    // increment the total-number-of-frames counter
             keyframeData[keyframeCount] = keyData;
             keyframeCount++;
         }
@@ -105,6 +112,7 @@ vsWalkArticulation::vsWalkArticulation(vsKinematics *objectKin,
         printf("vsWalkArticulation::vsWalkArticulation: Unable to open "
             "keyframe data file %s\n", walkDataFilename);
 
+    // Initialize the keyframe pointers
     if (keyframeCount > 0)
     {
         fromKeyframe = (vsWalkArticData *)(keyframeData[0]);
@@ -119,6 +127,7 @@ vsWalkArticulation::vsWalkArticulation(vsKinematics *objectKin,
 	keyframeCount = 2;
     }
     
+    // Initialize the object to not-currently-moving values
     travelDist = 0.0;
     waitTime = 0.0;
     moveState = VS_WALK_ARTIC_STOPPED;
@@ -131,6 +140,7 @@ vsWalkArticulation::~vsWalkArticulation()
 {
     int loop;
 
+    // Delete the articulation data
     for (loop = 0; loop < keyframeCount; loop++)
         free(keyframeData[loop]);
 }
@@ -142,6 +152,7 @@ vsWalkArticulation::~vsWalkArticulation()
 void vsWalkArticulation::setJointKinematics(int whichJoint,
     vsKinematics *kinematics)
 {
+    // Interpret the joint constant
     switch (whichJoint)
     {
         case VS_WALK_ARTIC_LEFT_HIP:
@@ -174,6 +185,7 @@ void vsWalkArticulation::setJointKinematics(int whichJoint,
 // ------------------------------------------------------------------------
 vsKinematics *vsWalkArticulation::getJointKinematics(int whichJoint)
 {
+    // Interpret the joint constant
     switch (whichJoint)
     {
         case VS_WALK_ARTIC_LEFT_HIP:
@@ -194,6 +206,7 @@ vsKinematics *vsWalkArticulation::getJointKinematics(int whichJoint)
             break;
     }
 
+    // If the joint constant is unrecognized, just return NULL.
     return NULL;
 }
     
@@ -209,15 +222,21 @@ void vsWalkArticulation::update()
     if (keyframeCount == 0)
         return;
 
+    // Get the current travel speed, ignoring what direction it's in
     speed = (rootKin->getVelocity()).getMagnitude();
     
+    // Check to see if we're moving or not
     if (speed > 0.0)
     {
         // Start moving or keep moving
 
         if (moveState == VS_WALK_ARTIC_STOPPED)
         {
-            // Start moving
+            // * Start moving
+            // Start the animation sequence by setting the current frame
+	    // to the first (non-static) one, setting the frames to
+	    // interpolate between to the static one and first animated
+	    // one, and setting the movement state to 'in-motion'.
             travelDist = 0.0;
             keyframeIndex = 1;
             waitTime = -1.0;
@@ -227,7 +246,12 @@ void vsWalkArticulation::update()
         }
         else if (moveState == VS_WALK_ARTIC_STOPPING)
         {
-            // Go from slowing down back to full speed
+            // * Go from slowing down back to full speed
+	    // Resume the animation sequence by capturing the current
+	    // articulation positions as a new key frame, setting the
+	    // frames to interpolate between to this new key frame and
+	    // what would have been the next one before we first decided
+	    // to stop, and setting the movement state back to 'in-motion'.
             travelDist = 0.0;
             waitTime = -1.0;
             captureStopFrame();
@@ -236,13 +260,22 @@ void vsWalkArticulation::update()
             moveState = VS_WALK_ARTIC_MOVING;
         }
 
+	// Calculate the distance travelled, and use that to determine if
+	// we should switch to the next key frame in the sequence
         travelDist += (vsSystem::systemObject)->getFrameTime() * speed;
         while (travelDist > toKeyframe->distance)
         {
+            // Subtract the distance that the destination keyframe
+	    // covers from the total travelled distance
             travelDist -= toKeyframe->distance;
+
+            // Increment the current animation frame index
             keyframeIndex = ((keyframeIndex + 1) % keyframeCount);
             if (keyframeIndex == 0)
                 keyframeIndex = 1;
+
+            // Set the old animation data to the new data, and the new
+	    // data to the next frame in the sequence
             fromKeyframe = toKeyframe;
             toKeyframe = (vsWalkArticData *)(keyframeData[keyframeIndex]);
         }
@@ -251,9 +284,14 @@ void vsWalkArticulation::update()
     {
         // Stop moving
 
+        // Check if we were previously moving full speed
         if (moveState == VS_WALK_ARTIC_MOVING)
         {
-            // Start stopping
+            // * Start stopping
+	    // Capture the current articulation positions as a new key frame,
+	    // set the frames to interpolate between to the new key frame
+	    // and the static frame, and set the movement state to
+	    // 'slowing-down'.
             waitTime = 0.0;
             captureStopFrame();
             fromKeyframe = &stopKeyframe;
@@ -261,13 +299,19 @@ void vsWalkArticulation::update()
             moveState = VS_WALK_ARTIC_STOPPING;
         }
         
+	// Add the amount of time that has just passed to the stop timer;
+	// if this timer expires, then we've stopped completely
         waitTime += (vsSystem::systemObject)->getFrameTime();
         travelDist = waitTime;
         
+        // Check if we are stopping, and if we have been stopping long
+	// enough to consider ourselves completely stopped
         if ((moveState == VS_WALK_ARTIC_STOPPING) &&
             (waitTime > toKeyframe->distance))
         {
-            // Finish stopping
+            // * Finish stopping
+	    // Set both frames to interpolate between to the static frame,
+	    // and set the movement state to 'not-moving'.
             travelDist = 0.0;
             waitTime = -1.0;
             fromKeyframe = (vsWalkArticData *)(keyframeData[0]);
@@ -277,7 +321,11 @@ void vsWalkArticulation::update()
         }
     }
 
-    // Interpolate the joint positions
+    // * Interpolate the joint positions
+    // For each active joint, compute that joint's orientation by using
+    // the vsQuat slerp() call to interpolate the joint's orientation
+    // between the two currently active keyframes, using the distance that
+    // the object has travelled as the interpolation value.
     if (leftHipKin)
         leftHipKin->setOrientation(fromKeyframe->leftHip.
             slerp(toKeyframe->leftHip, (travelDist / toKeyframe->distance)));
@@ -306,11 +354,15 @@ void vsWalkArticulation::update()
 // ------------------------------------------------------------------------
 void vsWalkArticulation::getLine(FILE *in, char *buffer)
 {
+    // Prime the while loop
     buffer[0] = '#';
     buffer[1] = 0;
+
+    // Strip whitespace
     if (!feof(in))
         fscanf(in, " \n");
     
+    // Search for a line that doesn't start with a #
     while (!feof(in) && (buffer[0] == '#'))
     {
         fgets(buffer, 255, in);
@@ -318,6 +370,8 @@ void vsWalkArticulation::getLine(FILE *in, char *buffer)
             fscanf(in, " \n");
     }
     
+    // If the line begins with a comment character, then we must have
+    // hit EOF. Just set the return value to an empty string.
     if (buffer[0] == '#')
         buffer[0] = 0;
 }
@@ -329,6 +383,10 @@ void vsWalkArticulation::getLine(FILE *in, char *buffer)
 // ------------------------------------------------------------------------
 void vsWalkArticulation::captureStopFrame()
 {
+    // For each active joint, read its current orientation and copy that
+    // into the temporary keyframe structure. If the joint is inactive,
+    // copy a no-rotation value instead.
+
     if (leftHipKin)
         stopKeyframe.leftHip = leftHipKin->getOrientation();
     else

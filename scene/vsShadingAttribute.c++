@@ -30,6 +30,7 @@
 // ------------------------------------------------------------------------
 vsShadingAttribute::vsShadingAttribute()
 {
+    // Set the default shading model to Gouraud (smooth) shading
     shadeVal = VS_SHADING_GOURAUD;
 }
 
@@ -53,8 +54,11 @@ int vsShadingAttribute::getAttributeType()
 // ------------------------------------------------------------------------
 void vsShadingAttribute::setShading(int shadingMode)
 {
+    // Set the shading mode to the specified value
     shadeVal = shadingMode;
     
+    // Mark the nodes that have this attribute attached as needing
+    // of an update
     markOwnersDirty();
 }
 
@@ -74,9 +78,13 @@ void vsShadingAttribute::attachDuplicate(vsNode *theNode)
 {
     vsShadingAttribute *newAttrib;
     
+    // Create a duplicate shading attribute
     newAttrib = new vsShadingAttribute();
+
+    // Copy the shading mode value
     newAttrib->setShading(getShading());
 
+    // Attach the duplicate attribute to the specified node
     theNode->addAttribute(newAttrib);
 }
 
@@ -86,8 +94,10 @@ void vsShadingAttribute::attachDuplicate(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsShadingAttribute::saveCurrent()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
+    // Save the current shading state in our save list
     attrSaveList[attrSaveCount++] = gState->getShading();
 }
 
@@ -97,9 +107,13 @@ void vsShadingAttribute::saveCurrent()
 // ------------------------------------------------------------------------
 void vsShadingAttribute::apply()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
+    // Set the current shading state to this object
     gState->setShading(this);
+
+    // Lock the shading state if overriding is enabled
     if (overrideFlag)
         gState->lockShading(this);
 }
@@ -110,10 +124,14 @@ void vsShadingAttribute::apply()
 // ------------------------------------------------------------------------
 void vsShadingAttribute::restoreSaved()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
+    // Unlock the shading state if overriding was enabled
     if (overrideFlag)
         gState->unlockShading(this);
+
+    // Reset the current shading state to its previous value
     gState->setShading((vsShadingAttribute *)(attrSaveList[--attrSaveCount]));
 }
 
@@ -123,6 +141,7 @@ void vsShadingAttribute::restoreSaved()
 // ------------------------------------------------------------------------
 void vsShadingAttribute::setState(pfGeoState *state)
 {
+    // Set the shading mode on the geostate based on our shading mode
     if (shadeVal == VS_SHADING_FLAT)
         state->setMode(PFSTATE_SHADEMODEL, PFSM_FLAT);
     else
@@ -139,21 +158,27 @@ int vsShadingAttribute::isEquivalent(vsAttribute *attribute)
     vsShadingAttribute *attr;
     int val1, val2;
     
+    // NULL check
     if (!attribute)
         return VS_FALSE;
 
+    // Equal pointer check
     if (this == attribute)
         return VS_TRUE;
     
+    // Type check
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_SHADING)
         return VS_FALSE;
 
+    // Type cast
     attr = (vsShadingAttribute *)attribute;
 
+    // Mode check
     val1 = getShading();
     val2 = attr->getShading();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Attributes are equivalent if all checks pass
     return VS_TRUE;
 }

@@ -46,21 +46,17 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundSample *buffer, int loop)
     // Remember whether we are streaming or not
     streamingSource = VS_FALSE;
 
-    // Do some initialization
+    // Initialize class members
     offsetMatrix.setIdentity();
     parentComponent = NULL;
-
-    zero[0] = 0.0;
-    zero[1] = 0.0;
-    zero[2] = 0.0;
-
     lastPos.clear();
     lastOrn.clear();
 
     // Call getTimeInterval to initialize the lastTime variable
     getTimeInterval();
 
-    // Initialize the base direction vector
+    // Initialize the base direction vector (direction before coordinate
+    // conversion)
     baseDirection.set(0.0, 0.0, 0.0);
 
     // Set up a coordinate conversion quaternion
@@ -71,7 +67,13 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundSample *buffer, int loop)
     // Create the OpenAL source
     alGenSources(1, &sourceID);
 
-    // Configure
+    // Set up a three-float buffer with zero values, used to initialize
+    // the OpenAL source
+    zero[0] = 0.0;
+    zero[1] = 0.0;
+    zero[2] = 0.0;
+
+    // Initialize the OpenAL source 
     alSourcefv(sourceID, AL_POSITION, zero);
     alSourcefv(sourceID, AL_DIRECTION, zero);
     alSourcefv(sourceID, AL_VELOCITY, zero);
@@ -99,21 +101,17 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundStream *buffer)
     // Remember whether we are streaming or not
     streamingSource = VS_TRUE;
 
-    // Do some initialization
+    // Initialize class members
     offsetMatrix.setIdentity();
     parentComponent = NULL;
-
-    zero[0] = 0.0;
-    zero[1] = 0.0;
-    zero[2] = 0.0;
-
     lastPos.clear();
     lastOrn.clear();
 
     // Call getTimeInterval to initialize the lastTime variable
     getTimeInterval();
 
-    // Initialize the base direction vector
+    // Initialize the base direction vector (direction before coordinate
+    // conversion)
     baseDirection.set(0.0, 0.0, 0.0);
 
     // Set up a coordinate conversion quaternion
@@ -125,7 +123,13 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundStream *buffer)
     alGenSources(1, &sourceID);
     ((vsSoundStream *)soundBuffer)->setSourceID(sourceID);
 
-    // Configure
+    // Set up a three-float buffer with zero values, used to initialize
+    // the OpenAL source
+    zero[0] = 0.0;
+    zero[1] = 0.0;
+    zero[2] = 0.0;
+
+    // Initialize the OpenAL source
     alSourcefv(sourceID, AL_POSITION, zero);
     alSourcefv(sourceID, AL_DIRECTION, zero);
     alSourcefv(sourceID, AL_VELOCITY, zero);
@@ -137,6 +141,7 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundStream *buffer)
 // ------------------------------------------------------------------------
 vsSoundSourceAttribute::~vsSoundSourceAttribute()
 {
+    // Delete the OpenAL source
     alDeleteSources(1, &sourceID);
 }
 
@@ -150,12 +155,19 @@ double vsSoundSourceAttribute::getTimeInterval()
     double         currentTime;
     double         deltaTime;
 
+    // Get the current time
     gettimeofday(&tv, NULL);
 
+    // Convert to seconds
     currentTime = tv.tv_sec + tv.tv_usec / 1E6;
+
+    // Compute the time difference from the last frame
     deltaTime = currentTime - lastTime;
+
+    // Save the current time for use next frame
     lastTime = currentTime;
 
+    // Return the time difference computed above
     return deltaTime;
 }
 
@@ -166,6 +178,7 @@ double vsSoundSourceAttribute::getTimeInterval()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::attach(vsNode *theNode)
 {
+    // Make sure the attribute isn't attached elsewhere
     if (attachedFlag)
     {
         printf("vsSoundSourceAttribute::attach: Attribute is already "
@@ -173,6 +186,7 @@ void vsSoundSourceAttribute::attach(vsNode *theNode)
         return;
     }
 
+    // Make sure we're not trying to attach the attribute to a Geometry node
     if (theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
     {
         printf("vsSoundSourceAttribute::attach: Can't attach sound source "
@@ -180,8 +194,10 @@ void vsSoundSourceAttribute::attach(vsNode *theNode)
         return;
     }
 
+    // Attach to the given component
     parentComponent = ((vsComponent *)theNode);
-    
+
+    // Flag this attribute as attached to a component
     attachedFlag = 1;
 }
 
@@ -192,14 +208,17 @@ void vsSoundSourceAttribute::attach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::detach(vsNode *theNode)
 {
+    // Make sure the attribute is actually attached to the node
     if (!attachedFlag)
     {
         printf("vsSoundSourceAttribute::detach: Attribute is not attached\n");
         return;
     }
 
+    // Detach from the node
     parentComponent = NULL;
-    
+
+    // Flag this attribute as not attached to a component
     attachedFlag = 0;
 }
 
@@ -211,9 +230,11 @@ void vsSoundSourceAttribute::attachDuplicate(vsNode *theNode)
 {
     vsSoundSourceAttribute *source;
 
+    // Create a duplicate attribute
     source = new vsSoundSourceAttribute((vsSoundSample *)soundBuffer, 
         loopSource);
 
+    // Attach it to the given node
     theNode->addAttribute(source);
 }
 
@@ -266,16 +287,20 @@ void vsSoundSourceAttribute::update()
     int            buffersProcessed;
     ALuint         bufferID;
 
+    // If we're not attached to a component, we have nothing to do
     if (!attachedFlag)
         return;
 
+    // Make an identity matrix
     xform.makeIdent();
     
+    // Get the global transform for this attribute's component and
+    // apply the source's offset matrix.  This lets us know where in
+    // global space the sound source is.
     result = parentComponent->getGlobalXform();
-
     result = result * offsetMatrix;
     
-    // Update the position
+    // Apply the VESS-to-OpenAL coordinate transformation
     tempVec[VS_X] = result[0][3];
     tempVec[VS_Y] = result[1][3];
     tempVec[VS_Z] = result[2][3];
@@ -288,18 +313,38 @@ void vsSoundSourceAttribute::update()
     // Update the velocity (based on the last frame's position)
     deltaVec = tempVec - lastPos;
     interval = getTimeInterval();
-    deltaVec.scale(1/interval);
-    alSource3f(sourceID, AL_VELOCITY, (float)deltaVec[VS_X],
-        (float)deltaVec[VS_Y], (float)deltaVec[VS_Z]);
 
+    // Make sure time has passed to avoid dividing by zero
+    if (interval > 0.0)
+    {
+        // Scale the position change by the inverse time interval to 
+        // compute the velocity
+        deltaVec.scale(1/interval);
+
+        // Set the source's velocity
+        alSource3f(sourceID, AL_VELOCITY, (float)deltaVec[VS_X],
+            (float)deltaVec[VS_Y], (float)deltaVec[VS_Z]);
+    }
+
+    // Save the current position for next frame
     lastPos = tempVec;
 
-    // Update the orientation
+    // Update the orientation.  Check the base direction to see if it
+    // has a valid direction.
     if (baseDirection.getMagnitude() > 0.0)
     {
+        // Base direction is valid, so we need to convert from VESS to
+        // OpenAL orientation.  Set up a quaternion with the global
+        // transform.
         tempQuat.setMatrixRotation(result);
+
+        // Convert to OpenAL orientation
         tempQuat = coordXformInv * tempQuat * coordXform;
+
+        // Rotate the base direction vector by the converted global transform
         tempVec = tempQuat.rotatePoint(baseDirection);
+
+        // Apply the direction to the OpenAL source
         alSource3f(sourceID, AL_DIRECTION, tempVec[VS_X], tempVec[VS_Y], 
             tempVec[VS_Z]);
     }
@@ -308,8 +353,10 @@ void vsSoundSourceAttribute::update()
     // to allow the old buffer to be refilled
     if (streamingSource)
     {
+        // Get the number of buffers processed
         alGetSourceiv(sourceID, AL_BUFFERS_PROCESSED, &buffersProcessed);
 
+        // Swap buffers if the front buffer is done
         if (buffersProcessed > 0)
         {
             // The current buffer is done, swap buffers
@@ -343,11 +390,17 @@ void vsSoundSourceAttribute::play()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::stop()
 {
+    // Stop the OpenAL source
     alSourceStop(sourceID);
 
+    // If this is a streaming source, we have extra work to do
     if (streamingSource)
     {
+        // Flush the data from the streaming buffers
         ((vsSoundStream *)soundBuffer)->flushBuffers();
+
+        // Set the current buffer for this source to the zero (empty)
+        // buffer
         alSourcei(sourceID, AL_BUFFER, 0);
     }
 }
@@ -357,6 +410,7 @@ void vsSoundSourceAttribute::stop()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::pause()
 {
+    // Pause the OpenAL source
     alSourcePause(sourceID);
 }
 
@@ -365,6 +419,7 @@ void vsSoundSourceAttribute::pause()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::rewind()
 {
+    // Rewind the OpenAL source
     alSourceRewind(sourceID);
 }
 
@@ -375,8 +430,10 @@ int vsSoundSourceAttribute::isLooping()
 {
     ALint looping;
 
+    // Get the current looping state for the source
     alGetSourceiv(sourceID, AL_LOOPING, &looping);
 
+    // Return the looping state
     return (int)looping;
 }
 
@@ -385,6 +442,7 @@ int vsSoundSourceAttribute::isLooping()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::setLooping(int looping)
 {
+    // Set the source's looping state to the given value
     alSourcei(sourceID, AL_LOOPING, looping);
 }
 
@@ -395,8 +453,10 @@ double vsSoundSourceAttribute::getGain()
 {
     float gain;
 
+    // Get the source's gain from OpenAL
     alGetSourcefv(sourceID, AL_GAIN, &gain);
 
+    // Return the gain value
     return (double)gain;
 }
 
@@ -405,6 +465,7 @@ double vsSoundSourceAttribute::getGain()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::setGain(double gain)
 {
+    // Set the source's gain to the given value
     alSourcef(sourceID, AL_GAIN, (float)gain);
 }
 
@@ -416,8 +477,10 @@ double vsSoundSourceAttribute::getMinGain()
 {
     float gain;
 
+    // Get the current minimum gain from OpenAL
     alGetSourcefv(sourceID, AL_MIN_GAIN, &gain);
 
+    // Return the minimum gain
     return (double)gain;
 }
 
@@ -426,6 +489,7 @@ double vsSoundSourceAttribute::getMinGain()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::setMinGain(double gain)
 {
+    // Set the minimum gain of the source to the given value
     alSourcef(sourceID, AL_MIN_GAIN, (float)gain);
 }
 
@@ -437,8 +501,10 @@ double vsSoundSourceAttribute::getMaxGain()
 {
     float gain;
 
+    // Get the maximum gain of the source from OpenAL
     alGetSourcefv(sourceID, AL_MAX_GAIN, &gain);
 
+    // Return the maximum gain
     return (double)gain;
 }
 
@@ -447,6 +513,7 @@ double vsSoundSourceAttribute::getMaxGain()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::setMaxGain(double gain)
 {
+    // Set the maximum gain of the source to the given value
     alSourcef(sourceID, AL_MIN_GAIN, (float)gain);
 }
 
@@ -458,8 +525,10 @@ double vsSoundSourceAttribute::getReferenceDistance()
 {
     float dist;
 
+    // Get the current reference distance of the source from OpenAL
     alGetSourcefv(sourceID, AL_REFERENCE_DISTANCE, &dist);
 
+    // Return the reference distance
     return (double)dist;
 }
 
@@ -468,6 +537,7 @@ double vsSoundSourceAttribute::getReferenceDistance()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::setReferenceDistance(double dist)
 {
+    // Set the reference distance of the source to the given value
     alSourcef(sourceID, AL_REFERENCE_DISTANCE, (float)dist);
 }
 
@@ -480,8 +550,10 @@ double vsSoundSourceAttribute::getMaxDistance()
 {
     float dist;
 
+    // Get the maximum distance of the source from OpenAL
     alGetSourcefv(sourceID, AL_MAX_DISTANCE, &dist);
 
+    // Return the maximum distance
     return (double)dist;
 }
 
@@ -490,6 +562,7 @@ double vsSoundSourceAttribute::getMaxDistance()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::setMaxDistance(double dist)
 {
+    // Set the maximum distance of the source to the given value
     alSourcef(sourceID, AL_MAX_DISTANCE, (float)dist);
 }
 
@@ -503,8 +576,10 @@ double vsSoundSourceAttribute::getRolloffFactor()
 {
     float factor;
 
+    // Get the current rolloff factor from OpenAL
     alGetSourcefv(sourceID, AL_ROLLOFF_FACTOR, &factor);
 
+    // Return the rolloff factor
     return (double)factor;
 }
 
@@ -513,6 +588,7 @@ double vsSoundSourceAttribute::getRolloffFactor()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::setRolloffFactor(double factor)
 {
+    // Set the rolloff factor of the source to the given value
     alSourcef(sourceID, AL_ROLLOFF_FACTOR, (float)factor);
 }
 
@@ -526,8 +602,10 @@ double vsSoundSourceAttribute::getPitchShift()
 {
     float shift;
 
+    // Get the current pitch shift factor from OpenAL
     alGetSourcefv(sourceID, AL_PITCH, &shift);
 
+    // Return the pitch shift
     return (double)shift;
 }
 
@@ -536,6 +614,7 @@ double vsSoundSourceAttribute::getPitchShift()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::setPitchShift(double shift)
 {
+    // Set the pitch shift of the source to the given value
     alSourcef(sourceID, AL_PITCH, (float)shift);
 }
 
@@ -547,15 +626,19 @@ vsVector vsSoundSourceAttribute::getDirection()
 {
     vsVector direction;
 
+    // Initialize the direction vector with the current base direction
+    // (see the setDirection() method below for more about the locally-
+    // maintained base direction).
     direction = baseDirection;
 
+    // Normalize the base direction and convert to VESS coordinates
     if (direction.getMagnitude() != 0.0)
     {
-        // Normalize and convert to VESS coordinates
         direction.normalize();
         direction = coordXformInv.rotatePoint(direction);
     }
 
+    // Return the converted direction 
     return direction;
 }
 
@@ -564,13 +647,20 @@ vsVector vsSoundSourceAttribute::getDirection()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::setDirection(vsVector direction)
 {
+    // We need to maintain the direction of the source locally, because
+    // the direction set on the OpenAL source will also include any 
+    // transformations that apply to the component where this attribute is 
+    // attached.  The base direction is maintained in OpenAL coordinates
+    // for ease of computation in the update() method.
+
+    // Normalize and convert to OpenAL coordinates
     if (direction.getMagnitude() != 0.0)
     {
-        // Normalize and convert to OpenAL coordinates
         direction.normalize();
         direction = coordXform.rotatePoint(direction);
     }
 
+    // Set the base direction vector to the given direction
     baseDirection = direction;
 }
 
@@ -583,8 +673,10 @@ double vsSoundSourceAttribute::getInnerConeAngle()
 {
     float angle;
 
+    // Get the current inner cone angle of the source from OpenAL
     alGetSourcefv(sourceID, AL_CONE_INNER_ANGLE, &angle);
 
+    // Return the inner cone angle
     return (double)angle;
 }
 
@@ -593,6 +685,7 @@ double vsSoundSourceAttribute::getInnerConeAngle()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::setInnerConeAngle(double angle)
 {
+    // Set the inner cone angle of the source to the given value
     alSourcef(sourceID, AL_CONE_INNER_ANGLE, (float)angle);
 }
 
@@ -605,8 +698,10 @@ double vsSoundSourceAttribute::getOuterConeAngle()
 {
     float angle;
 
+    // Get the current outer cone angle of the source from OpenAL
     alGetSourcefv(sourceID, AL_CONE_OUTER_ANGLE, &angle);
 
+    // Return the outer cone angle
     return (double)angle;
 }
 
@@ -615,6 +710,7 @@ double vsSoundSourceAttribute::getOuterConeAngle()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::setOuterConeAngle(double angle)
 {
+    // Set the outer cone angle of the source to the given value
     alSourcef(sourceID, AL_CONE_OUTER_ANGLE, (float)angle);
 }
 
@@ -628,8 +724,10 @@ double vsSoundSourceAttribute::getOuterConeGain()
 {
     float gain;
 
+    // Get the current outer cone gain of the source from OpenAL
     alGetSourcefv(sourceID, AL_CONE_OUTER_GAIN, &gain);
 
+    // Return the outer cone gain
     return (double)gain;
 }
 
@@ -638,6 +736,7 @@ double vsSoundSourceAttribute::getOuterConeGain()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::setOuterConeGain(double gain)
 {
+    // Set the outer cone gain to the given value
     alSourcef(sourceID, AL_CONE_OUTER_GAIN, (float)gain);
 }
 

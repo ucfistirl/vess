@@ -32,6 +32,7 @@ vsSoundStream::vsSoundStream(int bufSize, int bufFormat, int bufFreq)
 // ------------------------------------------------------------------------
 vsSoundStream::~vsSoundStream()
 {
+    // Free the buffers
     alDeleteBuffers(1, &frontBuffer);
     alDeleteBuffers(1, &backBuffer);
 }
@@ -95,26 +96,32 @@ int vsSoundStream::swapBuffers()
 {
     int tempBuffer;
 
+    // Check the back buffer to see if it's empty
     if (backBufferEmpty)
     {
         // The back buffer is not ready, so just mark the front
         // buffer empty as well
         frontBufferEmpty = VS_TRUE;
 
+        // Return false to indicate that we're out of data (the stream is
+        // starved)
         return VS_FALSE;
     }
 
+    // Swap the buffers
     tempBuffer = frontBuffer;
     frontBuffer = backBuffer;
     backBuffer = tempBuffer;
 
+    // Mark the (new) back buffer empty
     backBufferEmpty = VS_TRUE;
 
+    // Return true to indicate success (the stream has data available)
     return VS_TRUE;
 }
 
 // ------------------------------------------------------------------------
-// Returns whether or not the back buffer is ready for new data
+// Returns whether or not either buffer is ready for new data
 // ------------------------------------------------------------------------
 int vsSoundStream::isBufferReady()
 {
@@ -138,38 +145,52 @@ int vsSoundStream::getBufferSize()
 // ------------------------------------------------------------------------
 int vsSoundStream::queueBuffer(void *audioData)
 {
+    // Make sure we are bound to a valid OpenAL source
     if (!alIsSource(sourceID))
     {
         printf("vsSoundStream::queueBuffer:  no vsSoundSourceAttribute"
             " to stream to\n");
 
+        // Return false to indicate the queue operation failed
         return VS_FALSE;
     }
 
+    // Fill the front buffer if it's empty
     if (frontBufferEmpty)
     {
+        // Put the audio data in the front buffer using the format specified
+        // in the constructor
         alBufferData(frontBuffer, bufferFormat, audioData, bufferSize,
             bufferFrequency);
         alSourceQueueBuffers(sourceID, 1, &frontBuffer);
 
+        // Mark the front buffer as full
         frontBufferEmpty = VS_FALSE;
 
+        // Return true to indicate the queue operation succeeded.
         return VS_TRUE;
     }
 
+    // Otherwise, fill the back buffer if it's empty
     if (backBufferEmpty)
     {
+        // Put the audio data in the front buffer using the format specified
+        // in the constructor
         alBufferData(backBuffer, bufferFormat, audioData, bufferSize,
             bufferFrequency);
         alSourceQueueBuffers(sourceID, 1, &backBuffer);
 
+        // Mark the back buffer as full
         backBufferEmpty = VS_FALSE;
 
+        // Return true to indicate that the queue operation succeeded
         return VS_TRUE;
     }
 
+    // Neither buffer is empty, so print an error
     printf("vsSoundStream::queueBuffer:  no buffers available to receive"
         " audio data\n");
 
+    // Return false to indicate the queue operation failed
     return VS_FALSE;
 }

@@ -29,6 +29,7 @@
 // ------------------------------------------------------------------------
 vsSwitchAttribute::vsSwitchAttribute()
 {
+    // Initialize the Performer switch pointer to NULL
     performerSwitch = NULL;
 }
 
@@ -39,9 +40,11 @@ vsSwitchAttribute::vsSwitchAttribute()
 // ------------------------------------------------------------------------
 vsSwitchAttribute::vsSwitchAttribute(pfSwitch *switchGroup)
 {
+    // Set the Performer switch pointer to the specified pfSwitch
     performerSwitch = switchGroup;
     performerSwitch->ref();
     
+    // Mark this attribute as attached
     attachedFlag = 1;
 }
 
@@ -74,6 +77,7 @@ int vsSwitchAttribute::getAttributeCategory()
 // ------------------------------------------------------------------------
 void vsSwitchAttribute::enableOne(int index)
 {
+    // Unattached switches can't be manipulated
     if (!attachedFlag)
     {
         printf("vsSwitchAttribute::enableOne: Attribute must be attached "
@@ -81,12 +85,14 @@ void vsSwitchAttribute::enableOne(int index)
         return;
     }
 
+    // Bounds checking
     if ((index < 0) || (index >= performerSwitch->getNumChildren()))
     {
         printf("vsSwitchAttribute::enableOne: Index out of bounds\n");
         return;
     }
 
+    // Set the desired child to be active in the Performer switch
     performerSwitch->setVal(index);
 }
 
@@ -96,6 +102,7 @@ void vsSwitchAttribute::enableOne(int index)
 // ------------------------------------------------------------------------
 void vsSwitchAttribute::disableOne(int index)
 {
+    // Unattached switches can't be manipulated
     if (!attachedFlag)
     {
         printf("vsSwitchAttribute::disableOne: Attribute must be attached "
@@ -103,12 +110,15 @@ void vsSwitchAttribute::disableOne(int index)
         return;
     }
 
+    // Bounds checking
     if ((index < 0) || (index >= performerSwitch->getNumChildren()))
     {
         printf("vsSwitchAttribute::disableOne: Index out of bounds\n");
         return;
     }
 
+    // If the specified child is the active child, deactivate it on
+    // the Performer switch
     if (index == performerSwitch->getVal())
         performerSwitch->setVal(PFSWITCH_OFF);
 }
@@ -118,6 +128,7 @@ void vsSwitchAttribute::disableOne(int index)
 // ------------------------------------------------------------------------
 void vsSwitchAttribute::enableAll()
 {
+    // Unattached switches can't be manipulated
     if (!attachedFlag)
     {
         printf("vsSwitchAttribute::enableAll: Attribute must be attached "
@@ -125,6 +136,7 @@ void vsSwitchAttribute::enableAll()
         return;
     }
 
+    // Activate all of the children on the Performer switch
     performerSwitch->setVal(PFSWITCH_ON);
 }
 
@@ -133,6 +145,7 @@ void vsSwitchAttribute::enableAll()
 // ------------------------------------------------------------------------
 void vsSwitchAttribute::disableAll()
 {
+    // Unattached switches can't be manipulated
     if (!attachedFlag)
     {
         printf("vsSwitchAttribute::disableAll: Attribute must be attached "
@@ -140,6 +153,7 @@ void vsSwitchAttribute::disableAll()
         return;
     }
 
+    // Deactivate all of the children on the Performer switch
     performerSwitch->setVal(PFSWITCH_OFF);
 }
 
@@ -149,6 +163,7 @@ void vsSwitchAttribute::disableAll()
 // ------------------------------------------------------------------------
 int vsSwitchAttribute::isEnabled(int index)
 {
+    // Unattached switches can't be manipulated
     if (!attachedFlag)
     {
         printf("vsSwitchAttribute::isEnabled: Attribute must be attached "
@@ -156,12 +171,14 @@ int vsSwitchAttribute::isEnabled(int index)
         return VS_FALSE;
     }
 
+    // Bounds check
     if ((index < 0) || (index >= performerSwitch->getNumChildren()))
     {
         printf("vsSwitchAttribute::isEnabled: Index out of bounds\n");
         return VS_FALSE;
     }
 
+    // The child is on if that one child is on or if they are all on
     if ((performerSwitch->getVal() == PFSWITCH_ON) ||
         (performerSwitch->getVal() == index))
         return VS_TRUE;
@@ -175,6 +192,8 @@ int vsSwitchAttribute::isEnabled(int index)
 // ------------------------------------------------------------------------
 int vsSwitchAttribute::canAttach()
 {
+    // This attribute is not available to be attached if it is already
+    // attached to another node
     if (attachedFlag)
         return VS_FALSE;
 
@@ -188,13 +207,14 @@ int vsSwitchAttribute::canAttach()
 // ------------------------------------------------------------------------
 void vsSwitchAttribute::attach(vsNode *theNode)
 {
-
+    // Verify that we're not already attached to something
     if (attachedFlag)
     {
         printf("vsSwitchAttribute::attach: Attribute is already attached\n");
         return;
     }
 
+    // Switch attributes may not be attached to geometry nodes
     if ((theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY) ||
         (theNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY))
     {
@@ -208,6 +228,7 @@ void vsSwitchAttribute::attach(vsNode *theNode)
     performerSwitch->setVal(PFSWITCH_OFF);
     ((vsComponent *)theNode)->replaceBottomGroup(performerSwitch);
     
+    // Mark this attribute as attached
     attachedFlag = 1;
 }
 
@@ -220,6 +241,7 @@ void vsSwitchAttribute::detach(vsNode *theNode)
 {
     pfGroup *newGroup;
 
+    // Can't detach an attribute that is not attached
     if (!attachedFlag)
     {
         printf("vsSwitchAttribute::detach: Attribute is not attached\n");
@@ -231,6 +253,7 @@ void vsSwitchAttribute::detach(vsNode *theNode)
     ((vsComponent *)theNode)->replaceBottomGroup(newGroup);
     performerSwitch = NULL;
     
+    // Mark this attribute as unattached
     attachedFlag = 0;
 }
 
@@ -243,10 +266,15 @@ void vsSwitchAttribute::attachDuplicate(vsNode *theNode)
     vsSwitchAttribute *newAttrib;
     int switchVal;
 
+    // Create a duplicate switch attribute
     newAttrib = new vsSwitchAttribute();
 
+    // Attach the duplicate attribute to the specified node first, so that
+    // we can manipulate its values
     theNode->addAttribute(newAttrib);
     
+    // Set the children that are enabled on the duplicate to be the same
+    // as the children that are enabled on this one
     switchVal = (int)(performerSwitch->getVal());
     switch (switchVal)
     {

@@ -32,14 +32,18 @@
 vsFlyingMotion::vsFlyingMotion(vsMouse *mouse, vsKinematics *kin)
               : vsMotionModel()
 {
+    // Initialize class variables
     headingAxis = mouse->getAxis(0);
     pitchAxis = mouse->getAxis(1);
     throttleAxis = NULL;
+
+    // Use the default mouse button configuration
     accelButton = mouse->getButton(0);
     decelButton = mouse->getButton(2);
     stopButton = mouse->getButton(1);
     kinematics = kin;
 
+    // Print an error message if any axes are not normalized
     if (((headingAxis != NULL) && (!headingAxis->isNormalized())) ||
         ((pitchAxis != NULL) && (!pitchAxis->isNormalized())) ||
         ((throttleAxis != NULL) && (!throttleAxis->isNormalized())))
@@ -48,12 +52,11 @@ vsFlyingMotion::vsFlyingMotion(vsMouse *mouse, vsKinematics *kin)
                "normalized!\n");
     }
 
+    // Set motion defaults
     accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
     maxSpeed = VS_FM_DEFAULT_MAX_SPEED;
-
     currentSpeed = 0.0;
-
     headingMode = VS_FM_DEFAULT_HEADING_MODE;
     pitchMode  = VS_FM_DEFAULT_PITCH_MODE;
     throttleMode = VS_FM_DEFAULT_THROTTLE_MODE;
@@ -67,6 +70,7 @@ vsFlyingMotion::vsFlyingMotion(vsMouse *mouse, int accelButtonIndex,
                                vsKinematics *kin)
               : vsMotionModel()
 {
+    // Initialize class variables
     headingAxis = mouse->getAxis(0);
     pitchAxis = mouse->getAxis(1);
     throttleAxis = NULL;
@@ -75,6 +79,7 @@ vsFlyingMotion::vsFlyingMotion(vsMouse *mouse, int accelButtonIndex,
     stopButton = mouse->getButton(stopButtonIndex);
     kinematics = kin;
 
+    // Print an error message if any axes are not normalized
     if (((headingAxis != NULL) && (!headingAxis->isNormalized())) ||
         ((pitchAxis != NULL) && (!pitchAxis->isNormalized())) ||
         ((throttleAxis != NULL) && (!throttleAxis->isNormalized())))
@@ -83,12 +88,11 @@ vsFlyingMotion::vsFlyingMotion(vsMouse *mouse, int accelButtonIndex,
                "normalized!\n");
     }
 
+    // Set motion defaults
     accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
     maxSpeed = VS_FM_DEFAULT_MAX_SPEED;
-
     currentSpeed = 0.0;
-
     headingMode = VS_FM_DEFAULT_HEADING_MODE;
     pitchMode  = VS_FM_DEFAULT_PITCH_MODE;
     throttleMode = VS_FM_DEFAULT_THROTTLE_MODE;
@@ -101,6 +105,7 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
                                vsInputAxis *throttleAx, vsKinematics *kin)
               : vsMotionModel()
 {
+    // Initialize class variables
     headingAxis = headingAx;
     pitchAxis = pitchAx;
     throttleAxis = throttleAx;
@@ -109,6 +114,7 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
     stopButton = NULL;
     kinematics = kin;
 
+    // Print an error message if any axes are not normalized
     if (((headingAxis != NULL) && (!headingAxis->isNormalized())) ||
         ((pitchAxis != NULL) && (!pitchAxis->isNormalized())) ||
         ((throttleAxis != NULL) && (!throttleAxis->isNormalized())))
@@ -117,12 +123,11 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
                "normalized!\n");
     }
 
+    // Set motion defaults
     accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
     maxSpeed = VS_FM_DEFAULT_MAX_SPEED;
-
     currentSpeed = 0.0;
-
     headingMode = VS_FM_DEFAULT_HEADING_MODE;
     pitchMode  = VS_FM_DEFAULT_PITCH_MODE;
     throttleMode = VS_FM_DEFAULT_THROTTLE_MODE;
@@ -137,6 +142,7 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
                                vsKinematics *kin)
               : vsMotionModel()
 {
+    // Initialize class variables
     headingAxis = headingAx;
     pitchAxis = pitchAx;
     throttleAxis = NULL;
@@ -145,6 +151,7 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
     stopButton = stopBtn;
     kinematics = kin;
 
+    // Print an error message if any axes are not normalized
     if (((headingAxis != NULL) && (!headingAxis->isNormalized())) ||
         ((pitchAxis != NULL) && (!pitchAxis->isNormalized())))
     {
@@ -152,12 +159,11 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
                "normalized!\n");
     }
 
+    // Set motion defaults
     accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
     maxSpeed = VS_FM_DEFAULT_MAX_SPEED;
-
     currentSpeed = 0.0;
-
     headingMode = VS_FM_DEFAULT_HEADING_MODE;
     pitchMode  = VS_FM_DEFAULT_PITCH_MODE;
     throttleMode = VS_FM_DEFAULT_THROTTLE_MODE;
@@ -168,19 +174,27 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
 // ------------------------------------------------------------------------
 vsFlyingMotion::~vsFlyingMotion()
 {
-
 }
 
 // ------------------------------------------------------------------------
-// Returns the current mode setting of each axis
+// Returns the current mode setting of each axis.  NULL may be safely 
+// passed in for axis modes that aren't needed.
 // ------------------------------------------------------------------------
 void vsFlyingMotion::getAxisModes(vsFlyingAxisMode *heading,
                                   vsFlyingAxisMode *pitch,
                                   vsFlyingAxisMode *throttle)
 {
-    *heading = headingMode;
-    *pitch = pitchMode;
-    *throttle = throttleMode;
+    // Return the heading axis mode if a valid pointer was passed
+    if (heading != NULL)
+        *heading = headingMode;
+
+    // Return the pitch axis mode if a valid pointer was passed
+    if (pitch != NULL)
+        *pitch = pitchMode;
+
+    // Return the throttle axis mode if a valid pointer was passed
+    if (throttle != NULL)
+        *throttle = throttleMode;
 }
 
 // ------------------------------------------------------------------------
@@ -190,12 +204,15 @@ void vsFlyingMotion::setAxisModes(vsFlyingAxisMode newHeadingMode,
                                   vsFlyingAxisMode newPitchMode,
                                   vsFlyingAxisMode newThrottleMode)
 {
+    // Change the heading axis mode unless NO_CHANGE is specified
     if (newHeadingMode != VS_FM_MODE_NO_CHANGE)
         headingMode = newHeadingMode;
 
+    // Change the pitch axis mode unless NO_CHANGE is specified
     if (newPitchMode != VS_FM_MODE_NO_CHANGE)
         pitchMode = newPitchMode;
 
+    // Change the throttle axis mode unless NO_CHANGE is specified
     if (newThrottleMode != VS_FM_MODE_NO_CHANGE)
         throttleMode = newThrottleMode;
 }
@@ -273,77 +290,102 @@ void vsFlyingMotion::update()
     newH = h;
     newP = p;
 
-    // Get the new heading
+    // Handle the heading axis
     if (headingAxis != NULL)
     {
+        // Compute the new heading based on the axis mode
         if (headingMode == VS_FM_MODE_INCREMENTAL)
         {
+            // Compute the change in heading as a product of the axis value,
+            // current turning rate and last frame time interval
             dHeading = -(headingAxis->getPosition()) * turningRate * interval;
+
+            // Apply the change in heading to the current heading
             newH = h + dHeading;
         }
         else
         {
+            // Set the new heading directly based on the axis value.  The
+            // heading can range between -180 and 180 degrees.
             dHeading = 0;
             newH = (-(headingAxis->getPosition()) * 180.0);
         }
     }
 
-    // Get the new pitch
+    // Handle the pitch axis
     if (pitchAxis != NULL)
     {
+        // Compute the new pitch based on the axis mode
         if (pitchMode == VS_FM_MODE_INCREMENTAL)
         {
+            // Compute the change in pitch based on the product of the axis
+            // value, current turning rate and time interval of the last
+            // frame.
             dPitch = -(pitchAxis->getPosition()) * turningRate * interval;
+
+            // Apply the change in pitch to the current heading
             newP = p + dPitch;
         }
         else
         {
+            // Compute the pitch directly from the axis value.  The pitch
+            // can range between -89.9 and 89.9 degrees
             dPitch = 0;
             newP = (-(pitchAxis->getPosition()) * 89.9);
         }
 
-        // Make sure the new pitch doesn't reach 90 degrees
+        // Make sure the new pitch doesn't reach 90 degrees.  This avoids
+        // Euler angle singularity problems
         if (newP > 89.9)
             newP = 89.9;
         if (newP < -89.9)
             newP = -89.9;
     }
 
-    // Update the orientation
+    // Combine the heading and pitch to update the orientation
     quat1.setAxisAngleRotation(0, 0, 1, newH);
     quat2.setAxisAngleRotation(1, 0, 0, newP);
     orn = quat1 * quat2;
     kinematics->setOrientation(orn);
 
-    // Get the new speed from the throttle axis
+    // If we have a throttle axis...
     if (throttleAxis != NULL)
     {
+        // Get the new speed from the throttle axis
         if (throttleMode == VS_FM_MODE_INCREMENTAL)
         {
-            // Calculate a scalar speed adjustment and add it to the current
-            // speed
+            // Calculate a scalar speed adjustment from the axis value,
+            // current acceleration rate, and time interval of the last
+            // frame.
             dSpeed = throttleAxis->getPosition() * accelerationRate * interval;
+
+            // Add the speed adjustment to the current speed
             currentSpeed += dSpeed;
         }
         else
         {
-            // Compute a new forward speed directly from the axis value
+            // Compute a new forward speed directly from the axis value and
+            // current maximum speed
             currentSpeed = throttleAxis->getPosition() * maxSpeed;
         }
     }
 
-    // Get the new speed from the throttle buttons
+    // If the acceleration button is pressed
     if ((accelButton != NULL) && (accelButton->isPressed()))
     {
+        // Increase the speed
         if (throttleMode == VS_FM_MODE_INCREMENTAL)
         {
-            // Calculate a scalar speed adjustment add add it to the current
-            // speed
+            // Calculate a scalar speed adjustment from the current 
+            // acceleration rate, and time interval of the last frame.
             dSpeed = accelerationRate * interval;
+
+            // Add the speed adjustment to the current speed
             currentSpeed += dSpeed;
         }
         else
         {
+            // Absolute throttle mode
             if ((decelButton != NULL) && (decelButton->isPressed()))
             {
                 // If both buttons are pressed, treat as a stop
@@ -351,23 +393,30 @@ void vsFlyingMotion::update()
             }
             else
             {
-                // Set speed to max
+                // Only accelerate button pressed.  In absolute mode, this
+                // produces maximum speed going forward.
                 currentSpeed = maxSpeed;
             }
         }
     }
 
+    // If the deceleration button is pressed
     if ((decelButton != NULL) && (decelButton->isPressed()))
     {
+        // Decrease the speed if the accelerate button is pressed
         if (throttleMode == VS_FM_MODE_INCREMENTAL)
         {
-            // Calculate a scalar speed adjustment and add it to the current
-            // speed
+            // Calculate a scalar speed adjustment from the current 
+            // acceleration rate, and time interval of the last frame.
+            // Negate the acceleration rate to produce deceleration.
             dSpeed = -accelerationRate * interval;
+
+            // Add the speed adjustment to the current speed
             currentSpeed += dSpeed;
         }
         else
         {
+            // Absolute throttle mode
             if ((accelButton != NULL) && (accelButton->isPressed()))
             {
                 // If both buttons are pressed, treat as a stop
@@ -375,12 +424,14 @@ void vsFlyingMotion::update()
             }
             else
             {
-                // Set speed to negative max
+                // Only decelerate button pressed.  In absolute mode, this
+                // means maximum speed in reverse.
                 currentSpeed = -maxSpeed;
             }
         }
     }
 
+    // If the stop button is pressed
     if ((stopButton != NULL) && (stopButton->isPressed()))
     {
         // Set speed to zero
@@ -398,8 +449,11 @@ void vsFlyingMotion::update()
     }
 
     // Calculate the current velocity vector from the current speed and
-    // orientation
+    // orientation.  First, create a velocity vector with the current
+    // speed going straight forward.
     v.set(0.0, currentSpeed, 0.0);
+
+    // Now, rotate the velocity vector by the current orientation
     v = orn.rotatePoint(v);
 
     // Update the linear velocity

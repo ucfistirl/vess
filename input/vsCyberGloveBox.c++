@@ -54,8 +54,11 @@ vsCyberGloveBox::vsCyberGloveBox(int portNum, long baud, int nSensors)
     // Initialize the glove box
     if (port)
     {
+        // Initialize hardware
         initialize();
 
+        // Check the number of sensors specified with the number found
+        // on the glove
         if ((nSensors < numSensors) && (nSensors != 0))
         {
             printf("vsCyberGloveBox::vsCyberGloveBox:  WARNING: Only using "
@@ -69,6 +72,8 @@ vsCyberGloveBox::vsCyberGloveBox(int portNum, long baud, int nSensors)
                    "requested, but only %d available\n", nSensors, numSensors);
         }
 
+        // The number should be 18 or 22, otherwise we can't be sure of
+        // the sensor-to-joint mapping
         if ((numSensors != 18) && (numSensors != 22))
         {
             printf("vsCyberGloveBox::vsCyberGloveBox:\n");
@@ -77,6 +82,9 @@ vsCyberGloveBox::vsCyberGloveBox(int portNum, long baud, int nSensors)
                    "joints\n");
         }
 
+        // If we have less than 22 sensors, we don't have distal joint
+        // information, so configure the vsArticulationGlove to estimate
+        // them
         if (numSensors < 22)
         {
             // Estimate the distal interphalangial joints
@@ -99,8 +107,13 @@ vsCyberGloveBox::vsCyberGloveBox(int portNum, long baud, int nSensors)
 // ------------------------------------------------------------------------
 vsCyberGloveBox::~vsCyberGloveBox()
 {
+    // Turn off the CyberTouch motors (if installed)
     stopAllFeedback();
+
+    // Close the serial port
     delete port;
+
+    // Destroy the vsArticulationGlove
     delete glove;
 }
 
@@ -111,9 +124,11 @@ vsCyberGloveBox::~vsCyberGloveBox()
 void vsCyberGloveBox::initialize()
 {
     unsigned char buf[20];
+
     // Flush the serial port
     port->flushPort();
 
+    // Print status information as we go
     printf("vsCyberGloveBox::initialize:\n");
 
     // Check to see if the glove is connected
@@ -121,6 +136,8 @@ void vsCyberGloveBox::initialize()
     buf[1] = VS_CYG_CMD_GLOVE_STATUS;
     port->writePacket(buf, 2);
 
+    // Expecting a value of 3 (connected and properly initialized) in the 
+    // third byte of the response
     port->readPacket(buf, 4);
     if (buf[2] != 3)
     {
@@ -128,35 +145,39 @@ void vsCyberGloveBox::initialize()
     }
     else
     {
-        // Get the number of sensors in the glove
+        // Request the number of sensors in the glove
         buf[0] = VS_CYG_CMD_QUERY;
         buf[1] = VS_CYG_CMD_NUM_HW_SENSORS;
         port->writePacket(buf, 2);
 
+        // Read and report the result
         port->readPacket(buf, 4);
         numSensors = (int)buf[2];
-
         printf("    Glove has %d sensors\n", numSensors);
     
-        // Set the software sensor mask and number of sensors sampled
+        // Set the number of sensors sampled
         buf[0] = VS_CYG_CMD_NUM_SENSORS;
         buf[1] = (unsigned char)numSensors;
         port->writePacket(buf, 2);
 
+        // Read the acknowledgement
         port->readPacket(buf, 2);
 
+        // Set the sensor mask to all F's (all sensors)
         buf[0] = VS_CYG_CMD_SENSOR_MASK;
         buf[1] = 0xFF;
         buf[2] = 0xFF;
         buf[3] = 0xFF;
 
+        // Read the acknowledgement
         port->readPacket(buf, 2);
 
-        // Check handedness
+        // Request the handedness of the glove
         buf[0] = VS_CYG_CMD_QUERY;
         buf[1] = VS_CYG_CMD_RIGHT_HANDED;
         port->writePacket(buf, 2);
 
+        // Read and report the result
         port->readPacket(buf, 4);
         if (buf[2] == 1)
             printf("    Glove is right-handed\n");
@@ -168,7 +189,10 @@ void vsCyberGloveBox::initialize()
         buf[1] = VS_CYG_CMD_PARAM_FLAGS;
         port->writePacket(buf, 2);
 
+        // Read the result
         port->readPacket(buf, 6);
+
+        // Configure the CyberTouch option if installed
         if (buf[4] & VS_CYG_PARAM_CYBERTOUCH)
         {
             printf("    CyberTouch option present\n");
@@ -187,10 +211,11 @@ void vsCyberGloveBox::initialize()
 // ------------------------------------------------------------------------
 void vsCyberGloveBox::ping()
 {
-    unsigned char buf[4];
-   
-    buf[0] = VS_CYG_CMD_PING;
-    port->writePacket(buf, 1);
+    unsigned char buf;
+
+    // Send the ping command to the CyberGlove box
+    buf = VS_CYG_CMD_PING;
+    port->writePacket(&buf, 1);
 }
 
 // ------------------------------------------------------------------------
@@ -208,6 +233,7 @@ void vsCyberGloveBox::startFeedback(int index, int amplitude)
 {
     unsigned char buf[10];
 
+    // Validate the index value
     if (index >= VS_CYG_NUM_ACTUATORS)
     {
         printf("vsCyberGloveBox::startFeedback:  Invalid actuator "
@@ -215,6 +241,7 @@ void vsCyberGloveBox::startFeedback(int index, int amplitude)
         return;
     }
 
+    // Validate the amplitude value
     if ((amplitude < 0) || (amplitude > 255))
     {
         printf("vsCyberGloveBox::startFeedback:  Invalid amplitude "
@@ -222,6 +249,7 @@ void vsCyberGloveBox::startFeedback(int index, int amplitude)
         return;
     }
 
+    // Send the command and appropriate values to the glove box
     buf[0] = VS_CYG_CMD_CYBERTOUCH;
     buf[1] = 1;
     buf[2] = index;
@@ -236,6 +264,7 @@ void vsCyberGloveBox::stopFeedback(int index)
 {
     unsigned char buf[10];
 
+    // Validate the index value
     if (index >= VS_CYG_NUM_ACTUATORS)
     {
         printf("vsCyberGloveBox::startFeedback:  Invalid actuator "
@@ -243,6 +272,7 @@ void vsCyberGloveBox::stopFeedback(int index)
         return;
     }
 
+    // Send the command and appropriate values to the glove box
     buf[0] = VS_CYG_CMD_CYBERTOUCH;
     buf[1] = 1;
     buf[2] = index;
@@ -257,6 +287,7 @@ void vsCyberGloveBox::startAllFeedback(int amplitude)
 {
     unsigned char buf[10];
 
+    // Validate the amplitude value
     if ((amplitude < 0) || (amplitude > 255))
     {
         printf("vsCyberGloveBox::startFeedback:  Invalid amplitude "
@@ -264,6 +295,7 @@ void vsCyberGloveBox::startAllFeedback(int amplitude)
         return;
     }
 
+    // Send the command and appropriate values to the glove box
     buf[0] = VS_CYG_CMD_CYBERTOUCH;
     buf[1] = 255;
     buf[2] = amplitude;
@@ -282,6 +314,7 @@ void vsCyberGloveBox::stopAllFeedback()
 {
     unsigned char buf[10];
 
+    // Send the command and appropriate values to the glove box
     buf[0] = VS_CYG_CMD_CYBERTOUCH;
     buf[1] = 255;
     buf[2] = 0;
@@ -305,13 +338,16 @@ void vsCyberGloveBox::update()
     int           retry;
     int           sensor, bufPos;
 
+    // Initialize the communications variables
     buf[0] = 0;
     bytesRead = 0;
     retry = 10;
 
-    // Read until we get a 'G' response byte
+    // Read until we get a 'G' response byte and we haven't exhausted
+    // our number of retries
     while ((buf[0] != 'G') && (retry > 0))
     {   
+        // Read one byte from the port
         stat = port->readPacket(buf, 1);
 
         // Re-ping if we need to
@@ -322,6 +358,7 @@ void vsCyberGloveBox::update()
         }
     }
 
+    // Signal an error and bail out if we can't get valid data
     if (retry == 0)
     {
         printf("vsCyberGloveBox::update:  Unable to communicate with the "
@@ -329,23 +366,29 @@ void vsCyberGloveBox::update()
         return;
     }
 
-    // Read the rest of the packet
+    // Increment bytesRead (we've read one byte so far)
     bytesRead++;
+
+    // Read the rest of the packet.  All CyberGlove packets are terminated 
+    // with NULL, so this makes a good stop condition for the read loop.
     while (buf[bytesRead-1] != 0)
     {
         port->readPacket(&buf[bytesRead], 1);
         bytesRead++;
     }
 
-    // Set the axis position for each sensor
+    // Initialize sensor and buffer position counters
     sensor = 0;
     bufPos = 1;
+
+    // Set the axis position for each sensor
     while ((bufPos < bytesRead) && (sensor < VS_AG_NUM_SENSORS))
     {
         // Set the axis position for this sensor
         axis = glove->getAxis(sensor);
         axis->setPosition((double)buf[bufPos]);
 
+        // Increment both counters
         bufPos++;
         sensor++;
 
@@ -357,12 +400,16 @@ void vsCyberGloveBox::update()
              (sensor == VS_AG_SENSOR_PINKY_DIJ)) &&
             (numSensors < 22))
         {
+            // Set the position to 0
             glove->getAxis(sensor)->setPosition(0);
+
+            // Increment the sensor counter only (this data won't be
+            // in the buffer at all)
             sensor++;
         }
 
         // Skip the index absolute abduction sensor, as it is "not yet
-        // implemented"
+        // implemented" (according to the manual)
         if (sensor == VS_AG_SENSOR_INDEX_ABD)
         {
             sensor++;

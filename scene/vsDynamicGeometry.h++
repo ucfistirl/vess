@@ -11,7 +11,7 @@
 //
 //------------------------------------------------------------------------
 //
-//    VESS Module:  vsGeometry.h++
+//    VESS Module:  vsDynamicGeometry.h++
 //
 //    Description:  vsNode subclass that is a leaf node in a VESS scene
 //                  graph. Stores geometry data such as vertex and texture

@@ -28,18 +28,22 @@
 vsHeadMotion::vsHeadMotion(vsMotionTracker *back, vsMotionTracker *head,
     vsKinematics *kinObject)
 {
+    // Save the tracker and kinematics objects
     backTracker = back;   
     headTracker = head;   
     kinematics = kinObject;
 
+    // Print an error if either tracker is not valid
     if ((backTracker == NULL) || (headTracker == NULL))
     {
         printf("vsHeadMotion::vsHeadMotion:  WARNING -- NULL motion "
             "tracker(s) specified!\n");
     }
 
+    // Initialize the offset quaternion
     orientationOffset.set(0.0, 0.0, 0.0, 1.0);
 
+    // Initialize the user-reset quaternions
     resetBack.set(0.0, 0.0, 0.0, 1.0);
     resetHead.set(0.0, 0.0, 0.0, 1.0);
 }
@@ -104,7 +108,7 @@ void vsHeadMotion::reset()
     vsQuat backOrn;
     vsQuat headOrn;
 
-    // Get tracker data
+    // Get current tracker data
     backOrn = backTracker->getOrientationQuat();
     headOrn = headTracker->getOrientationQuat();
 

@@ -27,15 +27,21 @@
 // ------------------------------------------------------------------------
 vsView::vsView()
 {
+    // Set the viewpoint location to the origin and the initial rotation
+    // to an identity matrix
     viewLocation.setSize(3);
     viewLocation.clear();
     viewRotation.setIdentity();
     
+    // Start off without a viewpoint attribute
     viewAttribute = NULL;
     
+    // Set the near and far clipping plane distances to default values
     nearClip = 0.1;
     farClip = 10000.0;
     
+    // Set the default projection mode to perspective projection, with a
+    // default field-of-view
     projMode = VS_VIEW_PROJMODE_PERSP;
     projHval = -1.0;
     projVval = -1.0;
@@ -61,6 +67,7 @@ void vsView::setViewpoint(double xPosition, double yPosition, double zPosition)
 // ------------------------------------------------------------------------
 void vsView::setViewpoint(vsVector newPosition)
 {
+    // Force the copied vector to have size 3
     viewLocation.clearCopy(newPosition);
     viewLocation.setSize(3);
 }
@@ -72,6 +79,7 @@ void vsView::setViewpoint(vsVector newPosition)
 void vsView::getViewpoint(double *xPosition, double *yPosition,
                           double *zPosition)
 {
+    // Return the desired elements of the current viewpoint position
     if (xPosition)
         *xPosition = viewLocation[VS_X];
     if (yPosition)
@@ -102,34 +110,62 @@ void vsView::setDirectionFromVector(vsVector direction, vsVector upDirection)
 
     // * First, create a quaternion that rotates the Performer basis
     // (Y-axis) to the desired direction
+
+    // Create a y-axis vector and clean up the direction vector
     forwardVec.set(0.0, 1.0, 0.0);
     directionVec.clearCopy(direction);
     directionVec.setSize(3);
     directionVec.normalize();
+
+    // Compute the axis of rotation by taking the cross product of the
+    // two vectors
     rotAxisVec = forwardVec.getCrossProduct(directionVec);
     if (fabs(rotAxisVec.getMagnitude()) < 1E-6)
         rotAxisVec.set(0.0, 0.0, 1.0);
+
+    // Compute the amount of rotation by using the vsVector.getAngleBetween
+    // function on the two vectors
     rotDegrees = forwardVec.getAngleBetween(directionVec);
+
+    // Set the initial rotation from the axis and angle data
     dirRotQuat.setAxisAngleRotation(rotAxisVec[VS_X], rotAxisVec[VS_Y],
         rotAxisVec[VS_Z], rotDegrees);
     
     // * Second, create a quaternion that rotates the up directions to match,
     // taking into account the first rotation
+
+    // Create a z-axis vector, and rotate it to compensate for the
+    // rotation we've calculated so far
     upVec.set(0.0, 0.0, 1.0);
     upVec = dirRotQuat.rotatePoint(upVec);
     
-    // Make sure that 'upDirection' is at a right angle to 'direction'
+    // Make sure that 'upDirection' is at a right angle to 'direction' by
+    // taking the cross product of upDirection and direction to get a third
+    // vector; this third vector, along with the direction vector, describe
+    // a plane that the upDirection must be perpendicular to. Then find
+    // a new upDirection perpendicular to that plane by taking another cross
+    // product, this time of the direction vector and the third vector.
     tempVec = upDirection.getCrossProduct(directionVec);
     upDirectionVec = directionVec.getCrossProduct(tempVec);
     upDirectionVec.normalize();
     
+    // Compute the axis to rotate around for the roll rotation by taking
+    // the cross product of the starting and target up direction vectors
     rotAxisVec = upVec.getCrossProduct(upDirectionVec);
     if (fabs(rotAxisVec.getMagnitude()) < 1E-6)
     {
+	// In the case that the cross product is zero (indicating that the
+	// two up directions are parallel), use the y-axis as the rotation
+	// axis instead, adjusted for the first rotation
         rotAxisVec.set(0.0, 1.0, 0.0);
         rotAxisVec = dirRotQuat.rotatePoint(rotAxisVec);
     }
+
+    // Compute the amount of rotation by finding the angle between the
+    // two up vectors
     rotDegrees = upVec.getAngleBetween(upDirectionVec);
+
+    // Set the roll rotation from the axis and angle data
     upRotQuat.setAxisAngleRotation(rotAxisVec[VS_X], rotAxisVec[VS_Y],
         rotAxisVec[VS_Z], rotDegrees);
 
@@ -146,8 +182,10 @@ void vsView::lookAtPoint(vsVector targetPoint, vsVector upDirection)
 {
     vsVector directionVec;
     
+    // Cheat: Determine the view direction by calculating the vector from
+    // the current viewpoint to the desired target location, and call the
+    // setDirectionFromVector function to set the orientation.
     directionVec = targetPoint - viewLocation;
-    
     setDirectionFromVector(directionVec, upDirection);
 }
 
@@ -167,14 +205,18 @@ void vsView::setDirectionFromRotation(vsMatrix rotMatrix)
 {
     int loop;
 
+    // Copy the rotation matrix
     viewRotation = rotMatrix;
     
+    // Zero out the translation and non-uniform scale portions of
+    // the matrix
     for (loop = 0; loop < 3; loop++)
     {
         viewRotation[loop][3] = 0.0;
         viewRotation[3][loop] = 0.0;
     }
     
+    // Set the uniform scale of the matrix to one (identity)
     viewRotation[3][3] = 1.0;
 }
 
@@ -193,6 +235,7 @@ void vsView::setClipDistances(double nearPlane, double farPlane)
 // ------------------------------------------------------------------------
 void vsView::getClipDistances(double *nearPlane, double *farPlane)
 {
+    // Return only the desired values
     if (nearPlane)
         *nearPlane = nearClip;
     if (farPlane)
@@ -208,6 +251,7 @@ void vsView::getClipDistances(double *nearPlane, double *farPlane)
 // ------------------------------------------------------------------------
 void vsView::setPerspective(double horizFOV, double vertiFOV)
 {
+    // Set the projection mode to perspective and store the FOV values
     projMode = VS_VIEW_PROJMODE_PERSP;
     projHval = horizFOV;
     projVval = vertiFOV;
@@ -223,6 +267,7 @@ void vsView::setPerspective(double horizFOV, double vertiFOV)
 // ------------------------------------------------------------------------
 void vsView::setOrthographic(double horizSize, double vertiSize)
 {
+    // Set the projection mode to orthogonal and store the size values
     projMode = VS_VIEW_PROJMODE_ORTHO;
     projHval = horizSize;
     projVval = vertiSize;
@@ -235,9 +280,12 @@ vsVector vsView::getDirection()
 {
     vsVector result;
     
+    // Create a forward (y-axis) vector, and transform it by the current
+    // view rotation
     result.set(0.0, 1.0, 0.0);
     result = viewRotation.getVectorXform(result);
     
+    // Return the computed vector
     return result;
 }
 
@@ -248,9 +296,12 @@ vsVector vsView::getUpDirection()
 {
     vsVector result;
     
+    // Create an up (z-axis) vector, and transform it by the current
+    // view rotation
     result.set(0.0, 0.0, 1.0);
     result = viewRotation.getVectorXform(result);
     
+    // Return the computed vector
     return result;
 }
 
@@ -268,6 +319,8 @@ vsMatrix vsView::getRotationMat()
 // ------------------------------------------------------------------------
 void vsView::getProjectionData(int *mode, double *horizVal, double *vertiVal)
 {
+    // Return the projection data for this object; no NULL checking because
+    // the function is internal.
     *mode = projMode;
     *horizVal = projHval;
     *vertiVal = projVval;
@@ -280,6 +333,7 @@ void vsView::getProjectionData(int *mode, double *horizVal, double *vertiVal)
 // ------------------------------------------------------------------------
 int vsView::attachViewAttribute(vsViewpointAttribute *theAttribute)
 {
+    // Verify that we don't already have a viewpoint attribute
     if (viewAttribute)
     {
         printf("vsView::attachViewAttribute: View object is already "
@@ -287,6 +341,7 @@ int vsView::attachViewAttribute(vsViewpointAttribute *theAttribute)
         return 0;
     }
     
+    // Save the attribute pointer and return success
     viewAttribute = theAttribute;
     return 1;
 }
@@ -298,6 +353,7 @@ int vsView::attachViewAttribute(vsViewpointAttribute *theAttribute)
 // ------------------------------------------------------------------------
 void vsView::detachViewAttribute()
 {
+    // Clear the attribute pointer
     viewAttribute = NULL;
 }
 
@@ -308,6 +364,8 @@ void vsView::detachViewAttribute()
 // ------------------------------------------------------------------------
 void vsView::updateFromAttribute()
 {
+    // Give an update call to our associated viewpoint attribute, if there
+    // is one.
     if (viewAttribute)
         viewAttribute->update();
 }

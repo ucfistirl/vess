@@ -31,13 +31,19 @@ vsKinematics::vsKinematics(vsComponent *theComponent)
 {
     vsMatrix xform;
 
+    // Save the component passed in
     component = theComponent;
+
+    // Complain if the given component is NULL
     if (!component)
     {
 	printf("vsKinematics::vsKinematics: NULL component\n");
 	return;
     }
     
+    // vsKinematics objects require that the associated component
+    // have a vsTransformAttribute present and will create one
+    // on the component if there is not one already.
     transform = (vsTransformAttribute *)
         (component->getTypedAttribute(VS_ATTRIBUTE_TYPE_TRANSFORM, 0));
     if (!transform)
@@ -57,6 +63,7 @@ vsKinematics::vsKinematics(vsComponent *theComponent)
     angularVelocity.setSize(4);
     angularVelocity.clear();
 
+    // Default inertia to false
     inertia = VS_FALSE;
 }
 
@@ -91,14 +98,18 @@ void vsKinematics::setPosition(vsVector newPosition)
     vsMatrix xform;
     int loop;
     
+    // Copy the new position
     position.clearCopy(newPosition);
     position.setSize(3);
     
+    // Get the dynamic transform matrix
     xform = transform->getDynamicTransform();
 
+    // Modify the matrix with the new position
     for (loop = 0; loop < 3; loop++)
         xform[loop][3] = position[loop];
 
+    // Update the dynamic transform
     transform->setDynamicTransform(xform);
 }
 
@@ -119,15 +130,19 @@ void vsKinematics::modifyPosition(vsVector deltaPosition)
     vsMatrix xform;
     int loop;
     
+    // Copy the position change and add it to the current position
     dPos.clearCopy(deltaPosition);
     dPos.setSize(3);
     position += dPos;
     
+    // Get the dynamic transform matrix
     xform = transform->getDynamicTransform();
 
+    // Modify the matrix with the new position
     for (loop = 0; loop < 3; loop++)
         xform[loop][3] = position[loop];
 
+    // Update the dynamic transform
     transform->setDynamicTransform(xform);
 }
 
@@ -139,11 +154,16 @@ void vsKinematics::setOrientation(vsQuat newOrientation)
     vsMatrix xform, tempMat;
     vsQuat tempQuat;
     
+    // Copy the new orientation 
     orientation = newOrientation;
+
+    // Construct a transform matrix with the new orientation and
+    // the current translation
     xform.setQuatRotation(orientation);
     tempMat.setTranslation(position[0], position[1], position[2]);
     xform = tempMat * xform;
 
+    // Update the dynamic transform
     transform->setDynamicTransform(xform);
 }
 
@@ -162,11 +182,16 @@ void vsKinematics::preModifyOrientation(vsQuat deltaOrientation)
 {
     vsMatrix xform, tempMat;
     
+    // Modify the current orientation (preMultiply)
     orientation = deltaOrientation * orientation;
+
+    // Construct a transform matrix with the new orientation and
+    // the current translation
     xform.setQuatRotation(orientation);
     tempMat.setTranslation(position[0], position[1], position[2]);
     xform = tempMat * xform;
 
+    // Update the dynamic transform
     transform->setDynamicTransform(xform);
 }
 
@@ -177,11 +202,16 @@ void vsKinematics::postModifyOrientation(vsQuat deltaOrientation)
 {
     vsMatrix xform, tempMat;
     
+    // Modify the current orientation (postMultiply)
     orientation = orientation * deltaOrientation;
+
+    // Construct a transform matrix with the new orientation and
+    // the current translation
     xform.setQuatRotation(orientation);
     tempMat.setTranslation(position[0], position[1], position[2]);
     xform = tempMat * xform;
 
+    // Update the dynamic transform
     transform->setDynamicTransform(xform);
 }
 
@@ -190,7 +220,10 @@ void vsKinematics::postModifyOrientation(vsQuat deltaOrientation)
 // ------------------------------------------------------------------------
 void vsKinematics::setVelocity(vsVector newVelocity)
 {
+    // Copy the new velocity to the kinematics velocity vector
     velocity.clearCopy(newVelocity);
+
+    // Make sure the vector is size 3
     velocity.setSize(3);
 }
 
@@ -209,9 +242,11 @@ void vsKinematics::modifyVelocity(vsVector deltaVelocity)
 {
     vsVector dVel;
     
+    // Copy the delta velocity
     dVel.clearCopy(deltaVelocity);
     dVel.setSize(3);
     
+    // Add the delta velocity to the current velocity
     velocity += dVel;
 }
 
@@ -223,14 +258,19 @@ void vsKinematics::setAngularVelocity(vsVector rotAxis, double degreesPerSec)
     vsVector axis;
     double mag;
     
+    // Copy the rotation axis
     axis.clearCopy(rotAxis);
     axis.setSize(3);
+
+    // If the axis magnitude is zero, return immediately
     mag = axis.getMagnitude();
     if (mag < 1E-6)
     {
         angularVelocity.set(0.0, 0.0, 0.0, 0.0);
         return;
     }
+
+    // Normalize the axis
     axis.normalize();
     
     // The internal representation of angular velocity is an axis of
@@ -260,28 +300,42 @@ void vsKinematics::modifyAngularVelocity(vsVector rotAxis,
     vsVector avel1, avel2, result;
     double mag;
     
+    // If the degrees per second of the current angular velocity is zero
+    // just set the modification as the new velocity
     if (angularVelocity[3] == 0.0)
     {
         setAngularVelocity(rotAxis, degreesPerSec);
         return;
     }
 
-    // Prepare the delta rotation
+    // Copy the rotation axis of the modification
     avel1.clearCopy(rotAxis);
     avel1.setSize(3);
+
+    // If the axis is near zero in length, there is no modification
+    // to make, so bail
     mag = avel1.getMagnitude();
     if (mag < 1E-6)
         return;
+
+    // Normalize the axis, and scale it by the rotation rate
     avel1.normalize();
     avel1.scale(degreesPerSec);
     
-    // Prepare the current rotation
+    // Copy the current angular velocity's rotation vector and
+    // scale it by the current rotation rate
     avel2.set(angularVelocity[0], angularVelocity[1], angularVelocity[2]);
     avel2.scale(angularVelocity[3]);
     
-    // Combine the two rotations and store
+    // Combine the two rotations, add the vectors together
     result = avel1 + avel2;
+
+    // Get the magnitude of the resulting vector
     mag = result.getMagnitude();
+
+    // If the magnitude is near zero, clamp the angular velocity to
+    // zero, otherwise set the rotation rate to the magnitude of the 
+    // vector and normalize vector to get the axis of rotation.
     if (mag > 1E-6)
     {
         result.normalize();
@@ -300,14 +354,19 @@ void vsKinematics::setCenterOfMass(vsVector newCenter)
     vsVector nCenter;
     int loop;
     
+    // Copy the center of mass and make sure it is a 3-component vector
     nCenter.clearCopy(newCenter);
     nCenter.setSize(3);
 
+    // Set the pre-transform of the kinematics transform attribute to
+    // the new center of mass
     xform = transform->getPreTransform();
     for (loop = 0; loop < 3; loop++)
         xform[loop][3] = nCenter[loop];
     transform->setPreTransform(xform);
 
+    // Set the post-transform of the kinematics transform attribute to
+    // the inverse of the new center of mass
     xform = transform->getPostTransform();
     for (loop = 0; loop < 3; loop++)
         xform[loop][3] = -(nCenter[loop]);
@@ -322,8 +381,11 @@ vsVector vsKinematics::getCenterOfMass()
     vsMatrix xform;
     vsVector result;
 
+    // Get the post-transform of the kinematics transform attribute
     xform = transform->getPostTransform();
     
+    // Copy the translation component of the transform matrix and invert
+    // it
     result.set(xform[0][3], xform[1][3], xform[2][3]);
     result.scale(-1.0);
     
@@ -376,9 +438,14 @@ void vsKinematics::update(double deltaTime)
     // velocity, respectively.
     modifyPosition(velocity.getScaled(deltaTime));
     
+    // Scale the degrees per second of the angular velocity
     degrees = (angularVelocity[3] * deltaTime);
+
+    // Create a quaternion representing the orienation adjustment
     deltaOrient.setAxisAngleRotation(angularVelocity[0], angularVelocity[1],
         angularVelocity[2], degrees);
+
+    // Apply the orientation adjustment
     postModifyOrientation(deltaOrient);
 
     // Clear velocities if in inertialess mode

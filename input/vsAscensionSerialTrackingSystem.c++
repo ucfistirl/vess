@@ -75,6 +75,7 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
     numTrackers = 0;
     streaming = VS_FALSE;
 
+    // Initialize all trackers and ports to NULL
     for (i = 0; i < VS_AS_MAX_TRACKERS; i++)
     {
         tracker[i] = NULL;
@@ -90,16 +91,19 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
     // Open serial port
     port[0] = new vsSerialPort(portDevice, baud, 8, 'N', 1);
 
+    // Check to see if the port is valid
     if (port[0])
     {
         // Drop the RTS line to put the flock into FLY mode
-        printf("  Dropping RTS on %s\n", portDevice);
         port[0]->setRTS(VS_FALSE);
+
+        // Set the DTR line to make sure the flock knows the host is ready
         port[0]->setDTR(VS_TRUE);
 
         // Wait for the bird to wake up
         sleep(1);
 
+        // Check the configuration flag
         if (configuration == VS_AS_MODE_STANDALONE)
         {
             // Standalone configuration, tracker number is 0
@@ -125,6 +129,10 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
                     numTrackers, nTrackers);
             }
 
+            // Check to see if we have as many trackers as we should,
+            // and print an error message if necessary (a value of zero
+            // for the parameter means "use all trackers" so this can't 
+            // produce an error).
             if ((numTrackers > nTrackers) && (nTrackers > 0))
             {
                 printf("vsAscensionSerialTrackingSystem::"
@@ -135,11 +143,13 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
                 numTrackers = nTrackers;
             }
 
+            // Set the requested data format on all trackers
             setDataFormat(dFormat);
 
             // Attempt to start the system
             result = initializeFlock();
 
+            // Check the initialization result and print the status
             if (result != 0)
             {
                 printf("vsAscensionSerialTrackingSystem::"
@@ -157,6 +167,7 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
     }
     else
     {
+        // Couldn't open the serial port
         printf("vsAscensionSerialTrackingSystem::"
             "vsAscensionSerialTrackingSystem:\n");
         printf("   Unable to open serial port %s", portDevice);
@@ -177,8 +188,10 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
     int    i;
     vsQuat quat1, quat2, xformQuat;
 
+    // This constructor shouldn't be used if only one tracker exists
     if (nTrackers > 1)
     {
+        // Open a serial port for each tracker
         for (i = 0; i < nTrackers; i++)
         {
 
@@ -198,6 +211,8 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
 
             // Drop the RTS line to put the flock into FLY mode
             port[i]->setRTS(VS_FALSE);
+
+            // Set the DTR line to make sure the flock knows the host is ready
             port[i]->setDTR(VS_TRUE);
         }
 
@@ -218,6 +233,8 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
         // the motion trackers
         enumerateTrackers();
 
+        // Check to see if we have all the trackers requested, and print
+        // an error message if not.
         if (numTrackers < nTrackers)
         {
             printf("vsAscensionSerialTrackingSystem::"
@@ -225,6 +242,8 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
             printf("   Incorrect number of sensors specified\n");
         }
 
+        // Also check if we have more trackers than requested, and print
+        // a status message if so.
         if (numTrackers > nTrackers) 
         {
             printf("vsAscensionSerialTrackingSystem::"
@@ -234,11 +253,13 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
             numTrackers = nTrackers;
         }
 
+        // Set all trackers to the requested data format
         setDataFormat(dFormat);
 
         // Attempt to start the flock
         result = initializeFlock();
 
+        // Check the initialization result and print a status message.
         if (result != 0)
         {
             printf("vsAscensionSerialTrackingSystem::"
@@ -253,6 +274,14 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
             printf("   System did not initialize properly.\n");
         }
     }
+    else
+    {
+        // Tried to use the multi-serial constructor on a single tracker
+        // system
+        printf("vsAscensionSerialTrackingSystem::"
+            "vsAscensionSerialTrackingSystem:\n");
+        printf("   Can't use multi-serial mode on a single tracker system.\n");
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -262,6 +291,7 @@ vsAscensionSerialTrackingSystem::~vsAscensionSerialTrackingSystem()
 {
     int i;
 
+    // Print status info for the shutdown
     printf("vsAscensionSerialTrackingSystem::"
         "~vsAscensionSerialTrackingSystem:\n");
 
@@ -271,6 +301,7 @@ vsAscensionSerialTrackingSystem::~vsAscensionSerialTrackingSystem()
         printf("  Notifying server process to quit\n");
         kill(serverPID, SIGUSR1);
 
+        // Disconnect from shared memory
         delete sharedData;
     }
 
@@ -280,7 +311,9 @@ vsAscensionSerialTrackingSystem::~vsAscensionSerialTrackingSystem()
         if (tracker[i] != NULL)
             delete tracker[i];
 
-    // Stop the flock and close the serial port(s)
+    // If we haven't forked a server process, stop the flock and close 
+    // the serial port(s).  The server process will handle this if we 
+    // have forked.
     if (!forked)
     {
         printf("  Putting flock to sleep\n");
@@ -311,6 +344,7 @@ void vsAscensionSerialTrackingSystem::serverLoop()
     // Start the flock streaming data
     startStream();
 
+    // Initialize the data structures
     posVec.setSize(3);
     posVec.clear();
     ornQuat.clear();
@@ -318,8 +352,10 @@ void vsAscensionSerialTrackingSystem::serverLoop()
     // Continuously update the shared data while we're running
     while (!vsAscensionSerialTrackingSystem::serverDone)
     {
+        // Update the hardware
         updateSystem();
 
+        // Read the tracker data and store it in shared memory
         for (i = 0; i < numTrackers; i++)
         {
             posVec = tracker[i]->getPositionVec();
@@ -346,6 +382,7 @@ void vsAscensionSerialTrackingSystem::serverLoop()
         if (port[i] != NULL)
             delete port[i];
 
+    // Exit the forked process
     exit(0);
 }
 
@@ -374,19 +411,25 @@ void vsAscensionSerialTrackingSystem::enumerateTrackers()
     unsigned char statusBuf[VS_AS_CMD_PACKET_SIZE];
     char          modelID[11];
     int           firmwareMajorRev, firmwareMinorRev;
-   
 
+    // Print status info as we go
     printf("vsAscensionSerialTrackingSystem::enumerateTrackers:\n");
 
+    // Flush the serial port
     port[0]->flushPort();
 
-    // First, determine the firmware revision and crystal speed
+    // First, determine the firmware revision and crystal speed, this
+    // determines how we request the addressing mode later
+
+    // Ask for the firmware revision
     outBuf[0] = VS_AS_CMD_EXAMINE_VALUE;
     outBuf[1] = VS_AS_VAL_SW_REV;
-    
     port[0]->writePacket(outBuf, 2);
+
+    // Read the result
     result = port[0]->readPacket(inBuf, 2);
 
+    // Print the result if valid
     if (result == 2)
     {
         firmwareMajorRev = inBuf[0];
@@ -395,12 +438,15 @@ void vsAscensionSerialTrackingSystem::enumerateTrackers()
             firmwareMinorRev);
     }
 
+    // Ask for the crystal speed
     outBuf[0] = VS_AS_CMD_EXAMINE_VALUE;
     outBuf[1] = VS_AS_VAL_CRYSTAL_SPEED;
-    
     port[0]->writePacket(outBuf, 2);
+
+    // Read the result
     result = port[0]->readPacket(inBuf, 2);
     
+    // Print the result if valid
     if (result == 2)
     {
         printf("  Master Bird crystal speed:      %d MHz\n", inBuf[0]);
@@ -410,40 +456,52 @@ void vsAscensionSerialTrackingSystem::enumerateTrackers()
     // major revision number is always one higher for ERC's, so we need to 
     // check whether the master is an ERC or not before we can determine the
     // addressing mode
+
+    // Ask for the model ID
     outBuf[0] = VS_AS_CMD_EXAMINE_VALUE;
     outBuf[1] = VS_AS_VAL_SYSTEM_MODEL_ID;
-
     port[0]->writePacket(outBuf, 2);
+
+    // Read the result
     result = port[0]->readPacket((unsigned char *)modelID, 10);
 
+    // Print an error if not valid
     if (result != 10)
     {
         printf("  Can't read master bird's model ID\n");
     }
     else
     {
+        // Terminate the string we received
         modelID[10] = 0;
 
+        // If the bird is an ERC, then decrement its major revision by one
         if (strcmp(modelID, "6DERC     ") == 0)
             firmwareMajorRev--;
     }
 
-    addressMode = -1;
-
     // Next, determine the addressing mode.  This is complicated because
     // there are two different ways to do this, depending on the firmware
     // revision.
+
+    // Initialize the address mode value
+    addressMode = -1;
 
     // If the firmware revision is >= 3.67, we need to check for 
     // super-expanded address mode
     if ((firmwareMajorRev > 3) || 
         ((firmwareMajorRev == 3) && (firmwareMinorRev >= 67)))
     {
+        // Ask for the address mode
         outBuf[0] = VS_AS_CMD_EXAMINE_VALUE;
         outBuf[1] = VS_AS_VAL_ADDRESS_MODE;
+        port[0]->writePacket(outBuf, 2);
 
+        // Read the result
         result = port[0]->readPacket(inBuf, 1);
         
+        // If we got an answer, print the results or an error message
+        // as appropriate
         if (result == 1)
         { 
             addressMode = inBuf[0] - '0';
@@ -458,17 +516,25 @@ void vsAscensionSerialTrackingSystem::enumerateTrackers()
                 case VS_AS_ADDR_SUPER_EXP:
                     printf("  Flock running in super-expanded address mode\n");
                     break;
+                default:
+                    printf("  Invalid address mode returned from flock!\n");
+                    break;
             }
         }
     }
 
+    // Next, read the status of the master bird (including the address
+    // mode if we don't already have it)
+
+    // Ask for the master bird's status
     outBuf[0] = VS_AS_CMD_EXAMINE_VALUE;
     outBuf[1] = VS_AS_VAL_BIRD_STATUS;
-
     port[0]->writePacket(outBuf, 2);
     
+    // Read the result
     result = port[0]->readPacket(inBuf, 2);
 
+    // Examine the results if we got an answer
     if (result == 2)
     {
         // If the flock is running, put it back to sleep
@@ -502,64 +568,83 @@ void vsAscensionSerialTrackingSystem::enumerateTrackers()
         printf("  Error reading master bird status (%d of 2 bytes)\n", result);
     }
 
-
     // Next, ask the master for the system status
     outBuf[0] = VS_AS_CMD_EXAMINE_VALUE;
     outBuf[1] = VS_AS_VAL_FLOCK_STATUS;
-
     result = port[0]->writePacket(outBuf, 2);
+
+    // Initialize the storage for the answer
     for (i = 0; i < VS_AS_CMD_PACKET_SIZE; i++)
     {
         inBuf[i] = 0;
         statusBuf[i] = 0;
     }
 
+    // Wait three seconds for the hardware to catch up
     sleep(3);
 
+    // The length of the response depends on the address mode
     if (addressMode == VS_AS_ADDR_SUPER_EXP)
     {
+        // Read 126 bytes for super-expanded mode
         result = port[0]->readPacket(statusBuf, 126);
 
+        // Check the result to make sure it's the correct length
         if (result != 126)
             printf("  Error getting flock status (%d of 126 bytes)\n", result);
     }
     else if (addressMode == VS_AS_ADDR_EXPANDED)
     {
+        // Read 30 bytes for expanded mode
         result = port[0]->readPacket(statusBuf, 30);
 
+        // Check the result to make sure it's the correct length
         if (result != 30)
             printf("  Error getting flock status (%d of 30 bytes)\n", result);
     }
     else
     {
+        // Read 14 bytes for standard mode
         result = port[0]->readPacket(statusBuf, 14);
 
+        // Check the result to make sure it's the correct length
         if (result != 14)
             printf("  Error getting flock status (%d of 14 bytes)\n", result);
     }
 
-    // Examine each tracker until one is found inaccessible.  Sensors must
-    // be configured with continuous FBB addresses; this is a hardware 
-    // requirement.
+    // Now, we can enumerate the trackers, initialize counters
     i = 1; 
     numTrackers = 0;
+
+    // Examine each tracker until one is found inaccessible.  Sensors must
+    // be configured with contiguous FBB addresses (this is a hardware 
+    // requirement), so we can safely assume that the first inaccessible
+    // tracker means we have found all available trackers.
+    // (The high bit of each byte signifies whether or not the corresponding
+    // tracker is accessible)
     while (statusBuf[i-1] & 0x80)
     {
         // Ask the bird for its model ID
         data = VS_AS_VAL_SYSTEM_MODEL_ID;
         fbbCommand(i, VS_AS_CMD_EXAMINE_VALUE, &data, 1);
 
+        // Clear the result field
         memset(modelID, 0, 11);
 
+        // Read the result from the appropriate serial port
         if (multiSerial)
             port[i - 1]->readPacket(inBuf, 10);
         else
             port[0]->readPacket(inBuf, 10);
 
+        // Copy the result into the modelID string (this terminates
+        // the string as well)
         memcpy(modelID, inBuf, 10);
 
+        // Print the result
         printf("  Bird %d is a %s\n", i, modelID);
 
+        // If the bird is an ERC, keep track of its address
         if (strcmp(modelID, "6DERC     ") == 0)
         {
             // Only one ERC allowed
@@ -591,6 +676,7 @@ void vsAscensionSerialTrackingSystem::enumerateTrackers()
     {
         printf("  Flock has %d available sensors, ", numTrackers);
   
+        // Print the ERC's location on the bus if one is present
         if (ercAddress != 0)
         {
             printf("ERC is at address %d\n", ercAddress);
@@ -620,11 +706,14 @@ int vsAscensionSerialTrackingSystem::initializeFlock()
     int           errorFlag;
     int           i;
 
+    // Print status as we go
     printf("vsAscensionSerialTrackingSystem::initializeFlock:\n");
 
     // Stop the system from streaming (if it is)
     ping();
 
+    // Set the maximum FBB address as appropriate (a flock with an ERC
+    // will have a maximum address one higher than the number of trackers)
     if (ercAddress == 0)
         highAddress = numTrackers;
     else
@@ -649,7 +738,6 @@ int vsAscensionSerialTrackingSystem::initializeFlock()
     outBuf[0] = VS_AS_CMD_CHANGE_VALUE;
     outBuf[1] = VS_AS_VAL_FBB_AUTOCONFIG;
     outBuf[2] = highAddress;
-
     printf("  Auto-configuring flock . . .\n");
     port[0]->writePacket(outBuf, 3);
 
@@ -661,55 +749,69 @@ int vsAscensionSerialTrackingSystem::initializeFlock()
 
     // Check all birds for errors
     errorFlag = VS_FALSE;
-
     for (address = 1; address <= highAddress; address++)
     {
+        // We'll have to handle this differently depending on if we're 
+        // using multiple serial ports or not
         if (multiSerial)
         {
+            // Send the bird status command
             data = VS_AS_VAL_BIRD_STATUS;
             fbbCommand(address, VS_AS_CMD_EXAMINE_VALUE, &data, 1);
 
+            // Read the response from the correct serial port
             port[address - 1]->readPacket(inBuf, 2);
 
+            // If the error flag is set...
             if (inBuf[1] & 0x20)
             {
-                // Get the error code
+                // Request the error code
                 data = VS_AS_VAL_EXP_ERROR_CODE;
                 fbbCommand(address, VS_AS_CMD_EXAMINE_VALUE, &data, 1);
 
+                // Read the result
                 port[address - 1]->readPacket(inBuf, 2);
    
+                // Print the error
                 getErrorString(inBuf[0], inBuf[1]);
                 printf("  Bird %d reports an error:\n", address);
                 printf("    %s\n", errorString);
     
+                // Set the error flag to true
                 errorFlag = VS_TRUE;
             }
         }
         else
         {
+            // Send the bird status command
             data = VS_AS_VAL_BIRD_STATUS;
             fbbCommand(address, VS_AS_CMD_EXAMINE_VALUE, &data, 1);
 
+            // Read the result
             port[0]->readPacket(inBuf, 2);
 
+            // If the error flag is set...
             if (inBuf[1] & 0x20)
             {
-                // Get the error code
+                // Request the error code
                 data = VS_AS_VAL_EXP_ERROR_CODE;
                 fbbCommand(address, VS_AS_CMD_EXAMINE_VALUE, &data, 1);
 
+                // Read the result
                 port[0]->readPacket(inBuf, 2);
    
+                // Print the error
                 getErrorString(inBuf[0], inBuf[1]);
                 printf("  Bird %d reports an error:\n", address);
                 printf("    %s\n", errorString);
     
+                // Set the error flag to true
                 errorFlag = VS_TRUE;
             }
         }
     }
 
+    // Finish initializing if no errors reported
     if (errorFlag == VS_FALSE)
     {
         printf("  Flock initialized\n");
@@ -729,10 +831,12 @@ int vsAscensionSerialTrackingSystem::initializeFlock()
         // Ping the system to get the first data report ready
         ping();
 
-        return 1;
+        // Initialization successful
+        return VS_TRUE;
     }
  
-    return 0;
+    // Problem with initialization
+    return VS_FALSE;
 }
 
 // ------------------------------------------------------------------------
@@ -742,52 +846,71 @@ int vsAscensionSerialTrackingSystem::initializeFlock()
 void vsAscensionSerialTrackingSystem::getErrorString(unsigned char errorNum, 
                                                      unsigned char errorAddr)
 {
+    // Convert the given error number (and possibly address information) into
+    // a legible error message
     switch (errorNum)
     {
         case 0:
             sprintf(errorString, "No error");
             break;
+
         case 1:
             sprintf(errorString, "System RAM failure");
             break;
+
         case 2:
             sprintf(errorString, "Non-volatile storage write failure");
             break;
+
         case 3:
             sprintf(errorString, "PCB configuration data corrupt");
             break;
+
         case 4:
             sprintf(errorString, "Bird transmitter calibration data corrupt or"
                 "not connected");
             break;
+
         case 5:
             sprintf(errorString, "Bird receiver calibration data corrupt or"
                 "not connected");
             break;
+
         case 6:
             sprintf(errorString, "Invalid RS232 command");
             break;
+
         case 7:
             sprintf(errorString, "Not an FBB master");
             break;
+
         case 8:
             sprintf(errorString, "No birds accessible in device list");
             break;
+
         case 9:
             sprintf(errorString, "Bird is not initialized");
             break;
+
         case 10:
             sprintf(errorString, "FBB serial port receive error - "
                 "intra bird bus");
             break;
+
         case 11:
             sprintf(errorString, "RS232 serial port receive error");
             break;
+
         case 12:
             sprintf(errorString, "FBB serial port receive error - "
                 "FBB host bus");
             break;
+
         case 13:
+            // The format of the address field for this error message will
+            // vary according to the current addressing mode.  Use the
+            // appropriate bit-mask to decipher the address of the bird
+            // causing the error.
             if (addressMode == VS_AS_ADDR_SUPER_EXP)
                 errorAddr = (errorAddr & 0x7F);
             else if (addressMode == VS_AS_ADDR_EXPANDED)
@@ -798,24 +921,31 @@ void vsAscensionSerialTrackingSystem::getErrorString(unsigned char errorNum,
             sprintf(errorString, "No FBB command response - bird %d", 
                 errorAddr);
             break;
+
         case 14:
             sprintf(errorString, "Invalid FBB host command");
             break;
+
         case 15:
             sprintf(errorString, "FBB run time error");
             break;
+
         case 16:
             sprintf(errorString, "Invalid CPU speed");
             break;
+
         case 17:
             sprintf(errorString, "No FBB data");
             break;
+
         case 18:
             sprintf(errorString, "Illegal baud rate");
             break;
+
         case 19:
             sprintf(errorString, "Slave acknowledge error");
             break;
+
         case 20:
         case 21:
         case 22:
@@ -826,27 +956,35 @@ void vsAscensionSerialTrackingSystem::getErrorString(unsigned char errorNum,
         case 27:
             sprintf(errorString, "Intel 80186 CPU error - #%d", errorNum);
             break;
+
         case 28:
             sprintf(errorString, "CRT synchronization error");
             break;
+
         case 29:
             sprintf(errorString, "Transmitter not accessible");
             break;
+
         case 30:
             sprintf(errorString, "ERT not attached");
             break;
+
         case 31:
             sprintf(errorString, "CPU time overflow");
             break;
+
         case 32:
             sprintf(errorString, "Receiver saturated");
             break;
+
         case 33:
             sprintf(errorString, "Slave configuration error");
             break;
+
         case 34:
             sprintf(errorString, "Watch dog timer error");
             break;
+
         case 35:
             sprintf(errorString, "Over temperature");
             break;
@@ -866,14 +1004,16 @@ void vsAscensionSerialTrackingSystem::fbbCommand(int address,
     unsigned char outBuf[VS_AS_CMD_PACKET_SIZE];
     int           highAddress;
 
-    // If we're in standalone mode, this is easy
+    // If we're in standalone mode, this is easy, we only have one tracker
+    // and one possible location it can be
     if (configuration == VS_AS_MODE_STANDALONE)
     {
+        // Set up the command and its arguments (if any) into a packet
         outBuf[0] = command;
-
         if (dataSize > 0)
             memcpy(&outBuf[1], data, dataSize);
 
+        // Write the packet
         port[0]->writePacket(outBuf, dataSize + 1);
     }
     else 
@@ -882,20 +1022,22 @@ void vsAscensionSerialTrackingSystem::fbbCommand(int address,
         if (address == VS_AS_ALL_TRACKERS)
         {
 
-            // Figure out the range of addresses
+            // Figure out the range of addresses, the high address will
+            // be the number of trackers or one larger if an ERC is present
             if (ercAddress == 0)
                 highAddress = numTrackers;
             else
                 highAddress = numTrackers + 1;
 
+            // Check whether we're using multiple serial ports or not
             if (multiSerial)
             {
-                // Send the basic command to every port
+                // Set up the command
                 outBuf[0] = command;
-
                 if (dataSize > 0)
                     memcpy(&outBuf[1], data, dataSize);
 
+                // Send the basic command to every port
                 for (address = 1; address <= highAddress; address++)
                 {
                     // Skip the ERC port
@@ -908,25 +1050,34 @@ void vsAscensionSerialTrackingSystem::fbbCommand(int address,
             else
             {
                 // Send the given command to the master, prefixed by the 
-                // appropriate RS232 TO FBB command and address
-
+                // appropriate RS232 TO FBB command and address (details
+                // in the Ascension manual)
                 for (address = 1; address <= highAddress; address++)
                 {
+                    // Skip the ERC address
                     if (address != ercAddress)
                     {
+                        // The command has different formats, depending
+                        // on the address mode
                         if (addressMode == VS_AS_ADDR_SUPER_EXP)
                         {
+                            // Set up the command
                             outBuf[0] = VS_AS_CMD_RS232_TO_FBB_SUP;
                             outBuf[1] = address;
                             outBuf[2] = command;
-            
+
+                            // Copy the data
                             if (dataSize > 0)
                                 memcpy(&outBuf[3], data, dataSize);
             
+                            // Send it to the flock
                             port[0]->writePacket(outBuf, 3 + dataSize);
                         }
                         else if (addressMode == VS_AS_ADDR_EXPANDED)
                         {
+                            // Set up the command (In this mode, format 
+                            // further varies according to the FBB address 
+                            // of the target)
                             if (address > 15)
                                 outBuf[0] = VS_AS_CMD_RS232_TO_FBB_EXP + 
                                     address - 0x10;
@@ -936,20 +1087,24 @@ void vsAscensionSerialTrackingSystem::fbbCommand(int address,
                     
                             outBuf[1] = command;
             
+                            // Copy the data
                             if (dataSize > 0)
                                 memcpy(&outBuf[2], data, dataSize);
     
+                            // Send the command to the flock
                             port[0]->writePacket(outBuf, 2 + dataSize);
                         }
                         else
                         {
+                            // Standard address mode; set up the command
                             outBuf[0] = VS_AS_CMD_RS232_TO_FBB_STD + address;
-            
                             outBuf[1] = command;
                 
+                            // Copy the data
                             if (dataSize > 0)
                                 memcpy(&outBuf[2], data, dataSize);
             
+                            // Send it to the flock
                             port[0]->writePacket(outBuf, 2 + dataSize);
                         }
                     }
@@ -958,59 +1113,67 @@ void vsAscensionSerialTrackingSystem::fbbCommand(int address,
         }
         else
         {
-            // Just one tracker
-
+            // Command is just for one tracker (not all trackers)
+            // Again, the proper method varies according to serial
+            // port configuration
             if (multiSerial)
             {
                 // Send the given command to the right port
                 outBuf[0] = command;
-            
                 if (dataSize > 0)
                     memcpy(&outBuf[1], data, dataSize);
-    
-                    port[address - 1]->writePacket(outBuf, 1 + dataSize);
+
+                port[address - 1]->writePacket(outBuf, 1 + dataSize);
             }
             else
             {
-
                 // Send the given command to the master, prefixed by the
-                // appropriate RS232 TO FBB command and address
-
+                // appropriate RS232 TO FBB command and address.  The 
+                // proper format varies according to address mode.
                 if (addressMode == VS_AS_ADDR_SUPER_EXP)
                 {
+                    // Set up the command
                     outBuf[0] = VS_AS_CMD_RS232_TO_FBB_SUP;
                     outBuf[1] = address;
                     outBuf[2] = command;
 
+                    // Copy the data
                     if (dataSize > 0)
                         memcpy(&outBuf[3], data, dataSize);
     
+                    // Send to the flock
                     port[0]->writePacket(outBuf, 3 + dataSize);
                 }
                 else if (addressMode == VS_AS_ADDR_EXPANDED)
                 {
+                    // Set up the command.  In expanded mode, the format
+                    // further varies according to the FBB address of
+                    // the target.
                     if (address > 15)
                         outBuf[0] = VS_AS_CMD_RS232_TO_FBB_EXP + 
                             address - 0x10;
                     else
                         outBuf[0] = VS_AS_CMD_RS232_TO_FBB_STD + address;
     
+                    // Copy the command and data
                     outBuf[1] = command;
-    
                     if (dataSize > 0)
                         memcpy(&outBuf[2], data, dataSize);
     
+                    // Send the command to the flock
                     port[0]->writePacket(outBuf, 2 + dataSize);
                 }
                 else
                 {
+                    // Standard address mode; set up the command
                     outBuf[0] = VS_AS_CMD_RS232_TO_FBB_STD + address;
     
+                    // Copy the command and data
                     outBuf[1] = command;
-        
                     if (dataSize > 0)
                         memcpy(&outBuf[2], data, dataSize);
     
+                    // Send it to the flock
                     port[0]->writePacket(outBuf, 2 + dataSize);
                 }
             }
@@ -1036,7 +1199,6 @@ void vsAscensionSerialTrackingSystem::updatePosition(int trackerIndex,
 
     // Transform the position to the VESS coordinate system
     posVec = coordXform.rotatePoint(posVec);
-
     ornQuat.setAxisAngleRotation(0.0, 0.0, 0.0, 1.0);
 
     // Update the tracker data
@@ -1055,6 +1217,7 @@ void vsAscensionSerialTrackingSystem::updateAngles(int trackerIndex,
     double   h, p, r;
     vsQuat   ornQuat;
 
+    // Clear the position vector to zero
     posVec.setSize(3);
     posVec.clear();
 
@@ -1084,6 +1247,7 @@ void vsAscensionSerialTrackingSystem::updateMatrix(int trackerIndex,
     int      i, j;
     vsQuat   ornQuat;
 
+    // Clear the position vector to zero
     posVec.setSize(3);
     posVec.clear();
 
@@ -1119,6 +1283,7 @@ void vsAscensionSerialTrackingSystem::updateQuaternion(int trackerIndex,
     vsVector posVec;
     vsQuat   ornQuat;
 
+    // Clear the position vector to zero
     posVec.setSize(3);
     posVec.clear();
 
@@ -1150,6 +1315,7 @@ void vsAscensionSerialTrackingSystem::updatePosAngles(int trackerIndex,
     double   h, p, r;
     vsQuat   ornQuat;
 
+    // Copy the position data
     posVec.setSize(3);
     posVec[VS_X] = flockData[0] * posScale;
     posVec[VS_Y] = flockData[1] * posScale;
@@ -1184,6 +1350,7 @@ void vsAscensionSerialTrackingSystem::updatePosMatrix(int trackerIndex,
     int      i,j;
     vsQuat   ornQuat;
 
+    // Copy the position data
     posVec.setSize(3);
     posVec[VS_X] = flockData[0] * posScale;
     posVec[VS_Y] = flockData[1] * posScale;
@@ -1192,6 +1359,7 @@ void vsAscensionSerialTrackingSystem::updatePosMatrix(int trackerIndex,
     // Convert position to VESS coordinates
     posVec = coordXform.rotatePoint(posVec);
 
+    // Convert the flock's matrix to a vsMatrix
     for (i = 0; i < 3; i++)
     {
         for (j = 0; j < 3; j++)
@@ -1222,6 +1390,7 @@ void vsAscensionSerialTrackingSystem::updatePosQuat(int trackerIndex,
     vsVector posVec;
     vsQuat   ornQuat;
 
+    // Copy the position data
     posVec.setSize(3);
     posVec[VS_X] = flockData[0] * posScale;
     posVec[VS_Y] = flockData[1] * posScale;
@@ -1254,13 +1423,18 @@ void vsAscensionSerialTrackingSystem::ping()
     unsigned char buf;
     int           trackerNum;
 
+    // Simple one-byte command
     buf = VS_AS_CMD_POINT;
 
+    // Check the serial configuration
     if (multiSerial)
     {
         // Send the ping to each bird
         for (trackerNum = 0; trackerNum < numTrackers; trackerNum++)
         {
+            // If the flock contains an ERC, skip the bird with the ERC
+            // connected and make sure we send each ping to the correct
+            // FBB address
             if (((trackerNum + 1) < ercAddress) || (ercAddress == 0))
                 port[trackerNum + 1]->writePacket(&buf, 1);
             else
@@ -1291,18 +1465,24 @@ void vsAscensionSerialTrackingSystem::updateSystem()
     // If we're streaming, read the data one byte at a time
     if (streaming)
     {
+        // Initialize byte and retry counters
         bytesRead = 0;
         errorRetry = 100;
+
+        // Try up to 100 times to read the appropriate number of bytes
         while ((bytesRead < dataSize) && (errorRetry > 0))
         {
+            // Read the serial port
             result = port[0]->readPacket(&buf[bytesRead], 1);
             
+            // If we get any data, try to process it
             if (result != 0)
             {
-                // Check phase bit so we start at the beginning
-                // of a data record
+                // If we haven't read any data yet...
                 if (bytesRead == 0)
                 { 
+                    // Check phase bit (high bit of each byte) so we start 
+                    // reading at the beginning of a valid data record
                     if (buf[0] & 0x80)
                     {
                         bytesRead++;
@@ -1310,40 +1490,54 @@ void vsAscensionSerialTrackingSystem::updateSystem()
                 }
                 else
                 {
+                    // Accumulate the data we've read
                     bytesRead++;
                 }
             }
             else
             {
+                // Decrement the retry counter
                 errorRetry--;
             }
         }
 
+        // Print an error message if we failed to read the correct amount
+        // of data
         if (errorRetry <= 0)
         {
             printf("vsAscensionSerialTrackingSystem::updateSystem:\n");
             printf("   Error reading data (%d of %d bytes)\n",
                  bytesRead, dataSize);
 
+            // Flush the input buffer and try again with fresh data
             port[0]->flushPort();
         }
     }
     else
     {
+        // We're in single-shot mode
+
+        // Check the serial port configuration
         if (multiSerial)
         {
-            // Read a data packet from each bird
+            // Multi-serial configuration, read a data packet from each bird
             for (trackerNum = 0; trackerNum < numTrackers; trackerNum++)
             {
+                // The FBB address for the current tracker will be one greater 
+                // than the current tracker number, unless we are reading a 
+                // tracker located after the ERC on the FBB, in which case it
+                // will be two greater.
                 if (((trackerNum + 1) < ercAddress) || (ercAddress == 0))
                     bytesRead = 
                         port[trackerNum + 1]->
-                        readPacket(&buf[trackerNum * birdDataSize], 1);
+                            readPacket(&buf[trackerNum * birdDataSize], 1);
                 else
                     bytesRead = 
                         port[trackerNum + 2]->
-                        readPacket(&buf[trackerNum * birdDataSize], 1);
+                            readPacket(&buf[trackerNum * birdDataSize], 1);
 
+                // Print an error if we fail to read the correct amount of
+                // data
                 if (bytesRead != birdDataSize)
                 {
                     printf("vsAscensionSerialTrackingSystem::updateSystem:\n");
@@ -1351,6 +1545,7 @@ void vsAscensionSerialTrackingSystem::updateSystem()
                            "(%d of %d bytes)\n",
                          trackerNum, bytesRead, dataSize);
 
+                    // Flush the input buffer and try again with fresh data
                     port[trackerNum]->flushPort();
                 }
             }
@@ -1360,32 +1555,43 @@ void vsAscensionSerialTrackingSystem::updateSystem()
             // Read the entire data packet at once
             bytesRead = port[0]->readPacket(buf, dataSize);
 
+            // Print an error if we fail to read the correct amount of data
             if (bytesRead != dataSize)
             {
                 printf("vsAscensionSerialTrackingSystem::updateSystem:\n");
                 printf("   Error reading data (%d of %d bytes)\n",
                      bytesRead, dataSize);
+
+                // Flush the input buffer and try again with fresh data
                 port[0]->flushPort();
             }
     
+            // Check the phase bit of the first byte to make sure it is set
             if (!(buf[0] & 0x80))
             {
                 printf("vsAscensionSerialTrackingSystem::updateSystem:\n");
                 printf("   Error reading data, packet out of phase\n");
                 bytesRead = 0;
+
+                // Flush the input buffer and try again with fresh data
                 port[0]->flushPort();
             }
         }
     }
 
+    // If we succeeded in receiving the required amount of data, process it
     if (bytesRead == dataSize)
     {
+        // Process the data for each tracker
         for (i = 0; i < numTrackers; i++)
         {
+            // Figure out the vsMotionTracker array index for this segment of 
+            // tracker data
             if (configuration == VS_AS_MODE_FLOCK)
             {
                 if (multiSerial)
                 {
+                    // The tracker index is the same as the serial port index
                     currentTracker = i;
                 }
                 else
@@ -1394,7 +1600,10 @@ void vsAscensionSerialTrackingSystem::updateSystem()
                     currentAddress = 
                         buf[ (i * birdDataSize) + (birdDataSize - 1)];
 
-                    // Translate the address to an index into the tracker array
+                    // Translate the address to an index into the tracker 
+                    // array.  The index will be one less than the FBB address
+                    // or two less if the tracker is located after the ERC
+                    // on the bus.
                     if ((currentAddress > ercAddress) && (ercAddress != 0))
                         currentTracker = currentAddress - 2;
                     else
@@ -1403,9 +1612,13 @@ void vsAscensionSerialTrackingSystem::updateSystem()
             }
             else
             {
+                // In standalone mode, there is only one tracker so the
+                // index is zero
                 currentTracker = 0;
             }
 
+            // Make sure the tracker index is valid (this is primarily
+            // an additional check on the validity of the data)
             if ((currentTracker >= numTrackers) || 
                 (currentAddress < 0) || 
                 ((currentAddress == 0) && 
@@ -1419,8 +1632,8 @@ void vsAscensionSerialTrackingSystem::updateSystem()
             }
             else
             {
-                // Convert the 7-bit data into 8-bit numbers
-                // See the Ascension documentation for details
+                // Convert the 7-bit data into 8-bit numbers.
+                // This method is described in the Ascension documentation.
                 for (j = 0; j < birdDataSize - 1; j += 2)
                 {
                     lsb = buf[(i * birdDataSize) + j];
@@ -1431,6 +1644,8 @@ void vsAscensionSerialTrackingSystem::updateSystem()
                     flockData[j/2] = (msb | lsb) << 1;
                 }
 
+                // Update the tracker data depending on the current
+                // data format
                 switch (dataFormat)
                 {
                     case VS_AS_DATA_POSITION:
@@ -1459,6 +1674,7 @@ void vsAscensionSerialTrackingSystem::updateSystem()
         }
     }
 
+    // Request the next update if we're not continuously streaming
     if (!streaming)
     {
         ping();
@@ -1474,30 +1690,39 @@ void vsAscensionSerialTrackingSystem::forkTracking()
     key_t  theKey;
     time_t tod;
 
-    // Use a portion of the time of day for the second half of the 
-    // shared memory key
+    // Use a portion of the time of day for the second half of the shared
+    // memory key.  This helps prevent multiple shared memory segments with
+    // the same key.
     tod = time(NULL);
     tod &= 0x0000FFFF;
-
     theKey = VS_AS_SHM_KEY_BASE | tod;
 
+    // Fork the server process
     serverPID = fork();
 
+    // Branch based which process we're now running
     switch(serverPID)
     {
         case -1:
+            // Oops, the fork() call failed
             printf("vsAscensionSerialTrackingSystem::forkTracking:\n");
             printf("    fork() failed, continuing in single-process mode\n");
             break;
+
         case 0:
+            // Create the shared memory area and enter the server loop
             sharedData = new vsSharedInputData(theKey, numTrackers, VS_TRUE);
             serverLoop();
             break;
+
         default:
+            // Connect to the shared memory area (don't create it) and 
+            // continue with the application
             sharedData = new vsSharedInputData(theKey, numTrackers, VS_FALSE);
             forked = VS_TRUE;
             printf("vsAscensionSerialTrackingSystem::forkTracking:\n");
             printf("    Server PID is %d\n", serverPID);
+            break;
     }
 }
 
@@ -1514,9 +1739,11 @@ void vsAscensionSerialTrackingSystem::startStream()
     // Ignore this command if we're using multiple serial ports
     if (!multiSerial)
     {
+        // Send the stream command
         buf = VS_AS_CMD_STREAM;
         port[0]->writePacket(&buf, 1);
 
+        // Set the stream flag to true
         streaming = VS_TRUE;
     }
 }
@@ -1529,9 +1756,11 @@ void vsAscensionSerialTrackingSystem::stopStream()
     if (streaming)
     {
         // If we're streaming, we must be using a single serial port, so
-        // don't bother checking for multiSerial
+        // don't bother checking for multiSerial.  Just send the point
+        // command
         ping();
 
+        // Set the stream flag to false
         streaming = VS_FALSE;
     }
 }
@@ -1543,10 +1772,11 @@ void vsAscensionSerialTrackingSystem::setDataFormat(int format)
 {
     unsigned char dataCommand;
 
+    // Set the new dataFormat value
     dataFormat = format;
 
-    // Set each bird's data format to the requested format
-    // Add one to the size for the group mode address byte
+    // Set each bird's data format to the requested format and calculate
+    // the new data size
     switch (dataFormat)
     {
         case VS_AS_DATA_POSITION:
@@ -1554,50 +1784,60 @@ void vsAscensionSerialTrackingSystem::setDataFormat(int format)
             birdDataSize = VS_AS_DATA_POSITION_SIZE;
             printf("  Setting data format to POSITION\n");
             break;
+
         case VS_AS_DATA_ANGLES:
             dataCommand = VS_AS_CMD_ANGLES;
             birdDataSize = VS_AS_DATA_ANGLES_SIZE;
             printf("  Setting data format to ANGLES\n");
             break;
+
         case VS_AS_DATA_MATRIX:
             dataCommand = VS_AS_CMD_MATRIX;
             birdDataSize = VS_AS_DATA_MATRIX_SIZE;
             printf("  Setting data format to MATRIX\n");
             break;
+
         case VS_AS_DATA_QUATERNION:
             dataCommand = VS_AS_CMD_QUATERNION;
             birdDataSize = VS_AS_DATA_QUATERNION_SIZE;
             printf("  Setting data format to QUATERNION\n");
             break;
+
         case VS_AS_DATA_POS_ANGLES:
             dataCommand = VS_AS_CMD_POS_ANGLES;
             birdDataSize = VS_AS_DATA_POS_ANGLES_SIZE;
             printf("  Setting data format to POS_ANGLES\n");
             break;
+
         case VS_AS_DATA_POS_MATRIX:
             dataCommand = VS_AS_CMD_POS_MATRIX;
             birdDataSize = VS_AS_DATA_POS_MATRIX_SIZE;
             printf("  Setting data format to POS_MATRIX\n");
             break;
+
         case VS_AS_DATA_POS_QUAT:
             dataCommand = VS_AS_CMD_POS_QUAT;
             birdDataSize = VS_AS_DATA_POS_QUAT_SIZE;
             printf("  Setting data format to POS_QUAT\n");
             break;
+
         default:
             printf("   Invalid data format %d, assuming POS_QUAT\n", 
                 dataFormat);
             dataFormat = VS_AS_DATA_POS_QUAT;
             birdDataSize = VS_AS_DATA_POS_QUAT_SIZE;
             dataCommand = VS_AS_CMD_POS_QUAT;
+            break;
     }
 
+    // Add one to the size for the group mode address byte
     if ((!multiSerial) && (configuration == VS_AS_MODE_FLOCK))
         birdDataSize += 1;
 
     // Compute the total data size per update
     dataSize = birdDataSize * numTrackers;
 
+    // Set the data format on all trackers
     fbbCommand(VS_AS_ALL_TRACKERS, dataCommand, NULL, 0);
 }
 
@@ -1614,39 +1854,48 @@ void vsAscensionSerialTrackingSystem::setActiveHemisphere(int trackerNum,
 
     // memcpy() of the hSphere parameter doesn't work on little-endian
     // machines.  To account for this, we set each byte of the hemisphere
-    // command explicitly.
+    // command explicitly.  See the Ascension hardware documentation for
+    // info and parameters for the Hemisphere hardware command.
     switch (hSphere)
     {
         case VS_AS_HSPH_FORWARD:
             buf[0] = 0x00;
             buf[1] = 0x00;
             break;
+
         case VS_AS_HSPH_AFT:
             buf[0] = 0x00;
             buf[1] = 0x01;
             break;
+
         case VS_AS_HSPH_UPPER:
             buf[0] = 0x0C;
             buf[1] = 0x01;
             break;
+
         case VS_AS_HSPH_LOWER:
             buf[0] = 0x0C;
             buf[1] = 0x00;
             break;
+
         case VS_AS_HSPH_LEFT:
             buf[0] = 0x06;
             buf[1] = 0x01;
             break;
+
         case VS_AS_HSPH_RIGHT:
             buf[0] = 0x06;
             buf[1] = 0x00;
             break;
     }
 
+    // Send the command (procedure varies based on standalone or flock mode)
     if (configuration == VS_AS_MODE_STANDALONE)
     {
+        // Validate the tracker number
         if (trackerNum == 0)
         {
+            // Send the command
             address = 0;
             fbbCommand(address, VS_AS_CMD_HEMISPHERE, buf, 2);
         }
@@ -1658,17 +1907,23 @@ void vsAscensionSerialTrackingSystem::setActiveHemisphere(int trackerNum,
     }
     else
     {
+        // Validate the tracker number
         if (trackerNum < numTrackers)
         {
+            // Compute the FBB address.  The address will be one greater
+            // than the tracker number, unless the tracker is behind an
+            // ERC on the bus, in which case the address will be two greater.
             if (((trackerNum + 1) < ercAddress) || (ercAddress == 0))
                 address = trackerNum + 1;
             else
                 address = trackerNum + 2;
 
+            // Send the command
             fbbCommand(address, VS_AS_CMD_HEMISPHERE, buf, 2);
         }
         else if (trackerNum == VS_AS_ALL_TRACKERS)
         {
+            // Send the command to all trackers
             fbbCommand(VS_AS_ALL_TRACKERS, VS_AS_CMD_HEMISPHERE, buf, 2);
         }
         else 
@@ -1689,6 +1944,9 @@ void vsAscensionSerialTrackingSystem::setReferenceFrame(float h, float p,
     unsigned char buf[7];
     short         az, pt, rl;
 
+    // Set up the reference frame command.  Note that we use the Reference
+    // Frame 2 command which requires only the h, p, r orientation of the
+    // tracker's reference frame.
     buf[0] = VS_AS_CMD_REF_FRAME2;
    
     // Convert the angles into Ascension-friendly format
@@ -1696,6 +1954,7 @@ void vsAscensionSerialTrackingSystem::setReferenceFrame(float h, float p,
     pt = (short)(p / VS_AS_SCALE_ANGLE);
     rl = (short)(r / VS_AS_SCALE_ANGLE);
 
+    // Pack the angles into the proper data format
     buf[1] = (unsigned char)(az & 0x00FF);
     buf[2] = (unsigned char)(az >> 8);
     buf[3] = (unsigned char)(pt & 0x00FF);
@@ -1724,6 +1983,7 @@ void vsAscensionSerialTrackingSystem::setAngleAlignment(int trackerNum,
     pt = (short)(p / VS_AS_SCALE_ANGLE);
     rl = (short)(r / VS_AS_SCALE_ANGLE);
 
+    // Pack the angles into the right data format
     data[0] = (unsigned char)(az & 0x00FF);
     data[1] = (unsigned char)(az >> 8);
     data[2] = (unsigned char)(pt & 0x00FF);
@@ -1731,14 +1991,14 @@ void vsAscensionSerialTrackingSystem::setAngleAlignment(int trackerNum,
     data[4] = (unsigned char)(rl & 0x00FF);
     data[5] = (unsigned char)(rl >> 8);
 
-
     // Issue the command with the converted data
     if (configuration == VS_AS_MODE_STANDALONE)
     {
+        // Validate the tracker number
         if (trackerNum == 0)
         {
+            // Send the command
             address = 0;
-
             fbbCommand(address, VS_AS_CMD_ANGLE_ALIGN2, data, 6);
         }
         else 
@@ -1749,17 +2009,23 @@ void vsAscensionSerialTrackingSystem::setAngleAlignment(int trackerNum,
     }
     else
     {
+        // Validate the tracker number
         if (trackerNum < numTrackers)
         {
+            // Compute the FBB address.  The address will be one greater
+            // than the tracker number, unless the tracker is behind an
+            // ERC on the bus, in which case the address will be two greater.
             if (((trackerNum + 1) < ercAddress) || (ercAddress == 0))
                 address = trackerNum + 1;
             else
                 address = trackerNum + 2;
 
+            // Send the command
             fbbCommand(address, VS_AS_CMD_ANGLE_ALIGN2, data, 6);
         }
         else if (trackerNum == VS_AS_ALL_TRACKERS)
         {
+            // Send the command to all trackers
             fbbCommand(VS_AS_ALL_TRACKERS, VS_AS_CMD_ANGLE_ALIGN2, data, 6);
         }
         else 
@@ -1777,8 +2043,8 @@ void vsAscensionSerialTrackingSystem::sleepFlock()
 {
     unsigned char buf;
 
+    // Send the sleep command to the master bird
     buf = VS_AS_CMD_SLEEP;
-
     port[0]->writePacket(&buf, 1);
 }
 
@@ -1789,8 +2055,8 @@ void vsAscensionSerialTrackingSystem::runFlock()
 {
     unsigned char buf;
    
+    // Send the run command to the master bird
     buf = VS_AS_CMD_RUN;
-
     port[0]->writePacket(&buf, 1);
 }
 
@@ -1804,9 +2070,9 @@ void vsAscensionSerialTrackingSystem::setSyncMode(int syncType)
 {
     unsigned char buf[2];
 
+    // Send the sync command and its argument to the master bird
     buf[0] = VS_AS_CMD_SYNC;
     buf[1] = syncType;
-
     port[0]->writePacket(buf, 2);
 }
 
@@ -1820,9 +2086,11 @@ void vsAscensionSerialTrackingSystem::setTransmitter(int address, int number)
 {
     unsigned char buf[2];
 
+    // Set up the command and pack the arguments as necessary
     buf[0] = VS_AS_CMD_NEXT_XMTR;
     buf[1] = ((address & 0x0F) << 4) | (number & 0x03);
 
+    // Send the command to the master bird
     port[0]->writePacket(buf, 2);
 }
 
@@ -1839,6 +2107,7 @@ int vsAscensionSerialTrackingSystem::getNumTrackers()
 // ------------------------------------------------------------------------
 vsMotionTracker *vsAscensionSerialTrackingSystem::getTracker(int index)
 {
+    // Validate the tracker number (return NULL if invalid)
     if (index < numTrackers)
         return tracker[index];
     else
@@ -1855,15 +2124,18 @@ void vsAscensionSerialTrackingSystem::update()
     vsVector posVec;
     vsQuat   ornQuat;
 
+    // Check to see if we're using a forked server process
     if (forked)
     {
-        // Copy the data from shared memory
+        // Get the latest tracker data from shared memory for all trackers
         for (i = 0; i < numTrackers; i++)
         {
+            // Copy the data from shared memory
             posVec.setSize(3);
             sharedData->retrieveVectorData(i, &posVec);
             sharedData->retrieveQuatData(i, &ornQuat);
 
+            // Apply the new data to the vsMotionTracker
             tracker[i]->setPosition(posVec);
             tracker[i]->setOrientation(ornQuat);
         }

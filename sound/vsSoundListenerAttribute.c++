@@ -39,15 +39,8 @@ vsSoundListenerAttribute::vsSoundListenerAttribute()
     offsetMatrix.setIdentity();
     parentComponent = NULL;
 
-    zero[0] = 0.0;
-    zero[1] = 0.0;
-    zero[2] = 0.0;
-    zero[3] = 0.0;
-    zero[4] = 0.0;
-    zero[5] = 0.0;
-
+    // Initialize the vector holding the last position of the listener
     lastPos.clear();
-    lastOrn.clear();
 
     // Call getTimeInterval to initialize the lastTime variable
     getTimeInterval();
@@ -56,6 +49,15 @@ vsSoundListenerAttribute::vsSoundListenerAttribute()
     coordXform.setAxisAngleRotation(1, 0, 0, -90.0);
     coordXformInv = coordXform;
     coordXformInv.conjugate();
+
+    // Set up a buffer of six zero-valued floats, used to initialize
+    // the alListener below.
+    zero[0] = 0.0;
+    zero[1] = 0.0;
+    zero[2] = 0.0;
+    zero[3] = 0.0;
+    zero[4] = 0.0;
+    zero[5] = 0.0;
 
     // Configure the listener
     alListenerfv(AL_POSITION, zero);
@@ -96,12 +98,19 @@ double vsSoundListenerAttribute::getTimeInterval()
     double         currentTime;
     double         deltaTime;
 
+    // Get the current time
     gettimeofday(&tv, NULL);
 
+    // Convert from a timeval to seconds
     currentTime = tv.tv_sec + tv.tv_usec / 1E6;
+
+    // Compute the difference in time
     deltaTime = currentTime - lastTime;
+
+    // Save the current time for the next call
     lastTime = currentTime;
 
+    // Return the difference in time computed above
     return deltaTime;
 }
 
@@ -112,6 +121,7 @@ double vsSoundListenerAttribute::getTimeInterval()
 // ------------------------------------------------------------------------
 void vsSoundListenerAttribute::attach(vsNode *theNode)
 {
+    // Make sure we're not already attached
     if (attachedFlag)
     {
         printf("vsSoundListenerAttribute::attach: Attribute is already "
@@ -119,6 +129,7 @@ void vsSoundListenerAttribute::attach(vsNode *theNode)
         return;
     }
 
+    // Make sure we're not trying to attach to a Geometry node
     if (theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
     {
         printf("vsSoundListenerAttribute::attach: Can't attach sound listener "
@@ -126,8 +137,10 @@ void vsSoundListenerAttribute::attach(vsNode *theNode)
         return;
     }
 
+    // Save the component we're attaching to
     parentComponent = ((vsComponent *)theNode);
     
+    // Flag this attribute as attached to a component
     attachedFlag = 1;
 }
 
@@ -138,14 +151,17 @@ void vsSoundListenerAttribute::attach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsSoundListenerAttribute::detach(vsNode *theNode)
 {
+    // Make sure we're actually attached to the node
     if (!attachedFlag)
     {
         printf("vsSoundListenerAttribute::detach: Attribute is not attached\n");
         return;
     }
 
+    // Detach from the node
     parentComponent = NULL;
-    
+
+    // Flag this attribute as not attached to any component
     attachedFlag = 0;
 }
 
@@ -192,15 +208,18 @@ void vsSoundListenerAttribute::update()
     vsVector       atVec, upVec;
     ALfloat        orientation[6];
 
+    // If the attribute is not attached to a component, we have nothing
+    // to do.  Simply return
     if (!attachedFlag)
         return;
 
     // Get the component's global transform
     result = parentComponent->getGlobalXform();
 
+    // Apply the listener's offset matrix
     result = result * offsetMatrix;
     
-    // Update the position
+    // Apply the VESS-to-OpenAL coordinate conversion
     tempVec[VS_X] = result[0][3];
     tempVec[VS_Y] = result[1][3];
     tempVec[VS_Z] = result[2][3];
@@ -214,12 +233,18 @@ void vsSoundListenerAttribute::update()
     deltaVec = tempVec - lastPos;
     interval = getTimeInterval();
 
+    // Make sure time has passed before trying to compute the velocity
+    // (otherwise a divide by zero would result)
     if (interval > 0.0)
     {
+        // Divide the change in position by time to get a velocity vector
         deltaVec.scale(1/interval);
+
+        // Update the listener's velocity
         alListener3f(AL_VELOCITY, (float)deltaVec[VS_X], (float)deltaVec[VS_Y], 
             (float)deltaVec[VS_Z]);
 
+        // Save the current position for the next frame
         lastPos = tempVec;
     }
 
@@ -254,8 +279,10 @@ double vsSoundListenerAttribute::getGain()
 {
     float gain;
 
+    // Get the current listener's gain from OpenAL
     alGetListenerfv(AL_GAIN, &gain);
 
+    // Return the gain
     return (double)gain;
 }
 
@@ -264,5 +291,6 @@ double vsSoundListenerAttribute::getGain()
 // ------------------------------------------------------------------------
 void vsSoundListenerAttribute::setGain(double gain)
 {
+    // Set the listener's gain to the specified value
     alListenerf(AL_GAIN, (float)gain);
 }

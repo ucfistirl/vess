@@ -42,16 +42,21 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     XWindowAttributes xattr;
     int result;
     
+    // No panes attached to start with
     childPaneCount = 0;
     
+    // Get the parent screen and pipe objects for this window
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
     
+    // Create a new Performer rendering window
     performerPipeWindow = new pfPipeWindow(parentPipe->getBaseLibraryObject());
     performerPipeWindow->ref();
     
+    // Add this window to the parent screen's window list
     parentScreen->addWindow(this);
     
+    // Window configuration
     performerPipeWindow->setMode(PFWIN_ORIGIN_LL, 0);
     if (hideBorder)
         performerPipeWindow->setMode(PFWIN_NOBORDER, 1);
@@ -65,11 +70,12 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     //              second sleep seems to get around this.
     sleep(1);
 
+    // Display the Performer window
     performerPipeWindow->open();
 
-    // Force the window open
+    // Force the window open by repeatedly calling the X server to
+    // flush the stream
     xWindowDisplay = pfGetCurWSConnection();
-
     while (!(performerPipeWindow->isOpen()))
     {
         pfFrame();
@@ -83,12 +89,15 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
 
     do
     {
+        // Query X for the ID of the window's parent window
         result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
             &childPointer, &childCount);
         XFree(childPointer);
 //        printf("result(%d) rootID(%d) parentID(%d) xWindowID(%d)\n", result,
 //            rootID, parentID, xWindowID);
 
+        // Store the parent window ID, if it's something meaningful. (zero
+	// means we're at the screen's root window; that's too far.)
         if (result == 0)
         {
             pfFrame();
@@ -98,6 +107,8 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
             xWindowID = parentID;
     }
     while (rootID != parentID);
+
+    // Store the ID of the topmost window
     topWindowID = xWindowID;
 //    printf("topWindowID: %d\n", topWindowID);
 
@@ -134,6 +145,7 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
     XWindowAttributes xattr;
     int result;
     
+    // No panes attached to start with
     childPaneCount = 0;
     
     // Get the parent screen
@@ -165,9 +177,9 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
     if (!performerPipeWindow->isOpen())
         performerPipeWindow->open();
 
-    // Force the window open
+    // Force the window open by repeatedly calling the X server to
+    // flush the stream
     xWindowDisplay = pfGetCurWSConnection();
-
     while (!(performerPipeWindow->isOpen()))
     {
         pfFrame();
@@ -177,9 +189,9 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
     // Get the window that Performer thinks is topmost, and then query the
     // X server to determine if that window really is the topmost one.
     xWindowID = performerPipeWindow->getWSWindow();
-
     do
     {
+        // Query X for the ID of the window's parent window
         result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
             &childPointer, &childCount);
         XFree(childPointer);
@@ -193,6 +205,8 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
             xWindowID = parentID;
     }
     while (rootID != parentID);
+
+    // Store the ID of the topmost window
     topWindowID = xWindowID;
 
     // Attempt to determine the size of the window manager's border for
@@ -234,21 +248,28 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
 
     int result;
     
+    // No panes attached to start with
     childPaneCount = 0;
     
+    // Get the parent screen and pipe objects for this window
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
     
+    // Create a new Performer rendering window
     performerPipeWindow = new pfPipeWindow(parentPipe->getBaseLibraryObject());
     performerPipeWindow->ref();
     
+    // Add this window to the parent screen's window list
     parentScreen->addWindow(this);
     
+    // Window configuration
     performerPipeWindow->setMode(PFWIN_ORIGIN_LL, 0);
     if (hideBorder)
         performerPipeWindow->setMode(PFWIN_NOBORDER, 1);
 
-   if (stereo)
+    // If a stereo visual is specified, try to configure the frame buffer 
+    // for stereo now
+    if (stereo)
     {
         // Set up a stereo/double-buffered frame buffer
         fbConfigAttrs[0] = PFFB_RGBA;
@@ -266,9 +287,11 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
 
         fbConfigAttrs[9] = 0;
 
+        // Pass the frame buffer configuration to Performer
         performerPipeWindow->setFBConfigAttrs(fbConfigAttrs);
     }
 
+    // Set the location and size of the window
     performerPipeWindow->setOriginSize(VS_WINDOW_DEFAULT_XPOS,
         VS_WINDOW_DEFAULT_YPOS, VS_WINDOW_DEFAULT_WIDTH,
         VS_WINDOW_DEFAULT_HEIGHT);
@@ -279,13 +302,12 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
     //              second sleep seems to get around this.
     sleep(1);
 
+    // Display the Performer window
     performerPipeWindow->open();
 
-    // Attempt to determine the size of the window manager's border for
-    // this window by checking the difference between Performer's idea
-    // of the window size and X's one.
+    // Force the window open by repeatedly calling the X server to
+    // flush the stream
     xWindowDisplay = pfGetCurWSConnection();
-
     while (!(performerPipeWindow->isOpen()))
     {
         pfFrame();
@@ -296,15 +318,17 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
     // X server to determine if that window really is the topmost one.
     xWindowID = performerPipeWindow->getWSWindow();
 //    printf("xWindowID(%d)\n", xWindowID);
-
     do
     {
+        // Query X for the ID of the window's parent window
         result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
             &childPointer, &childCount);
         XFree(childPointer);
 //        printf("result(%d) rootID(%d) parentID(%d) xWindowID(%d)\n", result,
 //            rootID, parentID, xWindowID);
 
+        // Store the parent window ID, if it's something meaningful. (zero
+	// means we're at the screen's root window; that's too far.)
         if (result == 0)
         {
             pfFrame();
@@ -314,6 +338,8 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
             xWindowID = parentID;
     }
     while (rootID != parentID);
+
+    // Store the ID of the topmost window
     topWindowID = xWindowID;
 //    printf("topWindowID: %d\n", topWindowID);
 
@@ -350,6 +376,7 @@ vsWindow::~vsWindow()
     while (childPaneCount > 0)
         delete ((vsPane *)(childPaneList[0]));
     
+    // Remove this window from the parent screen's window list
     parentScreen->removeWindow(this);
 }
     
@@ -375,12 +402,14 @@ int vsWindow::getChildPaneCount()
 // ------------------------------------------------------------------------
 vsPane *vsWindow::getChildPane(int index)
 {
+    // Bounds check
     if ((index < 0) || (index >= childPaneCount))
     {
         printf("vsWindow::getChildPane: Index out of bounds\n");
         return NULL;
     }
 
+    // Return the desired pane
     return (vsPane *)(childPaneList[index]);
 }
 
@@ -411,8 +440,11 @@ void vsWindow::getSize(int *width, int *height)
     XWindowAttributes xattr;
     int x, y;
     
+    // Get the current X Display object
     xWindowDisplay = pfGetCurWSConnection();
 
+    // Attempt to get the size of the window; just mark the size as zero
+    // if the attempt fails
     if (XGetWindowAttributes(xWindowDisplay, topWindowID, &xattr) == 0)
     {
         x = 0;
@@ -424,6 +456,7 @@ void vsWindow::getSize(int *width, int *height)
         y = xattr.height;
     }
 
+    // Return the desired values
     if (width)
         *width = x;
     if (height)
@@ -459,8 +492,11 @@ void vsWindow::getPosition(int *xPos, int *yPos)
     XWindowAttributes xattr;
     int x, y;
 
+    // Get the current X Display object
     xWindowDisplay = pfGetCurWSConnection();
 
+    // Attempt to get the position of the window; just mark the position
+    // as zero if the attempt fails
     if (XGetWindowAttributes(xWindowDisplay, topWindowID, &xattr) == 0)
     {
         x = 0;
@@ -472,6 +508,7 @@ void vsWindow::getPosition(int *xPos, int *yPos)
         y = xattr.y;
     }
 
+    // Return the desired values
     if (xPos)
         *xPos = x;
     if (yPos)
@@ -485,8 +522,11 @@ void vsWindow::setFullScreen()
 {
     int screenWidth, screenHeight;
 
+    // Get the size of the parent's screen
     parentScreen->getScreenSize(&screenWidth, &screenHeight);
     
+    // Set the size of this window to the size of the parent's screen,
+    // and the origin of the window in the top-left corner
     setPosition(0, 0);
     setSize(screenWidth, screenHeight);
 }
@@ -501,6 +541,7 @@ void vsWindow::setName(char *newName)
     Display *xWindowDisplay;
     Window xWindowID;
 
+    // Set the name of this window on the Performer window object
     performerPipeWindow->setName(newName);
     
     // Obtain the X Display and Window objects for this window
@@ -563,10 +604,17 @@ void vsWindow::saveImage(char *filename)
     
     // * Juggle the 'mask' bits around (as given by the X image structure)
     // to determine which color data bits occupy what space within each
-    // pixel data unit. Also construct a lookup table to allow for quick
+    // pixel data unit. This information is stored as a bit shift indicating
+    // the number of bits to move before we get to the start of that color
+    // component's bits, and a bit mask used to mask out bits from other
+    // color components. Also construct a lookup table to allow for quick
     // scaling from whatever is stored in the data into the 0-255 range
     // that the RGB format wants.
-
+    
+    // Computing the shift and mask involves shifting the mask down until
+    // the low bit becomes one. The mask is them saved like that, and the
+    // number of shifts is recorded.
+    
     // Red size and offset
     redMax = image->red_mask;
     redShift = 0;
@@ -606,6 +654,7 @@ void vsWindow::saveImage(char *filename)
     for (loop = 0; loop <= blueMax; loop++)
         blueVals[loop] = ((loop * 255) / blueMax);
 
+    // Create a buffer area for each color component of the image
     redBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
     greenBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
     blueBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
@@ -623,16 +672,25 @@ void vsWindow::saveImage(char *filename)
     {
         for (sloop = 0; sloop < width; sloop++)
         {
+            // Call an X function to extract one of the image pixels from
+	    // the X image object
             pixelData = XGetPixel(image, sloop, loop);
 
+	    // Decode the three component pixel values using the associated
+	    // bit mask, bit shift value, and lookup table. Store the
+	    // resulting value in the pixel array for that component.
+
+	    // Red
             redPixel = pixelData & redMask;
             redPixel >>= redShift;
             redBuffer[sloop] = redVals[redPixel];
 
+            // Green
             greenPixel = pixelData & greenMask;
             greenPixel >>= greenShift;
             greenBuffer[sloop] = greenVals[greenPixel];
 
+            // Blue
             bluePixel = pixelData & blueMask;
             bluePixel >>= blueShift;
             blueBuffer[sloop] = blueVals[bluePixel];
@@ -647,7 +705,6 @@ void vsWindow::saveImage(char *filename)
 
     // Clean up
     iclose(imageOut);
-
     XDestroyImage(image);
 }
 
@@ -689,12 +746,20 @@ void vsWindow::removePane(vsPane *targetPane)
     // Remove pane from window's internal list
     int loop, sloop;
     
+    // Search the child pane list for the target pane
     for (loop = 0; loop < childPaneCount; loop++)
         if (targetPane == childPaneList[loop])
         {
+            // Remove the target pane from the child list by sliding the
+	    // other children down over the removed one
             for (sloop = loop; sloop < (childPaneCount-1); sloop++)
                 childPaneList[sloop] = childPaneList[sloop+1];
+
+            // One fewer child
             childPaneCount--;
+
+            // Remove the pane's pfChannel object from this window's
+	    // pfPipeWindow object
             performerPipeWindow->removeChan(targetPane->getBaseLibraryObject());
             return;
         }
@@ -708,6 +773,8 @@ void vsWindow::removePane(vsPane *targetPane)
 // ------------------------------------------------------------------------
 void vsWindow::attachWSystem(vsWindowSystem *wSystem)
 {
+    // Make sure we don't already have a window system object before
+    // attaching this one
     if (currentWS)
         printf("vsWindow::attachWSystem:: Window already has a "
             "vsWindowSystem attached\n");
@@ -721,5 +788,6 @@ void vsWindow::attachWSystem(vsWindowSystem *wSystem)
 // ------------------------------------------------------------------------
 void vsWindow::removeWSystem()
 {
+    // Clear the window system pointer
     currentWS = NULL;
 }

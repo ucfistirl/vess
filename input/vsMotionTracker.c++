@@ -53,6 +53,8 @@ void vsMotionTracker::setPosition(vsVector posVec)
 {
     int i;
 
+    // Set each input axis's position to the corresponding value in the
+    // specified position vector
     for (i = 0; i < 3; i++)
     {
         position[i].setPosition(posVec.getValue(i));
@@ -86,7 +88,8 @@ void vsMotionTracker::setOrientation(vsQuat ornQuat)
 }
 
 // ------------------------------------------------------------------------
-// Return the number of buttons on a vsMotionTracker (zero)
+// Return the number of buttons on a vsMotionTracker (zero, trackers don't
+// have buttons)
 // ------------------------------------------------------------------------
 int vsMotionTracker::getNumButtons()
 {

@@ -30,6 +30,7 @@
 // ------------------------------------------------------------------------
 vsTextureAttribute::vsTextureAttribute()
 {
+    // Create the Performer texture and texture environment objects
     performerTexture = new pfTexture();
     performerTexture->ref();
     performerTexEnv = new pfTexEnv();
@@ -44,6 +45,8 @@ vsTextureAttribute::vsTextureAttribute()
 vsTextureAttribute::vsTextureAttribute(pfTexture *texObject,
     pfTexEnv *texEnvObject)
 {
+    // Store pointers to the specified Performer texture and texture
+    // environment objects
     performerTexture = texObject;
     performerTexture->ref();
     performerTexEnv = texEnvObject;
@@ -55,6 +58,7 @@ vsTextureAttribute::vsTextureAttribute(pfTexture *texObject,
 // ------------------------------------------------------------------------
 vsTextureAttribute::~vsTextureAttribute()
 {
+    // Delete the Performer objects
     performerTexture->unref();
     pfDelete(performerTexture);
     performerTexEnv->unref();
@@ -83,6 +87,8 @@ void vsTextureAttribute::setImage(unsigned char *imageData, int xSize,
 {
     int format, comp;
 
+    // Decode the data format value into a Performer data format constant
+    // and the number of bytes per pixel.
     switch (dataFormat)
     {
         case VS_TEXTURE_DFORMAT_INTENSITY:
@@ -106,6 +112,7 @@ void vsTextureAttribute::setImage(unsigned char *imageData, int xSize,
             return;
     }
 
+    // Set the image data and format information on the Performer texture
     performerTexture->setFormat(PFTEX_INTERNAL_FORMAT,
         PFTEX_RGBA_8 | PFTEX_GEN_MIPMAP_FORMAT);
     performerTexture->setFormat(PFTEX_EXTERNAL_FORMAT, PFTEX_UNSIGNED_BYTE);
@@ -125,6 +132,7 @@ void vsTextureAttribute::getImage(unsigned char **imageData, int *xSize,
     int comp, ns, nt, nr;
     int format;
     
+    // Get the image data from the Performer texture
     performerTexture->getImage(&image, &comp, &ns, &nt, &nr);
     switch (comp)
     {
@@ -142,6 +150,7 @@ void vsTextureAttribute::getImage(unsigned char **imageData, int *xSize,
             break;
     }
 
+    // Return those values that the user desires
     if (imageData)
         *imageData = ((unsigned char *)image);
     if (xSize)
@@ -157,7 +166,11 @@ void vsTextureAttribute::getImage(unsigned char **imageData, int *xSize,
 // ------------------------------------------------------------------------
 void vsTextureAttribute::loadImageFromFile(char *filename)
 {
+    // Set the internal data format of the texture data to 32 bits per
+    // texel, with 8 bits each red, green, blue, and alpha
     performerTexture->setFormat(PFTEX_INTERNAL_FORMAT, PFTEX_RGBA_8);
+
+    // Load the texture data from the designated file
     if (!(performerTexture->loadFile(filename)))
         printf("vsTextureAttribute::loadImageFromFile: Unable to load image\n");
 }
@@ -171,11 +184,14 @@ void vsTextureAttribute::setBoundaryMode(int whichDirection, int boundaryMode)
 {
     int wrapType;
     
+    // Translate the VESS texture wrap constant to Performer
     if (boundaryMode == VS_TEXTURE_BOUNDARY_REPEAT)
         wrapType = PFTEX_REPEAT;
     else
         wrapType = PFTEX_CLAMP;
 
+    // Set the desired Performer texture wrap mode based on the direction
+    // constant
     switch (whichDirection)
     {
         case VS_TEXTURE_DIRECTION_S:
@@ -197,11 +213,14 @@ int vsTextureAttribute::getBoundaryMode(int whichDirection)
 {
     int wrapType;
 
+    // Set the desired Performer texture wrap mode based on the direction
+    // constant
     if (whichDirection == VS_TEXTURE_DIRECTION_T)
         wrapType = performerTexture->getRepeat(PFTEX_WRAP_T);
     else
         wrapType = performerTexture->getRepeat(PFTEX_WRAP_S);
 
+    // Translate the Performer texture wrap constant to VESS
     if (wrapType == PFTEX_REPEAT)
         return VS_TEXTURE_BOUNDARY_REPEAT;
     else
@@ -213,6 +232,8 @@ int vsTextureAttribute::getBoundaryMode(int whichDirection)
 // ------------------------------------------------------------------------
 void vsTextureAttribute::setApplyMode(int applyMode)
 {
+    // Set the Performer texture environment's apply mode based on the
+    // VESS apply mode constant passed in
     switch (applyMode)
     {
         case VS_TEXTURE_APPLY_DECAL:
@@ -235,6 +256,8 @@ void vsTextureAttribute::setApplyMode(int applyMode)
 // ------------------------------------------------------------------------
 int vsTextureAttribute::getApplyMode()
 {
+    // Get the Performer texture environment mode, and translate that
+    // to a VESS apply mode constant
     switch (performerTexEnv->getMode())
     {
         case PFTE_DECAL:
@@ -245,6 +268,7 @@ int vsTextureAttribute::getApplyMode()
             return VS_TEXTURE_APPLY_REPLACE;
     }
 
+    // If the mode is unrecognized, return an error value
     return -1;
 }
 
@@ -253,6 +277,8 @@ int vsTextureAttribute::getApplyMode()
 // ------------------------------------------------------------------------
 void vsTextureAttribute::setMagFilter(int newFilter)
 {
+    // Translate the VESS magnification filter constant to a call to
+    // the Performer texture filter mode set function
     switch (newFilter)
     {
         case VS_TEXTURE_MAGFILTER_NEAREST:
@@ -272,6 +298,8 @@ void vsTextureAttribute::setMagFilter(int newFilter)
 // ------------------------------------------------------------------------
 int vsTextureAttribute::getMagFilter()
 {
+    // Get the magnification filter constant value from the Performer
+    // texture object, and translate that to a VESS constant
     switch (performerTexture->getFilter(PFTEX_MAGFILTER))
     {
         case PFTEX_POINT:
@@ -280,6 +308,7 @@ int vsTextureAttribute::getMagFilter()
             return VS_TEXTURE_MAGFILTER_LINEAR;
     }
     
+    // If the mode is unrecognized, return an error value
     return -1;
 }
 
@@ -288,6 +317,8 @@ int vsTextureAttribute::getMagFilter()
 // ------------------------------------------------------------------------
 void vsTextureAttribute::setMinFilter(int newFilter)
 {
+    // Translate the VESS minification filter constant to a call to
+    // the Performer texture filter mode set function
     switch (newFilter)
     {
         case VS_TEXTURE_MINFILTER_NEAREST:
@@ -313,6 +344,8 @@ void vsTextureAttribute::setMinFilter(int newFilter)
 // ------------------------------------------------------------------------
 int vsTextureAttribute::getMinFilter()
 {
+    // Get the minification filter constant value from the Performer
+    // texture object, and translate that to a VESS constant
     switch (performerTexture->getFilter(PFTEX_MINFILTER))
     {
         case PFTEX_POINT:
@@ -325,6 +358,7 @@ int vsTextureAttribute::getMinFilter()
             return VS_TEXTURE_MINFILTER_MIPMAP_LINEAR;
     }
     
+    // If the mode is unrecognized, return an error value
     return -1;
 }
 
@@ -338,13 +372,16 @@ void vsTextureAttribute::attachDuplicate(vsNode *theNode)
     pfTexture *newTex;
     pfTexEnv *newTexEnv;
     
+    // Create new Performer objects as duplicates of the ones we have
     newTex = new pfTexture();
     newTex->copy(performerTexture);
     newTexEnv = new pfTexEnv();
     newTexEnv->copy(performerTexEnv);
     
+    // Create a duplicate texture attribute using the new Performer objects
     newAttrib = new vsTextureAttribute(newTex, newTexEnv);
 
+    // Attach the duplicate attribute to the specified node
     theNode->addAttribute(newAttrib);
 }
 
@@ -354,8 +391,10 @@ void vsTextureAttribute::attachDuplicate(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsTextureAttribute::saveCurrent()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
+    // Save the current texture state in our save list
     attrSaveList[attrSaveCount++] = gState->getTexture();
 }
 
@@ -365,9 +404,13 @@ void vsTextureAttribute::saveCurrent()
 // ------------------------------------------------------------------------
 void vsTextureAttribute::apply()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
+    // Set the current texture state to this object
     gState->setTexture(this);
+
+    // Lock the texture state if overriding is enabled
     if (overrideFlag)
         gState->lockTexture(this);
 }
@@ -378,10 +421,14 @@ void vsTextureAttribute::apply()
 // ------------------------------------------------------------------------
 void vsTextureAttribute::restoreSaved()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
+    // Unlock the wireframe state if overriding was enabled
     if (overrideFlag)
         gState->unlockTexture(this);
+
+    // Reset the current wireframe state to its previous value
     gState->setTexture((vsTextureAttribute *)(attrSaveList[--attrSaveCount]));
 }
 
@@ -391,6 +438,8 @@ void vsTextureAttribute::restoreSaved()
 // ------------------------------------------------------------------------
 void vsTextureAttribute::setState(pfGeoState *state)
 {
+    // Set textures as enabled and set our Performer texture objects
+    // on the geostate
     state->setMode(PFSTATE_ENTEXTURE, PF_ON);
     state->setAttr(PFSTATE_TEXENV, performerTexEnv);
     state->setAttr(PFSTATE_TEXTURE, performerTexture);
@@ -407,47 +456,58 @@ int vsTextureAttribute::isEquivalent(vsAttribute *attribute)
     unsigned char *image1, *image2;
     int xval1, yval1, xval2, yval2, val1, val2;
     
+    // NULL check
     if (!attribute)
         return VS_FALSE;
 
+    // Equal pointer check
     if (this == attribute)
         return VS_TRUE;
     
+    // Type check
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_TEXTURE)
         return VS_FALSE;
 
+    // Type cast
     attr = (vsTextureAttribute *)attribute;
 
+    // Image data check
     getImage(&image1, &xval1, &yval1, &val1);
     attr->getImage(&image2, &xval2, &yval2, &val2);
     if ((image1 != image2) || (xval1 != xval2) || (yval1 != val2) ||
         (val1 != val2))
         return VS_FALSE;
 
+    // Horizontal boundary mode check
     val1 = getBoundaryMode(VS_TEXTURE_DIRECTION_S);
     val2 = attr->getBoundaryMode(VS_TEXTURE_DIRECTION_S);
     if (val1 != val2)
         return VS_FALSE;
 
+    // Vertical boundary mode check
     val1 = getBoundaryMode(VS_TEXTURE_DIRECTION_T);
     val2 = attr->getBoundaryMode(VS_TEXTURE_DIRECTION_T);
     if (val1 != val2)
         return VS_FALSE;
 
+    // Apply mode check
     val1 = getApplyMode();
     val2 = attr->getApplyMode();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Magnification filter check
     val1 = getMagFilter();
     val2 = attr->getMagFilter();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Minification filter check
     val1 = getMinFilter();
     val2 = attr->getMinFilter();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Attributes are equivalent if all checks pass
     return VS_TRUE;
 }

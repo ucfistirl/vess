@@ -31,14 +31,18 @@ vsSoundPipe::vsSoundPipe(int freq)
 {
     int attrList[3];
 
+    // Open the audio device
     deviceHandle = alcOpenDevice(NULL);
 
+    // Create an attribute list for the frequency argument
     attrList[0] = ALC_FREQUENCY;
     attrList[1] = freq;
     attrList[2] = 0;
 
+    // Create an audio context using the specified mixing frequency
     pipeHandle = alcCreateContext(deviceHandle, attrList);
 
+    // Initialize the audio context
     alcMakeContextCurrent(pipeHandle);
 }
 
@@ -50,10 +54,17 @@ vsSoundPipe::vsSoundPipe()
 {
     int attrList[1];
 
+    // Create an empty attribute list, so OpenAL will use the default
+    // settings
     attrList[0] = 0;
 
+    // Open the audio device
     deviceHandle = alcOpenDevice(NULL);
+
+    // Create an audio context
     pipeHandle = alcCreateContext(deviceHandle, attrList);
+
+    // Initialize the audio context
     alcMakeContextCurrent(pipeHandle);
 }
 
@@ -62,6 +73,7 @@ vsSoundPipe::vsSoundPipe()
 // ------------------------------------------------------------------------
 vsSoundPipe::~vsSoundPipe()
 {
+    // Destroy the OpenAL context
     alcDestroyContext(pipeHandle);
 }
 
@@ -72,8 +84,10 @@ double vsSoundPipe::getDopplerScale()
 {
     float scale;
 
+    // Get the current Doppler scale factor from OpenAL
     alGetFloatv(AL_DOPPLER_FACTOR, &scale);
 
+    // Return the scale factor
     return (double)scale;
 }
 
@@ -82,6 +96,7 @@ double vsSoundPipe::getDopplerScale()
 // ------------------------------------------------------------------------
 void vsSoundPipe::setDopplerScale(double scale)
 {
+    // Set the Doppler scale factor to the given value
     alDopplerFactor((float)scale);
 }
 
@@ -93,8 +108,10 @@ double vsSoundPipe::getDopplerVelocity()
 {
     float speed;
 
+    // Get the current Doppler reference velocity from OpenAL
     alGetFloatv(AL_DOPPLER_VELOCITY, &speed);
 
+    // Return the velocity
     return (double)speed;
 }
 
@@ -103,6 +120,7 @@ double vsSoundPipe::getDopplerVelocity()
 // ------------------------------------------------------------------------
 void vsSoundPipe::setDopplerVelocity(double speed)
 {
+    // Set the Doppler velocity to the specified value
     alDopplerVelocity((float)speed);
 }
 
