@@ -129,10 +129,25 @@
 				RelativePath="..\..\motion\common\vsHandArticulation.c++">
 			</File>
 			<File
+				RelativePath="..\..\motion\common\vsHandCollision.c++">
+			</File>
+			<File
 				RelativePath="..\..\motion\common\vsKinematics.c++">
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsMotionModel.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsPathMotion.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsPhantomCollision.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsPhantomMotion.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsRelativeObjectMotion.c++">
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsSphericalMotion.c++">
@@ -178,10 +193,25 @@
 				RelativePath="..\..\motion\common\vsHandArticulation.h++">
 			</File>
 			<File
+				RelativePath="..\..\motion\common\vsHandCollision.h++">
+			</File>
+			<File
 				RelativePath="..\..\motion\common\vsKinematics.h++">
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsMotionModel.h++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsPathMotion.h++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsPhantomCollision.h++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsPhantomMotion.h++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsRelativeObjectMotion.h++">
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsSphericalMotion.h++">
