@@ -23,6 +23,7 @@
 #define VS_AVATAR_HPP
 
 #include <stdio.h>
+#include "vsUpdatable.h++"
 #include "vsSystem.h++"
 #include "vsGrowableArray.h++"
 #include "vsNode.h++"
@@ -30,7 +31,7 @@
 
 #define VS_AVATAR_LOCAL_ISECT_MASK 0x01000000
 
-class vsAvatar
+class vsAvatar : public vsUpdatable
 {
 protected:
 
