@@ -38,7 +38,7 @@ vsWindowSystem::vsWindowSystem(vsWindow *mainWindow)
     // Initialize variables
     vessWindow = mainWindow;
     display = NULL;
-    window = NULL;
+    window = 0x0;
     keyboard = NULL;
     mouse = NULL;
     
