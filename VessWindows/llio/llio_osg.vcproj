@@ -23,7 +23,7 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_LLIO_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
@@ -82,14 +82,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="wsock32.lib winmm.lib"
-				OutputFile="$(OutDir)/llio.dll"
+				OutputFile="$(OutDir)/vsLLIO.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\lib"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/llio.lib"
+				ImportLibrary="$(OutDir)/vsLLIO.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
