@@ -504,18 +504,10 @@ void vsLightAttribute::setScene(vsScene *newScene)
     {
         // Remove it from the old scene's light list.
         removeFromScene();
-
-        // Remove the attribute's reference from the scene node
-        scene->unref();
     }
 
-    // Store a refernece to the new scene and ref() it.
+    // Store a refernece to the new scene
     scene = newScene;
-    if (scene != NULL)
-    {
-        // Reference the new scene node
-        scene->ref();
-    }
 }
 
 // ------------------------------------------------------------------------
@@ -794,9 +786,9 @@ bool vsLightAttribute::removeFromScene()
         active = false;
 
         // Return true to indicate that the light was removed.
-        return (true);
+        return true;
     }
 
     // Return false to indicate that the light was not removed.
-    return (false);
+    return false;
 }
