@@ -59,9 +59,11 @@ public:
 
     virtual void    update();
 
-    void            addPathMotion(vsPathMotion *pathMotion, char *name);
+    void            addPathMotion(vsPathMotion *pathMotion);
     void            removePathMotion(vsPathMotion *pathMotion);
+
     vsPathMotion    *getPathMotion(int index);
+    int             getPathMotionCount();
 };
 
 #endif

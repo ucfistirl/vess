@@ -187,9 +187,9 @@ void vsPathMotionManager::update()
 //------------------------------------------------------------------------
 // Add a vsPathMotion to the list.
 //------------------------------------------------------------------------
-void vsPathMotionManager::addPathMotion(vsPathMotion *pathMotion, char *name)
+void vsPathMotionManager::addPathMotion(vsPathMotion *pathMotion)
 {
-    pathMotionSequencer->addUpdatable(pathMotion, name);
+    pathMotionSequencer->addUpdatable(pathMotion, "");
     pathMotionCount = pathMotionSequencer->getUpdatableCount();
 }
 
@@ -208,4 +208,12 @@ void vsPathMotionManager::removePathMotion(vsPathMotion *pathMotion)
 vsPathMotion *vsPathMotionManager::getPathMotion(int index)
 {
     return ((vsPathMotion *) pathMotionSequencer->getUpdatable(index));
+}
+
+//------------------------------------------------------------------------
+// Get the vsPathMotion at the specified index.
+//------------------------------------------------------------------------
+int vsPathMotionManager::getPathMotionCount()
+{
+    return pathMotionCount;
 }
