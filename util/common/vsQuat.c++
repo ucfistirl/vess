@@ -876,6 +876,78 @@ void vsQuat::setVecsRotation(const vsVector &originForward, const vsVector &orig
 }
 
 // ------------------------------------------------------------------------
+// Returns a rotation quaternion that represents the portion of the
+// rotation contained in this quaterion that rotates around the axis
+// specified as the parameter.
+// ------------------------------------------------------------------------
+vsQuat vsQuat::getDecomposition(const vsVector &targetAxis) const
+{
+    vsQuat result;
+    vsVector axis;
+
+    // The axis of rotation MUST be of length 3
+    if (targetAxis.getSize() != 3)
+    {
+        printf("getDecomposition: Bad axis vector size\n");
+        return result;
+    }
+
+    // The formula for this computation is as follows:
+    //
+    //                           Wr
+    //  W  =  -----------------------------------------
+    //        [ (A*Xr + B*Yr + C*Zr)^2 + (Wr)^2 ] ^ 1/2
+    //
+    // Where W is the fourth value of the result quaternion, [Xr Yr Zr Wr] is
+    // the quaternion to be decomposed, and [A B C] is the (unit) vector
+    // representing the desired axis of rotation. Additionally, the resulting
+    // quaternion must have its axis scaled by S (the sine of the rotation
+    // angle); this angle is calculated as the inverse cosine of W.
+
+    double wSqr, wrSqr, N, NSqr, wSign, s, w;
+
+    // Force the axis to be unit length
+    axis = targetAxis.getNormalized();
+
+    // Calculate the (A*Xr + B*Yr + C*Zr)^2 term
+    N = (axis[0] * data[0]) + (axis[1] * data[1]) + (axis[2] * data[2]);
+    NSqr = VS_SQR(N);
+
+    // Calculate Wr^2
+    wrSqr = VS_SQR(data[3]);
+
+    // Calculate W
+    wSqr = wrSqr / (NSqr + wrSqr);
+    w = sqrt(wSqr);
+
+    // * Fix the sign of W by determining if the rotation is positive or
+    // negative with respect to the axis of rotation
+    wSign = 1.0;
+
+    // Compare the input axis with the quaternion axis
+    if (N < 0.0)
+        wSign *= -1.0;
+
+    // Examine the quaternion rotation amount to see if it is positive or
+    // negative
+    if (data[3] < 0.0)
+        wSign *= -1.0;
+
+    // Apply the calculated sign to W
+    w *= wSign;
+
+    // Calculate S
+    s = sin(acos(w));
+
+    // Compute the final quaternion
+    result[0] = axis[0] * s;
+    result[1] = axis[1] * s;
+    result[2] = axis[2] * s;
+    result[3] = w;
+    return result;
+}
+
+// ------------------------------------------------------------------------
 // Transforms the given point by this quaternion as a rotation. Equivalent
 // to changing the quaternion into a rotation matrix and multiplying the
 // point by the resulting matrix. The homogeneous coordinate value w of

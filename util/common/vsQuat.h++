@@ -87,6 +87,8 @@ public:
                     const vsVector &targetForward,
                     const vsVector &targetUp);
 
+    vsQuat      getDecomposition(const vsVector &targetAxis) const;
+
     vsVector    rotatePoint(const vsVector &targetPoint) const;
 
     vsQuat      slerp(const vsQuat &destination, double parameter) const;
