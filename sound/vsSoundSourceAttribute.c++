@@ -636,3 +636,12 @@ void vsSoundSourceAttribute::setOuterConeGain(double gain)
 {
     alSourcef(sourceID, AL_CONE_OUTER_GAIN, (float)gain);
 }
+
+// ------------------------------------------------------------------------
+// Returns the corresponding base library object (an OpenAL source ID
+// as an ALuint in this case)
+// ------------------------------------------------------------------------
+ALuint vsSoundSourceAttribute::getBaseLibraryObject()
+{
+    return sourceID;
+}
