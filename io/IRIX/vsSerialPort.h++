@@ -56,6 +56,8 @@ public:
 
     int          readCharacter();
 
+    bool         isDataWaiting(double secondsToWait=0.0);
+
     void         setBaudRate(long baudRate);
     void         setParity(char parity);
     void         setWordLength(int wordLength);
