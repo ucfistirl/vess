@@ -465,8 +465,8 @@ void vsMenuSystem::update()
 
         // Move on to the next child
         menuIter->advance();
-//        while (menuIter->getObject() && !menuIter->getObject()->isEnabled())
-//            menuIter->advance();
+        while (menuIter->getObject() && !menuIter->getObject()->isEnabled())
+            menuIter->advance();
         curObj = menuIter->getObject();
     }
 
