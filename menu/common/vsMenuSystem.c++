@@ -172,7 +172,7 @@ void vsMenuSystem::rebuildMenu()
         }
 
         // Select the first item in the iterator
-        selectedObj = menuIter->getObject();
+        selectedObj = NULL;
 
         // Build a subgraph containing all of the children of this node
         destObj = menuIter->getObject();
@@ -181,6 +181,10 @@ void vsMenuSystem::rebuildMenu()
             // Add the component of the object as a child
             if (destObj->getComponent())
                 menuComponent->addChild(destObj->getComponent());
+
+            // Select the first selectable object by default
+            if ((selectedObj == NULL) && (destObj->isSelectable()))
+                selectedObj = destObj;
 
             // Move on to the next child
             menuIter->advance();
@@ -225,9 +229,9 @@ vsMenuObject *vsMenuSystem::getSelection()
 // ------------------------------------------------------------------------
 void vsMenuSystem::setMenuButton(vsMenuAction action, vsInputButton *button)
 {
-    // Store the button and initialize it to unpressed
+    // Store the button and initialize it to pressed
     inputButtons[action] = button;
-    pressed[action] = false;
+    pressed[action] = true;
 }
 
 // ------------------------------------------------------------------------
@@ -256,11 +260,14 @@ void vsMenuSystem::update()
     vsMenuObject   *curObj;
     vsMenuIterator *menuIter;
     vsMenuFrame    *curFrame;
-    int b;
+    int i;
 
     // Get the first child of the tree at the current frame
     menuIter = new vsMenuIterator(menuTree, menuFrame);
     curObj = menuIter->getObject();
+
+    // Initialize the last valid object at the first object
+    prevObj = NULL;
 
     // Create a working frame to use on this update
     curFrame = new vsMenuFrame(menuFrame);
@@ -273,7 +280,7 @@ void vsMenuSystem::update()
         curObj->update(VS_MENU_SIGNAL_IDLE, curFrame);
 
         // If the window system uses a cursor, intersect with this object
-        if (hasCursor && curObj->getComponent())
+        if (hasCursor && curObj->getComponent() && curObj->isSelectable())
         {
             isectObject->setPickSeg(0, menuPane, xAxis->getPosition(),
                 yAxis->getPosition());
@@ -297,46 +304,50 @@ void vsMenuSystem::update()
         // Check the accelerator of this object
         if (curObj->getAccelerator())
         {
-            // If the accelerator is pressed down, ensure that this object
-            // is selected
+            // If the accelerator is pressed down, activate the object
             if (curObj->getAccelerator()->isPressed())
-                selectedObj = curObj;
+                curObj->update(VS_MENU_SIGNAL_ACTIVATE, curFrame);
         }
-
-        // Move on to the next child
-        menuIter->advance();
 
         // Handle selecting the previous item
         if (processAction(VS_MENU_ACTION_PREVIOUS))
         {
-            // If the next item is already the selected object, move the
-            // selected object back to the current item
-            if (menuIter->getObject() == selectedObj)
+            // If the current item is already the selected object, move the
+            // selected object back to the previous item
+            if ((curObj == selectedObj) && (prevObj != NULL))
             {
-                selectedObj = curObj;
+                selectedObj = prevObj;
 
+                // Make sure the movement only happens once
                 pressed[VS_MENU_ACTION_PREVIOUS] = true;
             }
         }
 
         // Handle selecting the next item
-        if (processAction(VS_MENU_ACTION_NEXT))
+        if (processAction(VS_MENU_ACTION_NEXT) && curObj)
         {
             // If the old current item is selected and the next one exists,
             // move the selected object indicator forward to the next item
-            if ((curObj == selectedObj) && (menuIter->getObject()))
+            if ((prevObj == selectedObj) && (curObj->isSelectable()))
             {
-                selectedObj = menuIter->getObject();
+                selectedObj = curObj;
+
+                // Make sure the movement only happens once
                 pressed[VS_MENU_ACTION_NEXT] = true;
             }
         }
 
-        // Update the current item before moving on in the loop
+        // Store the last valid selectable object at each movement
+        if (curObj->isSelectable())
+            prevObj = curObj;
+
+        // Move on to the next child
+        menuIter->advance();
         curObj = menuIter->getObject();
     }
 
     // Check the activation button on the selected object
-    if (processAction(VS_MENU_ACTION_ACTIVATE))
+    if (selectedObj && processAction(VS_MENU_ACTION_ACTIVATE))
     {
         // Send the activation signal to the object
         selectedObj->update(VS_MENU_SIGNAL_ACTIVATE, curFrame);
@@ -356,10 +367,10 @@ void vsMenuSystem::update()
     }
 
     // Update all of the button press states for the next frame
-    for (b = 0; b < VS_MENU_ACTION_COUNT; b++)
+    for (i = 0; i < VS_MENU_ACTION_COUNT; i++)
     {
-        if (inputButtons[b])
-            pressed[b] = inputButtons[b]->isPressed();
+        if (inputButtons[i])
+            pressed[i] = inputButtons[i]->isPressed();
     }
 }
 
