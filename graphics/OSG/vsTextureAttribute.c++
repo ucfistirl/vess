@@ -223,6 +223,20 @@ void vsTextureAttribute::loadImageFromFile(char *filename)
 }
 
 // ------------------------------------------------------------------------
+// Notifies the texture attribute that the texture data has been changed by
+// some outside source, and forces it to retransfer the data to the
+// graphics hardware.
+// ------------------------------------------------------------------------
+void vsTextureAttribute::reloadTextureData()
+{
+    // The pointer to the texture data is in the hands of the OSG Image
+    // object. Tell the image object that it's data has changed, and tell
+    // the texture object to get the new data from the image object.
+    osgTexImage->dirty();
+    osgTexture->dirtyTextureObject();
+}
+
+// ------------------------------------------------------------------------
 // Sets the boundary mode for the one axis of the texture. The boundary
 // mode affects how texture coordinates that are out of the standard
 // 0.0-1.0 bounds are treated.

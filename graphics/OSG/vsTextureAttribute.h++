@@ -108,6 +108,8 @@ public:
     
     void                  loadImageFromFile(char *filename);
 
+    void                  reloadTextureData();
+
     void                  setBoundaryMode(int whichDirection, int boundaryMode);
     int                   getBoundaryMode(int whichDirection);
     
