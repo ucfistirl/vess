@@ -36,6 +36,10 @@
 // ------------------------------------------------------------------------
 vsScenePrinter::vsScenePrinter()
 {
+    // Set the printer to print attributes and geometry, but no details
+    // for either.  Also include node names and addresses.
+    printerMode = VS_PRINTER_ATTRIBUTES | VS_PRINTER_GEOMETRY | 
+        VS_PRINTER_NODE_NAMES | VS_PRINTER_NODE_ADDRESSES;
 }
 
 // ------------------------------------------------------------------------
@@ -43,6 +47,36 @@ vsScenePrinter::vsScenePrinter()
 // ------------------------------------------------------------------------
 vsScenePrinter::~vsScenePrinter()
 {
+}
+
+// ------------------------------------------------------------------------
+// Set the printer mode to the new given mode.  The mode controls the
+// verbosity of the output.  Input to this method should be a combination
+// of the printer bitmasks defined in the header file.
+// ------------------------------------------------------------------------
+void vsScenePrinter::setPrinterMode(int newMode)
+{
+    // Set the new mode
+    printerMode = newMode;
+
+    // Some modes imply other modes are on as well.  
+    // VS_PRINTER_GEOMETRY_BINDINGS implies that VS_PRINTER_GEOMETRY is on.
+    // Likewise, VS_PRINTER_GEOMETRY_LISTS implies VS_PRINTER_GEOMETRY_BINDINGS
+    // which implies VS_PRINTER_GEOMETRY.  VS_PRINTER_ATTRIBUTE_DETAILS
+    // implies VS_PRINTER_ATTRIBUTES.  The code below handles these 
+    // implied modes
+
+    // GEOMETRY_BINDINGS implies GEOMETRY
+    if (printerMode & VS_PRINTER_GEOMETRY_BINDINGS)
+        printerMode |= VS_PRINTER_GEOMETRY;
+
+    // GEOMETRY_LISTS implies GEOMETRY and GEOMETRY_BINDINGS
+    if (printerMode & VS_PRINTER_GEOMETRY_LISTS)
+        printerMode |= VS_PRINTER_GEOMETRY | VS_PRINTER_GEOMETRY_BINDINGS;
+    
+    // ATTRIBUTE_DETAILS implies ATTRIBUTES
+    if (printerMode & VS_PRINTER_ATTRIBUTE_DETAILS)
+        printerMode |= VS_PRINTER_ATTRIBUTES;
 }
 
 // ------------------------------------------------------------------------
@@ -94,11 +128,49 @@ void vsScenePrinter::printScene(vsNode *targetNode, FILE *outputFile)
 }
 
 // ------------------------------------------------------------------------
+// Prints the given data list from the given geometry at the correct
+// indentation level
+// ------------------------------------------------------------------------
+void vsScenePrinter::writeGeometryList(vsGeometry *geometry,
+                                       int dataList, int treeDepth,
+                                       FILE *outputFile)
+{
+    int size;
+    int loop;
+    vsVector geoVec;
+
+    // Get the length of the list
+    size = geometry->getDataListSize(dataList);
+
+    // If the list is larger than zero...
+    if (size > 0)
+    {
+        // Start a new output level for the list info
+        writeBlanks(outputFile, (treeDepth * 2) + 3);
+        fprintf(outputFile, "{\n");
+
+        // Write each list element out on its own line
+        for (loop = 0; loop < size; loop++)
+        {
+            writeBlanks(outputFile, (treeDepth * 2) + 5);
+            geoVec = geometry->getData(dataList, loop);
+            geoVec.print(outputFile);
+            fprintf(outputFile, "\n");
+        }
+
+        // Finish the list output
+        writeBlanks(outputFile, (treeDepth * 2) + 3);
+        fprintf(outputFile, "}\n");
+    }
+}
+
+// ------------------------------------------------------------------------
 // Private static utility function
 // Writes the specified number of space characters to the given file
 // ------------------------------------------------------------------------
 void vsScenePrinter::writeBlanks(FILE *outfile, int count)
 {
+    // Print the given number of spaces to the output file
     for (int loop = 0; loop < count; loop++)
         fprintf(outfile, " ");
 }
@@ -125,7 +197,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
     vsVector geoVec;
     bool attrData;
     
-    // Type
+    // Print which node type
     switch (targetNode->getNodeType())
     {
         case VS_NODE_TYPE_GEOMETRY:
@@ -142,14 +214,15 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
             break;
     }
     
-    // Name
-    if (strlen(targetNode->getName()) > 0)
+    // Print the node's name (if configured)
+    if ((VS_PRINTER_NODE_NAMES) && (strlen(targetNode->getName()) > 0))
         fprintf(outfile, "\"%s\" ", targetNode->getName());
 
-    // Address
-    fprintf(outfile, "address %p ", targetNode);
+    // Print it's address (if configured)
+    if (VS_PRINTER_NODE_ADDRESSES)
+        fprintf(outfile, "address %p ", targetNode);
 
-    // Is instanced?
+    // Indicate if the node is instanced
     if (targetNode->getParentCount() > 1)
         fprintf(outfile, "(instanced) ");
 
@@ -157,11 +230,13 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
 
     // If the node is a vsGeometry, write out all of the primitive and
     // binding info
-    if (targetNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
+    if ((printerMode & VS_PRINTER_GEOMETRY) && 
+        (targetNode->getNodeType() == VS_NODE_TYPE_GEOMETRY))
     {
+        // Cast to geometry
         geometry = (vsGeometry *)targetNode;
 
-        // Primitive type & count
+        // Print the primitive type and count
         writeBlanks(outfile, (treeDepth * 2) + 1);
         geoType = geometry->getPrimitiveType();
         geoCount = geometry->getPrimitiveCount();
@@ -204,456 +279,472 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
         }
         fprintf(outfile, "\n");
 
-        // Print vertex coordinates
-        if (geoCount > 0)
+        // Print vertex coordinates (if configured and there is geometry
+        // to print)
+        if ((printerMode & VS_PRINTER_GEOMETRY_LISTS) && (geoCount > 0))
         {
-            writeBlanks(outfile, (treeDepth * 2) + 3);
-            fprintf(outfile, "{\n");
-            size = geometry->getDataListSize(VS_GEOMETRY_VERTEX_COORDS);
-            for (loop = 0; loop < size; loop++)
-            {
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                geoVec = geometry->getData(VS_GEOMETRY_VERTEX_COORDS, loop);
-                geoVec.print(outfile);
-                fprintf(outfile, "\n");
-            }
-            writeBlanks(outfile, (treeDepth * 2) + 3);
-            fprintf(outfile, "}\n");
-        }
+            writeGeometryList(geometry, VS_GEOMETRY_VERTEX_COORDS, treeDepth,
+                outfile);
 
-        // If primitive type is variable length, print the lengths array
-        if ((geoType == VS_GEOMETRY_TYPE_LINE_STRIPS) ||
-            (geoType == VS_GEOMETRY_TYPE_LINE_LOOPS) ||
-            (geoType == VS_GEOMETRY_TYPE_TRI_STRIPS) ||
-            (geoType == VS_GEOMETRY_TYPE_TRI_FANS) ||
-            (geoType == VS_GEOMETRY_TYPE_TRI_FANS) ||
-            (geoType == VS_GEOMETRY_TYPE_TRI_FANS))
-        {
-            writeBlanks(outfile, (treeDepth * 2) + 3);
-            fprintf(outfile, "LENGTHS\n");
-            writeBlanks(outfile, (treeDepth * 2) + 3);
-            fprintf(outfile, "{\n");
-            size = geometry->getPrimitiveCount();
-            for (loop = 0; loop < size; loop++)
+            // If primitive type is variable length, print the lengths array
+            if ((printerMode & VS_PRINTER_GEOMETRY_LISTS) &&
+                ((geoType == VS_GEOMETRY_TYPE_LINE_STRIPS) ||
+                 (geoType == VS_GEOMETRY_TYPE_LINE_LOOPS) ||
+                 (geoType == VS_GEOMETRY_TYPE_TRI_STRIPS) ||
+                 (geoType == VS_GEOMETRY_TYPE_TRI_FANS) ||
+                 (geoType == VS_GEOMETRY_TYPE_TRI_FANS) ||
+                 (geoType == VS_GEOMETRY_TYPE_TRI_FANS)))
             {
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                length = geometry->getPrimitiveLength(loop);
-                fprintf(outfile, "%d\n", length);
+                // Start a new list output level
+                writeBlanks(outfile, (treeDepth * 2) + 3);
+                fprintf(outfile, "LENGTHS\n");
+                writeBlanks(outfile, (treeDepth * 2) + 3);
+                fprintf(outfile, "{\n");
+
+                // Print each primitive's length on its own line
+                size = geometry->getPrimitiveCount();
+                for (loop = 0; loop < size; loop++)
+                {
+                    writeBlanks(outfile, (treeDepth * 2) + 5);
+                    length = geometry->getPrimitiveLength(loop);
+                    fprintf(outfile, "%d\n", length);
+                }
+
+                // Finish up the list
+                writeBlanks(outfile, (treeDepth * 2) + 3);
+                fprintf(outfile, "}\n");
             }
-            writeBlanks(outfile, (treeDepth * 2) + 3);
-            fprintf(outfile, "}\n");
         }
         
-        // Bindings
-        for (loop = 0; loop < 3; loop++)
+        // Print geometry bindings (if configured)
+        if (printerMode & VS_PRINTER_GEOMETRY_BINDINGS)
         {
-            writeBlanks(outfile, (treeDepth * 2) + 1);
-            switch (loop)
+            // Only print binding info for normals, colors, and texture
+            // coords, because vertex coords are always per-vertex
+            for (loop = 0; loop < 3; loop++)
             {
-                case 0:
-                    fprintf(outfile, "NORMALS (%d): ",
-                        geometry->getDataListSize(VS_GEOMETRY_NORMALS));
-                    geoType = VS_GEOMETRY_NORMALS;
-                    break;
+                // First, print the list type
+                writeBlanks(outfile, (treeDepth * 2) + 1);
+                switch (loop)
+                {
+                    case 0:
+                        fprintf(outfile, "NORMALS (%d): ",
+                            geometry->getDataListSize(VS_GEOMETRY_NORMALS));
+                        geoType = VS_GEOMETRY_NORMALS;
+                        break;
 
-                case 1:
-                    fprintf(outfile, "COLORS (%d): ",
-                        geometry->getDataListSize(VS_GEOMETRY_COLORS));
-                    geoType = VS_GEOMETRY_COLORS;
-                    break;
+                    case 1:
+                        fprintf(outfile, "COLORS (%d): ",
+                            geometry->getDataListSize(VS_GEOMETRY_COLORS));
+                        geoType = VS_GEOMETRY_COLORS;
+                        break;
 
-                case 2:
-                    fprintf(outfile, "TEXCOORDS (%d): ",
-                        geometry->getDataListSize(VS_GEOMETRY_TEXTURE_COORDS));
-                    geoType = VS_GEOMETRY_TEXTURE_COORDS;
-                    break;
-            }
-            geoBinding = geometry->getBinding(geoType);
-            switch (geoBinding)
-            {
-                case VS_GEOMETRY_BIND_NONE:
-                    fprintf(outfile, "NONE");
-                    break;
-                case VS_GEOMETRY_BIND_OVERALL:
-                    fprintf(outfile, "OVERALL");
-                    break;
-                case VS_GEOMETRY_BIND_PER_PRIMITIVE:
-                    fprintf(outfile, "PER PRIMITIVE");
-                    break;
-                case VS_GEOMETRY_BIND_PER_VERTEX:
-                    fprintf(outfile, "PER VERTEX");
-                    break;
-            }
-            fprintf(outfile, "\n");
+                    case 2:
+                        fprintf(outfile, "TEXCOORDS (%d): ",
+                            geometry->
+                                getDataListSize(VS_GEOMETRY_TEXTURE_COORDS));
+                        geoType = VS_GEOMETRY_TEXTURE_COORDS;
+                        break;
+                }
 
-            // Print out each of the remaining three data lists
-            switch (loop)
-            {
-                case 0:
-                    // Print normal data
-                    size = geometry->getDataListSize(VS_GEOMETRY_NORMALS);
-                    if (size > 0)
+                // Now, print the binding
+                geoBinding = geometry->getBinding(geoType);
+                switch (geoBinding)
+                {
+                    case VS_GEOMETRY_BIND_NONE:
+                        fprintf(outfile, "NONE");
+                        break;
+                    case VS_GEOMETRY_BIND_OVERALL:
+                        fprintf(outfile, "OVERALL");
+                        break;
+                    case VS_GEOMETRY_BIND_PER_PRIMITIVE:
+                        fprintf(outfile, "PER PRIMITIVE");
+                        break;
+                    case VS_GEOMETRY_BIND_PER_VERTEX:
+                        fprintf(outfile, "PER VERTEX");
+                        break;
+                }
+                fprintf(outfile, "\n");
+
+                // Print out the current data list (normals, colors, or
+                // texture coordinates) if configured to do so
+                if (printerMode & VS_PRINTER_GEOMETRY_LISTS)
+                {
+                    switch (loop)
                     {
-                        writeBlanks(outfile, (treeDepth * 2) + 3);
-                        fprintf(outfile, "{\n");
-                        for (sloop = 0; sloop < size; sloop++)
-                        {
-                            writeBlanks(outfile, (treeDepth * 2) + 5);
-                            geoVec = geometry->getData(VS_GEOMETRY_NORMALS, 
-                                sloop);
-                            geoVec.print(outfile);
-                            fprintf(outfile, "\n");
-                        }
-                        writeBlanks(outfile, (treeDepth * 2) + 3);
-                        fprintf(outfile, "}\n");
-                    }
-                    break;
+                        case 0:
+                            // Print normal data
+                            writeGeometryList(geometry, VS_GEOMETRY_NORMALS,
+                                treeDepth, outfile);
+                            break;
 
-                case 1:
-                    // Print color data
-                    size = geometry->getDataListSize(VS_GEOMETRY_COLORS);
-                    if (size > 0)
-                    {
-                        writeBlanks(outfile, (treeDepth * 2) + 3);
-                        fprintf(outfile, "{\n");
-                        for (sloop = 0; sloop < size; sloop++)
-                        {
-                            writeBlanks(outfile, (treeDepth * 2) + 5);
-                            geoVec = geometry->getData(VS_GEOMETRY_COLORS, 
-                                sloop);
-                            geoVec.print(outfile);
-                            fprintf(outfile, "\n");
-                        }
-                        writeBlanks(outfile, (treeDepth * 2) + 3);
-                        fprintf(outfile, "}\n");
-                    }
-                    break;
+                        case 1:
+                            // Print color data
+                            writeGeometryList(geometry, VS_GEOMETRY_COLORS, 
+                                treeDepth, outfile);
+                            break;
 
-                case 2:
-                    // Print texture coordinate data
-                    size = geometry->
-                        getDataListSize(VS_GEOMETRY_TEXTURE_COORDS);
-                    if (size > 0)
-                    {
-                        writeBlanks(outfile, (treeDepth * 2) + 3);
-                        fprintf(outfile, "{\n");
-                        for (sloop = 0; sloop < size; sloop++)
-                        {
-                            writeBlanks(outfile, (treeDepth * 2) + 5);
-                            geoVec = 
-                                geometry->getData(VS_GEOMETRY_TEXTURE_COORDS,
-                                sloop);
-                            geoVec.print(outfile);
-                            fprintf(outfile, "\n");
-                        }
-                        writeBlanks(outfile, (treeDepth * 2) + 3);
-                        fprintf(outfile, "}\n");
+                        case 2:
+                            // Print texture coordinate data
+                            writeGeometryList(geometry, 
+                                VS_GEOMETRY_TEXTURE_COORDS, treeDepth, 
+                                outfile);
+                            break;
                     }
-                    break;
+                }
             }
         }
     }
 
-    // Attributes
-    for (loop = 0; loop < targetNode->getAttributeCount(); loop++)
+    // Print any attached attributes (if configured)
+    if (printerMode & VS_PRINTER_ATTRIBUTES)
     {
-        attribute = targetNode->getAttribute(loop);
-        writeBlanks(outfile, (treeDepth * 2) + 1);
-        fprintf(outfile, "Attribute: address %p, attached? %d, type ",
-            attribute, attribute->isAttached());
-        switch (attribute->getAttributeType())
+        // Loop over all attached attributes
+        for (loop = 0; loop < targetNode->getAttributeCount(); loop++)
         {
-            case VS_ATTRIBUTE_TYPE_TRANSFORM:
-                // Print out the data in the transform attribute's three matrices
-                fprintf(outfile, "TRANSFORM\n");
-                writeBlanks(outfile, (treeDepth * 2) + 3);
-                mat = ((vsTransformAttribute *)attribute)->getPreTransform();
-                fprintf(outfile, "Pretransform:\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                mat.printRow(0, outfile);
-                fprintf(outfile, "\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                mat.printRow(1, outfile);
-                fprintf(outfile, "\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                mat.printRow(2, outfile);
-                fprintf(outfile, "\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                mat.printRow(3, outfile);
-                fprintf(outfile, "\n");
-                writeBlanks(outfile, (treeDepth * 2) + 3);
-                mat = 
-                    ((vsTransformAttribute *)attribute)->getDynamicTransform();
-                fprintf(outfile, "Dynamic transform:\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                mat.printRow(0, outfile);
-                fprintf(outfile, "\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                mat.printRow(1, outfile);
-                fprintf(outfile, "\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                mat.printRow(2, outfile);
-                fprintf(outfile, "\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                mat.printRow(3, outfile);
-                fprintf(outfile, "\n");
-                writeBlanks(outfile, (treeDepth * 2) + 3);
-                mat = ((vsTransformAttribute *)attribute)->getPostTransform();
-                fprintf(outfile, "Posttransform:\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                mat.printRow(0, outfile);
-                fprintf(outfile, "\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                mat.printRow(1, outfile);
-                fprintf(outfile, "\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                mat.printRow(2, outfile);
-                fprintf(outfile, "\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                mat.printRow(3, outfile);
-                fprintf(outfile, "\n");
-                break;
+            // Get the next attribute, and print the basic information
+            // for it (address, reference count, and type)
+            attribute = targetNode->getAttribute(loop);
+            writeBlanks(outfile, (treeDepth * 2) + 1);
+            fprintf(outfile, "Attribute: address %p, references %d, type ",
+                attribute, attribute->isAttached());
 
-            case VS_ATTRIBUTE_TYPE_SWITCH:
-                fprintf(outfile, "SWITCH\n");
-                break;
+            // Figure out the attribute type and print it out
+            switch (attribute->getAttributeType())
+            {
+                case VS_ATTRIBUTE_TYPE_TRANSFORM:
+                    fprintf(outfile, "TRANSFORM\n");
+                    
+                    // Print out the data in the transform attribute's 
+                    // three matrices, if configured to do so
+                    if (printerMode & VS_PRINTER_ATTRIBUTE_DETAILS)
+                    {
+                        // Pre-transform static matrix
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        mat = ((vsTransformAttribute *)attribute)->
+                            getPreTransform();
+                        fprintf(outfile, "Pretransform:\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        mat.printRow(0, outfile);
+                        fprintf(outfile, "\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        mat.printRow(1, outfile);
+                        fprintf(outfile, "\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        mat.printRow(2, outfile);
+                        fprintf(outfile, "\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        mat.printRow(3, outfile);
+                        fprintf(outfile, "\n");
 
-            case VS_ATTRIBUTE_TYPE_SEQUENCE:
-                fprintf(outfile, "SEQUENCE\n");
-                break;
+                        // Dynamic transform matrix
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        mat = ((vsTransformAttribute *)attribute)->
+                            getDynamicTransform();
+                        fprintf(outfile, "Dynamic transform:\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        mat.printRow(0, outfile);
+                        fprintf(outfile, "\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        mat.printRow(1, outfile);
+                        fprintf(outfile, "\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        mat.printRow(2, outfile);
+                        fprintf(outfile, "\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        mat.printRow(3, outfile);
+                        fprintf(outfile, "\n");
 
-            case VS_ATTRIBUTE_TYPE_LOD:
-                fprintf(outfile, "LOD\n");
-                break;
+                        // Post-transform static matrix
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        mat = ((vsTransformAttribute *)attribute)->
+                            getPostTransform();
+                        fprintf(outfile, "Posttransform:\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        mat.printRow(0, outfile);
+                        fprintf(outfile, "\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        mat.printRow(1, outfile);
+                        fprintf(outfile, "\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        mat.printRow(2, outfile);
+                        fprintf(outfile, "\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        mat.printRow(3, outfile);
+                        fprintf(outfile, "\n");
+                    }
+                    break;
 
-            case VS_ATTRIBUTE_TYPE_LIGHT:
-                fprintf(outfile, "LIGHT\n");
-                break;
+                case VS_ATTRIBUTE_TYPE_SWITCH:
+                    fprintf(outfile, "SWITCH\n");
+                    break;
 
-            case VS_ATTRIBUTE_TYPE_FOG:
-                fprintf(outfile, "FOG\n");
-                break;
+                case VS_ATTRIBUTE_TYPE_SEQUENCE:
+                    fprintf(outfile, "SEQUENCE\n");
+                    break;
 
-            case VS_ATTRIBUTE_TYPE_MATERIAL:
-                // Print out the material data
-                fprintf(outfile, "MATERIAL\n");
-                writeBlanks(outfile, (treeDepth * 2) + 3);
-                fprintf(outfile, "Ambient:\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                fprintf(outfile, "Front:  ");
-                ((vsMaterialAttribute *)attribute)->
-                    getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_AMBIENT,
-                    &r, &g, &b);
-                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                fprintf(outfile, "Back:   ");
-                ((vsMaterialAttribute *)attribute)->
-                    getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_AMBIENT,
-                    &r, &g, &b);
-                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
-                writeBlanks(outfile, (treeDepth * 2) + 3);
-                fprintf(outfile, "Diffuse:\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                fprintf(outfile, "Front:  ");
-                ((vsMaterialAttribute *)attribute)->
-                    getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_DIFFUSE,
-                    &r, &g, &b);
-                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                fprintf(outfile, "Back:   ");
-                ((vsMaterialAttribute *)attribute)->
-                    getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_DIFFUSE,
-                    &r, &g, &b);
-                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
-                writeBlanks(outfile, (treeDepth * 2) + 3);
-                fprintf(outfile, "Specular:\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                fprintf(outfile, "Front:  ");
-                ((vsMaterialAttribute *)attribute)->
-                    getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_SPECULAR,
-                    &r, &g, &b);
-                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                fprintf(outfile, "Back:   ");
-                ((vsMaterialAttribute *)attribute)->
-                    getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_SPECULAR,
-                    &r, &g, &b);
-                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
-                writeBlanks(outfile, (treeDepth * 2) + 3);
-                fprintf(outfile, "Emissive:\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                fprintf(outfile, "Front:  ");
-                ((vsMaterialAttribute *)attribute)->
-                    getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_EMISSIVE,
-                    &r, &g, &b);
-                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                fprintf(outfile, "Back:   ");
-                ((vsMaterialAttribute *)attribute)->
-                    getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_EMISSIVE,
-                    &r, &g, &b);
-                fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
-                writeBlanks(outfile, (treeDepth * 2) + 3);
-                fprintf(outfile, "Color Mode:\n");
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                fprintf(outfile, "Front:  ");
-                mode = ((vsMaterialAttribute *)attribute)->
-                    getColorMode(VS_MATERIAL_SIDE_FRONT);
-                switch (mode)
-                {
-                    case VS_MATERIAL_CMODE_AMBIENT:
-                        fprintf(outfile, "AMBIENT\n");
-                        break;
-                    case VS_MATERIAL_CMODE_DIFFUSE:
-                        fprintf(outfile, "DIFFUSE\n");
-                        break;
-                    case VS_MATERIAL_CMODE_SPECULAR:
-                        fprintf(outfile, "SPECULAR\n");
-                        break;
-                    case VS_MATERIAL_CMODE_EMISSIVE:
-                        fprintf(outfile, "EMISSIVE\n");
-                        break;
-                    case VS_MATERIAL_CMODE_AMBIENT_DIFFUSE:
-                        fprintf(outfile, "AMBIENT_DIFFUSE\n");
-                        break;
-                    case VS_MATERIAL_CMODE_NONE:
-                        fprintf(outfile, "NONE\n");
-                        break;
-                }
-                writeBlanks(outfile, (treeDepth * 2) + 5);
-                fprintf(outfile, "Back:   ");
-                mode = ((vsMaterialAttribute *)attribute)->
-                    getColorMode(VS_MATERIAL_SIDE_BACK);
-                switch (mode)
-                {
-                    case VS_MATERIAL_CMODE_AMBIENT:
-                        fprintf(outfile, "AMBIENT\n");
-                        break;
-                    case VS_MATERIAL_CMODE_DIFFUSE:
-                        fprintf(outfile, "DIFFUSE\n");
-                        break;
-                    case VS_MATERIAL_CMODE_SPECULAR:
-                        fprintf(outfile, "SPECULAR\n");
-                        break;
-                    case VS_MATERIAL_CMODE_EMISSIVE:
-                        fprintf(outfile, "EMISSIVE\n");
-                        break;
-                    case VS_MATERIAL_CMODE_AMBIENT_DIFFUSE:
-                        fprintf(outfile, "AMBIENT_DIFFUSE\n");
-                        break;
-                    case VS_MATERIAL_CMODE_NONE:
-                        fprintf(outfile, "NONE\n");
-                        break;
-                }
-                break;
+                case VS_ATTRIBUTE_TYPE_LOD:
+                    fprintf(outfile, "LOD\n");
+                    break;
 
-            case VS_ATTRIBUTE_TYPE_TEXTURE:
-                // Print out the texture data
-                fprintf(outfile, "TEXTURE\n");
-                writeBlanks(outfile, (treeDepth * 2) + 3);
-                fprintf(outfile, "Apply Mode: ");
-                switch (((vsTextureAttribute *)attribute)->getApplyMode())
-                {
-                    case VS_TEXTURE_APPLY_DECAL:
-                        fprintf(outfile, "DECAL\n");
-                        break;
-                    case VS_TEXTURE_APPLY_MODULATE:
-                        fprintf(outfile, "MODULATE\n");
-                        break;
-                    case VS_TEXTURE_APPLY_REPLACE:
-                        fprintf(outfile, "REPLACE\n");
-                        break;
-                    default:
-                        fprintf(outfile, "(Unknown Mode)\n");
-                        break;
-                }
-                writeBlanks(outfile, (treeDepth * 2) + 3);
-                fprintf(outfile, "Mag Filter: ");
-                switch (((vsTextureAttribute *)attribute)->getMagFilter())
-                {
-                    case VS_TEXTURE_MAGFILTER_NEAREST:
-                        fprintf(outfile, "NEAREST\n");
-                        break;
-                    case VS_TEXTURE_MAGFILTER_LINEAR:
-                        fprintf(outfile, "LINEAR\n");
-                        break;
-                    default:
-                        fprintf(outfile, "(Unknown Mode)\n");
-                        break;
-                }
-                writeBlanks(outfile, (treeDepth * 2) + 3);
-                fprintf(outfile, "Min Filter: ");
-                switch (((vsTextureAttribute *)attribute)->getMinFilter())
-                {
-                    case VS_TEXTURE_MINFILTER_NEAREST:
-                        fprintf(outfile, "NEAREST\n");
-                        break;
-                    case VS_TEXTURE_MINFILTER_LINEAR:
-                        fprintf(outfile, "LINEAR\n");
-                        break;
-                    case VS_TEXTURE_MINFILTER_MIPMAP_NEAREST:
-                        fprintf(outfile, "MIPMAP NEAREST\n");
-                        break;
-                    case VS_TEXTURE_MINFILTER_MIPMAP_LINEAR:
-                        fprintf(outfile, "MIPMAP LINEAR\n");
-                        break;
-                    default:
-                        fprintf(outfile, "(Unknown Mode)\n");
-                        break;
-                }
-                break;
+                case VS_ATTRIBUTE_TYPE_LIGHT:
+                    fprintf(outfile, "LIGHT\n");
+                    break;
 
-            case VS_ATTRIBUTE_TYPE_TRANSPARENCY:
-                attrData = ((vsTransparencyAttribute *)attribute)->isEnabled();
-                if (attrData)
-                    fprintf(outfile, "TRANSPARENCY (on)\n");
-                else
-                    fprintf(outfile, "TRANSPARENCY (off)\n");
-                break;
+                case VS_ATTRIBUTE_TYPE_FOG:
+                    fprintf(outfile, "FOG\n");
+                    break;
 
-            case VS_ATTRIBUTE_TYPE_BILLBOARD:
-                fprintf(outfile, "BILLBOARD\n");
-                break;
+                case VS_ATTRIBUTE_TYPE_MATERIAL:
+                    fprintf(outfile, "MATERIAL\n");
 
-            case VS_ATTRIBUTE_TYPE_VIEWPOINT:
-                fprintf(outfile, "VIEWPOINT\n");
-                break;
+                    // Print the material details, if we're configured to
+                    // do so
+                    if (printerMode & VS_PRINTER_ATTRIBUTE_DETAILS)
+                    {
+                        // Ambient material (front and back)
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "Ambient:\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        fprintf(outfile, "Front:  ");
+                        ((vsMaterialAttribute *)attribute)->
+                            getColor(VS_MATERIAL_SIDE_FRONT, 
+                                VS_MATERIAL_COLOR_AMBIENT, &r, &g, &b);
+                        fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        fprintf(outfile, "Back:   ");
+                        ((vsMaterialAttribute *)attribute)->
+                            getColor(VS_MATERIAL_SIDE_BACK, 
+                                VS_MATERIAL_COLOR_AMBIENT, &r, &g, &b);
+                        fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
 
-            case VS_ATTRIBUTE_TYPE_BACKFACE:
-                attrData = ((vsBackfaceAttribute *)attribute)->isEnabled();
-                if (attrData)
-                    fprintf(outfile, "BACKFACE (on)\n");
-                else
-                    fprintf(outfile, "BACKFACE (off)\n");
-                break;
+                        // Diffuse material (front and back)
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "Diffuse:\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        fprintf(outfile, "Front:  ");
+                        ((vsMaterialAttribute *)attribute)->
+                            getColor(VS_MATERIAL_SIDE_FRONT, 
+                                VS_MATERIAL_COLOR_DIFFUSE, &r, &g, &b);
+                        fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        fprintf(outfile, "Back:   ");
+                        ((vsMaterialAttribute *)attribute)->
+                            getColor(VS_MATERIAL_SIDE_BACK, 
+                                VS_MATERIAL_COLOR_DIFFUSE, &r, &g, &b);
+                        fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
 
-            case VS_ATTRIBUTE_TYPE_DECAL:
-                fprintf(outfile, "DECAL\n");
-                break;
+                        // Specular material (front and back)
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "Specular:\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        fprintf(outfile, "Front:  ");
+                        ((vsMaterialAttribute *)attribute)->
+                            getColor(VS_MATERIAL_SIDE_FRONT, 
+                                VS_MATERIAL_COLOR_SPECULAR, &r, &g, &b);
+                        fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        fprintf(outfile, "Back:   ");
+                        ((vsMaterialAttribute *)attribute)->
+                            getColor(VS_MATERIAL_SIDE_BACK, 
+                                VS_MATERIAL_COLOR_SPECULAR, &r, &g, &b);
+                        fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
 
-            case VS_ATTRIBUTE_TYPE_SHADING:
-                shadingData = ((vsShadingAttribute *)attribute)->getShading();
-                if (shadingData == VS_SHADING_FLAT)
-                    fprintf(outfile, "SHADING (flat)\n");
-                else
-                    fprintf(outfile, "SHADING (gouraud)\n");
-                break;
+                        // Emissive material (front and back)
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "Emissive:\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        fprintf(outfile, "Front:  ");
+                        ((vsMaterialAttribute *)attribute)->
+                            getColor(VS_MATERIAL_SIDE_FRONT, 
+                                VS_MATERIAL_COLOR_EMISSIVE, &r, &g, &b);
+                        fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        fprintf(outfile, "Back:   ");
+                        ((vsMaterialAttribute *)attribute)->
+                            getColor(VS_MATERIAL_SIDE_BACK, 
+                                VS_MATERIAL_COLOR_EMISSIVE, &r, &g, &b);
+                        fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
 
-            case VS_ATTRIBUTE_TYPE_SOUND_SOURCE:
-                fprintf(outfile, "SOUND_SOURCE\n");
-                break;
+                        // Front material color-tracking mode
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "Color Mode:\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        fprintf(outfile, "Front:  ");
+                        mode = ((vsMaterialAttribute *)attribute)->
+                            getColorMode(VS_MATERIAL_SIDE_FRONT);
+                        switch (mode)
+                        {
+                            case VS_MATERIAL_CMODE_AMBIENT:
+                                fprintf(outfile, "AMBIENT\n");
+                                break;
+                            case VS_MATERIAL_CMODE_DIFFUSE:
+                                fprintf(outfile, "DIFFUSE\n");
+                                break;
+                            case VS_MATERIAL_CMODE_SPECULAR:
+                                fprintf(outfile, "SPECULAR\n");
+                                break;
+                            case VS_MATERIAL_CMODE_EMISSIVE:
+                                fprintf(outfile, "EMISSIVE\n");
+                                break;
+                            case VS_MATERIAL_CMODE_AMBIENT_DIFFUSE:
+                                fprintf(outfile, "AMBIENT_DIFFUSE\n");
+                                break;
+                            case VS_MATERIAL_CMODE_NONE:
+                                fprintf(outfile, "NONE\n");
+                                break;
+                        }
 
-            case VS_ATTRIBUTE_TYPE_SOUND_LISTENER:
-                fprintf(outfile, "SOUND_LISTENER\n");
-                break;
+                        // Back material color-tracking mode
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        fprintf(outfile, "Back:   ");
+                        mode = ((vsMaterialAttribute *)attribute)->
+                            getColorMode(VS_MATERIAL_SIDE_BACK);
+                        switch (mode)
+                        {
+                            case VS_MATERIAL_CMODE_AMBIENT:
+                                fprintf(outfile, "AMBIENT\n");
+                                break;
+                            case VS_MATERIAL_CMODE_DIFFUSE:
+                                fprintf(outfile, "DIFFUSE\n");
+                                break;
+                            case VS_MATERIAL_CMODE_SPECULAR:
+                                fprintf(outfile, "SPECULAR\n");
+                                break;
+                            case VS_MATERIAL_CMODE_EMISSIVE:
+                                fprintf(outfile, "EMISSIVE\n");
+                                break;
+                            case VS_MATERIAL_CMODE_AMBIENT_DIFFUSE:
+                                fprintf(outfile, "AMBIENT_DIFFUSE\n");
+                                break;
+                            case VS_MATERIAL_CMODE_NONE:
+                                fprintf(outfile, "NONE\n");
+                                break;
+                        }
+                    }
+                    break;
 
-            case VS_ATTRIBUTE_TYPE_WIREFRAME:
-                fprintf(outfile, "WIREFRAME\n");
-                break;
+                case VS_ATTRIBUTE_TYPE_TEXTURE:
+                    fprintf(outfile, "TEXTURE\n");
 
-            default:
-                fprintf(outfile, "<unknown type>\n");
-                break;
+                    // Print out the texture data, if configured to do so
+                    if (printerMode & VS_PRINTER_ATTRIBUTE_DETAILS)
+                    {
+                        // Texture application mode
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "Apply Mode: ");
+                        switch (((vsTextureAttribute *)attribute)->
+                            getApplyMode())
+                        {
+                            case VS_TEXTURE_APPLY_DECAL:
+                                fprintf(outfile, "DECAL\n");
+                                break;
+                            case VS_TEXTURE_APPLY_MODULATE:
+                                fprintf(outfile, "MODULATE\n");
+                                break;
+                            case VS_TEXTURE_APPLY_REPLACE:
+                                fprintf(outfile, "REPLACE\n");
+                                break;
+                            default:
+                                fprintf(outfile, "(Unknown Mode)\n");
+                                break;
+                        }
+
+                        // Magnification filter
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "Mag Filter: ");
+                        switch (((vsTextureAttribute *)attribute)->
+                            getMagFilter())
+                        {
+                            case VS_TEXTURE_MAGFILTER_NEAREST:
+                                fprintf(outfile, "NEAREST\n");
+                                break;
+                            case VS_TEXTURE_MAGFILTER_LINEAR:
+                                fprintf(outfile, "LINEAR\n");
+                                break;
+                            default:
+                                fprintf(outfile, "(Unknown Mode)\n");
+                                break;
+                        }
+
+                        // Minification filter
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "Min Filter: ");
+                        switch (((vsTextureAttribute *)attribute)->
+                            getMinFilter())
+                        {
+                            case VS_TEXTURE_MINFILTER_NEAREST:
+                                fprintf(outfile, "NEAREST\n");
+                                break;
+                            case VS_TEXTURE_MINFILTER_LINEAR:
+                                fprintf(outfile, "LINEAR\n");
+                                break;
+                            case VS_TEXTURE_MINFILTER_MIPMAP_NEAREST:
+                                fprintf(outfile, "MIPMAP NEAREST\n");
+                                break;
+                            case VS_TEXTURE_MINFILTER_MIPMAP_LINEAR:
+                                fprintf(outfile, "MIPMAP LINEAR\n");
+                                break;
+                            default:
+                                fprintf(outfile, "(Unknown Mode)\n");
+                                break;
+                        }
+                    }
+                    break;
+
+                case VS_ATTRIBUTE_TYPE_TRANSPARENCY:
+                    attrData = ((vsTransparencyAttribute *)attribute)->
+                        isEnabled();
+                    if (attrData)
+                        fprintf(outfile, "TRANSPARENCY (on)\n");
+                    else
+                        fprintf(outfile, "TRANSPARENCY (off)\n");
+                    break;
+
+                case VS_ATTRIBUTE_TYPE_BILLBOARD:
+                    fprintf(outfile, "BILLBOARD\n");
+                    break;
+
+                case VS_ATTRIBUTE_TYPE_VIEWPOINT:
+                    fprintf(outfile, "VIEWPOINT\n");
+                    break;
+
+                case VS_ATTRIBUTE_TYPE_BACKFACE:
+                    attrData = ((vsBackfaceAttribute *)attribute)->isEnabled();
+                    if (attrData)
+                        fprintf(outfile, "BACKFACE (on)\n");
+                    else
+                        fprintf(outfile, "BACKFACE (off)\n");
+                    break;
+
+                case VS_ATTRIBUTE_TYPE_DECAL:
+                    fprintf(outfile, "DECAL\n");
+                    break;
+
+                case VS_ATTRIBUTE_TYPE_SHADING:
+                    attrData = ((vsShadingAttribute *)attribute)->getShading();
+                    if (attrData == VS_SHADING_FLAT)
+                        fprintf(outfile, "SHADING (flat)\n");
+                    else
+                        fprintf(outfile, "SHADING (gouraud)\n");
+                    break;
+
+                case VS_ATTRIBUTE_TYPE_SOUND_SOURCE:
+                    fprintf(outfile, "SOUND_SOURCE\n");
+                    break;
+
+                case VS_ATTRIBUTE_TYPE_SOUND_LISTENER:
+                    fprintf(outfile, "SOUND_LISTENER\n");
+                    break;
+
+                case VS_ATTRIBUTE_TYPE_WIREFRAME:
+                    fprintf(outfile, "WIREFRAME\n");
+                    break;
+
+                default:
+                    fprintf(outfile, "<unknown type>\n");
+                    break;
+            }
         }
     }
     

@@ -25,24 +25,39 @@
 
 #include <stdio.h>
 #include "vsNode.h++"
+#include "vsGeometry.h++"
+
+#define VS_PRINTER_ATTRIBUTES        0x00000001
+#define VS_PRINTER_ATTRIBUTE_DETAILS 0x00000002
+#define VS_PRINTER_GEOMETRY          0x00000004
+#define VS_PRINTER_GEOMETRY_BINDINGS 0x00000008
+#define VS_PRINTER_GEOMETRY_LISTS    0x00000010
+#define VS_PRINTER_NODE_NAMES        0x00000020
+#define VS_PRINTER_NODE_ADDRESSES    0x00000040
 
 class VS_GRAPHICS_DLL vsScenePrinter : public vsObject
 {
 private:
 
+    int         printerMode;
+
+    void        writeGeometryList(vsGeometry *geometry, int dataList,
+                                  int treeDepth, FILE *outputFile);
     void        writeBlanks(FILE *outfile, int count);
     void        writeScene(vsNode *targetNode, FILE *outfile,
                            int treeDepth, int *countArray);
 
 public:
 
-                       vsScenePrinter();
-    virtual            ~vsScenePrinter();
+                         vsScenePrinter();
+    virtual              ~vsScenePrinter();
 
-    virtual const char *getClassName();
+    void                 setPrinterMode(int newMode);
 
-    void               printScene(vsNode *targetNode, char *outputFileName);
-    void               printScene(vsNode *targetNode, FILE *outputFile);
+    virtual const char   *getClassName();
+
+    void                  printScene(vsNode *targetNode, char *outputFileName);
+    void                  printScene(vsNode *targetNode, FILE *outputFile);
 };
 
 #endif
