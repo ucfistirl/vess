@@ -589,6 +589,13 @@ void vsPathMotion::autoSetTimes(double totalPathSeconds)
 //------------------------------------------------------------------------
 void vsPathMotion::startResume()
 {
+    // If we're stopped, reset the path information before starting
+    if (currentPlayMode == VS_PATH_STOPPED)
+    {
+        currentSegmentIdx = 0;
+        currentSegmentTime = 0.0;
+    }
+
     currentPlayMode = VS_PATH_PLAYING;
 }
 
@@ -606,8 +613,8 @@ void vsPathMotion::pause()
 void vsPathMotion::stop()
 {
     currentPlayMode = VS_PATH_STOPPED;
-    currentSegmentIdx = 0;
-    currentSegmentTime = 0.0;
+//    currentSegmentIdx = 0;
+//    currentSegmentTime = 0.0;
 }
 
 //------------------------------------------------------------------------
@@ -659,7 +666,7 @@ void vsPathMotion::update()
 
         // If we've spent longer on this segment than its total time,
         // then transition to the next segment
-        if (currentSegmentTime >= segmentTotalTime)
+        while (currentSegmentTime >= segmentTotalTime)
         {
             // * Advance to the next path segment
 
@@ -677,12 +684,21 @@ void vsPathMotion::update()
 
             // If we've completed a number of cycles equal to the
             // user-specified cycle count, and we're not looping
-            // infinitely, then stop; we're done.
+            // infinitely, then stop. Set the location on the path to the
+            // end of the path, and mark the path mode as STOPPED; this
+            // is the last trip through this loop we will make.
             if ((cycleCount != VS_PATH_CYCLE_FOREVER) &&
                 (currentCycleCount >= cycleCount))
             {
+                // Set the play mode to stopped, and set the current location
+                // on the path to the end of the path
                 currentPlayMode = VS_PATH_STOPPED;
-                return;
+                currentSegmentIdx = pointCount - 1;
+                currentSeg = (vsPathMotionSegment *)(pointList[currentSegmentIdx]);
+                currentSegmentTime = currentSeg->travelTime;
+                if (currentSeg->pauseTime > 0.0)
+                    currentSegmentTime += currentSeg->pauseTime;
+                break;
             }
 
             // Get the data corresponding to the new segment
@@ -710,6 +726,11 @@ void vsPathMotion::update()
             {
                 currentSeg->travelTime = 0.0;
             }
+
+            // Calculate the new segment total path time
+            segmentTotalTime = currentSeg->travelTime;
+            if (currentSeg->pauseTime > 0.0)
+                segmentTotalTime += currentSeg->pauseTime;
 
         } // if (currentSegmentTime >= segmentTotalTime)
     } // if (currentPlayMode == VS_PATH_PLAYING)
