@@ -26,12 +26,13 @@ libvsIO_a_SOURCES = \
                     @OS@/vsEthernetMotionStar.c++ \
                     @OS@/vsFastrak.c++ \
                     @OS@/vsIS600.c++ \
+                    @OS@/vsIPCInterface.c++ \
                     @OS@/vsKeyboard.c++ \
                     @OS@/vsNetworkInterface.c++ \
                     @OS@/vsSerialPort.c++ \
                     @OS@/vsSharedInputData.c++ \
+                    @OS@/vsTCPNetworkInterface.c++ \
                     @OS@/vsUDPNetworkInterface.c++ \
-                    @OS@/vsUDPUnicastNetworkInterface.c++ \
                     @WS@/vsWSSpaceball.c++ \
                     @SG@_@WS@/vsWindowSystem.c++
 
@@ -70,13 +71,14 @@ include_HEADERS = \
                   @OS@/vsAscensionSerialTrackingSystem.h++ \
                   @OS@/vsEthernetMotionStar.h++ \
                   @OS@/vsFastrak.h++ \
+                  @OS@/vsIPCInterface.h++ \
                   @OS@/vsIS600.h++ \
                   @OS@/vsKeyboard.h++ \
                   @OS@/vsNetworkInterface.h++ \
                   @OS@/vsSerialPort.h++ \
                   @OS@/vsSharedInputData.h++ \
                   @OS@/vsUDPNetworkInterface.h++ \
-                  @OS@/vsUDPUnicastNetworkInterface.h++ \
+                  @OS@/vsTCPNetworkInterface.h++ \
                   @WS@/vsWSSpaceball.c++ \
                   @SG@_@WS@/vsWindowSystem.c++
 
