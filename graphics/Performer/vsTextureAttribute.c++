@@ -488,6 +488,7 @@ int vsTextureAttribute::getGenMode()
             case PFTG_REFLECTION_MAP:
                 return VS_TEXTURE_GEN_REFLECTION_MAP;
             case PFTG_OFF:
+            default:
                 return VS_TEXTURE_GEN_OFF;
         }
     }
