@@ -288,7 +288,6 @@ vsComponent::~vsComponent()
     ((vsSystem::systemObject)->getNodeMap())->removeLink(this,
         VS_OBJMAP_FIRST_LIST);
 
-
     // Unlink and destroy the Performer objects
     topGroup->removeChild(lightHook);
     lightHook->removeChild(bottomGroup);
@@ -298,6 +297,35 @@ vsComponent::~vsComponent()
     pfDelete(lightHook);
     bottomGroup->unref();
     pfDelete(bottomGroup);
+}
+
+// ------------------------------------------------------------------------
+// Destroys the entire scene graph rooted at this component, up to but not
+// including this component itself. Won't delete instanced nodes unless all
+// of the parents of the node are being deleted as well.
+// ------------------------------------------------------------------------
+void vsComponent::deleteTree()
+{
+    vsNode *node;
+    vsComponent *component;
+    int loop;
+    
+    for (loop = 0; loop < getChildCount(); loop++)
+    {
+	node = getChild(0);
+	if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
+	{
+	    component = (vsComponent *)node;
+	    component->deleteTree();
+	}
+
+	removeChild(node);
+	if (node->getParentCount() == 0)
+	{
+	    delete node;
+	    loop--;
+	}
+    }
 }
 
 // ------------------------------------------------------------------------
