@@ -44,7 +44,7 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
     vsFogAttribute *fogAttrib;
     pfMaterial *frontMaterial, *backMaterial, *newFront, *newBack;
     vsMaterialAttribute *materialAttrib;
-    pfTexture *texture, *newTexture;
+    pfTexture *texture;
     pfTexEnv *texEnv, *newTexEnv;
     vsTextureAttribute *texAttrib;
     int transMode, cullMode;
@@ -121,23 +121,33 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
         materialAttrib = new vsMaterialAttribute(newFront, newBack);
         vsAttributeList::addAttribute(materialAttrib);
     }
+    else
+	materialAttrib = NULL;
     
     // Texture
     texture = (pfTexture *)(geostate->getAttr(PFSTATE_TEXTURE));
     texEnv = (pfTexEnv *)(geostate->getAttr(PFSTATE_TEXENV));
-    if (texture || texEnv)
+    if (texture)
     {
-        newTexture = new pfTexture();
-        if (texture)
-            newTexture->copy(texture);
+	texAttrib = (vsTextureAttribute *)((vsSystem::systemObject)->
+	    getNodeMap()->mapSecondToFirst(texture));
+	
+	if (!texAttrib)
+	{
+	    newTexEnv = new pfTexEnv();
+	    if (texEnv)
+		newTexEnv->copy(texEnv);
 
-        newTexEnv = new pfTexEnv();
-        if (texEnv)
-            newTexEnv->copy(texEnv);
+	    texAttrib = new vsTextureAttribute(texture, newTexEnv);
+	    
+	    (vsSystem::systemObject)->getNodeMap()->registerLink(texAttrib,
+		texture);
+	}
 
-        texAttrib = new vsTextureAttribute(newTexture, newTexEnv);
         vsAttributeList::addAttribute(texAttrib);
     }
+    else
+	texAttrib = NULL;
     
     // Transparency
     if ((geostate->getInherit() & PFSTATE_TRANSPARENCY) == 0)
@@ -150,9 +160,40 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
     {
 	// Determine by hand if transparency is needed
 	tResult = 0;
-	for (loop = 0; loop < colorListSize; loop++)
-	    if (fabs(colorList[loop][3] - 1.0) > 1E-6)
-		tResult = 1;
+	
+	// Check the material alpha
+	if (materialAttrib &&
+	    (materialAttrib->getAlpha(VS_MATERIAL_SIDE_FRONT) < 1.0))
+	    tResult = 1;
+
+	// Check the vertex colors
+	if (!tResult)
+	    for (loop = 0; loop < colorListSize; loop++)
+		if (fabs(colorList[loop][3] - 1.0) > 1E-6)
+		    tResult = 1;
+	
+	// Scan the texture (if it exists) for transparency
+	if (!tResult && texAttrib &&
+	    (texAttrib->getApplyMode() != VS_TEXTURE_APPLY_DECAL))
+	    {
+		long texLoop, pixelSize;
+		int xSize, ySize, dFormat;
+		unsigned char *imageData;
+		
+		texAttrib->getImage(&imageData, &xSize, &ySize, &dFormat);
+		if (dFormat == VS_TEXTURE_DFORMAT_RGBA)
+		{
+		    // Search each pixel of the texture for alpha < 1.0
+		    pixelSize = ((long)xSize) * ((long)ySize);
+		    for (texLoop = 0; texLoop < pixelSize; texLoop++)
+			if (imageData[(texLoop * 4) + 3] < 255)
+			{
+			    tResult = 1;
+			    break;
+			}
+		}
+	    }
+	
 	if (tResult)
 	{
 	    transAttrib = new vsTransparencyAttribute(PFTR_BLEND_ALPHA);
@@ -168,6 +209,7 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
             backAttrib = new vsBackfaceAttribute(VS_FALSE);
         else
             backAttrib = new vsBackfaceAttribute(VS_TRUE);
+
         vsAttributeList::addAttribute(backAttrib);
     }
     
