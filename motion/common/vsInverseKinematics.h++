@@ -25,22 +25,13 @@
 
 #include "vsKinematics.h++"
 
-struct VS_MOTION_DLL vsInvKinData
-{
-    vsKinematics *kin;
-
-    vsVector constraintAxis[3];
-    double axisMinValue[3];
-    double axisMaxValue[3];
-};
-
 class VS_MOTION_DLL vsInverseKinematics : public vsObject
 {
 private:
 
-    // Array of data structures
-    vsGrowableArray    dataArray;
-    int                dataArraySize;
+    // Array of kinematics objects
+    vsGrowableArray    kinematicsArray;
+    int                kinematicsArraySize;
 
     // Vector from last joint point to end effector
     vsVector           endpointOffset;
@@ -50,17 +41,7 @@ private:
     double             successThreshold;
     double             dampeningConstant;
 
-    // Data structure management
-    vsInvKinData       *createData();
-    void               setDataKinematics(vsInvKinData *data,
-                                         vsKinematics *kinematics);
-    void               deleteData(vsInvKinData *data);
-
-    // Constraint processing
-    double             constrainAngle(double minDegrees, double maxDegrees,
-                                      double value);
-    double             calculateAxisRotation(vsQuat rotation, vsVector axis);
-    vsQuat             applyConstraints(int jointIdx, vsQuat rotation);
+    // Angle processing
     vsQuat             applyDampening(vsQuat rotation, double dampeningFraction);
 
 public:
@@ -79,13 +60,6 @@ public:
     void            setKinematicsObject(int jointIdx,
                                         vsKinematics *kinematics);
     vsKinematics    *getKinematicsObject(int jointIdx);
-
-    void            setConstraint(int jointIdx, int axisIdx,
-                                  vsVector constraintAxis,
-                                  double axisMin, double axisMax);
-    void            getConstraint(int jointIdx, int axisIdx,
-                                  vsVector *constraintAxis,
-                                  double *axisMin, double *axisMax);
 
     // Other parameters
     void            setEndpointOffset(vsVector offset);

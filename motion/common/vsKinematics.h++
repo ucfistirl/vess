@@ -14,7 +14,7 @@
 //    VESS Module:  vsKinematics.h++
 //
 //    Description:  Main object for associating a motion model with a
-//		    component in the scene graph
+//                  component in the scene graph
 //
 //    Author(s):    Bryan Kline
 //
@@ -38,15 +38,27 @@ private:
     vsTransformAttribute    *transform;
 
     // Current physical state
-    vsVector		    position;
-    vsQuat		    orientation;
+    vsVector                position;
+    vsQuat                  orientation;
 
     vsVector                velocity;
-    vsVector	            angularVelocity;
+    vsVector                angularVelocity;
 
     // Inertia on or off
     bool                    inertia;
+
+    // Orientation constraints
+    bool                    constrainOnUpdate;
+    vsVector                constraintAxis[3];
+    double                  constraintMinAngle[3];
+    double                  constraintMaxAngle[3];
     
+    double                  constrainAngle(double value,
+                                           double minDegrees,
+                                           double maxDegrees);
+    double                  calculateAxisRotation(vsQuat rotation,
+                                                  vsVector axis);
+
 public:
 
     // Constructor/destructor
@@ -88,16 +100,27 @@ public:
     void                  setCenterOfMass(vsVector newCenter);
     vsVector              getCenterOfMass();
 
+    // Adjust/apply the orientation constraints
+    void                  setConstraint(int idx, vsVector axis,
+                                        double minAngle, double maxAngle);
+    void                  getConstraint(int idx, vsVector *axis,
+                                        double *minAngle, double *maxAngle);
+
+    void                  enableConstrainOnUpdate();
+    void                  disableConstrainOnUpdate();
+    bool                  isConstrainOnUpdateEnabled();
+    void                  applyConstraints();
+
     // Return the associated vsComponent object
     vsComponent           *getComponent();
 
     // Compute new position/orientation based on current velocities and
     // elapsed time
-    void	          update();
+    void                  update();
 
     // Compute new position/orientation based on current velocities and
     // specified time interval
-    void	          update(double deltaTime);
+    void                  update(double deltaTime);
 };
 
 #endif

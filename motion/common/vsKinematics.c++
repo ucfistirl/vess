@@ -14,7 +14,7 @@
 //    VESS Module:  vsKinematics.c++
 //
 //    Description:  Main object for associating a motion model with a
-//		    component in the scene graph
+//                  component in the scene graph
 //
 //    Author(s):    Bryan Kline
 //
@@ -31,6 +31,7 @@
 vsKinematics::vsKinematics(vsComponent *theComponent)
 {
     vsMatrix xform;
+    int loop;
 
     // Save the component passed in
     component = theComponent;
@@ -38,8 +39,8 @@ vsKinematics::vsKinematics(vsComponent *theComponent)
     // Complain if the given component is NULL
     if (!component)
     {
-	printf("vsKinematics::vsKinematics: NULL component\n");
-	return;
+        printf("vsKinematics::vsKinematics: NULL component\n");
+        return;
     }
     
     // vsKinematics objects require that the associated component
@@ -66,6 +67,21 @@ vsKinematics::vsKinematics(vsComponent *theComponent)
 
     // Default inertia to false
     inertia = false;
+
+    // * Initialize orientation constraint values
+    constrainOnUpdate = false;
+
+    // Axes: heading (z), pitch (x), roll (y)
+    constraintAxis[0].set(0.0, 0.0, 1.0);
+    constraintAxis[1].set(1.0, 0.0, 0.0);
+    constraintAxis[2].set(0.0, 1.0, 0.0);
+
+    // Angles: full range (-180.0 to 180.0)
+    for (loop = 0; loop < 3; loop++)
+    {
+        constraintMinAngle[loop] = -180.0;
+        constraintMaxAngle[loop] = 180.0;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -402,6 +418,149 @@ vsVector vsKinematics::getCenterOfMass()
 }
 
 // ------------------------------------------------------------------------
+// Sets one of the orientation constraints for this kinematics object. The
+// amount of rotation that the kinematics' orientation makes around the
+// specified axis is limited to the specified degree measures. A zero axis
+// value specifies that this constraint is not used. The idx value
+// specifies which of the three constraints is being set, with the first
+// constraint having a value of zero.
+// ------------------------------------------------------------------------
+void vsKinematics::setConstraint(int idx, vsVector axis, double minAngle,
+    double maxAngle)
+{
+    // Bounds/sanity checking
+    if ((idx < 0) || (idx > 2))
+    {
+        printf("vsKinematics::setConstraint: Invalid idx value (%d)\b", idx);
+        return;
+    }
+    if ((minAngle < -180.0) || (minAngle > 180.0))
+    {
+        printf("vsKinematics::setConstraint: minAngle (%lf) must be in the "
+            "range [-180.0, 180.0]\n", minAngle);
+        return;
+    }
+    if ((maxAngle < -180.0) || (maxAngle > 180.0))
+    {
+        printf("vsKinematics::setConstraint: maxAngle (%lf) must be in the "
+            "range [-180.0, 180.0]\n", maxAngle);
+        return;
+    }
+    if (minAngle > maxAngle)
+    {
+        printf("vsKinematics::setConstraint: minAngle (%lf) must be less "
+            "than or equal to maxAngle (%lf)\n", minAngle, maxAngle);
+        return;
+    }
+
+    // Set the constraint data
+    constraintAxis[idx].clearCopy(axis);
+    constraintMinAngle[idx] = minAngle;
+    constraintMaxAngle[idx] = maxAngle;
+}
+
+// ------------------------------------------------------------------------
+// Gets one of the orientation constraints for this kinematics object. The
+// amount of rotation that the kinematics' orientation makes around the
+// specified axis is limited to the specified degree measures. A zero axis
+// value specifies that this constraint is not used. The idx value
+// specifies which of the three constraints is being retrieved, with the
+// first constraint having a value of zero.
+// ------------------------------------------------------------------------
+void vsKinematics::getConstraint(int idx, vsVector *axis, double *minAngle,
+    double *maxAngle)
+{
+    // Bounds checking
+    if ((idx < 0) || (idx > 2))
+    {
+        printf("vsKinematics::getConstraint: Invalid idx value (%d)\b", idx);
+        return;
+    }
+
+    // Copy the constraint data to the specified locations
+    if (axis)
+        *axis = constraintAxis[idx];
+    if (minAngle)
+        *minAngle = constraintMinAngle[idx];
+    if (maxAngle)
+        *maxAngle = constraintMaxAngle[idx];
+}
+
+// ------------------------------------------------------------------------
+// Enables the application of orientation constraints at the end of every
+// update call
+// ------------------------------------------------------------------------
+void vsKinematics::enableConstrainOnUpdate()
+{
+    constrainOnUpdate = true;
+}
+
+// ------------------------------------------------------------------------
+// Disables the application of orientation constraints at the end of every
+// update call
+// ------------------------------------------------------------------------
+void vsKinematics::disableConstrainOnUpdate()
+{
+    constrainOnUpdate = false;
+}
+
+// ------------------------------------------------------------------------
+// Returns if orientation constraints are set to be applied during update
+// calls
+// ------------------------------------------------------------------------
+bool vsKinematics::isConstrainOnUpdateEnabled()
+{
+    return constrainOnUpdate;
+}
+
+// ------------------------------------------------------------------------
+// Apply the orientation constraints to the kinematics' current orientation
+// ------------------------------------------------------------------------
+void vsKinematics::applyConstraints()
+{
+    vsQuat currentRot, newRot;
+    vsQuat resultRot;
+    vsVector axis;
+    double rotAngle;
+    int loop;
+
+    // Initialize the rotation to pull from to the specified rotation
+    currentRot = getOrientation();
+
+    // Initilize the result to no rotation
+    resultRot.set(0.0, 0.0, 0.0, 1.0);
+
+    // Loop over all three constraints
+    for (loop = 0; loop < 3; loop++)
+        // Only apply a constraint if the axis is nonzero
+        if (constraintAxis[loop].getMagnitude() > 0.0)
+        {
+            // Copy the constraint axis to a more convenient variable
+            axis = constraintAxis[loop];
+
+            // Determine how much the rotation rotates around the constraint
+            // axis
+            rotAngle = calculateAxisRotation(currentRot, axis);
+
+            // Clamp the rotation around the constraint axis to the values
+            // specified for this constraint
+            rotAngle = constrainAngle(rotAngle, constraintMinAngle[loop],
+                constraintMaxAngle[loop]);
+
+            // Compute the quaternion that represents the constrained rotation
+            newRot.setAxisAngleRotation(axis[0], axis[1], axis[2], rotAngle);
+
+            // Remove the constrained rotation from the input rotation...
+            currentRot = newRot.getInverse() * currentRot;
+            // ...and multiply it into the output rotation.
+            resultRot = resultRot * newRot;
+        }
+
+    // Set the final orientation to the product of the constrained orientations
+    setOrientation(resultRot);
+}
+
+// ------------------------------------------------------------------------
 // Retrieves the component for this object
 // ------------------------------------------------------------------------
 vsComponent *vsKinematics::getComponent()
@@ -463,4 +622,116 @@ void vsKinematics::update(double deltaTime)
         velocity.clear();
         angularVelocity.clear();
     }
+
+    // Apply the orientation constraints, if applicable
+    if (constrainOnUpdate)
+        applyConstraints();
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Clamps the degree measure 'value' to the range indicated by the
+// minDegrees and maxDegrees parameters. The clamping takes into account
+// the 'circular' nature of angle measures; a value far enough below the
+// low end of the range might 'circle around' and be clamped to the high
+// end of the range, and vice versa.
+// ------------------------------------------------------------------------
+double vsKinematics::constrainAngle(double value, double minDegrees,
+    double maxDegrees)
+{
+    double dist2Min, dist2Max;
+
+    // Force the value to be in the range <-180.0, 180.0]
+    if (value > 180.0)
+        value -= 360.0;
+    if (value <= -180.0)
+        value += 360.0;
+
+    // If the value falls within the acceptable range, return it
+    if ((value >= minDegrees) && (value <= maxDegrees))
+        return value;
+
+    // If the value is outside of the range, determine which extreme of the
+    // range that the value is closest to, taking into account the cyclic
+    // nature of angle measurements
+    if (value < minDegrees)
+    {
+        dist2Min = minDegrees - value;
+        dist2Max = value - (maxDegrees - 360.0);
+    }
+    else // (value > maxDegrees)
+    {
+        dist2Min = (minDegrees + 360.0) - value;
+        dist2Max = value - maxDegrees;
+    }
+
+    // Return the degree measure of the closest range extreme
+    if (dist2Min < dist2Max)
+        return minDegrees;
+    else
+        return maxDegrees;
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Determine the amount of rotation that the specified rotation rotates
+// around the specified rotation axis
+// ------------------------------------------------------------------------
+double vsKinematics::calculateAxisRotation(vsQuat rotation, vsVector axis)
+{
+    vsVector planeVec, rotVec, axisVec;
+    double dotProd, rotDegrees;
+
+    // * Create a vector that is in the plane perpendicular to the axis vector
+
+    // Start with an arbitrary vector
+    planeVec.set(0.0, 1.0, 0.0);
+    // The vector must not point in the same (or opposite) direction as the
+    // axis vector; pick a new vector if that is the case
+    dotProd = planeVec.getDotProduct(axis);
+    if (VS_EQUAL(fabs(dotProd), 1.0))
+    {
+        planeVec.set(0.0, 0.0, 1.0);
+        dotProd = planeVec.getDotProduct(axis);
+    }
+    // Remove the portion of the vector that points in the direction of the
+    // axis vector
+    planeVec -= axis.getScaled(dotProd);
+    // Force the result to be unit-length
+    planeVec.normalize();
+
+    // * Calculate the vector that is the in-plane vector, rotated by the
+    // given quaternion, and constrained to the perpendicular plane
+
+    // Rotate the in-plane vector by the quaternion
+    rotVec = rotation.rotatePoint(planeVec);
+    // If the result is parallel to the axis, then this information doesn't
+    // help us any; try again with another vector in the plane
+    dotProd = rotVec.getDotProduct(axis);
+    if (VS_EQUAL(fabs(dotProd), 1.0))
+    {
+        // Make a new in-plane vector
+        planeVec = planeVec.getCrossProduct(axis);
+        // And run the calculation again
+        rotVec = rotation.rotatePoint(planeVec);
+        dotProd = rotVec.getDotProduct(axis);
+    }
+    // Project the resulting vector back into the axis-perpendicular plane
+    rotVec -= axis.getScaled(dotProd);
+    // And force it to be unit-length
+    rotVec.normalize();
+
+    // * Determine the net amount of rotation applied to the in-plane vector
+
+    // Get the degree measure of rotation between the vectors
+    rotDegrees = fabs(planeVec.getAngleBetween(rotVec));
+    // Get the axis of rotation between the two vectors
+    axisVec = planeVec.getCrossProduct(rotVec);
+    // If the calculated axis of rotation is opposite from the original target
+    // axis, then negate the rotation amount
+    if (axis.getDotProduct(axisVec) < 0.0)
+        rotDegrees *= -1.0;
+
+    // Done.
+    return rotDegrees;
 }
