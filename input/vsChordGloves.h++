@@ -69,8 +69,8 @@ VS_INTERNAL:
 public:
 
     // Constructor/Destructor
-               vsChordGloves();
-               ~vsChordGloves();
+                             vsChordGloves();
+                             ~vsChordGloves();
 
     // Inherited functions
     virtual int              getNumAxes();
@@ -84,7 +84,7 @@ public:
 
     // Enumerates the pairs of digits in contact in the given array.
     // Returns the number of contact pairs.
-    int        getContactPairs(int *pairs, int maxSize);
+    int                      getContactPairs(int *pairs, int maxSize);
 };
 
 #endif
