@@ -1,0 +1,143 @@
+// File vsLODAttribute.c++
+
+#include "vsLODAttribute.h++"
+
+// ------------------------------------------------------------------------
+// Default Constructor
+// ------------------------------------------------------------------------
+vsLODAttribute::vsLODAttribute()
+{
+    performerLOD = NULL;
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Constructor - Stores the Performer LOD object and corrects its closest
+// range
+// ------------------------------------------------------------------------
+vsLODAttribute::vsLODAttribute(pfLOD *lodGroup)
+{
+    performerLOD = lodGroup;
+    
+    performerLOD->setRange(0, 0.0);
+
+    attachedFlag = 1;
+}
+
+// ------------------------------------------------------------------------
+// Destructor
+// ------------------------------------------------------------------------
+vsLODAttribute::~vsLODAttribute()
+{
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the type of this attribute
+// ------------------------------------------------------------------------
+int vsLODAttribute::getAttributeType()
+{
+    return VS_ATTRIBUTE_TYPE_LOD;
+}
+
+// ------------------------------------------------------------------------
+// Sets the far limit for which the child with index childNum on the
+// parent component is displayed. The near limit is the far limit of the
+// child with the next lower index, or 0 for the child at index 0. The
+// first child has an index of 0.
+// ------------------------------------------------------------------------
+void vsLODAttribute::setRangeEnd(int childNum, double rangeLimit)
+{
+    if (!attachedFlag)
+    {
+        printf("vsLODAttribute::setRangeEnd: Attribute must be attached "
+            "before LOD can be manipulated\n");
+        return;
+    }
+
+    if ((childNum < 0) && (childNum >= performerLOD->getNumChildren()))
+    {
+        printf("vsLODAttribute::setRangeEnd: Index out of bounds\n");
+        return;
+    }
+
+    performerLOD->setRange(childNum+1, rangeLimit);
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the far distance limit for which this child is displayed.
+// The index of the first child is 0.
+// ------------------------------------------------------------------------
+double vsLODAttribute::getRangeEnd(int childNum)
+{
+    if (!attachedFlag)
+    {
+        printf("vsLODAttribute::getRangeEnd: Attribute must be attached "
+            "before LOD can be manipulated\n");
+        return 0.0;
+    }
+
+    if ((childNum < 0) && (childNum >= performerLOD->getNumChildren()))
+    {
+        printf("vsLODAttribute::getRangeEnd: Index out of bounds\n");
+        return 0.0;
+    }
+
+    return performerLOD->getRange(childNum+1);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Notifies the attribute that it is being added to the given node's
+// attribute list
+// ------------------------------------------------------------------------
+void vsLODAttribute::attach(vsNode *theNode)
+{
+    int loop, childCount;
+
+    if (attachedFlag)
+    {
+        printf("vsLODAttribute::attach: Attribute is already attached\n");
+        return;
+    }
+
+    if (theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
+    {
+        printf("vsLODAttribute::attach: Can't attach LOD attributes to "
+            "geometry nodes\n");
+        return;
+    }
+    
+    // Replace the bottom group with an LOD group
+    performerLOD = new pfLOD();
+    ((vsComponent *)theNode)->replaceBottomGroup(performerLOD);
+    
+    childCount = performerLOD->getNumChildren();
+    for (loop = 1; loop <= childCount; loop++)
+        performerLOD->setRange(loop,
+            ((1000.0 * (double)loop) / (double)childCount));
+
+    attachedFlag = 1;
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Notifies the attribute that it is being removed from the given node's
+// attribute list
+// ------------------------------------------------------------------------
+void vsLODAttribute::detach(vsNode *theNode)
+{
+    pfGroup *newGroup;
+
+    if (!attachedFlag)
+    {
+        printf("vsLODAttribute::detach: Attribute is not attached\n");
+        return;
+    }
+    
+    // Replace the LOD group with an ordinary group
+    newGroup = new pfGroup();
+    ((vsComponent *)theNode)->replaceBottomGroup(newGroup);
+    performerLOD = NULL;
+    
+    attachedFlag = 0;
+}
