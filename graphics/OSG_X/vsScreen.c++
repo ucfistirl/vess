@@ -35,9 +35,11 @@ int vsScreen::screenCount = 0;
 // ------------------------------------------------------------------------
 vsScreen *vsScreen::getScreen(int index)
 {
+    // Make sure the index doesn't exceed the screen count
     if (index >= screenCount)
 	return NULL;
 
+    // Return the requested screen
     return screenList[index];
 }
 
@@ -79,6 +81,7 @@ vsWindow *vsScreen::getChildWindow(int index)
         return NULL;
     }
 
+    // Return the requested window
     return (vsWindow *)(childWindowList[index]);
 }
 
@@ -165,6 +168,7 @@ void vsScreen::done()
     for (loop = 0; loop < screenCount; loop++)
 	delete ((vsScreen *)(screenList[loop]));
 
+    // Set the screen count to 0
     screenCount = 0;
 }
 

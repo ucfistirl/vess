@@ -82,10 +82,6 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     // Get the X display and screen as well
     xWindowDisplay = parentPipe->getXDisplay();
 
-    printf("Opening window on %s (display 0x%x screen %d)\n", 
-        DisplayString(xWindowDisplay), xWindowDisplay, 
-        parentScreen->getScreenIndex());
-                   
     // Choose an XVisual most closely matching the default attributes
     visual = glXChooseVisual(xWindowDisplay, parentScreen->getScreenIndex(), 
         attributeList);
@@ -103,12 +99,6 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
         // Bail out
         return;
     }
-    else
-    {
-        // Print the visual information
-        printf("Chose visual id  0x%x for screen %d\n", visual->visualid,
-            visual->screen);
-    }
 
     // Create an OpenGL rendering context using direct rendering
     glContext = glXCreateContext(xWindowDisplay, visual, NULL, GL_TRUE);
@@ -125,11 +115,6 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
         // Bail out
         return;
     }
-    else
-    {
-        // Print the context information
-        printf("Created OpenGL rendering context 0x%x\n", glContext);
-    }
 
     // Create a color map for the window
     colorMap = XCreateColormap(xWindowDisplay, 
@@ -139,7 +124,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     // Make sure the color map is valid
     if (colorMap == 0)
     {
-        // Invalid context, print an error
+        // Invalid colormap, print an error
         printf("vsWindow::vsWindow:  Unable to create colormap for visual!\n");
 
         // Signal this window object is not valid
@@ -147,11 +132,6 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
 
         // Bail out
         return;
-    }
-    else
-    {
-        // Print the colormap information
-        printf("Created colormap 0x%x\n", colorMap);
     }
 
     // Create the window using the colormap we created, and with the event
@@ -178,11 +158,6 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
 
         // Bail out
         return;
-    }
-    else
-    {
-        // Print X Window information
-        printf("Created X Window 0x%x\n", xWindow);
     }
 
     // Make the border hidden if requested
@@ -225,8 +200,6 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     XMapWindow(xWindowDisplay, xWindow);
     XIfEvent(xWindowDisplay, &event, vsWindow::waitForMap, (char *)xWindow);
 
-    printf("Window successfully mapped!\n");
-
     // Add the window to its parent screen
     parentScreen->addWindow(this);
 
@@ -248,8 +221,6 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
 
         // Free the child list that's returned (we don't need it for anything)
         XFree(childPointer);
-        printf("result(0x%X) rootID(0x%X) parentID(0x%X) xWindowID(0x%X)\n", 
-            result, rootID, parentID, xWindowID);
 
         // See if the query succeeded
         if (result == 0)
@@ -271,7 +242,6 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
 
     // Keep track of the topmost window
     topWindowID = xWindowID;
-    printf("topWindowID: 0x%X\n", topWindowID);
 
     // Flush the display to ensure every event has been processed before
     // we take our measurements
@@ -294,16 +264,6 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
         setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
         setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
         XFlush(xWindowDisplay);
-
-        printf("requested:  x = %d, y = %d, width = %d, height = %d\n",
-            VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS, 
-            VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT); 
-        printf("top:        x = %d, y = %d, width = %d, height = %d\n",
-            topXAttr.x, topXAttr.y, topXAttr.width, topXAttr.height);
-        printf("main:       x = %d, y = %d, width = %d, height = %d\n",
-            winXAttr.x, winXAttr.y, winXAttr.width, winXAttr.height);
-        printf("offsets:    x = %d, y = %d, width = %d, height = %d\n",
-            xPositionOffset, yPositionOffset, widthOffset, heightOffset);
     }
     else
     {
@@ -368,10 +328,6 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
     // Get the X display and screen as well
     xWindowDisplay = parentPipe->getXDisplay();
 
-    printf("Opening window on %s (display 0x%x screen %d)\n", 
-        DisplayString(xWindowDisplay), xWindowDisplay, 
-        parentScreen->getScreenIndex());
-                   
     // Choose an XVisual most closely matching the default attributes
     visual = glXChooseVisual(xWindowDisplay, parentScreen->getScreenIndex(), 
         attributeList);
@@ -389,12 +345,6 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
         // Bail out
         return;
     }
-    else
-    {
-        // Print the visual information
-        printf("Chose visual id  0x%x for screen %d\n", visual->visualid,
-            visual->screen);
-    }
 
     // Create an OpenGL rendering context using direct rendering
     glContext = glXCreateContext(xWindowDisplay, visual, NULL, GL_TRUE);
@@ -411,11 +361,6 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
         // Bail out
         return;
     }
-    else
-    {
-        // Print the context information
-        printf("Created OpenGL rendering context 0x%x\n", glContext);
-    }
 
     // Create a color map for the window
     colorMap = XCreateColormap(xWindowDisplay, 
@@ -425,7 +370,7 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
     // Make sure the color map is valid
     if (colorMap == 0)
     {
-        // Invalid context, print an error
+        // Invalid colormap, print an error
         printf("vsWindow::vsWindow:  Unable to create colormap for visual!\n");
 
         // Signal this window object is not valid
@@ -433,11 +378,6 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
 
         // Bail out
         return;
-    }
-    else
-    {
-        // Print the colormap information
-        printf("Created colormap 0x%x\n", colorMap);
     }
 
     // Create the window using the colormap we created, and with the event
@@ -463,11 +403,6 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
 
         // Bail out
         return;
-    }
-    else
-    {
-        // Print X Window information
-        printf("Created X Window 0x%x\n", xWindow);
     }
 
     // Make the border hidden if requested
@@ -506,8 +441,6 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
     // Map (ie: open) the window and wait for it to finish mapping
     XMapWindow(xWindowDisplay, xWindow);
     XIfEvent(xWindowDisplay, &event, vsWindow::waitForMap, (char *)xWindow);
-
-    printf("Window successfully mapped!\n");
 
     // Add the window to its parent screen
     parentScreen->addWindow(this);
@@ -623,7 +556,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
     // Make sure the colormap is valid
     if (colorMap == 0)
     {
-        // Invalid context, print an error
+        // Invalid colormap, print an error
         printf("vsWindow::vsWindow:  Unable to create colormap for visual!\n");
 
         // Signal this window object is not valid

@@ -35,9 +35,11 @@ int vsPipe::pipeCount = 0;
 // ------------------------------------------------------------------------
 vsPipe *vsPipe::getPipe(int index)
 {
+    // Make sure the index doesn't exceed the number of pipes
     if (index >= pipeCount)
 	return NULL;
 
+    // Return the requested pipe
     return pipeList[index];
 }
 
@@ -56,9 +58,11 @@ int vsPipe::getPipeCount()
 // ------------------------------------------------------------------------
 vsScreen *vsPipe::getScreen(int index)
 {
+    // Make sure the screen index is valid
     if (index != 0)
         printf("vsPipe::getScreen: Bad screen index\n");
 
+    // Return the requested screen
     return childScreen;
 }
 
@@ -76,6 +80,7 @@ int vsPipe::getBaseLibraryObject()
 // ------------------------------------------------------------------------
 vsPipe::vsPipe(Display *display, int index)
 {
+    // Remember the display and pipe index
     xDisplay = display;
     pipeIndex = index;
 }
@@ -85,6 +90,7 @@ vsPipe::vsPipe(Display *display, int index)
 // ------------------------------------------------------------------------
 vsPipe::~vsPipe()
 {
+    // Decrement the pipe count
     pipeCount--;
 
     // Close the X Display when the last pipe is destroyed;
@@ -102,16 +108,12 @@ void vsPipe::init()
     int     loop;
 
     // Open a connection to the X Server and count the number of screens
-    printf("Opening default display:\n");
     display = XOpenDisplay(NULL);
     pipeCount = ScreenCount(display);
-    printf("   Display %s (0x%x) contains %d screens\n", 
-        DisplayString(display), display, pipeCount);
 
     // Create a vsPipe for each screen
     for (loop = 0; loop < pipeCount; loop++)
     {
-        printf("Creating pipe #%d\n", loop);
 	pipeList[loop] = new vsPipe(display, loop);
     }
 }
@@ -128,6 +130,7 @@ void vsPipe::done()
     for (loop = 0; loop < pipeCount; loop++)
 	delete ((vsPipe *)(pipeList[loop]));
 
+    // Set the pipe count to 0
     pipeCount = 0;
 }
 

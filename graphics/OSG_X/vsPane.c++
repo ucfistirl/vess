@@ -236,7 +236,10 @@ vsWindow *vsPane::getParentWindow()
 // ------------------------------------------------------------------------
 void vsPane::setView(vsView *view)
 {
+    // Save the view object
     sceneView = view;
+
+    // Set the osg::SceneView's camera to use the new vsView's osg::Camera
     osgSceneView->setCamera(view->getBaseLibraryObject());
 }
 
@@ -705,6 +708,7 @@ void vsPane::updateView()
 	(curProjVval != projVval) || (curWidth != paneWidth) ||
         (curHeight != paneHeight))
     {
+        // Check the projection mode
 	if (projMode == VS_VIEW_PROJMODE_PERSP)
         {
             // Get the size of the pane and calculate the aspect ratio.
