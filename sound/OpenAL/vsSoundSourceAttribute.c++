@@ -155,7 +155,7 @@ const char *vsSoundSourceAttribute::getClassName()
 void vsSoundSourceAttribute::attach(vsNode *theNode)
 {
     // Make sure the attribute isn't attached elsewhere
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsSoundSourceAttribute::attach: Attribute is already "
             "attached\n");
@@ -173,7 +173,7 @@ void vsSoundSourceAttribute::attach(vsNode *theNode)
     parentComponent = ((vsComponent *)theNode);
 
     // Flag this attribute as attached to a component
-    attachedFlag = 1;
+    attachedCount = 1;
 }
 
 // ------------------------------------------------------------------------
@@ -184,7 +184,7 @@ void vsSoundSourceAttribute::attach(vsNode *theNode)
 void vsSoundSourceAttribute::detach(vsNode *theNode)
 {
     // Make sure the attribute is actually attached to the node
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSoundSourceAttribute::detach: Attribute is not attached\n");
         return;
@@ -194,7 +194,7 @@ void vsSoundSourceAttribute::detach(vsNode *theNode)
     parentComponent = NULL;
 
     // Flag this attribute as not attached to a component
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -262,7 +262,7 @@ void vsSoundSourceAttribute::update()
     ALuint         bufferID;
 
     // If we're not attached to a component, we have nothing to do
-    if (!attachedFlag)
+    if (!attachedCount)
         return;
 
     // Get the global transform for this attribute's component and
