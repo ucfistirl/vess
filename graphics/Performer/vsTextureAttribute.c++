@@ -560,16 +560,22 @@ void vsTextureAttribute::attachDuplicate(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsTextureAttribute::saveCurrent()
 {
-    vsStateAttribute *tempPointer;
+    vsGraphicsState *gState;
 
     // Get the current vsGraphicsState object
-    vsGraphicsState *gState = vsGraphicsState::getInstance();
+    gState = vsGraphicsState::getInstance();
 
     // Save the current texture state in our save list
-    tempPointer = gState->getTexture(textureUnit);
-    if (tempPointer == NULL)
-        tempPointer = gState->getTextureCube(textureUnit);
-    attrSaveList[attrSaveCount++] = tempPointer;
+    if (gState->getTexture(textureUnit))
+        attrSaveList[attrSaveCount] = gState->getTexture(textureUnit);
+    else if (gState->getTextureCube(textureUnit))
+        attrSaveList[attrSaveCount] = gState->getTextureCube(textureUnit);
+    else if (gState->getTextureRect(textureUnit))
+        attrSaveList[attrSaveCount] = gState->getTextureRect(textureUnit);
+    else
+        attrSaveList[attrSaveCount] = NULL;
+
+    attrSaveCount++;
 }
 
 // ------------------------------------------------------------------------
@@ -595,24 +601,31 @@ void vsTextureAttribute::apply()
 // ------------------------------------------------------------------------
 void vsTextureAttribute::restoreSaved()
 {
+    vsGraphicsState *gState;
     vsStateAttribute *tempPointer;
 
     // Get the current vsGraphicsState object
-    vsGraphicsState *gState = vsGraphicsState::getInstance();
+    gState = vsGraphicsState::getInstance();
 
     // Unlock the texture if overriding was enabled
     if (overrideFlag)
         gState->unlockTexture(textureUnit, this);
 
     // Reset the current texture to its previous value
-    tempPointer = (vsStateAttribute *)(attrSaveList[--attrSaveCount]);
+    attrSaveCount--;
+    tempPointer = (vsStateAttribute *)(attrSaveList[attrSaveCount]);
+
     if (tempPointer == NULL)
         gState->setTexture(textureUnit, NULL);
+    else if (tempPointer->getAttributeType() == VS_ATTRIBUTE_TYPE_TEXTURE_RECTANGLE)
+        gState->setTextureRect(
+            textureUnit, (vsTextureRectangleAttribute *) tempPointer);
     else if (tempPointer->getAttributeType() == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE)
         gState->setTextureCube(textureUnit,
             (vsTextureCubeAttribute *) tempPointer);
     else if (tempPointer->getAttributeType() == VS_ATTRIBUTE_TYPE_TEXTURE)
-        gState->setTexture(textureUnit, (vsTextureAttribute *) tempPointer);
+        gState->setTexture(
+            textureUnit, (vsTextureAttribute *) tempPointer);
 }
 
 // ------------------------------------------------------------------------
