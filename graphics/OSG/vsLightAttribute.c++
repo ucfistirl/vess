@@ -456,6 +456,9 @@ void vsLightAttribute::setScene(vsScene *newScene)
     // If this light's scene is not NULL, unref() it because it will change.
     if (scene != NULL)
     {
+        // Remove it from the old scene's light list.
+        removeFromScene();
+
         scene->unref();
     }
 
@@ -629,9 +632,6 @@ void vsLightAttribute::detach(vsNode *theNode)
     // Remove the actual light node from the scene.
     lightHookGroup->removeChild(lightNode);
     lightHookGroup = NULL;
-
-    // Remove this light from the scene's list of lights.
-    removeFromScene();
 
     // Lose the reference to the scene this light used to belong to.
     setScene(NULL);
