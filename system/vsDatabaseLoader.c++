@@ -151,9 +151,10 @@ int vsDatabaseLoader::getLoaderMode(int whichMode)
 // that was specified as a valid extension to the loader before the
 // vsSystem object was created.
 // ------------------------------------------------------------------------
-vsNode *vsDatabaseLoader::loadDatabase(char *databaseFilename)
+vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
 {
-    vsNode *result;
+    vsNode *dbRoot;
+    vsComponent *result;
     pfNode *performerGraph;
 
     if (!inittedFlag)
@@ -192,28 +193,32 @@ vsNode *vsDatabaseLoader::loadDatabase(char *databaseFilename)
         // Is an OpenFlight file...  fix the DOF/DCS nodes
         fixPerformerFltDOF(performerGraph);
     }
-    
+
     // Separate each geoset into a different geode. This may slow things down
     // slightly but ultimately the scene graph is easier to handle this way.
     fixGeodes(performerGraph);
 
     // Bottle the Performer graph into a VESS tree
     if (performerGraph->isOfType(pfGroup::getClassType()))
-        result = new vsComponent((pfGroup *)performerGraph, this);
+        dbRoot = new vsComponent((pfGroup *)performerGraph, this);
     else if (performerGraph->isOfType(pfGeode::getClassType()))
-        result = new vsGeometry((pfGeode *)performerGraph);
+        dbRoot = new vsGeometry((pfGeode *)performerGraph);
     else
     {
         printf("vsDatabaseLoader::loadDatabase: No geometry found\n");
         pfDelete(performerGraph);
-        result = NULL;
+        dbRoot = NULL;
     }
-    
+
     // * Replace all pfBillboards in the Performer scene with pfGeodes; the
     // database loader should have extracted all of the relavant information
     // into vsBillboardAttributes by now.
     replaceBillboards(performerGraph);
-    
+
+    // Package the resulting database into its own component and return
+    result = new vsComponent();
+    result->addChild(dbRoot);
+
     return result;
 }
 

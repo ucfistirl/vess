@@ -36,16 +36,16 @@ private:
 
     vsGrowableArray    extensions;
     int                extensionCount;
-    
+
     vsGrowableArray    nodeNames;
     int                nodeNameCount;
-    
+
     int                unitMode;
-    
+
     int		       importantXformMode;
 
     int                inittedFlag;
-    
+
     int                classifyExtension(char *name);
 
     void               fixPerformerFltDOF(pfNode *node);
@@ -55,7 +55,7 @@ private:
 VS_INTERNAL:
 
     void           init();
-    
+
     static void    fltLoaderCallback(pfNode *node, int mgOp, int *cbs,
                                      COMMENTcb *comment, void *userData);
 
@@ -63,22 +63,22 @@ VS_INTERNAL:
 
 public:
 
-                vsDatabaseLoader(char *fileExtension);
-                ~vsDatabaseLoader();
+                   vsDatabaseLoader(char *fileExtension);
+                   ~vsDatabaseLoader();
 
-    void        addExtension(char *fileExtension);
-    
-    void        addImportantNodeName(char *newName);
-    void        clearNames();
+    void           addExtension(char *fileExtension);
 
-    void        setUnits(int databaseUnit);
-    
-    void        addPath(char *filePath);
-    
-    void	setLoaderMode(int whichMode, int modeVal);
-    int		getLoaderMode(int whichMode);
-    
-    vsNode      *loadDatabase(char *databaseFilename);
+    void           addImportantNodeName(char *newName);
+    void           clearNames();
+
+    void           setUnits(int databaseUnit);
+
+    void           addPath(char *filePath);
+
+    void	   setLoaderMode(int whichMode, int modeVal);
+    int		   getLoaderMode(int whichMode);
+
+    vsComponent    *loadDatabase(char *databaseFilename);
 };
 
 #endif

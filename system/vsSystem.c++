@@ -277,7 +277,7 @@ vsDatabaseLoader *vsSystem::getLoader()
 // Passes a call to loadDatabase to the system object's database loader
 // object, returning the result.
 // ------------------------------------------------------------------------
-vsNode *vsSystem::loadDatabase(char *databaseFilename)
+vsComponent *vsSystem::loadDatabase(char *databaseFilename)
 {
     if (!validObject)
         return NULL;

@@ -56,7 +56,7 @@ public:
     vsScreen            *getScreen(int index);
     
     vsDatabaseLoader    *getLoader();
-    vsNode              *loadDatabase(char *databaseFilename);
+    vsComponent         *loadDatabase(char *databaseFilename);
     
     void                drawFrame();
     
