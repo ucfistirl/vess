@@ -653,6 +653,32 @@ void vsPane::getESColor(int which, double *r, double *g, double *b)
 }
 
 // ------------------------------------------------------------------------
+// Enable drawing of statistical information in the pane
+// ------------------------------------------------------------------------
+void vsPane::enableStats()
+{
+    // No support for frame statistics in OSG
+    printf("vsPane::enableStats():  Stats not supported under Open Scene "
+        "Graph\n");
+}
+
+// ------------------------------------------------------------------------
+// Disable drawing of statistical information in the pane
+// ------------------------------------------------------------------------
+void vsPane::disableStats()
+{
+}
+
+// ------------------------------------------------------------------------
+// Returns whether or not frame statistics are set to be drawn
+// ------------------------------------------------------------------------
+int vsPane::areStatsEnabled()
+{
+    // No support for stats under OSG, so always return false
+    return VS_FALSE;
+}
+
+// ------------------------------------------------------------------------
 // Returns the Open Scene Graph object associated with this object
 // ------------------------------------------------------------------------
 osgUtil::SceneView *vsPane::getBaseLibraryObject()

@@ -163,6 +163,10 @@ public:
     void                  getESColor(int which, double *r, double *g, 
                                      double *b);
 
+    void                  enableStats();
+    void                  disableStats();
+    int                   areStatsEnabled();
+
     // OSG object accessor
     osgUtil::SceneView    *getBaseLibraryObject();
 };
