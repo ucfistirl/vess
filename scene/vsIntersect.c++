@@ -20,6 +20,7 @@
 //
 //------------------------------------------------------------------------
 
+#include <Performer/pf/pfTraverser.h>
 #include "vsIntersect.h++"
 
 // ------------------------------------------------------------------------
@@ -27,7 +28,13 @@
 // ------------------------------------------------------------------------
 vsIntersect::vsIntersect()
 {
+    int loop;
+
     segListSize = 0;
+
+    pathsEnabled = 0;
+    for (loop = 0; loop < VS_INTERSECT_SEGS_MAX; loop++)
+        sectPath[loop] = NULL;
     
     performerSegSet.mode = PFTRAV_IS_PRIM | PFTRAV_IS_NORM;
     performerSegSet.userData = NULL;
@@ -42,6 +49,11 @@ vsIntersect::vsIntersect()
 // ------------------------------------------------------------------------
 vsIntersect::~vsIntersect()
 {
+    int loop;
+
+    for (loop = 0; loop < VS_INTERSECT_SEGS_MAX; loop++)
+        if (sectPath[loop] != NULL)
+            delete (sectPath[loop]);
 }
 
 // ------------------------------------------------------------------------
@@ -240,18 +252,38 @@ unsigned int vsIntersect::getMask()
 }
 
 // ------------------------------------------------------------------------
+// Enables node path generation for intersection traversals. Paths will not
+// be generated until the next intersect call.
+// ------------------------------------------------------------------------
+void vsIntersect::enablePaths()
+{
+    pathsEnabled = VS_TRUE;
+}
+
+// ------------------------------------------------------------------------
+// Disables node path generation for intersection traversals. Existing path
+// array objects are deleted at the next intersect call.
+// ------------------------------------------------------------------------
+void vsIntersect::disablePaths()
+{
+    pathsEnabled = VS_FALSE;
+}
+
+// ------------------------------------------------------------------------
 // Initiates an intersection traversal over the indicated geometry tree.
 // The results of the traversal are stored and can be retrieved with the
 // getIsect* functions.
 // ------------------------------------------------------------------------
 void vsIntersect::intersect(vsNode *targetNode)
 {
-    pfNode *performerNode, *geoNode;
+    pfNode *performerNode, *geoNode, *pathNode;
     pfHit **hits[PFIS_MAX_SEGS];
-    int loop;
+    int loop, arraySize;
     int flags;
     pfVec3 hitPoint, polyNormal;
     pfMatrix xformMat;
+    pfPath *hitNodePath;
+    vsNode *vessNode;
 
     // This is where the fun begins
     
@@ -259,6 +291,13 @@ void vsIntersect::intersect(vsNode *targetNode)
         performerNode = ((vsGeometry *)targetNode)->getBaseLibraryObject();
     else
         performerNode = ((vsComponent *)targetNode)->getBaseLibraryObject();
+
+    // Set the intersection run to calculate paths or not depending on
+    // if path generation is enabled for this object
+    if (pathsEnabled)
+        performerSegSet.mode = PFTRAV_IS_PRIM | PFTRAV_IS_NORM | PFTRAV_IS_PATH;
+    else
+        performerSegSet.mode = PFTRAV_IS_PRIM | PFTRAV_IS_NORM;
 
     // Run the intersection traversal
     performerNode->isect(&performerSegSet, hits);
@@ -276,6 +315,9 @@ void vsIntersect::intersect(vsNode *targetNode)
             sectNorm[loop].set(0, 0, 0);
             sectGeom[loop] = NULL;
             sectPrim[loop] = 0;
+            if (sectPath[loop])
+                delete (sectPath[loop]);
+            sectPath[loop] = NULL;
             continue;
         }
         
@@ -297,6 +339,37 @@ void vsIntersect::intersect(vsNode *targetNode)
         sectGeom[loop] = (vsGeometry *)((vsSystem::systemObject)->
             getNodeMap()->mapSecondToFirst(geoNode));
         (hits[loop][0])->query(PFQHIT_PRIM, &(sectPrim[loop]));
+        
+        // Create path information if so requested
+        if (pathsEnabled)
+        {
+            if (sectPath[loop] == NULL)
+                sectPath[loop] = new vsGrowableArray(10, 10);
+            (hits[loop][0])->query(PFQHIT_PATH, &hitNodePath);
+            if (hitNodePath)
+            {
+                arraySize = 0;
+                for (loop = 0; loop < hitNodePath->getNum(); loop++)
+                {
+                    pathNode = (pfNode *)(hitNodePath->get(loop));
+                    vessNode = (vsNode *)((vsSystem::systemObject)->
+			getNodeMap()->mapSecondToFirst(pathNode));
+                    if (vessNode)
+                        (sectPath[loop])->setData(arraySize++, vessNode);
+                }
+                
+                // Terminate the path with a NULL
+                (sectPath[loop])->setData(arraySize, NULL);
+            }
+            else
+                printf("vsIntersect::intersect: Performer path object "
+                    "not found\n");
+        }
+        else if (sectPath[loop])
+        {
+            delete (sectPath[loop]);
+            sectPath[loop] = NULL;
+        }
     }
 }
 
@@ -381,4 +454,23 @@ int vsIntersect::getIsectPrimNum(int segNum)
     }
 
     return sectPrim[segNum];
+}
+
+// ------------------------------------------------------------------------
+// Returns a pointer to a vsGrowableArray containing the node path from the
+// scene root node to the intersected node. This array is reused by the
+// intersection object after each intersect call and should not be deleted.
+// Returns NULL if path calculation was not enabled during the last
+// intersection traversal, or if there was no intersection. The number of
+// the first segment is 0.
+// ------------------------------------------------------------------------
+vsGrowableArray *vsIntersect::getIsectPath(int segNum)
+{
+    if ((segNum < 0) || (segNum >= segListSize))
+    {
+        printf("vsIntersect::getIsectPath: Segment number out of bounds\n");
+        return 0;
+    }
+
+    return sectPath[segNum];
 }
