@@ -30,13 +30,6 @@
 #define VS_INTERNAL public
 
 
-// Commonly used constants
-enum
-{
-    VS_FALSE = 0,
-    VS_TRUE = 1
-};
-
 enum
 {
     VS_X = 0,
