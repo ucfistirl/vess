@@ -389,7 +389,8 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
     isInitted = 1;
 
     // Quick start: Set up the default window, pane, and view objects
-    defaultWindow = new vsWindow(vsScreen::getScreen(0), fullScreen);
+    // Note: When in full screen mode also hide the border
+    defaultWindow = new vsWindow(vsScreen::getScreen(0), fullScreen, false);
     if (fullScreen)
         defaultWindow->setFullScreen();
     if (windowName)
