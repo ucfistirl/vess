@@ -307,10 +307,14 @@ int vsSequenceAttribute::getPlayMode()
 
 // ------------------------------------------------------------------------
 // Returns the index of the current child being drawn. The index of the
-// first child is 0.
+// first child is 0.  A return value of -1 indicates that there is no
+// current child (i.e.: the sequence isn't fully ready yet, or it has no
+// children).
 // ------------------------------------------------------------------------
 int vsSequenceAttribute::getCurrentChildNum()
 {
+    int switchVal;
+
     // Make sure we're attached to a node, bail out if not
     if (!attachedCount)
     {
@@ -319,8 +323,22 @@ int vsSequenceAttribute::getCurrentChildNum()
         return 0;
     }
     
-    // Return the current switch value of the osg::Sequence
-    return (osgSequence->getValue());
+    // Get the current switch value of the osg::Sequence (osg::Sequence is
+    // a subclass of osg::Switch)
+    switchVal = osgSequence->getValue();
+
+    // Make sure the value makes sense
+    if ((switchVal < 0) || (switchVal >= (int)osgSequence->getNumChildren()))
+    {
+        // Switch value is out of range.  This could mean the object isn't
+        // fully initialized yet.  Return -1 to indicate this.
+        return -1;
+    }
+    else
+    {
+        // Return the current switch value
+        return switchVal;
+    }
 }
 
 // ------------------------------------------------------------------------

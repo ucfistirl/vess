@@ -61,6 +61,10 @@ void vsSequenceCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
     // Get the current frame number
     frameNumber = sequenceAttr->getCurrentChildNum();
 
+    // Check the frame number and bail if it doesn't make sense
+    if (frameNumber < 0)
+        return;
+
     // Don't do anything if the sequence isn't playing
     if (sequenceAttr->getPlayMode() == VS_SEQUENCE_MODE_START)
     {
