@@ -48,7 +48,7 @@ vsBillboardAttribute::vsBillboardAttribute()
     billboardMode = VS_BILLBOARD_ROT_AXIS;
     
     // Start off unattached
-    attachedFlag = 0;
+    attachedCount = 0;
     
     // Create a callback object and set it to use this attribute
     billboardCallback = new vsBillboardCallback(this);
@@ -183,7 +183,7 @@ bool vsBillboardAttribute::canAttach()
 {
     // This attribute is not available to be attached if it is already
     // attached to another node
-    if (attachedFlag)
+    if (attachedCount)
         return false;
 
     return true;
@@ -199,7 +199,7 @@ void vsBillboardAttribute::attach(vsNode *theNode)
     osg::Group *lightHook, *childGroup;
 
     // Verify that we're not already attached to something
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsBillboardAttribute::attach: Attribute is already attached\n");
         return;
@@ -229,7 +229,7 @@ void vsBillboardAttribute::attach(vsNode *theNode)
     lightHook->setCullCallback(billboardCallback);
     
     // Mark this attribute as attached
-    attachedFlag = 1;
+    attachedCount = 1;
 }
 
 // ------------------------------------------------------------------------
@@ -242,7 +242,7 @@ void vsBillboardAttribute::detach(vsNode *theNode)
     osg::Group *lightHook, *childGroup;
 
     // Can't detach an attribute that is not attached
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsBillboardAttribute::detach: Attribute is not attached\n");
         return;
@@ -259,7 +259,7 @@ void vsBillboardAttribute::detach(vsNode *theNode)
     // Remove the billboard's callback hook
     lightHook->setCullCallback(NULL);
 
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -342,8 +342,8 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
         cross = front.getCrossProduct(viewDir);
         cross.normalize();
         // The 'up' direction is our positive direction for this purpose;
-	// if the cross product points the other direction instead, then
-	// it's considered negative.
+        // if the cross product points the other direction instead, then
+        // it's considered negative.
         if (!(cross == up))
             theta *= -1.0;
 
@@ -364,8 +364,8 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
 
         // Second, find the rotation that rotates the 'up' directions of
         // the object and the world to be as close together as possible.
-	// (They can't always coincide, if the plane perpendicular to the
-	// forward view direction doesn't contain the world up direction.)
+        // (They can't always coincide, if the plane perpendicular to the
+        // forward view direction doesn't contain the world up direction.)
 
         up = resultMat.getVectorXform(up);
         up.normalize();
@@ -387,10 +387,10 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
 
         // Project both 'up' vectors onto the plane specified by a
         // center point (the center point of the billboard) and a normal
-	// vector (the vector from the object to the viewpoint). This
-	// allows us to get as close as possible in the case that the
-	// plane perpendicular to the forward direction doesn't contain
-	// the world up direction.
+        // vector (the vector from the object to the viewpoint). This
+        // allows us to get as close as possible in the case that the
+        // plane perpendicular to the forward direction doesn't contain
+        // the world up direction.
         dotValue = worldUp.getDotProduct(viewDir);
         worldUp = worldUp - (viewDir * dotValue);
         worldUp.normalize();
@@ -399,9 +399,9 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
         up.normalize();
 
         // Calculate the angle between the two 'up' vectors to get the roll
-	// rotation value; adjust for the sign change when the cross product
-	// of the two goes negative. (The vsVector.getAngleBetween function
-	// doesn't take this into account.)
+        // rotation value; adjust for the sign change when the cross product
+        // of the two goes negative. (The vsVector.getAngleBetween function
+        // doesn't take this into account.)
         theta = up.getAngleBetween(worldUp);
         cross = up.getCrossProduct(worldUp);
         cross.normalize();
