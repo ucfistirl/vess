@@ -609,7 +609,7 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     
     vsComponent *geodeComponent, *childComponent;
     vsGeometry *geometry;
-    int loop, sloop;
+    int loop, sloop, tloop;
     osg::Geometry *osgGeometry;
     osg::Billboard *osgBillboard;
     vsBillboardAttribute *billboardAttr;
