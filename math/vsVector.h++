@@ -55,7 +55,7 @@ public:
 
     void        setSize(int size);
     int         getSize();
-    void        setValue(int index, int value);
+    void        setValue(int index, double value);
     double      getValue(int index);
     int         isEqual(vsVector operand);
     int         isAlmostEqual(vsVector operand, double tolerance);
@@ -68,6 +68,7 @@ public:
     vsVector    getScaled(double multiplier);
     
     double      getMagnitude();
+    double      getMagnitudeSquared();
     double      getDotProduct(vsVector operand);
     void        normalize();
     vsVector    getNormalized();

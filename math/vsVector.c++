@@ -204,7 +204,7 @@ int vsVector::getSize()
 // ------------------------------------------------------------------------
 // Sets one specific value in the vector.
 // ------------------------------------------------------------------------
-void vsVector::setValue(int index, int value)
+void vsVector::setValue(int index, double value)
 {
     if ((index < 0) || (index >= vecSize))
     {
@@ -378,6 +378,18 @@ double vsVector::getMagnitude()
         total += (data[i] * data[i]);
 
     return sqrt(total);
+}
+
+// ------------------------------------------------------------------------
+// Returns the square of the magnitude of this vector.
+// ------------------------------------------------------------------------
+double vsVector::getMagnitudeSquared()
+{
+    double total = 0.0;
+    for (int i = 0; i < vecSize; i++)
+        total += (data[i] * data[i]);
+
+    return total;
 }
 
 // ------------------------------------------------------------------------
