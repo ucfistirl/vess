@@ -19,19 +19,20 @@ include_HEADERS = \
 # Include directives for the compiler
 INCLUDES = \
            -I. \
-	   -I../motion/common \
-	   -I../io/common \
-	   -I../io/@WS@ \
-	   -I../io/@SG@_@WS@ \
+           -I../motion/common \
+           -I../io/common \
+           -I../io/@WS@ \
+           -I../io/@SG@_@WS@ \
            -I../io/@OS@ \
-	   -I../sound/@AL@ \
+           -I../sound/@AL@ \
            @SOUND_INCLUDE_DIR@ \
-	   -I../graphics/common \
-	   -I../graphics/@SG@ \
-	   -I../graphics/@SG@_@WS@ \
+           -I../graphics/common \
+           -I../graphics/@SG@ \
+           -I../graphics/@SG@_@WS@ \
            @GFX_INCLUDE_DIR@ \
-	   -I../util/common \
-	   -I../util/@OS@
+           -I../llio/@OS@ \
+           -I../util/common \
+           -I../util/@OS@
 
 # Rule to make libvsAvatar.so
 libvsAvatar.so: libvsAvatar.a
