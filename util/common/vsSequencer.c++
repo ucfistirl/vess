@@ -24,9 +24,12 @@
 
 #include "vsSequencer.h++"
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef WIN32
+    #include <unistd.h>
+#endif
 
 // ------------------------------------------------------------------------
 // Default constructor
@@ -582,7 +585,7 @@ void vsSequencer::update(void)
 
                     // Don't try to sleep if we've already reached the
                     // end time
-                    if (sleepTime > 0.0)
+                    if (tempTime > 0.0)
                     {
                         sleepTime = ((unsigned long) (tempTime * 1000000.0));
                         usleep(sleepTime);
