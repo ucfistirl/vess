@@ -621,7 +621,7 @@ void vsSystem::drawFrame()
     }
     
     //Perform cluster rendering
-    printf("Confirmed: I am getting at least this far\n");
+    //printf("Confirmed: I am getting at least this far\n");
     if(slaves != NULL && !isSlave)
     {
         //Send out relevant info to clients
@@ -675,7 +675,7 @@ void vsSystem::drawFrame()
         while(!readyToSwap)
         {
             remoteInterface->update();
-            printf("I'm being a defiant client!\n");
+            //printf("I'm being a defiant client!\n");
         }
         
     }
