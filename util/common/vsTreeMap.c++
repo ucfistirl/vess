@@ -241,6 +241,14 @@ void vsTreeMap::getSortedList(vsGrowableArray *keyList,
 {
     int arrayPos;
 
+    // If the number of entries in the map is greater than the default
+    // maximum size of a vsGrowableArray, then increase the array's maximum
+    // sizes
+    if (treeSize > keyList->getMaxSize())
+        keyList->setMaxSize(treeSize+1);
+    if (treeSize > valueList->getMaxSize())
+        valueList->setMaxSize(treeSize+1);
+
     // Set the sizes of the return arrays to the number of entries in the
     // tree
     keyList->setSize(treeSize);
