@@ -73,7 +73,8 @@ case "$target" in
        LIBDIR="lib"
        SO_LINK="-Wl,--whole-archive"
        SO_NO_LINK="-Wl,--no-whole-archive"
-       EXTRA_IO_OBJECTS="vsLinuxJoystickSystem.$OBJEXT vsParallelPort.$OBJEXT vsScentAirSystem.$OBJEXT"
+       EXTRA_LLIO_OBJECTS="vsParallelPort.$OBJEXT"
+       EXTRA_IO_OBJECTS="vsLinuxJoystickSystem.$OBJEXT vsScentAirSystem.$OBJEXT"
        OS=Linux ;;
 
    mips-sgi-irix*)
@@ -82,6 +83,7 @@ case "$target" in
        LIBDIR="lib32"
        SO_LINK="-all"
        SO_NO_LINK="-notall"
+       EXTRA_LLIO_OBJECTS=
        EXTRA_IO_OBJECTS=
        OS=IRIX
 
@@ -131,6 +133,7 @@ case "$target" in
 esac
 
 dnl Export the OS-specific variables to the makefiles
+AC_SUBST(EXTRA_LLIO_OBJECTS)
 AC_SUBST(EXTRA_IO_OBJECTS)
 AC_SUBST(SO_LINK)
 AC_SUBST(SO_NO_LINK)
@@ -588,16 +591,18 @@ AC_SUBST(AM_LDFLAGS)
 dnl Configure the the makefiles to write out.  Start with the ones that
 dnl will always be used (everything except sound and test).
 AC_CONFIG_FILES([makefile avatar/makefile graphics/makefile io/makefile])
-AC_CONFIG_FILES([motion/makefile system/makefile util/makefile scent/makefile])
+AC_CONFIG_FILES([llio/makefile motion/makefile system/makefile util/makefile])
+AC_CONFIG_FILES([scent/makefile])
 
 dnl Configure the subdirectories to build
-DIRECTORIES="system util graphics io motion avatar scent"
+DIRECTORIES="system util graphics io llio motion avatar scent"
 
 dnl List the individual library names.  These are used as dependencies
 dnl for the monolithic libvess library.
 VESS_LIBS="avatar/libvsAvatar.a avatar/libvsAvatar.so"
 VESS_LIBS="$VESS_LIBS graphics/libvsGraphics.a graphics/libvsGraphics.so"
 VESS_LIBS="$VESS_LIBS io/libvsIO.a io/libvsIO.so"
+VESS_LIBS="$VESS_LIBS llio/libvsLLIO.a llio/libvsLLIO.so"
 VESS_LIBS="$VESS_LIBS motion/libvsMotion.a motion/libvsMotion.so"
 VESS_LIBS="$VESS_LIBS system/libvsSystem.a system/libvsSystem.so"
 VESS_LIBS="$VESS_LIBS util/libvsUtil.a util/libvsUtil.so"

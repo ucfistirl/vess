@@ -55,6 +55,7 @@ INCLUDES = \
 	   -I../graphics/@SG@ \
 	   -I../graphics/@SG@_@WS@ \
            @GFX_INCLUDE_DIR@ \
+           -I../llio/@OS@ \
 	   -I../util/common \
 	   -I../util/@OS@
 

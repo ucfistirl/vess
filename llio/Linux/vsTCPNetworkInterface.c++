@@ -198,7 +198,7 @@ void vsTCPNetworkInterface::enableBlockingOnClient(int clientID)
                   statusFlags & (~FNONBLOCK)) < 0)
         {
             // If there was error, notify the user
-            printf("Unable to disable blocking on socket.\n");
+            printf("Unable to enable blocking on socket.\n");
         }
     }
 }

@@ -26,6 +26,7 @@ include_HEADERS = \
 INCLUDES = \
            -I../util/common \
            -I../util/@OS@ \
+           -I../llio/@OS@ \
            -I../graphics/common \
            -I../graphics/@SG@ \
            -I../graphics/@SG@_@WS@ \

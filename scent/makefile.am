@@ -31,6 +31,7 @@ INCLUDES = \
            -I../io/@OS@ \
            -I../io/@WS@ \
            -I../io/@SG@_@WS@ \
+           -I../llio/@OS@ \
            @GFX_INCLUDE_DIR@ \
            @SOUND_INCLUDE_DIR@
 

@@ -29,15 +29,10 @@ libvsIO_a_SOURCES = \
                     @OS@/vsEthernetMotionStar.c++ \
                     @OS@/vsFastrak.c++ \
                     @OS@/vsIS600.c++ \
-                    @OS@/vsIPCInterface.c++ \
                     @OS@/vsKeyboard.c++ \
-                    @OS@/vsNetworkInterface.c++ \
                     @OS@/vsPhantomSystem.c++ \
                     @OS@/vsPolaris.c++ \
-                    @OS@/vsSerialPort.c++ \
                     @OS@/vsSharedInputData.c++ \
-                    @OS@/vsTCPNetworkInterface.c++ \
-                    @OS@/vsUDPNetworkInterface.c++ \
                     @WS@/vsWSSpaceball.c++ \
                     @SG@_@WS@/vsWindowSystem.c++
 
@@ -48,7 +43,6 @@ libvsIO_so_SOURCES = $(libvsIO_a_SOURCES)
 # configuration conditions are met.
 EXTRA_libvsIO_a_SOURCES = \
                           Linux/vsLinuxJoystickSystem.c++ \
-                          Linux/vsParallelPort.c++ \
                           Linux/vsScentAirSystem.c++
 
 # Extra sources for libvsIO.so (same as libvsIO.a)
@@ -82,16 +76,11 @@ include_HEADERS = \
                   @OS@/vsAscensionSerialTrackingSystem.h++ \
                   @OS@/vsEthernetMotionStar.h++ \
                   @OS@/vsFastrak.h++ \
-                  @OS@/vsIPCInterface.h++ \
                   @OS@/vsIS600.h++ \
                   @OS@/vsKeyboard.h++ \
-                  @OS@/vsNetworkInterface.h++ \
                   @OS@/vsPhantomSystem.h++ \
                   @OS@/vsPolaris.h++ \
-                  @OS@/vsSerialPort.h++ \
                   @OS@/vsSharedInputData.h++ \
-                  @OS@/vsTCPNetworkInterface.h++ \
-                  @OS@/vsUDPNetworkInterface.h++ \
                   @WS@/vsWSSpaceball.c++ \
                   @SG@_@WS@/vsWindowSystem.c++
 
@@ -99,7 +88,6 @@ include_HEADERS = \
 # met.
 EXTRA_HEADERS = \
                 Linux/vsLinuxJoystickSystem.h++ \
-                Linux/vsParallelPort.h++ \
                 Linux/vsScentAirSystem.h++
 
 # Extra dependencies for libvsIO.a.  These reflect the additional dependencies
@@ -123,6 +111,7 @@ INCLUDES = \
            -I../graphics/@SG@ \
            -I../graphics/@SG@_@WS@ \
            @GFX_INCLUDE_DIR@ \
+           -I../llio/@OS@ \
            -I../util/common \
            -I../util/@OS@
 

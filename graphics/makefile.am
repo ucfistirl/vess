@@ -8,6 +8,7 @@ libvsGraphics_a_SOURCES = \
                           @SG@/vsAttribute.c++ \
                           @SG@/vsBackfaceAttribute.c++ \
                           @SG@/vsBillboardAttribute.c++ \
+                          @SG@/vsClusterManager.c++ \
                           @SG@/vsComponent.c++ \
                           @SG@/vsDatabaseLoader.c++ \
                           @SG@/vsDecalAttribute.c++ \
@@ -61,6 +62,7 @@ include_HEADERS = \
                   @SG@/vsAttribute.h++ \
                   @SG@/vsBackfaceAttribute.h++ \
                   @SG@/vsBillboardAttribute.h++ \
+                  @SG@/vsClusterManager.h++ \
                   @SG@/vsComponent.h++ \
                   @SG@/vsDatabaseLoader.h++ \
                   @SG@/vsDecalAttribute.h++ \
@@ -114,6 +116,7 @@ INCLUDES = \
            -I../graphics/@SG@ \
            -I../graphics/@SG@_@WS@ \
            @GFX_INCLUDE_DIR@ \
+           -I../llio/@OS@ \
            -I../util/common \
            -I../util/@OS@
 
