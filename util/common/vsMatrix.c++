@@ -954,6 +954,23 @@ void vsMatrix::setTranslation(double dx, double dy, double dz)
 }
 
 // ------------------------------------------------------------------------
+// Gets the translation represented in this matrix. May include the effects
+// of any scale matricies that have been multiplied into this matrix.
+// ------------------------------------------------------------------------
+void vsMatrix::getTranslation(double *dx, double *dy, double *dz) const
+{
+    // The matrix's translation is stored in the top three elements of the
+    // last column of the matrix. Simply return those three values without
+    // any extra processing.
+    if (dx)
+        (*dx) = data[0][3];
+    if (dy)
+        (*dy) = data[1][3];
+    if (dz)
+        (*dz) = data[2][3];
+}
+
+// ------------------------------------------------------------------------
 // Sets this matrix to a (not necessarily uniform) scaling matrix
 // ------------------------------------------------------------------------
 void vsMatrix::setScale(double sx, double sy, double sz)
@@ -965,6 +982,40 @@ void vsMatrix::setScale(double sx, double sy, double sz)
     data[1][1] = sy;
     data[2][2] = sz;
     data[3][3] = 1.0;
+}
+
+// ------------------------------------------------------------------------
+// Attempts to get the scale represented in this matrix for each direction.
+// May not return the correct answer if the matrix has been modified in any
+// way except for multiplying together translations, rotations, and scales.
+// ------------------------------------------------------------------------
+void vsMatrix::getScale(double *sx, double *sy, double *sz) const
+{
+    // Compute the scale for each direction by taking the three row vectors
+    // in the matrix's upper-left 3x3 submatrix and calculating their
+    // magnitudes.
+    vsVector tempVec;
+
+    // For each desired value, copy the row from the matrix, strip off the
+    // last value, and compute the magnitute of what's left
+    if (sx)
+    {
+        tempVec = data[0];
+        tempVec.setSize(3);
+        (*sx) = tempVec.getMagnitude();
+    }
+    if (sy)
+    {
+        tempVec = data[1];
+        tempVec.setSize(3);
+        (*sy) = tempVec.getMagnitude();
+    }
+    if (sz)
+    {
+        tempVec = data[2];
+        tempVec.setSize(3);
+        (*sz) = tempVec.getMagnitude();
+    }
 }
 
 // ------------------------------------------------------------------------

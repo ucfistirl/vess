@@ -85,7 +85,9 @@ public:
                                  double *axis3Degrees) const;
     void        setQuatRotation(const vsQuat &quat);
     void        setTranslation(double dx, double dy, double dz);
+    void        getTranslation(double *dx, double *dy, double *dz) const;
     void        setScale(double sx, double sy, double sz);
+    void        getScale(double *sx, double *sy, double *sz) const;
 
     vsVector    &operator[](int index);
     vsMatrix    operator+(const vsMatrix &addend) const;
