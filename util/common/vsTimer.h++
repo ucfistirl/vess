@@ -45,8 +45,8 @@ public:
     static vsTimer    *getSystemTimer();
 
     void	      mark();
-    double	getInterval();
-    double	getElapsed();
+    double	      getInterval();
+    double	      getElapsed();
 };
 
 #endif
