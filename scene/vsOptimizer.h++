@@ -53,8 +53,7 @@ private:
     void        addGeometry(vsGeometry *destGeo, vsGeometry *srcGeo);
 
     void        optimizeAttributes(vsComponent *componentNode,
-                    int attributeType,
-                    int (*cmpFunc)(vsAttribute *, vsAttribute *));
+                    int attributeType);
     void        sortLists(int *countArray, vsAttribute **attrArray,
                           int listSize);
 

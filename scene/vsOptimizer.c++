@@ -22,7 +22,7 @@
 
 #include "vsOptimizer.h++"
 
-#include "vsGraphicsState.h++"
+#include "vsStateAttribute.h++"
 #include "vsDecalAttribute.h++"
 
 // ------------------------------------------------------------------------
@@ -95,18 +95,12 @@ void vsOptimizer::optimizeNode(vsNode *node)
 
         if (passMask & VS_OPTIMIZER_PROMOTE_ATTRIBUTES)
         {
-            optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_BACKFACE,
-                vsGraphicsState::isSameBackface);
-            optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_FOG,
-                vsGraphicsState::isSameFog);
-            optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_MATERIAL,
-                vsGraphicsState::isSameMaterial);
-            optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_SHADING,
-                vsGraphicsState::isSameShading);
-            optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_TEXTURE,
-                vsGraphicsState::isSameTexture);
-            optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_TRANSPARENCY,
-                vsGraphicsState::isSameTransparency);
+            optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_BACKFACE);
+            optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_FOG);
+            optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_MATERIAL);
+            optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_SHADING);
+            optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_TEXTURE);
+            optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_TRANSPARENCY);
         }
 
         if (passMask & VS_OPTIMIZER_MERGE_GEOMETRY)
@@ -153,14 +147,14 @@ void vsOptimizer::cleanChildren(vsComponent *componentNode)
             if (strlen(targetComponent->getName()) > 0)
                 continue;
 
-	    // Additionally, if the component has no children, then removing
-	    // this component would change the ordering of the parent's
-	    // children. If the parent has a GROUPING category attribute, then
-	    // this change is unacceptable.
-	    if ( (targetComponent->getChildCount() == 0) &&
-		 (componentNode->getCategoryAttribute(
-		    VS_ATTRIBUTE_CATEGORY_GROUPING, 0)) )
-		continue;
+            // Additionally, if the component has no children, then removing
+            // this component would change the ordering of the parent's
+            // children. If the parent has a GROUPING category attribute, then
+            // this change is unacceptable.
+            if ( (targetComponent->getChildCount() == 0) &&
+                 (componentNode->getCategoryAttribute(
+                    VS_ATTRIBUTE_CATEGORY_GROUPING, 0)) )
+                continue;
 
             // If we've made it this far, then it should be okay to remove
             // the component
@@ -326,6 +320,7 @@ int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
     vsVector firstVec, secondVec;
     int loop, firstType;
     vsAttribute *firstAttr, *secondAttr;
+    vsStateAttribute *stateAttr;
     int sloop, matchFlag;
 
     // If somehow they're the same geometry object, then we don't want the
@@ -385,36 +380,11 @@ int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
         if (!secondAttr)
             return VS_FALSE;
 
-        switch (firstType)
-        {
-            case VS_ATTRIBUTE_TYPE_BACKFACE:
-                if (!(vsGraphicsState::isSameBackface(firstAttr, secondAttr)))
-                    return VS_FALSE;
-                break;
-            case VS_ATTRIBUTE_TYPE_FOG:
-                if (!(vsGraphicsState::isSameFog(firstAttr, secondAttr)))
-                    return VS_FALSE;
-                break;
-            case VS_ATTRIBUTE_TYPE_MATERIAL:
-                if (!(vsGraphicsState::isSameMaterial(firstAttr, secondAttr)))
-                    return VS_FALSE;
-                break;
-            case VS_ATTRIBUTE_TYPE_SHADING:
-                if (!(vsGraphicsState::isSameShading(firstAttr, secondAttr)))
-                    return VS_FALSE;
-                break;
-            case VS_ATTRIBUTE_TYPE_TEXTURE:
-                if (!(vsGraphicsState::isSameTexture(firstAttr, secondAttr)))
-                    return VS_FALSE;
-                break;
-            case VS_ATTRIBUTE_TYPE_TRANSPARENCY:
-                if (!(vsGraphicsState::isSameTransparency(firstAttr,
-                    secondAttr)))
-                    return VS_FALSE;
-                break;
-            default:
-                return VS_FALSE;
-        }
+        // Consult the state attribute's isEquivalent() function to
+        // determine if the two attributes are the same
+        stateAttr = (vsStateAttribute *)firstAttr;
+        if (!(stateAttr->isEquivalent(secondAttr)))
+            return VS_FALSE;
     }
 
     // Compare attribute bindings
@@ -578,8 +548,10 @@ void vsOptimizer::addGeometry(vsGeometry *destGeo, vsGeometry *srcGeo)
 // attributes are removed from the children nodes if they match the parent
 // component's attribute.
 // ------------------------------------------------------------------------
+//void vsOptimizer::optimizeAttributes(vsComponent *componentNode,
+//    int attributeType, int (*cmpFunc)(vsAttribute *, vsAttribute *))
 void vsOptimizer::optimizeAttributes(vsComponent *componentNode,
-    int attributeType, int (*cmpFunc)(vsAttribute *, vsAttribute *))
+    int attributeType)
 {
     int loop, sloop;
     vsNode *childNode;
@@ -588,7 +560,8 @@ void vsOptimizer::optimizeAttributes(vsComponent *componentNode,
     int attrHitCounts[1000];
     int attrCount;
     int emptyFlag, matchFlag;
-    vsAttribute *childAttr, *parentAttr;
+    vsAttribute *parentAttr;
+    vsStateAttribute *childAttr;
     
     // First, if the parent node does not already have an attribute of the
     // indicated type, attempt to create one by examining the child
@@ -602,7 +575,8 @@ void vsOptimizer::optimizeAttributes(vsComponent *componentNode,
         for (loop = 0; loop < componentNode->getChildCount(); loop++)
         {
             childNode = componentNode->getChild(loop);
-            childAttr = childNode->getTypedAttribute(attributeType, 0);
+            childAttr = (vsStateAttribute *)
+                (childNode->getTypedAttribute(attributeType, 0));
             if (!childAttr)
             {
                 emptyFlag = 1;
@@ -616,7 +590,7 @@ void vsOptimizer::optimizeAttributes(vsComponent *componentNode,
             {
                 matchFlag = 0;
                 for (sloop = 0; sloop < attrCount; sloop++)
-                    if (cmpFunc(childAttr, attrArray[sloop]))
+                    if (childAttr->isEquivalent(attrArray[sloop]))
                     {
                         attrHitCounts[sloop]++;
                         matchFlag = 1;
@@ -646,7 +620,8 @@ void vsOptimizer::optimizeAttributes(vsComponent *componentNode,
         for (loop = 0; loop < componentNode->getChildCount(); loop++)
         {
             childNode = componentNode->getChild(loop);
-            childAttr = childNode->getTypedAttribute(attributeType, 0);
+            childAttr = (vsStateAttribute *)
+                (childNode->getTypedAttribute(attributeType, 0));
 
             if (childAttr)
             {
@@ -656,7 +631,7 @@ void vsOptimizer::optimizeAttributes(vsComponent *componentNode,
                     parentNode = childNode->getParent(sloop);
                     parentAttr = parentNode->getTypedAttribute(attributeType,
                         0);
-                    if (!parentAttr || !(cmpFunc(childAttr, parentAttr)))
+                    if (!parentAttr || !(childAttr->isEquivalent(parentAttr)))
                     {
                         matchFlag = 0;
                         break;
