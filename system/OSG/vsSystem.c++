@@ -421,7 +421,6 @@ void vsSystem::drawFrame()
     vsScreen *targetScreen;
     vsWindow *targetWindow;
     vsPane *targetPane;
-//    vsNode *scene;
     vsScene *scene;
     int screenCount = vsScreen::getScreenCount();
 
@@ -545,8 +544,6 @@ void vsSystem::drawFrame()
                 // Only draw the pane if the visibility flag is true
                 if (targetPane->isVisible())
                 {
-// DAC - Set the graphicsState to have the proper light list for the
-// local light callbacks.
                     targetPane->getBaseLibraryObject()->draw();
                 }
             }
