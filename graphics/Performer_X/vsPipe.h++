@@ -53,6 +53,8 @@ VS_INTERNAL:
     static void    init();
     static void    done();
 
+    Display        *getXDisplay();
+
     void           setScreen(vsScreen *newScreen);
 
 public:
