@@ -320,7 +320,7 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
     vsVector cross;
     vsMatrix invMat;
     vsVector viewUp;
-    
+
     // Transform each important data value about the billboarded object
     // by the series of transforms in the scene above this component
     center = currentXform.getPointXform(centerPoint);
@@ -328,12 +328,12 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
     front.normalize();
     up = currentXform.getVectorXform(upAxis);
     up.normalize();
-    
+
     viewpoint.set(0.0, 0.0, 0.0);
     viewpoint = viewMatrix.getPointXform(viewpoint);
     viewDir = viewpoint - center;
     viewDir.normalize();
-    
+
     if (billboardMode == VS_BILLBOARD_ROT_AXIS)
     {
         // * Axis rotation mode
@@ -342,10 +342,10 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
         // vector 'up'.
         dotValue = viewDir.getDotProduct(up);
         viewDir = viewDir - (up * dotValue);
-	viewDir.normalize();
+        viewDir.normalize();
         dotValue = front.getDotProduct(up);
         front = front - (up * dotValue);
-	front.normalize();
+        front.normalize();
 
         // Calculate the angle between the view vector and the object's
         // forward vector; adjust for the sign change when the cross
@@ -401,7 +401,7 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
         cross.normalize();
         if (!(cross == viewDir))
             theta *= -1.0;
-        
+
         // Finally, set the result matrix to the product of the two
         // computed rotation matrices.
         resultQuat.setAxisAngleRotation(viewDir[0], viewDir[1], viewDir[2],
@@ -409,12 +409,18 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
         tempMat.setQuatRotation(resultQuat);
         resultMat.preMultiply(tempMat);
     }
-	
-    // Transform this global rotation into the local coordinate system
-    // of the component
-    invMat = currentXform.getInverse();
-    resultMat = invMat * resultMat * currentXform;
-	
+
+    // Strip the translation from the current transform matrix
+    center.set(0.0, 0.0, 0.0);
+    center = currentXform.getPointXform(center);
+    tempMat.setTranslation(-center[0], -center[1], -center[2]);
+    tempMat = tempMat * currentXform;
+
+    // Transform the result rotation into the local coordinate system
+    // of the component, using the new current transform
+    invMat = tempMat.getInverse();
+    resultMat = invMat * resultMat * tempMat;
+
     // Factor in the center point of the object
     resultMat.postMultiply(preTranslate);
     resultMat.preMultiply(postTranslate);
