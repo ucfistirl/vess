@@ -8,6 +8,11 @@
 
 #define VS_RI_MAX_BUFFER_SIZE   65536
 
+
+// ------------------------------------------------------------------------
+// Constructor - Initializes variables and opens up the TCP server for
+// listening
+// ------------------------------------------------------------------------
 vsRemoteInterface::vsRemoteInterface()
 {
     // Initialize the xml DTD (we aren't using one in this case and also
@@ -28,6 +33,11 @@ vsRemoteInterface::vsRemoteInterface()
 }
 
 
+// ------------------------------------------------------------------------
+// Constructor - Initializes variables (including the DTD file with which
+// to validate the XML documents against) and opens up the TCP server for
+// listening
+// ------------------------------------------------------------------------
 vsRemoteInterface::vsRemoteInterface(char *dtdFilename)
 {
     // Open and initialize the DTD file (used for validating XML)
@@ -53,6 +63,10 @@ vsRemoteInterface::vsRemoteInterface(char *dtdFilename)
 }
 
 
+// ------------------------------------------------------------------------
+// Constructor - Initializes variables (including a new port to listen on
+// rather than the default port) and opens up the TCP server for listening
+// ------------------------------------------------------------------------
 vsRemoteInterface::vsRemoteInterface(short port)
 {
     // Initialize the xml DTD (we aren't using one in this case and also
@@ -73,6 +87,11 @@ vsRemoteInterface::vsRemoteInterface(short port)
 }
 
 
+// ------------------------------------------------------------------------
+// Constructor - Initializes variables (including the DTD file with which
+// to validate the XML documents against, and a new port to listen on
+// rather than the default port) and opens up the TCP server for listening
+// ------------------------------------------------------------------------
 vsRemoteInterface::vsRemoteInterface(char *dtdFilename, short port)
 {
     // Open and initialize the DTD file (used for validating XML)
@@ -98,6 +117,10 @@ vsRemoteInterface::vsRemoteInterface(char *dtdFilename, short port)
 }
 
 
+// ------------------------------------------------------------------------
+// Destructor - Closes up the TCP network interface and frees the memory
+// used by the DTD file
+// ------------------------------------------------------------------------
 vsRemoteInterface::~vsRemoteInterface()
 {
    // Close up the network interface (we check pointer just for safety)
@@ -110,6 +133,10 @@ vsRemoteInterface::~vsRemoteInterface()
 }
 
 
+// ------------------------------------------------------------------------
+// Takes an XML document from the xml buffer, validates it, determines
+// what type it is, and calls the appropriate processing method
+// ------------------------------------------------------------------------
 void vsRemoteInterface::processXMLDocument()
 {
     xmlDocPtr    doc;
@@ -202,6 +229,10 @@ void vsRemoteInterface::processXMLDocument()
 }
 
 
+// ------------------------------------------------------------------------
+// Get the data out of the showstats XML document and enable/disable
+// the display of stats on that pane accordingly
+// ------------------------------------------------------------------------
 void vsRemoteInterface::processStats(xmlDocPtr doc, xmlNodePtr current)
 {
     int       screenIndex;
@@ -234,12 +265,22 @@ void vsRemoteInterface::processStats(xmlDocPtr doc, xmlNodePtr current)
 }
 
 
+// ------------------------------------------------------------------------
+// Get the data out of the releasesync XML document and notify the 
+// vsSystem object that a cluster release sync message was received
+// (it knows what to do)
+// ------------------------------------------------------------------------
 void vsRemoteInterface::processReleaseSync(xmlDocPtr doc, xmlNodePtr current)
 {
     vsSystem::systemObject->releaseSync();
 }
 
 
+// ------------------------------------------------------------------------
+// Get the data out of the terminatecluster XML document and notify the 
+// vsSystem object that a terminate cluster sync message was received
+// (it knows what to do)
+// ------------------------------------------------------------------------
 void vsRemoteInterface::processTerminateCluster(xmlDocPtr doc, 
                                                 xmlNodePtr current)
 {
@@ -247,6 +288,11 @@ void vsRemoteInterface::processTerminateCluster(xmlDocPtr doc,
 }
 
 
+// ------------------------------------------------------------------------
+// The main update loop that reads the network and buffers it up to get
+// a full XML document, which is then calls processXMLDocument() to
+// process
+// ------------------------------------------------------------------------
 void vsRemoteInterface::update()
 {
     int      tempClientID;
@@ -375,6 +421,9 @@ void vsRemoteInterface::update()
 }
 
 
+// ------------------------------------------------------------------------
+// Method to write a buffer back out the remote interface (for responses)
+// ------------------------------------------------------------------------
 void vsRemoteInterface::send(u_char *buffer, u_long bufferLen)
 {
     // Write out the buffer to the network
