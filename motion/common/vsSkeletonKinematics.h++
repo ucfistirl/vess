@@ -13,7 +13,8 @@
 //
 //    VESS Module:  vsSkeletonKinematics.h++
 //
-//    Description:  
+//    Description:  A convenient object to easily create and manage
+//                  vsKinematics for each bone found in a vsSkeleton.
 //
 //    Author(s):    Duvan Cope
 //
@@ -52,8 +53,7 @@ public:
     // Update function to take a time value.
     void                  update(double deltaTime);
 
-    // Reset function from vsMotionModel
-    virtual void          reset();
+    void                  reset();
 };
 
 #endif

@@ -13,7 +13,8 @@
 //
 //    VESS Module:  vsSkeletonKinematics.c++
 //
-//    Description:  
+//    Description:  A convenient object to easily create and manage
+//                  vsKinematics for each bone found in a vsSkeleton.
 //
 //    Author(s):    Duvan Cope
 //
@@ -42,6 +43,7 @@ vsSkeletonKinematics::vsSkeletonKinematics(vsSkeleton *newSkeleton)
     {
         bone = skeleton->getBone(index);
         kinematicsList[index] = new vsKinematics(bone);
+        kinematicsList[index]->ref();
     }
 }
 
@@ -54,7 +56,7 @@ vsSkeletonKinematics::~vsSkeletonKinematics()
 
     // Delete all the vsKinematics in the list.
     for (index = 0; index < kinematicsCount; index++)
-        delete kinematicsList[index];
+        vsObject::unrefDelete(kinematicsList[index]);
 
     // Delete the vsKinematics pointer list.
     delete [] kinematicsList;
