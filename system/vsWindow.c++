@@ -538,6 +538,12 @@ void vsWindow::saveImage(char *filename)
     XGetGeometry(xWindowDisplay, winDrawable, &rootWin, &xpos, &ypos,
         &width, &height, &border, &depth);
 
+    // Insure we begin at winDrawable's origin.  This is done because the
+    // XGetGeometry call returns the x and y pos relative to the parent's
+    // window.
+    xpos = 0;
+    ypos = 0;
+
     // Capture the contents of the window into an X image struture
     image = XGetImage(xWindowDisplay, winDrawable, xpos, ypos, width, height,
         AllPlanes, ZPixmap);
