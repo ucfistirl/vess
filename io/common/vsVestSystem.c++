@@ -261,12 +261,12 @@ void vsVestSystem::update()
 {
     if ( zonesChanged )
     {
-        char tempBuffer[10];
+        char tempBuffer[15];
         int length;
 
         // tell the vest about the change (for some reason, in the vest code,
         // bit off = zone on and bit on = zone off so we binary NOT the value)
-        length = snprintf( tempBuffer, 10, "C%c*", ~(currentState) );
+        length = sprintf( tempBuffer, "C%c*", ~(currentState) );
         addToBuffer( tempBuffer, length );
 
         zonesChanged = false;
