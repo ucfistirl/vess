@@ -64,6 +64,17 @@ void vsScentAirScent::setStrength(double newStrength)
     // Store the new strength (in case someone asks for it)
     strength = newStrength;
     
+    // Clamp the value to 0.0-1.0 range.  A strength of less than 0.0 or 
+    // greater than 1.0 is not valid.
+    if (strength < 0.0)
+    {
+        strength = 0.0;
+    }
+    else if (strength > 1.0)
+    {
+        strength = 1.0;
+    }
+
     // Turn the channel on if the strength is not zero
     if (fabs(strength) > 1.0e-6)
     {
