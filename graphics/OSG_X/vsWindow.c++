@@ -1563,6 +1563,16 @@ void vsWindow::makeCurrent()
 
 // ------------------------------------------------------------------------
 // Internal function
+// Swaps the drawing buffers on this window
+// ------------------------------------------------------------------------
+void vsWindow::swapBuffers()
+{
+    // Call GLX to swap the buffers on the X Window
+    glXSwapBuffers(parentScreen->getParentPipe()->getXDisplay(), xWindow);
+}
+
+// ------------------------------------------------------------------------
+// Internal function
 // Processes X events on this window
 // ------------------------------------------------------------------------
 void vsWindow::update()
