@@ -60,6 +60,11 @@ vsPane::vsPane(vsWindow *parent)
     performerScene->setGState(defaultState);
 
     performerChannel->setScene(performerScene);
+    
+    // Set up the earth/sky model
+    earthSky = new pfEarthSky();
+    earthSky->setAttr(PFES_GRND_HT, -100.0);
+    performerChannel->setESky(earthSky);
 }
 
 // ------------------------------------------------------------------------
@@ -268,6 +273,106 @@ void vsPane::showPane()
 void vsPane::hidePane()
 {
     performerChannel->setTravMode(PFTRAV_DRAW, PFDRAW_OFF);
+}
+
+// ------------------------------------------------------------------------
+// Enables drawing of the earth/sky background in this channel
+// ------------------------------------------------------------------------
+void vsPane::enableEarthSky()
+{
+    earthSky->setMode(PFES_BUFFER_CLEAR, PFES_SKY_GRND);
+}
+
+// ------------------------------------------------------------------------
+// Disables drawing of the earth/sky background in this channel
+// ------------------------------------------------------------------------
+void vsPane::disableEarthSky()
+{
+    earthSky->setMode(PFES_BUFFER_CLEAR, PFES_FAST);
+}
+
+// ------------------------------------------------------------------------
+// Sets the altitude of the ground plane in the earth/sky background
+// ------------------------------------------------------------------------
+void vsPane::setESGroundHeight(double newHeight)
+{
+    earthSky->setAttr(PFES_GRND_HT, newHeight);
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the altitude of the ground plane in the earth/sky background
+// ------------------------------------------------------------------------
+double vsPane::getESGroundHeight()
+{
+    return (earthSky->getAttr(PFES_GRND_HT));
+}
+
+// ------------------------------------------------------------------------
+// Sets the aspect of the earth/sky background color specified by which to
+// the specified color
+// ------------------------------------------------------------------------
+void vsPane::setESColor(int which, double r, double g, double b)
+{
+    switch (which)
+    {
+	case VS_PANE_ESCOLOR_SKY_NEAR:
+	    earthSky->setColor(PFES_SKY_TOP, r, g, b, 1.0);
+	    break;
+	case VS_PANE_ESCOLOR_SKY_FAR:
+	    earthSky->setColor(PFES_SKY_BOT, r, g, b, 1.0);
+	    break;
+	case VS_PANE_ESCOLOR_SKY_HORIZON:
+	    earthSky->setColor(PFES_HORIZ, r, g, b, 1.0);
+	    break;
+	case VS_PANE_ESCOLOR_GROUND_FAR:
+	    earthSky->setColor(PFES_GRND_FAR, r, g, b, 1.0);
+	    break;
+	case VS_PANE_ESCOLOR_GROUND_NEAR:
+	    earthSky->setColor(PFES_GRND_NEAR, r, g, b, 1.0);
+	    break;
+	default:
+	    printf("vsPane::setESColor: Invalid color constant\n");
+	    break;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the aspect of the earth/sky background color specified by
+// which. NULL pointers may be passed in for unneeded return values.
+// ------------------------------------------------------------------------
+void vsPane::getESColor(int which, double *r, double *g, double *b)
+{
+    float fr, fg, fb, fa;
+
+    switch (which)
+    {
+	case VS_PANE_ESCOLOR_SKY_NEAR:
+	    earthSky->getColor(PFES_SKY_TOP, &fr, &fg, &fb, &fa);
+	    break;
+	case VS_PANE_ESCOLOR_SKY_FAR:
+	    earthSky->getColor(PFES_SKY_BOT, &fr, &fg, &fb, &fa);
+	    break;
+	case VS_PANE_ESCOLOR_SKY_HORIZON:
+	    earthSky->getColor(PFES_HORIZ, &fr, &fg, &fb, &fa);
+	    break;
+	case VS_PANE_ESCOLOR_GROUND_FAR:
+	    earthSky->getColor(PFES_GRND_FAR, &fr, &fg, &fb, &fa);
+	    break;
+	case VS_PANE_ESCOLOR_GROUND_NEAR:
+	    earthSky->getColor(PFES_GRND_NEAR, &fr, &fg, &fb, &fa);
+	    break;
+	default:
+	    printf("vsPane::getESColor: Invalid color constant\n");
+	    fr = fg = fb = 0.0;
+	    break;
+    }
+    
+    if (r)
+	*r = fr;
+    if (g)
+	*g = fg;
+    if (b)
+	*b = fb;
 }
 
 // ------------------------------------------------------------------------

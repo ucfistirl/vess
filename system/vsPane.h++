@@ -25,6 +25,15 @@ enum vsPanePlacement
     VS_PANE_PLACEMENT_BOTTOM_LEFT_QUADRANT
 };
 
+enum vsPaneEarthSkyColor
+{
+    VS_PANE_ESCOLOR_SKY_NEAR,
+    VS_PANE_ESCOLOR_SKY_FAR,
+    VS_PANE_ESCOLOR_SKY_HORIZON,
+    VS_PANE_ESCOLOR_GROUND_FAR,
+    VS_PANE_ESCOLOR_GROUND_NEAR
+};
+
 class vsPane
 {
 private:
@@ -36,6 +45,7 @@ private:
     pfScene        *performerScene;
 
     pfChannel      *performerChannel;
+    pfEarthSky	   *earthSky;
 
 VS_INTERNAL:
 
@@ -64,6 +74,13 @@ public:
 
     void         showPane();
     void         hidePane();
+    
+    void	 enableEarthSky();
+    void	 disableEarthSky();
+    void	 setESGroundHeight(double newHeight);
+    double	 getESGroundHeight();
+    void	 setESColor(int which, double r, double g, double b);
+    void	 getESColor(int which, double *r, double *g, double *b);
 
     pfChannel    *getBaseLibraryObject();
 };
