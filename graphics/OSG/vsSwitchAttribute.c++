@@ -256,7 +256,7 @@ void vsSwitchAttribute::detach(vsNode *theNode)
 void vsSwitchAttribute::attachDuplicate(vsNode *theNode)
 {
     vsSwitchAttribute *newAttrib;
-    int switchVal, loop;
+    int loop;
     int sourceChildCount, targetChildCount, childCount;
 
     // Can only add switches to components (no other node makes sense)
