@@ -76,8 +76,8 @@ public:
 
     void                init();
     void                simpleInit(char *databaseFilename, char *windowName,
-                            bool fullScreen, vsNode **sceneGraph,
-                                         vsView **viewpoint, vsWindow **window);
+                                   bool fullScreen, vsNode **sceneGraph,
+                                   vsView **viewpoint, vsWindow **window);
 
     vsSequencer         *getSequencer();
 
