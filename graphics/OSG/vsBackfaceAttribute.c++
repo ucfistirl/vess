@@ -54,6 +54,7 @@ vsBackfaceAttribute::vsBackfaceAttribute()
 // ------------------------------------------------------------------------
 vsBackfaceAttribute::~vsBackfaceAttribute()
 {
+    // Delete the OSG objects
     lightModel->unref();
     cullFace->unref();
 }
@@ -79,8 +80,12 @@ int vsBackfaceAttribute::getAttributeType()
 // ------------------------------------------------------------------------
 void vsBackfaceAttribute::enable()
 {
+    // Enable backside lighting
     lightModel->setTwoSided(VS_TRUE);
+
     backfaceEnabled = VS_TRUE;
+
+    // Update the owners' StateSets
     setAllOwnersOSGAttrModes();
 }
 
@@ -89,8 +94,12 @@ void vsBackfaceAttribute::enable()
 // ------------------------------------------------------------------------
 void vsBackfaceAttribute::disable()
 {
+    // Disable backside lighting
     lightModel->setTwoSided(VS_FALSE);
+
     backfaceEnabled = VS_FALSE;
+
+    // Update the owners' osg StateSets
     setAllOwnersOSGAttrModes();
 }
 
@@ -145,8 +154,10 @@ void vsBackfaceAttribute::setOSGAttrModes(vsNode *node)
 // ------------------------------------------------------------------------
 void vsBackfaceAttribute::attach(vsNode *node)
 {
+    // Inherited attach
     vsStateAttribute::attach(node);
 
+    // Update the new owner's osg StateSet
     setOSGAttrModes(node);
 }
 
@@ -165,6 +176,7 @@ void vsBackfaceAttribute::detach(vsNode *node)
     osgStateSet->setAttributeAndModes(lightModel, osg::StateAttribute::INHERIT);
     osgStateSet->setAttributeAndModes(cullFace, osg::StateAttribute::INHERIT);
 
+    // Inherited detach
     vsStateAttribute::detach(node);
 }
 
@@ -176,13 +188,16 @@ void vsBackfaceAttribute::attachDuplicate(vsNode *theNode)
 {
     vsBackfaceAttribute *newAttrib;
     
+    // Create a duplicate backface attribute
     newAttrib = new vsBackfaceAttribute();
     
+    // Copy the backface enable mode
     if (isEnabled())
         newAttrib->enable();
     else
         newAttrib->disable();
 
+    // Attach the duplicate attribute to the specified node
     theNode->addAttribute(newAttrib);
 }
 
@@ -196,21 +211,27 @@ int vsBackfaceAttribute::isEquivalent(vsAttribute *attribute)
     vsBackfaceAttribute *attr;
     int val1, val2;
     
+    // NULL check
     if (!attribute)
         return VS_FALSE;
 
+    // Equal pointer check
     if (this == attribute)
         return VS_TRUE;
     
+    // Type check
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_BACKFACE)
         return VS_FALSE;
 
+    // Type cast
     attr = (vsBackfaceAttribute *)attribute;
     
+    // State check
     val1 = isEnabled();
     val2 = attr->isEnabled();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Attributes are equivalent if all checks pass
     return VS_TRUE;
 }

@@ -31,7 +31,8 @@
 // ------------------------------------------------------------------------
 vsBillboardAttribute::vsBillboardAttribute()
 {
-    // Default center point = (0.0 0.0 0.0)
+    // Set to default values (center at 0,0,0; no translations; front
+    // direction positive-y; up direction positive-z)
     centerPoint.set(0.0, 0.0, 0.0);
     preTranslate.setIdentity();
     postTranslate.setIdentity();
@@ -42,10 +43,11 @@ vsBillboardAttribute::vsBillboardAttribute()
     // Default up direction = +Z axis
     upAxis.set(0.0, 0.0, 1.0);
 
-    // Default rotation mode = axis rotation
+    // No transform node yet, default mode axis-rotation
+    billboardTransform = NULL;
     billboardMode = VS_BILLBOARD_ROT_AXIS;
     
-    billboardTransform = NULL;
+    // Start off unattached
     attachedFlag = 0;
     
     // Create a callback object and set it to use this attribute
@@ -57,6 +59,7 @@ vsBillboardAttribute::vsBillboardAttribute()
 // ------------------------------------------------------------------------
 vsBillboardAttribute::~vsBillboardAttribute()
 {
+    // Detach before deleting
     if (isAttached())
         detach(NULL);
 
@@ -108,8 +111,11 @@ int vsBillboardAttribute::getMode()
 // ------------------------------------------------------------------------
 void vsBillboardAttribute::setCenterPoint(vsVector newCenter)
 {
+    // Force our copy of the center point to be size 3
     centerPoint.clearCopy(newCenter);
     centerPoint.setSize(3);
+
+    // Copy the new center point into the transform matrices
     preTranslate.setTranslation(-centerPoint[0], -centerPoint[1],
         -centerPoint[2]);
     postTranslate.setTranslation(centerPoint[0], centerPoint[1],
@@ -129,6 +135,8 @@ vsVector vsBillboardAttribute::getCenterPoint()
 // ------------------------------------------------------------------------
 void vsBillboardAttribute::setFrontDirection(vsVector newFront)
 {
+    // Force our copy of the front direction to be of size 3 and
+    // of unit length
     frontDirection.clearCopy(newFront);
     frontDirection.setSize(3);
     frontDirection.normalize();
@@ -149,6 +157,8 @@ vsVector vsBillboardAttribute::getFrontDirection()
 // ------------------------------------------------------------------------
 void vsBillboardAttribute::setAxis(vsVector newAxis)
 {
+    // Force our copy of the up direction to be of size 3 and
+    // of unit length
     upAxis.clearCopy(newAxis);
     upAxis.setSize(3);
     upAxis.normalize();
@@ -168,6 +178,8 @@ vsVector vsBillboardAttribute::getAxis()
 // ------------------------------------------------------------------------
 int vsBillboardAttribute::canAttach()
 {
+    // This attribute is not available to be attached if it is already
+    // attached to another node
     if (attachedFlag)
         return VS_FALSE;
 
@@ -183,12 +195,14 @@ void vsBillboardAttribute::attach(vsNode *theNode)
 {
     osg::Group *lightHook, *childGroup;
 
+    // Verify that we're not already attached to something
     if (attachedFlag)
     {
         printf("vsBillboardAttribute::attach: Attribute is already attached\n");
         return;
     }
     
+    // Verify that we're getting a component to attach to
     if (theNode->getNodeType() != VS_NODE_TYPE_COMPONENT)
     {
         printf("vsBillboardAttribute::attach: Can only attach billboard "
@@ -211,6 +225,7 @@ void vsBillboardAttribute::attach(vsNode *theNode)
     // the component
     lightHook->setCullCallback(billboardCallback);
     
+    // Mark this attribute as attached
     attachedFlag = 1;
 }
 
@@ -223,6 +238,7 @@ void vsBillboardAttribute::detach(vsNode *theNode)
 {
     osg::Group *lightHook, *childGroup;
 
+    // Can't detach an attribute that is not attached
     if (!attachedFlag)
     {
         printf("vsBillboardAttribute::detach: Attribute is not attached\n");
@@ -251,13 +267,16 @@ void vsBillboardAttribute::attachDuplicate(vsNode *theNode)
 {
     vsBillboardAttribute *newAttrib;
     
+    // Create a duplicate switch attribute
     newAttrib = new vsBillboardAttribute();
     
+    // Copy the billboard parameters to the new attribute
     newAttrib->setMode(getMode());
     newAttrib->setCenterPoint(getCenterPoint());
     newAttrib->setFrontDirection(getFrontDirection());
     newAttrib->setAxis(getAxis());
     
+    // Attach the duplicate attribute to the specified node
     theNode->addAttribute(newAttrib);
 }
 
@@ -290,11 +309,15 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
     up = currentXform.getVectorXform(upAxis);
     up.normalize();
 
+    // Construct the direction from the viewpoint to the billboarded object
+    // by determining the viewpoint and subtracting the object's center
+    // point from it, and normalizing the result.
     viewpoint.set(0.0, 0.0, 0.0);
     viewpoint = viewMatrix.getPointXform(viewpoint);
     viewDir = viewpoint - center;
     viewDir.normalize();
 
+    // Determine which rotation mode is in use
     if (billboardMode == VS_BILLBOARD_ROT_AXIS)
     {
         // * Axis rotation mode
@@ -315,6 +338,9 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
         theta = front.getAngleBetween(viewDir);
         cross = front.getCrossProduct(viewDir);
         cross.normalize();
+        // The 'up' direction is our positive direction for this purpose;
+	// if the cross product points the other direction instead, then
+	// it's considered negative.
         if (!(cross == up))
             theta *= -1.0;
 
@@ -335,6 +361,9 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
 
         // Second, find the rotation that rotates the 'up' directions of
         // the object and the world to be as close together as possible.
+	// (They can't always coincide, if the plane perpendicular to the
+	// forward view direction doesn't contain the world up direction.)
+
         up = resultMat.getVectorXform(up);
         up.normalize();
         worldUp.set(0.0, 0.0, 1.0);
@@ -344,9 +373,12 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
             worldUp = viewMatrix.getVectorXform(worldUp);
         worldUp.normalize();
 
-        // Project both 'up' vectors onto the plane specified by the
-        // center point of the billboard and the normal vector as the
-        // vector from the object to the viewpoint
+        // Project both 'up' vectors onto the plane specified by a
+        // center point (the center point of the billboard) and a normal
+	// vector (the vector from the object to the viewpoint). This
+	// allows us to get as close as possible in the case that the
+	// plane perpendicular to the forward direction doesn't contain
+	// the world up direction.
         dotValue = worldUp.getDotProduct(viewDir);
         worldUp = worldUp - (viewDir * dotValue);
         worldUp.normalize();
@@ -354,9 +386,10 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
         up = up - (viewDir * dotValue);
         up.normalize();
 
-        // Calculate the angle between the two 'up' vectors; adjust for the
-        // sign change when the cross product of the two goes negative. (The
-        // vsVector.getAngleBetween function doesn't take this into account.)
+        // Calculate the angle between the two 'up' vectors to get the roll
+	// rotation value; adjust for the sign change when the cross product
+	// of the two goes negative. (The vsVector.getAngleBetween function
+	// doesn't take this into account.)
         theta = up.getAngleBetween(worldUp);
         cross = up.getCrossProduct(worldUp);
         cross.normalize();
@@ -371,18 +404,22 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
         resultMat.preMultiply(tempMat);
     }
 
-    // Strip the translation from the current transform matrix
+    // Strip the translation from the current transform matrix; for the
+    // next part, we want a global-rotation only matrix.
     center.set(0.0, 0.0, 0.0);
     center = currentXform.getPointXform(center);
     tempMat.setTranslation(-center[0], -center[1], -center[2]);
     tempMat = tempMat * currentXform;
 
-    // Transform the result rotation into the local coordinate system
-    // of the component, using the new current transform
+    // The function result matrix is in the global coordinate system;
+    // transform the result rotation into the local coordinate system
+    // of the component, using the new current transform.
     invMat = tempMat.getInverse();
     resultMat = invMat * resultMat * tempMat;
 
-    // Factor in the center point of the object
+    // Factor in the center point of the object so that rotations seem
+    // to be around this center point rather than just the origin of
+    // the billboard's component
     resultMat.postMultiply(preTranslate);
     resultMat.preMultiply(postTranslate);
 
@@ -391,5 +428,6 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
         for (sloop = 0; sloop < 4; sloop++)
             osgMat(loop, sloop) = resultMat[sloop][loop];
 
+    // Set the billboard's transform matrix
     billboardTransform->setMatrix(osgMat);
 }

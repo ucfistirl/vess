@@ -32,6 +32,8 @@
 // ------------------------------------------------------------------------
 vsAttribute::vsAttribute()
 {
+    // Initialize the node name to an empty string, and the attachment
+    // flag to false
     attributeName[0] = 0;
     attachedFlag = 0;
 }

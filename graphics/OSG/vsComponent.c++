@@ -83,7 +83,8 @@ vsComponent::~vsComponent()
         parent->removeChild(this);
     }
 
-    // Detach all remaining children; don't delete any.
+    // Detach all remaining children; don't delete any (in case someone
+    // else is using them).
     while (getChildCount() > 0)
     {
         child = getChild(0);
@@ -145,18 +146,20 @@ vsNode *vsComponent::cloneTree()
         attr->attachDuplicate(result);
     }
     
+    // Return the cloned tree
     return result;
 }
 
 // ------------------------------------------------------------------------
-// Destroys the entire scene graph rooted at this node, up to but not
-// including this node itself. Won't delete instanced nodes unless all
+// Destroys the entire scene graph rooted at this component, up to but not
+// including this component itself. Won't delete instanced nodes unless all
 // of the parents of the node are being deleted as well.
 // ------------------------------------------------------------------------
 void vsComponent::deleteTree()
 {
     vsNode *node;
     
+    // Delete all children of this node
     while (getChildCount() > 0)
     {
 	// We can always get the first child, because removing a child
@@ -168,10 +171,10 @@ void vsComponent::deleteTree()
         if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
             ((vsComponent *)node)->deleteTree();
 
-	// Remove the child from the component, and delete it if
-	// it is no longer being used
+        // Remove the child from this node
         removeChild(node);
 
+        // Delete the child if it's now unowned
         if (node->getParentCount() == 0)
             delete node;
     }
@@ -244,6 +247,7 @@ int vsComponent::insertChild(vsNode *newChild, int index)
     osg::Node *newNode, *displacedNode;
     int loop;
     
+    // Bounds check
     if (index < 0)
     {
         printf("vsComponent::insertChild: Index out of bounds\n");
@@ -327,6 +331,7 @@ int vsComponent::removeChild(vsNode *targetChild)
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
     
+    // Search the child list for the target child
     for (loop = 0; loop < childCount; loop++)
         if (targetChild == childList[loop])
         {
@@ -392,6 +397,7 @@ int vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
     vsDynamicGeometry *childDynamicGeometry;
     osg::Node *oldNode, *newNode;
     
+    // Search the child list for the target child
     for (loop = 0; loop < childCount; loop++)
         if (targetChild == childList[loop])
         {
@@ -446,11 +452,12 @@ int vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
                 newNode = childDynamicGeometry->getBaseLibraryObject();
             }
             
+            // Replace the old child with the new one on this component's
+	    // bottom group
             bottomGroup->replaceChild(oldNode, newNode);
             
             // Change the connection in the VESS nodes
             childList[loop] = newChild;
-            
             targetChild->unref();
             newChild->ref();
 
@@ -508,12 +515,14 @@ int vsComponent::getChildCount()
 // ------------------------------------------------------------------------
 vsNode *vsComponent::getChild(int index)
 {
+    // Bounds check
     if ((index < 0) || (index >= childCount))
     {
         printf("vsComponent::getChild: Bad child index\n");
         return NULL;
     }
     
+    // Return the requested child
     return (vsNode *)(childList[index]);
 }
 
@@ -529,13 +538,14 @@ void vsComponent::getBoundSphere(vsVector *centerPoint, double *radius)
     // Get the bounding sphere from OSG
     boundSphere = topGroup->getBound();
     
-    // Convert the center to a vsVector
+    // Copy the sphere center point to the result vector, if there is one
     if (centerPoint)
     {
         center = boundSphere.center();
         centerPoint->set(center[0], center[1], center[2]);
     }
 
+    // Copy the sphere radius to the result value, if there is one
     if (radius)
         *radius = boundSphere.radius();
 }
@@ -559,6 +569,7 @@ vsMatrix vsComponent::getGlobalXform()
     xform.makeIdentity();
     nodePtr = bottomGroup;
     
+    // Check the parent count to determine if we're at the top of the tree
     while (nodePtr->getNumParents() > 0)
     {
         if (dynamic_cast<osg::MatrixTransform *>(nodePtr))
@@ -569,6 +580,7 @@ vsMatrix vsComponent::getGlobalXform()
             xform.postMult(matRef);
         }
         
+        // Move to the node's (first) parent
         nodePtr = nodePtr->getParent(0);
     }
     
@@ -577,6 +589,7 @@ vsMatrix vsComponent::getGlobalXform()
         for (sloop = 0; sloop < 4; sloop++)
             result[loop][sloop] = xform(sloop, loop);
 
+    // Return the resulting matrix
     return result;
 }
 
@@ -617,12 +630,17 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
         return;
     }
     
+    // Check for a conflict between the attribute to be added and the
+    // ones already on the component
     attrCat = newAttribute->getAttributeCategory();
     attrType = newAttribute->getAttributeType();
     switch (attrCat)
     {
-        // Component may only contain one of each of these
+        // Component may only contain one of each of these; if the new
+	// attribute is one of these categories, make sure there's not
+	// another one of the same type already
         case VS_ATTRIBUTE_CATEGORY_STATE:
+        case VS_ATTRIBUTE_CATEGORY_XFORM:
             for (loop = 0; loop < getAttributeCount(); loop++)
                 if ((getAttribute(loop))->getAttributeType() == attrType)
                 {
@@ -632,7 +650,9 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
                 }
             break;
 
-        // Component may only contain one of any of these
+        // Component may only contain one of any of these; if the new
+	// attribute is this category, make sure there's not another one
+	// of the same category already
         case VS_ATTRIBUTE_CATEGORY_GROUPING:
             if (getCategoryAttribute(VS_ATTRIBUTE_CATEGORY_GROUPING, 0))
             {
@@ -642,7 +662,9 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
             }
 	    break;
 
-        // Component may only contain one of any of these
+        // Component may only contain one of any of these; if the new
+	// attribute is this category, make sure there's not another one
+	// of the same category already
         case VS_ATTRIBUTE_CATEGORY_XFORM:
             if (getCategoryAttribute(VS_ATTRIBUTE_CATEGORY_XFORM, 0))
             {
@@ -714,7 +736,8 @@ void vsComponent::replaceBottomGroup(osg::Group *newGroup)
     parentGroup = bottomGroup->getParent(0);
     parentGroup->replaceChild(bottomGroup, newGroup);
     
-    // Delete the old bottom group and keep the new one
+    // Delete the old bottom group, and set the bottomGroup pointer to
+    // point to the new one
     bottomGroup->unref();
     bottomGroup = newGroup;
     bottomGroup->ref();
@@ -726,9 +749,11 @@ void vsComponent::replaceBottomGroup(osg::Group *newGroup)
 // ------------------------------------------------------------------------
 int vsComponent::addParent(vsNode *newParent)
 {
+    // We can only have one parent; resist any attempt to add more
     if (parentNode)
 	return VS_FALSE;
 
+    // Add the parent and return success
     parentNode = newParent;
     parentNode->ref();
     return VS_TRUE;
@@ -740,9 +765,11 @@ int vsComponent::addParent(vsNode *newParent)
 // ------------------------------------------------------------------------
 int vsComponent::removeParent(vsNode *targetParent)
 {
+    // If the specified node isn't our parent, fail
     if (parentNode != targetParent)
 	return VS_FALSE;
 
+    // Remove the parent and return success
     parentNode->unref();
     parentNode = NULL;
     return VS_TRUE;
