@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\graphics\common;..\..\graphics\OSG;..\..\graphics\OSG_Windows;..\..\util\Windows;..\..\util\common;..\..\io\Windows;..\..\io\OSG_Windows;..\..\io\common;&quot;C:\Documents and Settings\Glenn Martin\Desktop\Haptics\winosg\include&quot;"
+				AdditionalIncludeDirectories="..\..\graphics\common;..\..\graphics\OSG;..\..\graphics\OSG_Windows;..\..\util\Windows;..\..\util\common;..\..\util\OSG;..\..\llio\Windows;..\..\io\Windows;..\..\io\OSG_Windows;..\..\io\common"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_IO_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -33,9 +33,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wsock32.lib winmm.lib"
+				AdditionalDependencies="wsock32.lib winmm.lib libVHTDevice.lib libVHTCore.lib vtidmCore.lib vtidmCoreimp.lib libRegistry.lib opengl32.lib"
 				OutputFile="$(OutDir)/vsIO.dll"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="&quot;C:\Program Files\VirtualHand\SDK\Development\lib\winnt_386&quot;"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/io.pdb"
 				SubSystem="2"
@@ -67,7 +68,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;IO_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_IO_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
@@ -123,6 +124,9 @@
 				RelativePath="..\..\io\common\vsCyberGloveBox.c++">
 			</File>
 			<File
+				RelativePath="..\..\io\Windows\vsCyberGrasp.c++">
+			</File>
+			<File
 				RelativePath="..\..\io\Windows\vsEthernetMotionStar.c++">
 			</File>
 			<File
@@ -136,9 +140,6 @@
 			</File>
 			<File
 				RelativePath="..\..\io\common\vsIOSystem.c++">
-			</File>
-			<File
-				RelativePath="..\..\io\Windows\vsIPCInterface.c++">
 			</File>
 			<File
 				RelativePath="..\..\io\Windows\vsIS600.c++">
@@ -168,9 +169,6 @@
 				RelativePath="..\..\io\common\vsMouse.c++">
 			</File>
 			<File
-				RelativePath="..\..\io\Windows\vsNetworkInterface.c++">
-			</File>
-			<File
 				RelativePath="..\..\io\common\vsPhantom.c++">
 			</File>
 			<File
@@ -180,25 +178,25 @@
 				RelativePath="..\..\io\common\vsPinchGloveBox.c++">
 			</File>
 			<File
-				RelativePath="..\..\io\common\vsSerialMotionStar.c++">
+				RelativePath="..\..\io\Windows\vsPolaris.c++">
 			</File>
 			<File
-				RelativePath="..\..\io\Windows\vsSerialPort.c++">
+				RelativePath="..\..\io\common\vsSerialMotionStar.c++">
 			</File>
 			<File
 				RelativePath="..\..\io\common\vsSpaceball.c++">
 			</File>
 			<File
-				RelativePath="..\..\io\Windows\vsTCPNetworkInterface.c++">
-			</File>
-			<File
 				RelativePath="..\..\io\common\vsTrackingSystem.c++">
 			</File>
 			<File
-				RelativePath="..\..\io\Windows\vsUDPNetworkInterface.c++">
+				RelativePath="..\..\io\common\vsUnwinder.c++">
 			</File>
 			<File
-				RelativePath="..\..\io\common\vsUnwinder.c++">
+				RelativePath="..\..\io\common\vsVest.c++">
+			</File>
+			<File
+				RelativePath="..\..\io\common\vsVestSystem.c++">
 			</File>
 			<File
 				RelativePath="..\..\io\OSG_Windows\vsWindowSystem.c++">
@@ -223,6 +221,9 @@
 				RelativePath="..\..\io\common\vsCyberGloveBox.h++">
 			</File>
 			<File
+				RelativePath="..\..\io\Windows\vsCyberGrasp.h++">
+			</File>
+			<File
 				RelativePath="..\..\io\Windows\vsEthernetMotionStar.h++">
 			</File>
 			<File
@@ -236,9 +237,6 @@
 			</File>
 			<File
 				RelativePath="..\..\io\common\vsIOSystem.h++">
-			</File>
-			<File
-				RelativePath="..\..\io\Windows\vsIPCInterface.h++">
 			</File>
 			<File
 				RelativePath="..\..\io\Windows\vsIS600.h++">
@@ -268,9 +266,6 @@
 				RelativePath="..\..\io\common\vsMouse.h++">
 			</File>
 			<File
-				RelativePath="..\..\io\Windows\vsNetworkInterface.h++">
-			</File>
-			<File
 				RelativePath="..\..\io\common\vsPhantom.h++">
 			</File>
 			<File
@@ -283,25 +278,25 @@
 				RelativePath="..\..\io\common\vsPinchGloveBox.h++">
 			</File>
 			<File
-				RelativePath="..\..\io\common\vsSerialMotionStar.h++">
+				RelativePath="..\..\io\Windows\vsPolaris.h++">
 			</File>
 			<File
-				RelativePath="..\..\io\Windows\vsSerialPort.h++">
+				RelativePath="..\..\io\common\vsSerialMotionStar.h++">
 			</File>
 			<File
 				RelativePath="..\..\io\common\vsSpaceball.h++">
 			</File>
 			<File
-				RelativePath="..\..\io\Windows\vsTCPNetworkInterface.h++">
-			</File>
-			<File
 				RelativePath="..\..\io\common\vsTrackingSystem.h++">
 			</File>
 			<File
-				RelativePath="..\..\io\Windows\vsUDPNetworkInterface.h++">
+				RelativePath="..\..\io\common\vsUnwinder.h++">
 			</File>
 			<File
-				RelativePath="..\..\io\common\vsUnwinder.h++">
+				RelativePath="..\..\io\common\vsVest.h++">
+			</File>
+			<File
+				RelativePath="..\..\io\common\vsVestSystem.h++">
 			</File>
 			<File
 				RelativePath="..\..\io\OSG_Windows\vsWindowSystem.h++">

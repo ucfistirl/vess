@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.00"
-	Name="motion"
-	ProjectGUID="{B7B4683B-A087-4BEC-9276-B8444FEAB601}"
+	Name="sound"
+	ProjectGUID="{93CC3F66-D7FC-40D4-9E28-1403EEB11EB7}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -19,8 +19,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\Documents and Settings\Glenn Martin\Desktop\Haptics\winosg\include&quot;;..\..\io\OSG_Windows;..\..\io\Windows;..\..\io\common;..\..\graphics\OSG_Windows;..\..\graphics\OSG;..\..\graphics\common;..\..\util\Windows;..\..\util\common"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_MOTION_EXPORTS"
+				AdditionalIncludeDirectories="..\..\graphics\OSG_Windows;..\..\graphics\OSG;..\..\graphics\common;..\..\util\Windows;..\..\util\common;..\..\util\OSG"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_SOUND_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -33,12 +33,14 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/vsMotion.dll"
+				AdditionalDependencies="openal32.lib alut.lib "
+				OutputFile="$(OutDir)/vsSound.dll"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="..\lib"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/motion.pdb"
+				ProgramDatabaseFile="$(OutDir)/sound.pdb"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/vsMotion.lib"
+				ImportLibrary="$(OutDir)/vsSound.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -66,7 +68,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;MOTION_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_SOUND_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
@@ -78,13 +80,13 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/motion.dll"
+				OutputFile="$(OutDir)/sound.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/motion.lib"
+				ImportLibrary="$(OutDir)/sound.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -107,92 +109,44 @@
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
-				RelativePath="..\..\motion\common\vs3TrackerArm.c++">
+				RelativePath="..\..\sound\OpenAL\vsSoundBuffer.c++">
 			</File>
 			<File
-				RelativePath="..\..\motion\common\vsAxisRotation.c++">
+				RelativePath="..\..\sound\OpenAL\vsSoundListenerAttribute.c++">
 			</File>
 			<File
-				RelativePath="..\..\motion\common\vsCollision.c++">
+				RelativePath="..\..\sound\OpenAL\vsSoundPipe.c++">
 			</File>
 			<File
-				RelativePath="..\..\motion\common\vsDifferentialTrackedOrientation.c++">
+				RelativePath="..\..\sound\OpenAL\vsSoundSample.c++">
 			</File>
 			<File
-				RelativePath="..\..\motion\common\vsDrivingMotion.c++">
+				RelativePath="..\..\sound\OpenAL\vsSoundSourceAttribute.c++">
 			</File>
 			<File
-				RelativePath="..\..\motion\common\vsFlyingMotion.c++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsKinematics.c++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsMotionModel.c++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsSphericalMotion.c++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsTerrainFollow.c++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsTrackballMotion.c++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsTrackedMotion.c++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsWalkArticulation.c++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsWalkInPlace.c++">
+				RelativePath="..\..\sound\OpenAL\vsSoundStream.c++">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h++;h;hpp;hxx;hm;inl;inc">
 			<File
-				RelativePath="..\..\motion\common\vs3TrackerArm.h++">
+				RelativePath="..\..\sound\OpenAL\vsSoundBuffer.h++">
 			</File>
 			<File
-				RelativePath="..\..\motion\common\vsAxisRotation.h++">
+				RelativePath="..\..\sound\OpenAL\vsSoundListenerAttribute.h++">
 			</File>
 			<File
-				RelativePath="..\..\motion\common\vsCollision.h++">
+				RelativePath="..\..\sound\OpenAL\vsSoundPipe.h++">
 			</File>
 			<File
-				RelativePath="..\..\motion\common\vsDifferentialTrackedOrientation.h++">
+				RelativePath="..\..\sound\OpenAL\vsSoundSample.h++">
 			</File>
 			<File
-				RelativePath="..\..\motion\common\vsDrivingMotion.h++">
+				RelativePath="..\..\sound\OpenAL\vsSoundSourceAttribute.h++">
 			</File>
 			<File
-				RelativePath="..\..\motion\common\vsFlyingMotion.h++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsKinematics.h++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsMotionModel.h++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsSphericalMotion.h++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsTerrainFollow.h++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsTrackballMotion.h++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsTrackedMotion.h++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsWalkArticulation.h++">
-			</File>
-			<File
-				RelativePath="..\..\motion\common\vsWalkInPlace.h++">
+				RelativePath="..\..\sound\OpenAL\vsSoundStream.h++">
 			</File>
 		</Filter>
 		<Filter

@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.00"
-	Name="util"
-	ProjectGUID="{CB9451FD-1E11-480B-8D01-D925BC3BD4DD}"
+	Name="motion"
+	ProjectGUID="{B7B4683B-A087-4BEC-9276-B8444FEAB601}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -19,27 +19,26 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\util\common"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_UTIL_EXPORTS"
+				AdditionalIncludeDirectories="..\..\io\Performer_Windows;..\..\io\Windows;..\..\io\common;..\..\graphics\Performer_Windows;..\..\graphics\Performer;..\..\graphics\common;..\..\util\Windows;..\..\util\common;..\..\util\Performer"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_MOTION_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="2"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="4"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib"
-				OutputFile="$(OutDir)/vsUtil.dll"
+				OutputFile="$(OutDir)/vsMotion.dll"
 				LinkIncremental="2"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/util.pdb"
+				ProgramDatabaseFile="$(OutDir)/motion.pdb"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/vsUtil.lib"
+				ImportLibrary="$(OutDir)/vsMotion.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -67,7 +66,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;UTIL_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_MOTION_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
@@ -79,13 +78,13 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/util.dll"
+				OutputFile="$(OutDir)/motion.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/util.lib"
+				ImportLibrary="$(OutDir)/motion.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -108,65 +107,98 @@
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
-				RelativePath="..\..\util\common\vsGrowableArray.c++">
+				RelativePath="..\..\motion\common\vs3TrackerArm.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsMatrix.c++">
+				RelativePath="..\..\motion\common\vsAxisRotation.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsObject.c++">
+				RelativePath="..\..\motion\common\vsCollision.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsObjectMap.c++">
+				RelativePath="..\..\motion\common\vsDifferentialTrackedOrientation.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsQuat.c++">
+				RelativePath="..\..\motion\common\vsDrivingMotion.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\Windows\vsTimer.c++">
+				RelativePath="..\..\motion\common\vsFlyingMotion.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsTreeMap.c++">
+				RelativePath="..\..\motion\common\vsHandArticulation.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsUpdatable.c++">
+				RelativePath="..\..\motion\common\vsKinematics.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsVector.c++">
+				RelativePath="..\..\motion\common\vsMotionModel.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsSphericalMotion.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsTerrainFollow.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsTrackballMotion.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsTrackedMotion.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsWalkArticulation.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsWalkInPlace.c++">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h++;h;hpp;hxx;hm;inl;inc">
 			<File
-				RelativePath="..\..\util\common\vsGlobals.h++">
+				RelativePath="..\..\motion\common\vs3TrackerArm.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsGrowableArray.h++">
+				RelativePath="..\..\motion\common\vsAxisRotation.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsMatrix.h++">
+				RelativePath="..\..\motion\common\vsCollision.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsObject.h++">
+				RelativePath="..\..\motion\common\vsDifferentialTrackedOrientation.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsObjectMap.h++">
+				RelativePath="..\..\motion\common\vsDrivingMotion.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsQuat.h++">
+				RelativePath="..\..\motion\common\vsFlyingMotion.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\Windows\vsTimer.h++">
+				RelativePath="..\..\motion\common\vsHandArticulation.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsTreeMap.h++">
+				RelativePath="..\..\motion\common\vsKinematics.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsUpdatable.h++">
+				RelativePath="..\..\motion\common\vsMotionModel.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsVector.h++">
+				RelativePath="..\..\motion\common\vsSphericalMotion.h++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsTerrainFollow.h++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsTrackballMotion.h++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsTrackedMotion.h++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsWalkArticulation.h++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsWalkInPlace.h++">
 			</File>
 		</Filter>
 		<Filter

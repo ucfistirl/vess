@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.00"
-	Name="system"
-	ProjectGUID="{3808EE9D-CE3E-4ACF-9219-42C8EAA32E89}"
+	Name="util"
+	ProjectGUID="{CB9451FD-1E11-480B-8D01-D925BC3BD4DD}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -19,8 +19,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\Documents and Settings\Glenn Martin\Desktop\Haptics\winosg\src\osgText&quot;;&quot;C:\Documents and Settings\Glenn Martin\Desktop\Haptics\winosg\include&quot;;../../system/OSG;../../system/common;../../avatar/common;../../motion/common;../../sound/OpenAL;../../io/OSG_Windows;../../io/Windows;../../io/common;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../util/Windows;../../util/common"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_SYSTEM_EXPORTS"
+				AdditionalIncludeDirectories="..\..\util\common;..\..\util\Windows;..\..\util\OSG"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_UTIL_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -33,14 +33,13 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="osgd.lib osgDBd.lib osgUtild.lib"
-				OutputFile="$(OutDir)/vsSystem.dll"
+				AdditionalDependencies="libjpeg.lib winmm.lib"
+				OutputFile="$(OutDir)/vsUtil.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;C:\Documents and Settings\Glenn Martin\Desktop\Haptics\winosg\lib\osgPlugins&quot;;&quot;C:\Documents and Settings\Glenn Martin\Desktop\Haptics\winosg\lib&quot;"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/system.pdb"
+				ProgramDatabaseFile="$(OutDir)/util.pdb"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/vsSystem.lib"
+				ImportLibrary="$(OutDir)/vsUtil.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -68,11 +67,11 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SYSTEM_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_UTIL_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
-				UsePrecompiledHeader="3"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
@@ -80,13 +79,13 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/system.dll"
+				OutputFile="$(OutDir)/util.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/system.lib"
+				ImportLibrary="$(OutDir)/util.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -109,14 +108,83 @@
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
-				RelativePath="..\..\system\OSG\vsSystem.c++">
+				RelativePath="..\..\util\common\vsGrowableArray.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\Performer\vsImage.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsMatrix.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsObject.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsObjectMap.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsQuat.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsSequencer.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsSphere.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\Windows\vsTimer.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsTreeMap.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsUpdatable.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsVector.c++">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h++;h;hpp;hxx;hm;inl;inc">
 			<File
-				RelativePath="..\..\system\OSG\vsSystem.h++">
+				RelativePath="..\..\util\common\vsGlobals.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsGrowableArray.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\Performer\vsImage.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsMatrix.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsObject.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsObjectMap.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsQuat.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsSequencer.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsSphere.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\Windows\vsTimer.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsTreeMap.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsUpdatable.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsVector.h++">
 			</File>
 		</Filter>
 		<Filter

@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.00"
-	Name="sound"
-	ProjectGUID="{93CC3F66-D7FC-40D4-9E28-1403EEB11EB7}"
+	Name="util"
+	ProjectGUID="{CB9451FD-1E11-480B-8D01-D925BC3BD4DD}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -19,8 +19,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\Documents and Settings\Glenn Martin\Desktop\Haptics\winosg\include&quot;;..\..\graphics\OSG_Windows;..\..\graphics\OSG;..\..\graphics\common;..\..\util\Windows;..\..\util\common;&quot;C:\Program Files\Creative Labs\OpenAL 1.0 SDK\Include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_SOUND_EXPORTS"
+				AdditionalIncludeDirectories="..\..\util\common;..\..\util\Windows;..\..\util\OSG"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_UTIL_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -33,14 +33,13 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="openal32.lib alut.lib "
-				OutputFile="$(OutDir)/vsSound.dll"
+				AdditionalDependencies="libjpeg.lib winmm.lib"
+				OutputFile="$(OutDir)/vsUtil.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;C:\Program Files\Creative Labs\OpenAL 1.0 SDK\libs&quot;"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/sound.pdb"
+				ProgramDatabaseFile="$(OutDir)/util.pdb"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/vsSound.lib"
+				ImportLibrary="$(OutDir)/vsUtil.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -68,7 +67,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SOUND_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_UTIL_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
@@ -80,13 +79,13 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/sound.dll"
+				OutputFile="$(OutDir)/util.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/sound.lib"
+				ImportLibrary="$(OutDir)/util.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -109,44 +108,83 @@
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
-				RelativePath="..\..\sound\OpenAL\vsSoundBuffer.c++">
+				RelativePath="..\..\util\common\vsGrowableArray.c++">
 			</File>
 			<File
-				RelativePath="..\..\sound\OpenAL\vsSoundListenerAttribute.c++">
+				RelativePath="..\..\util\Performer\vsImage.c++">
 			</File>
 			<File
-				RelativePath="..\..\sound\OpenAL\vsSoundPipe.c++">
+				RelativePath="..\..\util\common\vsMatrix.c++">
 			</File>
 			<File
-				RelativePath="..\..\sound\OpenAL\vsSoundSample.c++">
+				RelativePath="..\..\util\common\vsObject.c++">
 			</File>
 			<File
-				RelativePath="..\..\sound\OpenAL\vsSoundSourceAttribute.c++">
+				RelativePath="..\..\util\common\vsObjectMap.c++">
 			</File>
 			<File
-				RelativePath="..\..\sound\OpenAL\vsSoundStream.c++">
+				RelativePath="..\..\util\common\vsQuat.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsSequencer.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsSphere.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\Windows\vsTimer.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsTreeMap.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsUpdatable.c++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsVector.c++">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h++;h;hpp;hxx;hm;inl;inc">
 			<File
-				RelativePath="..\..\sound\OpenAL\vsSoundBuffer.h++">
+				RelativePath="..\..\util\common\vsGlobals.h++">
 			</File>
 			<File
-				RelativePath="..\..\sound\OpenAL\vsSoundListenerAttribute.h++">
+				RelativePath="..\..\util\common\vsGrowableArray.h++">
 			</File>
 			<File
-				RelativePath="..\..\sound\OpenAL\vsSoundPipe.h++">
+				RelativePath="..\..\util\Performer\vsImage.h++">
 			</File>
 			<File
-				RelativePath="..\..\sound\OpenAL\vsSoundSample.h++">
+				RelativePath="..\..\util\common\vsMatrix.h++">
 			</File>
 			<File
-				RelativePath="..\..\sound\OpenAL\vsSoundSourceAttribute.h++">
+				RelativePath="..\..\util\common\vsObject.h++">
 			</File>
 			<File
-				RelativePath="..\..\sound\OpenAL\vsSoundStream.h++">
+				RelativePath="..\..\util\common\vsObjectMap.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsQuat.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsSequencer.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsSphere.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\Windows\vsTimer.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsTreeMap.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsUpdatable.h++">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsVector.h++">
 			</File>
 		</Filter>
 		<Filter

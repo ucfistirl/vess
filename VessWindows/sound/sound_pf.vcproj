@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.00"
-	Name="avatar"
-	ProjectGUID="{4F4CD304-37FB-4129-A6D0-D9CAAB4E9E9A}"
+	Name="sound"
+	ProjectGUID="{93CC3F66-D7FC-40D4-9E28-1403EEB11EB7}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -19,26 +19,28 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../motion/common;../../sound/OpenAL;../../io/OSG_Windows;../../io/Windows;../../io/common;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../util/Windows;../../util/common;&quot;C:\Documents and Settings\Glenn Martin\Desktop\Haptics\winosg\include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_AVATAR_EXPORTS"
+				AdditionalIncludeDirectories="..\..\graphics\Performer_Windows;..\..\graphics\Performer;..\..\graphics\common;..\..\util\Windows;..\..\util\common;..\..\util\Performer"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_SOUND_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="2"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="4"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/vsAvatar.dll"
+				AdditionalDependencies="openal32.lib alut.lib "
+				OutputFile="$(OutDir)/vsSound.dll"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="..\lib"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/avatar.pdb"
+				ProgramDatabaseFile="$(OutDir)/sound.pdb"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/vsAvatar.lib"
+				ImportLibrary="$(OutDir)/vsSound.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -66,7 +68,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;AVATAR_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_SOUND_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
@@ -78,13 +80,13 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/avatar.dll"
+				OutputFile="$(OutDir)/sound.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/avatar.lib"
+				ImportLibrary="$(OutDir)/sound.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -107,26 +109,44 @@
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
-				RelativePath="..\..\avatar\common\vsAvatar.c++">
+				RelativePath="..\..\sound\OpenAL\vsSoundBuffer.c++">
 			</File>
 			<File
-				RelativePath="..\..\avatar\common\vsConfigAvatar.c++">
+				RelativePath="..\..\sound\OpenAL\vsSoundListenerAttribute.c++">
 			</File>
 			<File
-				RelativePath="..\..\avatar\common\vsGhostFlyAvatar.c++">
+				RelativePath="..\..\sound\OpenAL\vsSoundPipe.c++">
+			</File>
+			<File
+				RelativePath="..\..\sound\OpenAL\vsSoundSample.c++">
+			</File>
+			<File
+				RelativePath="..\..\sound\OpenAL\vsSoundSourceAttribute.c++">
+			</File>
+			<File
+				RelativePath="..\..\sound\OpenAL\vsSoundStream.c++">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h++;h;hpp;hxx;hm;inl;inc">
 			<File
-				RelativePath="..\..\avatar\common\vsAvatar.h++">
+				RelativePath="..\..\sound\OpenAL\vsSoundBuffer.h++">
 			</File>
 			<File
-				RelativePath="..\..\avatar\common\vsConfigAvatar.h++">
+				RelativePath="..\..\sound\OpenAL\vsSoundListenerAttribute.h++">
 			</File>
 			<File
-				RelativePath="..\..\avatar\common\vsGhostFlyAvatar.h++">
+				RelativePath="..\..\sound\OpenAL\vsSoundPipe.h++">
+			</File>
+			<File
+				RelativePath="..\..\sound\OpenAL\vsSoundSample.h++">
+			</File>
+			<File
+				RelativePath="..\..\sound\OpenAL\vsSoundSourceAttribute.h++">
+			</File>
+			<File
+				RelativePath="..\..\sound\OpenAL\vsSoundStream.h++">
 			</File>
 		</Filter>
 		<Filter
