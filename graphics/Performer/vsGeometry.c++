@@ -930,7 +930,7 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
             {
                 printf("vsGeometry::getData: Index out of bounds "
                     "(list = TEXTURE%d_COORDS, dataIndex = %d, "
-                    "listSize = %d)\n", unit, dataIndex, texCoordListSize);
+                    "listSize = %d)\n", unit, dataIndex, texCoordListSize[unit]);
                 return result;
             }
             // Copy the data to the result vector

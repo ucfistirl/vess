@@ -111,6 +111,9 @@
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
+				RelativePath="..\..\util\common\vsChromaKey.c++">
+			</File>
+			<File
 				RelativePath="..\..\util\common\vsGrowableArray.c++">
 			</File>
 			<File
@@ -151,6 +154,9 @@
 			Name="Header Files"
 			Filter="h++;h;hpp;hxx;hm;inl;inc">
 			<File
+				RelativePath="..\..\util\common\vsChromaKey.h++">
+			</File>
+			<File
 				RelativePath="..\..\util\common\vsGlobals.h++">
 			</File>
 			<File
@@ -189,10 +195,10 @@
 			<File
 				RelativePath="..\..\util\common\vsVector.h++">
 			</File>
-			<Filter
-				Name="Resource Files"
-				Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
-			</Filter>
+		</Filter>
+		<Filter
+			Name="Resource Files"
+			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
 		</Filter>
 	</Files>
 	<Globals>

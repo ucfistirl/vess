@@ -120,6 +120,9 @@
 				RelativePath="..\..\io\Windows\vsAscensionSerialTrackingSystem.c++">
 			</File>
 			<File
+				RelativePath="..\..\io\common\vsButtonAxis.c++">
+			</File>
+			<File
 				RelativePath="..\..\io\common\vsChordGloves.c++">
 			</File>
 			<File
@@ -227,6 +230,9 @@
 			</File>
 			<File
 				RelativePath="..\..\io\Windows\vsAscensionSerialTrackingSystem.h++">
+			</File>
+			<File
+				RelativePath="..\..\io\common\vsButtonAxis.h++">
 			</File>
 			<File
 				RelativePath="..\..\io\common\vsChordGloves.h++">

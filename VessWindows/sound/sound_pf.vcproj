@@ -37,6 +37,7 @@
 				OutputFile="$(OutDir)/vsSound.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\lib"
+				IgnoreDefaultLibraryNames="LIBCD"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/sound.pdb"
 				SubSystem="2"

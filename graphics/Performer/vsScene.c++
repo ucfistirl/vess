@@ -613,7 +613,7 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
     }
     else
         for (loop = 0; loop < getAttributeCount(); loop++)
-            if ((getAttribute(loop))->getAttributeType() == attrType)
+            if ((getAttribute(loop))->getAttributeType() == newAttrType)
             {
                 printf("vsScene::addAttribute: Scene node already "
                     "contains that type of attribute\n");

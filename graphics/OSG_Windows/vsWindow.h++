@@ -27,10 +27,10 @@ class vsWindow;
 #include <windows.h>
 
 #include <wingdi.h>
-#include <gl/gl.h>
-#include <gl/glu.h>
-#include <glext.h>
-#include <wglext.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glext.h>
+#include <GL/wglext.h>
 
 #include "vsScreen.h++"
 #include "vsPane.h++"

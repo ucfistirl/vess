@@ -33,7 +33,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libpf.lib libpfdu-util.lib libpfflt.lib opengl32.lib glu32.lib libmpeg2.lib libvo.lib"
+				AdditionalDependencies="libpf.lib libpfdu-util.lib libpfflt.lib opengl32.lib glu32.lib libxml2.lib iconv.lib"
 				OutputFile="$(OutDir)/vsGraphics.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../lib"
@@ -122,6 +122,15 @@
 				RelativePath="..\..\graphics\Performer\vsBillboardAttribute.c++">
 			</File>
 			<File
+				RelativePath="..\..\graphics\common\vsCal3DBoneLoader.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsCal3DMeshLoader.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Performer\vsCallbackList.c++">
+			</File>
+			<File
 				RelativePath="..\..\graphics\Performer\vsComponent.c++">
 			</File>
 			<File
@@ -152,9 +161,6 @@
 				RelativePath="..\..\graphics\Performer\vsLightAttribute.c++">
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsMPEGReader.c++">
-			</File>
-			<File
 				RelativePath="..\..\graphics\Performer\vsMaterialAttribute.c++">
 			</File>
 			<File
@@ -182,7 +188,19 @@
 				RelativePath="..\..\graphics\Performer\vsSequenceAttribute.c++">
 			</File>
 			<File
+				RelativePath="..\..\graphics\Performer\vsShaderAttribute.c++">
+			</File>
+			<File
 				RelativePath="..\..\graphics\Performer\vsShadingAttribute.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsSkeleton.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsSkeletonMesh.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Performer\vsSkeletonMeshGeometry.c++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer\vsSphereIntersect.c++">
@@ -198,6 +216,12 @@
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer\vsTextureAttribute.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Performer\vsTextureCubeAttribute.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Performer\vsTextureRectangleAttribute.c++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer\vsTransformAttribute.c++">
@@ -234,6 +258,15 @@
 				RelativePath="..\..\graphics\Performer\vsBillboardAttribute.h++">
 			</File>
 			<File
+				RelativePath="..\..\graphics\common\vsCal3DBoneLoader.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsCal3DMeshLoader.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Performer\vsCallbackList.h++">
+			</File>
+			<File
 				RelativePath="..\..\graphics\Performer\vsComponent.h++">
 			</File>
 			<File
@@ -264,9 +297,6 @@
 				RelativePath="..\..\graphics\Performer\vsLightAttribute.h++">
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsMPEGReader.h++">
-			</File>
-			<File
 				RelativePath="..\..\graphics\Performer\vsMaterialAttribute.h++">
 			</File>
 			<File
@@ -294,7 +324,19 @@
 				RelativePath="..\..\graphics\Performer\vsSequenceAttribute.h++">
 			</File>
 			<File
+				RelativePath="..\..\graphics\Performer\vsShaderAttribute.h++">
+			</File>
+			<File
 				RelativePath="..\..\graphics\Performer\vsShadingAttribute.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsSkeleton.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsSkeletonMesh.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Performer\vsSkeletonMeshGeometry.h++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer\vsSphereIntersect.h++">
@@ -310,6 +352,12 @@
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer\vsTextureAttribute.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Performer\vsTextureCubeAttribute.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Performer\vsTextureRectangleAttribute.h++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer\vsTransformAttribute.h++">
