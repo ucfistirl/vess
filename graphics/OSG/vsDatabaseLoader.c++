@@ -475,14 +475,8 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
             // before setting any values
             newComponent->addAttribute(sequenceAttr);
 
-            // Copy the Sequence parameters to the vsSequenceAttribute
-            sequenceGroup->getDuration(speed, nReps);
-            sequenceAttr->setRepetitionCount(nReps);
-
-            for (loop = 0; loop < newComponent->getChildCount(); loop++)
-                sequenceAttr->setChildTime(loop,
-                    sequenceGroup->getTime(loop) * speed);
-
+            // Set the loop mode (forward or swing) on the sequence
+            // attribute to match the setting in the database file
             sequenceGroup->getInterval(loopMode, begin, end);
             if (loopMode == osg::Sequence::SWING)
                 sequenceAttr->setCycleMode(VS_SEQUENCE_CYCLE_SWING);
