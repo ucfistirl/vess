@@ -21,6 +21,7 @@
 //
 //------------------------------------------------------------------------
 
+#include <osg/Sequence>
 #include <osgUtil/CullVisitor>
 #include "vsSequenceCallback.h++"
 #include "vsSequenceAttribute.h++"
@@ -55,8 +56,17 @@ vsSequenceCallback::~vsSequenceCallback()
 //------------------------------------------------------------------------
 void vsSequenceCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
 {
+    osg::Sequence *sequenceNode;
     int frameNumber;
     double frameTime;
+
+    // Cast the node to a sequence
+    sequenceNode = dynamic_cast<osg::Sequence*>(node);
+    if (!sequenceNode)
+        return;
+   
+    // Continue the update traversal
+    nv->traverse(*sequenceNode);
 
     // Get the current frame number
     frameNumber = sequenceAttr->getCurrentChildNum();
@@ -86,7 +96,4 @@ void vsSequenceCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
 
     // Remember the current frame number for next time
     lastFrameNumber = frameNumber;
-
-    // Continue the cull traversal
-    traverse(node,nv);
 }
