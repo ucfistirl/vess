@@ -40,8 +40,8 @@ class VS_SYSTEM_DLL vsSystem
 {
 private:
 
-    int                 validObject;
-    int	                isInitted;
+    bool                validObject;
+    bool                isInitted;
 
     double              lastFrameDuration;
     
@@ -70,8 +70,8 @@ public:
 
     void                init();
     void                simpleInit(char *databaseFilename, char *windowName,
-                            int fullScreen, vsNode **sceneGraph,
-				            vsView **viewpoint, vsWindow **window);
+                            bool fullScreen, vsNode **sceneGraph,
+                                         vsView **viewpoint, vsWindow **window);
 
     void                drawFrame();
 };

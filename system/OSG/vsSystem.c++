@@ -58,7 +58,7 @@ vsSystem::vsSystem()
     {
         printf("vsSystem::vsSystem: Only one vsSystem object may be in "
             "existance at any time\n");
-        validObject = 0;
+        validObject = false;
         return;
     }
 
@@ -69,7 +69,7 @@ vsSystem::vsSystem()
     
     // Mark this instance as valid and set the static class variable to 
     // point to this instance
-    validObject = 1;
+    validObject = true;
     systemObject = this;
 }
 
@@ -182,7 +182,7 @@ void vsSystem::init()
 // may be specified for undesired return values.
 // ------------------------------------------------------------------------
 void vsSystem::simpleInit(char *databaseFilename, char *windowName,
-                          int fullScreen, vsNode **sceneGraph,
+                          bool fullScreen, vsNode **sceneGraph,
                           vsView **viewpoint, vsWindow **window)
 {
     vsWindow *defaultWindow;
