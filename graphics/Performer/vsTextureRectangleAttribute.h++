@@ -24,15 +24,27 @@
 #ifndef VS_TEXTURE_RECTANGLE_ATTRIBUTE_HPP
 #define VS_TEXTURE_RECTANGLE_ATTRIBUTE_HPP
 
-#include <GL/gl.h>
-#include <GL/glext.h>
-#include <Performer/pf/pfTraverser.h>
-#include <stdlib.h>
-#include <string>
 #include "vsGeometry.h++"
 #include "vsNode.h++"
 #include "vsStateAttribute.h++"
 #include "vsTextureAttribute.h++"
+
+#include <GL/gl.h>
+
+// Before we include glext.h for the various function prototypes and symbols
+// we use, we need to #define a few extensions as already present.  
+// Performer's opengl.h defines these extensions and macros, but doesn't
+// define the extension symbol itself as present.
+#define GL_EXT_polygon_offset 1
+#define GL_SGIS_point_line_texgen 1
+#define GL_SGIS_texture_lod 1
+#define GL_EXT_packed_pixels 1
+#define GL_SGIS_detail_texture 1
+#include <GL/glext.h>
+
+#include <Performer/pf/pfTraverser.h>
+#include <stdlib.h>
+#include <string>
 
 struct VS_GRAPHICS_DLL vsTextureRectangleData
 {
@@ -44,12 +56,17 @@ struct VS_GRAPHICS_DLL vsTextureRectangleData
     int         type;
     void        *data;
     int         unit;
+    int         multitexture;
 
     bool        dirty;
 
     int         enabledFlag;
     int         oldName;
     GLuint      name;
+
+#ifdef WIN32        
+    PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
+#endif
 };
 
 class VS_GRAPHICS_DLL vsTextureRectangleAttribute : public vsStateAttribute

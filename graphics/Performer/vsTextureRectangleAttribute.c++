@@ -55,6 +55,7 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute()
     textureData->format = 0;
     textureData->type = 0;
     textureData->unit = 0;
+    textureData->multitexture = false;
     textureData->data = NULL;
 
     textureData->dirty = true;
@@ -97,6 +98,7 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit)
     textureData->format = 0;
     textureData->type = 0;
     textureData->unit = unit;
+    textureData->multitexture = false;
     textureData->data = NULL;
 
     textureData->dirty = true;
@@ -142,6 +144,7 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit,
     textureData->format = 0;
     textureData->type = 0;
     textureData->unit = unit;
+    textureData->multitexture = false;
     textureData->data = NULL;
 
     textureData->dirty = true;
@@ -836,11 +839,12 @@ int vsTextureRectangleAttribute::preTravFunc(pfTraverser *trav, void *data)
             // string is exhausted or one of the texture rectangle extensions
             // is located
             token = strtok(extensionString, " ");
-            while ((token != NULL) && (textureData->target == -1))
+            while (token != NULL)
             {
                 // Check for the ARB texture rectangle extension
                 #ifdef GL_ARB_texture_rectangle
-                    if (strcmp(token, "GL_ARB_texture_rectangle") == 0)
+                    if ((textureData->target == -1) &&
+                        (strcmp(token, "GL_ARB_texture_rectangle") == 0))
                     {
                         textureData->target = GL_TEXTURE_RECTANGLE_ARB;
                     }
@@ -848,10 +852,25 @@ int vsTextureRectangleAttribute::preTravFunc(pfTraverser *trav, void *data)
 
                 // Check for the NV texture rectangle extension
                 #ifdef GL_NV_texture_rectangle
-                    if (strcmp(token, "GL_NV_texture_rectangle") == 0)
+                    if ((textureData->target == -1) &&
+                        (strcmp(token, "GL_NV_texture_rectangle") == 0))
                     {
                         textureData->target = GL_TEXTURE_RECTANGLE_NV;
                     }
+                #endif
+                
+                // Check for the ARB multitexture extension
+                #ifdef GL_ARB_multitexture
+                    if (strcmp(token, "GL_ARB_multitexture") == 0)
+                        textureData->multitexture = true;
+
+                    // Under Windows, we have to query for the functions 
+                    // we need                        
+                    #ifdef WIN32
+                        textureData->glActiveTextureARB = 
+                            (PFNGLACTIVETEXTUREARBPROC)
+                                wglGetProcAddress("glActiveTextureARB");
+                    #endif
                 #endif
 
                 // Move to the next token
@@ -873,7 +892,14 @@ int vsTextureRectangleAttribute::preTravFunc(pfTraverser *trav, void *data)
 
     // Make sure we're talking to the right texture unit
     #ifdef GL_ARB_multitexture
-        glActiveTextureARB(GL_TEXTURE0_ARB + textureData->unit);
+        #ifdef WIN32
+            if (textureData->multitexture)
+                textureData->glActiveTextureARB(GL_TEXTURE0_ARB + 
+                    textureData->unit);          
+        #else
+            if (textureData->multitexture)
+                glActiveTextureARB(GL_TEXTURE0_ARB + textureData->unit);
+        #endif
     #endif
 
     // If we're using plain 2D texturing, skip the check to see if the
@@ -928,7 +954,14 @@ int vsTextureRectangleAttribute::postTravFunc(pfTraverser *trav, void *data)
 
     // Make sure we're talking to the right texture unit
     #ifdef GL_ARB_multitexture
-        glActiveTextureARB(GL_TEXTURE0_ARB + textureData->unit);
+        #ifdef WIN32
+            if (textureData->multitexture)
+                textureData->glActiveTextureARB(GL_TEXTURE0_ARB + 
+                    textureData->unit);
+        #else
+            if (textureData->multitexture)
+                glActiveTextureARB(GL_TEXTURE0_ARB + textureData->unit);
+        #endif
     #endif
 
     // If we have valid texture data, revert to the old texture
