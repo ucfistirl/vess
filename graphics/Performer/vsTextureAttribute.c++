@@ -120,8 +120,7 @@ void vsTextureAttribute::setImage(unsigned char *imageData, int xSize,
     }
 
     // Set the image data and format information on the Performer texture
-    performerTexture->setFormat(PFTEX_INTERNAL_FORMAT,
-        PFTEX_RGBA_8 | PFTEX_GEN_MIPMAP_FORMAT);
+    performerTexture->setFormat(PFTEX_INTERNAL_FORMAT, PFTEX_RGBA_8);
     performerTexture->setFormat(PFTEX_EXTERNAL_FORMAT, PFTEX_UNSIGNED_BYTE);
     performerTexture->setFormat(PFTEX_IMAGE_FORMAT, format);
     performerTexture->setImage((uint *)imageData, comp, xSize, ySize, 1);
@@ -180,6 +179,22 @@ void vsTextureAttribute::loadImageFromFile(char *filename)
     // Load the texture data from the designated file
     if (!(performerTexture->loadFile(filename)))
         printf("vsTextureAttribute::loadImageFromFile: Unable to load image\n");
+}
+
+// ------------------------------------------------------------------------
+// Notifies the texture attribute that the texture data has been changed by
+// some outside source, and forces it to retransfer the data to the
+// graphics hardware.
+// ------------------------------------------------------------------------
+void vsTextureAttribute::reloadTextureData()
+{
+    // The Performer texture object already has the pointer to the texture
+    // data, we just need a way to tell the pfTexture that the data changed.
+    // This is done by 'dirtying' the object. Since there's no direct-purpose
+    // 'dirty' call, we have to dirty the object by calling any of it's
+    // parameter-set functions. Getting and immediately setting some value
+    // that the texture object has as a member variable should do just fine.
+    performerTexture->setLoadImage(performerTexture->getLoadImage());
 }
 
 // ------------------------------------------------------------------------
