@@ -38,14 +38,6 @@ vsInputDevice::~vsInputDevice(void)
 }
 
 // ------------------------------------------------------------------------
-// Return the class name
-// ------------------------------------------------------------------------
-const char * vsInputDevice::getClassName()
-{
-    return "vsInputDevice";
-}
-
-// ------------------------------------------------------------------------
 // Each frame, the vsInputSystem responsible for this device should call this
 // update function.
 // ------------------------------------------------------------------------

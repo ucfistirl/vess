@@ -38,8 +38,6 @@ public:
                              vsInputDevice();
     virtual                  ~vsInputDevice();
 
-    virtual const char *     getClassName();
-
     virtual int              getNumAxes() = 0;
     virtual int              getNumButtons() = 0;
 
