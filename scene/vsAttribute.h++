@@ -4,9 +4,9 @@
 #define VS_ATTRIBUTE_HPP
 
 #include <stdlib.h>
+#include <Performer/pr/pfGeoState.h>
 #include "vsGlobals.h++"
 
-//#include "vsNode.h++"
 class vsNode;
 
 #define VS_ATTRIBUTE_NAME_MAX_LENGTH    80
@@ -55,12 +55,9 @@ VS_INTERNAL:
     virtual void    saveCurrent();
     virtual void    apply();
     virtual void    restoreSaved();
-    virtual void    setState();
+    virtual void    setState(pfGeoState *state);
 
 public:
-
-    static void    *operator new(size_t objSize);
-    static void    operator delete(void *deadObj);
 
                    vsAttribute();
     virtual        ~vsAttribute();

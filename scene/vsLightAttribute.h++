@@ -27,12 +27,13 @@ private:
 
 VS_INTERNAL:
 
-    int         canAttach();
-    void        attach(vsNode *theNode);
-    void        detach(vsNode *theNode);
+    virtual int     canAttach();
+    virtual void    attach(vsNode *theNode);
+    virtual void    detach(vsNode *theNode);
 
-    void        apply();
-    void        restoreSaved();
+    virtual void    apply();
+    virtual void    restoreSaved();
+    virtual void    setState(pfGeoState *state);
 
 public:
 

@@ -6,23 +6,6 @@
 #include <Performer/pr/pfMemory.h>
 
 // ------------------------------------------------------------------------
-// Allocator - Creates memory for the object in Performer's shared memory
-// space
-// ------------------------------------------------------------------------
-void *vsAttribute::operator new(size_t objSize)
-{
-    return (pfMemory::calloc(objSize, 1));
-}
-
-// ------------------------------------------------------------------------
-// Deallocator - Destroys an object in Performer's shared memory space
-// ------------------------------------------------------------------------
-void vsAttribute::operator delete(void *deadObj)
-{
-    pfMemory::free(deadObj);
-}
-
-// ------------------------------------------------------------------------
 // Constructor - Initializes the object
 // ------------------------------------------------------------------------
 vsAttribute::vsAttribute()
@@ -117,6 +100,6 @@ void vsAttribute::restoreSaved()
 // VESS internal function
 // Empty virtual base function
 // ------------------------------------------------------------------------
-void vsAttribute::setState()
+void vsAttribute::setState(pfGeoState *state)
 {
 }

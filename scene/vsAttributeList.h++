@@ -15,9 +15,6 @@ protected:
 
 public:
 
-    static void     *operator new(size_t objSize);
-    static void     operator delete(void *deadObj);
-
                     vsAttributeList();
     virtual         ~vsAttributeList();
 

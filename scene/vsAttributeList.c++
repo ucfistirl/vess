@@ -5,26 +5,9 @@
 #include <Performer/pr/pfMemory.h>
 
 // ------------------------------------------------------------------------
-// Allocator - Creates memory for the object in Performer's shared memory
-// space
-// ------------------------------------------------------------------------
-void *vsAttributeList::operator new(size_t objSize)
-{
-    return (pfMemory::calloc(objSize, 1));
-}
-
-// ------------------------------------------------------------------------
-// Deallocator - Destroys an object in Performer's shared memory space
-// ------------------------------------------------------------------------
-void vsAttributeList::operator delete(void *deadObj)
-{
-    pfMemory::free(deadObj);
-}
-
-// ------------------------------------------------------------------------
 // Constructor - Initializes the attribute list
 // ------------------------------------------------------------------------
-vsAttributeList::vsAttributeList() : attributeList(10, 5, 1)
+vsAttributeList::vsAttributeList() : attributeList(10, 5)
 {
     attributeCount = 0;
 }

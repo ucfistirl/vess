@@ -15,7 +15,7 @@
 // Default Constructor - Sets up the Performer objects associated with
 // this component
 // ------------------------------------------------------------------------
-vsComponent::vsComponent() : childList(32, 32, 1)
+vsComponent::vsComponent() : childList(32, 32)
 {
     childCount = 0;
     topGroup = new pfGroup();
@@ -28,9 +28,6 @@ vsComponent::vsComponent() : childList(32, 32, 1)
     lightHook->addChild(bottomGroup);
 
     ((vsSystem::systemObject)->getNodeMap())->registerLink(this, topGroup);
-
-    lightHook->setTravFuncs(PFTRAV_DRAW, preDrawCallback, postDrawCallback);
-    lightHook->setTravData(PFTRAV_DRAW, this);
 }
 
 // ------------------------------------------------------------------------
@@ -39,7 +36,7 @@ vsComponent::vsComponent() : childList(32, 32, 1)
 // contained in the given Performer scene graph
 // ------------------------------------------------------------------------
 vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
-    : childList(32, 32, 1)
+    : childList(32, 32)
 {
     pfNode *currentNode;
     pfGroup *parentGroup, *previousGroup;
@@ -229,9 +226,6 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
     topGroup->ref();
     lightHook->ref();
     bottomGroup->ref();
-
-    lightHook->setTravFuncs(PFTRAV_DRAW, preDrawCallback, postDrawCallback);
-    lightHook->setTravData(PFTRAV_DRAW, this);
 }
 
 // ------------------------------------------------------------------------
@@ -334,6 +328,8 @@ void vsComponent::addChild(vsNode *newChild)
     childList[childCount++] = newChild;
     
     newChild->addParent(this);
+    
+    newChild->dirty();
 }
 
 // ------------------------------------------------------------------------
@@ -379,6 +375,8 @@ void vsComponent::insertChild(vsNode *newChild, int index)
     childCount++;
     
     newChild->addParent(this);
+    
+    newChild->dirty();
 }
 
 // ------------------------------------------------------------------------
@@ -393,6 +391,8 @@ void vsComponent::removeChild(vsNode *targetChild)
     for (loop = 0; loop < childCount; loop++)
         if (targetChild == childList[loop])
         {
+	    targetChild->dirty();
+	
             if (targetChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
             {
                 childComponent = (vsComponent *)targetChild;
@@ -430,6 +430,8 @@ void vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
     for (loop = 0; loop < childCount; loop++)
         if (targetChild == childList[loop])
         {
+	    targetChild->dirty();
+	
             if (targetChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
             {
                 childComponent = (vsComponent *)targetChild;
@@ -458,6 +460,8 @@ void vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
 
             targetChild->removeParent(this);
             newChild->addParent(this);
+	    
+	    newChild->dirty();
             return;
         }
 }
@@ -652,4 +656,18 @@ void vsComponent::replaceBottomGroup(pfGroup *newGroup)
     pfDelete(bottomGroup);
     bottomGroup = newGroup;
     bottomGroup->ref();
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Marks this node and each node below this one as dirty
+// ------------------------------------------------------------------------
+void vsComponent::dirtyDown()
+{
+    int loop;
+    
+    dirtyFlag = VS_TRUE;
+    
+    for (loop = 0; loop < childCount; loop++)
+	((vsNode *)(childList[loop]))->dirtyDown();
 }

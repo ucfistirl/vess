@@ -24,6 +24,8 @@ protected:
     int                parentCount;
 
     char               nodeName[VS_NODE_NAME_MAX_LENGTH];
+    
+    int                dirtyFlag;
 
 VS_INTERNAL:
 
@@ -33,9 +35,13 @@ VS_INTERNAL:
     virtual void    saveCurrentAttributes();
     virtual void    applyAttributes();
     virtual void    restoreSavedAttributes();
+    
+    void            dirty();
+    void            clean();
+    int             isDirty();
 
-    static int      preDrawCallback(pfTraverser *_trav, void *_userData);
-    static int      postDrawCallback(pfTraverser *_trav, void *_userData);
+    void	    dirtyUp();
+    virtual void    dirtyDown();
 
 public:
 

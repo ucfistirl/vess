@@ -21,20 +21,21 @@ private:
     pfGroup            *lightHook;
     pfGroup            *bottomGroup;
 
-
 VS_INTERNAL:
 
-                vsComponent(pfGroup *targetGraph,
-                            vsDatabaseLoader *nameDirectory);
+                    vsComponent(pfGroup *targetGraph,
+                                vsDatabaseLoader *nameDirectory);
 
-    int         handleName(pfNode *targetNode,
-                           vsDatabaseLoader *nameDirectory);
+    int             handleName(pfNode *targetNode,
+                               vsDatabaseLoader *nameDirectory);
 
-    pfGroup     *getTopGroup();
-    pfGroup     *getLightHook();
-    pfGroup     *getBottomGroup();
-    void        setBottomGroup(pfGroup *newBottom);
-    void        replaceBottomGroup(pfGroup *newGroup);
+    pfGroup         *getTopGroup();
+    pfGroup         *getLightHook();
+    pfGroup         *getBottomGroup();
+    void            setBottomGroup(pfGroup *newBottom);
+    void            replaceBottomGroup(pfGroup *newGroup);
+
+    virtual void    dirtyDown();
 
 public:
 

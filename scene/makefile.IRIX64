@@ -22,6 +22,7 @@ LIBSRCS = vsAttribute.c++ \
 	  vsOptimizer.c++ \
 	  vsSequenceAttribute.c++ \
 	  vsShadingAttribute.c++ \
+	  vsStateAttribute.c++ \
 	  vsSwitchAttribute.c++ \
 	  vsTextureAttribute.c++ \
 	  vsTransformAttribute.c++ \
@@ -44,6 +45,7 @@ LIBOBJS = vsAttribute.o \
 	  vsOptimizer.o \
 	  vsSequenceAttribute.o \
 	  vsShadingAttribute.o \
+	  vsStateAttribute.o \
 	  vsSwitchAttribute.o \
 	  vsTextureAttribute.o \
 	  vsTransformAttribute.o \
@@ -78,9 +80,10 @@ clean:
 # DO NOT DELETE
 
 vsAttribute.o: vsAttribute.h++ /usr/include/stdlib.h /usr/include/standards.h
-vsAttribute.o: /usr/include/sgidefs.h ../corelib/vsGlobals.h++
-vsAttribute.o: /usr/include/string.h /usr/include/Performer/pr/pfMemory.h
-vsAttribute.o: /usr/include/sys/types.h /usr/include/bstring.h
+vsAttribute.o: /usr/include/sgidefs.h /usr/include/Performer/pr/pfGeoState.h
+vsAttribute.o: /usr/include/Performer/pr/pfObject.h
+vsAttribute.o: /usr/include/Performer/pr/pfMemory.h /usr/include/sys/types.h
+vsAttribute.o: /usr/include/string.h /usr/include/bstring.h
 vsAttribute.o: /usr/include/Performer/pr.h /usr/include/stdio.h
 vsAttribute.o: /usr/include/ulocks.h /usr/include/limits.h
 vsAttribute.o: /usr/include/task.h /usr/include/sys/prctl.h
@@ -97,11 +100,12 @@ vsAttribute.o: /usr/include/GL/glxtokens.h /usr/include/GL/glu.h
 vsAttribute.o: /usr/include/Performer/opengl.h
 vsAttribute.o: /usr/include/Performer/prmath.h /usr/include/math.h
 vsAttribute.o: /usr/include/Performer/prstats.h
-vsAttribute.o: /usr/include/Performer/pr/pfType.h
+vsAttribute.o: /usr/include/Performer/pr/pfType.h ../corelib/vsGlobals.h++
 vsAttributeList.o: vsAttributeList.h++ ../corelib/vsGrowableArray.h++
 vsAttributeList.o: vsAttribute.h++ /usr/include/stdlib.h
 vsAttributeList.o: /usr/include/standards.h /usr/include/sgidefs.h
-vsAttributeList.o: ../corelib/vsGlobals.h++
+vsAttributeList.o: /usr/include/Performer/pr/pfGeoState.h
+vsAttributeList.o: /usr/include/Performer/pr/pfObject.h
 vsAttributeList.o: /usr/include/Performer/pr/pfMemory.h
 vsAttributeList.o: /usr/include/sys/types.h /usr/include/string.h
 vsAttributeList.o: /usr/include/bstring.h /usr/include/Performer/pr.h
@@ -123,11 +127,13 @@ vsAttributeList.o: /usr/include/Performer/opengl.h
 vsAttributeList.o: /usr/include/Performer/prmath.h /usr/include/math.h
 vsAttributeList.o: /usr/include/Performer/prstats.h
 vsAttributeList.o: /usr/include/Performer/pr/pfType.h
-vsBackfaceAttribute.o: vsBackfaceAttribute.h++ ../corelib/vsGrowableArray.h++
-vsBackfaceAttribute.o: vsAttribute.h++ /usr/include/stdlib.h
-vsBackfaceAttribute.o: /usr/include/standards.h /usr/include/sgidefs.h
+vsAttributeList.o: ../corelib/vsGlobals.h++
+vsBackfaceAttribute.o: vsBackfaceAttribute.h++ vsStateAttribute.h++
 vsBackfaceAttribute.o: ../corelib/vsGlobals.h++
-vsBackfaceAttribute.o: /usr/include/Performer/pr/pfLight.h
+vsBackfaceAttribute.o: ../corelib/vsGrowableArray.h++ vsAttribute.h++
+vsBackfaceAttribute.o: /usr/include/stdlib.h /usr/include/standards.h
+vsBackfaceAttribute.o: /usr/include/sgidefs.h
+vsBackfaceAttribute.o: /usr/include/Performer/pr/pfGeoState.h
 vsBackfaceAttribute.o: /usr/include/Performer/pr/pfObject.h
 vsBackfaceAttribute.o: /usr/include/Performer/pr/pfMemory.h
 vsBackfaceAttribute.o: /usr/include/sys/types.h /usr/include/string.h
@@ -151,6 +157,7 @@ vsBackfaceAttribute.o: /usr/include/Performer/opengl.h
 vsBackfaceAttribute.o: /usr/include/Performer/prmath.h /usr/include/math.h
 vsBackfaceAttribute.o: /usr/include/Performer/prstats.h
 vsBackfaceAttribute.o: /usr/include/Performer/pr/pfType.h
+vsBackfaceAttribute.o: /usr/include/Performer/pr/pfLight.h
 vsBackfaceAttribute.o: /usr/include/Performer/pr/pfLinMath.h
 vsBackfaceAttribute.o: /usr/include/Performer/pr/pfStruct.h
 vsBackfaceAttribute.o: ../corelib/vsSystem.h++ ../corelib/vsPipe.h++
@@ -168,7 +175,6 @@ vsBackfaceAttribute.o: /usr/include/Performer/pr/pfList.h
 vsBackfaceAttribute.o: /usr/include/Performer/pr/pfCalligraphic.h
 vsBackfaceAttribute.o: /usr/include/Performer/pr/pfStats.h
 vsBackfaceAttribute.o: /usr/include/Performer/pr/pfDispList.h
-vsBackfaceAttribute.o: /usr/include/Performer/pr/pfGeoState.h
 vsBackfaceAttribute.o: /usr/include/Performer/pr/pfState.h
 vsBackfaceAttribute.o: ../corelib/vsScreen.h++ ../corelib/vsWindow.h++
 vsBackfaceAttribute.o: /usr/include/Performer/pf/pfPipeWindow.h
@@ -200,7 +206,8 @@ vsBackfaceAttribute.o: /usr/include/Performer/pr/pfMaterial.h
 vsBackfaceAttribute.o: vsShadingAttribute.h++ vsTextureAttribute.h++
 vsBackfaceAttribute.o: /usr/include/Performer/pr/pfTexture.h
 vsBackfaceAttribute.o: /usr/include/Performer/image.h
-vsBackfaceAttribute.o: vsTransparencyAttribute.h++
+vsBackfaceAttribute.o: vsTransparencyAttribute.h++ vsLightAttribute.h++
+vsBackfaceAttribute.o: /usr/include/Performer/pf/pfLightSource.h
 vsBillboardAttribute.o: vsBillboardAttribute.h++
 vsBillboardAttribute.o: /usr/include/Performer/pf/pfBillboard.h
 vsBillboardAttribute.o: /usr/include/Performer/pf/pfGeode.h
@@ -347,11 +354,13 @@ vsComponent.o: ../corelib/vsScreen.h++ ../corelib/vsWindow.h++
 vsComponent.o: ../corelib/vsPane.h++ ../corelib/vsView.h++
 vsComponent.o: vsViewpointAttribute.h++ ../corelib/vsObjectMap.h++
 vsComponent.o: ../corelib/vsGraphicsState.h++ vsBackfaceAttribute.h++
-vsComponent.o: vsFogAttribute.h++ /usr/include/Performer/pr/pfFog.h
-vsComponent.o: vsMaterialAttribute.h++ /usr/include/Performer/pr/pfMaterial.h
-vsComponent.o: vsShadingAttribute.h++ vsTextureAttribute.h++
-vsComponent.o: /usr/include/Performer/pr/pfTexture.h
+vsComponent.o: vsStateAttribute.h++ vsFogAttribute.h++
+vsComponent.o: /usr/include/Performer/pr/pfFog.h vsMaterialAttribute.h++
+vsComponent.o: /usr/include/Performer/pr/pfMaterial.h vsShadingAttribute.h++
+vsComponent.o: vsTextureAttribute.h++ /usr/include/Performer/pr/pfTexture.h
 vsComponent.o: /usr/include/Performer/image.h vsTransparencyAttribute.h++
+vsComponent.o: vsLightAttribute.h++ /usr/include/Performer/pr/pfLight.h
+vsComponent.o: /usr/include/Performer/pf/pfLightSource.h
 vsDecalAttribute.o: vsDecalAttribute.h++ /usr/include/Performer/pf/pfLayer.h
 vsDecalAttribute.o: /usr/include/Performer/pf/pfGroup.h
 vsDecalAttribute.o: /usr/include/Performer/pf/pfNode.h
@@ -439,10 +448,12 @@ vsFogAttribute.o: /usr/include/Performer/prmath.h /usr/include/math.h
 vsFogAttribute.o: /usr/include/Performer/prstats.h
 vsFogAttribute.o: /usr/include/Performer/pr/pfType.h
 vsFogAttribute.o: /usr/include/Performer/pr/pfLinMath.h
-vsFogAttribute.o: /usr/include/Performer/pr/pfStruct.h vsAttribute.h++
-vsFogAttribute.o: /usr/include/stdlib.h ../corelib/vsGlobals.h++
-vsFogAttribute.o: ../corelib/vsGrowableArray.h++ ../corelib/vsSystem.h++
-vsFogAttribute.o: ../corelib/vsPipe.h++ /usr/include/Performer/pf/pfPipe.h
+vsFogAttribute.o: /usr/include/Performer/pr/pfStruct.h vsStateAttribute.h++
+vsFogAttribute.o: ../corelib/vsGlobals.h++ ../corelib/vsGrowableArray.h++
+vsFogAttribute.o: vsAttribute.h++ /usr/include/stdlib.h
+vsFogAttribute.o: /usr/include/Performer/pr/pfGeoState.h
+vsFogAttribute.o: ../corelib/vsSystem.h++ ../corelib/vsPipe.h++
+vsFogAttribute.o: /usr/include/Performer/pf/pfPipe.h
 vsFogAttribute.o: /usr/include/Performer/pf/pfUpdatable.h
 vsFogAttribute.o: /usr/include/Performer/pf.h
 vsFogAttribute.o: /usr/include/Performer/pfstats.h
@@ -456,7 +467,6 @@ vsFogAttribute.o: /usr/include/Performer/pr/pfList.h
 vsFogAttribute.o: /usr/include/Performer/pr/pfCalligraphic.h
 vsFogAttribute.o: /usr/include/Performer/pr/pfStats.h
 vsFogAttribute.o: /usr/include/Performer/pr/pfDispList.h
-vsFogAttribute.o: /usr/include/Performer/pr/pfGeoState.h
 vsFogAttribute.o: /usr/include/Performer/pr/pfState.h ../corelib/vsScreen.h++
 vsFogAttribute.o: ../corelib/vsWindow.h++
 vsFogAttribute.o: /usr/include/Performer/pf/pfPipeWindow.h
@@ -485,6 +495,8 @@ vsFogAttribute.o: /usr/include/Performer/pr/pfMaterial.h
 vsFogAttribute.o: vsShadingAttribute.h++ vsTextureAttribute.h++
 vsFogAttribute.o: /usr/include/Performer/pr/pfTexture.h
 vsFogAttribute.o: /usr/include/Performer/image.h vsTransparencyAttribute.h++
+vsFogAttribute.o: vsLightAttribute.h++ /usr/include/Performer/pr/pfLight.h
+vsFogAttribute.o: /usr/include/Performer/pf/pfLightSource.h
 vsGeometry.o: vsGeometry.h++ /usr/include/Performer/pf/pfGeode.h
 vsGeometry.o: /usr/include/Performer/pf/pfNode.h
 vsGeometry.o: /usr/include/Performer/pf/pfUpdatable.h
@@ -529,7 +541,7 @@ vsGeometry.o: /usr/include/Performer/pr/pfFlux.h
 vsGeometry.o: /usr/include/Performer/pr/pfEngine.h ../math/vsVector.h++
 vsGeometry.o: ../corelib/vsGlobals.h++ vsAttribute.h++ /usr/include/stdlib.h
 vsGeometry.o: vsNode.h++ ../corelib/vsGrowableArray.h++ vsAttributeList.h++
-vsGeometry.o: vsBackfaceAttribute.h++ vsFogAttribute.h++
+vsGeometry.o: vsBackfaceAttribute.h++ vsStateAttribute.h++ vsFogAttribute.h++
 vsGeometry.o: /usr/include/Performer/pr/pfFog.h vsMaterialAttribute.h++
 vsGeometry.o: /usr/include/Performer/pr/pfMaterial.h vsShadingAttribute.h++
 vsGeometry.o: vsTextureAttribute.h++ /usr/include/Performer/pr/pfTexture.h
@@ -549,7 +561,9 @@ vsGeometry.o: /usr/include/Performer/pr/pfCycleBuffer.h ../corelib/vsView.h++
 vsGeometry.o: ../math/vsMatrix.h++ ../math/vsQuat.h++
 vsGeometry.o: vsViewpointAttribute.h++ ../corelib/vsDatabaseLoader.h++
 vsGeometry.o: /usr/include/Performer/pfdb/pfflt.h ../corelib/vsObjectMap.h++
-vsGeometry.o: ../corelib/vsGraphicsState.h++
+vsGeometry.o: ../corelib/vsGraphicsState.h++ vsLightAttribute.h++
+vsGeometry.o: /usr/include/Performer/pr/pfLight.h
+vsGeometry.o: /usr/include/Performer/pf/pfLightSource.h
 vsIntersect.o: vsIntersect.h++ /usr/include/Performer/pr/pfGeoSet.h
 vsIntersect.o: /usr/include/Performer/pr/pfGeoMath.h
 vsIntersect.o: /usr/include/Performer/pr/pfObject.h
@@ -613,11 +627,13 @@ vsIntersect.o: /usr/include/Performer/pf/pfScene.h ../corelib/vsView.h++
 vsIntersect.o: ../math/vsMatrix.h++ ../math/vsQuat.h++
 vsIntersect.o: vsViewpointAttribute.h++ ../corelib/vsObjectMap.h++
 vsIntersect.o: ../corelib/vsGraphicsState.h++ vsBackfaceAttribute.h++
-vsIntersect.o: vsFogAttribute.h++ /usr/include/Performer/pr/pfFog.h
-vsIntersect.o: vsMaterialAttribute.h++ /usr/include/Performer/pr/pfMaterial.h
-vsIntersect.o: vsShadingAttribute.h++ vsTextureAttribute.h++
-vsIntersect.o: /usr/include/Performer/pr/pfTexture.h
+vsIntersect.o: vsStateAttribute.h++ vsFogAttribute.h++
+vsIntersect.o: /usr/include/Performer/pr/pfFog.h vsMaterialAttribute.h++
+vsIntersect.o: /usr/include/Performer/pr/pfMaterial.h vsShadingAttribute.h++
+vsIntersect.o: vsTextureAttribute.h++ /usr/include/Performer/pr/pfTexture.h
 vsIntersect.o: /usr/include/Performer/image.h vsTransparencyAttribute.h++
+vsIntersect.o: vsLightAttribute.h++ /usr/include/Performer/pr/pfLight.h
+vsIntersect.o: /usr/include/Performer/pf/pfLightSource.h
 vsLightAttribute.o: vsLightAttribute.h++ /usr/include/Performer/pr/pfLight.h
 vsLightAttribute.o: /usr/include/Performer/pr/pfObject.h
 vsLightAttribute.o: /usr/include/Performer/pr/pfMemory.h
@@ -666,10 +682,35 @@ vsLightAttribute.o: /usr/include/Performer/pr/pfState.h
 vsLightAttribute.o: /usr/include/Performer/pr/pfGeoMath.h vsAttribute.h++
 vsLightAttribute.o: /usr/include/stdlib.h ../corelib/vsGlobals.h++ vsNode.h++
 vsLightAttribute.o: ../corelib/vsGrowableArray.h++ vsAttributeList.h++
-vsLightAttribute.o: ../math/vsVector.h++ vsComponent.h++
+vsLightAttribute.o: ../math/vsVector.h++ ../corelib/vsSystem.h++
+vsLightAttribute.o: ../corelib/vsPipe.h++ ../corelib/vsScreen.h++
+vsLightAttribute.o: ../corelib/vsWindow.h++
+vsLightAttribute.o: /usr/include/Performer/pf/pfPipeWindow.h
+vsLightAttribute.o: /usr/include/Performer/pr/pfWindow.h
+vsLightAttribute.o: ../corelib/vsPane.h++
+vsLightAttribute.o: /usr/include/Performer/pf/pfChannel.h
+vsLightAttribute.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
+vsLightAttribute.o: /usr/include/Performer/pf/pfEarthSky.h
+vsLightAttribute.o: /usr/include/Performer/pf/pfLODState.h
+vsLightAttribute.o: /usr/include/Performer/pf/pfScene.h
 vsLightAttribute.o: /usr/include/Performer/pf/pfGroup.h
+vsLightAttribute.o: /usr/include/Performer/pr/pfGeoSet.h
+vsLightAttribute.o: /usr/include/Performer/pr/pfFlux.h
+vsLightAttribute.o: /usr/include/Performer/pr/pfEngine.h
+vsLightAttribute.o: /usr/include/Performer/pr/pfCycleBuffer.h
+vsLightAttribute.o: ../corelib/vsView.h++ ../math/vsMatrix.h++
+vsLightAttribute.o: ../math/vsQuat.h++ vsViewpointAttribute.h++
 vsLightAttribute.o: ../corelib/vsDatabaseLoader.h++
 vsLightAttribute.o: /usr/include/Performer/pfdb/pfflt.h
+vsLightAttribute.o: ../corelib/vsObjectMap.h++ ../corelib/vsGraphicsState.h++
+vsLightAttribute.o: vsBackfaceAttribute.h++ vsStateAttribute.h++
+vsLightAttribute.o: vsFogAttribute.h++ /usr/include/Performer/pr/pfFog.h
+vsLightAttribute.o: vsMaterialAttribute.h++
+vsLightAttribute.o: /usr/include/Performer/pr/pfMaterial.h
+vsLightAttribute.o: vsShadingAttribute.h++ vsTextureAttribute.h++
+vsLightAttribute.o: /usr/include/Performer/pr/pfTexture.h
+vsLightAttribute.o: /usr/include/Performer/image.h
+vsLightAttribute.o: vsTransparencyAttribute.h++ vsComponent.h++
 vsLODAttribute.o: vsLODAttribute.h++ /usr/include/Performer/pf/pfLOD.h
 vsLODAttribute.o: /usr/include/Performer/pf/pfGroup.h
 vsLODAttribute.o: /usr/include/Performer/pf/pfNode.h
@@ -750,10 +791,12 @@ vsMaterialAttribute.o: /usr/include/Performer/prmath.h /usr/include/math.h
 vsMaterialAttribute.o: /usr/include/Performer/prstats.h
 vsMaterialAttribute.o: /usr/include/Performer/pr/pfType.h
 vsMaterialAttribute.o: /usr/include/Performer/pr/pfLinMath.h
-vsMaterialAttribute.o: /usr/include/Performer/pr/pfStruct.h vsAttribute.h++
-vsMaterialAttribute.o: /usr/include/stdlib.h ../corelib/vsGlobals.h++
-vsMaterialAttribute.o: ../corelib/vsGrowableArray.h++ ../corelib/vsSystem.h++
-vsMaterialAttribute.o: ../corelib/vsPipe.h++
+vsMaterialAttribute.o: /usr/include/Performer/pr/pfStruct.h
+vsMaterialAttribute.o: vsStateAttribute.h++ ../corelib/vsGlobals.h++
+vsMaterialAttribute.o: ../corelib/vsGrowableArray.h++ vsAttribute.h++
+vsMaterialAttribute.o: /usr/include/stdlib.h
+vsMaterialAttribute.o: /usr/include/Performer/pr/pfGeoState.h
+vsMaterialAttribute.o: ../corelib/vsSystem.h++ ../corelib/vsPipe.h++
 vsMaterialAttribute.o: /usr/include/Performer/pf/pfPipe.h
 vsMaterialAttribute.o: /usr/include/Performer/pf/pfUpdatable.h
 vsMaterialAttribute.o: /usr/include/Performer/pf.h
@@ -768,7 +811,6 @@ vsMaterialAttribute.o: /usr/include/Performer/pr/pfList.h
 vsMaterialAttribute.o: /usr/include/Performer/pr/pfCalligraphic.h
 vsMaterialAttribute.o: /usr/include/Performer/pr/pfStats.h
 vsMaterialAttribute.o: /usr/include/Performer/pr/pfDispList.h
-vsMaterialAttribute.o: /usr/include/Performer/pr/pfGeoState.h
 vsMaterialAttribute.o: /usr/include/Performer/pr/pfState.h
 vsMaterialAttribute.o: ../corelib/vsScreen.h++ ../corelib/vsWindow.h++
 vsMaterialAttribute.o: /usr/include/Performer/pf/pfPipeWindow.h
@@ -798,7 +840,9 @@ vsMaterialAttribute.o: vsFogAttribute.h++ /usr/include/Performer/pr/pfFog.h
 vsMaterialAttribute.o: vsShadingAttribute.h++ vsTextureAttribute.h++
 vsMaterialAttribute.o: /usr/include/Performer/pr/pfTexture.h
 vsMaterialAttribute.o: /usr/include/Performer/image.h
-vsMaterialAttribute.o: vsTransparencyAttribute.h++
+vsMaterialAttribute.o: vsTransparencyAttribute.h++ vsLightAttribute.h++
+vsMaterialAttribute.o: /usr/include/Performer/pr/pfLight.h
+vsMaterialAttribute.o: /usr/include/Performer/pf/pfLightSource.h
 vsNode.o: vsNode.h++ /usr/include/Performer/pf/pfNode.h
 vsNode.o: /usr/include/Performer/pf/pfUpdatable.h /usr/include/Performer/pf.h
 vsNode.o: /usr/include/Performer/pr.h /usr/include/sys/types.h
@@ -840,12 +884,11 @@ vsNode.o: ../corelib/vsGrowableArray.h++ vsAttributeList.h++ vsAttribute.h++
 vsNode.o: /usr/include/stdlib.h ../corelib/vsGlobals.h++ ../math/vsVector.h++
 vsOptimizer.o: vsOptimizer.h++ vsAttribute.h++ /usr/include/stdlib.h
 vsOptimizer.o: /usr/include/standards.h /usr/include/sgidefs.h
-vsOptimizer.o: ../corelib/vsGlobals.h++ vsGeometry.h++
-vsOptimizer.o: /usr/include/Performer/pf/pfGeode.h
-vsOptimizer.o: /usr/include/Performer/pf/pfNode.h
-vsOptimizer.o: /usr/include/Performer/pf/pfUpdatable.h
-vsOptimizer.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
-vsOptimizer.o: /usr/include/sys/types.h /usr/include/stdio.h
+vsOptimizer.o: /usr/include/Performer/pr/pfGeoState.h
+vsOptimizer.o: /usr/include/Performer/pr/pfObject.h
+vsOptimizer.o: /usr/include/Performer/pr/pfMemory.h /usr/include/sys/types.h
+vsOptimizer.o: /usr/include/string.h /usr/include/bstring.h
+vsOptimizer.o: /usr/include/Performer/pr.h /usr/include/stdio.h
 vsOptimizer.o: /usr/include/ulocks.h /usr/include/limits.h
 vsOptimizer.o: /usr/include/task.h /usr/include/sys/prctl.h
 vsOptimizer.o: /usr/include/unistd.h /usr/include/errno.h
@@ -861,10 +904,12 @@ vsOptimizer.o: /usr/include/GL/glxtokens.h /usr/include/GL/glu.h
 vsOptimizer.o: /usr/include/Performer/opengl.h
 vsOptimizer.o: /usr/include/Performer/prmath.h /usr/include/math.h
 vsOptimizer.o: /usr/include/Performer/prstats.h
+vsOptimizer.o: /usr/include/Performer/pr/pfType.h ../corelib/vsGlobals.h++
+vsOptimizer.o: vsGeometry.h++ /usr/include/Performer/pf/pfGeode.h
+vsOptimizer.o: /usr/include/Performer/pf/pfNode.h
+vsOptimizer.o: /usr/include/Performer/pf/pfUpdatable.h
+vsOptimizer.o: /usr/include/Performer/pf.h
 vsOptimizer.o: /usr/include/Performer/pr/pfLinMath.h
-vsOptimizer.o: /usr/include/Performer/pr/pfObject.h
-vsOptimizer.o: /usr/include/Performer/pr/pfMemory.h /usr/include/string.h
-vsOptimizer.o: /usr/include/bstring.h /usr/include/Performer/pr/pfType.h
 vsOptimizer.o: /usr/include/Performer/pr/pfStruct.h
 vsOptimizer.o: /usr/include/Performer/pfstats.h
 vsOptimizer.o: /usr/include/Performer/pf/pfBuffer.h
@@ -878,7 +923,6 @@ vsOptimizer.o: /usr/include/Performer/pr/pfList.h
 vsOptimizer.o: /usr/include/Performer/pr/pfCalligraphic.h
 vsOptimizer.o: /usr/include/Performer/pr/pfStats.h
 vsOptimizer.o: /usr/include/Performer/pr/pfDispList.h
-vsOptimizer.o: /usr/include/Performer/pr/pfGeoState.h
 vsOptimizer.o: /usr/include/Performer/pr/pfState.h
 vsOptimizer.o: /usr/include/Performer/pr/pfGeoMath.h
 vsOptimizer.o: /usr/include/Performer/pr/pfFlux.h
@@ -888,12 +932,14 @@ vsOptimizer.o: vsComponent.h++ /usr/include/Performer/pf/pfGroup.h
 vsOptimizer.o: ../corelib/vsDatabaseLoader.h++
 vsOptimizer.o: /usr/include/Performer/pfdb/pfflt.h
 vsOptimizer.o: ../corelib/vsGraphicsState.h++ vsBackfaceAttribute.h++
-vsOptimizer.o: vsFogAttribute.h++ /usr/include/Performer/pr/pfFog.h
-vsOptimizer.o: vsMaterialAttribute.h++ /usr/include/Performer/pr/pfMaterial.h
-vsOptimizer.o: vsShadingAttribute.h++ vsTextureAttribute.h++
-vsOptimizer.o: /usr/include/Performer/pr/pfTexture.h
+vsOptimizer.o: vsStateAttribute.h++ vsFogAttribute.h++
+vsOptimizer.o: /usr/include/Performer/pr/pfFog.h vsMaterialAttribute.h++
+vsOptimizer.o: /usr/include/Performer/pr/pfMaterial.h vsShadingAttribute.h++
+vsOptimizer.o: vsTextureAttribute.h++ /usr/include/Performer/pr/pfTexture.h
 vsOptimizer.o: /usr/include/Performer/image.h vsTransparencyAttribute.h++
-vsOptimizer.o: vsDecalAttribute.h++ /usr/include/Performer/pf/pfLayer.h
+vsOptimizer.o: vsLightAttribute.h++ /usr/include/Performer/pr/pfLight.h
+vsOptimizer.o: /usr/include/Performer/pf/pfLightSource.h vsDecalAttribute.h++
+vsOptimizer.o: /usr/include/Performer/pf/pfLayer.h
 vsOptimizer.o: /usr/include/Performer/pf/pfChannel.h
 vsOptimizer.o: /usr/include/Performer/pf/pfPipeWindow.h
 vsOptimizer.o: /usr/include/Performer/pr/pfWindow.h
@@ -956,16 +1002,21 @@ vsSequenceAttribute.o: vsNode.h++ ../corelib/vsGrowableArray.h++
 vsSequenceAttribute.o: vsAttributeList.h++ ../math/vsVector.h++
 vsSequenceAttribute.o: vsComponent.h++ ../corelib/vsDatabaseLoader.h++
 vsSequenceAttribute.o: /usr/include/Performer/pfdb/pfflt.h
-vsShadingAttribute.o: vsShadingAttribute.h++ ../corelib/vsGrowableArray.h++
+vsShadingAttribute.o: vsShadingAttribute.h++ vsStateAttribute.h++
+vsShadingAttribute.o: ../corelib/vsGlobals.h++ ../corelib/vsGrowableArray.h++
 vsShadingAttribute.o: vsAttribute.h++ /usr/include/stdlib.h
 vsShadingAttribute.o: /usr/include/standards.h /usr/include/sgidefs.h
-vsShadingAttribute.o: ../corelib/vsGlobals.h++ /usr/include/Performer/pr.h
-vsShadingAttribute.o: /usr/include/sys/types.h /usr/include/stdio.h
-vsShadingAttribute.o: /usr/include/ulocks.h /usr/include/limits.h
-vsShadingAttribute.o: /usr/include/task.h /usr/include/sys/prctl.h
-vsShadingAttribute.o: /usr/include/unistd.h /usr/include/errno.h
-vsShadingAttribute.o: /usr/include/sys/errno.h /usr/include/X11/X.h
-vsShadingAttribute.o: /usr/include/X11/Xlib.h /usr/include/X11/Xfuncproto.h
+vsShadingAttribute.o: /usr/include/Performer/pr/pfGeoState.h
+vsShadingAttribute.o: /usr/include/Performer/pr/pfObject.h
+vsShadingAttribute.o: /usr/include/Performer/pr/pfMemory.h
+vsShadingAttribute.o: /usr/include/sys/types.h /usr/include/string.h
+vsShadingAttribute.o: /usr/include/bstring.h /usr/include/Performer/pr.h
+vsShadingAttribute.o: /usr/include/stdio.h /usr/include/ulocks.h
+vsShadingAttribute.o: /usr/include/limits.h /usr/include/task.h
+vsShadingAttribute.o: /usr/include/sys/prctl.h /usr/include/unistd.h
+vsShadingAttribute.o: /usr/include/errno.h /usr/include/sys/errno.h
+vsShadingAttribute.o: /usr/include/X11/X.h /usr/include/X11/Xlib.h
+vsShadingAttribute.o: /usr/include/X11/Xfuncproto.h
 vsShadingAttribute.o: /usr/include/X11/Xosdefs.h /usr/include/stddef.h
 vsShadingAttribute.o: /usr/include/X11/Xutil.h
 vsShadingAttribute.o: /usr/include/X11/extensions/XSGIvc.h
@@ -978,15 +1029,12 @@ vsShadingAttribute.o: /usr/include/GL/glxtokens.h /usr/include/GL/glu.h
 vsShadingAttribute.o: /usr/include/Performer/opengl.h
 vsShadingAttribute.o: /usr/include/Performer/prmath.h /usr/include/math.h
 vsShadingAttribute.o: /usr/include/Performer/prstats.h
+vsShadingAttribute.o: /usr/include/Performer/pr/pfType.h
 vsShadingAttribute.o: ../corelib/vsSystem.h++ ../corelib/vsPipe.h++
 vsShadingAttribute.o: /usr/include/Performer/pf/pfPipe.h
 vsShadingAttribute.o: /usr/include/Performer/pf/pfUpdatable.h
 vsShadingAttribute.o: /usr/include/Performer/pf.h
 vsShadingAttribute.o: /usr/include/Performer/pr/pfLinMath.h
-vsShadingAttribute.o: /usr/include/Performer/pr/pfObject.h
-vsShadingAttribute.o: /usr/include/Performer/pr/pfMemory.h
-vsShadingAttribute.o: /usr/include/string.h /usr/include/bstring.h
-vsShadingAttribute.o: /usr/include/Performer/pr/pfType.h
 vsShadingAttribute.o: /usr/include/Performer/pr/pfStruct.h
 vsShadingAttribute.o: /usr/include/Performer/pfstats.h
 vsShadingAttribute.o: /usr/include/Performer/pf/pfBuffer.h
@@ -999,7 +1047,6 @@ vsShadingAttribute.o: /usr/include/Performer/pr/pfList.h
 vsShadingAttribute.o: /usr/include/Performer/pr/pfCalligraphic.h
 vsShadingAttribute.o: /usr/include/Performer/pr/pfStats.h
 vsShadingAttribute.o: /usr/include/Performer/pr/pfDispList.h
-vsShadingAttribute.o: /usr/include/Performer/pr/pfGeoState.h
 vsShadingAttribute.o: /usr/include/Performer/pr/pfState.h
 vsShadingAttribute.o: ../corelib/vsScreen.h++ ../corelib/vsWindow.h++
 vsShadingAttribute.o: /usr/include/Performer/pf/pfPipeWindow.h
@@ -1031,7 +1078,57 @@ vsShadingAttribute.o: /usr/include/Performer/pr/pfMaterial.h
 vsShadingAttribute.o: vsTextureAttribute.h++
 vsShadingAttribute.o: /usr/include/Performer/pr/pfTexture.h
 vsShadingAttribute.o: /usr/include/Performer/image.h
-vsShadingAttribute.o: vsTransparencyAttribute.h++
+vsShadingAttribute.o: vsTransparencyAttribute.h++ vsLightAttribute.h++
+vsShadingAttribute.o: /usr/include/Performer/pr/pfLight.h
+vsShadingAttribute.o: /usr/include/Performer/pf/pfLightSource.h
+vsStateAttribute.o: vsNode.h++ /usr/include/Performer/pf/pfNode.h
+vsStateAttribute.o: /usr/include/Performer/pf/pfUpdatable.h
+vsStateAttribute.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
+vsStateAttribute.o: /usr/include/sys/types.h /usr/include/standards.h
+vsStateAttribute.o: /usr/include/sgidefs.h /usr/include/stdio.h
+vsStateAttribute.o: /usr/include/ulocks.h /usr/include/limits.h
+vsStateAttribute.o: /usr/include/task.h /usr/include/sys/prctl.h
+vsStateAttribute.o: /usr/include/unistd.h /usr/include/errno.h
+vsStateAttribute.o: /usr/include/sys/errno.h /usr/include/X11/X.h
+vsStateAttribute.o: /usr/include/X11/Xlib.h /usr/include/X11/Xfuncproto.h
+vsStateAttribute.o: /usr/include/X11/Xosdefs.h /usr/include/stddef.h
+vsStateAttribute.o: /usr/include/X11/Xutil.h
+vsStateAttribute.o: /usr/include/X11/extensions/XSGIvc.h
+vsStateAttribute.o: /usr/include/X11/extensions/XSGIvcstr.h
+vsStateAttribute.o: /usr/include/wctype.h /usr/include/wchar.h
+vsStateAttribute.o: /usr/include/locale_attr.h /usr/include/ctype.h
+vsStateAttribute.o: /usr/include/time.h /usr/include/GL/gl.h
+vsStateAttribute.o: /usr/include/GL/glx.h /usr/include/X11/Xmd.h
+vsStateAttribute.o: /usr/include/GL/glxtokens.h /usr/include/GL/glu.h
+vsStateAttribute.o: /usr/include/Performer/opengl.h
+vsStateAttribute.o: /usr/include/Performer/prmath.h /usr/include/math.h
+vsStateAttribute.o: /usr/include/Performer/prstats.h
+vsStateAttribute.o: /usr/include/Performer/pr/pfLinMath.h
+vsStateAttribute.o: /usr/include/Performer/pr/pfObject.h
+vsStateAttribute.o: /usr/include/Performer/pr/pfMemory.h
+vsStateAttribute.o: /usr/include/string.h /usr/include/bstring.h
+vsStateAttribute.o: /usr/include/Performer/pr/pfType.h
+vsStateAttribute.o: /usr/include/Performer/pr/pfStruct.h
+vsStateAttribute.o: /usr/include/Performer/pfstats.h
+vsStateAttribute.o: /usr/include/Performer/pf/pfBuffer.h
+vsStateAttribute.o: /usr/include/Performer/pf/pfUpdate.h
+vsStateAttribute.o: /usr/include/Performer/pf/pfLists.h
+vsStateAttribute.o: /usr/include/sys/stream.h /usr/include/sys/strmdep.h
+vsStateAttribute.o: /usr/include/sys/cdefs.h
+vsStateAttribute.o: /usr/include/Performer/pf/pfFrameStats.h
+vsStateAttribute.o: /usr/include/Performer/pf/pfPipe.h
+vsStateAttribute.o: /usr/include/Performer/pr/pfVideoChannel.h
+vsStateAttribute.o: /usr/include/Performer/pr/pfList.h
+vsStateAttribute.o: /usr/include/Performer/pr/pfCalligraphic.h
+vsStateAttribute.o: /usr/include/Performer/pr/pfStats.h
+vsStateAttribute.o: /usr/include/Performer/pr/pfDispList.h
+vsStateAttribute.o: /usr/include/Performer/pr/pfGeoState.h
+vsStateAttribute.o: /usr/include/Performer/pr/pfState.h
+vsStateAttribute.o: /usr/include/Performer/pr/pfGeoMath.h
+vsStateAttribute.o: ../corelib/vsGrowableArray.h++ vsAttributeList.h++
+vsStateAttribute.o: vsAttribute.h++ /usr/include/stdlib.h
+vsStateAttribute.o: ../corelib/vsGlobals.h++ ../math/vsVector.h++
+vsStateAttribute.o: vsStateAttribute.h++
 vsSwitchAttribute.o: vsSwitchAttribute.h++
 vsSwitchAttribute.o: /usr/include/Performer/pf/pfSwitch.h
 vsSwitchAttribute.o: /usr/include/Performer/pf/pfGroup.h
@@ -1115,10 +1212,11 @@ vsTextureAttribute.o: /usr/include/Performer/pr/pfType.h
 vsTextureAttribute.o: /usr/include/Performer/pr/pfList.h
 vsTextureAttribute.o: /usr/include/Performer/pr/pfLinMath.h
 vsTextureAttribute.o: /usr/include/Performer/pr/pfStruct.h
-vsTextureAttribute.o: /usr/include/Performer/image.h vsAttribute.h++
-vsTextureAttribute.o: /usr/include/stdlib.h ../corelib/vsGlobals.h++
-vsTextureAttribute.o: ../corelib/vsGrowableArray.h++ ../corelib/vsSystem.h++
-vsTextureAttribute.o: ../corelib/vsPipe.h++
+vsTextureAttribute.o: /usr/include/Performer/image.h vsStateAttribute.h++
+vsTextureAttribute.o: ../corelib/vsGlobals.h++ ../corelib/vsGrowableArray.h++
+vsTextureAttribute.o: vsAttribute.h++ /usr/include/stdlib.h
+vsTextureAttribute.o: /usr/include/Performer/pr/pfGeoState.h
+vsTextureAttribute.o: ../corelib/vsSystem.h++ ../corelib/vsPipe.h++
 vsTextureAttribute.o: /usr/include/Performer/pf/pfPipe.h
 vsTextureAttribute.o: /usr/include/Performer/pf/pfUpdatable.h
 vsTextureAttribute.o: /usr/include/Performer/pf.h
@@ -1132,7 +1230,6 @@ vsTextureAttribute.o: /usr/include/Performer/pr/pfVideoChannel.h
 vsTextureAttribute.o: /usr/include/Performer/pr/pfCalligraphic.h
 vsTextureAttribute.o: /usr/include/Performer/pr/pfStats.h
 vsTextureAttribute.o: /usr/include/Performer/pr/pfDispList.h
-vsTextureAttribute.o: /usr/include/Performer/pr/pfGeoState.h
 vsTextureAttribute.o: /usr/include/Performer/pr/pfState.h
 vsTextureAttribute.o: ../corelib/vsScreen.h++ ../corelib/vsWindow.h++
 vsTextureAttribute.o: /usr/include/Performer/pf/pfPipeWindow.h
@@ -1162,6 +1259,9 @@ vsTextureAttribute.o: vsFogAttribute.h++ /usr/include/Performer/pr/pfFog.h
 vsTextureAttribute.o: vsMaterialAttribute.h++
 vsTextureAttribute.o: /usr/include/Performer/pr/pfMaterial.h
 vsTextureAttribute.o: vsShadingAttribute.h++ vsTransparencyAttribute.h++
+vsTextureAttribute.o: vsLightAttribute.h++
+vsTextureAttribute.o: /usr/include/Performer/pr/pfLight.h
+vsTextureAttribute.o: /usr/include/Performer/pf/pfLightSource.h
 vsTransformAttribute.o: vsTransformAttribute.h++
 vsTransformAttribute.o: /usr/include/Performer/pf/pfDCS.h
 vsTransformAttribute.o: /usr/include/Performer/pf/pfSCS.h
@@ -1217,17 +1317,21 @@ vsTransformAttribute.o: vsComponent.h++ ../corelib/vsGrowableArray.h++
 vsTransformAttribute.o: vsAttribute.h++ /usr/include/stdlib.h vsNode.h++
 vsTransformAttribute.o: vsAttributeList.h++ ../corelib/vsDatabaseLoader.h++
 vsTransformAttribute.o: /usr/include/Performer/pfdb/pfflt.h
-vsTransparencyAttribute.o: vsTransparencyAttribute.h++ vsAttribute.h++
+vsTransparencyAttribute.o: vsTransparencyAttribute.h++ vsStateAttribute.h++
+vsTransparencyAttribute.o: ../corelib/vsGlobals.h++
+vsTransparencyAttribute.o: ../corelib/vsGrowableArray.h++ vsAttribute.h++
 vsTransparencyAttribute.o: /usr/include/stdlib.h /usr/include/standards.h
-vsTransparencyAttribute.o: /usr/include/sgidefs.h ../corelib/vsGlobals.h++
-vsTransparencyAttribute.o: ../corelib/vsGrowableArray.h++
-vsTransparencyAttribute.o: /usr/include/Performer/pr.h
-vsTransparencyAttribute.o: /usr/include/sys/types.h /usr/include/stdio.h
-vsTransparencyAttribute.o: /usr/include/ulocks.h /usr/include/limits.h
-vsTransparencyAttribute.o: /usr/include/task.h /usr/include/sys/prctl.h
-vsTransparencyAttribute.o: /usr/include/unistd.h /usr/include/errno.h
-vsTransparencyAttribute.o: /usr/include/sys/errno.h /usr/include/X11/X.h
-vsTransparencyAttribute.o: /usr/include/X11/Xlib.h
+vsTransparencyAttribute.o: /usr/include/sgidefs.h
+vsTransparencyAttribute.o: /usr/include/Performer/pr/pfGeoState.h
+vsTransparencyAttribute.o: /usr/include/Performer/pr/pfObject.h
+vsTransparencyAttribute.o: /usr/include/Performer/pr/pfMemory.h
+vsTransparencyAttribute.o: /usr/include/sys/types.h /usr/include/string.h
+vsTransparencyAttribute.o: /usr/include/bstring.h /usr/include/Performer/pr.h
+vsTransparencyAttribute.o: /usr/include/stdio.h /usr/include/ulocks.h
+vsTransparencyAttribute.o: /usr/include/limits.h /usr/include/task.h
+vsTransparencyAttribute.o: /usr/include/sys/prctl.h /usr/include/unistd.h
+vsTransparencyAttribute.o: /usr/include/errno.h /usr/include/sys/errno.h
+vsTransparencyAttribute.o: /usr/include/X11/X.h /usr/include/X11/Xlib.h
 vsTransparencyAttribute.o: /usr/include/X11/Xfuncproto.h
 vsTransparencyAttribute.o: /usr/include/X11/Xosdefs.h /usr/include/stddef.h
 vsTransparencyAttribute.o: /usr/include/X11/Xutil.h
@@ -1242,15 +1346,12 @@ vsTransparencyAttribute.o: /usr/include/Performer/opengl.h
 vsTransparencyAttribute.o: /usr/include/Performer/prmath.h
 vsTransparencyAttribute.o: /usr/include/math.h
 vsTransparencyAttribute.o: /usr/include/Performer/prstats.h
+vsTransparencyAttribute.o: /usr/include/Performer/pr/pfType.h
 vsTransparencyAttribute.o: ../corelib/vsSystem.h++ ../corelib/vsPipe.h++
 vsTransparencyAttribute.o: /usr/include/Performer/pf/pfPipe.h
 vsTransparencyAttribute.o: /usr/include/Performer/pf/pfUpdatable.h
 vsTransparencyAttribute.o: /usr/include/Performer/pf.h
 vsTransparencyAttribute.o: /usr/include/Performer/pr/pfLinMath.h
-vsTransparencyAttribute.o: /usr/include/Performer/pr/pfObject.h
-vsTransparencyAttribute.o: /usr/include/Performer/pr/pfMemory.h
-vsTransparencyAttribute.o: /usr/include/string.h /usr/include/bstring.h
-vsTransparencyAttribute.o: /usr/include/Performer/pr/pfType.h
 vsTransparencyAttribute.o: /usr/include/Performer/pr/pfStruct.h
 vsTransparencyAttribute.o: /usr/include/Performer/pfstats.h
 vsTransparencyAttribute.o: /usr/include/Performer/pf/pfBuffer.h
@@ -1264,7 +1365,6 @@ vsTransparencyAttribute.o: /usr/include/Performer/pr/pfList.h
 vsTransparencyAttribute.o: /usr/include/Performer/pr/pfCalligraphic.h
 vsTransparencyAttribute.o: /usr/include/Performer/pr/pfStats.h
 vsTransparencyAttribute.o: /usr/include/Performer/pr/pfDispList.h
-vsTransparencyAttribute.o: /usr/include/Performer/pr/pfGeoState.h
 vsTransparencyAttribute.o: /usr/include/Performer/pr/pfState.h
 vsTransparencyAttribute.o: ../corelib/vsScreen.h++ ../corelib/vsWindow.h++
 vsTransparencyAttribute.o: /usr/include/Performer/pf/pfPipeWindow.h
@@ -1298,6 +1398,9 @@ vsTransparencyAttribute.o: /usr/include/Performer/pr/pfMaterial.h
 vsTransparencyAttribute.o: vsShadingAttribute.h++ vsTextureAttribute.h++
 vsTransparencyAttribute.o: /usr/include/Performer/pr/pfTexture.h
 vsTransparencyAttribute.o: /usr/include/Performer/image.h
+vsTransparencyAttribute.o: vsLightAttribute.h++
+vsTransparencyAttribute.o: /usr/include/Performer/pr/pfLight.h
+vsTransparencyAttribute.o: /usr/include/Performer/pf/pfLightSource.h
 vsViewpointAttribute.o: vsViewpointAttribute.h++
 vsViewpointAttribute.o: /usr/include/Performer/pf/pfGroup.h
 vsViewpointAttribute.o: /usr/include/Performer/pf/pfNode.h
@@ -1367,13 +1470,15 @@ vsViewpointAttribute.o: ../corelib/vsDatabaseLoader.h++
 vsViewpointAttribute.o: /usr/include/Performer/pfdb/pfflt.h
 vsViewpointAttribute.o: ../corelib/vsObjectMap.h++
 vsViewpointAttribute.o: ../corelib/vsGraphicsState.h++
-vsViewpointAttribute.o: vsBackfaceAttribute.h++ vsFogAttribute.h++
-vsViewpointAttribute.o: /usr/include/Performer/pr/pfFog.h
+vsViewpointAttribute.o: vsBackfaceAttribute.h++ vsStateAttribute.h++
+vsViewpointAttribute.o: vsFogAttribute.h++ /usr/include/Performer/pr/pfFog.h
 vsViewpointAttribute.o: vsMaterialAttribute.h++
 vsViewpointAttribute.o: /usr/include/Performer/pr/pfMaterial.h
 vsViewpointAttribute.o: vsShadingAttribute.h++ vsTextureAttribute.h++
 vsViewpointAttribute.o: /usr/include/Performer/pr/pfTexture.h
 vsViewpointAttribute.o: /usr/include/Performer/image.h
-vsViewpointAttribute.o: vsTransparencyAttribute.h++ ../math/vsMatrix.h++
-vsViewpointAttribute.o: ../math/vsQuat.h++ /usr/include/Performer/pf/pfSCS.h
-vsViewpointAttribute.o: vsComponent.h++
+vsViewpointAttribute.o: vsTransparencyAttribute.h++ vsLightAttribute.h++
+vsViewpointAttribute.o: /usr/include/Performer/pr/pfLight.h
+vsViewpointAttribute.o: /usr/include/Performer/pf/pfLightSource.h
+vsViewpointAttribute.o: ../math/vsMatrix.h++ ../math/vsQuat.h++
+vsViewpointAttribute.o: /usr/include/Performer/pf/pfSCS.h vsComponent.h++

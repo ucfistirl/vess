@@ -16,12 +16,19 @@
 // ------------------------------------------------------------------------
 vsGeometry::vsGeometry()
 {
+    int loop;
+
     performerGeode = new pfGeode();
     performerGeode->ref();
+
     performerGeoset = new pfGeoSet();
     performerGeoset->ref();
     performerGeode->addGSet(performerGeoset);
     setPrimitiveCount(0);
+    
+    performerGeostate = new pfGeoState();
+    performerGeostate->ref();
+    performerGeoset->setGState(performerGeostate);
     
     colorList = NULL;
     colorListSize = 0;
@@ -33,14 +40,17 @@ vsGeometry::vsGeometry()
     vertexListSize = 0;
     lengthsList = NULL;
     
+    lightsList = (pfLight **)
+	(pfMemory::malloc(sizeof(pfLight *) * PF_MAX_LIGHTS));
+    for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
+	lightsList[loop] = NULL;
+    performerGeostate->setFuncs(geostateCallback, NULL, lightsList);
+//    performerGeostate->setAttr(PFSTATE_LIGHTS, lightsList);
+    
     performerGeoset->setDrawMode(PFGS_FLATSHADE, PF_OFF);
     
     ((vsSystem::systemObject)->getNodeMap())->registerLink(this,
         performerGeode);
-    
-    performerGeode->setTravFuncs(PFTRAV_DRAW, geoDrawCallback,
-        postDrawCallback);
-    performerGeode->setTravData(PFTRAV_DRAW, this);
 }
 
 // ------------------------------------------------------------------------
@@ -174,10 +184,6 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
 
     ((vsSystem::systemObject)->getNodeMap())->registerLink(this,
         performerGeode);
-    
-    performerGeode->setTravFuncs(PFTRAV_DRAW, geoDrawCallback,
-        postDrawCallback);
-    performerGeode->setTravData(PFTRAV_DRAW, this);
 
     geoset = performerGeode->getGSet(0);
     geostate = geoset->getGState();
@@ -191,7 +197,7 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
         newFog = new pfFog();
         newFog->copy(fog);
         fogAttrib = new vsFogAttribute(newFog);
-        vsAttributeList::addAttribute(fogAttrib);
+        addAttribute(fogAttrib);
     }
     
     // Material
@@ -217,10 +223,8 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
             (vsSystem::systemObject)->getNodeMap()->registerLink(materialAttrib,
                 frontMaterial);
         }
-        else
-            materialAttrib->attach(this);
 
-        vsAttributeList::addAttribute(materialAttrib);
+        addAttribute(materialAttrib);
     }
     else
         materialAttrib = NULL;
@@ -245,10 +249,8 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
             (vsSystem::systemObject)->getNodeMap()->registerLink(texAttrib,
                 texture);
         }
-        else
-            texAttrib->attach(this);
 
-        vsAttributeList::addAttribute(texAttrib);
+        addAttribute(texAttrib);
     }
     else
         texAttrib = NULL;
@@ -257,8 +259,12 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
     if ((geostate->getInherit() & PFSTATE_TRANSPARENCY) == 0)
     {
         transMode = geostate->getMode(PFSTATE_TRANSPARENCY);
-        transAttrib = new vsTransparencyAttribute(transMode);
-        vsAttributeList::addAttribute(transAttrib);
+        transAttrib = new vsTransparencyAttribute();
+	if (transMode == PFTR_OFF)
+	    transAttrib->disable();
+	else
+	    transAttrib->enable();
+        addAttribute(transAttrib);
     }
     else
     {
@@ -300,8 +306,9 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
 
         if (tResult)
         {
-            transAttrib = new vsTransparencyAttribute(PFTR_BLEND_ALPHA);
-            vsAttributeList::addAttribute(transAttrib);
+            transAttrib = new vsTransparencyAttribute();
+	    transAttrib->enable();
+            addAttribute(transAttrib);
         }
     }
 
@@ -309,12 +316,14 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
     if ((geostate->getInherit() & PFSTATE_CULLFACE) == 0)
     {
         cullMode = geostate->getMode(PFSTATE_CULLFACE);
+	backAttrib = new vsBackfaceAttribute();
+	
         if (cullMode == PFCF_OFF)
-            backAttrib = new vsBackfaceAttribute(VS_TRUE);
+            backAttrib->enable();
         else
-            backAttrib = new vsBackfaceAttribute(VS_FALSE);
+            backAttrib->disable();
 
-        vsAttributeList::addAttribute(backAttrib);
+        addAttribute(backAttrib);
     }
 
     // Shading
@@ -322,12 +331,26 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
         !(getTypedAttribute(VS_ATTRIBUTE_TYPE_SHADING, 0)))
     {
         shadeMode = geostate->getMode(PFSTATE_SHADEMODEL);
-        shadeAttrib = new vsShadingAttribute(shadeMode);
-        vsAttributeList::addAttribute(shadeAttrib);
+        shadeAttrib = new vsShadingAttribute();
+	if (shadeMode == PFSM_FLAT)
+	    shadeAttrib->setShading(VS_SHADING_FLAT);
+	else
+	    shadeAttrib->setShading(VS_SHADING_GOURAUD);
+        addAttribute(shadeAttrib);
     }
     performerGeoset->setDrawMode(PFGS_FLATSHADE, PF_OFF);
+
+    performerGeostate = new pfGeoState();
+    performerGeostate->ref();
+    performerGeoset->setGState(performerGeostate);
     
-    geostate->setInherit(PFSTATE_ALL);
+    lightsList = (pfLight **)
+	(pfMemory::malloc(sizeof(pfLight *) * PF_MAX_LIGHTS));
+    for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
+	lightsList[loop] = NULL;
+    performerGeostate->setFuncs(geostateCallback, NULL, lightsList);
+
+    pfDelete(geostate);
 }
 
 // ------------------------------------------------------------------------
@@ -339,6 +362,8 @@ vsGeometry::~vsGeometry()
     pfDelete(performerGeode);
     performerGeoset->unref();
     pfDelete(performerGeoset);
+    performerGeostate->unref();
+    pfDelete(performerGeostate);
     
     if (vertexList && !(pfMemory::getRef(vertexList)))
         pfMemory::free(vertexList);
@@ -1282,31 +1307,6 @@ void vsGeometry::inflateFlatGeometry()
 }
 
 // ------------------------------------------------------------------------
-// static VESS internal function - Passed to Performer as a callback
-// During Performer's DRAW traversal, aids in the sorting of geometry into
-// transparent and non-transparent bins.
-// ------------------------------------------------------------------------
-int vsGeometry::geoDrawCallback(pfTraverser *_trav, void *_userData)
-{
-    int result;
-
-    result = vsNode::preDrawCallback(_trav, _userData);
-    
-    if (pfGetTransparency())
-    {
-        ((vsGeometry *)_userData)->performerGeoset->setDrawBin(
-            PFSORT_TRANSP_BIN);
-    }
-    else
-    {
-        ((vsGeometry *)_userData)->performerGeoset->setDrawBin(
-            PFSORT_OPAQUE_BIN);
-    }
-
-    return result;
-}
-
-// ------------------------------------------------------------------------
 // VESS internal function
 // Calls the apply function on all attached attributes, and then calls the
 // system's graphics state object to affect the changes to the graphics
@@ -1316,5 +1316,26 @@ void vsGeometry::applyAttributes()
 {
     vsNode::applyAttributes();
     
-    (vsSystem::systemObject)->getGraphicsState()->applyState();
+    (vsSystem::systemObject)->getGraphicsState()->applyState(
+	performerGeostate);
+}
+
+// ------------------------------------------------------------------------
+// VESS static internal function - Performer callback
+// "Pre" callback function for pfGeoState attached to the vsGeometry.
+// Required in order to activate 'local' vsLightAttributes that are
+// affecting this geometry.
+// ------------------------------------------------------------------------
+int vsGeometry::geostateCallback(pfGeoState *gstate, void *userData)
+{
+    pfLight **lightList;
+    int loop;
+    
+    lightList = (pfLight **)userData;
+    
+    for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
+	if (lightList[loop] != NULL)
+	    (lightList[loop])->on();
+
+    return 0;
 }

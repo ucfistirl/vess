@@ -2,6 +2,7 @@
 
 #include "vsLightAttribute.h++"
 
+#include "vsSystem.h++"
 #include "vsComponent.h++"
 
 // ------------------------------------------------------------------------
@@ -376,8 +377,10 @@ void vsLightAttribute::detach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsLightAttribute::apply()
 {
-    if ((lightScope == VS_LIGHT_MODE_LOCAL) && lightOn)
-        lightObject->on();
+    vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
+
+    if (lightScope == VS_LIGHT_MODE_LOCAL)
+	gState->addLight(this);
 }
 
 // ------------------------------------------------------------------------
@@ -386,6 +389,30 @@ void vsLightAttribute::apply()
 // ------------------------------------------------------------------------
 void vsLightAttribute::restoreSaved()
 {
-    if ((lightScope == VS_LIGHT_MODE_LOCAL) && lightOn)
-        lightObject->off();
+    vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
+
+    if (lightScope == VS_LIGHT_MODE_LOCAL)
+	gState->removeLight(this);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Applies the settings in this attribute to the graphics library
+// ------------------------------------------------------------------------
+void vsLightAttribute::setState(pfGeoState *state)
+{
+    int loop;
+    pfLight **lightList;
+    pfGStateFuncType preFunc, postFunc;
+    void *data;
+
+    state->getFuncs(&preFunc, &postFunc, &data);
+    lightList = (pfLight **)data;
+
+    for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
+	if (lightList[loop] == NULL)
+	{
+	    lightList[loop] = lightObject;
+	    return;
+	}
 }

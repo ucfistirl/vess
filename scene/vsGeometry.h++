@@ -42,28 +42,31 @@ class vsGeometry : public vsNode
 {
 private:
 
-    pfGeode     *performerGeode;
-    pfGeoSet    *performerGeoset;
+    pfGeode         *performerGeode;
+    pfGeoSet        *performerGeoset;
+    pfGeoState      *performerGeostate;
     
-    pfVec4      *colorList;
-    int         colorListSize;
-    pfVec3      *normalList;
-    int         normalListSize;
-    pfVec2      *texCoordList;
-    int         texCoordListSize;
-    pfVec3      *vertexList;
-    int         vertexListSize;
-    int         *lengthsList;
+    pfVec4          *colorList;
+    int             colorListSize;
+    pfVec3          *normalList;
+    int             normalListSize;
+    pfVec2          *texCoordList;
+    int             texCoordListSize;
+    pfVec3          *vertexList;
+    int             vertexListSize;
+    int             *lengthsList;
+    
+    pfLight	    **lightsList;
 
-    void        inflateFlatGeometry();
+    void            inflateFlatGeometry();
 
 VS_INTERNAL:
 
                     vsGeometry(pfGeode *targetGeode);
 
-    static int      geoDrawCallback(pfTraverser *_trav, void *_userData);
-    
     virtual void    applyAttributes();
+    
+    static int	    geostateCallback(pfGeoState *gstate, void *userData);
 
 public:
 

@@ -5,10 +5,11 @@
 // ------------------------------------------------------------------------
 // Constructor - Clears the node's name
 // ------------------------------------------------------------------------
-vsNode::vsNode() : parentList(1, 5, 1)
+vsNode::vsNode() : parentList(1, 5)
 {
     nodeName[0] = 0;
     parentCount = 0;
+    dirtyFlag = VS_TRUE;
 }
 
 // ------------------------------------------------------------------------
@@ -133,26 +134,63 @@ void vsNode::restoreSavedAttributes()
 }
 
 // ------------------------------------------------------------------------
-// static VESS internal function - Performer callback
-// Saves and changes the current graphics state before a node is
-// traversed during a Performer DRAW traversal
+// VESS internal function
+// Marks this node dirty, as well as every other node above and below it
+// in the tree. This is done because only dirty nodes are traversed during
+// the VESS traversal; nodes above to get to this node, and nodes below
+// to allow any state changes to propogate down.
 // ------------------------------------------------------------------------
-int vsNode::preDrawCallback(pfTraverser *_trav, void *_userData)
+void vsNode::dirty()
 {
-    ((vsNode *)_userData)->saveCurrentAttributes();
-    ((vsNode *)_userData)->applyAttributes();
-    
-    return PFTRAV_CONT;
+    dirtyUp();
+    dirtyDown();
 }
 
 // ------------------------------------------------------------------------
-// static VESS internal function - Performer callback
-// Restores changes to the graphics state after a node is traversed during
-// a Performer DRAW traversal
+// VESS internal function
+// Marks this node as clean if all of its parents are clean
 // ------------------------------------------------------------------------
-int vsNode::postDrawCallback(pfTraverser *_trav, void *_userData)
+void vsNode::clean()
 {
-    ((vsNode *)_userData)->restoreSavedAttributes();
+    int loop, flag;
+    
+    flag = 1;
+    for (loop = 0; loop < parentCount; loop++)
+	if (((vsNode *)(parentList[loop]))->isDirty())
+	    flag = 0;
 
-    return PFTRAV_CONT;
+    if (flag)
+	dirtyFlag = VS_FALSE;
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Determines if this node is dirty or not
+// ------------------------------------------------------------------------
+int vsNode::isDirty()
+{
+    return dirtyFlag;
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Marks this node and each node above this one as dirty
+// ------------------------------------------------------------------------
+void vsNode::dirtyUp()
+{
+    int loop;
+    
+    dirtyFlag = VS_TRUE;
+    
+    for (loop = 0; loop < parentCount; loop++)
+	((vsNode *)(parentList[loop]))->dirtyUp();
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Marks this node as dirty
+// ------------------------------------------------------------------------
+void vsNode::dirtyDown()
+{
+    dirtyFlag = VS_TRUE;
 }
