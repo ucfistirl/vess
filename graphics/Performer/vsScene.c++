@@ -609,6 +609,8 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
                 textureUnit = ((vsTextureRectangleAttribute *)
                     attribute)->getTextureUnit();
             }
+            else
+                textureUnit = -1;
 
             // If the texture units are equal then they both must
             // have been texture type attributes and had the same
