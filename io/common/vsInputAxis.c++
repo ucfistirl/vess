@@ -306,7 +306,7 @@ bool vsInputAxis::isNormalized(void)
 // ------------------------------------------------------------------------
 // Specifies whether or not the axis values should be inverted (negated)
 // ------------------------------------------------------------------------
-void vsInputAxis::setInverted(int invert)
+void vsInputAxis::setInverted(bool invert)
 {
     inverted = invert;
 }

@@ -93,7 +93,7 @@ public:
     // Axis operations
     void                    setNormalized(bool normOn);
     bool                    isNormalized();
-    void                    setInverted(int invert);
+    void                    setInverted(bool invert);
     bool                    isInverted();
     void                    setRange(double minPos, double maxPos);
     void                    getRange(double *minPos, double *maxPos);

@@ -331,7 +331,7 @@ vsQuat vsArticulationGlove::getJoint(int index)
 // ------------------------------------------------------------------------
 // Enables/disables passive calibration for all sensors
 // ------------------------------------------------------------------------
-void vsArticulationGlove::passiveCalibrate(int enable)
+void vsArticulationGlove::passiveCalibrate(bool enable)
 {
     int i;
 

@@ -176,7 +176,7 @@ public:
     vsQuat           getJoint(int index);
 
     // Enables/disables passive calibration
-    void             passiveCalibrate(int enable);
+    void             passiveCalibrate(bool enable);
 };
 
 #endif

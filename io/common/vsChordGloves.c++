@@ -232,7 +232,7 @@ int vsChordGloves::getContactPairs(int *pairs, int maxSize)
     // Initialize the number of contact pairs
     numPairs = 0;
 
-    // Scan the contactMatrix looking for VS_TRUE's
+    // Scan the contactMatrix looking for true's
     for (i = 0; i < VS_CG_MAX_DIGITS-1; i++)
     {
         for (j = i + 1; j < VS_CG_MAX_DIGITS; j++)
