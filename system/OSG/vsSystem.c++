@@ -755,7 +755,7 @@ void vsSystem::releaseSync(void)
 void vsSystem::terminateCluster(void)
 {
     int i;
-    char commstr[256];
+    char commStr[256];
     
     readyToTerminate = true;
     

@@ -80,6 +80,7 @@ vsSystem::vsSystem()
     cluster = NULL;
     slaves = NULL;
     isSlave = false;
+    readyToTerminate = false;
     // Initialize the remote interface
 #ifdef VESS_DEBUG
     remoteInterface = new vsRemoteInterface("vessxml.dtd");
@@ -143,20 +144,15 @@ vsSystem::vsSystem(vsClusterConfig *config)
                    (int)slaveAddr[2],(int)slaveAddr[3]);
             slaves[i] = new vsTCPNetworkInterface(slaveName, 
                     VS_RI_DEFAULT_CONTROL_PORT);
-            //slaves[i]->enableBlocking();
-            //int x;
-            while(slaves[i]->makeConnection() < 0);
-            //printf("%d\n",x);
+            while (slaves[i]->makeConnection() < 0);
             slaves[i]->disableBlocking();
         }
-        //master = NULL;
         isSlave = false;
     }
     else if(config == NULL)
     {
         cluster = NULL;
         slaves = NULL;
-        //master = new vsRemoteInterface(VS_RI_DEFAULT_CONTROL_PORT);
         isSlave = true;
     }
     else
@@ -165,9 +161,10 @@ vsSystem::vsSystem(vsClusterConfig *config)
         validObject = 0;
         cluster = NULL;
         slaves = NULL;
-  //      master = NULL;
         isSlave = false;
     }
+    
+    readyToTerminate = false;
     
     // Initialize the remote interface
 #ifdef VESS_DEBUG
@@ -582,18 +579,19 @@ void vsSystem::drawFrame()
         }
     }
     
-    //Perform cluster rendering
-    if(slaves != NULL && !isSlave)
+    // Perform cluster rendering
+    if (slaves != NULL && !isSlave)
     {
-        //Send out relevant info to clients
-        //Block until all clients acknowledge
+        // Send out relevant info to clients
+        
+        // Block until all clients acknowledge
         numSlavesReportedIn = 0;
-        while(numSlavesReportedIn < numSlaves)
+        while (numSlavesReportedIn < numSlaves)
         {
-            for(i=0;i<numSlaves;i++)
+            for (i=0; i<numSlaves; i++)
             {
                 slaves[i]->read((u_char *)commStr, 256);
-                if(!strcmp(commStr,"<?xml version=\"1.0\"?>\n"
+                if (!strcmp(commStr,"<?xml version=\"1.0\"?>\n"
                         "<vessxml version=\"1.0\">\n"
                         "<readytosync>\n"
                         "</readytosync>\n"
@@ -605,24 +603,24 @@ void vsSystem::drawFrame()
             }
         }
         
-        //Send relase signal
+        // Send relase signal
         strcpy(commStr,"<?xml version=\"1.0\"?>\n"
                 "<vessxml version=\"1.0\">\n"
                 "<releasesync>\n"
                 "</releasesync>\n"
                 "</vessxml>");
-        for(i=0;i<numSlaves;i++)
+        for (i=0; i<numSlaves; i++)
         {
             slaves[i]->write((u_char *)commStr, strlen(commStr)+1);
         }
     }
-    else if( isSlave)
+    else if (isSlave && !readyToTerminate)
     {
-        //Collect info
-        //Do processing on the info
-        //--------------INCOMPLETE--------------
+        // Collect info
+        // Do processing on the info
+        // --------------INCOMPLETE--------------
                 
-        //Send an acknowledgement
+        // Send an acknowledgement
         strcpy(commStr,"<?xml version=\"1.0\"?>\n"
                 "<vessxml version=\"1.0\">\n"
                 "<readytosync>\n"
@@ -631,9 +629,9 @@ void vsSystem::drawFrame()
         remoteInterface->send((u_char *)commStr, strlen(commStr)+1);
         
         
-        //Block until released by master
+        // Block until released by master
         readyToSwap = false;
-        while(!readyToSwap)
+        while (!readyToSwap && !readyToTerminate)
         {
             remoteInterface->update();
         }
@@ -658,3 +656,36 @@ void vsSystem::releaseSync(void)
 {
     readyToSwap = true;
 }
+
+// ------------------------------------------------------------------------
+// Set a flag designating that the time has come to terminate
+// ------------------------------------------------------------------------
+void vsSystem::terminateCluster(void)
+{
+    int i;
+    char commStr[256];
+    
+    readyToTerminate = true;
+    
+    // Send termination signal to all clients
+    if (slaves)
+    {
+        strcpy(commStr,"<?xml version=\"1.0\"?>\n"
+                "<vessxml version=\"1.0\">\n"
+                "<terminatecluster>\n"
+                "</terminatecluster>\n"
+                "</vessxml>");
+        for (i=0; i<numSlaves; i++)
+        {
+            slaves[i]->write((u_char *)commStr, strlen(commStr)+1);
+        }
+    }
+}
+
+// ------------------------------------------------------------------------
+// Returns whether it is time to terminate
+// ------------------------------------------------------------------------
+bool vsSystem::hasBeenTerminated(void)
+{
+    return readyToTerminate;
+}  

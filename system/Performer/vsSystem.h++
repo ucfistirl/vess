@@ -48,13 +48,14 @@ private:
     double                  lastFrameDuration;
     
     vsRemoteInterface       *remoteInterface;
-
+    
     // For cluster rendering
     vsClusterConfig         *cluster;
     vsTCPNetworkInterface   **slaves;
     int                     numSlaves;
     bool                    isSlave;
     bool                    readyToSwap;
+    bool                    readyToTerminate;
 
     void                    preFrameTraverse(vsNode *node);
 
@@ -72,11 +73,14 @@ public:
 
     void                init();
     void                simpleInit(char *databaseFilename, char *windowName,
-                                   bool fullScreen, vsNode **sceneGraph,
-                                   vsView **viewpoint, vsWindow **window);
+                                bool fullScreen, vsNode **sceneGraph,
+                                vsView **viewpoint, vsWindow **window);
 
     void                drawFrame();
     void                releaseSync();
+    void                terminateCluster();
+    bool                hasBeenTerminated();
+
 };
 
 #endif
