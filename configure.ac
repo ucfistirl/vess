@@ -470,6 +470,39 @@ else
     AC_MSG_RESULT(no)
 fi
 
+dnl XML options**************************************************************
+XML_INCLUDE_DIR="-I/usr/include/libxml2"
+XML_LIB_DIR=""
+XML_LIB="-lxml2"
+
+dnl Provide the option to specify the location of the XML library.
+AC_ARG_WITH(libxml2,
+[[  --with-libxml2=PREFIX   Specify the location of libxml2 [/usr]]],, with_libxml2=/usr)
+if test x$with_libxml2 != x/usr; then
+   XML_INCLUDE_DIR="-I$with_libxml2/include/libxml2"
+   XML_LIB_DIR="-L$with_libxml2/lib"
+   XML_LIB="-lxml2"
+fi
+
+dnl Check the libxml2 libraries
+XML_ERROR=no
+LIBS=
+AC_CHECK_LIB(xml2, xmlParseMemory,,XML_ERROR=yes, $XML_LIB_DIR $XML_LIB)
+
+dnl Print a warning if the check fails
+if test x$XML_ERROR = xyes ; then
+   AC_MSG_ERROR([
+
+  There is a problem with the libxml2 libraries.  Either they are not
+  installed correctly, or they have not been compiled.  VESS will not
+  compile without the libxml2 libraries.
+
+  E-mail vess@ist.ucf.edu if you think you've received this message in
+  error.
+
+])
+fi
+
 
 dnl Export all of the important variables
 AC_SUBST(GFX_INCLUDE_DIR)
@@ -478,6 +511,9 @@ AC_SUBST(GFX_LIB)
 AC_SUBST(SOUND_INCLUDE_DIR)
 AC_SUBST(SOUND_LIB_DIR)
 AC_SUBST(SOUND_LIB)
+AC_SUBST(XML_INCLUDE_DIR)
+AC_SUBST(XML_LIB_DIR)
+AC_SUBST(XML_LIB)
 AC_SUBST(OS)
 AC_SUBST(WS)
 AC_SUBST(SG)
