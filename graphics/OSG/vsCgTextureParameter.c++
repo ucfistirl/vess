@@ -35,6 +35,7 @@ vsCgTextureParameter::vsCgTextureParameter(
     // Create the parameter and add it to the program.
     textureParameter = new osgNVCg::TextureParameter(getCgProgram(),
         variableName);
+    textureParameter->ref();
 
     // Add the parameter to the program, in case there will not be a
     // a parameter block to handle this.
@@ -50,8 +51,11 @@ vsCgTextureParameter::vsCgTextureParameter(
 vsCgTextureParameter::~vsCgTextureParameter()
 {
     // If there is a textureAttribute in use, unrefDelete it.
-    if (textureAttribute != NULL)
+    if (textureAttribute)
         vsObject::unrefDelete(textureAttribute);
+
+    // Unreference the OSG object.
+    textureParameter->unref();
 }
 
 // ------------------------------------------------------------------------
@@ -85,7 +89,7 @@ vsCgParameterType vsCgTextureParameter::getCgParameterType()
 void vsCgTextureParameter::set(vsTextureAttribute *value)
 {
     // If there was a previous textureAttribute in use, unrefDelete it.
-    if (textureAttribute != NULL)
+    if (textureAttribute)
         vsObject::unrefDelete(textureAttribute);
 
     // Store a reference to the texture attribute, so it is not prematurely
@@ -104,7 +108,7 @@ void vsCgTextureParameter::set(vsTextureAttribute *value)
 void vsCgTextureParameter::set(vsTextureCubeAttribute *value)
 {
     // If there was a previous textureAttribute in use, unrefDelete it.
-    if (textureAttribute != NULL)
+    if (textureAttribute)
         vsObject::unrefDelete(textureAttribute);
                                                                                 
     // Store a reference to the texture attribute, so it is not prematurely
