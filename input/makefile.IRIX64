@@ -15,15 +15,23 @@
 #----------------------------------------------------------------------
 #                       Name of the library
 #----------------------------------------------------------------------
-LIBNAME = libvsInput.a
+LIBNAME = libvsInput
+STATICEXT = .a
+SHAREDEXT = .so
+MAJORVER = 1
+MINORVER = 0
+MICROVER = 0
+VERSION = $(MAJORVER).$(MINORVER).$(MICROVER)
 
 #----------------------------------------------------------------------
 #			All Source and Object files
 #----------------------------------------------------------------------
 SRCS = \
        vs6DInputDevice.c++ \
+       vsArticulationGlove.c++ \
        vsAscensionSerialTrackingSystem.c++ \
        vsChordGloves.c++ \
+       vsCyberGloveBox.c++ \
        vsEthernetMotionStar.c++ \
        vsFastrak.c++ \
        vsFlockOfBirds.c++ \
@@ -53,8 +61,10 @@ SRCS = \
 
 OBJS = \
        vs6DInputDevice.o \
+       vsArticulationGlove.o \
        vsAscensionSerialTrackingSystem.o \
        vsChordGloves.o \
+       vsCyberGloveBox.o \
        vsEthernetMotionStar.o \
        vsFastrak.o \
        vsFlockOfBirds.o \
@@ -112,7 +122,12 @@ all: $(LIBNAME)
 #			Library archive rules
 #----------------------------------------------------------------------
 $(LIBNAME): $(OBJS)
-	ar $(ARFLAGS) $(LIBNAME) $(OBJS)
+	ar $(ARFLAGS) $(LIBNAME)$(STATICEXT) $(OBJS)
+#	$(CXX) -shared -Wl,"-soname,libvsInput$(SHAREDEXT).$(MAJORVER)" \
+#            -o libvsInput$(SHAREDEXT).$(VERSION) $(OBJS)
+#	ln -sf libvsInput$(SHAREDEXT).$(VERSION) libvsInput$(SHAREDEXT)
+#	ln -sf libvsInput$(SHAREDEXT).$(VERSION) \
+#            libvsInput$(SHAREDEXT).$(MAJORVER)
 
 #----------------------------------------------------------------------
 #			Inference Rules
