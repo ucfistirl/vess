@@ -37,7 +37,6 @@ vsVestSystem::vsVestSystem( int portNumber )
     currentState( 0 ), bufferLength( 0 ), bytesToIgnore( 0 )
 {
     char   portDevice[30];
-    int    length;
     int    i;
 
     // Determine the platform-dependent serial device
