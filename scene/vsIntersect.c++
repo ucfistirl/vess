@@ -22,6 +22,7 @@
 
 #include <Performer/pf/pfTraverser.h>
 #include "vsIntersect.h++"
+#include "vsDynamicGeometry.h++"
 #include <Performer/pr/pfLinMath.h>
 #include <Performer/pf/pfSCS.h>
 

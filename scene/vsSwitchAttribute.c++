@@ -194,7 +194,7 @@ void vsSwitchAttribute::attach(vsNode *theNode)
         return;
     }
 
-    if ((theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
+    if ((theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY) ||
         (theNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY))
     {
         printf("vsSwitchAttribute::attach: Can't attach switch attributes to "

@@ -29,6 +29,7 @@
 #include "vsDecalAttribute.h++"
 #include "vsBillboardAttribute.h++"
 #include "vsGeometry.h++"
+#include "vsDynamicGeometry.h++"
 #include "vsSystem.h++"
 
 // ------------------------------------------------------------------------
