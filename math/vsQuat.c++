@@ -646,7 +646,10 @@ void vsQuat::setVecsRotation(vsVector originForward, vsVector originUp,
     double rotAngle, dotProd;
     vsVector componentVec;
     vsQuat roll;
+    vsVector zeroVector, yVector, zVector;
 
+    // Clean up the input vectors by forcing them to be size 3 and
+    // normalizing them
     startDir.clearCopy(originForward);
     startDir.setSize(3);
     startDir.normalize();
@@ -661,34 +664,86 @@ void vsQuat::setVecsRotation(vsVector originForward, vsVector originUp,
     endUp.normalize();
 
     set(0.0, 0.0, 0.0, 1.0);
+    zeroVector.set(0.0, 0.0, 0.0);
+    yVector.set(0.0, 1.0, 0.0);
+    zVector.set(0.0, 0.0, 1.0);
 
-    // First, rotate the forward directions to match
+    // * First, compute the rotation that rotates the forward vectors
+    // to match
     if (!(startDir == endDir))
     {
         rotAxis = startDir.getCrossProduct(endDir);
-        rotAngle = startDir.getAngleBetween(endDir);
+
+        // Special case: check to see if the originForward and targetForward
+        // vectors are pointing in exactly opposite directions
+        if (rotAxis == zeroVector)
+        {
+            // Pick an arbitrary axis of rotation that is not parallel
+            // to the forward vectors
+            if (startDir.getCrossProduct(zVector) == zeroVector)
+                rotAxis = yVector;
+            else
+                rotAxis = zVector;
+
+            // Force this new rotation axis to be perpendicular to the
+            // forward vectors
+            dotProd = startDir.getDotProduct(rotAxis);
+            componentVec = startDir * dotProd;
+            rotAxis -= componentVec;
+            rotAxis.normalize();
+
+            rotAngle = 180.0;
+        }
+        else
+            rotAngle = startDir.getAngleBetween(endDir);
+
         setAxisAngleRotation(rotAxis[0], rotAxis[1], rotAxis[2], rotAngle);
     }
 
-    // Second, with both forward directions aligned, roll the up
-    // directions to match
+    // * Second, with both forward directions aligned, 'roll' the rotation
+    // around the forward vector so that the up vectors match
+
+    // Apply the rotation that rotates originForward to targetForward to
+    // the originUp vector
     newUp = rotatePoint(startUp);
+
+    // Don't compute the roll if the up directions already match, or if
+    // either up vector is parallel to its corresponding forward vector
     if (!(newUp == endUp) && !(startDir == startUp) && !(endDir == endUp))
     {
+        // Force originUp to be perpendicular to originForward
         dotProd = endDir.getDotProduct(newUp);
         componentVec = endDir * dotProd;
         newUp -= componentVec;
         newUp.normalize();
 
+        // Force targetUp to be perpendicular to targetForward
         dotProd = endDir.getDotProduct(endUp);
         componentVec = endDir * dotProd;
         endUp -= componentVec;
         endUp.normalize();
 
+        // Compute the axis and angle of rotation. Although the forward
+        // vector should be suitable as an axis of rotation, I'm computing
+        // it again here for simplicity; the getAngleBetween function can
+        // sometimes return a negative angle, but the cross product will
+        // be the opposite direction in those cases, so the two negatives
+        // cancel out.
         rotAxis = newUp.getCrossProduct(endUp);
-        rotAngle = newUp.getAngleBetween(endUp);
+
+        // Check for the special case where the two up vectors are
+        // opposite directions
+        if (rotAxis == zeroVector)
+        {
+            rotAxis = endDir;
+            rotAngle = 180.0;
+        }
+        else
+            rotAngle = newUp.getAngleBetween(endUp);
 
         roll.setAxisAngleRotation(rotAxis[0], rotAxis[1], rotAxis[2], rotAngle);
+
+        // Combine the two rotations
         (*this) = roll * (*this);
     }
 }
