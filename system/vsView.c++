@@ -9,7 +9,7 @@ vsView::vsView()
 {
     viewLocation.setSize(3);
     viewLocation.clear();
-    viewRotation.set(0.0, 0.0, 0.0, 1.0);
+    viewRotation.setIdentity();
     
     viewAttribute = NULL;
 }
@@ -106,9 +106,9 @@ void vsView::setDirectionFromVector(vsVector direction, vsVector upDirection)
     upRotQuat.setAxisAngleRotation(rotAxisVec[VS_X], rotAxisVec[VS_Y],
         rotAxisVec[VS_Z], rotDegrees);
 
-    // * Finally, set the view orientation quat as a composition of the
+    // * Finally, set the view orientation matrix as a composition of the
     // two quaternions
-    viewRotation = upRotQuat * dirRotQuat;
+    viewRotation.setQuatRotation(upRotQuat * dirRotQuat);
 }
 
 // ------------------------------------------------------------------------
@@ -129,15 +129,26 @@ void vsView::lookAtPoint(vsVector targetPoint, vsVector upDirection)
 // ------------------------------------------------------------------------
 void vsView::setDirectionFromRotation(vsQuat rotQuat)
 {
-    viewRotation = rotQuat;
+    viewRotation.setQuatRotation(rotQuat);
 }
 
 // ------------------------------------------------------------------------
-// Sets the current orientation directly from a rotation matrix
+// Sets the current orientation directly from a rotation matrix. Removes
+// any scaling and translation on the new matrix.
 // ------------------------------------------------------------------------
 void vsView::setDirectionFromRotation(vsMatrix rotMatrix)
 {
-    viewRotation.setMatrixRotation(rotMatrix);
+    int loop;
+
+    viewRotation = rotMatrix;
+    
+    for (loop = 0; loop < 3; loop++)
+    {
+	viewRotation[loop][3] = 0.0;
+	viewRotation[3][loop] = 0.0;
+    }
+    
+    viewRotation[3][3] = 1.0;
 }
 
 // ------------------------------------------------------------------------
@@ -169,7 +180,7 @@ vsVector vsView::getDirection()
     vsVector result;
     
     result.set(0.0, 1.0, 0.0);
-    result = viewRotation.rotatePoint(result);
+    result = viewRotation.getVectorXform(result);
     
     return result;
 }
@@ -182,7 +193,7 @@ vsVector vsView::getUpDirection()
     vsVector result;
     
     result.set(0.0, 0.0, 1.0);
-    result = viewRotation.rotatePoint(result);
+    result = viewRotation.getVectorXform(result);
     
     return result;
 }
@@ -190,7 +201,7 @@ vsVector vsView::getUpDirection()
 // ------------------------------------------------------------------------
 // Retrieves the current view rotation matrix
 // ------------------------------------------------------------------------
-vsQuat vsView::getRotationQuat()
+vsMatrix vsView::getRotationMat()
 {
     return viewRotation;
 }

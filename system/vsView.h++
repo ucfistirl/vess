@@ -17,7 +17,7 @@ class vsView
 private:
 
     vsVector                viewLocation;
-    vsQuat                  viewRotation;
+    vsMatrix                viewRotation;
     
     double		    nearClip, farClip;
     
@@ -53,7 +53,7 @@ public:
     vsVector    getDirection();
     vsVector    getUpDirection();
 
-    vsQuat      getRotationQuat();
+    vsMatrix    getRotationMat();
 };
 
 #endif
