@@ -23,14 +23,14 @@
 #ifndef VS_SOUND_MANAGER_HPP
 #define VS_SOUND_MANAGER_HPP
 
-#include "vsObject.h++"
+#include "vsUpdatable.h++"
 #include "vsSoundPipe.h++"
 #include "vsSoundSourceAttribute.h++"
 #include "vsSoundListenerAttribute.h++"
 
 #define VS_SDM_MAX_SOUNDS 512
 
-class vsSoundManager : public vsObject
+class vsSoundManager : public vsUpdatable
 {
 protected:
 
