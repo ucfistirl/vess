@@ -1,7 +1,7 @@
 #!/bin/make
 
 INCDIRS =   -I.\
-	    -I../corelib \
+	    -I../system \
 	    -I../math
 TYPE = -n32 -mips3
 FLAGS = $(TYPE) -g -xansi -DSGI -DPF_CPLUSPLUS_API=1 -woff 1681 $(INCDIRS)

@@ -1,7 +1,7 @@
 #!/bin/make
 
 INCDIRS =   -I.\
-            -I../corelib \
+            -I../system \
 	    -I../math \
             -I/usr/X11R6/include \
             -I/usr/include/g++-2

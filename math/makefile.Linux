@@ -1,6 +1,6 @@
 #!/bin/make
 
-INCDIRS =   -I../corelib
+INCDIRS =   -I../system
 FLAGS = -g -O -ansi -D__linux__ -D_XOPEN_SOURCE -D_BSD_SOURCE -D_MISC_SOURCE -DPF_CPLUSPLUS_API=1 $(INCDIRS)
 
 LIBOBJS = vsVector.o vsQuat.o vsMatrix.o

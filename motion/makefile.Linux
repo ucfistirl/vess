@@ -65,7 +65,7 @@ INCS = \
        -I../scene \
        -I../math \
        -I../input \
-       -I../corelib \
+       -I../system \
        -I/usr/include/g++-2 \
        -I/usr/X11R6/include
 
