@@ -15,7 +15,7 @@
 //
 //    Description:  Class that represents an open window on any screen
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Casey Thurston
 //
 //------------------------------------------------------------------------
 
@@ -84,7 +84,7 @@ public:
                           vsWindow(vsScreen *parent, int x, int y, int width, 
                                    int height, bool hideBorder, bool stereo);
                           vsWindow(vsScreen *parent, int offScreenWidth,
-                          		   int offScreenHeight);
+                                   int offScreenHeight);
                           vsWindow(vsScreen *parent, Window xWin);
     virtual               ~vsWindow();
 

@@ -15,7 +15,7 @@
 //
 //    Description:  Class that represents an open window on any screen
 //
-//    Author(s):    Bryan Kline, Jason Daly
+//    Author(s):    Bryan Kline, Jason Daly, Casey Thurston
 //
 //------------------------------------------------------------------------
 
@@ -86,52 +86,53 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     
     // Initialize the pane count
     childPaneCount = 0;
-    
+
     // Assign this window an index and increment the window count.
     // Note: this procedure may need to be protected for thread-safeness 
     // if OSG becomes multi-threaded.
     windowNumber = windowCount++;
-    
+
     // Save the parent screen and get the parent pipe object from the screen
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
-    
+ 
     // Get the X display connection from the parent pipe
     xWindowDisplay = parentPipe->getXDisplay();
- 
+
     // Get the list of frame buffer configurations for this display
     configList = glXChooseFBConfig(xWindowDisplay,
         parentScreen->getScreenIndex(), frameBufferAttributes, &configCount);
-                                                                                                                                                             
+
     // Make sure the buffer configuration is valid
     if (configCount == 0)
     {
         // Invalid frame-buffer configuration list, print an error
         printf("vsWindow::vsWindow: Unable to choose an appropriate frame-"
                "buffer configuration!\n");
-                                                                                                                                                             
+
         // Bail out
         return;
     }
-                                                                                                                                                             
+
     // Save the first element of the config list
-    fbConfig = configList[0];                                                                                                                                                                 
+    fbConfig = configList[0];
+
     // Free the memory used for the config list
     XFree(configList);
-                                                                                                                                                         
+
     // Retrieve a XVisualInfo from the frame buffer configuration
     visual = glXGetVisualFromFBConfig(xWindowDisplay, fbConfig);
-                                                                                                                                                             
+
     // Create an OpenGL rendering context using direct rendering
     glContext = glXCreateNewContext(xWindowDisplay, fbConfig, GLX_RGBA_TYPE,
         NULL, GL_TRUE);
-                                                                                                                                                             
+
     // Make sure the context is valid
     if (glContext == NULL)
     {
         // Invalid context, print an error
         printf("vsWindow::vsWindow:  Unable to create an OpenGL context!\n");
-                                                                                                                                                             
+
         // Bail out
         return;
     }                  
@@ -162,6 +163,10 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
                             InputOutput, visual->visual, 
                             CWBorderPixel|CWColormap|CWEventMask, 
                             &setWinAttrs);
+
+    // Set the drawable width and height
+    drawableWidth = VS_WINDOW_DEFAULT_WIDTH;
+    drawableHeight = VS_WINDOW_DEFAULT_HEIGHT;
 
     // Make sure the X window is valid
     if (xWindow == 0)
@@ -425,6 +430,10 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
                             CWBorderPixel|CWColormap|CWEventMask, 
                             &setWinAttrs);
 
+    // Set the drawable width and height
+    drawableWidth = width;
+    drawableHeight = height;
+
     // Make sure the X window is valid
     if (xWindow == 0)
     {
@@ -573,6 +582,9 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
     // Indicate that the window is off-screen
     isOffScreenWindow = true;
 
+    // An off-screen window has no X Window
+    xWindow = NULL;
+
     // Default frame buffer configuration
     int frameBufferAttributes[17] =
     {
@@ -590,7 +602,7 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
     // pBuffer configuration: This will create a pBuffer of the requested
     // width and height. Its contents are preserved, meaning images held
     // should survive screen modifications. Also this will not create the
-    // largest available pBuffer if there is not enough memory. It will
+    // largest available pBuffer if there is not enough memory; It will
     // give an invalid context instead.
     int pBufferAttributes[8] =
     {
