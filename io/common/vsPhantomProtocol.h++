@@ -70,6 +70,7 @@ struct PhantomState
 {
     char    switchState;
     char    unused[7];
+    double  velocityData[3];
     double  matrixData[16];
 };
 
