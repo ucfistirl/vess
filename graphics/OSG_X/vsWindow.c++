@@ -39,7 +39,7 @@ int vsWindow::windowCount = 0;
 // configures the window's buffer settings to be either mono or stereo
 // based on the value of the stereo parameter
 // ------------------------------------------------------------------------
-vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo) 
+vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo) 
     : childPaneList(1, 1)
 {
     vsPipe *parentPipe;
@@ -294,7 +294,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
 // based on the value of the stereo parameter
 // ------------------------------------------------------------------------
 vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height, 
-                   int hideBorder, int stereo) : childPaneList(1, 1)
+                   bool hideBorder, bool stereo) : childPaneList(1, 1)
 {
     vsPipe *parentPipe;
     Display *xWindowDisplay;

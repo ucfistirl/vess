@@ -59,9 +59,9 @@ VS_INTERNAL:
 
 public:
 
-                       vsWindow(vsScreen *parent, int hideBorder, int stereo);
+                       vsWindow(vsScreen *parent, bool hideBorder, bool stereo);
                        vsWindow(vsScreen *parent, int x, int y, int width,
-                                int height, int hideBorder, int stereo);
+                                int height, bool hideBorder, bool stereo);
                        vsWindow(vsScreen *parent, Window xWin);
     virtual            ~vsWindow();
     
