@@ -462,7 +462,10 @@ bool vsSoundSourceAttribute::isLooping()
     alGetSourcei(sourceID, AL_LOOPING, &looping);
 
     // Return the looping state
-    return (int)looping;
+    if ((int) looping == 0)
+        return false;
+    else
+        return true;
 }
 
 // ------------------------------------------------------------------------
