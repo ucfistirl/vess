@@ -25,12 +25,17 @@
 
 #include "vs6DInputDevice.h++"
 
+#define VS_MT_MAX_BUTTONS 5
+
 class VS_IO_DLL vsMotionTracker : public vs6DInputDevice
 {
 protected:
 
     // Number of this tracker in tracking system (defaults to 0)
-    int         trackerNumber;  
+    int              trackerNumber;  
+
+    int              numButtons;
+    vsInputButton    *button[VS_MT_MAX_BUTTONS];
 
 VS_INTERNAL:
 
@@ -42,6 +47,7 @@ VS_INTERNAL:
 public:
 
                           vsMotionTracker(int trackerNum);
+                          vsMotionTracker(int trackerNum, int nButtons);
                           vsMotionTracker();
     virtual               ~vsMotionTracker();
 

@@ -21,22 +21,53 @@
 //------------------------------------------------------------------------
 
 #include <stdio.h>
+#include <string.h>
 #include "vsMotionTracker.h++"
 
 // ------------------------------------------------------------------------
-// Set up a new vsMotionTracker with the given tracker number
+// Set up a new vsMotionTracker with the given tracker number.  No buttons
+// are created.
 // ------------------------------------------------------------------------
 vsMotionTracker::vsMotionTracker(int trackerNum)
 {
+    // Set the tracker number
     trackerNumber = trackerNum;
+
+    // Initialize button data to zero and NULL
+    numButtons = 0;
+    memset(button, 0, sizeof(button));
 }
 
 // ------------------------------------------------------------------------
-// Set up a new vsMotionTracker with a tracker number of 0
+// Set up a new vsMotionTracker with the given tracker number and number
+// of buttons
+// ------------------------------------------------------------------------
+vsMotionTracker::vsMotionTracker(int trackerNum, int nButtons)
+{
+    int i;
+
+    // Set the tracker number
+    trackerNumber = trackerNum;
+
+    // Initialize the buttons
+    numButtons = nButtons;
+    memset(button, 0, sizeof(button));
+    for (i = 0; i < numButtons; i++)
+        button[i] = new vsInputButton();
+}
+
+// ------------------------------------------------------------------------
+// Set up a new vsMotionTracker with a tracker number of 0.  No buttons
+// are created.
 // ------------------------------------------------------------------------
 vsMotionTracker::vsMotionTracker()
 {
+    // Set the tracker number to zero
     trackerNumber = 0;
+
+    // Initialize button data to zero and NULL
+    numButtons = 0;
+    memset(button, 0, sizeof(button));
 }
 
 // ------------------------------------------------------------------------
@@ -44,6 +75,14 @@ vsMotionTracker::vsMotionTracker()
 // ------------------------------------------------------------------------
 vsMotionTracker::~vsMotionTracker()
 {
+    int i;
+
+    // Delete any buttons that were created
+    for (i = 0; i < VS_MT_MAX_BUTTONS; i++)
+    {
+        if (button[i] != NULL)
+            delete button[i];
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -96,20 +135,24 @@ void vsMotionTracker::setOrientation(vsQuat ornQuat)
 }
 
 // ------------------------------------------------------------------------
-// Return the number of buttons on a vsMotionTracker (zero, trackers don't
-// have buttons)
+// Return the number of buttons on the motion tracker (often zero, but
+// some trackers do have buttons)
 // ------------------------------------------------------------------------
 int vsMotionTracker::getNumButtons()
 {
-    return 0;
+    return numButtons;
 }
 
 // ------------------------------------------------------------------------
-// Return NULL for any button requests (trackers don't have buttons)
+// Return the requested button, or NULL if the index does not specify a
+// valid button
 // ------------------------------------------------------------------------
 vsInputButton *vsMotionTracker::getButton(int index)
 {
-    return NULL;
+    if ((index < 0) || (index >= numButtons))
+        return button[index];
+    else
+        return NULL;
 }
 
 // ------------------------------------------------------------------------
