@@ -85,6 +85,9 @@ void vsSwitchAttribute::enableOne(int index)
         printf("vsSwitchAttribute::enableOne: Index out of bounds\n");
         return;
     }
+    
+    // Turn all children off first
+    osgSwitch->setAllChildrenOff();
 
     // Turn the requested child on on the osg::Switch
     osgSwitch->setValue(index, true);
