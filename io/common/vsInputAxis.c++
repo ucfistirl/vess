@@ -247,11 +247,11 @@ double vsInputAxis::getPosition(void)
     else
     {
         // Check the raw position against the threshold and return
-        // the position or zero accordingly
+        // the position or offset accordingly
         if (fabs(position - offset) > threshold)
             return position;
         else
-            return 0.0;
+            return offset;
     }
 }
 
