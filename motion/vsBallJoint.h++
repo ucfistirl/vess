@@ -5,8 +5,6 @@
 #include "vsMotionTracker.h++"
 #include "vsMatrix.h++"
 #include "vsQuat.h++"
-#include "vsComponent.h++"
-#include "vsTransformAttribute.h++"
 
 // Motion model to support ball-joint articulations (three degrees of freedom)
 // based on motion tracker data
@@ -38,9 +36,7 @@ public:
                                     vsQuat elbowRotOffset,
 				    vsQuat originXform);
 
-//  void                 calibrate();
-
-    virtual vsMatrix     update();
+    virtual vsMatrix    update();
 };
 
 #endif

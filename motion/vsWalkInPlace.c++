@@ -33,6 +33,7 @@ vsWalkInPlace::vsWalkInPlace(vsMotionTracker *back, vsMotionTracker *left,
 
     maxAllowance = VS_WIP_DEFAULT_ALLOWANCE;
     moveAllowance = maxAllowance;
+    lastTrackerHeading = 0.0;
 }
 
 // ------------------------------------------------------------------------
@@ -178,7 +179,7 @@ vsMatrix vsWalkInPlace::update()
 {
     vsVector             backOrient;
     vsVector             leftFoot, rightFoot;
-    double               currentHeading, trackerHeading;
+    double               trackerHeading;
     double               deltaHeading;
     vsQuat               headingQuat;
     vsVector             separationVec, unitVec;
@@ -189,11 +190,18 @@ vsMatrix vsWalkInPlace::update()
     double               moveDistance;
     vsMatrix             newTranslation;
     vsMatrix             newRotation;
+    int                  i, j;
 
     // Grab tracker data
     backOrient = backTracker->getOrientationVec(VS_EULER_ANGLES_ZXY_R);
     leftFoot = lFootTracker->getPositionVec();
     rightFoot = rFootTracker->getPositionVec();
+
+    printf("Left foot :  %0.2lf %0.2lf %0.2lf\n", leftFoot[VS_X],
+        leftFoot[VS_Y], leftFoot[VS_Z]);
+    printf("Right foot:  %0.2lf %0.2lf %0.2lf\n", rightFoot[VS_X],
+        rightFoot[VS_Y], rightFoot[VS_Z]);
+    printf("Back hdg  :  %0.2lf\n", backOrient[VS_H]);
 
     // Extract the essential data
     trackerHeading = backOrient[VS_H];
@@ -211,14 +219,13 @@ vsMatrix vsWalkInPlace::update()
     deltaHeading = trackerHeading - lastTrackerHeading;
     lastTrackerHeading = trackerHeading;
 
-    if (currentHeading < -180.0)
-        currentHeading += 360.0;
-    if (currentHeading >= 180.0)
-        currentHeading -= 360.0;
+    printf("heading = %0.2f  deltaX = %0.2f  deltaY = %0.2f  deltaZ = %0.2f\n",
+           trackerHeading, deltaX, deltaY, deltaZ);
 
     // Get the difference in time from last frame to this one
     deltaTime = getTimeInterval();
 
+    moveDistance = 0.0;
     motionFlag = VS_FALSE;
     transVec.setSize(3);
     transVec.clear();
@@ -233,9 +240,15 @@ vsMatrix vsWalkInPlace::update()
         // to travel, i.e if the right foot is in front of the left, we 
         // should sidestep left)
         if (deltaY < 0)
+        {
             transVec.set(moveDistance, 0.0, 0.0);
+            printf("Stepping RIGHT %0.2lf\n", moveDistance);
+        }
         else
+        {
             transVec.set(-moveDistance, 0.0, 0.0);
+            printf("Stepping LEFT %0.2lf\n", moveDistance);
+        }
 
         motionFlag = VS_TRUE;
     }
@@ -246,6 +259,7 @@ vsMatrix vsWalkInPlace::update()
 
         transVec.set(0.0, -moveDistance, 0.0);
 
+        printf("Stepping BACK %0.2lf\n", moveDistance);
         motionFlag = VS_TRUE;
     }
     else if ((fabs(deltaZ) > forwardThresh) && (forwardAllowed))
@@ -255,23 +269,29 @@ vsMatrix vsWalkInPlace::update()
 
         transVec.set(0.0, moveDistance, 0.0);
 
+        printf("Stepping FORWARD %0.2lf\n", moveDistance);
         motionFlag = VS_TRUE;
     }
 
     // Clamp the distance to travel to the movement allowance
-    if (moveDistance > moveAllowance)
+    if ((moveDistance > 0.0) && (moveDistance > moveAllowance))
     {
         transVec.normalize();
         transVec.scale(moveAllowance);
+
+        moveAllowance = 0.0;
     }
 
     // Reset the movement allowance if we stop moving
     if (!motionFlag)
     {
+        printf("Not moving\n");
         moveAllowance = maxAllowance;
     }
     else
+    {
         moveAllowance -= moveDistance;
+    }
 
     // Set up the translation matrix
     newTranslation.setIdentity();
@@ -279,8 +299,33 @@ vsMatrix vsWalkInPlace::update()
         transVec[VS_Z]);
 
     // Report any change in heading
+    newRotation.setIdentity();
     headingQuat.setAxisAngleRotation(0, 0, 1, deltaHeading);
     newRotation.setQuatRotation(headingQuat);
+
+    printf("newTranslation:\n");
+    for (i = 0; i < 4; i++)
+    {
+        for (j = 0; j < 4; j++)
+        {
+            printf("%6.2lf  ", newTranslation[i][j]);
+        }
+        printf("\n");
+    }
+
+    printf("\n");
+
+    printf("newRotation:\n");
+    for (i = 0; i < 4; i++)
+    {
+        for (j = 0; j < 4; j++)
+        {
+            printf("%6.2lf  ", newRotation[i][j]);
+        }
+        printf("\n");
+    }
+  
+
 
     return newRotation * newTranslation;
 }

@@ -10,53 +10,84 @@
 // steering have separate scaling factors to scale the input values received.
 
 #include "vsMotionModel.h++"
+#include "vsMouse.h++"
 
-enum
+enum vsDMThrottleMode
 {
-    VS_DM_CONTROL_POSITION,
-    VS_DM_CONTROL_VELOCITY,
-    VS_DM_CONTROL_ACCELERATION
-}
+    VS_DM_THROTTLE_VELOCITY,
+    VS_DM_THROTTLE_ACCELERATION
+};
 
-enum
+enum vsDMSteeringMode
 {
     VS_DM_STEER_RELATIVE,
     VS_DM_STEER_ABSOLUTE
-}
+};
+
+#define VS_DM_DEFAULT_ACCEL_RATE    20.0
+#define VS_DM_DEFAULT_STEER_RATE    50.0
+#define VS_DM_DEFAULT_MAX_VELOCITY  150.0
+#define VS_DM_DEFAULT_THROTTLE_MODE VS_DM_THROTTLE_ACCELERATION
+#define VS_DM_DEFAULT_STEERING_MODE VS_DM_STEER_ABSOLUTE
 
 class vsDrivingMotion : public vsMotionModel
 {
 protected:
 
-     vsBehaviorList    *behaviors;
+     // Throttle control (either a single axis or a collection of buttons)
+     vsInputAxis         *throttle;
 
-     vsInputAxis       *throttle;
-     int               throttleControl;
-     double            throttleScale;
+     vsInputButton       *accelButton;
+     vsInputButton       *decelButton;
+     vsInputButton       *stopButton;
 
-     vsInputAxis       *steering;
-     int               steeringControl;
-     int               steeringMode;
-     double            steeringScale;
+     // Throttle parameters
+     vsDMThrottleMode    throttleMode;
+     double              velocity;
+     double              maxVelocity;
+     double              accelerationRate;
+     double              lastThrottleVal;
+     
+     // Steering control
+     vsInputAxis         *steering;
+
+     // Steering parameters
+     vsDMSteeringMode    steeringMode;
+     double              steeringRate;
+     double              lastSteeringVal;
 
 public:
 
-                    vsDrivingMotion(vsComponent *component, 
-                                    vsInputAxis *throttleAxis,
-                                    vsInputAxis *steeringAxis);
+                        vsDrivingMotion(vsInputAxis *steeringAxis,
+                                        vsInputAxis *throttleAxis);
 
-                    vsDrivingMotion(vsComponent *component, 
-                                    vsInputDevice *input,
-                                    int throttleAxis, int steeringAxis);
+                        vsDrivingMotion(vsInputAxis *steeringAxis,
+                                        vsInputButton *accelButton,
+                                        vsInputButton *decelButton,
+                                        vsInputButton *stopButton);
 
-    int             setThrottleControl(int control)
-    int             setThrottleScale(double scale)
+                        vsDrivingMotion(vsMouse *mouse);
 
-    int             setSteeringControl(int control)
-    int             setSteeringMode(int mode)
-    int             setSteeringScale(double scale)
+                        vsDrivingMotion(vsMouse *mouse, 
+                                        int accelButtonIndex,
+                                        int decelButtonIndex, 
+                                        int stopButtonIndex);
 
-    virtual void    update();
+                        ~vsDrivingMotion();
+
+    vsDMThrottleMode    getThrottleMode();
+    void                setThrottleMode(vsDMThrottleMode mode);
+    double              getAccelerationRate();
+    void                setAccelerationRate(double rate);
+    double              getMaxVelocity();
+    void                setMaxVelocity(double max);
+
+    vsDMSteeringMode    getSteeringMode();
+    void                setSteeringMode(vsDMSteeringMode mode);
+    double              getSteeringRate();
+    void                setSteeringRate(double rate);
+
+    virtual vsMatrix    update();
 };
 
 #endif
