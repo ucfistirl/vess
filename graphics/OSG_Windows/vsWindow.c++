@@ -380,6 +380,9 @@ vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
     
     // Initialize the pane count
     childPaneCount = 0;
+    
+    // Remember the msWin parameter
+    msWindow = msWin;
 
     // Assign this window an index and increment the window count.
     // Note: this procedure may need to be protected for thread-safeness 
