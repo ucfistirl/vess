@@ -47,6 +47,9 @@ vsTrackballMotion::vsTrackballMotion(vsMouse *mouse, vsKinematics *kin)
      transYButton = mouse->getButton(2);
      rotButton = mouse->getButton(1);
      kinematics = kin;
+
+     transConst = VS_TBM_DEFAULT_TRANSLATE_CONST;
+     rotConst = VS_TBM_DEFAULT_ROTATE_CONST;
 }
 
 // ------------------------------------------------------------------------
@@ -72,6 +75,9 @@ vsTrackballMotion::vsTrackballMotion(vsMouse *mouse, int xzTransButtonIndex,
      transYButton = mouse->getButton(yTransButtonIndex);
      rotButton = mouse->getButton(rotButtonIndex);
      kinematics = kin;
+
+     transConst = VS_TBM_DEFAULT_TRANSLATE_CONST;
+     rotConst = VS_TBM_DEFAULT_ROTATE_CONST;
 }
 
 // ------------------------------------------------------------------------
@@ -100,6 +106,9 @@ vsTrackballMotion::vsTrackballMotion(vsInputAxis *horizAxis,
      transYButton = yTransBtn;
      rotButton = rotBtn;
      kinematics = kin;
+
+     transConst = VS_TBM_DEFAULT_TRANSLATE_CONST;
+     rotConst = VS_TBM_DEFAULT_ROTATE_CONST;
 }
 
 // ------------------------------------------------------------------------
@@ -108,6 +117,40 @@ vsTrackballMotion::vsTrackballMotion(vsInputAxis *horizAxis,
 vsTrackballMotion::~vsTrackballMotion()
 {
 
+}
+
+// ------------------------------------------------------------------------
+// Sets the translation constant.  The translation constant specifies how 
+// far the geometry moves per unit of input.  
+// ------------------------------------------------------------------------
+void vsTrackballMotion::setTranslationConstant(double newConst)
+{
+    transConst = newConst;
+}
+
+// ------------------------------------------------------------------------
+// Returns the translation constant.
+// ------------------------------------------------------------------------
+double vsTrackballMotion::getTranslationConstant()
+{
+    return transConst;
+}
+
+// ------------------------------------------------------------------------
+// Sets the rotation constant.  The rotation constant specifies how far the 
+// geometry rotates per unit of input.  
+// ------------------------------------------------------------------------
+void vsTrackballMotion::setRotationConstant(double newConst)
+{
+    rotConst = newConst;
+}
+
+// ------------------------------------------------------------------------
+// Returns the rotation constant.
+// ------------------------------------------------------------------------
+double vsTrackballMotion::getRotationConstant()
+{
+    return rotConst;
 }
 
 // ------------------------------------------------------------------------
@@ -169,8 +212,8 @@ void vsTrackballMotion::update()
     if ((transXZButton != NULL) && (transXZButton->isPressed()))
     {
         // Translate in the XZ (screen) plane
-        dPos.set(dHoriz * VS_TBM_TRANSLATE_CONST, 0.0, 
-            -dVert * VS_TBM_TRANSLATE_CONST);
+        dPos.set(dHoriz * transConst, 0.0, 
+            -dVert * transConst);
         
         kinematics->setVelocity(dPos.getScaled(1/interval));
     }
@@ -180,9 +223,9 @@ void vsTrackballMotion::update()
         {
             // Rotate about Y
             rot1.setAxisAngleRotation(0, 1, 0, 
-                dHoriz * VS_TBM_ROTATE_CONST);
+                dHoriz * rotConst);
             rot2.setAxisAngleRotation(0, 1, 0,
-                -dVert * VS_TBM_ROTATE_CONST);
+                -dVert * rotConst);
 
             // The total rotation
             totalRot = rot2 * rot1;
@@ -201,9 +244,9 @@ void vsTrackballMotion::update()
         {
             // Rotate about X and/or Z
             rot1.setAxisAngleRotation(0, 0, 1, 
-                dHoriz * VS_TBM_ROTATE_CONST);
+                dHoriz * rotConst);
             rot2.setAxisAngleRotation(1, 0, 0, 
-                dVert * VS_TBM_ROTATE_CONST);
+                dVert * rotConst);
 
             // The total rotation
             totalRot = rot2 * rot1;
@@ -222,7 +265,7 @@ void vsTrackballMotion::update()
     else if ((transYButton != NULL) && (transYButton->isPressed()))
     {
         // Translate in the Y direction
-        dPos.set(0.0, -dVert * VS_TBM_TRANSLATE_CONST, 0.0);
+        dPos.set(0.0, -dVert * transConst, 0.0);
 
         kinematics->setVelocity(dPos.getScaled(1/interval));
     }

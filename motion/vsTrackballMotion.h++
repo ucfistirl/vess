@@ -35,9 +35,10 @@
 #include "vsMouse.h++"
 #include "vsKinematics.h++"
 
-// Number of degrees rotated per normalized unit of movement
-#define VS_TBM_TRANSLATE_CONST 10.0
-#define VS_TBM_ROTATE_CONST    180.0
+// Default number of database units moved (or degrees rotated) per 
+// normalized unit of input movement
+#define VS_TBM_DEFAULT_TRANSLATE_CONST 10.0
+#define VS_TBM_DEFAULT_ROTATE_CONST    180.0
 
 class vsTrackballMotion : public vsMotionModel
 {
@@ -57,6 +58,10 @@ protected:
 
     // Previous input values used to calculate velocities
     double           lastHorizontal, lastVertical;
+
+    // Translation/rotation constants
+    double           transConst;
+    double           rotConst;
 
 public:
 
@@ -79,6 +84,12 @@ public:
 
     // Destructor
                         ~vsTrackballMotion();
+
+    // Movement constant accessors
+    void                setTranslationConstant(double newConst);
+    double              getTranslationConstant();
+    void                setRotationConstant(double newConst);
+    double              getRotationConstant();
  
     // Update function
     virtual void    update();
