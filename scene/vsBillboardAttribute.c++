@@ -33,7 +33,7 @@ vsBillboardAttribute::vsBillboardAttribute()
     centerPoint.set(0.0, 0.0, 0.0);
     preTranslate.setIdentity();
     postTranslate.setIdentity();
-    frontDirection.set(0.0, -1.0, 0.0);
+    frontDirection.set(0.0, 1.0, 0.0);
     upAxis.set(0.0, 0.0, 1.0);
     billboardTransform = NULL;
     billboardMode = VS_BILLBOARD_ROT_AXIS;
@@ -57,7 +57,7 @@ vsBillboardAttribute::vsBillboardAttribute(pfBillboard *billboard)
         -centerPoint[2]);
     postTranslate.setTranslation(centerPoint[0], centerPoint[1],
         centerPoint[2]);
-    frontDirection.set(0.0, -1.0, 0.0);
+    frontDirection.set(0.0, 1.0, 0.0);
     billboard->getAxis(data);
     upAxis.set(data[0], data[1], data[2]);
     switch (billboard->getMode(PFBB_ROT))
@@ -318,7 +318,9 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
     int loop, sloop;
     double dotValue;
     vsVector cross;
-
+    vsMatrix invMat;
+    vsVector viewUp;
+    
     // Transform each important data value about the billboarded object
     // by the series of transforms in the scene above this component
     center = currentXform.getPointXform(centerPoint);
@@ -340,8 +342,10 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
         // vector 'up'.
         dotValue = viewDir.getDotProduct(up);
         viewDir = viewDir - (up * dotValue);
+	viewDir.normalize();
         dotValue = front.getDotProduct(up);
         front = front - (up * dotValue);
+	front.normalize();
 
         // Calculate the angle between the view vector and the object's
         // forward vector; adjust for the sign change when the cross
@@ -405,7 +409,13 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
         tempMat.setQuatRotation(resultQuat);
         resultMat.preMultiply(tempMat);
     }
-
+	
+    // Transform this global rotation into the local coordinate system
+    // of the component
+    invMat = currentXform.getInverse();
+    resultMat = invMat * resultMat * currentXform;
+	
+    // Factor in the center point of the object
     resultMat.postMultiply(preTranslate);
     resultMat.preMultiply(postTranslate);
 
