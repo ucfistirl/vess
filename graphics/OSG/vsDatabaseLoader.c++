@@ -316,31 +316,28 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
     double offsetFactor;
     double offsetUnits;
 
-        osgGroup = (osg::Group *)node;
+    // LOD vars
+    osg::LOD *lodGroup;
 
-            osg::LOD *lodGroup = (osg::LOD *)node;
+    // Sequence vars
+    osg::Sequence *sequenceGroup;
+    vsSequenceAttribute *sequenceAttr;
+    float speed;
+    int nReps;
+    osg::Sequence::LoopMode loopMode;
+    int begin, end;
             
-            osg::Sequence *sequenceGroup = (osg::Sequence *)node;
-            vsSequenceAttribute *sequenceAttr = new vsSequenceAttribute();
-            float speed;
-            int nReps;
-            osg::Sequence::LoopMode loopMode;
-            int begin, end;
+    // Switch vars
+    osg::Switch *switchGroup;
+    vsSwitchAttribute *switchAttr;
             
-            osg::Switch *switchGroup = (osg::Switch *)node;
-            vsSwitchAttribute *switchAttr = new vsSwitchAttribute();
-            
-            vsTransformAttribute *xformAttr = new vsTransformAttribute();
-            osg::Matrix osgMat;
-            vsMatrix xformMat, tempMat;
-
-                osg::DOFTransform *dofXformGroup = (osg::DOFTransform *)node;
-
-                osg::MatrixTransform *matrixXformGroup =
-                    (osg::MatrixTransform *)node;
-                
-                osg::PositionAttitudeTransform *posAttXformGroup =
-                    (osg::PositionAttitudeTransform *)node;
+    // Transform vars
+    vsTransformAttribute *xformAttr;
+    osg::Matrix osgMat;
+    vsMatrix xformMat, tempMat;
+    osg::DOFTransform *dofXformGroup;
+    osg::MatrixTransform *matrixXformGroup;
+    osg::PositionAttitudeTransform *posAttXformGroup;
 
     if (!node)
         return NULL;
@@ -359,6 +356,8 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
     }
     else if (dynamic_cast<osg::Group *>(node))
     {
+        osgGroup = (osg::Group *)node;
+
         // This is a group (or subtype); start with a vsComponent and
         // go from there
         newComponent = new vsComponent();
