@@ -27,7 +27,7 @@
 // ------------------------------------------------------------------------
 vs6DInputDevice::vs6DInputDevice(void)
 {
-    orientation.setAxisAngleRotation(1.0, 0.0, 0.0, 0.0);
+    orientation.setAxisAngleRotation(0.0, 0.0, 0.0, 1.0);
 }
 
 // ------------------------------------------------------------------------
