@@ -493,22 +493,6 @@ void vsPane::setBufferMode(vsPaneBufferMode newMode)
                     osg::DisplaySettings::QUAD_BUFFER);
                 osgDisplaySettings->setStereo(true);
                 break;
-
-            // Horizontal split (the pane is divided into two viewports
-            // horizontally)
-            case VS_PANE_BUFFER_STEREO_H_SPLIT:
-                osgDisplaySettings->setStereoMode(
-                    osg::DisplaySettings::HORIZONTAL_SPLIT);
-                osgDisplaySettings->setStereo(true);
-                break;
-
-            // Vertical split (the pane is divided into two viewports
-            // vertically)
-            case VS_PANE_BUFFER_STEREO_V_SPLIT:
-                osgDisplaySettings->setStereoMode(
-                    osg::DisplaySettings::VERTICAL_SPLIT);
-                osgDisplaySettings->setStereo(true);
-                break;
         }
 
         // Keep track of the new buffer mode
@@ -522,28 +506,6 @@ void vsPane::setBufferMode(vsPaneBufferMode newMode)
 vsPaneBufferMode vsPane::getBufferMode()
 {
     return bufferMode;
-}
-
-// ------------------------------------------------------------------------
-// Sets the visibility mask for this pane.  Under Open Scene Graph, each
-// node can unfortunately have only one node mask.  For VESS, we use
-// this mask for the intersection value, so the visibility mask will
-// always be 0xFFFFFFFF.
-// ------------------------------------------------------------------------
-void vsPane::setVisibilityMask(unsigned int newMask)
-{
-    printf("vsPane::setVisibilityMask:  Visibility mask not supported under "
-        "Open Scene Graph.\n");
-}
-
-// ------------------------------------------------------------------------
-// Gets the visibility mask for this pane.  Open Scene Graph supports only
-// one mask per node, and VESS uses this for the intersect mask.  Therefore
-// the visibility mask will always be 0xFFFFFFFF.
-// ------------------------------------------------------------------------
-unsigned int vsPane::getVisibilityMask()
-{
-    return 0xFFFFFFFF;
 }
 
 // ------------------------------------------------------------------------

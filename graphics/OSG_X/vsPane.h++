@@ -58,9 +58,7 @@ enum vsPaneBufferMode
 {
     VS_PANE_BUFFER_MONO,
     VS_PANE_BUFFER_STEREO_ANAGLYPHIC,
-    VS_PANE_BUFFER_STEREO_QUADBUFFER,
-    VS_PANE_BUFFER_STEREO_H_SPLIT,
-    VS_PANE_BUFFER_STEREO_V_SPLIT
+    VS_PANE_BUFFER_STEREO_QUADBUFFER
 };
 
 #define VS_PANE_DEFAULT_EYE_SEPARATION  0.068
@@ -142,10 +140,6 @@ public:
     void                  setBufferMode(vsPaneBufferMode newMode);
     vsPaneBufferMode      getBufferMode();
     
-    // Scene visibility mask functions
-    void                  setVisibilityMask(unsigned int newMask);
-    unsigned int          getVisibilityMask();
-
     // Pane visibility functions
     void                  showPane();
     void                  hidePane();
