@@ -27,7 +27,7 @@
 // keyboards (or equivalent keyboards on other systems) running on X
 // Windows systems.
 
-#include "vsInputDevice.h++"
+#include "vsIODevice.h++"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
@@ -123,7 +123,7 @@ enum
     VS_KEY_NUMLOCK    = 148
 };
 
-class vsKeyboard : public vsInputDevice
+class vsKeyboard : public vsIODevice
 {
 protected:
 

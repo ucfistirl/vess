@@ -267,7 +267,7 @@ void vsArticulationGlove::update()
     // Abduction values not yet supported
 
     // Update all buttons and axes
-    vsInputDevice::update();
+    vsIODevice::update();
 }
 
 // ------------------------------------------------------------------------
@@ -370,5 +370,5 @@ void vsArticulationGlove::passiveCalibrate(int enable)
     }
 
     // Update all the buttons and axes
-    vsInputDevice::update();
+    vsIODevice::update();
 }

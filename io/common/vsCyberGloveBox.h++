@@ -27,7 +27,7 @@
 
 #include "vsArticulationGlove.h++"
 #include "vsSerialPort.h++"
-#include "vsInputSystem.h++"
+#include "vsIOSystem.h++"
 
 // CyberGlove Commands (using VS_CYG_* instead of VS_CG, which is taken by
 // vsChordGloves).  All commands here use binary mode.  For ASCII mode, use
@@ -85,7 +85,7 @@ enum VS_IO_DLL
     VS_CYG_TOUCH_PALM   = 5
 };
 
-class VS_IO_DLL vsCyberGloveBox : public vsInputSystem
+class VS_IO_DLL vsCyberGloveBox : public vsIOSystem
 {
 protected:
 

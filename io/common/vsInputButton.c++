@@ -54,8 +54,8 @@ const char * vsInputButton::getClassName()
 }
 
 // ------------------------------------------------------------------------
-// Update function called by this vsInputButton's vsInputDevice every time
-// the vsInputDevice is updated
+// Update function called by this vsInputButton's vsIODevice every time
+// the vsIODevice is updated
 // ------------------------------------------------------------------------
 void vsInputButton::update()
 {

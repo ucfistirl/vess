@@ -525,7 +525,7 @@ void vsKeyboard::update()
     }
 
     // Update all axes and buttons
-    vsInputDevice::update();
+    vsIODevice::update();
 }
 
 // ------------------------------------------------------------------------

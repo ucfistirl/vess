@@ -56,7 +56,7 @@
 // PIJ and MPJ joint values.
 //
 // The computed joint angles are stored and returned as vsQuat's and can
-// be accessed with the getJoint() method.  The standard vsInputDevice
+// be accessed with the getJoint() method.  The standard vsIODevice
 // getAxis() and getButton() methods are present as well.  In this case,
 // the getAxis() method returns the corresponding glove sensor data.
 // the VS_AG_SENSOR_* symbols should be used to index the axes, and the
@@ -75,7 +75,7 @@
 #define VS_AG_WRIST_ABD_SCALE    40.0
 #define VS_AG_WRIST_ABD_OFFSET   10.0
 
-#include "vsInputDevice.h++"
+#include "vsIODevice.h++"
 #include "vsQuat.h++"
 
 // The glove sensors; use these for the getAxis() method.
@@ -128,7 +128,7 @@ enum VS_IO_DLL
      VS_AG_JOINT_WRIST        // Wrist articulation
 };
 
-class VS_IO_DLL vsArticulationGlove : public vsInputDevice
+class VS_IO_DLL vsArticulationGlove : public vsIODevice
 {
 protected:
 

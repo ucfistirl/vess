@@ -29,7 +29,7 @@
 // the give axis extents
 // ------------------------------------------------------------------------
 vsJoystick::vsJoystick(int nAxes, int nButtons, double axisMin, double axisMax)
-          : vsInputDevice()
+          : vsIODevice()
 {
     int i;
 
@@ -60,7 +60,7 @@ vsJoystick::vsJoystick(int nAxes, int nButtons, double axisMin, double axisMax)
 // with the axes in non-normalized mode
 // ------------------------------------------------------------------------
 vsJoystick::vsJoystick(int nAxes, int nButtons)
-          : vsInputDevice()
+          : vsIODevice()
 {
     int i;
 

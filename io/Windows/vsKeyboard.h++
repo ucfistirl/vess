@@ -27,7 +27,7 @@
 // keyboards (or equivalent keyboards on other systems) running on X
 // Windows systems.
 
-#include "vsInputDevice.h++"
+#include "vsIODevice.h++"
 #include <windows.h>
 
 #define VS_KB_MAX_BUTTONS    150
@@ -134,7 +134,7 @@ enum VS_IO_DLL
     VS_KEY_NUMLOCK    = 148
 };
 
-class VS_IO_DLL vsKeyboard : public vsInputDevice
+class VS_IO_DLL vsKeyboard : public vsIODevice
 {
 protected:
 

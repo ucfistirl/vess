@@ -40,7 +40,7 @@
 // finger touching left thumb, left forefinger touching left middle finger).
 
 #include "vsGlobals.h++"
-#include "vsInputDevice.h++"
+#include "vsIODevice.h++"
 
 // Index constants for each digit (single glove)
 enum VS_IO_DLL
@@ -72,7 +72,7 @@ enum VS_IO_DLL
 
 #define VS_CG_MAX_DIGITS 12
 
-class VS_IO_DLL vsChordGloves : public vsInputDevice
+class VS_IO_DLL vsChordGloves : public vsIODevice
 {
 protected:
 

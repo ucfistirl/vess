@@ -441,7 +441,7 @@ void vsInputAxis::passiveCalibrate(int enable)
 }
 
 // ------------------------------------------------------------------------
-// Each frame, the vsInputDevice responsible for this axis should call this
+// Each frame, the vsIODevice responsible for this axis should call this
 // update function.
 // Here, we save the current and previous positions so that we can
 // calculate relative movements.
