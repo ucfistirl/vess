@@ -30,6 +30,7 @@
 // ------------------------------------------------------------------------
 vsTransparencyAttribute::vsTransparencyAttribute()
 {
+    // Initialize the attribute to its default value of enabled
     quality = VS_TRANSP_QUALITY_DEFAULT;
     occlusion = VS_TRUE;
     transpValue = PFTR_ON;
@@ -63,6 +64,7 @@ int vsTransparencyAttribute::getAttributeType()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::enable()
 {
+    // Set the transparency value based on our quality value
     switch (quality)
     {
         case VS_TRANSP_QUALITY_DEFAULT:
@@ -76,9 +78,12 @@ void vsTransparencyAttribute::enable()
             break;
     }
 
+    // Modify the transparency value if occlusion is disabled
     if (occlusion == VS_FALSE)
         transpValue |= PFTR_NO_OCCLUDE;
     
+    // Mark the nodes that have this attribute attached as needing
+    // of an update
     markOwnersDirty();
 }
 
@@ -87,8 +92,11 @@ void vsTransparencyAttribute::enable()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::disable()
 {
+    // Set the transparency value to off
     transpValue = PFTR_OFF;
     
+    // Mark the nodes that have this attribute attached as needing
+    // of an update
     markOwnersDirty();
 }
 
@@ -97,6 +105,7 @@ void vsTransparencyAttribute::disable()
 // ------------------------------------------------------------------------
 int vsTransparencyAttribute::isEnabled()
 {
+    // Interpret the transparency value
     if (transpValue != PFTR_OFF)
         return VS_TRUE;
     else
@@ -108,6 +117,7 @@ int vsTransparencyAttribute::isEnabled()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::setQuality(int newQuality)
 {
+    // Sanity checking
     if ((newQuality != VS_TRANSP_QUALITY_DEFAULT) &&
         (newQuality != VS_TRANSP_QUALITY_FAST) &&
         (newQuality != VS_TRANSP_QUALITY_HIGH))
@@ -117,8 +127,11 @@ void vsTransparencyAttribute::setQuality(int newQuality)
         return;
     }
 
+    // Store the quality value
     quality = newQuality;
 
+    // If transparency is currently enabled, then call the enable()
+    // function to recompute the transparency value
     if (isEnabled())
         enable();
 }
@@ -136,8 +149,11 @@ int vsTransparencyAttribute::getQuality()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::enableOcclusion()
 {
+    // Set the occlusion value
     occlusion = VS_TRUE;
 
+    // If transparency is currently enabled, then call the enable()
+    // function to recompute the transparency value
     if (isEnabled())
         enable();
 }
@@ -147,8 +163,11 @@ void vsTransparencyAttribute::enableOcclusion()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::disableOcclusion()
 {
+    // Set the occlusion value
     occlusion = VS_FALSE;
 
+    // If transparency is currently enabled, then call the enable()
+    // function to recompute the transparency value
     if (isEnabled())
         enable();
 }
@@ -169,15 +188,19 @@ void vsTransparencyAttribute::attachDuplicate(vsNode *theNode)
 {
     vsTransparencyAttribute *newAttrib;
     
+    // Create a duplicate transparency attribute
     newAttrib = new vsTransparencyAttribute();
     
+    // Copy the transparency enable value
     if (isEnabled())
         newAttrib->enable();
     else
         newAttrib->disable();
 
+    // Copy the quality value
     newAttrib->setQuality(getQuality());
 
+    // Attach the duplicate attribute to the specified node
     if (isOcclusionEnabled())
         newAttrib->enableOcclusion();
     else
@@ -192,8 +215,10 @@ void vsTransparencyAttribute::attachDuplicate(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::saveCurrent()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
+    // Save the current transparency state in our save list
     attrSaveList[attrSaveCount++] = gState->getTransparency();
 }
 
@@ -203,9 +228,13 @@ void vsTransparencyAttribute::saveCurrent()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::apply()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
+    // Set the current transparency state to this object
     gState->setTransparency(this);
+
+    // Lock the transparency state if overriding is enabled
     if (overrideFlag)
         gState->lockTransparency(this);
 }
@@ -216,10 +245,14 @@ void vsTransparencyAttribute::apply()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::restoreSaved()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
+    // Unlock the transparency state if overriding was enabled
     if (overrideFlag)
         gState->unlockTransparency(this);
+
+    // Reset the current transparency state to its previous value
     gState->setTransparency(
         (vsTransparencyAttribute *)(attrSaveList[--attrSaveCount]));
 }
@@ -230,6 +263,7 @@ void vsTransparencyAttribute::restoreSaved()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::setState(pfGeoState *state)
 {
+    // Set the transparency value on the Performer geostate
     state->setMode(PFSTATE_TRANSPARENCY, transpValue);
 }
 
@@ -243,31 +277,39 @@ int vsTransparencyAttribute::isEquivalent(vsAttribute *attribute)
     vsTransparencyAttribute *attr;
     int val1, val2;
     
+    // NULL check
     if (!attribute)
         return VS_FALSE;
 
+    // Equal pointer check
     if (this == attribute)
         return VS_TRUE;
     
+    // Type check
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_TRANSPARENCY)
         return VS_FALSE;
 
+    // Type cast
     attr = (vsTransparencyAttribute *)attribute;
 
+    // Enabled check
     val1 = isEnabled();
     val2 = attr->isEnabled();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Quality check
     val1 = getQuality();
     val2 = attr->getQuality();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Occlusion check
     val1 = isOcclusionEnabled();
     val2 = attr->isOcclusionEnabled();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Attributes are equivalent if all checks pass
     return VS_TRUE;
 }

@@ -39,14 +39,17 @@ vsPane::vsPane(vsWindow *parent)
     pfGeoState *defaultState;
     pfLightModel *lightModel;
 
-    // Initialize viewpoint and scene to NULL
+    // Start with no scene and no view object
     sceneRoot = NULL;
     sceneView = NULL;
 
+    // Save the parent window pointer, and get its parent pipe and
+    // screen objects
     parentWindow = parent;
     parentScreen = parent->getParentScreen();
     parentPipe = parentScreen->getParentPipe();
 
+    // Create a new Performer channel using the parent pipe's pfPipe object
     performerChannel = new pfChannel(parentPipe->getBaseLibraryObject());
     performerChannel->ref();
 
@@ -61,7 +64,7 @@ vsPane::vsPane(vsWindow *parent)
     bufferMode = VS_PANE_BUFFER_MONO;
     sharedData = NULL;
 
-    // Add this pane to the parent window
+    // Add this pane to the parent window's child pane list
     parentWindow->addPane(this);
 
     // Initialize the channel's scene to nothing
@@ -86,10 +89,11 @@ vsPane::vsPane(vsWindow *parent)
 // ------------------------------------------------------------------------
 vsPane::~vsPane()
 {
+    // Remove the Performer channel (pfChannels can't be deleted)
     performerChannel->setScene(NULL);
     performerChannel->unref();
-    // pfChannels can't be deleted
 
+    // Unreference the sceneRoot node
     if (sceneRoot != NULL)
         sceneRoot->unref();
     
@@ -160,13 +164,17 @@ void vsPane::setSize(int width, int height)
     float left, right, bottom, top;
     int winWidth, winHeight;
     float widthFraction, heightFraction;
-    
+
+    // Get the current dimensions of the Performer channel
     performerChannel->getViewport(&left, &right, &bottom, &top);
 
+    // Convert from pixel sizes to the fraction-of-a-window sizes
+    // that Performer likes
     parentWindow->getSize(&winWidth, &winHeight);
     widthFraction = (float)width / (float)winWidth;
     heightFraction = (float)height / (float)winHeight;
     
+    // Set the dimensions of the Performer channel
     performerChannel->setViewport(left, left + widthFraction,
         top - heightFraction, top);
 }
@@ -179,8 +187,10 @@ void vsPane::getSize(int *width, int *height)
 {
     int x, y;
     
+    // Get the size of the Performer channel
     performerChannel->getSize(&x, &y);
     
+    // Return the desired values
     if (width)
         *width = x;
     if (height)
@@ -196,12 +206,16 @@ void vsPane::setPosition(int xPos, int yPos)
     int winWidth, winHeight;
     float xPosFraction, yPosFraction;
 
+    // Get the current dimensions of the Performer channel
     performerChannel->getViewport(&left, &right, &bottom, &top);
     
+    // Convert from pixel sizes to the fraction-of-the-screen sizes
+    // that Performer likes
     parentWindow->getSize(&winWidth, &winHeight);
     xPosFraction = (float)xPos / (float)winWidth;
     yPosFraction = 1.0f - ((float)yPos / (float)winHeight);
     
+    // Set the dimensions of the Performer channel
     performerChannel->setViewport(xPosFraction,
         xPosFraction + (right - left), yPosFraction - (top - bottom),
         yPosFraction);
@@ -215,8 +229,10 @@ void vsPane::getPosition(int *xPos, int *yPos)
 {
     int x, y;
     
+    // Get the position of the Performer channel
     performerChannel->getOrigin(&x, &y);
     
+    // Return the desired values
     if (xPos)
         *xPos = x;
     if (yPos)
@@ -232,6 +248,7 @@ void vsPane::autoConfigure(int panePlacement)
     // Y coordinate inverted and scaled to 0.0 - 1.0 for
     // Performer's benefit
 
+    // Interpret the placement constant
     switch (panePlacement)
     {
         case VS_PANE_PLACEMENT_FULL_WINDOW:
@@ -273,9 +290,13 @@ void vsPane::autoConfigure(int panePlacement)
 // ------------------------------------------------------------------------
 void vsPane::setBufferMode(vsPaneBufferMode newMode)
 {
+    // Check to see if we're using a stereo buffer mode
     if ((newMode == VS_PANE_BUFFER_STEREO_L) ||
         (newMode == VS_PANE_BUFFER_STEREO_R))
     {
+        // If the current buffer mode is mono, we need to create a segment
+        // of shared memory for the Performer channel, so that we can pass
+        // the current buffer to the Performer draw callback.
         if (bufferMode == VS_PANE_BUFFER_MONO)
         {
             // Allocate a chunk of shared memory for the shared data
@@ -290,21 +311,26 @@ void vsPane::setBufferMode(vsPaneBufferMode newMode)
         bufferMode = newMode;
 
         // Set the buffer mode in the shared data block and pass it
-        // to the DRAW process
+        // to the DRAW process, so that Performer knows which buffer
+        // to draw into.
         sharedData->bufferMode = newMode;
         performerChannel->passChanData();
     }
     else
     {
+        // We're trying to switch to mono mode, see if we're currently in 
+        // a stereo mode.
         if ((bufferMode == VS_PANE_BUFFER_STEREO_L) ||
             (bufferMode == VS_PANE_BUFFER_STEREO_R))
         {
             // Detach the channel DRAW callback
             performerChannel->setTravFunc(PFTRAV_DRAW, NULL);
 
-            // Stop passing channel data
+            // Make sure the shared channel data exists before we try to
+            // delete it
             if (sharedData != NULL)
             {
+                // Stop passing channel data
                 performerChannel->setChanData(NULL, 0);
 
                 // Deallocate the channel data
@@ -327,30 +353,11 @@ vsPaneBufferMode vsPane::getBufferMode()
 }
 
 // ------------------------------------------------------------------------
-// Sets the visibility mask for this pane. During the culling portion
-// of a frame drawing cycle, a bitwise AND of the pane's visibility mask
-// and each node's visibility value is performed; if the result of the AND
-// is zero, that node (and all other nodes under it) are culled, not to be
-// drawn.
-// ------------------------------------------------------------------------
-void vsPane::setVisibilityMask(unsigned int newMask)
-{
-    performerChannel->setTravMask(PFTRAV_DRAW, newMask);
-}
-
-// ------------------------------------------------------------------------
-// Gets the visibility mask for this pane.
-// ------------------------------------------------------------------------
-unsigned int vsPane::getVisibilityMask()
-{
-    return (performerChannel->getTravMask(PFTRAV_DRAW));
-}
-
-// ------------------------------------------------------------------------
 // Makes this pane visible. Panes are visible by default.
 // ------------------------------------------------------------------------
 void vsPane::showPane()
 {
+    // Activate the draw traversal for this Performer channel
     performerChannel->setTravMode(PFTRAV_DRAW, PFDRAW_ON);
 }
 
@@ -360,6 +367,7 @@ void vsPane::showPane()
 // ------------------------------------------------------------------------
 void vsPane::hidePane()
 {
+    // Deactivate the draw traversal for this Performer channel
     performerChannel->setTravMode(PFTRAV_DRAW, PFDRAW_OFF);
 }
 
@@ -399,6 +407,7 @@ void vsPane::getBackgroundColor(double *r, double *g, double *b)
 // ------------------------------------------------------------------------
 void vsPane::enableEarthSky()
 {
+    // Set the Performer earth/sky clear mode to draw the earth and sky
     earthSky->setMode(PFES_BUFFER_CLEAR, PFES_SKY_GRND);
 }
 
@@ -407,6 +416,7 @@ void vsPane::enableEarthSky()
 // ------------------------------------------------------------------------
 void vsPane::disableEarthSky()
 {
+    // Set the Performer earth/sky clear mode to clear to black
     earthSky->setMode(PFES_BUFFER_CLEAR, PFES_FAST);
 }
 
@@ -415,6 +425,7 @@ void vsPane::disableEarthSky()
 // ------------------------------------------------------------------------
 void vsPane::setESGroundHeight(double newHeight)
 {
+    // Set the Performer earth/sky ground height to the specified value
     earthSky->setAttr(PFES_GRND_HT, newHeight);
 }
 
@@ -423,6 +434,7 @@ void vsPane::setESGroundHeight(double newHeight)
 // ------------------------------------------------------------------------
 double vsPane::getESGroundHeight()
 {
+    // Get the ground height from the Performer earth/sky
     return (earthSky->getAttr(PFES_GRND_HT));
 }
 
@@ -432,6 +444,7 @@ double vsPane::getESGroundHeight()
 // ------------------------------------------------------------------------
 void vsPane::setESColor(int which, double r, double g, double b)
 {
+    // Set the specified color of the Performer earth/sky
     switch (which)
     {
         case VS_PANE_ESCOLOR_SKY_NEAR:
@@ -463,6 +476,7 @@ void vsPane::getESColor(int which, double *r, double *g, double *b)
 {
     float fr, fg, fb, fa;
 
+    // Get the specified color from the Performer earth/sky
     switch (which)
     {
         case VS_PANE_ESCOLOR_SKY_NEAR:
@@ -486,6 +500,7 @@ void vsPane::getESColor(int which, double *r, double *g, double *b)
             break;
     }
     
+    // Return the desired values
     if (r)
         *r = fr;
     if (g)
@@ -520,19 +535,25 @@ void vsPane::updateView()
     double aspectMatch;
     vsViewpointAttribute *viewAttr;
     
+    // If there's a not vsView object, then there's nothing to do
     if (sceneView == NULL)
         return;
 
+    // Get the view attribute from the viewObjectMap
     viewAttr = (vsViewpointAttribute *)
 	((vsViewpointAttribute::getMap())->mapFirstToSecond(sceneView));
+
+    // Update the viewpoint attribute
     if (viewAttr)
 	viewAttr->update();
     
+    // Get the view position and orientation
     viewMatrix = sceneView->getRotationMat();
     viewPos = sceneView->getViewpoint();
     for (loop = 0; loop < 3; loop++)
         viewMatrix[loop][3] = viewPos[loop];
 
+    // Copy the view matrix to the Performer channel
     for (loop = 0; loop < 4; loop++)
         for (sloop = 0; sloop < 4; sloop++)
             performerMatrix[loop][sloop] = viewMatrix[sloop][loop];
@@ -548,14 +569,19 @@ void vsPane::updateView()
 	curFarClip = far;
     }
 
+    // Get the projection data from the view object and check to see if
+    // it has changed since the last time we looked
     sceneView->getProjectionData(&projMode, &projHval, &projVval);
     if ((curProjMode != projMode) || (curProjHval != projHval) ||
 	(curProjVval != projVval))
     {
+        // Set the new projection based on the new mode
 	if (projMode == VS_VIEW_PROJMODE_PERSP)
 	    performerChannel->setFOV(projHval, projVval);
 	else
 	{
+            // Determine which projection values are specified, and
+	    // which must be assumed
 	    if ((projHval <= 0.0) && (projVval <= 0.0))
 	    {
 		// Neither specified, default values
@@ -564,29 +590,43 @@ void vsPane::updateView()
 	    else if (projHval <= 0.0)
 	    {
 		// Vertical specified, horizontal aspect match
+
+                // Calculate the horizontal size from the vertical size
+		// and the dimensions of the pane
 		getSize(&paneWidth, &paneHeight);
 		aspectMatch = (projVval / (double)paneHeight) *
 		    (double)paneWidth;
+
+                // Call Performer with the new aspect data
 		performerChannel->makeOrtho(-aspectMatch, aspectMatch,
 		    -projVval, projVval);
 	    }
 	    else if (projVval <= 0.0)
 	    {
 		// Horizontal specified, vertical aspect match
+
+                // Calculate the vertical size from the horizontal size
+		// and the dimensions of the pane
 		getSize(&paneWidth, &paneHeight);
 		aspectMatch = (projHval / (double)paneWidth) *
 		    (double)paneHeight;
+
+                // Call Performer with the new aspect data
 		performerChannel->makeOrtho(-projHval, projHval, -aspectMatch,
 		    aspectMatch);
 	    }
 	    else
 	    {
 		// Both specified, normal operation
+
+                // Call Performer with the new aspect data
 		performerChannel->makeOrtho(-projHval, projHval, -projVval,
 		    projVval);
 	    }
 	}
 	
+        // Take note of the current projection mode so we can detect
+	// if it changes again
 	curProjMode = projMode;
 	curProjHval = projHval;
 	curProjVval = projVval;
@@ -604,6 +644,8 @@ void vsPane::drawPane(pfChannel *chan, void *userData)
 {
     vsPaneSharedData *paneData;
 
+    // Cast the void* userData parameter to the vsPaneSharedData structure
+    // so that we can interpret it
     paneData = (vsPaneSharedData *)userData;
 
     // Select the appropriate buffer to use
@@ -614,7 +656,10 @@ void vsPane::drawPane(pfChannel *chan, void *userData)
     else
         glDrawBuffer(GL_BACK);
 
+    // Clear the Performer channel
     chan->clear();
 
+    // Call Performer's draw function.  The scene will be drawn into
+    // the buffer selected above.
     pfDraw();
 }

@@ -33,9 +33,11 @@ int vsScreen::screenCount = 0;
 // ------------------------------------------------------------------------
 vsScreen *vsScreen::getScreen(int index)
 {
+    // Make sure the index doesn't exceed the screen count
     if (index >= screenCount)
 	return NULL;
 
+    // Return the requested screen
     return screenList[index];
 }
 
@@ -70,12 +72,14 @@ int vsScreen::getChildWindowCount()
 // ------------------------------------------------------------------------
 vsWindow *vsScreen::getChildWindow(int index)
 {
+    // Make sure the index is valid
     if ((index < 0) || (index >= childWindowCount))
     {
         printf("vsScreen::getChildWindow: Index out of bounds\n");
         return NULL;
     }
 
+    // Return the requested window
     return (vsWindow *)(childWindowList[index]);
 }
 
@@ -87,8 +91,10 @@ void vsScreen::getScreenSize(int *width, int *height)
 {
     int x, y;
     
+    // Ask the pfPipe for its screen size
     parentPipe->getBaseLibraryObject()->getSize(&x, &y);
     
+    // Return the width and height, if requested
     if (width)
         *width = x;
     if (height)
@@ -102,8 +108,10 @@ void vsScreen::getScreenSize(int *width, int *height)
 // ------------------------------------------------------------------------
 vsScreen::vsScreen(vsPipe *parent) : childWindowList(1, 1)
 {
+    // Start with no windows
     childWindowCount = 0;
 
+    // Get the parent pipe and set this object as its screen
     parentPipe = parent;
     parentPipe->setScreen(this);
 }
@@ -131,8 +139,10 @@ void vsScreen::init()
 {
     int loop;
 
+    // Screen count is the same as the pipe count
     screenCount = vsPipe::getPipeCount();
 
+    // Create a vsScreen for each vsPipe
     for (loop = 0; loop < screenCount; loop++)
 	screenList[loop] = new vsScreen(vsPipe::getPipe(loop));
 }
@@ -172,14 +182,23 @@ void vsScreen::removeWindow(vsWindow *targetWindow)
     // Remove window from screen's internal list
     int loop, sloop;
     
+    // Search the window list for the target window
     for (loop = 0; loop < childWindowCount; loop++)
+    {
+        // Check if this is the window we're looking for
         if (targetWindow == childWindowList[loop])
         {
+            // Found it, slide each remaining window down one space in
+            // the list
             for (sloop = loop; sloop < (childWindowCount-1); sloop++)
                 childWindowList[sloop] = childWindowList[sloop+1];
+
+            // Decrement the window count
             childWindowCount--;
             return;
         }
+    }
 
+    // Complain if we couldn't find the window
     printf("vsScreen::removeWindow: Specified window not part of screen\n");
 }

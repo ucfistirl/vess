@@ -30,9 +30,13 @@ vsObjectMap *vsViewpointAttribute::viewObjectMap = NULL;
 // ------------------------------------------------------------------------
 vsViewpointAttribute::vsViewpointAttribute()
 {
+    // Initialize the vsView object to none
     viewObject = NULL;
 
+    // Initialize the offset matrix to identity
     offsetMatrix.setIdentity();
+
+    // Mark this attribute as not attached to any node
     parentComponent = NULL;
 }
 
@@ -57,7 +61,10 @@ vsViewpointAttribute::vsViewpointAttribute(vsView *theView)
         viewObject = NULL;
     }
 
+    // Initialize the offset matrix to identity
     offsetMatrix.setIdentity();
+
+    // Mark this attribute as not attached to any node
     parentComponent = NULL;
 }
 
@@ -66,6 +73,8 @@ vsViewpointAttribute::vsViewpointAttribute(vsView *theView)
 // ------------------------------------------------------------------------
 vsViewpointAttribute::~vsViewpointAttribute()
 {
+    // If we're associated with a vsView object, then remove that
+    // association
     if (viewObject)
 	getMap()->removeLink(viewObject, VS_OBJMAP_FIRST_LIST);
 }
@@ -99,6 +108,7 @@ int vsViewpointAttribute::getAttributeCategory()
 // ------------------------------------------------------------------------
 void vsViewpointAttribute::setView(vsView *theView)
 {
+    // Remove the connection to the old view object, if there is one
     if (viewObject)
 	getMap()->removeLink(viewObject, VS_OBJMAP_FIRST_LIST);
 
@@ -151,9 +161,11 @@ vsMatrix vsViewpointAttribute::getOffsetMatrix()
 // ------------------------------------------------------------------------
 vsObjectMap *vsViewpointAttribute::getMap()
 {
+    // Create the view object map if necessary
     if (!viewObjectMap)
 	viewObjectMap = new vsObjectMap();
 
+    // Return the viewObjectMap instance
     return viewObjectMap;
 }
 
@@ -163,9 +175,11 @@ vsObjectMap *vsViewpointAttribute::getMap()
 // ------------------------------------------------------------------------
 void vsViewpointAttribute::deleteMap()
 {
+    // Delete the viewObjectMap, if it exists
     if (viewObjectMap)
 	delete viewObjectMap;
 
+    // Clear the pointer
     viewObjectMap = NULL;
 }
 
@@ -175,6 +189,8 @@ void vsViewpointAttribute::deleteMap()
 // ------------------------------------------------------------------------
 int vsViewpointAttribute::canAttach()
 {
+    // This attribute is not available to be attached if it is already
+    // attached to another node
     if (attachedFlag)
         return VS_FALSE;
 
@@ -188,12 +204,14 @@ int vsViewpointAttribute::canAttach()
 // ------------------------------------------------------------------------
 void vsViewpointAttribute::attach(vsNode *theNode)
 {
+    // Verify that we're not already attached to something
     if (attachedFlag)
     {
         printf("vsViewpointAttribute::attach: Attribute is already attached\n");
         return;
     }
 
+    // Viewpoint attributes may not be attached to geometry nodes
     if ((theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY) ||
         (theNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY))
     {
@@ -202,8 +220,10 @@ void vsViewpointAttribute::attach(vsNode *theNode)
         return;
     }
     
+    // Store a pointer to the parent component
     parentComponent = (vsComponent *)theNode;
     
+    // Mark this attribute as attached
     attachedFlag = 1;
 }
 
@@ -214,14 +234,17 @@ void vsViewpointAttribute::attach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsViewpointAttribute::detach(vsNode *theNode)
 {
+    // Can't detach an attribute that is not attached
     if (!attachedFlag)
     {
         printf("vsViewpointAttribute::detach: Attribute is not attached\n");
         return;
     }
 
+    // Clear the parent component pointer
     parentComponent = NULL;
     
+    // Mark this attribute as unattached
     attachedFlag = 0;
 }
 
@@ -243,17 +266,24 @@ void vsViewpointAttribute::attachDuplicate(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsViewpointAttribute::update()
 {
+    pfMatrix xform;
     vsMatrix result;
 
+    // An update on an unattached viewpoint attribute does nothing
     if (!attachedFlag)
         return;
+
+    // An update on a viewpoint attribute that doesn't have an associated
+    // vsView object does nothing
     if (!viewObject)
         return;
 
+    // Update the associated vsView's position and location by getting the
+    // global transform down to the component where the attribute is
+    // attached, modifying it by the user-specified view offset matrix, and
+    // then applying the result to the view object.
     result = parentComponent->getGlobalXform();
-
     result = result * offsetMatrix;
-    
     viewObject->setViewpoint(result[0][3], result[1][3], result[2][3]);
     viewObject->setDirectionFromRotation(result);
 }

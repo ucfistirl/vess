@@ -83,6 +83,7 @@ vsScene::~vsScene()
         child = NULL;
     }
     
+    // Unreference and pfDelete the pfScene object
     performerScene->unref();
     pfDelete(performerScene);
 }
@@ -155,7 +156,6 @@ void vsScene::deleteTree()
         // Remove the child from the scene, and delete it if
         // it no longer being used
         removeChild(node);
-
         if (node->getParentCount() == 0)
             delete node;
     }
@@ -211,6 +211,7 @@ int vsScene::addChild(vsNode *newChild)
     // Mark the entire tree above and below this node as needing an update
     newChild->dirty();
     
+    // Return success
     return VS_TRUE;
 }
 
@@ -230,6 +231,7 @@ int vsScene::insertChild(vsNode *newChild, int index)
         return VS_FALSE;
     }
     
+    // Make sure the index is valid
     if (index != 0)
     {
         printf("vsScene::insertChild: Invalid index\n");
@@ -270,6 +272,7 @@ int vsScene::insertChild(vsNode *newChild, int index)
     // Mark the entire tree above and below this node as needing an update
     newChild->dirty();
     
+    // Return success
     return VS_TRUE;
 }
 
@@ -282,6 +285,7 @@ int vsScene::removeChild(vsNode *targetChild)
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
 
+    // Make sure the target matches our current child
     if (child != targetChild)
     {
         printf("vsScene::removeChild: 'targetChild' is not a child of "
@@ -325,6 +329,7 @@ int vsScene::removeChild(vsNode *targetChild)
             "child to be removed does not have this component as "
             "a parent\n");
 
+    // Return success
     return VS_TRUE;
 }
 
@@ -338,6 +343,7 @@ int vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
     vsDynamicGeometry *childDynamicGeometry;
     pfNode *oldNode, *newNode;
 
+    // Make sure the target child matches our current child
     if (child != targetChild)
     {
         printf("vsScene::replaceChild: 'targetChild' is not a child of "
@@ -399,7 +405,10 @@ int vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
     // Change the connection in the VESS nodes
     child = newChild;
             
+    // Unreference the old child
     targetChild->unref();
+
+    // Reference the old child
     newChild->ref();
 
     // Check for errors as we remove this component from the
@@ -413,6 +422,7 @@ int vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
     // to the new node as needing of an update
     newChild->dirty();
 
+    // Return success
     return VS_TRUE;
 }
 
@@ -421,9 +431,11 @@ int vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
 // ------------------------------------------------------------------------
 int vsScene::getChildCount()
 {
+    // Return 1 if we have a child
     if (child)
         return 1;
 
+    // Return 0 otherwise
     return 0;
 }
 
@@ -433,9 +445,11 @@ int vsScene::getChildCount()
 // ------------------------------------------------------------------------
 vsNode *vsScene::getChild(int index)
 {
+    // The only valid index is 0, return NULL if it's anything else
     if (index != 0)
         return NULL;
 
+    // Otherwise, return the current child pointer (even if it's NULL)
     return child;
 }
 
@@ -460,13 +474,14 @@ void vsScene::getBoundSphere(vsVector *centerPoint, double *radius)
     // Get the bounding sphere from Performer
     performerScene->getBound(&boundSphere);
 
-    // Convert the center to a vsVector
+    // Convert the center to a vsVector, if the center is requested
     if (centerPoint)
     {
         center = boundSphere.center;
         centerPoint->set(center[0], center[1], center[2]);
     }
 
+    // Return the radius if requested
     if (radius)
         *radius = boundSphere.radius;
 }
@@ -478,6 +493,8 @@ vsMatrix vsScene::getGlobalXform()
 {
     vsMatrix mat;
 
+    // Scenes aren't allowed transform attributes, so the scene's global
+    // transform will always be identity
     mat.setIdentity();
     return mat;
 }
@@ -510,12 +527,15 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
     int attrCat, attrType;
     int loop;
 
+    // See if the attribute will let us attach it
     if (!(newAttribute->canAttach()))
     {
         printf("vsScene::addAttribute: Attribute is already in use\n");
         return;
     }
 
+    // Scenes may not receive grouping, transform, or container attributes
+    // (primarily because these don't make sense at the root of a scene)
     attrCat = newAttribute->getAttributeCategory();
     if ((attrCat != VS_ATTRIBUTE_CATEGORY_STATE) &&
         (attrCat != VS_ATTRIBUTE_CATEGORY_OTHER))
@@ -525,6 +545,8 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
         return;
     }
 
+    // Make sure we're not attaching more than one of the same type of
+    // attribute
     attrType = newAttribute->getAttributeType();
     for (loop = 0; loop < getAttributeCount(); loop++)
         if ((getAttribute(loop))->getAttributeType() == attrType)

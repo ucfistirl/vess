@@ -58,13 +58,20 @@
 // ------------------------------------------------------------------------
 vsDatabaseLoader::vsDatabaseLoader() : nodeNames(0, 50)
 {
+    // Important node name list starts empty
     nodeNameCount = 0;
     
+    // Get the default loader path from the environment variable; the path
+    // variable is intiialized to something just to give the clearPath()
+    // function something to delete.
     loaderFilePath = strdup(".");
+    clearPath();
     
+    // Default database units are meters
     unitMode = VS_DATABASE_UNITS_METERS;
     
-    loaderModes = 0;
+    // By default the AUTO_UNLIT mode is the only setting enabled
+    loaderModes = VS_DATABASE_MODE_AUTO_UNLIT;
 }
 
 // ------------------------------------------------------------------------
@@ -72,6 +79,7 @@ vsDatabaseLoader::vsDatabaseLoader() : nodeNames(0, 50)
 // ------------------------------------------------------------------------
 vsDatabaseLoader::~vsDatabaseLoader()
 {
+    // Delete the important names list
     clearNames();
 }
 
@@ -82,7 +90,10 @@ vsDatabaseLoader::~vsDatabaseLoader()
 // ------------------------------------------------------------------------
 void vsDatabaseLoader::addImportantNodeName(char *newName)
 {
+    // Allocate space for and duplicate the given name
     nodeNames[nodeNameCount] = strdup(newName);
+
+    // Check for failure
     if (!(nodeNames[nodeNameCount]))
         printf("vsDatabaseLoader::addImportantNodeName: Error allocating "
             "space for node name string\n");
@@ -97,6 +108,7 @@ void vsDatabaseLoader::clearNames()
 {
     int loop;
     
+    // Delete each name in the list
     for (loop = 0; loop < nodeNameCount; loop++)
         free(nodeNames[loop]);
 
@@ -120,6 +132,8 @@ void vsDatabaseLoader::addPath(char *filePath)
 {
     char *fullPath;
     
+    // Allocate memory for the new path string, which must be large enough
+    // to hold the old path plus the length of the new path
     fullPath = (char *)
         (malloc(strlen(filePath) + strlen(loaderFilePath) + 5));
     if (!fullPath)
@@ -127,11 +141,14 @@ void vsDatabaseLoader::addPath(char *filePath)
         printf("vsDatabaseLoader::addPath: Memory allocation error\n");
         return;
     }
-    strcpy(fullPath, loaderFilePath);
 
+    // Create the new file path, which is the old path plus the new
+    // directory, separated by the path separator character
+    strcpy(fullPath, loaderFilePath);
     strcat(fullPath, ":");
     strcat(fullPath, filePath);
     
+    // Delete the old path string and store the new one
     free(loaderFilePath);
     loaderFilePath = fullPath;
 }
@@ -143,6 +160,7 @@ void vsDatabaseLoader::clearPath()
 {
     char *envPath;
 
+    // Delete the old path's memory
     free(loaderFilePath);
 
     // Attempt to get the default path from the environment; if not found,
@@ -166,6 +184,7 @@ const char *vsDatabaseLoader::getPath()
 // ------------------------------------------------------------------------
 void vsDatabaseLoader::setLoaderMode(int whichMode, int modeVal)
 {
+    // OR the mode in if we're adding it, or ~AND it out if we're removing it
     if (modeVal)
         loaderModes |= whichMode;
     else
@@ -177,6 +196,7 @@ void vsDatabaseLoader::setLoaderMode(int whichMode, int modeVal)
 // ------------------------------------------------------------------------
 int vsDatabaseLoader::getLoaderMode(int whichMode)
 {
+    // Check the desired mode against our mode variable
     if (loaderModes & whichMode)
         return VS_TRUE;
     else
@@ -311,11 +331,16 @@ void vsDatabaseLoader::fltLoaderCallback(pfNode *node, int mgOp, int *cbs,
     pfDCS *currentDCS;
     vsdbMatrixBlock *myData;
     
+    // Check the current bead's opcode
     switch (mgOp)
     {
         case CB_DOF:
+            // DOF bead, cast the loader data to a DOFcb structure and the
+            // node to a pfDCS
             loaderDOFBlock = (DOFcb *)cbs;
             currentDCS = (pfDCS *)node;
+
+            // Create the matrix block and check for errors
             myData = (vsdbMatrixBlock *)
                 (pfMemory::malloc(sizeof(vsdbMatrixBlock)));
             if (!myData)
@@ -325,12 +350,13 @@ void vsDatabaseLoader::fltLoaderCallback(pfNode *node, int mgOp, int *cbs,
                 return;
             }
 
+            // Store the put matrices in the userdata field of the pfDCS
             strcpy(myData->magicString, "DOF");
             myData->aboveMatrix.copy(loaderDOFBlock->putinvmat);
             myData->belowMatrix.copy(loaderDOFBlock->putmat);
-
             currentDCS->setUserData(myData);
 
+            // Delete the DOFcb structure and comment
             pfDelete(cbs);
             if (comment)
                 pfDelete(comment);
@@ -363,6 +389,7 @@ int vsDatabaseLoader::importanceCheck(pfNode *targetNode)
     int loop;
     const char *targetName;
     
+    // Get the name of the target node
     targetName = targetNode->getName();
 
     // Return TRUE immediately if the loader is set to make all nodes
@@ -1460,7 +1487,7 @@ pfGeoSet *vsDatabaseLoader::inflateFlatGeometry(pfGeoSet *geoSet)
         pfMemory::free(normalList);
     }
 
-    // Set the primitive type based on the curre
+    // Set the primitive type based on the GeoSet's primitive type
     switch (geoSet->getPrimType())
     {
         case PFGS_FLAT_LINESTRIPS:

@@ -28,11 +28,15 @@
 // ------------------------------------------------------------------------
 vsTransformAttribute::vsTransformAttribute()
 {
+    // Initialize the parent component pointer to NULL
     componentTop = NULL;
+
+    // Initialize the three pfDCS pointers to NULL
     preTransform = NULL;
     dynTransform = NULL;
     postTransform = NULL;
     
+    // Set the three transform matrices to identity
     preMatrix.setIdentity();
     dynMatrix.setIdentity();
     postMatrix.setIdentity();
@@ -80,17 +84,26 @@ void vsTransformAttribute::setPreTransform(vsMatrix newTransform)
     pfGroup *aboveGroup, *belowGroup;
     int loop, sloop;
     
+    // Copy the transform matrix
     preMatrix = newTransform;
     
+    // If we're not atatched, there no other work to do
     if (!attachedFlag)
         return;
     
+    // Set the working identity matrix
     identityMatrix.setIdentity();
+
+    // Check if we're trying to set this matrix to identity or not
     if (newTransform == identityMatrix)
     {
+        // Check if the preTransform matrix currently exists; get rid
+	// of it if it does.
         if (preTransform)
         {
-            // Delete the pre-transform matrix
+	    // We don't want an identity matrix in the scene graph,
+	    // because it doesn't contribute anything; remove it from
+	    // between its parent and child groups and delete it.
             aboveGroup = preTransform->getParent(0);
             belowGroup = (pfGroup *)(preTransform->getChild(0));
             aboveGroup->removeChild(preTransform);
@@ -107,11 +120,18 @@ void vsTransformAttribute::setPreTransform(vsMatrix newTransform)
         for (loop = 0; loop < 4; loop++)
             for (sloop = 0; sloop < 4; sloop++)
                 performerMatrix[loop][sloop] = newTransform[sloop][loop];
+
+        // Create a new pfSCS to hold the transform
         performerTransform = new pfSCS(performerMatrix);
     
+        // Check if there is already a pfSCS in the preTransform position
         if (preTransform)
         {
-            // Replace the current transform
+            // Replace the current transform by setting the parent of
+	    // the current transform to point to the new one instead, 
+	    // setting the new transform to point to the current transform's
+	    // child, destroying the current transform, and setting the
+	    // new transform as the current one.
             aboveGroup = preTransform->getParent(0);
             belowGroup = (pfGroup *)(preTransform->getChild(0));
             aboveGroup->removeChild(preTransform);
@@ -123,7 +143,8 @@ void vsTransformAttribute::setPreTransform(vsMatrix newTransform)
         }
         else
         {
-            // Insert a new transform
+            // Insert a new transform between the component's topGroup
+	    // and whatever that group's child is.
             aboveGroup = componentTop;
             belowGroup = (pfGroup *)(aboveGroup->getChild(0));
             aboveGroup->removeChild(belowGroup);
@@ -153,17 +174,26 @@ void vsTransformAttribute::setDynamicTransform(vsMatrix newTransform)
     pfGroup *aboveGroup, *belowGroup;
     int loop, sloop;
     
+    // Copy the transform matrix
     dynMatrix = newTransform;
     
+    // If we're not atatched, there no other work to do
     if (!attachedFlag)
         return;
     
+    // Set the working identity matrix
     identityMatrix.setIdentity();
+
+    // Check if we're trying to set this matrix to identity or not
     if (newTransform == identityMatrix)
     {
+        // Check if the dynTransform matrix currently exists; get rid
+	// of it if it does.
         if (dynTransform)
         {
-            // Delete the dynamic transform matrix
+	    // We don't want an identity matrix in the scene graph,
+	    // because it doesn't contribute anything; remove it from
+	    // between its parent and child groups and delete it.
             aboveGroup = dynTransform->getParent(0);
             belowGroup = (pfGroup *)(dynTransform->getChild(0));
             aboveGroup->removeChild(dynTransform);
@@ -181,14 +211,19 @@ void vsTransformAttribute::setDynamicTransform(vsMatrix newTransform)
             for (sloop = 0; sloop < 4; sloop++)
                 performerMatrix[loop][sloop] = newTransform[sloop][loop];
 
+        // Check if there is already a pfDCS in the dynTransform position
         if (dynTransform)
         {
-            // Replace the current transform
+            // Replace the current transform matrix in the pfDCS
             dynTransform->setMat(performerMatrix);
         }
         else
         {
-            // Insert a new transform
+            // Insert a new transform by figuring out which group should
+	    // be the parent (the preTransform, if it exists, else the
+	    // topGroup), and adding a pfDCS as a child of that group,
+	    // setting the current child of that group to be a child
+	    // of the pfDCS.
             if (preTransform)
                 aboveGroup = preTransform;
             else
@@ -223,17 +258,26 @@ void vsTransformAttribute::setPostTransform(vsMatrix newTransform)
     pfGroup *aboveGroup, *belowGroup;
     int loop, sloop;
     
+    // Copy the transform matrix
     postMatrix = newTransform;
     
+    // If we're not atatched, there no other work to do
     if (!attachedFlag)
         return;
     
+    // Set the working identity matrix
     identityMatrix.setIdentity();
+
+    // Check if we're trying to set this matrix to identity or not
     if (newTransform == identityMatrix)
     {
+        // Check if the postTransform matrix currently exists; get rid
+	// of it if it does.
         if (postTransform)
         {
-            // Delete the post-transform matrix
+	    // We don't want an identity matrix in the scene graph,
+	    // because it doesn't contribute anything; remove it from
+	    // between its parent and child groups and delete it.
             aboveGroup = postTransform->getParent(0);
             belowGroup = (pfGroup *)(postTransform->getChild(0));
             aboveGroup->removeChild(postTransform);
@@ -250,11 +294,18 @@ void vsTransformAttribute::setPostTransform(vsMatrix newTransform)
         for (loop = 0; loop < 4; loop++)
             for (sloop = 0; sloop < 4; sloop++)
                 performerMatrix[loop][sloop] = newTransform[sloop][loop];
+
+        // Create a new pfSCS to hold the transform
         performerTransform = new pfSCS(performerMatrix);
     
+        // Check if there is already a pfSCS in the preTransform position
         if (postTransform)
         {
-            // Replace the current transform
+            // Replace the current transform by setting the parent of
+	    // the current transform to point to the new one instead, 
+	    // setting the new transform to point to the current transform's
+	    // child, destroying the current transform, and setting the
+	    // new transform as the current one.
             aboveGroup = postTransform->getParent(0);
             belowGroup = (pfGroup *)(postTransform->getChild(0));
             aboveGroup->removeChild(postTransform);
@@ -266,13 +317,18 @@ void vsTransformAttribute::setPostTransform(vsMatrix newTransform)
         }
         else
         {
-            // Insert a new transform
+            // Insert a new transform by figuring out which group should
+	    // be the parent (the dynTransform, if it exists, else the
+	    // preTransform, if that exists, otherwise the topGroup), and
+	    // adding a pfDCS as a child of that group, setting the current
+	    // child of that group to be a child of the pfDCS.
             if (dynTransform)
                 aboveGroup = dynTransform;
             else if (preTransform)
                 aboveGroup = preTransform;
             else
                 aboveGroup = componentTop;
+
             belowGroup = (pfGroup *)(aboveGroup->getChild(0));
             aboveGroup->removeChild(belowGroup);
             aboveGroup->addChild(performerTransform);
@@ -301,14 +357,19 @@ void vsTransformAttribute::pushBottom(pfGroup *splitGroup)
     pfGroup *newGroup;
     pfNode *childNode;
     
+    // Create a new group
     newGroup = new pfGroup();
+
+    // Move all of the children of splitGroup to the new group
     while (splitGroup->getNumChildren() > 0)
     {
+        // Move the first child of the splitGroup to the new group
         childNode = splitGroup->getChild(0);
         splitGroup->removeChild(childNode);
         newGroup->addChild(childNode);
     }
     
+    // Add the new group as the only child of the splitGroup
     splitGroup->addChild(newGroup);
 }
 
@@ -318,6 +379,8 @@ void vsTransformAttribute::pushBottom(pfGroup *splitGroup)
 // ------------------------------------------------------------------------
 int vsTransformAttribute::canAttach()
 {
+    // This attribute is not available to be attached if it is already
+    // attached to another node
     if (attachedFlag)
         return VS_FALSE;
 
@@ -331,12 +394,14 @@ int vsTransformAttribute::canAttach()
 // ------------------------------------------------------------------------
 void vsTransformAttribute::attach(vsNode *theNode)
 {
+    // Verify that we're not already attached to something
     if (attachedFlag)
     {
         printf("vsTransformAttribute::attach: Attribute is already attached\n");
         return;
     }
     
+    // Transform attributes may not be attached to geometry nodes
     if ((theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY) ||
         (theNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY))
     {
@@ -345,10 +410,13 @@ void vsTransformAttribute::attach(vsNode *theNode)
         return;
     }
     
+    // Store a pointer to the topGroup of the component
     componentTop = ((vsComponent *)theNode)->getTopGroup();
     
+    // Mark this attribute as attached
     attachedFlag = 1;
     
+    // Create the transform nodes on the Performer scene
     setPreTransform(preMatrix);
     setDynamicTransform(dynMatrix);
     setPostTransform(postMatrix);
@@ -363,25 +431,40 @@ void vsTransformAttribute::detach(vsNode *theNode)
 {
     vsMatrix tempPre, tempDyn, tempPost, identityMatrix;
 
+    // Can't detach an attribute that is not attached
     if (!attachedFlag)
     {
         printf("vsTransformAttribute::detach: Attribute is not attached\n");
         return;
     }
 
+    // To utilize code already written, the detachment process sets each
+    // matrix to an identity matrix, which causes the various set matrix
+    // functions to remove the transform nodes. The actual matrix data
+    // should be retained, though, and so is stored until after the
+    // transforms are removed.
+
     identityMatrix.setIdentity();
+
+    // Copy the current matrix data
     tempPre = preMatrix;
     tempDyn = dynMatrix;
     tempPost = postMatrix;
     
+    // Set the transforms to identity, which should automatically
+    // remove the Performer transforms from the component
     setPreTransform(identityMatrix);
     setDynamicTransform(identityMatrix);
     setPostTransform(identityMatrix);
     
+    // Put the matrix data back, as setting the transforms to identity
+    // also set the three matrices to identity
     preMatrix = tempPre;
     dynMatrix = tempDyn;
     postMatrix = tempPost;
 
+    // Clear the component top group pointer, and mark this attribute
+    // as unattached
     componentTop = NULL;
     attachedFlag = 0;
 }
@@ -395,11 +478,14 @@ void vsTransformAttribute::attachDuplicate(vsNode *theNode)
     vsTransformAttribute *newAttrib;
     vsMatrix xformMat;
     
+    // Create a duplicate transform attribute
     newAttrib = new vsTransformAttribute();
     
+    // Copy the matrix data
     newAttrib->setPreTransform(getPreTransform());
     newAttrib->setDynamicTransform(getDynamicTransform());
     newAttrib->setPostTransform(getPostTransform());
 
+    // Attach the duplicate attribute to the specified node
     theNode->addAttribute(newAttrib);
 }

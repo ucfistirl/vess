@@ -55,6 +55,8 @@ int vsPipe::getPipeCount()
 // ------------------------------------------------------------------------
 vsScreen *vsPipe::getScreen(int index)
 {
+    // For now, pipes can only have one screen; signal an error if the
+    // caller is requesting something else
     if (index != 0)
         printf("vsPipe::getScreen: Bad screen index\n");
 
@@ -94,9 +96,11 @@ void vsPipe::init()
     pfWSConnection winConnection;
     int loop;
 
+    // Get the X Display from Performer and the screen count from X
     winConnection = pfGetCurWSConnection();
     pipeCount = ScreenCount(winConnection);
 
+    // Create the a vsPipe for each screen
     for (loop = 0; loop < pipeCount; loop++)
 	pipeList[loop] = new vsPipe(loop);
 }

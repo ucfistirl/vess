@@ -35,6 +35,8 @@ vsObjectMap *vsAttribute::attributeMap = NULL;
 // ------------------------------------------------------------------------
 vsAttribute::vsAttribute()
 {
+    // Initialize the node name to an empty string, and the attachment
+    // flag to false
     attributeName[0] = 0;
     attachedFlag = 0;
 }
@@ -78,9 +80,11 @@ const char *vsAttribute::getName()
 // ------------------------------------------------------------------------
 vsObjectMap *vsAttribute::getMap()
 {
+    // Create the attribute map, if it does not yet exist
     if (!attributeMap)
 	attributeMap = new vsObjectMap();
 
+    // Return the attribute map
     return attributeMap;
 }
 

@@ -27,6 +27,8 @@
 // ------------------------------------------------------------------------
 vsStateAttribute::vsStateAttribute() : attrSaveList(1, 1), ownerList(10, 50)
 {
+    // Initialize the number of saved attributes and parent nodes to zero,
+    // and set the override to the default of false
     attrSaveCount = 0;
     ownerCount = 0;
     overrideFlag = VS_FALSE;
@@ -52,9 +54,12 @@ int vsStateAttribute::getAttributeCategory()
 // ------------------------------------------------------------------------
 void vsStateAttribute::setOverride(int override)
 {
+    // If there's a change in the override value, then mark the nodes
+    // that have this attribute attached as dirty
     if (overrideFlag != override)
         markOwnersDirty();
 
+    // Store the new override value
     overrideFlag = override;
 }
 
@@ -75,6 +80,7 @@ void vsStateAttribute::markOwnersDirty()
 {
     int loop;
     
+    // Mark each node that has this attribute attached as dirty
     for (loop = 0; loop < ownerCount; loop++)
         ((vsNode *)(ownerList[loop]))->dirty();
 }
@@ -86,11 +92,15 @@ void vsStateAttribute::markOwnersDirty()
 // ------------------------------------------------------------------------
 void vsStateAttribute::attach(vsNode *theNode)
 {
+    // Add the specified node to our list of owner nodes, reference that
+    // node to make it harder to delete out form under us, and mark that
+    // node as dirty.
     ownerList[ownerCount] = theNode;
     ownerCount++;
     theNode->ref();
     theNode->dirty();
     
+    // Call the inherited version of this function
     vsAttribute::attach(theNode);
 }
 
@@ -103,15 +113,20 @@ void vsStateAttribute::detach(vsNode *theNode)
 {
     int loop;
     
+    // Search our owner list for the specified node
     for (loop = 0; loop < ownerCount; loop++)
     {
         if (theNode == ownerList[loop])
         {
+            // Remove the specified node from our owner list by moving the
+	    // last owner over top of it and shrinking the size of the list
+	    // by one
             ownerList[loop] = ownerList[ownerCount-1];
             ownerCount--;
             theNode->unref();
             theNode->dirty();
 
+	    // Call the inherited version of this function
             vsAttribute::detach(theNode);
             return;
         }

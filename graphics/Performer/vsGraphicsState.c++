@@ -37,9 +37,11 @@ vsGraphicsState::vsGraphicsState() : lightAttrList(1, 1)
 // ------------------------------------------------------------------------
 vsGraphicsState *vsGraphicsState::getInstance()
 {
+    // Create a new instance if none exists
     if (!classInstance)
 	classInstance = new vsGraphicsState();
 
+    // Return the singleton instance
     return classInstance;
 }
 
@@ -49,9 +51,11 @@ vsGraphicsState *vsGraphicsState::getInstance()
 // ------------------------------------------------------------------------
 void vsGraphicsState::deleteInstance()
 {
+    // If the instance exists, destroy it
     if (classInstance)
 	delete classInstance;
 
+    // Reset the instance pointer to NULL
     classInstance = NULL;
 }
 
@@ -61,6 +65,7 @@ void vsGraphicsState::deleteInstance()
 // ------------------------------------------------------------------------
 void vsGraphicsState::clearState()
 {
+    // Clear the 'current attribute' values
     backfaceAttr = NULL;
     fogAttr = NULL;
     materialAttr = NULL;
@@ -70,6 +75,7 @@ void vsGraphicsState::clearState()
     wireframeAttr = NULL;
     lightAttrCount = 0;
 
+    // Clear the 'attribute lock' pointers
     backfaceLock = NULL;
     fogLock = NULL;
     materialLock = NULL;
@@ -90,29 +96,38 @@ void vsGraphicsState::applyState(pfGeoState *state)
     pfGStateFuncType preFunc, postFunc;
     void *data;
     
+    // Start by setting the geostate to inherit everything from globals
     state->setInherit(PFSTATE_ALL);
 
+    // Call the backface attribute (if any) to make its state changes
     if (backfaceAttr)
         backfaceAttr->setState(state);
 
+    // Call the fog attribute (if any) to make its state changes
     if (fogAttr)
         fogAttr->setState(state);
 
+    // Call the material attribute (if any) to make its state changes
     if (materialAttr)
         materialAttr->setState(state);
 
+    // Call the shading attribute (if any) to make its state changes
     if (shadingAttr)
         shadingAttr->setState(state);
 
+    // Call the texture attribute (if any) to make its state changes
     if (textureAttr)
         textureAttr->setState(state);
 
+    // Call the transparency attribute (if any) to make its state changes
     if (transparencyAttr)
         transparencyAttr->setState(state);
 
+    // Call the wireframe attribute (if any) to make its state changes
     if (wireframeAttr)
         wireframeAttr->setState(state);
 
+    // Call each light attribute (if any) to make its state changes
     state->getFuncs(&preFunc, &postFunc, &data);
     lightList = (pfLight **)data;
     for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
@@ -126,6 +141,7 @@ void vsGraphicsState::applyState(pfGeoState *state)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setBackface(vsBackfaceAttribute *newAttrib)
 {
+    // Set the current attribute, if it's not locked
     if (!backfaceLock)
         backfaceAttr = newAttrib;
 }
@@ -135,6 +151,7 @@ void vsGraphicsState::setBackface(vsBackfaceAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setFog(vsFogAttribute *newAttrib)
 {
+    // Set the current attribute, if it's not locked
     if (!fogLock)
         fogAttr = newAttrib;
 }
@@ -144,6 +161,7 @@ void vsGraphicsState::setFog(vsFogAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setMaterial(vsMaterialAttribute *newAttrib)
 {
+    // Set the current attribute, if it's not locked
     if (!materialLock)
         materialAttr = newAttrib;
 }
@@ -153,6 +171,7 @@ void vsGraphicsState::setMaterial(vsMaterialAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setShading(vsShadingAttribute *newAttrib)
 {
+    // Set the current attribute, if it's not locked
     if (!shadingLock)
         shadingAttr = newAttrib;
 }
@@ -162,6 +181,7 @@ void vsGraphicsState::setShading(vsShadingAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setTexture(vsTextureAttribute *newAttrib)
 {
+    // Set the current attribute, if it's not locked
     if (!textureLock)
         textureAttr = newAttrib;
 }
@@ -171,6 +191,7 @@ void vsGraphicsState::setTexture(vsTextureAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setTransparency(vsTransparencyAttribute *newAttrib)
 {
+    // Set the current attribute, if it's not locked
     if (!transparencyLock)
         transparencyAttr = newAttrib;
 }
@@ -180,6 +201,7 @@ void vsGraphicsState::setTransparency(vsTransparencyAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setWireframe(vsWireframeAttribute *newAttrib)
 {
+    // Set the current attribute, if it's not locked
     if (!wireframeLock)
         wireframeAttr = newAttrib;
 }
@@ -189,6 +211,8 @@ void vsGraphicsState::setWireframe(vsWireframeAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::addLight(vsLightAttribute *lightAttrib)
 {
+    // Add the specified light attribute to our light attribute list,
+    // and increment the list size
     lightAttrList[lightAttrCount++] = lightAttrib;
 }
 
@@ -199,9 +223,13 @@ void vsGraphicsState::removeLight(vsLightAttribute *lightAttrib)
 {
     int loop;
     
+    // Search for the specified light attribute in our list
     for (loop = 0; loop < lightAttrCount; loop++)
         if (lightAttrib == lightAttrList[loop])
         {
+	    // If found, remove the attribute from the list by copying
+	    // the last entry in the list over the attribute to be removed,
+	    // and decrement the list size
             lightAttrList[loop] = lightAttrList[--lightAttrCount];
             return;
         }
@@ -268,9 +296,11 @@ vsWireframeAttribute *vsGraphicsState::getWireframe()
 // ------------------------------------------------------------------------
 vsLightAttribute *vsGraphicsState::getLight(int index)
 {
+    // Bounds check
     if ((index < 0) || (index >= lightAttrCount))
         return NULL;
 
+    // Return the desired light
     return (vsLightAttribute *)(lightAttrList[index]);
 }
 
@@ -289,6 +319,7 @@ int vsGraphicsState::getLightCount()
 // ------------------------------------------------------------------------
 void vsGraphicsState::lockBackface(void *lockAddr)
 {
+    // If there's no existing lock, set the lock value
     if (!backfaceLock)
         backfaceLock = lockAddr;
 }
@@ -300,6 +331,7 @@ void vsGraphicsState::lockBackface(void *lockAddr)
 // ------------------------------------------------------------------------
 void vsGraphicsState::lockFog(void *lockAddr)
 {
+    // If there's no existing lock, set the lock value
     if (!fogLock)
         fogLock = lockAddr;
 }
@@ -311,6 +343,7 @@ void vsGraphicsState::lockFog(void *lockAddr)
 // ------------------------------------------------------------------------
 void vsGraphicsState::lockMaterial(void *lockAddr)
 {
+    // If there's no existing lock, set the lock value
     if (!materialLock)
         materialLock = lockAddr;
 }
@@ -322,6 +355,7 @@ void vsGraphicsState::lockMaterial(void *lockAddr)
 // ------------------------------------------------------------------------
 void vsGraphicsState::lockShading(void *lockAddr)
 {
+    // If there's no existing lock, set the lock value
     if (!shadingLock)
         shadingLock = lockAddr;
 }
@@ -333,6 +367,7 @@ void vsGraphicsState::lockShading(void *lockAddr)
 // ------------------------------------------------------------------------
 void vsGraphicsState::lockTexture(void *lockAddr)
 {
+    // If there's no existing lock, set the lock value
     if (!textureLock)
         textureLock = lockAddr;
 }
@@ -344,6 +379,7 @@ void vsGraphicsState::lockTexture(void *lockAddr)
 // ------------------------------------------------------------------------
 void vsGraphicsState::lockTransparency(void *lockAddr)
 {
+    // If there's no existing lock, set the lock value
     if (!transparencyLock)
         transparencyLock = lockAddr;
 }
@@ -355,6 +391,7 @@ void vsGraphicsState::lockTransparency(void *lockAddr)
 // ------------------------------------------------------------------------
 void vsGraphicsState::lockWireframe(void *lockAddr)
 {
+    // If there's no existing lock, set the lock value
     if (!wireframeLock)
         wireframeLock = lockAddr;
 }
@@ -366,6 +403,7 @@ void vsGraphicsState::lockWireframe(void *lockAddr)
 // ------------------------------------------------------------------------
 void vsGraphicsState::unlockBackface(void *lockAddr)
 {
+    // If the unlock value matches the lock value, clear the lock
     if (backfaceLock == lockAddr)
         backfaceLock = NULL;
 }
@@ -377,6 +415,7 @@ void vsGraphicsState::unlockBackface(void *lockAddr)
 // ------------------------------------------------------------------------
 void vsGraphicsState::unlockFog(void *lockAddr)
 {
+    // If the unlock value matches the lock value, clear the lock
     if (fogLock == lockAddr)
         fogLock = NULL;
 }
@@ -388,6 +427,7 @@ void vsGraphicsState::unlockFog(void *lockAddr)
 // ------------------------------------------------------------------------
 void vsGraphicsState::unlockMaterial(void *lockAddr)
 {
+    // If the unlock value matches the lock value, clear the lock
     if (materialLock == lockAddr)
         materialLock = NULL;
 }
@@ -399,6 +439,7 @@ void vsGraphicsState::unlockMaterial(void *lockAddr)
 // ------------------------------------------------------------------------
 void vsGraphicsState::unlockShading(void *lockAddr)
 {
+    // If the unlock value matches the lock value, clear the lock
     if (shadingLock == lockAddr)
         shadingLock = NULL;
 }
@@ -410,6 +451,7 @@ void vsGraphicsState::unlockShading(void *lockAddr)
 // ------------------------------------------------------------------------
 void vsGraphicsState::unlockTexture(void *lockAddr)
 {
+    // If the unlock value matches the lock value, clear the lock
     if (textureLock == lockAddr)
         textureLock = NULL;
 }
@@ -421,6 +463,7 @@ void vsGraphicsState::unlockTexture(void *lockAddr)
 // ------------------------------------------------------------------------
 void vsGraphicsState::unlockTransparency(void *lockAddr)
 {
+    // If the unlock value matches the lock value, clear the lock
     if (transparencyLock == lockAddr)
         transparencyLock = NULL;
 }
@@ -432,6 +475,7 @@ void vsGraphicsState::unlockTransparency(void *lockAddr)
 // ------------------------------------------------------------------------
 void vsGraphicsState::unlockWireframe(void *lockAddr)
 {
+    // If the unlock value matches the lock value, clear the lock
     if (wireframeLock == lockAddr)
         wireframeLock = NULL;
 }

@@ -31,6 +31,7 @@
 // ------------------------------------------------------------------------
 vsSequenceAttribute::vsSequenceAttribute()
 {
+    // Initialize the Performer sequence pointer to NULL
     performerSequence = NULL;
 }
 
@@ -71,6 +72,7 @@ int vsSequenceAttribute::getAttributeCategory()
 // ------------------------------------------------------------------------
 void vsSequenceAttribute::setChildTime(int childNum, double seconds)
 {
+    // Unattached sequences can't be manipulated
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::setChildTime: Attribute must be attached "
@@ -78,12 +80,14 @@ void vsSequenceAttribute::setChildTime(int childNum, double seconds)
         return;
     }
 
+    // Bounds checking
     if (childNum >= performerSequence->getNumChildren())
     {
         printf("vsSequenceAttribute::setChildTime: Index out of bounds\n");
         return;
     }
 
+    // Set the time for the specified child on the Performer object
     performerSequence->setTime(childNum, seconds);
 }
 
@@ -93,6 +97,7 @@ void vsSequenceAttribute::setChildTime(int childNum, double seconds)
 // ------------------------------------------------------------------------
 double vsSequenceAttribute::getChildTime(int childNum)
 {
+    // Unattached sequences can't be manipulated
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::getChildTime: Attribute must be attached "
@@ -100,12 +105,14 @@ double vsSequenceAttribute::getChildTime(int childNum)
         return 0.0;
     }
 
+    // Bounds checking
     if ((childNum < 0) || (childNum >= performerSequence->getNumChildren()))
     {
         printf("vsSequenceAttribute::getChildTime: Index out of bounds\n");
         return 0.0;
     }
 
+    // Set the time for the specified child from the Performer object
     return (performerSequence->getTime(childNum));
 }
 
@@ -119,6 +126,7 @@ void vsSequenceAttribute::setRepetitionCount(int numReps)
     float speed;
     int temp;
 
+    // Unattached sequences can't be manipulated
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::setRepetitionCount: Attribute must be "
@@ -126,6 +134,10 @@ void vsSequenceAttribute::setRepetitionCount(int numReps)
         return;
     }
     
+    // Sets the number of repetitions of the sequence on the Performer
+    // object. Since the setDuration call requires a speed factor as well
+    // as a repetition count, get the speed from the sequence first and
+    // use that when setting the repetitions.
     performerSequence->getDuration(&speed, &temp);
     performerSequence->setDuration(speed, numReps);
 }
@@ -138,6 +150,7 @@ int vsSequenceAttribute::getRepetitionCount()
     int result;
     float temp;
 
+    // Unattached sequences can't be manipulated
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::getRepetitionCount: Attribute must be "
@@ -145,8 +158,10 @@ int vsSequenceAttribute::getRepetitionCount()
         return 0;
     }
     
+    // Get the number of repetitions from the Performer sequence
     performerSequence->getDuration(&temp, &result);
 
+    // Return the repetition count
     return result;
 }
 
@@ -157,6 +172,7 @@ void vsSequenceAttribute::setCycleMode(int seqCycle)
 {
     int mode, begin, end;
 
+    // Unattached sequences can't be manipulated
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::setCycleMode: Attribute must be "
@@ -164,8 +180,13 @@ void vsSequenceAttribute::setCycleMode(int seqCycle)
         return;
     }
     
+    // The Performer sequence setInterval function requires the begin
+    // and end nodes of the sequence; get those from the sequence so we
+    // can pass them back in when setting the cyctem mode.
     performerSequence->getInterval(&mode, &begin, &end);
     
+    // Translate the VESS cycle mode constant into a call to the
+    // pfSequence setInterval function
     switch (seqCycle)
     {
         case VS_SEQUENCE_CYCLE_FORWARD:
@@ -188,6 +209,7 @@ int vsSequenceAttribute::getCycleMode()
 {
     int mode, begin, end;
 
+    // Unattached sequences can't be manipulated
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::getCycleMode: Attribute must be "
@@ -195,8 +217,10 @@ int vsSequenceAttribute::getCycleMode()
         return 0;
     }
     
+    // Get the cycle mode from the Performer sequence
     performerSequence->getInterval(&mode, &begin, &end);
     
+    // Translate the Performer swing mode constant to VESS and return it
     if (mode == PFSEQ_SWING)
         return VS_SEQUENCE_CYCLE_SWING;
     else
@@ -208,6 +232,7 @@ int vsSequenceAttribute::getCycleMode()
 // ------------------------------------------------------------------------
 void vsSequenceAttribute::setPlayMode(int playMode)
 {
+    // Unattached sequences can't be manipulated
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::setPlayMode: Attribute must be "
@@ -215,6 +240,7 @@ void vsSequenceAttribute::setPlayMode(int playMode)
         return;
     }
     
+    // Set the pfSequence mode based on the VESS place mode constant
     switch (playMode)
     {
         case VS_SEQUENCE_MODE_START:
@@ -241,6 +267,7 @@ void vsSequenceAttribute::setPlayMode(int playMode)
 // ------------------------------------------------------------------------
 int vsSequenceAttribute::getPlayMode()
 {
+    // Unattached sequences can't be manipulated
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::getPlayMode: Attribute must be "
@@ -248,6 +275,7 @@ int vsSequenceAttribute::getPlayMode()
         return 0;
     }
     
+    // Translate the pfSequence play mode constant into a VESS one
     switch (performerSequence->getMode())
     {
         case PFSEQ_START:
@@ -260,6 +288,7 @@ int vsSequenceAttribute::getPlayMode()
             return VS_SEQUENCE_MODE_RESUME;
     }
     
+    // If the Performer constant is unrecognized, return a generic value
     return 0;
 }
 
@@ -271,6 +300,7 @@ int vsSequenceAttribute::getCurrentChildNum()
 {
     int temp;
 
+    // Unattached sequences can't be manipulated
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::getCurrentChildNum: Attribute must be "
@@ -278,6 +308,7 @@ int vsSequenceAttribute::getCurrentChildNum()
         return 0;
     }
     
+    // Get the current visible child from the vsSequence
     return (performerSequence->getFrame(&temp));
 }
 
@@ -287,6 +318,8 @@ int vsSequenceAttribute::getCurrentChildNum()
 // ------------------------------------------------------------------------
 int vsSequenceAttribute::canAttach()
 {
+    // This attribute is not available to be attached if it is already
+    // attached to another node
     if (attachedFlag)
         return VS_FALSE;
 
@@ -300,12 +333,14 @@ int vsSequenceAttribute::canAttach()
 // ------------------------------------------------------------------------
 void vsSequenceAttribute::attach(vsNode *theNode)
 {
+    // Verify that we're not already attached to something
     if (attachedFlag)
     {
         printf("vsSequenceAttribute::attach: Attribute is already attached\n");
         return;
     }
 
+    // Sequence attributes may not be attached to geometry nodes
     if ((theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY) ||
         (theNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY))
     {
@@ -318,12 +353,14 @@ void vsSequenceAttribute::attach(vsNode *theNode)
     performerSequence = new pfSequence();
     ((vsComponent *)theNode)->replaceBottomGroup(performerSequence);
 
+    // Set some default values on the pfSequence
     performerSequence->setMode(PFSEQ_STOP);
     performerSequence->setInterval(PFSEQ_SWING, 0, -1);
     performerSequence->setDuration(1.0, -1);
     performerSequence->setTime(-1, 1.0);
     performerSequence->setMode(PFSEQ_START);
     
+    // Mark this attribute as attached
     attachedFlag = 1;
 }
 
@@ -336,6 +373,7 @@ void vsSequenceAttribute::detach(vsNode *theNode)
 {
     pfGroup *newGroup;
 
+    // Can't detach an attribute that is not attached
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::attach: Attribute is not attached\n");
@@ -347,6 +385,7 @@ void vsSequenceAttribute::detach(vsNode *theNode)
     ((vsComponent *)theNode)->replaceBottomGroup(newGroup);
     performerSequence = NULL;
     
+    // Mark this attribute as unattached
     attachedFlag = 0;
 }
 
@@ -360,17 +399,26 @@ void vsSequenceAttribute::attachDuplicate(vsNode *theNode)
     int loop;
     vsComponent *theComponent;
     
+    // Verify that the node we're trying to attach the duplicate to
+    // is a vsComponent
     if (theNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
         theComponent = (vsComponent *)theNode;
     else
         return;
     
+    // Create a duplicate wireframe attribute
     newAttrib = new vsSequenceAttribute();
 
+    // Attach the duplicate attribute to the specified node first, so that
+    // we can manipulate its values
     theNode->addAttribute(newAttrib);
 
+    // Copy the sequence's child durations to the duplicate attribute
     for (loop = 0; loop < theComponent->getChildCount(); loop++)    
         newAttrib->setChildTime(loop, getChildTime(loop));
+
+    // Copy the repetition count, cycle mode, and play mode to the
+    // duplicate attribute
     newAttrib->setRepetitionCount(getRepetitionCount());
     newAttrib->setCycleMode(getCycleMode());
     newAttrib->setPlayMode(getPlayMode());

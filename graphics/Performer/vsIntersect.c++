@@ -35,17 +35,24 @@ vsIntersect::vsIntersect()
 {
     int loop;
 
+    // Initialize to zero active segments
     segListSize = 0;
 
+    // Set path finding to off and clear the path pointers
     pathsEnabled = 0;
     for (loop = 0; loop < VS_INTERSECT_SEGS_MAX; loop++)
         sectPath[loop] = NULL;
 
+    // Set default intersection modes: intersect with back faces, intersect
+    // with only the currently active child (or children) of a switch,
+    // intersect with only the currently visible child of a sequence, and
+    // intersect only with the most-detailed child of an LOD.
     facingMode = VS_INTERSECT_IGNORE_NONE;
     switchMode = VS_INTERSECT_SWITCH_CURRENT;
     seqMode = VS_INTERSECT_SEQUENCE_CURRENT;
     lodMode = VS_INTERSECT_LOD_FIRST;
     
+    // Set up the segset
     performerSegSet.mode = PFTRAV_IS_PRIM | PFTRAV_IS_NORM;
     performerSegSet.userData = NULL;
     performerSegSet.activeMask = 0;
@@ -61,6 +68,7 @@ vsIntersect::~vsIntersect()
 {
     int loop;
 
+    // Delete the intersection path growable array objects, if they exist
     for (loop = 0; loop < VS_INTERSECT_SEGS_MAX; loop++)
         if (sectPath[loop] != NULL)
             delete (sectPath[loop]);
@@ -74,6 +82,7 @@ void vsIntersect::setSegListSize(int newSize)
     int loop;
     unsigned int result;
 
+    // Bounds checks
     if (newSize > VS_INTERSECT_SEGS_MAX)
     {
         printf("vsIntersect::setSegListSize: Segment list is limited to a "
@@ -86,10 +95,14 @@ void vsIntersect::setSegListSize(int newSize)
         return;
     }
     
+    // Create the segment mask, which contains one bit on for each
+    // active segment
     result = 0;
     for (loop = 0; loop < newSize; loop++)
         result |= (1 << loop);
 
+    // Store the list size, and set the active segment mask in the
+    // Performer segment set
     segListSize = newSize;
     performerSegSet.activeMask = result;
 }
@@ -113,23 +126,27 @@ void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector endPt)
     vsVector start, end;
     pfVec3 pstart, pend;
 
+    // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::setSeg: Segment number out of bounds\n");
         return;
     }
     
+    // Clean up the input vectors
     start.clearCopy(startPt);
     start.setSize(3);
     end.clearCopy(endPt);
     end.setSize(3);
     
+    // Convert vsVector to Performer pfVec3
     for (loop = 0; loop < 3; loop++)
     {
         pstart[loop] = start[loop];
         pend[loop] = end[loop];
     }
     
+    // Make the intersection segment from the start and end points
     performerSegSet.segs[segNum].makePts(pstart, pend);
 }
 
@@ -144,23 +161,28 @@ void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector directionVec,
     int loop;
     vsVector start, dir;
 
+    // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::setSeg: Segment number out of bounds\n");
         return;
     }
     
+    // Clean up the input vectors
     start.clearCopy(startPt);
     start.setSize(3);
     dir.clearCopy(directionVec);
     dir.setSize(3);
     dir.normalize();
     
+    // Copy into the segset
     for (loop = 0; loop < 3; loop++)
     {
         performerSegSet.segs[segNum].pos[loop] = start[loop];
         performerSegSet.segs[segNum].dir[loop] = dir[loop];
     }
+
+    // Copy the length of the segment
     performerSegSet.segs[segNum].length = length;
 }
 
@@ -173,15 +195,18 @@ vsVector vsIntersect::getSegStartPt(int segNum)
     int loop;
     vsVector result(3);
     
+    // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getSegStartPt: Segment number out of bounds\n");
         return result;
     }
     
+    // Copy pfVec3 to vsVector
     for (loop = 0; loop < 3; loop++)
         result[loop] = performerSegSet.segs[segNum].pos[loop];
 
+    // Return the desired point
     return result;
 }
 
@@ -194,17 +219,21 @@ vsVector vsIntersect::getSegEndPt(int segNum)
     int loop;
     vsVector result(3);
     
+    // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getSegEndPt: Segment number out of bounds\n");
         return result;
     }
     
+    // Calculate the segment end point from the Performer segment direction
+    // and length
     for (loop = 0; loop < 3; loop++)
         result[loop] = performerSegSet.segs[segNum].pos[loop] +
             (performerSegSet.segs[segNum].dir[loop] *
             performerSegSet.segs[segNum].length);
 
+    // Return the desired point
     return result;
 }
 
@@ -218,15 +247,18 @@ vsVector vsIntersect::getSegDirection(int segNum)
     int loop;
     vsVector result(3);
     
+    // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getSegDirection: Segment number out of bounds\n");
         return result;
     }
     
+    // Copy pfVec3 to vsVector
     for (loop = 0; loop < 3; loop++)
         result[loop] = performerSegSet.segs[segNum].dir[loop];
 
+    // Return the desired vector
     return result;
 }
 
@@ -236,12 +268,14 @@ vsVector vsIntersect::getSegDirection(int segNum)
 // ------------------------------------------------------------------------
 double vsIntersect::getSegLength(int segNum)
 {
+    // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getSegLength: Segment number out of bounds\n");
         return 0.0;
     }
     
+    // Return the length taken from the Performer segset
     return (performerSegSet.segs[segNum].length);
 }
 
@@ -263,15 +297,18 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
     vsVector rightDirection, downDirection;
     vsVector nearPt, farPt;
 
+    // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::setPickSeg: Segment number out of bounds\n");
         return;
     }
     
+    // Get the pfChannel
     paneChannel = pane->getBaseLibraryObject();
     
-    // Calculate the pick point on the near clipping plane
+    // Calculate the pick point on the near clipping plane by interpolating
+    // between the near plane's corner points
     paneChannel->getNear(ll, lr, ul, ur);
     upperLeft.set(ul[0], ul[1], ul[2]);
     upperRight.set(ur[0], ur[1], ur[2]);
@@ -283,7 +320,8 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
     nearPt = upperLeft + rightDirection.getScaled((x + 1.0) / 2.0) +
         downDirection.getScaled((y + 1.0) / 2.0);
     
-    // Calculate the pick point on the far clipping plane
+    // Calculate the pick point on the far clipping plane by interpolating
+    // between the far plane's corner points
     paneChannel->getFar(ll, lr, ul, ur);
     upperLeft.set(ul[0], ul[1], ul[2]);
     upperRight.set(ur[0], ur[1], ur[2]);
@@ -305,6 +343,7 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
 // ------------------------------------------------------------------------
 void vsIntersect::setMask(unsigned int newMask)
 {
+    // Set the intersection mask in the Performer segset
     performerSegSet.isectMask = newMask;
 }
 
@@ -313,6 +352,7 @@ void vsIntersect::setMask(unsigned int newMask)
 // ------------------------------------------------------------------------
 unsigned int vsIntersect::getMask()
 {
+    // Get the intersection mask from the Performer segset
     return performerSegSet.isectMask;
 }
 
@@ -437,6 +477,8 @@ void vsIntersect::intersect(vsNode *targetNode)
 
     // This is where the fun begins
     
+    // Get the Performer node to start intersecting with, based on the
+    // type of the VESS node we got
     if (targetNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
         performerNode = ((vsGeometry *)targetNode)->getBaseLibraryObject();
     else if (targetNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY)
@@ -451,29 +493,37 @@ void vsIntersect::intersect(vsNode *targetNode)
     // Always intersect to primitive level and calculate normals
     performerSegSet.mode = PFTRAV_IS_PRIM | PFTRAV_IS_NORM;
 
-    // Compute intersection paths?
+    // If intersection paths are desired, add the path calculate mode
+    // constant to the segset
     if (pathsEnabled)
         performerSegSet.mode |= PFTRAV_IS_PATH;
 
-    // Front/back face mode?
+    // If front or backface ignoring is desired, add the appropriate
+    // cull face mode constant to the segset
     if (facingMode == VS_INTERSECT_IGNORE_FRONTFACE)
         performerSegSet.mode |= PFTRAV_IS_CULL_FRONT;
     else if (facingMode == VS_INTERSECT_IGNORE_BACKFACE)
         performerSegSet.mode |= PFTRAV_IS_CULL_BACK;
 
-    // Switch traversal mode?
+    // If the switch traversal mode is something other than 'just the
+    // current child', then add the appropriate switch traversal mode
+    // constant to the segset
     if (switchMode == VS_INTERSECT_SWITCH_NONE)
         performerSegSet.mode |= PFTRAV_SW_NONE;
     else if (switchMode == VS_INTERSECT_SWITCH_ALL)
         performerSegSet.mode |= PFTRAV_SW_ALL;
 
-    // Sequence traversal mode?
+    // If the sequence traversal mode is something other than 'just the
+    // current child', then add the appropriate sequence traversal mode
+    // constant to the segset
     if (seqMode == VS_INTERSECT_SEQUENCE_NONE)
         performerSegSet.mode |= PFTRAV_SEQ_NONE;
     else if (seqMode == VS_INTERSECT_SEQUENCE_ALL)
         performerSegSet.mode |= PFTRAV_SEQ_ALL;
 
-    // LOD traversal mode?
+    // If the LOD traversal mode is something other than 'just the highest
+    // detail child', then add the appropriate LOD traversal mode
+    // constant to the segset
     if (lodMode == VS_INTERSECT_LOD_NONE)
         performerSegSet.mode |= PFTRAV_LOD_NONE;
     else if (lodMode == VS_INTERSECT_LOD_ALL)
@@ -485,46 +535,74 @@ void vsIntersect::intersect(vsNode *targetNode)
     // Interpret and store the results
     for (loop = 0; loop < segListSize; loop++)
     {
+        // Get the intersection success flag for the segment
         (hits[loop][0])->query(PFQHIT_FLAGS, &flags);
         
         // Check for no intersection
         if (!(flags & PFHIT_POINT))
         {
+            // Set the intersection result values to failed or default values
             validFlag[loop] = 0;
             sectPoint[loop].set(0, 0, 0);
             sectNorm[loop].set(0, 0, 0);
             sectGeom[loop] = NULL;
             sectPrim[loop] = 0;
+
+            // Set the intersection path to NULL
             if (sectPath[loop])
                 delete (sectPath[loop]);
             sectPath[loop] = NULL;
+
+	    // Resume with the next segment
             continue;
         }
         
+        // Mark the intersection as valid
         validFlag[loop] = 1;
 
+	// Retrieve the point of intersection and intersection normal
         (hits[loop][0])->query(PFQHIT_POINT, &hitPoint);
         (hits[loop][0])->query(PFQHIT_NORM, &polyNormal);
+
+        // Check for an available global transform matrix
         if (flags & PFHIT_XFORM)
         {
+            // Get the global transform matrix
             (hits[loop][0])->query(PFQHIT_XFORM, &xformMat);
             
+            // Copy the global transform matrix to our global matrix
+	    // result array
             for (sloop = 0; sloop < 4; sloop++)
                 for (tloop = 0; tloop < 4; tloop++)
                     sectXform[loop][sloop][tloop] = xformMat[tloop][sloop];
 
+            // Transform the point of intersection by the matrix
             hitPoint.xformPt(hitPoint, xformMat);
+
+            // Transform the intersection normal by the matrix
             polyNormal.xformVec(polyNormal, xformMat);
             polyNormal.normalize();
         }
         else
+        {
+            // No matrix; set the result array entry to identity
             sectXform[loop].setIdentity();
+        }
+
+        // Copy the point of intersection and the intersection normal to
+	// the result arrays
         sectPoint[loop].set(hitPoint[0], hitPoint[1], hitPoint[2]);
         sectNorm[loop].set(polyNormal[0], polyNormal[1], polyNormal[2]);
 
+	// Retrieve the node intersected with
         (hits[loop][0])->query(PFQHIT_NODE, &geoNode);
+
+        // Map the Performer pfGeode to its associated vsGeometry, and
+	// put that vsGeometry in the result array
         sectGeom[loop] = (vsGeometry *)((vsNode::getMap())->
             mapSecondToFirst(geoNode));
+
+	// Retrieve the primitive intersected with
         (hits[loop][0])->query(PFQHIT_PRIM, &(sectPrim[loop]));
         
         // Create path information if so requested
@@ -538,6 +616,7 @@ void vsIntersect::intersect(vsNode *targetNode)
             // Query the intersection path from Performer
             (hits[loop][0])->query(PFQHIT_PATH, &hitNodePath);
 
+            // Interpret the path data, if any
             if (hitNodePath)
             {
                 // Get the length of the path
@@ -561,27 +640,36 @@ void vsIntersect::intersect(vsNode *targetNode)
                 // Set up a matrix to accumulate transforms as we go down
                 xformAccum.makeIdent();
                 lastXformAccum.makeIdent();
+
+                // For each node in the path returned, try to match it with
+                // its VESS node counterpart.  Continue until we have
+                // processed all nodes in the path.
                 while (pathIndex < pathLength)
                 {
                     // Get the next node in the path
                     pathNode = (pfNode *)(hitNodePath->get(workingIndex));
 
-                    // If the node we get back is NULL, but it should
-                    // be valid based on the path length reported,
-                    // run the intersection again, starting with the
-                    // previous node in the path
+                    // Usually, invalid nodes show up as NULL in the path,
+                    // but occasionally, there are invalid nodes that are
+                    // not NULL.  Because of this, we can't trust any node 
+                    // deeper than 32 in the path, so we re-intersect every 
+                    // 32 nodes.
                     if (workingIndex >= 32)
                     {
+                        // Get the previous node in the path (the last
+                        // one that was valid).
                         newIsectNode = 
                             (pfNode *)(performerPath->getData(pathIndex-1));
+
+                        // Get the position and direction of the original
+                        // intersection segment
+                        segPos = performerSegSet.segs[loop].pos;
+                        segDir = performerSegSet.segs[loop].dir;
 
                         // Transform the position and direction of the 
                         // original segment to the current coordinate
                         // frame.  The lastXformAccum matrix contains
                         // the global transform before newIsectNode.
-                        segPos = performerSegSet.segs[loop].pos;
-                        segDir = performerSegSet.segs[loop].dir;
-
                         segmentXform.invertFull(lastXformAccum);
                         segPos.xformPt(segPos, segmentXform);
                         segDir.xformVec(segDir, segmentXform);
@@ -606,6 +694,9 @@ void vsIntersect::intersect(vsNode *targetNode)
 
                         // Query the path again
                         (secondHits[0][0])->query(PFQHIT_FLAGS, &flags);
+
+                        // Get the point of intersection, making sure an
+                        // intersection happened
                         if (flags & PFQHIT_POINT)
                         {
                             // Retrieve the new path
@@ -619,7 +710,7 @@ void vsIntersect::intersect(vsNode *targetNode)
                         }
                         else
                         {
-                            // Print an error
+                            // No intersection happened, print an error
                             printf("vsIntersect::intersect: Unable to "
                                    "complete the intersection path!\n");
 
@@ -627,7 +718,9 @@ void vsIntersect::intersect(vsNode *targetNode)
                             for (sloop = pathIndex; sloop < pathLength; sloop++)
                                 performerPath->setData(sloop, NULL);
 
-                            // Exit the loop
+                            // Exit the loop by setting the current node index
+                            // to the length of the path (we just processed
+                            // the rest of the path by filling it with NULLs).
                             pathIndex = pathLength;
                         }
                     }
@@ -638,11 +731,18 @@ void vsIntersect::intersect(vsNode *targetNode)
                         // the tranform accumulation matrix
                         if (pathNode->isOfType(pfSCS::getClassType()))
                         {
+                            // Keep track of the previous accumulated
+                            // transform (we might need it for a subsequent
+                            // re-intersection)
                             lastXformAccum = xformAccum;
 
+                            // Get the transform on the current node
                             nodeXform = 
                                 (pfMatrix *)((pfSCS *)pathNode)->getMatPtr();
 
+                            // Combine the current node's transform with
+                            // the transform we've accumulated in our path
+                            // trace so far.
                             xformAccum.preMult(*nodeXform);
                         }
  
@@ -661,20 +761,23 @@ void vsIntersect::intersect(vsNode *targetNode)
                     // Get the path node from the Performer path array
                     pathNode = (pfNode *)(performerPath->getData(sloop));
 
+                    // If the path node is valid
                     if (pathNode != NULL)
                     {
+                        // Get a VESS node from the Performer node
                         vessNode = (vsNode *)
 			    ((vsNode::getMap())->mapSecondToFirst(pathNode));
+
+                        // If the vess node is valid, add it to the path
                         if (vessNode)
-                        {
                             (sectPath[loop])->setData(arraySize++, vessNode);
-                        }
                     }
                 }
                 
                 // Terminate the path with a NULL
                 (sectPath[loop])->setData(arraySize, NULL);
                 
+                // We don't need the Performer path anymore; delete it.
                 delete performerPath;
             }
             else
@@ -683,6 +786,8 @@ void vsIntersect::intersect(vsNode *targetNode)
         }
         else if (sectPath[loop])
         {
+            // If paths are disabled, but there's a path object left over
+	    // from a previous intersection run, delete it.
             delete (sectPath[loop]);
             sectPath[loop] = NULL;
         }
@@ -696,12 +801,14 @@ void vsIntersect::intersect(vsNode *targetNode)
 // ------------------------------------------------------------------------
 int vsIntersect::getIsectValid(int segNum)
 {
+    // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectValid: Segment number out of bounds\n");
         return 0;
     }
 
+    // Return the desired value
     return validFlag[segNum];
 }
 
@@ -714,12 +821,14 @@ vsVector vsIntersect::getIsectPoint(int segNum)
 {
     vsVector errResult(3);
 
+    // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectPoint: Segment number out of bounds\n");
         return errResult;
     }
 
+    // Return the desired value
     return sectPoint[segNum];
 }
 
@@ -732,12 +841,14 @@ vsVector vsIntersect::getIsectNorm(int segNum)
 {
     vsVector errResult(3);
 
+    // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectNorm: Segment number out of bounds\n");
         return errResult;
     }
 
+    // Return the desired value
     return sectNorm[segNum];
 }
 
@@ -752,6 +863,7 @@ vsMatrix vsIntersect::getIsectXform(int segNum)
 {
     vsMatrix errResult;
 
+    // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectXform: Segment number out of bounds\n");
@@ -759,6 +871,7 @@ vsMatrix vsIntersect::getIsectXform(int segNum)
         return errResult;
     }
 
+    // Return the desired value
     return sectXform[segNum];
 }
 
@@ -769,12 +882,14 @@ vsMatrix vsIntersect::getIsectXform(int segNum)
 // ------------------------------------------------------------------------
 vsGeometry *vsIntersect::getIsectGeometry(int segNum)
 {
+    // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectGeometry: Segment number out of bounds\n");
         return NULL;
     }
 
+    // Return the desired value
     return sectGeom[segNum];
 }
 
@@ -785,12 +900,14 @@ vsGeometry *vsIntersect::getIsectGeometry(int segNum)
 // ------------------------------------------------------------------------
 int vsIntersect::getIsectPrimNum(int segNum)
 {
+    // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectPrimNum: Segment number out of bounds\n");
         return 0;
     }
 
+    // Return the desired value
     return sectPrim[segNum];
 }
 
@@ -804,11 +921,13 @@ int vsIntersect::getIsectPrimNum(int segNum)
 // ------------------------------------------------------------------------
 vsGrowableArray *vsIntersect::getIsectPath(int segNum)
 {
+    // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectPath: Segment number out of bounds\n");
         return 0;
     }
 
+    // Return the desired value
     return sectPath[segNum];
 }

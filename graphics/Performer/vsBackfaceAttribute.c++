@@ -47,6 +47,7 @@ vsBackfaceAttribute::vsBackfaceAttribute()
 // ------------------------------------------------------------------------
 vsBackfaceAttribute::~vsBackfaceAttribute()
 {
+    // Delete the Performer light mode object
     lightModel->unref();
     pfDelete(lightModel);
 }
@@ -72,9 +73,12 @@ int vsBackfaceAttribute::getAttributeType()
 // ------------------------------------------------------------------------
 void vsBackfaceAttribute::enable()
 {
+    // Turn display of back faces on
     lightModel->setTwoSide(PF_ON);
     cullfaceVal = PFCF_OFF;
     
+    // Mark the nodes that have this attribute attached as needing
+    // of an update
     markOwnersDirty();
 }
 
@@ -83,9 +87,12 @@ void vsBackfaceAttribute::enable()
 // ------------------------------------------------------------------------
 void vsBackfaceAttribute::disable()
 {
+    // Turn display of back faces off
     lightModel->setTwoSide(PF_OFF);
     cullfaceVal = PFCF_BACK;
 
+    // Mark the nodes that have this attribute attached as needing
+    // of an update
     markOwnersDirty();
 }
 
@@ -94,6 +101,7 @@ void vsBackfaceAttribute::disable()
 // ------------------------------------------------------------------------
 int vsBackfaceAttribute::isEnabled()
 {
+    // Backfacing is on if Performer face culling is off
     if (cullfaceVal == PFCF_OFF)
         return VS_TRUE;
 
@@ -108,13 +116,16 @@ void vsBackfaceAttribute::attachDuplicate(vsNode *theNode)
 {
     vsBackfaceAttribute *newAttrib;
     
+    // Create a duplicate backface attribute
     newAttrib = new vsBackfaceAttribute();
     
+    // Copy the backface enable mode
     if (isEnabled())
         newAttrib->enable();
     else
         newAttrib->disable();
 
+    // Attach the duplicate attribute to the specified node
     theNode->addAttribute(newAttrib);
 }
 
@@ -124,8 +135,10 @@ void vsBackfaceAttribute::attachDuplicate(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsBackfaceAttribute::saveCurrent()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
+    // Save the current backface state in our save list
     attrSaveList[attrSaveCount++] = gState->getBackface();
 }
 
@@ -135,9 +148,13 @@ void vsBackfaceAttribute::saveCurrent()
 // ------------------------------------------------------------------------
 void vsBackfaceAttribute::apply()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
+    // Set the current backface state to this object
     gState->setBackface(this);
+
+    // Lock the backface state if overriding is enabled
     if (overrideFlag)
         gState->lockBackface(this);
 }
@@ -148,10 +165,14 @@ void vsBackfaceAttribute::apply()
 // ------------------------------------------------------------------------
 void vsBackfaceAttribute::restoreSaved()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
+    // Unlock the wireframe state if overriding was enabled
     if (overrideFlag)
         gState->unlockBackface(this);
+
+    // Reset the current wireframe state to its previous value
     gState->setBackface((vsBackfaceAttribute *)(attrSaveList[--attrSaveCount]));
 }
 
@@ -161,6 +182,7 @@ void vsBackfaceAttribute::restoreSaved()
 // ------------------------------------------------------------------------
 void vsBackfaceAttribute::setState(pfGeoState *state)
 {
+    // Set the face culling mode and light model on the Performer geostate
     state->setMode(PFSTATE_CULLFACE, cullfaceVal);
     state->setAttr(PFSTATE_LIGHTMODEL, lightModel);
 }
@@ -175,21 +197,27 @@ int vsBackfaceAttribute::isEquivalent(vsAttribute *attribute)
     vsBackfaceAttribute *attr;
     int val1, val2;
     
+    // NULL check
     if (!attribute)
         return VS_FALSE;
 
+    // Equal pointer check
     if (this == attribute)
         return VS_TRUE;
     
+    // Type check
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_BACKFACE)
         return VS_FALSE;
 
+    // Type cast
     attr = (vsBackfaceAttribute *)attribute;
     
+    // State check
     val1 = isEnabled();
     val2 = attr->isEnabled();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Attributes are equivalent if all checks pass
     return VS_TRUE;
 }

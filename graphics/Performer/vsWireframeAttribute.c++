@@ -29,6 +29,7 @@
 // ------------------------------------------------------------------------
 vsWireframeAttribute::vsWireframeAttribute()
 {
+    // Initialize the attribute to its default value of enabled
     wireValue = PFTR_ON;
 }
 
@@ -60,8 +61,11 @@ int vsWireframeAttribute::getAttributeType()
 // ------------------------------------------------------------------------
 void vsWireframeAttribute::enable()
 {
+    // Turn wireframe on
     wireValue = PFTR_ON;
     
+    // Mark the nodes that have this attribute attached as needing
+    // of an update
     markOwnersDirty();
 }
 
@@ -70,8 +74,11 @@ void vsWireframeAttribute::enable()
 // ------------------------------------------------------------------------
 void vsWireframeAttribute::disable()
 {
+    // Turn wireframe off
     wireValue = PFTR_OFF;
     
+    // Mark the nodes that have this attribute attached as needing
+    // of an update
     markOwnersDirty();
 }
 
@@ -80,6 +87,7 @@ void vsWireframeAttribute::disable()
 // ------------------------------------------------------------------------
 int vsWireframeAttribute::isEnabled()
 {
+    // Interpret the current wireframe value
     if (wireValue == PFTR_ON)
         return VS_TRUE;
     else
@@ -94,13 +102,16 @@ void vsWireframeAttribute::attachDuplicate(vsNode *theNode)
 {
     vsWireframeAttribute *newAttrib;
     
+    // Create a duplicate wireframe attribute
     newAttrib = new vsWireframeAttribute();
     
+    // Copy the wireframe enable value
     if (isEnabled())
         newAttrib->enable();
     else
         newAttrib->disable();
 
+    // Attach the duplicate attribute to the specified node
     theNode->addAttribute(newAttrib);
 }
 
@@ -112,6 +123,7 @@ void vsWireframeAttribute::saveCurrent()
 {
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
+    // Save the current wireframe state in our save list
     attrSaveList[attrSaveCount++] = gState->getWireframe();
 }
 
@@ -121,9 +133,13 @@ void vsWireframeAttribute::saveCurrent()
 // ------------------------------------------------------------------------
 void vsWireframeAttribute::apply()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
+    // Set the current wireframe state to this object
     gState->setWireframe(this);
+
+    // Lock the wireframe state if overriding is enabled
     if (overrideFlag)
         gState->lockWireframe(this);
 }
@@ -134,10 +150,14 @@ void vsWireframeAttribute::apply()
 // ------------------------------------------------------------------------
 void vsWireframeAttribute::restoreSaved()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
+    // Unlock the wireframe state if overriding was enabled
     if (overrideFlag)
         gState->unlockWireframe(this);
+
+    // Reset the current wireframe state to its previous value
     gState->setWireframe(
         (vsWireframeAttribute *)(attrSaveList[--attrSaveCount]));
 }
@@ -148,6 +168,7 @@ void vsWireframeAttribute::restoreSaved()
 // ------------------------------------------------------------------------
 void vsWireframeAttribute::setState(pfGeoState *state)
 {
+    // Set the wireframe enable on the Performer geostate
     state->setMode(PFSTATE_ENWIREFRAME, wireValue);
 }
 
@@ -161,21 +182,27 @@ int vsWireframeAttribute::isEquivalent(vsAttribute *attribute)
     vsWireframeAttribute *attr;
     int val1, val2;
     
+    // NULL check
     if (!attribute)
         return VS_FALSE;
 
+    // Equal pointer check
     if (this == attribute)
         return VS_TRUE;
     
+    // Type check
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_WIREFRAME)
         return VS_FALSE;
 
+    // Type cast
     attr = (vsWireframeAttribute *)attribute;
 
+    // State check
     val1 = isEnabled();
     val2 = attr->isEnabled();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Attributes are equivalent if all checks pass
     return VS_TRUE;
 }

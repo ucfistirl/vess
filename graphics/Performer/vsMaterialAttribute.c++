@@ -30,10 +30,12 @@
 // ------------------------------------------------------------------------
 vsMaterialAttribute::vsMaterialAttribute()
 {
+    // Create and initialize the front material
     frontMaterial = new pfMaterial();
     frontMaterial->setSide(PFMTL_FRONT);
     frontMaterial->ref();
 
+    // Create and initialize the back material
     backMaterial = new pfMaterial();
     backMaterial->setSide(PFMTL_BACK);
     backMaterial->ref();
@@ -46,10 +48,12 @@ vsMaterialAttribute::vsMaterialAttribute()
 // ------------------------------------------------------------------------
 vsMaterialAttribute::vsMaterialAttribute(pfMaterial *front, pfMaterial *back)
 {
+    // Store and initialize the front material
     frontMaterial = front;
     frontMaterial->setSide(PFMTL_FRONT);
     frontMaterial->ref();
 
+    // Store and initialize the back material
     backMaterial = back;
     backMaterial->setSide(PFMTL_BACK);
     backMaterial->ref();
@@ -60,6 +64,7 @@ vsMaterialAttribute::vsMaterialAttribute(pfMaterial *front, pfMaterial *back)
 // ------------------------------------------------------------------------
 vsMaterialAttribute::~vsMaterialAttribute()
 {
+    // Delete both Performer materials
     frontMaterial->unref();
     pfDelete(frontMaterial);
     backMaterial->unref();
@@ -88,8 +93,10 @@ int vsMaterialAttribute::getAttributeType()
 void vsMaterialAttribute::setColor(int side, int whichColor, double r,
                                    double g, double b)
 {
+    // Set front color if side is FRONT or BOTH
     if (side != VS_MATERIAL_SIDE_BACK)
     {
+        // Interpret the whichColor constant
         switch (whichColor)
         {
             case VS_MATERIAL_COLOR_AMBIENT:
@@ -107,8 +114,10 @@ void vsMaterialAttribute::setColor(int side, int whichColor, double r,
         }
     }
 
+    // Set back color if side is BACK or BOTH
     if (side != VS_MATERIAL_SIDE_FRONT)
     {
+        // Interpret the whichColor constant
         switch (whichColor)
         {
             case VS_MATERIAL_COLOR_AMBIENT:
@@ -136,8 +145,10 @@ void vsMaterialAttribute::getColor(int side, int whichColor, double *r,
 {
     float red, green, blue;
     
+    // Get the back color if side is BACK, else get the front color
     if (side == VS_MATERIAL_SIDE_BACK)
     {
+        // Interpret the whichColor constant
         switch (whichColor)
         {
             case VS_MATERIAL_COLOR_AMBIENT:
@@ -156,6 +167,7 @@ void vsMaterialAttribute::getColor(int side, int whichColor, double *r,
     }
     else
     {
+        // Interpret the whichColor constant
         switch (whichColor)
         {
             case VS_MATERIAL_COLOR_AMBIENT:
@@ -173,6 +185,7 @@ void vsMaterialAttribute::getColor(int side, int whichColor, double *r,
         }
     }
 
+    // Copy the desired results to the specified locations
     if (r)
         *r = red;
     if (g)
@@ -186,6 +199,7 @@ void vsMaterialAttribute::getColor(int side, int whichColor, double *r,
 // ------------------------------------------------------------------------
 void vsMaterialAttribute::setAlpha(int side, double alpha)
 {
+    // Set the alpha value(s) specified by the side constant
     if (side != VS_MATERIAL_SIDE_BACK)
         frontMaterial->setAlpha(alpha);
     if (side != VS_MATERIAL_SIDE_FRONT)
@@ -197,6 +211,8 @@ void vsMaterialAttribute::setAlpha(int side, double alpha)
 // ------------------------------------------------------------------------
 double vsMaterialAttribute::getAlpha(int side)
 {
+    // Get the back value if side is BACK, or the front value if side
+    // is FRONT or BOTH
     if (side == VS_MATERIAL_SIDE_BACK)
         return backMaterial->getAlpha();
     else
@@ -208,6 +224,7 @@ double vsMaterialAttribute::getAlpha(int side)
 // ------------------------------------------------------------------------
 void vsMaterialAttribute::setShininess(int side, double shine)
 {
+    // Set the shininess value(s) specified by the side constant
     if (side != VS_MATERIAL_SIDE_BACK)
         frontMaterial->setShininess(shine);
     if (side != VS_MATERIAL_SIDE_FRONT)
@@ -219,6 +236,8 @@ void vsMaterialAttribute::setShininess(int side, double shine)
 // ------------------------------------------------------------------------
 double vsMaterialAttribute::getShininess(int side)
 {
+    // Get the back value if side is BACK, or the front value if side
+    // is FRONT or BOTH
     if (side == VS_MATERIAL_SIDE_BACK)
         return backMaterial->getShininess();
     else
@@ -233,8 +252,10 @@ double vsMaterialAttribute::getShininess(int side)
 // ------------------------------------------------------------------------
 void vsMaterialAttribute::setColorMode(int side, int colorMode)
 {
+    // Set the front color mode if side is FRONT or BOTH
     if (side != VS_MATERIAL_SIDE_BACK)
     {
+        // Interpret the colorMode constant
         switch (colorMode)
         {
             case VS_MATERIAL_CMODE_AMBIENT:
@@ -259,8 +280,10 @@ void vsMaterialAttribute::setColorMode(int side, int colorMode)
         }
     }
 
+    // Set the back color mode if side is BACK or BOTH
     if (side != VS_MATERIAL_SIDE_FRONT)
     {
+        // Interpret the colorMode constant
         switch (colorMode)
         {
             case VS_MATERIAL_CMODE_AMBIENT:
@@ -291,8 +314,11 @@ void vsMaterialAttribute::setColorMode(int side, int colorMode)
 // ------------------------------------------------------------------------
 int vsMaterialAttribute::getColorMode(int side)
 {
+    // Get the back value if side is BACK, or the front value if side
+    // is FRONT or BOTH
     if (side == VS_MATERIAL_SIDE_BACK)
     {
+        // Translate the Performer color mode
         switch (backMaterial->getColorMode(PFMTL_BACK))
         {
             case PFMTL_CMODE_AMBIENT:
@@ -311,6 +337,7 @@ int vsMaterialAttribute::getColorMode(int side)
     }
     else
     {
+        // Translate the Performer color mode
         switch (frontMaterial->getColorMode(PFMTL_FRONT))
         {
             case PFMTL_CMODE_AMBIENT:
@@ -328,6 +355,7 @@ int vsMaterialAttribute::getColorMode(int side)
         }
     }
 
+    // If the Performer color mode is unrecognized, return zero
     return 0;
 }
 
@@ -340,13 +368,16 @@ void vsMaterialAttribute::attachDuplicate(vsNode *theNode)
     vsMaterialAttribute *newAttrib;
     pfMaterial *newFront, *newBack;
     
+    // Create duplicates of this attribute's materials
     newFront = new pfMaterial();
     newFront->copy(frontMaterial);
     newBack = new pfMaterial();
     newBack->copy(backMaterial);
     
+    // Create a duplicate material attribute
     newAttrib = new vsMaterialAttribute(frontMaterial, backMaterial);
 
+    // Attach the duplicate attribute to the specified node
     theNode->addAttribute(newAttrib);
 }
 
@@ -358,6 +389,7 @@ void vsMaterialAttribute::saveCurrent()
 {
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
+    // Save the current material state in our save list
     attrSaveList[attrSaveCount++] = gState->getMaterial();
 }
 
@@ -367,9 +399,13 @@ void vsMaterialAttribute::saveCurrent()
 // ------------------------------------------------------------------------
 void vsMaterialAttribute::apply()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
+    // Set the current material state to this object
     gState->setMaterial(this);
+
+    // Lock the material state if overriding is enabled
     if (overrideFlag)
         gState->lockMaterial(this);
 }
@@ -380,10 +416,14 @@ void vsMaterialAttribute::apply()
 // ------------------------------------------------------------------------
 void vsMaterialAttribute::restoreSaved()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
+    // Unlock the material state if overriding was enabled
     if (overrideFlag)
         gState->unlockMaterial(this);
+
+    // Reset the current material state to its previous value
     gState->setMaterial((vsMaterialAttribute *)(attrSaveList[--attrSaveCount]));
 }
 
@@ -393,6 +433,7 @@ void vsMaterialAttribute::restoreSaved()
 // ------------------------------------------------------------------------
 void vsMaterialAttribute::setState(pfGeoState *state)
 {
+    // Set the active front and back materials on the Performer geostate
     state->setAttr(PFSTATE_FRONTMTL, frontMaterial);
     state->setAttr(PFSTATE_BACKMTL, backMaterial);
 }
@@ -409,17 +450,22 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     int ival1, ival2;
     double r1, g1, b1, r2, g2, b2;
     
+    // NULL check
     if (!attribute)
         return VS_FALSE;
 
+    // Equal pointer check
     if (this == attribute)
         return VS_TRUE;
     
+    // Type check
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_MATERIAL)
         return VS_FALSE;
 
+    // Type cast
     attr = (vsMaterialAttribute *)attribute;
 
+    // Front side ambient color check
     getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_AMBIENT,
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_AMBIENT,
@@ -427,6 +473,7 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
         return VS_FALSE;
 
+    // Back side ambient color check
     getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_AMBIENT,
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_AMBIENT,
@@ -434,6 +481,7 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
         return VS_FALSE;
 
+    // Front side diffuse color check
     getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_DIFFUSE,
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_DIFFUSE,
@@ -441,6 +489,7 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
         return VS_FALSE;
 
+    // Back side diffuse color check
     getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_DIFFUSE,
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_DIFFUSE,
@@ -448,6 +497,7 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
         return VS_FALSE;
 
+    // Front side specular color check
     getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_SPECULAR,
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_SPECULAR,
@@ -455,6 +505,7 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
         return VS_FALSE;
 
+    // Back side specular color check
     getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_SPECULAR,
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_SPECULAR,
@@ -462,6 +513,7 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
         return VS_FALSE;
 
+    // Front side emissive color check
     getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_EMISSIVE,
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_EMISSIVE,
@@ -469,6 +521,7 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
         return VS_FALSE;
 
+    // Back side emissive color check
     getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_EMISSIVE,
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_EMISSIVE,
@@ -476,35 +529,42 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
         return VS_FALSE;
 
+    // Front side alpha value check
     val1 = getAlpha(VS_MATERIAL_SIDE_FRONT);
     val2 = attr->getAlpha(VS_MATERIAL_SIDE_FRONT);
     if (!VS_EQUAL(val1,val2))
         return VS_FALSE;
 
+    // Back side alpha value check
     val1 = getAlpha(VS_MATERIAL_SIDE_BACK);
     val2 = attr->getAlpha(VS_MATERIAL_SIDE_BACK);
     if (!VS_EQUAL(val1,val2))
         return VS_FALSE;
 
+    // Front side shininess value check
     val1 = getShininess(VS_MATERIAL_SIDE_FRONT);
     val2 = attr->getShininess(VS_MATERIAL_SIDE_FRONT);
     if (!VS_EQUAL(val1,val2))
         return VS_FALSE;
 
+    // Back side shininess value check
     val1 = getShininess(VS_MATERIAL_SIDE_BACK);
     val2 = attr->getShininess(VS_MATERIAL_SIDE_BACK);
     if (!VS_EQUAL(val1,val2))
         return VS_FALSE;
 
+    // Front side color mode check
     ival1 = getColorMode(VS_MATERIAL_SIDE_FRONT);
     ival2 = attr->getColorMode(VS_MATERIAL_SIDE_FRONT);
     if (ival1 != ival2)
         return VS_FALSE;
 
+    // Back side color mode check
     ival1 = getColorMode(VS_MATERIAL_SIDE_BACK);
     ival2 = attr->getColorMode(VS_MATERIAL_SIDE_BACK);
     if (ival1 != ival2)
         return VS_FALSE;
 
+    // Attributes are equivalent if all checks pass
     return VS_TRUE;
 }
