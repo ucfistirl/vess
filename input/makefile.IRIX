@@ -22,11 +22,13 @@ LIBNAME = libvsInput.a
 #----------------------------------------------------------------------
 SRCS = \
        vs6DInputDevice.c++ \
+       vsArticulationGlove.c++ \
        vsAscensionSerialTrackingSystem.c++ \
+       vsChordGloves.c++ \
+       vsCyberGloveBox.c++ \
        vsEthernetMotionStar.c++ \
        vsFastrak.c++ \
        vsFlockOfBirds.c++ \
-       vsChordGloves.c++ \
        vsIS600.c++ \
        vsISTJoystickBox.c++ \
        vsInputAxis.c++ \
@@ -37,6 +39,7 @@ SRCS = \
        vsJoystickBox.c++ \
        vsKeyboard.c++ \
        vsMouse.c++ \
+       vsNetworkInterface.c++ \
        vsPinchGloveBox.c++ \
        vsSerialMotionStar.c++ \
        vsSerialPort.c++ \
@@ -44,20 +47,21 @@ SRCS = \
        vsSpaceball.c++ \
        vsTrackingSystem.c++ \
        vsMotionTracker.c++ \
+       vsUDPNetworkInterface.c++ \
+       vsUDPUnicastNetworkInterface.c++ \
        vsUnwinder.c++ \
        vsWSSpaceball.c++ \
-       vsWindowSystem.c++ \
-       NetworkInterface.c++ \
-       UDPNetworkInterface.c++ \
-       UDPUnicastNetworkInterface.c++
+       vsWindowSystem.c++
 
 OBJS = \
        vs6DInputDevice.o \
+       vsArticulationGlove.o \
        vsAscensionSerialTrackingSystem.o \
+       vsChordGloves.o \
+       vsCyberGloveBox.o \
        vsEthernetMotionStar.o \
        vsFastrak.o \
        vsFlockOfBirds.o \
-       vsChordGloves.o \
        vsInputAxis.o \
        vsInputButton.o \
        vsInputDevice.o \
@@ -68,6 +72,7 @@ OBJS = \
        vsJoystickBox.o \
        vsKeyboard.o \
        vsMouse.o \
+       vsNetworkInterface.o \
        vsPinchGloveBox.o \
        vsSerialMotionStar.o \
        vsSerialPort.o \
@@ -75,12 +80,11 @@ OBJS = \
        vsSpaceball.o \
        vsTrackingSystem.o \
        vsMotionTracker.o \
+       vsUDPNetworkInterface.o \
+       vsUDPUnicastNetworkInterface.o \
        vsUnwinder.o \
        vsWSSpaceball.o \
-       vsWindowSystem.o \
-       NetworkInterface.o \
-       UDPNetworkInterface.o \
-       UDPUnicastNetworkInterface.o
+       vsWindowSystem.o
 
 #----------------------------------------------------------------------
 #			Compiler settings
@@ -95,10 +99,13 @@ ARFLAGS = -rulc
 #----------------------------------------------------------------------
 #			Include file directories
 #----------------------------------------------------------------------
+include ../libpaths.IRIX
+
 INCS = \
        -I../system \
        -I../scene \
-       -I../math
+       -I../math \
+       $(EXTRA_INCS)
 
 #----------------------------------------------------------------------
 #			Default target

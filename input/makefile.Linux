@@ -22,11 +22,13 @@ LIBNAME = libvsInput.a
 #----------------------------------------------------------------------
 SRCS = \
        vs6DInputDevice.c++ \
+       vsArticulationGlove.c++ \
        vsAscensionSerialTrackingSystem.c++ \
+       vsChordGloves.c++ \
+       vsCyberGloveBox.c++ \
        vsEthernetMotionStar.c++ \
        vsFastrak.c++ \
        vsFlockOfBirds.c++ \
-       vsChordGloves.c++ \
        vsIS600.c++ \
        vsISTJoystickBox.c++ \
        vsInputAxis.c++ \
@@ -38,26 +40,28 @@ SRCS = \
        vsKeyboard.c++ \
        vsMotionTracker.c++ \
        vsMouse.c++ \
+       vsNetworkInterface.c++ \
        vsPinchGloveBox.c++ \
        vsSerialMotionStar.c++ \
        vsSerialPort.c++ \
        vsSharedInputData.c++ \
        vsSpaceball.c++ \
        vsTrackingSystem.c++ \
+       vsUDPNetworkInterface.c++ \
+       vsUDPUnicastNetworkInterface.c++ \
        vsUnwinder.c++ \
        vsWSSpaceball.c++ \
-       vsWindowSystem.c++ \
-       NetworkInterface.c++ \
-       UDPNetworkInterface.c++ \
-       UDPUnicastNetworkInterface.c++
+       vsWindowSystem.c++
 
 OBJS = \
        vs6DInputDevice.o \
+       vsArticulationGlove.o \
        vsAscensionSerialTrackingSystem.o \
+       vsChordGloves.o \
+       vsCyberGloveBox.o \
        vsEthernetMotionStar.o \
        vsFastrak.o \
        vsFlockOfBirds.o \
-       vsChordGloves.o \
        vsIS600.o \
        vsISTJoystickBox.o \
        vsInputAxis.o \
@@ -69,18 +73,18 @@ OBJS = \
        vsKeyboard.o \
        vsMotionTracker.o \
        vsMouse.o \
+       vsNetworkInterface.o \
        vsPinchGloveBox.o \
        vsSerialMotionStar.o \
        vsSerialPort.o \
        vsSharedInputData.o \
        vsSpaceball.o \
        vsTrackingSystem.o \
+       vsUDPNetworkInterface.o \
+       vsUDPUnicastNetworkInterface.o \
        vsUnwinder.o \
        vsWSSpaceball.o \
-       vsWindowSystem.o \
-       NetworkInterface.o \
-       UDPNetworkInterface.o \
-       UDPUnicastNetworkInterface.o
+       vsWindowSystem.o
 
 #----------------------------------------------------------------------
 #			Compiler settings
@@ -95,6 +99,8 @@ ARFLAGS = -rulc
 #----------------------------------------------------------------------
 #			Include file directories
 #----------------------------------------------------------------------
+include ../libpaths.Linux
+
 INCS = \
        -I.. \
        -I../math \
@@ -102,24 +108,8 @@ INCS = \
        -I../system \
        -I/usr/X11R6/include \
        -I/usr/include/g++-2 \
-       -I/ist/projects/vr2/tools/services/abstractService2.2.5
-
-#----------------------------------------------------------------------
-#			Linking Libraries - directories and libs
-#----------------------------------------------------------------------
-LDIRS = \
-      -nostdlib \
-      -L/usr/lib32/mips3 \
-      -L/usr/lib32/internal \
-      -L/usr/lib32/libpfdb \
-      -L/usr/lib32
-
-LLIBS = -ignore_unresolved \
-	-lC \
-	-lc \
-	-lm
-
-LIBS = $(LDIRS) $(LLIBS)
+       -I/ist/projects/vr2/tools/services/abstractService2.2.5 \
+       $(EXTRA_INCS)
 
 #----------------------------------------------------------------------
 #			Default target
