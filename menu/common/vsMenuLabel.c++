@@ -69,13 +69,21 @@ vsMenuLabel::~vsMenuLabel()
     if (labelText)
         free(labelText);
 
-    if (menuKinematics)
-        vsObject::unrefDelete(menuKinematics);
     if (menuComponent)
+    {
         vsObject::unrefDelete(menuComponent);
+        menuComponent = NULL;
+    }
+
+    if (menuKinematics)
+    {
+        vsObject::unrefDelete(menuKinematics);
+        menuKinematics = NULL;
+    }
 
     // Attempt to delete the text builder
-    vsObject::unrefDelete(textBuilder);
+    if (textBuilder)
+        vsObject::unrefDelete(textBuilder);
 }
 
 // ------------------------------------------------------------------------

@@ -84,6 +84,17 @@ vsMenuToggleButton::vsMenuToggleButton(vsComponent *component,
 // ------------------------------------------------------------------------
 vsMenuToggleButton::~vsMenuToggleButton()
 {
+    if (menuComponent)
+    {
+        vsObject::unrefDelete(menuComponent);
+        menuComponent = NULL;
+    }
+
+    if (menuKinematics)
+    {
+        vsObject::unrefDelete(menuKinematics);
+        menuKinematics = NULL;
+    }
 }
 
 // ------------------------------------------------------------------------

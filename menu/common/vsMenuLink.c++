@@ -88,10 +88,17 @@ vsMenuLink::vsMenuLink(vsComponent *component, vsKinematics *kinematics)
 vsMenuLink::~vsMenuLink()
 {
     // Delete the externally-created variables
-    if (menuKinematics)
-        vsObject::unrefDelete(menuKinematics);
     if (menuComponent)
+    {
         vsObject::unrefDelete(menuComponent);
+        menuComponent = NULL;
+    }
+
+    if (menuKinematics)
+    {
+        vsObject::unrefDelete(menuKinematics);
+        menuKinematics = NULL;
+    }
 
     // Delete the internally-created frame
     delete destFrame;

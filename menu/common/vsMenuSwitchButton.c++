@@ -53,6 +53,10 @@ vsMenuSwitchButton::~vsMenuSwitchButton()
     vsObject::unrefDelete(switchAttr);
     vsObject::unrefDelete(menuComponent);
     vsObject::unrefDelete(menuKinematics);
+
+    // Set the variables to NULL so they aren't deleted again later
+    menuComponent = NULL;
+    menuKinematics = NULL;
 }
 
 // ------------------------------------------------------------------------
