@@ -240,6 +240,11 @@ if test x$with_mpeg2 != xno ; then
     GFX_LIB="$GFX_LIB -lmpeg2 -lvo"
 fi
 
+dnl Provide the option to use osgNV for programmable shader support under
+dnl Open Scene Graph
+AC_ARG_WITH(osgnv,
+[[  --with-osgnv=[PREFIX]   Path for osgNV library [no]]],, with_osgnv=no)
+
 dnl Figure out which graphics library we're using
 AC_MSG_CHECKING([which graphics library to use])
 case "$SG" in
@@ -411,6 +416,37 @@ case "$SG" in
 
 ]
             )
+        fi
+
+        dnl Check if the osgNV is to be used.
+        if test x$with_osgnv != xno ; then
+
+            dnl If they said yes as an argument, then default to /usr/local.
+            if test x$with_osgnv = xyes ; then
+                with_osgnv=/usr/local
+            fi
+
+            dnl Check if the library is found.
+            AC_CHECK_LIB(osgNV, osgNVGetVersion,,OSGNV_ERROR=yes,-L$with_osgnv/lib/Linux32/ -L$with_osgnv/lib)
+            if test x$OSGNV_ERROR = xyes ; then
+                AC_MSG_ERROR([
+                                                                                
+    There is a problem with the osgNV library. Check to make sure that it is
+    installed correctly and in the specified location.
+                                                                                
+    E-mail vess@ist.ucf.edu if you think you've received this message in
+    error.
+
+])
+            fi
+
+            dnl Modify the GFX variables to use osgNV.
+            GFX_INC_DIR="$GFX_INC_DIR -I$with_osgnv/include"
+            GFX_LIB_DIR="$GFX_LIB_DIR -L$with_osgnv/lib/Linux32/ -L$with_osgnv/lib"
+            GFX_LIB="$GFX_LIB -losgNVCg -losgNV"
+
+            dnl Add the extra objects that OSG requires.
+            EXTRA_GRAPHICS_OBJECTS="$EXTRA_GRAPHICS_OBJECTS vsCgMatrixParameter.$OBJEXT vsCgParameter.$OBJEXT vsCgShaderAttribute.$OBJEXT vsCgStateMatrixParameter.$OBJEXT vsCgTextureParameter.$OBJEXT vsCgVectorParameter.$OBJEXT"
         fi
 
         dnl Add the extra objects that OSG requires

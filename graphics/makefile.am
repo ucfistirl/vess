@@ -46,6 +46,12 @@ libvsGraphics_so_SOURCES = $(libvsGraphics_a_SOURCES)
 EXTRA_libvsGraphics_a_SOURCES = \
                                 common/vsMPEGReader.c++ \
                                 OSG/vsBillboardCallback.c++ \
+                                OSG/vsCgMatrixParameter.c++ \
+                                OSG/vsCgParameter.c++ \
+                                OSG/vsCgShaderAttribute.c++ \
+                                OSG/vsCgStateMatrixParameter.c++ \
+                                OSG/vsCgTextureParameter.c++ \
+                                OSG/vsCgVectorParameter.c++ \
                                 OSG/vsDecalCallback.c++ \
                                 OSG/vsIntersectTraverser.c++ \
                                 OSG/vsLocalLightCallback.c++ \
@@ -97,6 +103,12 @@ include_HEADERS = \
 EXTRA_HEADERS = \
                 common/vsMPEGReader.c++ \
                 OSG/vsBillboardCallback.h++ \
+                OSG/vsCgMatrixParameter.h++ \
+                OSG/vsCgParameter.h++ \
+                OSG/vsCgShaderAttribute.h++ \
+                OSG/vsCgStateMatrixParameter.h++ \
+                OSG/vsCgTextureParameter.h++ \
+                OSG/vsCgVectorParameter.h++ \
                 OSG/vsDecalCallback.h++ \
                 OSG/vsIntersectTraverser.h++ \
                 OSG/vsLocalLightCallback.h++ \
