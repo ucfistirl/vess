@@ -102,7 +102,6 @@ void vsCal3DLoader::parseFile(char *filename)
     int maxRead;
     int fileLineLength;
     char *tokenBuffer;
-    char *tokenBufferPtr;
     char *fileLine;
     char *fields;
     char *fieldValue;
@@ -151,12 +150,10 @@ void vsCal3DLoader::parseFile(char *filename)
         fileLineLength = strlen(fileLine);
 
         // Reset pointers to point to the beginning of their memory space.
-        // strtok_r() modifies these pointers while it searches for tokens.
         fields = fileLine;
-        tokenBufferPtr = tokenBuffer;
 
         // Read the first possible token.
-        fieldValue = strtok_r(fields, delimiter, &tokenBufferPtr);
+        fieldValue = strtok(fields, delimiter);
 
         // If the line begins with #, it is a comments, so ignore.
         // If the size is less than 3, then it is impossible to be a useful
@@ -166,7 +163,7 @@ void vsCal3DLoader::parseFile(char *filename)
             // If it is a scale field, parse it.
             if (strcmp(fieldValue, "scale") == 0)
             {
-                if (fieldValue = strtok_r(NULL, delimiter, &tokenBufferPtr))
+                if (fieldValue = strtok(NULL, delimiter))
                 {
                     // Convert to a double and make a scale matrix.
                     scaleValue = atof(fieldValue);
@@ -176,7 +173,7 @@ void vsCal3DLoader::parseFile(char *filename)
             // If it is a skeleton field, parse it.
             else if (strcmp(fieldValue, "skeleton") == 0)
             {
-                if (fieldValue = strtok_r(NULL, delimiter, &tokenBufferPtr))
+                if (fieldValue = strtok(NULL, delimiter))
                 {
                     // Delete any previous filenames we may have.
                     if (skeletonFilename)
@@ -190,7 +187,7 @@ void vsCal3DLoader::parseFile(char *filename)
             // If it is a material field, parse it.
             else if (strcmp(fieldValue, "material") == 0)
             {
-                if (fieldValue = strtok_r(NULL, delimiter, &tokenBufferPtr))
+                if (fieldValue = strtok(NULL, delimiter))
                 {
                     // Load the material.
                     meshLoader->loadMaterial(fieldValue);
@@ -199,7 +196,7 @@ void vsCal3DLoader::parseFile(char *filename)
             // If it is a mesh field, parse it.
             else if (strcmp(fieldValue, "mesh") == 0)
             {
-                if (fieldValue = strtok_r(NULL, delimiter, &tokenBufferPtr))
+                if (fieldValue = strtok(NULL, delimiter))
                 {
                     // Create new data space and copy the mesh name into it.
                     meshFilename = new char[strlen(fieldValue) + 1];
@@ -213,7 +210,7 @@ void vsCal3DLoader::parseFile(char *filename)
             // If it is a animation field, parse it.
             else if (strcmp(fieldValue, "animation") == 0)
             {
-                if (fieldValue = strtok_r(NULL, delimiter, &tokenBufferPtr))
+                if (fieldValue = strtok(NULL, delimiter))
                 {
                     // Create new data space and copy the animation name to it.
                     animationFilename = new char[strlen(fieldValue) + 1];
