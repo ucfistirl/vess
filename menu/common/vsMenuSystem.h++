@@ -99,10 +99,10 @@ public:
     void                  setFrame(vsMenuFrame *frame);
     vsMenuFrame           *getFrame();
 
+    vsMenuObject          *getSelection();
+
     void                  setMenuButton(vsMenuAction action,
                               vsInputButton *newButton);
-
-    vsMenuObject          *getSelection();
 
     void                  show();
     void                  hide();

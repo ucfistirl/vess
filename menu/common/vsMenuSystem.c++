@@ -213,6 +213,14 @@ vsMenuFrame *vsMenuSystem::getFrame()
 }
 
 // ------------------------------------------------------------------------
+// Gets the currently selected item
+// ------------------------------------------------------------------------
+vsMenuObject *vsMenuSystem::getSelection()
+{
+    return selectedObj;
+}
+
+// ------------------------------------------------------------------------
 // Set the button used to trigger the specified menu action
 // ------------------------------------------------------------------------
 void vsMenuSystem::setMenuButton(vsMenuAction action, vsInputButton *button)
@@ -220,14 +228,6 @@ void vsMenuSystem::setMenuButton(vsMenuAction action, vsInputButton *button)
     // Store the button and initialize it to unpressed
     inputButtons[action] = button;
     pressed[action] = false;
-}
-
-// ------------------------------------------------------------------------
-// Gets the currently selected item
-// ------------------------------------------------------------------------
-vsMenuObject *vsMenuSystem::getSelection()
-{
-    return selectedObj;
 }
 
 // ------------------------------------------------------------------------
