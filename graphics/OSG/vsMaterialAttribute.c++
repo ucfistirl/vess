@@ -38,8 +38,8 @@ vsMaterialAttribute::vsMaterialAttribute()
     // regardless of the current OpenGL color setting
     osgMaterial->setColorMode(osg::Material::OFF);
 
-    // Set ambient, diffuse, specular, and emissive material on front
-    // and back to opaque white
+    // Set ambient, diffuse, and specular properties on front and back to
+    // opaque white, and set emissive properties to dark.
     osgMaterial->setAmbient(osg::Material::FRONT,
         osg::Vec4(1.0, 1.0, 1.0, 1.0));
     osgMaterial->setAmbient(osg::Material::BACK,
@@ -53,9 +53,9 @@ vsMaterialAttribute::vsMaterialAttribute()
     osgMaterial->setSpecular(osg::Material::BACK,
         osg::Vec4(1.0, 1.0, 1.0, 1.0));
     osgMaterial->setEmission(osg::Material::FRONT,
-        osg::Vec4(1.0, 1.0, 1.0, 1.0));
+        osg::Vec4(0.0, 0.0, 0.0, 1.0));
     osgMaterial->setEmission(osg::Material::BACK,
-        osg::Vec4(1.0, 1.0, 1.0, 1.0));
+        osg::Vec4(0.0, 0.0, 0.0, 1.0));
 
     // Set the shininess to 0.0
     osgMaterial->setShininess(osg::Material::FRONT, 0.0);
