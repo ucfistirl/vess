@@ -176,6 +176,9 @@ vsPane::vsPane(vsWindow *parent)
     lightModel->setAmbientIntensity(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
     defaultState->setAttributeAndModes(lightModel, osg::StateAttribute::ON);
 
+    // Make sure all normals are normalized
+    defaultState->setMode(GL_NORMALIZE, osg::StateAttribute::ON);
+
     // Set up a texture environment by default to speed up blending operations.
     // Use texture unit 0, as we don't currently support multitexturing.
     texEnv = new osg::TexEnv();
