@@ -211,155 +211,162 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
 
     // * Interpret the GeoState elements here
     
-    // Fog
-    fog = (pfFog *)(geostate->getAttr(PFSTATE_FOG));
-    if (fog)
+    if (geostate)
     {
-        newFog = new pfFog();
-        newFog->copy(fog);
-        fogAttrib = new vsFogAttribute(newFog);
-        addAttribute(fogAttrib);
-    }
-    
-    // Material
-    frontMaterial = (pfMaterial *)(geostate->getAttr(PFSTATE_FRONTMTL));
-    backMaterial = (pfMaterial *)(geostate->getAttr(PFSTATE_BACKMTL));
-    if (frontMaterial)
-    {
-        materialAttrib = (vsMaterialAttribute *)((vsSystem::systemObject)->
-            getNodeMap()->mapSecondToFirst(frontMaterial));
-        
-        if (!materialAttrib)
+        // Fog
+        fog = (pfFog *)(geostate->getAttr(PFSTATE_FOG));
+        if (fog)
         {
-            if (backMaterial)
-                newBack = backMaterial;
-            else
-            {
-                newBack = new pfMaterial();
-                newBack->copy(frontMaterial);
-            }
-
-            materialAttrib = new vsMaterialAttribute(frontMaterial, newBack);
-            
-            (vsSystem::systemObject)->getNodeMap()->registerLink(materialAttrib,
-                frontMaterial);
+            newFog = new pfFog();
+            newFog->copy(fog);
+            fogAttrib = new vsFogAttribute(newFog);
+            addAttribute(fogAttrib);
         }
 
-        addAttribute(materialAttrib);
-    }
-    else
-        materialAttrib = NULL;
-    
-    // Texture
-    texture = (pfTexture *)(geostate->getAttr(PFSTATE_TEXTURE));
-    texEnv = (pfTexEnv *)(geostate->getAttr(PFSTATE_TEXENV));
-    if (texture)
-    {
-        texAttrib = (vsTextureAttribute *)((vsSystem::systemObject)->
-            getNodeMap()->mapSecondToFirst(texture));
-        
-        if (!texAttrib)
+        // Material
+        frontMaterial = (pfMaterial *)(geostate->getAttr(PFSTATE_FRONTMTL));
+        backMaterial = (pfMaterial *)(geostate->getAttr(PFSTATE_BACKMTL));
+        if (frontMaterial)
         {
-            if (texEnv)
-                newTexEnv = texEnv;
-            else
-                newTexEnv = new pfTexEnv();
+            materialAttrib = (vsMaterialAttribute *)((vsSystem::systemObject)->
+                getNodeMap()->mapSecondToFirst(frontMaterial));
 
-            texAttrib = new vsTextureAttribute(texture, newTexEnv);
-            
-            (vsSystem::systemObject)->getNodeMap()->registerLink(texAttrib,
-                texture);
-        }
-
-        addAttribute(texAttrib);
-    }
-    else
-        texAttrib = NULL;
-    
-    // Transparency
-    if ((geostate->getInherit() & PFSTATE_TRANSPARENCY) == 0)
-    {
-        transMode = geostate->getMode(PFSTATE_TRANSPARENCY);
-        transAttrib = new vsTransparencyAttribute();
-        if (transMode == PFTR_OFF)
-            transAttrib->disable();
-        else
-            transAttrib->enable();
-
-        addAttribute(transAttrib);
-    }
-    else
-    {
-        // Determine by hand if transparency is needed
-        tResult = 0;
-
-        // Check the material alpha
-        if (materialAttrib &&
-            (materialAttrib->getAlpha(VS_MATERIAL_SIDE_FRONT) < 1.0))
-            tResult = 1;
-
-        // Check the vertex colors
-        if (!tResult)
-            for (loop = 0; loop < colorListSize; loop++)
-                if (fabs(colorList[loop][3] - 1.0) > 1E-6)
-                    tResult = 1;
-
-        // Scan the texture (if it exists) for transparency
-        if (!tResult && texAttrib &&
-            (texAttrib->getApplyMode() != VS_TEXTURE_APPLY_DECAL))
+            if (!materialAttrib)
             {
-                long texLoop, pixelSize;
-                int xSize, ySize, dFormat;
-                unsigned char *imageData;
-                
-                texAttrib->getImage(&imageData, &xSize, &ySize, &dFormat);
-                if (dFormat == VS_TEXTURE_DFORMAT_RGBA)
+                if (backMaterial)
+                    newBack = backMaterial;
+                else
                 {
-                    // Search each pixel of the texture for alpha < 1.0
-                    pixelSize = ((long)xSize) * ((long)ySize);
-                    for (texLoop = 0; texLoop < pixelSize; texLoop++)
-                        if (imageData[(texLoop * 4) + 3] < 255)
-                        {
-                            tResult = 1;
-                            break;
-                        }
+                    newBack = new pfMaterial();
+                    newBack->copy(frontMaterial);
                 }
+
+                materialAttrib = new vsMaterialAttribute(frontMaterial,
+                    newBack);
+
+                (vsSystem::systemObject)->getNodeMap()->
+                    registerLink(materialAttrib, frontMaterial);
             }
 
-        if (tResult)
+            addAttribute(materialAttrib);
+        }
+        else
+            materialAttrib = NULL;
+
+        // Texture
+        texture = (pfTexture *)(geostate->getAttr(PFSTATE_TEXTURE));
+        texEnv = (pfTexEnv *)(geostate->getAttr(PFSTATE_TEXENV));
+        if (texture)
         {
+            texAttrib = (vsTextureAttribute *)((vsSystem::systemObject)->
+                getNodeMap()->mapSecondToFirst(texture));
+
+            if (!texAttrib)
+            {
+                if (texEnv)
+                    newTexEnv = texEnv;
+                else
+                    newTexEnv = new pfTexEnv();
+
+                texAttrib = new vsTextureAttribute(texture, newTexEnv);
+
+                (vsSystem::systemObject)->getNodeMap()->registerLink(texAttrib,
+                    texture);
+            }
+
+            addAttribute(texAttrib);
+        }
+        else
+            texAttrib = NULL;
+    
+        // Transparency
+        if ((geostate->getInherit() & PFSTATE_TRANSPARENCY) == 0)
+        {
+            transMode = geostate->getMode(PFSTATE_TRANSPARENCY);
             transAttrib = new vsTransparencyAttribute();
-            transAttrib->enable();
+            if (transMode == PFTR_OFF)
+                transAttrib->disable();
+            else
+                transAttrib->enable();
+
             addAttribute(transAttrib);
         }
-    }
+        else
+        {
+            // Determine by hand if transparency is needed
+            tResult = 0;
 
-    // Backface (Cull Face)
-    if ((geostate->getInherit() & PFSTATE_CULLFACE) == 0)
-    {
-        cullMode = geostate->getMode(PFSTATE_CULLFACE);
-        backAttrib = new vsBackfaceAttribute();
+            // Check the material alpha
+            if (materialAttrib &&
+                (materialAttrib->getAlpha(VS_MATERIAL_SIDE_FRONT) < 1.0))
+                tResult = 1;
+
+            // Check the vertex colors
+            if (!tResult)
+                for (loop = 0; loop < colorListSize; loop++)
+                    if (fabs(colorList[loop][3] - 1.0) > 1E-6)
+                        tResult = 1;
+
+            // Scan the texture (if it exists) for transparency
+            if (!tResult && texAttrib &&
+                (texAttrib->getApplyMode() != VS_TEXTURE_APPLY_DECAL))
+                {
+                    long texLoop, pixelSize;
+                    int xSize, ySize, dFormat;
+                    unsigned char *imageData;
+                
+                    texAttrib->getImage(&imageData, &xSize, &ySize, &dFormat);
+                    if (dFormat == VS_TEXTURE_DFORMAT_RGBA)
+                    {
+                        // Search each pixel of the texture for alpha < 1.0
+                        pixelSize = ((long)xSize) * ((long)ySize);
+                        for (texLoop = 0; texLoop < pixelSize; texLoop++)
+                            if (imageData[(texLoop * 4) + 3] < 255)
+                            {
+                                tResult = 1;
+                                break;
+                            }
+                    }
+                }
+
+            if (tResult)
+            {
+                transAttrib = new vsTransparencyAttribute();
+                transAttrib->enable();
+                addAttribute(transAttrib);
+            }
+        }
+
+        // Backface (Cull Face)
+        if ((geostate->getInherit() & PFSTATE_CULLFACE) == 0)
+        {
+            cullMode = geostate->getMode(PFSTATE_CULLFACE);
+            backAttrib = new vsBackfaceAttribute();
         
-        if (cullMode == PFCF_OFF)
-            backAttrib->enable();
-        else
-            backAttrib->disable();
+            if (cullMode == PFCF_OFF)
+                backAttrib->enable();
+            else
+                backAttrib->disable();
 
-        addAttribute(backAttrib);
+            addAttribute(backAttrib);
+        }
+
+        // Shading
+        if (((geostate->getInherit() & PFSTATE_SHADEMODEL) == 0) &&
+            !(getTypedAttribute(VS_ATTRIBUTE_TYPE_SHADING, 0)))
+        {
+            shadeMode = geostate->getMode(PFSTATE_SHADEMODEL);
+            shadeAttrib = new vsShadingAttribute();
+            if (shadeMode == PFSM_FLAT)
+                shadeAttrib->setShading(VS_SHADING_FLAT);
+            else
+                shadeAttrib->setShading(VS_SHADING_GOURAUD);
+            addAttribute(shadeAttrib);
+        }
+
+        pfDelete(geostate);
     }
 
-    // Shading
-    if (((geostate->getInherit() & PFSTATE_SHADEMODEL) == 0) &&
-        !(getTypedAttribute(VS_ATTRIBUTE_TYPE_SHADING, 0)))
-    {
-        shadeMode = geostate->getMode(PFSTATE_SHADEMODEL);
-        shadeAttrib = new vsShadingAttribute();
-        if (shadeMode == PFSM_FLAT)
-            shadeAttrib->setShading(VS_SHADING_FLAT);
-        else
-            shadeAttrib->setShading(VS_SHADING_GOURAUD);
-        addAttribute(shadeAttrib);
-    }
     performerGeoset->setDrawMode(PFGS_FLATSHADE, PF_OFF);
 
     performerGeostate = new pfGeoState();
@@ -371,8 +378,6 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
     for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
         lightsList[loop] = NULL;
     performerGeostate->setFuncs(geostateCallback, NULL, lightsList);
-
-    pfDelete(geostate);
 }
 
 // ------------------------------------------------------------------------
