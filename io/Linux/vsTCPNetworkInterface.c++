@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/param.h>
+#include <sys/time.h>
 #include "vsTCPNetworkInterface.h++"
 
 // ------------------------------------------------------------------------
@@ -432,7 +433,7 @@ int vsTCPNetworkInterface::write(int clientID, u_char *buffer, u_long len)
 
     // Set up the file descriptor set to allow reading from our main socket
     FD_ZERO(&writeFDs);
-    FD_SET(socketValue, &writeFDs);
+    FD_SET(clientSockets[clientID], &writeFDs);
 
     // Set up a time for 1 microsecond
     tv.tv_sec = 0;
