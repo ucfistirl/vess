@@ -338,6 +338,18 @@ double vsQuat::getMagnitude() const
 }
 
 // ------------------------------------------------------------------------
+// Returns the square of the magnitude of this quaternion
+// ------------------------------------------------------------------------
+double vsQuat::getMagnitudeSquared() const
+{
+    // Return the square of the magnitude
+    return (VS_SQR(data[0]) +
+            VS_SQR(data[1]) +
+            VS_SQR(data[2]) +
+            VS_SQR(data[3]));
+}
+
+// ------------------------------------------------------------------------
 // Returns the 4-D vector dot product of this quaternion and the operand
 // quaternion.
 // ------------------------------------------------------------------------
@@ -915,7 +927,7 @@ vsVector vsQuat::rotatePoint(const vsVector &targetPoint) const
 // ------------------------------------------------------------------------
 vsQuat vsQuat::slerp(const vsQuat &destination, double parameter) const
 {
-    vsQuat destQuat, startQuat, resultQuat;
+    vsQuat startQuat, destQuat, resultQuat;
     double dotProd, theta, sinTheta, q1val, q2val;
     
     // Bounds checking
@@ -925,13 +937,20 @@ vsQuat vsQuat::slerp(const vsQuat &destination, double parameter) const
         return resultQuat;
     }
 
-    // Create a duplicate of the destination quat, since we need to modify
-    // it but it's declared to be constant.
-    destQuat = destination;
+    // Force both quats to be unit length; our calculations won't work
+    // otherwise.
+    if (VS_EQUAL(getMagnitudeSquared(), 1.0))
+        startQuat = (*this);
+    else
+        startQuat = getNormalized();
+    if (VS_EQUAL(destination.getMagnitudeSquared(), 1.0))
+        destQuat = destination;
+    else
+        destQuat = destination.getNormalized();
 
     // * Calculate the angle between the two quaternions as 4-D vectors
     // by computing the inverse cosine of their dot product
-    dotProd = getDotProduct(destQuat);
+    dotProd = startQuat.getDotProduct(destQuat);
 
     // If the dot product of the two quaternions is negative, then the
     // angle between the two rotations is greater than 180 degrees. If we
@@ -949,6 +968,11 @@ vsQuat vsQuat::slerp(const vsQuat &destination, double parameter) const
         dotProd *= -1.0;
     }
 
+    // If the dot product is very close to one, then the two quats contain
+    // the same rotation. Just return this quaternion.
+    if (dotProd > (1.0 - VS_DEFAULT_TOLERANCE))
+        return startQuat;
+
     // Finish calculating the angle
     theta = acos(dotProd);
 
@@ -959,14 +983,7 @@ vsQuat vsQuat::slerp(const vsQuat &destination, double parameter) const
     // Compute the sin of the angle between the two quaternions
     sinTheta = sin(theta);
 
-    // If the sinTheta value is close to zero, then the two quats represent
-    // the same rotation; with no work to do, the function returns this
-    // quat.
-    if (VS_EQUAL(sinTheta, 0.0))
-        return (*this);
-
     // Scale the starting quaternion
-    startQuat.set(data);
     q1val = sin((1.0 - parameter) * theta) / sinTheta;
     startQuat.scale(q1val);
 
