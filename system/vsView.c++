@@ -32,6 +32,13 @@ vsView::vsView()
     viewRotation.setIdentity();
     
     viewAttribute = NULL;
+    
+    nearClip = 0.1;
+    farClip = 10000.0;
+    
+    projMode = VS_VIEW_PROJMODE_PERSP;
+    projHval = -1.0;
+    projVval = -1.0;
 }
 
 // ------------------------------------------------------------------------
@@ -193,6 +200,35 @@ void vsView::getClipDistances(double *nearPlane, double *farPlane)
 }    
 
 // ------------------------------------------------------------------------
+// Sets the projection mode of the viewpoint to a perspective projection
+// with the given horizontal and vertical fields of view. If either of the
+// parameters are zero or less, then the value for that parameter is
+// calculated using the aspect ratio of the associated vsPane. If both
+// parameters are zero or less, then default field-of-view values are used.
+// ------------------------------------------------------------------------
+void vsView::setPerspective(double horizFOV, double vertiFOV)
+{
+    projMode = VS_VIEW_PROJMODE_PERSP;
+    projHval = horizFOV;
+    projVval = vertiFOV;
+}
+
+// ------------------------------------------------------------------------
+// Sets the projection mode of the viewpoint to an orthogonal projection
+// with the given values as the distances from the center point of the view
+// to the sides of the viewing volume. If either of the parameters are zero
+// or less, then the value for that parameter is calculated using the
+// aspect ratio of the associated vsPane. If both parameters are zero or
+// less, then default values are used.
+// ------------------------------------------------------------------------
+void vsView::setOrthographic(double horizSize, double vertiSize)
+{
+    projMode = VS_VIEW_PROJMODE_ORTHO;
+    projHval = horizSize;
+    projVval = vertiSize;
+}
+
+// ------------------------------------------------------------------------
 // Returns a vector indicating the current view direction
 // ------------------------------------------------------------------------
 vsVector vsView::getDirection()
@@ -224,6 +260,17 @@ vsVector vsView::getUpDirection()
 vsMatrix vsView::getRotationMat()
 {
     return viewRotation;
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Retrieves the projection mode parameters
+// ------------------------------------------------------------------------
+void vsView::getProjectionData(int *mode, double *horizVal, double *vertiVal)
+{
+    *mode = projMode;
+    *horizVal = projHval;
+    *vertiVal = projVval;
 }
 
 // ------------------------------------------------------------------------

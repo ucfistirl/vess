@@ -67,13 +67,15 @@ private:
     pfChannel      *performerChannel;
     pfEarthSky     *earthSky;
 
+    double         curNearClip, curFarClip;
+    int            curProjMode;
+    double         curProjHval, curProjVval;
+
 VS_INTERNAL:
 
     void          updateView();
-    
-    static int    gstateCallback(pfGeoState *gstate, void *userData);
 
-    void          _debugWriteScene();
+    static int    gstateCallback(pfGeoState *gstate, void *userData);
 
 public:
 

@@ -37,14 +37,14 @@ vsPane::vsPane(vsWindow *parent)
     pfPipeWindow *tempPWin;
     pfGeoState *defaultState;
     pfLightModel *lightModel;
-    
+
     sceneRoot = NULL;
     sceneView = NULL;
-    
+
     parentWindow = parent;
     parentScreen = parent->getParentScreen();
     parentPipe = parentScreen->getParentPipe();
-    
+
     performerChannel = new pfChannel(parentPipe->getBaseLibraryObject());
     performerChannel->ref();
 
@@ -76,15 +76,23 @@ vsPane::vsPane(vsWindow *parent)
     lightModel->setTwoSide(PF_OFF);
     lightModel->setAmbient(0.0, 0.0, 0.0);
     defaultState->setAttr(PFSTATE_LIGHTMODEL, lightModel);
-    
+
     performerScene->setGState(defaultState);
 
     performerChannel->setScene(performerScene);
-    
+
     // Set up the earth/sky model
     earthSky = new pfEarthSky();
     earthSky->setAttr(PFES_GRND_HT, -100.0);
     performerChannel->setESky(earthSky);
+
+    // Initialize the 'current view' parameters
+    curNearClip = -1.0;
+    curFarClip = -1.0;
+    curProjMode = VS_VIEW_PROJMODE_PERSP;
+    curProjHval = -1.0;
+    curProjVval = -1.0;
+    performerChannel->setFOV(-1.0, -1.0);
 }
 
 // ------------------------------------------------------------------------
@@ -135,21 +143,13 @@ void vsPane::setScene(vsComponent *newScene)
     if (performerScene->getNumChildren() > 0)
     {
         childNode = performerScene->getChild(0);
-//        if (newScene->getNodeType() == VS_NODE_TYPE_GEOMETRY)
-//            performerScene->replaceChild(childNode,
-//                ((vsGeometry *)newScene)->getBaseLibraryObject());
-//        else
             performerScene->replaceChild(childNode,
                 ((vsComponent *)newScene)->getBaseLibraryObject());
     }
     else
     {
-//        if (newScene->getNodeType() == VS_NODE_TYPE_GEOMETRY)
-//            performerScene->addChild(
-//                ((vsGeometry *)newScene)->getBaseLibraryObject());
-//        else
-            performerScene->addChild(
-                ((vsComponent *)newScene)->getBaseLibraryObject());
+	performerScene->addChild(
+	    ((vsComponent *)newScene)->getBaseLibraryObject());
     }
     
     sceneRoot = newScene;
@@ -415,6 +415,10 @@ void vsPane::updateView()
     int loop, sloop;
     vsVector viewPos;
     double near, far;
+    int projMode;
+    double projHval, projVval;
+    int paneWidth, paneHeight;
+    double aspectMatch;
     
     if (sceneView == NULL)
         return;
@@ -432,8 +436,58 @@ void vsPane::updateView()
 
     performerChannel->setViewMat(performerMatrix);
 
+    // Update the viewing volume parameters in case they changed
     sceneView->getClipDistances(&near, &far);
-    performerChannel->setNearFar(near, far);
+    if ((curNearClip != near) || (curFarClip != far))
+    {
+	performerChannel->setNearFar(near, far);
+	curNearClip = near;
+	curFarClip = far;
+    }
+
+    sceneView->getProjectionData(&projMode, &projHval, &projVval);
+    if ((curProjMode != projMode) || (curProjHval != projHval) ||
+	(curProjVval != projVval))
+    {
+	if (projMode == VS_VIEW_PROJMODE_PERSP)
+	    performerChannel->setFOV(projHval, projVval);
+	else
+	{
+	    if ((projHval <= 0.0) && (projVval <= 0.0))
+	    {
+		// Neither specified, default values
+		performerChannel->makeOrtho(-10.0, 10.0, -10.0, 10.0);
+	    }
+	    else if (projHval <= 0.0)
+	    {
+		// Vertical specified, horizontal aspect match
+		getSize(&paneWidth, &paneHeight);
+		aspectMatch = (projVval / (double)paneHeight) *
+		    (double)paneWidth;
+		performerChannel->makeOrtho(-aspectMatch, aspectMatch,
+		    -projVval, projVval);
+	    }
+	    else if (projVval <= 0.0)
+	    {
+		// Horizontal specified, vertical aspect match
+		getSize(&paneWidth, &paneHeight);
+		aspectMatch = (projHval / (double)paneWidth) *
+		    (double)paneHeight;
+		performerChannel->makeOrtho(-projHval, projHval, -aspectMatch,
+		    aspectMatch);
+	    }
+	    else
+	    {
+		// Both specified, normal operation
+		performerChannel->makeOrtho(-projHval, projHval, -projVval,
+		    projVval);
+	    }
+	}
+	
+	curProjMode = projMode;
+	curProjHval = projHval;
+	curProjVval = projVval;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -448,17 +502,4 @@ int vsPane::gstateCallback(pfGeoState *gstate, void *userData)
     (vsSystem::systemObject)->getGraphicsState()->clearState();
     
     return 0;
-}
-
-// ------------------------------------------------------------------------
-// VESS internal function - debugging only
-// Prompts Performer to print out debugging info consisting of the scene
-// graph attached to this pane.
-// ------------------------------------------------------------------------
-void vsPane::_debugWriteScene()
-{
-    FILE *outFile = fopen("scene.out", "w");
-    ((pfMemory *)performerScene)->print(PFTRAV_SELF | PFTRAV_DESCEND,
-        PFPRINT_VB_ON, NULL, outFile);
-    fclose(outFile);
 }

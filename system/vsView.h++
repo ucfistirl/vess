@@ -32,18 +32,30 @@ class vsView;
 #include "vsMatrix.h++"
 #include "vsViewpointAttribute.h++"
 
+enum vsViewProjectionMode
+{
+    VS_VIEW_PROJMODE_PERSP,
+    VS_VIEW_PROJMODE_ORTHO
+};
+
 class vsView
 {
 private:
 
     vsVector                viewLocation;
     vsMatrix                viewRotation;
-    
+
     double                  nearClip, farClip;
+
+    int                     projMode;
+    double                  projHval, projVval;
     
     vsViewpointAttribute    *viewAttribute;
 
 VS_INTERNAL:
+
+    void        getProjectionData(int *mode, double *horizVal,
+                                  double *vertiVal);
 
     int         attachViewAttribute(vsViewpointAttribute *theAttribute);
     void        detachViewAttribute();
@@ -69,6 +81,9 @@ public:
     
     void        setClipDistances(double nearPlane, double farPlane);
     void        getClipDistances(double *nearPlane, double *farPlane);
+
+    void        setPerspective(double horizFOV, double vertiFOV);
+    void        setOrthographic(double horizSize, double vertiSize);
 
     vsVector    getDirection();
     vsVector    getUpDirection();
