@@ -162,6 +162,14 @@ void vsSerialPort::setDefaults(DCB *newDCB, COMMTIMEOUTS *newTimeouts)
     newDCB->Parity = NOPARITY;
     newDCB->StopBits = ONESTOPBIT;
     
+    // Disable software flow control
+    newDCB->fOutX = FALSE;
+    newDCB->fInX = FALSE;
+    
+    // Disable hardware flow control
+    newDCB->fOutxCtsFlow = FALSE;
+    newDCB->fOutxDsrFlow = FALSE;
+    
     // Set that we want manual control of RTS and DTR (i.e.: hardware flow
     // control is off)
     newDCB->fRtsControl = RTS_CONTROL_ENABLE;
