@@ -51,6 +51,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     XFree(childPointer);
     while (parentID == 0)
     {
+        pfFrame();
         XFlush(xWindowDisplay);
         XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
             &childPointer, &childCount);
@@ -62,6 +63,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     XFree(childPointer);
     while (topWindowID == 0)
     {
+        pfFrame();
         XFlush(xWindowDisplay);
         XQueryTree(xWindowDisplay, parentID, &rootID, &topWindowID,
             &childPointer, &childCount);

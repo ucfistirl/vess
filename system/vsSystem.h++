@@ -28,6 +28,10 @@ private:
     vsGraphicsState     *graphicsState;
     
     void                preFrameTraverse(vsNode *node);
+    
+    void                writeBlanks(FILE *outfile, int count);
+    void                writeScene(vsNode *targetNode, FILE *outfile,
+                                   int treeDepth, int *countArray);
 
 VS_INTERNAL:
 
@@ -52,6 +56,8 @@ public:
     vsNode              *loadDatabase(char *databaseFilename);
     
     void                drawFrame();
+    
+    void                printScene(vsNode *targetNode, FILE *outputFile);
 };
 
 #endif
