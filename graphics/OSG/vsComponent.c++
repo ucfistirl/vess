@@ -217,6 +217,11 @@ bool vsComponent::insertChild(vsNode *newChild, int index)
         return false;
     }
 
+    // If the index is greater than the current number of children on this
+    // component, simply add the new child on the end normally
+    if (index >= childCount)
+        return addChild(newChild);
+
     // Notify the newChild node that it is getting a new parent. This might
     // fail, as the child node is permitted to object to getting a parent.
     if (newChild->addParent(this) == false)
@@ -226,11 +231,6 @@ bool vsComponent::insertChild(vsNode *newChild, int index)
         return false;
     }
     
-    // If the index is greater than the current number of children on this
-    // component, simply add the new child on the end normally
-    if (index >= childCount)
-        return addChild(newChild);
-
     // First connect the OSG nodes together.  OSG doesn't have an "insertChild"
     // method, so we have to do it the hard way.  First, we get the appropriate
     // OSG node based on the type of VESS node. The type can't be a vsScene,
