@@ -55,9 +55,8 @@ vsMenuLabel::vsMenuLabel(vsTextBuilder *newTextBuilder, char *text)
     labelText = NULL;
     textComponent = NULL;
 
-    // Only attempt to set the text string if the text builder is valid
-    if (textBuilder)
-        setText(text);
+    // Store the desired text locally.
+    setText(text);
 }
 
 // ------------------------------------------------------------------------
@@ -159,6 +158,67 @@ void vsMenuLabel::setText(char *text)
         vsObject::checkDelete(textComponent);
     }
 
+    // If the text object exists, create a component representation of it
+    // Otherwise, do nothing until the text is properly set
+    if (text)
+    {
+        // See whether there is any difference between the old data and
+        // the new data
+        if (text != labelText)
+        {
+            // Free the old string if it exists
+            if (labelText)
+                free(labelText);
+
+            // The new string is different from the old one, so free the
+            // old string and store the new one
+            labelText = (char *)malloc((strlen(text) + 1) * sizeof(char));
+            strcpy(labelText, text);
+        }
+
+        // See whether the label currently has a text builder object set
+        if (textBuilder)
+        {
+            // Use the text builder to create the text, storing it as the
+            // component (since this is a vsMenuObject)
+            textComponent = textBuilder->buildText(labelText);
+            menuComponent->addChild(textComponent);
+
+            // Set the kinematics object to the center of mass
+            textComponent->getBoundSphere(&centerOfMass, &radius);
+            menuKinematics->setCenterOfMass(centerOfMass);
+        }
+        else
+        {
+            // Label but no component.
+            textComponent = NULL;
+        }
+    }
+    else
+    {
+        // Free the old text variable if it existed
+        if (labelText)
+            free(labelText);
+
+        // Set these values to NULL as they are no longer valid
+        labelText = NULL;
+        textComponent = NULL;
+    }
+
+/*
+    vsVector centerOfMass;
+    double radius;
+
+    // Remove the old text object from this component
+    if (textComponent)
+    {
+        // Remove the old text from the scene
+        menuComponent->removeChild(textComponent);
+
+        // Delete the old text
+        vsObject::checkDelete(textComponent);
+    }
+
     // See whether the label currently has a text builder object set
     if (textBuilder)
     {
@@ -214,6 +274,7 @@ void vsMenuLabel::setText(char *text)
         printf("vsMenuLabel::setText: Cannot set text due to undefined text "
             "builder!\n");
     }
+*/
 }
 
 // ------------------------------------------------------------------------
