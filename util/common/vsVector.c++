@@ -629,23 +629,22 @@ vsVector vsVector::getCrossProduct(const vsVector &operand) const
 // ------------------------------------------------------------------------
 double vsVector::getAngleBetween(const vsVector &endVector) const
 {
-    // By one of the definitions of the cross product, the sine of the
-    // angle between two vectors is equal to the magnitude of their cross
-    // product divided by the product of their magnitudes. Similarly, the
-    // cosine of the angle between two vectors is equal to their dot
-    // product divided by the product of their magnitudes. Those two
-    // equations are combined here to generate the formula 'angle between
-    // two vectors = inverse tangent((cross product magnitude) /
-    // (dot product))'.
+    // By one of the definitions of the dot product, the cosine of the angle
+    // between two vectors is equal to their dot product divided by the
+    // product of their magnitudes.
 
-    double crossMag, dot;
+    double dot, startMag, endMag;
 
-    // Compute the cross product magnitude and dot product
-    crossMag = (getCrossProduct(endVector)).getMagnitude();
+    // Compute the dot product
     dot = getDotProduct(endVector);
-    
-    // Return the inverse tangent of the quotient of the two products
-    return VS_RAD2DEG(atan2(crossMag, dot));
+
+    // Compute the magnitudes of both vectors
+    startMag = getMagnitude();
+    endMag = endVector.getMagnitude();
+
+    // The final angle is the inverse cosine of the quotient of the dot
+    // product and magnitude product
+    return VS_RAD2DEG(acos(dot / (startMag * endMag)));
 }
 
 // ------------------------------------------------------------------------
