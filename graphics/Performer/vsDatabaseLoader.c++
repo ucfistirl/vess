@@ -399,7 +399,7 @@ int vsDatabaseLoader::importanceCheck(pfNode *targetNode)
 
     // Return TRUE if the node's name is in our important name list
     for (loop = 0; loop < nodeNameCount; loop++)
-        if (!strcmp((char *)(nodeNames[loop]), targetName))
+        if ( targetName && !strcmp((char *)(nodeNames[loop]), targetName))
             return VS_TRUE;
 
     // Return TRUE if the node is a transform node
