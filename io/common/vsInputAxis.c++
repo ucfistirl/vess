@@ -49,8 +49,6 @@ vsInputAxis::vsInputAxis(void)
 // ------------------------------------------------------------------------
 vsInputAxis::vsInputAxis(double minPos, double maxPos)
 {
-    char errStr[100];
-
     // Validate the axis ranges
     if (minPos < maxPos) 
     {
@@ -215,8 +213,6 @@ double vsInputAxis::getNormalizedValue(double rawValue)
 // ------------------------------------------------------------------------
 double vsInputAxis::getDelta(void)
 {
-    double delta;
-
     // Check to see if the axis should be normalized
     if (normalized)
     { 
@@ -241,9 +237,6 @@ double vsInputAxis::getDelta(void)
 // ------------------------------------------------------------------------
 double vsInputAxis::getPosition(void)
 {
-    double temp1, temp2;
-    double normalizedPos;
-
     // Check to see if the axis should be normalized
     if (normalized)
     { 
