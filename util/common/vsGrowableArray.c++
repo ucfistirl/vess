@@ -226,8 +226,8 @@ inline bool vsGrowableArray::access(int index)
         }
 
         // Determine how big the new array should be by repeatedly
-	// incrementing the current size by the step size until the
-	// size is equal to or larger than the requested array position
+        // incrementing the current size by the step size until the
+        // size is equal to or larger than the requested array position
         int newSize;
         newSize = currentSize;
         while (newSize <= index)
