@@ -124,7 +124,7 @@ public:
     void                setSteeringRate(double rate);
 
     // Updates the motion model
-    virtual void    update();
+    virtual void        update();
 };
 
 #endif
