@@ -6,6 +6,7 @@ VSLIBS = \
          scene \
          input \
          motion \
+         sound \
          test
 
 OS = `uname`
