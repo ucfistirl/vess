@@ -35,22 +35,21 @@ vsSoundSample::vsSoundSample(char *fileName)
              : vsSoundBuffer()
 {
     ALsizei   size;
-    ALsizei   bits;
     ALsizei   freq;
-    ALsizei   format;
-    ALboolean errorFlag;
+    ALenum    format;
+    ALboolean loop;
 
     void      *soundData;
 
     // Generate a single OpenAL sound buffer for the audio data
     alGenBuffers(1, &bufferID);
 
-    // Load the WAV file and check for errors, keep track of the data format
-    // parameters as well
-    errorFlag = alutLoadWAV(fileName, &soundData, &format, &size, &bits, &freq);
+    // Load the WAV file, keep track of the data format parameters as well
+    alutLoadWAVFile((ALbyte *)fileName, &format, &soundData, &size, &freq, 
+        &loop);
 
     // Make sure the load succeeds
-    if (errorFlag == AL_FALSE)
+    if (soundData == NULL)
     {
         // Load failed, print an error
         printf("vsSoundSample::vsSoundSample:  Unable to load file: %s\n", 

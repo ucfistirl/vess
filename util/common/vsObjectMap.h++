@@ -25,14 +25,14 @@
 
 #include "vsTreeMap.h++"
 
-enum vsObjectMapList
+enum VS_UTIL_DLL vsObjectMapList
 {
     VS_OBJMAP_FIRST_LIST,
     VS_OBJMAP_SECOND_LIST,
     VS_OBJMAP_EITHER_LIST
 };
 
-class vsObjectMap
+class VS_UTIL_DLL vsObjectMap
 {
 private:
 

@@ -28,27 +28,27 @@
 #include <osg/Image>
 #include "vsStateAttribute.h++"
 
-enum vsTextureDirection
+enum VS_GRAPHICS_DLL vsTextureDirection
 {
     VS_TEXTURE_DIRECTION_S,
     VS_TEXTURE_DIRECTION_T,
     VS_TEXTURE_DIRECTION_ALL
 };
 
-enum vsTextureBoundaryMode
+enum VS_GRAPHICS_DLL vsTextureBoundaryMode
 {
     VS_TEXTURE_BOUNDARY_REPEAT,
     VS_TEXTURE_BOUNDARY_CLAMP
 };
 
-enum vsTextureApplyMode
+enum VS_GRAPHICS_DLL vsTextureApplyMode
 {
     VS_TEXTURE_APPLY_DECAL,
     VS_TEXTURE_APPLY_MODULATE,
     VS_TEXTURE_APPLY_REPLACE
 };
 
-enum vsTextureDataFormat
+enum VS_GRAPHICS_DLL vsTextureDataFormat
 {
     VS_TEXTURE_DFORMAT_INTENSITY,
     VS_TEXTURE_DFORMAT_INTENSITY_ALPHA,
@@ -56,13 +56,13 @@ enum vsTextureDataFormat
     VS_TEXTURE_DFORMAT_RGBA
 };
 
-enum vsTextureMagnificationFilter
+enum VS_GRAPHICS_DLL vsTextureMagnificationFilter
 {
     VS_TEXTURE_MAGFILTER_NEAREST,
     VS_TEXTURE_MAGFILTER_LINEAR
 };
 
-enum vsTextureMinificationFilter
+enum VS_GRAPHICS_DLL vsTextureMinificationFilter
 {
     VS_TEXTURE_MINFILTER_NEAREST,
     VS_TEXTURE_MINFILTER_LINEAR,
@@ -70,7 +70,7 @@ enum vsTextureMinificationFilter
     VS_TEXTURE_MINFILTER_MIPMAP_LINEAR
 };
 
-class vsTextureAttribute : public vsStateAttribute
+class VS_GRAPHICS_DLL vsTextureAttribute : public vsStateAttribute
 {
 private:
 

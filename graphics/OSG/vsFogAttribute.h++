@@ -25,14 +25,14 @@
 #include <osg/Fog>
 #include "vsStateAttribute.h++"
 
-enum vsFogEquationType
+enum VS_GRAPHICS_DLL vsFogEquationType
 {
     VS_FOG_EQTYPE_LINEAR,
     VS_FOG_EQTYPE_EXP,
     VS_FOG_EQTYPE_EXP2
 };
 
-class vsFogAttribute : public vsStateAttribute
+class VS_GRAPHICS_DLL vsFogAttribute : public vsStateAttribute
 {
 private:
 
@@ -66,8 +66,8 @@ public:
     void                  setColor(double r, double g, double b);
     void                  getColor(double *r, double *g, double *b);
     
-    void                  setRanges(double near, double far);
-    void                  getRanges(double *near, double *far);
+    void                  setRanges(double nearDist, double farDist);
+    void                  getRanges(double *nearDist, double *farDist);
 };
 
 #endif

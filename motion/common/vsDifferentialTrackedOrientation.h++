@@ -38,7 +38,7 @@
 #include "vsMotionTracker.h++"
 #include "vsKinematics.h++"
 
-class vsDifferentialTrackedOrientation : public vsMotionModel
+class VS_MOTION_DLL vsDifferentialTrackedOrientation : public vsMotionModel
 {
 protected:
 

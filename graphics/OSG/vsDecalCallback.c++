@@ -72,11 +72,11 @@ void vsDecalCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
 
     // Make sure we have enough state sets to go around
     checkSize(decalGroup->getNumChildren());
-    if (stateSetArraySize < decalGroup->getNumChildren())
+    if (stateSetArraySize < (int)decalGroup->getNumChildren())
         return;
 
     // Run the cull traversal, by hand, on each of the Group's children
-    for (loop = 0; loop < decalGroup->getNumChildren(); loop++)
+    for (loop = 0; loop < (int)decalGroup->getNumChildren(); loop++)
     {
         // Push the polygon offset state set onto the CullVisitor's stack
         cullVisitor->pushStateSet((osg::StateSet *)(stateSetArray[loop]));

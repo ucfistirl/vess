@@ -23,7 +23,9 @@
 #ifndef VS_GROWABLE_ARRAY_HPP
 #define VS_GROWABLE_ARRAY_HPP
 
-class vsGrowableArray
+#include "vsGlobals.h++"
+
+class VS_UTIL_DLL vsGrowableArray
 {
 private:
 

@@ -24,7 +24,7 @@
 
 #include "vsGlobals.h++"
 
-class vsTimer
+class VS_UTIL_DLL vsTimer
 {
 private:
 

@@ -29,7 +29,7 @@
 #include "vsNode.h++"
 #include <osg/Group>
 
-class vsComponent : public vsNode
+class VS_GRAPHICS_DLL vsComponent : public vsNode
 {
 private:
 

@@ -80,7 +80,7 @@ void vsSwitchAttribute::enableOne(int index)
     }
 
     // Ensure the given index is valid.
-    if ((index < 0) || (index >= osgSwitch->getNumChildren()))
+    if ((index < 0) || (index >= (int)osgSwitch->getNumChildren()))
     {
         printf("vsSwitchAttribute::enableOne: Index out of bounds\n");
         return;
@@ -105,7 +105,7 @@ void vsSwitchAttribute::disableOne(int index)
     }
 
     // Ensure the given index is valid.
-    if ((index < 0) || (index >= osgSwitch->getNumChildren()))
+    if ((index < 0) || (index >= (int)osgSwitch->getNumChildren()))
     {
         printf("vsSwitchAttribute::disableOne: Index out of bounds\n");
         return;
@@ -166,7 +166,7 @@ int vsSwitchAttribute::isEnabled(int index)
     }
 
     // Ensure the given index is valid.
-    if ((index < 0) || (index >= osgSwitch->getNumChildren()))
+    if ((index < 0) || (index >= (int)osgSwitch->getNumChildren()))
     {
         printf("vsSwitchAttribute::isEnabled: Index out of bounds\n");
         return VS_FALSE;

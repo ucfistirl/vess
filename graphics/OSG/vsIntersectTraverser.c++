@@ -130,7 +130,7 @@ void vsIntersectTraverser::apply(osg::Sequence &node)
         return;
 
     // Otherwise, iterate over the Sequence's children
-    for (i = 0; i < node.getNumChildren(); i++)
+    for (i = 0; i < (int)node.getNumChildren(); i++)
     {
         // See if we're set to only traverse the current frame
         if (sequenceTravMode == VS_INTERSECT_SEQUENCE_CURRENT)
@@ -165,7 +165,7 @@ void vsIntersectTraverser::apply(osg::Switch &node)
         return;
 
     // Otherwise, iterate over the Switch's children
-    for (i = 0; i < node.getNumChildren(); i++)
+    for (i = 0; i < (int)node.getNumChildren(); i++)
     {
         // See if we're set to only traverse active children
         if (switchTravMode == VS_INTERSECT_SWITCH_CURRENT)
@@ -207,7 +207,7 @@ void vsIntersectTraverser::apply(osg::LOD &node)
     }
 
     // Otherwise, iterate over the LOD's children
-    for (i = 0; i < node.getNumChildren(); i++)
+    for (i = 0; i < (int)node.getNumChildren(); i++)
     {
         // We're traversing all children, apply the IntersectVisitor to
         // the current child with no check

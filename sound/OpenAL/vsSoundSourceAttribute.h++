@@ -32,7 +32,7 @@
 #include "vsMatrix.h++"
 #include "vsQuat.h++"
 
-class vsSoundSourceAttribute : public vsAttribute
+class VS_SOUND_DLL vsSoundSourceAttribute : public vsAttribute
 {
 protected:
 
@@ -57,16 +57,9 @@ protected:
     vsVector         lastPos;
     vsVector         lastOrn;
 
-    // Time of last update (in seconds)
-    double           lastTime;
-
     // Coordinate conversion quaternions
     vsQuat           coordXform;
     vsQuat           coordXformInv;
-
-    // Returns the time in seconds since the last time this function was
-    // called
-    double           getTimeInterval();
 
 VS_INTERNAL:
 

@@ -81,7 +81,7 @@ void vsSequenceAttribute::setChildTime(int childNum, double seconds)
     }
 
     // Make sure the child number is valid
-    if ((childNum < 0) || (childNum >= osgSequence->getNumChildren()))
+    if ((childNum < 0) || (childNum >= (int)osgSequence->getNumChildren()))
     {
         printf("vsSequenceAttribute::setChildTime: Index out of bounds\n");
         return;
@@ -106,7 +106,7 @@ double vsSequenceAttribute::getChildTime(int childNum)
     }
 
     // Make sure the child number is valid
-    if ((childNum < 0) || (childNum >= osgSequence->getNumChildren()))
+    if ((childNum < 0) || (childNum >= (int)osgSequence->getNumChildren()))
     {
         printf("vsSequenceAttribute::getChildTime: Index out of bounds\n");
         return 0.0;

@@ -68,6 +68,7 @@ VS_INTERNAL:
 
     int           getWindowNumber();
     void          makeCurrent();
+    void          swapBuffers();
 
     void          update();
 

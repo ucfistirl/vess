@@ -27,7 +27,7 @@ class vsQuat;
 
 #include "vsMatrix.h++"
 
-class vsQuat
+class VS_UTIL_DLL vsQuat
 {
 private:
 

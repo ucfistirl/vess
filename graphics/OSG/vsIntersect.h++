@@ -34,20 +34,20 @@ class vsIntersect;
 
 #define VS_INTERSECT_SEGS_MAX 32
 
-enum vsIntersectFacingMode
+enum VS_GRAPHICS_DLL vsIntersectFacingMode
 {
     VS_INTERSECT_IGNORE_NONE,
     VS_INTERSECT_IGNORE_FRONTFACE,
     VS_INTERSECT_IGNORE_BACKFACE
 };
 
-struct vsIntersectSegment
+struct VS_GRAPHICS_DLL vsIntersectSegment
 {
     vsVector start;
     vsVector end;
 };
 
-class vsIntersect
+class VS_GRAPHICS_DLL vsIntersect
 {
 private:
 

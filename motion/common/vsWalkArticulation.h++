@@ -30,7 +30,7 @@
 
 #define VS_WALK_ARTIC_JOINT_COUNT 6
 
-enum vsWalkArticJoints
+enum VS_MOTION_DLL vsWalkArticJoints
 {
     VS_WALK_ARTIC_LEFT_HIP,
     VS_WALK_ARTIC_LEFT_KNEE,
@@ -40,21 +40,21 @@ enum vsWalkArticJoints
     VS_WALK_ARTIC_RIGHT_ANKLE
 };
 
-struct vsWalkArticData
+struct VS_MOTION_DLL vsWalkArticData
 {
     vsQuat leftHip, leftKnee, leftAnkle;
     vsQuat rightHip, rightKnee, rightAnkle;
     double distance;
 };
 
-enum vsWalkArticState
+enum VS_MOTION_DLL vsWalkArticState
 {
     VS_WALK_ARTIC_STOPPED,
     VS_WALK_ARTIC_MOVING,
     VS_WALK_ARTIC_STOPPING
 };
 
-class vsWalkArticulation : public vsMotionModel
+class VS_MOTION_DLL vsWalkArticulation : public vsMotionModel
 {
 private:
 

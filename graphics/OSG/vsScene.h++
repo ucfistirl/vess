@@ -29,7 +29,7 @@ class vsLightAttribute;
 #include "vsNode.h++"
 #include "vsLightAttribute.h++"
 
-class vsScene : public vsNode
+class VS_GRAPHICS_DLL vsScene : public vsNode
 {
 private:
 

@@ -22,23 +22,22 @@
 #ifndef VS_AVATAR_HPP
 #define VS_AVATAR_HPP
 
-#include <stdio.h>
 #include "vsUpdatable.h++"
-//#include "vsSystem.h++"
 #include "vsGrowableArray.h++"
 #include "vsNode.h++"
 #include "vsOptimizer.h++"
+#include <stdio.h>
 
 #define VS_AVATAR_LOCAL_ISECT_MASK 0x01000000
 
-enum ConfigLineType
+enum VS_AVATAR_DLL ConfigLineType
 {
     VS_AVT_LINE_END    = -1,
     VS_AVT_LINE_PARAM  = 0,
     VS_AVT_LINE_OBJECT = 1
 };
 
-class vsAvatar : public vsUpdatable
+class VS_AVATAR_DLL vsAvatar : public vsUpdatable
 {
 protected:
 

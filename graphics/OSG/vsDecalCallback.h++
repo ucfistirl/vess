@@ -27,7 +27,7 @@
 #include <osg/NodeCallback>
 #include "vsDecalAttribute.h++"
 
-class vsDecalCallback : public osg::NodeCallback
+class VS_GRAPHICS_DLL vsDecalCallback : public osg::NodeCallback
 {
 private:
 

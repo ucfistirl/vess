@@ -150,7 +150,7 @@ void vsTextBuilder::setFont(char *newFont)
     if ((font = pfdLoadFont_type1(newFont, PFDFONT_FILLED)) == NULL)
     {
         // Print an error message to indicate the font was not loaded.
-        fprintf(stderr, "Unable to Open font: %s\n", newFont);
+        printf("vsTextBuilder::setFont: Unable to Open font: %s\n", newFont);
     }
 }
 
@@ -185,7 +185,8 @@ void vsTextBuilder::setJustification(int newJustification)
             justification = newJustification;
             break;
         default:
-            fprintf(stderr, "Unknown justification mode.\n");
+            printf("vsTextBuilder::setJustification: Unknown justification "
+                "mode.\n");
             break;
     }
 }

@@ -30,7 +30,7 @@
 #include "vsFlyingMotion.h++"
 #include "vsWindowSystem.h++"
 
-class vsGhostFlyAvatar : public vsAvatar
+class VS_AVATAR_DLL vsGhostFlyAvatar : public vsAvatar
 {
 private:
 

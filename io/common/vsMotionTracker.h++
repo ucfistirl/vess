@@ -25,7 +25,7 @@
 
 #include "vs6DInputDevice.h++"
 
-class vsMotionTracker : public vs6DInputDevice
+class VS_IO_DLL vsMotionTracker : public vs6DInputDevice
 {
 protected:
 

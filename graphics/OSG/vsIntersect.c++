@@ -336,7 +336,7 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
     osgUtil::SceneView *osgSceneView;;
     int paneWidth, paneHeight;
     int winX, winY;
-    osg::Vec3 near, far;
+    osg::Vec3 nearPt, farPt;
 
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
@@ -358,7 +358,7 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
     
     // Get the points on the near and far planes that correspond to the
     // given x,y window coordinates
-    osgSceneView->projectWindowXYIntoObject(winX, winY, near, far);
+    osgSceneView->projectWindowXYIntoObject(winX, winY, nearPt, farPt);
 
     // Create the segment structure if one is not already present
     if (segList[segNum] == NULL)
@@ -369,7 +369,7 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
 
     // Set the endpoints of the segment.  In this case, these are simply
     // the points on the near and far clipping planes, respectively.
-    ((osg::LineSegment *)segList[segNum])->set(near, far);
+    ((osg::LineSegment *)segList[segNum])->set(nearPt, farPt);
 }
 
 // ------------------------------------------------------------------------

@@ -38,7 +38,7 @@
 #include "vsMotionTracker.h++"
 #include "vsKinematics.h++"
 
-class vsTrackedMotion : public vsMotionModel
+class VS_MOTION_DLL vsTrackedMotion : public vsMotionModel
 {
 protected:
 

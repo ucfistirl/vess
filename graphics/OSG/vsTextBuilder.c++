@@ -299,8 +299,8 @@ void vsTextBuilder::setJustification(int newJustification)
             justification = newJustification;
             break;
         default:
-            printf("void vsTextBuilder::setJustification: Unknown justification "
-                "mode.\n");
+            printf("void vsTextBuilder::setJustification: Unknown justification"
+                " mode.\n");
             break;
     }
 }
@@ -349,8 +349,8 @@ vsComponent *vsTextBuilder::buildText(char *text)
         // If there was any error with the face, print error.
         if (face.Error())
         {
-            printf("vsTextBuilder::buildText: Error occured trying to get "
-                "glyph: %d\n", charIndex);
+            printf("vsTextBuilder::buildText: Error occured trying to get"
+                " glyph: %d\n", charIndex);
         }
         // Else tesselate the glyph.
         else

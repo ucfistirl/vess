@@ -30,7 +30,7 @@
 #include "vsGlobals.h++"
 #include "vsSoundBuffer.h++"
 
-class vsSoundSample : public vsSoundBuffer
+class VS_SOUND_DLL vsSoundSample : public vsSoundBuffer
 {
 protected:
 

@@ -33,14 +33,14 @@
 #define VS_COLLISION_DEFAULT_MARGIN 0.01
 #define VS_COLLISION_MAX_PASSES     10
 
-enum vsCollisionMode
+enum VS_MOTION_DLL vsCollisionMode
 {
     VS_COLLISION_MODE_STOP,
     VS_COLLISION_MODE_SLIDE,
     VS_COLLISION_MODE_BOUNCE
 };
 
-class vsCollision : public vsMotionModel
+class VS_MOTION_DLL vsCollision : public vsMotionModel
 {
 private:
 

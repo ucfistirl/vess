@@ -28,7 +28,7 @@
 #include "vsLightAttribute.h++"
 #include "vsGrowableArray.h++"
 
-class vsLocalLightCallback : public osg::Drawable::DrawCallback
+class VS_GRAPHICS_DLL vsLocalLightCallback : public osg::Drawable::DrawCallback
 {
 private:
 

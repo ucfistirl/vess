@@ -35,7 +35,7 @@
 #include "vsNode.h++"
 #include "vsGeometry.h++"
 
-class vsDynamicGeometry : public vsNode
+class VS_GRAPHICS_DLL vsDynamicGeometry : public vsNode
 {
 private:
 

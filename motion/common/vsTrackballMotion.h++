@@ -40,7 +40,7 @@
 #define VS_TBM_DEFAULT_TRANSLATE_CONST 10.0
 #define VS_TBM_DEFAULT_ROTATE_CONST    180.0
 
-class vsTrackballMotion : public vsMotionModel
+class VS_MOTION_DLL vsTrackballMotion : public vsMotionModel
 {
 protected:
 

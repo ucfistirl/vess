@@ -29,7 +29,7 @@
 #include "vsVector.h++"
 #include "vsQuat.h++"
 
-class vsKinematics : public vsUpdatable
+class VS_MOTION_DLL vsKinematics : public vsUpdatable
 {
 private:
 

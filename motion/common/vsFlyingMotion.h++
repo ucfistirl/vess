@@ -45,7 +45,7 @@
 #include "vsKinematics.h++"
 
 // Axis indices
-enum vsFlyingAxis
+enum VS_MOTION_DLL vsFlyingAxis
 {
     VS_FM_AXIS_HEADING  = 0,
     VS_FM_AXIS_PITCH    = 1,
@@ -53,7 +53,7 @@ enum vsFlyingAxis
 };
 
 // Axis modes
-enum vsFlyingAxisMode
+enum VS_MOTION_DLL vsFlyingAxisMode
 {
     VS_FM_MODE_INCREMENTAL = 0,
     VS_FM_MODE_ABSOLUTE    = 1,
@@ -69,7 +69,7 @@ enum vsFlyingAxisMode
 #define VS_FM_DEFAULT_PITCH_MODE      VS_FM_MODE_ABSOLUTE
 #define VS_FM_DEFAULT_THROTTLE_MODE   VS_FM_MODE_INCREMENTAL
 
-class vsFlyingMotion : public vsMotionModel
+class VS_MOTION_DLL vsFlyingMotion : public vsMotionModel
 {
 protected:
 

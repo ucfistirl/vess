@@ -32,13 +32,13 @@
 #define VS_SEQUENCE_ALL_CHILDREN -1
 #define VS_SEQUENCE_TIME_PAUSE   -1.0
 
-enum vsSequenceCycle
+enum VS_GRAPHICS_DLL vsSequenceCycle
 {
     VS_SEQUENCE_CYCLE_FORWARD,
     VS_SEQUENCE_CYCLE_SWING
 };
 
-enum vsSequenceMode
+enum VS_GRAPHICS_DLL vsSequenceMode
 {
     VS_SEQUENCE_MODE_START,
     VS_SEQUENCE_MODE_STOP,
@@ -46,7 +46,7 @@ enum vsSequenceMode
     VS_SEQUENCE_MODE_RESUME
 };
 
-class vsSequenceAttribute : public vsAttribute
+class VS_GRAPHICS_DLL vsSequenceAttribute : public vsAttribute
 {
 private:
 

@@ -27,7 +27,7 @@
 
 #define VS_OBJ_MAGIC_NUMBER 0xFEEDF00D
 
-class vsObject
+class VS_UTIL_DLL vsObject
 {
 private:
 

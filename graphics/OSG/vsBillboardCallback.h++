@@ -27,7 +27,7 @@
 #include <osg/NodeCallback>
 #include "vsBillboardAttribute.h++"
 
-class vsBillboardCallback : public osg::NodeCallback
+class VS_GRAPHICS_DLL vsBillboardCallback : public osg::NodeCallback
 {
 private:
 

@@ -24,7 +24,7 @@
 
 #include "vsUpdatable.h++"
 
-class vsMotionModel : public vsUpdatable
+class VS_MOTION_DLL vsMotionModel : public vsUpdatable
 {
 public:
 

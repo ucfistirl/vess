@@ -88,7 +88,7 @@ void vsLODAttribute::setRangeEnd(int childNum, double rangeLimit)
     }
 
     // Make sure the child index is valid
-    if ((childNum < 0) || (childNum >= osgLOD->getNumChildren()))
+    if ((childNum < 0) || (childNum >= (int)osgLOD->getNumChildren()))
     {
         printf("vsLODAttribute::setRangeEnd: Index out of bounds\n");
         return;
@@ -112,7 +112,7 @@ void vsLODAttribute::setRangeEnd(int childNum, double rangeLimit)
 
     // If there is a sibling to the right of this one, also set the specified
     // range limit as the minimum range for the next LOD
-    if (osgLOD->getNumRanges() > (childNum+1))
+    if ((int)osgLOD->getNumRanges() > (childNum+1))
     {
         maxRange = osgLOD->getMaxRange(childNum+1);
         osgLOD->setRange(childNum+1, rangeLimit, maxRange);
@@ -134,7 +134,7 @@ double vsLODAttribute::getRangeEnd(int childNum)
     }
 
     // Make sure the child index is valid
-    if ((childNum < 0) || (childNum >= osgLOD->getNumChildren()))
+    if ((childNum < 0) || (childNum >= (int)osgLOD->getNumChildren()))
     {
         printf("vsLODAttribute::getRangeEnd: Index out of bounds\n");
         return 0.0;
@@ -259,27 +259,27 @@ void vsLODAttribute::attachDuplicate(vsNode *theNode)
 void vsLODAttribute::apply()
 {
     int loop;
-    float near, far;
+    float nearDist, farDist;
     
     // Iterate over all LOD ranges on the osg::LOD node
-    for (loop = 0; loop < osgLOD->getNumRanges(); loop++)
+    for (loop = 0; loop < (int)osgLOD->getNumRanges(); loop++)
     {
         // Get the maximum range on the previous child (use 0.0 if this
         // is the first child)
         if (loop == 0)
-            near = 0.0;
+            nearDist = 0.0;
         else
-            near = osgLOD->getMaxRange(loop - 1);
+            nearDist = osgLOD->getMaxRange(loop - 1);
 
         // Get the maximum range on this child
-        far = osgLOD->getMaxRange(loop);
+        farDist = osgLOD->getMaxRange(loop);
         
         // Set the near and far ranges on this child to the values we've
         // found
-        osgLOD->setRange(loop, near, far);
+        osgLOD->setRange(loop, nearDist, farDist);
         
         // Print a warning to the user if the ranges don't make sense
-        if (near > far)
+        if (nearDist > farDist)
             printf("vsLODAttribute::apply: Minimum range > maximum range "
                 "for child %d\n", loop);
     }

@@ -37,7 +37,7 @@
 #define VS_ISTJS_AXIS_MIN    0
 #define VS_ISTJS_AXIS_MAX    255
 
-class vsISTJoystickBox : public vsJoystickBox
+class VS_IO_DLL vsISTJoystickBox : public vsJoystickBox
 {
 protected:
 

@@ -27,6 +27,10 @@
 #ifndef VS_TEXTBUILDER_HPP
 #define VS_TEXTBUILDER_HPP
 
+#ifdef WIN32
+    #include <windows.h>
+#endif
+
 #include <GL/glu.h>
 
 #include "FTVectoriser.h"
@@ -48,14 +52,14 @@
 
 #define VS_OSG_TEXT_SCALE           0.07514f
 
-enum vsTextBuilderJustification
+enum VS_GRAPHICS_DLL vsTextBuilderJustification
 {
     VS_TEXTBUILDER_JUSTIFY_LEFT,
     VS_TEXTBUILDER_JUSTIFY_RIGHT,
     VS_TEXTBUILDER_JUSTIFY_CENTER
 };
 
-class vsTextBuilder
+class VS_GRAPHICS_DLL vsTextBuilder
 {
 private:
     static vsVector         currentColor;

@@ -375,7 +375,7 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
         // attributes need to check the number of children on the group
         // as part of their sanity checking. Also gather decal-specific
         // data while we're at it.
-        for (loop = 0; loop < osgGroup->getNumChildren(); loop++)
+        for (loop = 0; loop < (int)osgGroup->getNumChildren(); loop++)
         {
             // Recurse on the loop'th child, and add the result of that as
             // a child of this component
@@ -609,7 +609,7 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     
     vsComponent *geodeComponent, *childComponent;
     vsGeometry *geometry;
-    int loop, sloop, tloop;
+    int loop, sloop;
     osg::Geometry *osgGeometry;
     osg::Billboard *osgBillboard;
     vsBillboardAttribute *billboardAttr;
@@ -680,7 +680,7 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
 
     // Convert each osg::Geometry into one or more vsGeometry objects (one
     // per PrimitiveSet)
-    for (loop = 0; loop < geode->getNumDrawables(); loop++)
+    for (loop = 0; loop < (int)geode->getNumDrawables(); loop++)
     {
         // Obtain the loop'th Geometry. (If it's not a Geometry, ignore it.)
         osgGeometry = dynamic_cast<osg::Geometry *>(geode->getDrawable(loop));
@@ -731,7 +731,8 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
         
             // For each primitive set on the Geometry, create a vsGeometry
             // that contains the same information
-            for (sloop = 0; sloop < osgGeometry->getNumPrimitiveSets(); sloop++)
+            for (sloop = 0; sloop < (int)osgGeometry->getNumPrimitiveSets(); 
+                sloop++)
             {
                 // Create a new vsGeometry and get the next PrimitiveSet
                 // from the osg::Geometry object
@@ -1177,7 +1178,7 @@ void vsDatabaseLoader::convertLOD(vsComponent *lodComponent, osg::LOD *osgLOD)
     rangeList[0] = 0.0;
     
     // Copy the range values from the osg LOD into our list
-    for (loop = 0; loop < osgLOD->getNumRanges(); loop++)
+    for (loop = 0; loop < (int)osgLOD->getNumRanges(); loop++)
     {
         rangeList[(loop * 2) + 1] = osgLOD->getMinRange(loop);
         rangeList[(loop * 2) + 2] = osgLOD->getMaxRange(loop);

@@ -38,13 +38,13 @@
 #include "vsKinematics.h++"
 #include "vsMouse.h++"
 
-enum vsDMThrottleMode
+enum VS_MOTION_DLL vsDMThrottleMode
 {
     VS_DM_THROTTLE_VELOCITY,
     VS_DM_THROTTLE_ACCELERATION
 };
 
-enum vsDMSteeringMode
+enum VS_MOTION_DLL vsDMSteeringMode
 {
     VS_DM_STEER_RELATIVE,
     VS_DM_STEER_ABSOLUTE
@@ -56,7 +56,7 @@ enum vsDMSteeringMode
 #define VS_DM_DEFAULT_THROTTLE_MODE VS_DM_THROTTLE_ACCELERATION
 #define VS_DM_DEFAULT_STEERING_MODE VS_DM_STEER_ABSOLUTE
 
-class vsDrivingMotion : public vsMotionModel
+class VS_MOTION_DLL vsDrivingMotion : public vsMotionModel
 {
 protected:
 

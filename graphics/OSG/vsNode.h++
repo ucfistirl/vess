@@ -33,7 +33,7 @@ class vsAttribute;
 
 #define VS_NODE_NAME_MAX_LENGTH 80
 
-enum vsNodeType
+enum VS_GRAPHICS_DLL vsNodeType
 {
     VS_NODE_TYPE_COMPONENT,
     VS_NODE_TYPE_GEOMETRY,
@@ -41,7 +41,7 @@ enum vsNodeType
     VS_NODE_TYPE_SCENE
 };
 
-class vsNode : public vsObject
+class VS_GRAPHICS_DLL vsNode : public vsObject
 {
 private:
 

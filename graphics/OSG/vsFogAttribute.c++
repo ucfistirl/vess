@@ -142,10 +142,10 @@ void vsFogAttribute::getColor(double *r, double *g, double *b)
 // ------------------------------------------------------------------------
 // Sets the near and far threshold ranges for the fog
 // ------------------------------------------------------------------------
-void vsFogAttribute::setRanges(double near, double far)
+void vsFogAttribute::setRanges(double nearDist, double farDist)
 {
-    osgFog->setStart(near);
-    osgFog->setEnd(far);
+    osgFog->setStart(nearDist);
+    osgFog->setEnd(farDist);
 
     recalcDensity();
 }
@@ -154,12 +154,12 @@ void vsFogAttribute::setRanges(double near, double far)
 // Retrieves the near and far threshold ranges for the fog. NULL pointers
 // may be passed in for undesired values.
 // ------------------------------------------------------------------------
-void vsFogAttribute::getRanges(double *near, double *far)
+void vsFogAttribute::getRanges(double *nearDist, double *farDist)
 {
-    if (near)
-        *near = osgFog->getStart();
-    if (far)
-        *far = osgFog->getEnd();
+    if (nearDist)
+        *nearDist = osgFog->getStart();
+    if (farDist)
+        *farDist = osgFog->getEnd();
 }
 
 // ------------------------------------------------------------------------
@@ -272,6 +272,8 @@ void vsFogAttribute::detach(vsNode *node)
 void vsFogAttribute::attachDuplicate(vsNode *theNode)
 {
     vsFogAttribute *newAttrib;
+    double r, g, b;
+    double nearDist, farDist;
 
     // Create a new fog attribute on the specified node
     newAttrib = new vsFogAttribute();
@@ -279,14 +281,10 @@ void vsFogAttribute::attachDuplicate(vsNode *theNode)
 
     // Copy the fog parameters to the new attribute
     newAttrib->setEquationType(getEquationType());
-
-    double r, g, b;
     getColor(&r, &g, &b);
     newAttrib->setColor(r, g, b);
-
-    double near, far;
-    getRanges(&near, &far);
-    newAttrib->setRanges(near, far);
+    getRanges(&nearDist, &farDist);
+    newAttrib->setRanges(nearDist, farDist);
 }
 
 // ------------------------------------------------------------------------

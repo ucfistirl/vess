@@ -21,12 +21,12 @@
 //------------------------------------------------------------------------
 
 #include <AL/al.h>
-#include <sys/time.h>
 #include <stdio.h>
 
 #include "vsSoundSourceAttribute.h++"
 #include "vsNode.h++"
 #include "vsComponent.h++"
+#include "vsTimer.h++"
 
 // ------------------------------------------------------------------------
 // Constructor -  creates a static sound source.  If the loop parameter
@@ -51,9 +51,6 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundSample *buffer, int loop)
     parentComponent = NULL;
     lastPos.clear();
     lastOrn.clear();
-
-    // Call getTimeInterval to initialize the lastTime variable
-    getTimeInterval();
 
     // Initialize the base direction vector (direction before coordinate
     // conversion)
@@ -107,9 +104,6 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundStream *buffer)
     lastPos.clear();
     lastOrn.clear();
 
-    // Call getTimeInterval to initialize the lastTime variable
-    getTimeInterval();
-
     // Initialize the base direction vector (direction before coordinate
     // conversion)
     baseDirection.set(0.0, 0.0, 0.0);
@@ -151,32 +145,6 @@ vsSoundSourceAttribute::~vsSoundSourceAttribute()
 const char *vsSoundSourceAttribute::getClassName()
 {
     return "vsSoundSourceAttribute";
-}
-
-// ------------------------------------------------------------------------
-// Returns the interval of time since the last time this function was 
-// called (based on the lastTime variable)
-// ------------------------------------------------------------------------
-double vsSoundSourceAttribute::getTimeInterval()
-{
-    struct timeval tv;
-    double         currentTime;
-    double         deltaTime;
-
-    // Get the current time
-    gettimeofday(&tv, NULL);
-
-    // Convert to seconds
-    currentTime = tv.tv_sec + tv.tv_usec / 1E6;
-
-    // Compute the time difference from the last frame
-    deltaTime = currentTime - lastTime;
-
-    // Save the current time for use next frame
-    lastTime = currentTime;
-
-    // Return the time difference computed above
-    return deltaTime;
 }
 
 // ------------------------------------------------------------------------
@@ -315,7 +283,7 @@ void vsSoundSourceAttribute::update()
 
     // Update the velocity (based on the last frame's position)
     deltaVec = tempVec - lastPos;
-    interval = getTimeInterval();
+    interval = vsTimer::getSystemTimer()->getInterval();
 
     // Make sure time has passed to avoid dividing by zero
     if (interval > 0.0)
@@ -357,7 +325,7 @@ void vsSoundSourceAttribute::update()
     if (streamingSource)
     {
         // Get the number of buffers processed
-        alGetSourceiv(sourceID, AL_BUFFERS_PROCESSED, &buffersProcessed);
+        alGetSourcei(sourceID, AL_BUFFERS_PROCESSED, &buffersProcessed);
 
         // Swap buffers if the front buffer is done
         if (buffersProcessed > 0)
@@ -434,7 +402,7 @@ int vsSoundSourceAttribute::isLooping()
     ALint looping;
 
     // Get the current looping state for the source
-    alGetSourceiv(sourceID, AL_LOOPING, &looping);
+    alGetSourcei(sourceID, AL_LOOPING, &looping);
 
     // Return the looping state
     return (int)looping;

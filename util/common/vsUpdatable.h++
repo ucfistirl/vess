@@ -25,7 +25,7 @@
 
 #include "vsObject.h++"
 
-class vsUpdatable : public vsObject
+class VS_UTIL_DLL vsUpdatable : public vsObject
 {
 public:
 

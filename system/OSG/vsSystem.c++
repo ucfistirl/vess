@@ -23,10 +23,7 @@
 
 #include "vsSystem.h++"
 
-#include <sys/time.h>
 #include <stdio.h>
-#include <GL/glx.h>
-
 #include <osg/Drawable>
 #include <osg/Geode>
 
@@ -344,7 +341,7 @@ void vsSystem::preFrameTraverse(vsNode *node)
         geode = ((vsGeometry *)node)->getBaseLibraryObject();
 
         // Go through all the drawables on this Geode.
-        for (loop = 0; loop < geode->getNumDrawables(); loop++)
+        for (loop = 0; loop < (int)geode->getNumDrawables(); loop++)
         {
             // Get the specific drawable.
             drawable = geode->getDrawable(loop);
@@ -404,6 +401,10 @@ void vsSystem::preFrameTraverse(vsNode *node)
 // ------------------------------------------------------------------------
 void vsSystem::drawFrame()
 {
+#ifdef WIN32
+    MSG message;
+#endif
+
     // Do nothing if this isn't a real system object
     if (!validObject)
         return;
@@ -549,8 +550,15 @@ void vsSystem::drawFrame()
             }
 
             // Swap buffers on this window
-            glXSwapBuffers(targetScreen->getParentPipe()->getXDisplay(),
-                           targetWindow->getBaseLibraryObject());
+            targetWindow->swapBuffers();
         }
     }
+    
+#ifdef WIN32
+    // Windows only:  the message pump
+    while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE))
+    {
+        DispatchMessage(&message);
+    }
+#endif
 }

@@ -21,11 +21,11 @@
 //------------------------------------------------------------------------
 
 #include <AL/al.h>
-#include <sys/time.h>
 #include <stdio.h>
 
 #include "vsSoundListenerAttribute.h++"
 #include "vsNode.h++"
+#include "vsTimer.h++"
 
 // ------------------------------------------------------------------------
 // Constructor - Registers this attribute with the specified view object,
@@ -41,9 +41,6 @@ vsSoundListenerAttribute::vsSoundListenerAttribute()
 
     // Initialize the vector holding the last position of the listener
     lastPos.clear();
-
-    // Call getTimeInterval to initialize the lastTime variable
-    getTimeInterval();
 
     // Set up a coordinate conversion quaternion
     coordXform.setAxisAngleRotation(1, 0, 0, -90.0);
@@ -94,32 +91,6 @@ int vsSoundListenerAttribute::getAttributeType()
 int vsSoundListenerAttribute::getAttributeCategory()
 {
     return VS_ATTRIBUTE_CATEGORY_OTHER;
-}
-
-// ------------------------------------------------------------------------
-// Returns the interval of time since the last time this function was 
-// called (based on the lastTime variable)
-// ------------------------------------------------------------------------
-double vsSoundListenerAttribute::getTimeInterval()
-{
-    struct timeval tv;
-    double         currentTime;
-    double         deltaTime;
-
-    // Get the current time
-    gettimeofday(&tv, NULL);
-
-    // Convert from a timeval to seconds
-    currentTime = tv.tv_sec + tv.tv_usec / 1E6;
-
-    // Compute the difference in time
-    deltaTime = currentTime - lastTime;
-
-    // Save the current time for the next call
-    lastTime = currentTime;
-
-    // Return the difference in time computed above
-    return deltaTime;
 }
 
 // ------------------------------------------------------------------------
@@ -240,7 +211,7 @@ void vsSoundListenerAttribute::update()
 
     // Update the velocity (based on the last frame's position)
     deltaVec = tempVec - lastPos;
-    interval = getTimeInterval();
+    interval = vsTimer::getSystemTimer()->getInterval();
 
     // Make sure time has passed before trying to compute the velocity
     // (otherwise a divide by zero would result)

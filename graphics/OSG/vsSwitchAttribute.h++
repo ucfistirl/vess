@@ -27,7 +27,7 @@
 #include "vsAttribute.h++"
 #include "vsNode.h++"
 
-class vsSwitchAttribute : public vsAttribute
+class VS_GRAPHICS_DLL vsSwitchAttribute : public vsAttribute
 {
 private:
 

@@ -25,7 +25,7 @@
 
 #include "vsUpdatable.h++"
 
-class vsInputSystem : public vsUpdatable
+class VS_IO_DLL vsInputSystem : public vsUpdatable
 {
 public:
 

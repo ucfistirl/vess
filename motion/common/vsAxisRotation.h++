@@ -40,7 +40,7 @@
 
 #define VS_AR_DOUBLE_TOLERANCE      0.1
 
-class vsAxisRotation : public vsMotionModel
+class VS_MOTION_DLL vsAxisRotation : public vsMotionModel
 {
 private:
 

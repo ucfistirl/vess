@@ -30,7 +30,7 @@ class vsMatrix;
 #include "vsVector.h++"
 #include "vsQuat.h++"
 
-class vsMatrix
+class VS_UTIL_DLL vsMatrix
 {
 private:
 

@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include "vsGlobals.h++"
 
-class vsVector
+class VS_UTIL_DLL vsVector
 {
 private:
 

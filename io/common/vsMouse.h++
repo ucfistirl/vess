@@ -30,7 +30,7 @@
 #define VS_MOUSE_MAX_AXES    3
 #define VS_MOUSE_MAX_BUTTONS 5
 
-class vsMouse : public vsInputDevice
+class VS_IO_DLL vsMouse : public vsInputDevice
 {
 protected:
 

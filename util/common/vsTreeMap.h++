@@ -26,20 +26,20 @@
 
 #include "vsGrowableArray.h++"
 
-enum vsTreeMapColor
+enum VS_UTIL_DLL vsTreeMapColor
 {
     VS_TREE_MAP_BLACK,
     VS_TREE_MAP_RED
 };
 
-enum vsTreeMapChildType
+enum VS_UTIL_DLL vsTreeMapChildType
 {
     VS_TREE_MAP_LEFTCHILD,
     VS_TREE_MAP_RIGHTCHILD,
     VS_TREE_MAP_ROOTNODE
 };
 
-struct vsTreeMapNode
+struct VS_UTIL_DLL vsTreeMapNode
 {
     vsTreeMapNode   *leftChild;
     vsTreeMapNode   *rightChild;
@@ -50,7 +50,7 @@ struct vsTreeMapNode
     void            *nodeValue;
 };
 
-class vsTreeMap
+class VS_UTIL_DLL vsTreeMap
 {
 private:
 

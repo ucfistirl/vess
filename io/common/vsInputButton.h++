@@ -24,19 +24,20 @@
 #define VS_INPUT_BUTTON_HPP
 
 #include "vsGlobals.h++"
+#include "vsTimer.h++"
 #include "vsUpdatable.h++"
 
 #define VS_IB_DBLCLICK_INTERVAL  0.2
 
-class vsInputButton : public vsUpdatable
+class VS_IO_DLL vsInputButton : public vsUpdatable
 {
 protected:
 
     // Indicates the state of the button
     int          pressed;
 
-    // Indicates the time at which the button was last pressed
-    double       lastPressedTime;      
+    // Timer to measure time between button presses
+    vsTimer      *buttonTimer;
 
     // Indicates whether or not the last press of the button was
     // a double-click
@@ -45,10 +46,6 @@ protected:
     // The maximum time interval at which two consecutive presses 
     // are considered a "double-click"
     double       doubleClickInterval;
-
-    // Returns the current system time in seconds (for the double-click
-    // measurements)
-    double       getTime();
 
 VS_INTERNAL:
 

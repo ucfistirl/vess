@@ -33,7 +33,7 @@
 #define VS_AXIS_DEFAULT_MIN 0.0
 #define VS_AXIS_DEFAULT_MAX 255.0
 
-class vsInputAxis : public vsUpdatable
+class VS_IO_DLL vsInputAxis : public vsUpdatable
 {
 protected:
 

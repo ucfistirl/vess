@@ -28,7 +28,7 @@
 #define VS_JS_MAX_AXES    20
 #define VS_JS_MAX_BUTTONS 30
 
-enum
+enum VS_IO_DLL
 {
     VS_JS_X_AXIS = 0,
     VS_JS_Y_AXIS = 1,
@@ -36,7 +36,7 @@ enum
     VS_JS_T_AXIS = 3
 };
 
-class vsJoystick : public vsInputDevice
+class VS_IO_DLL vsJoystick : public vsInputDevice
 {
 protected:
 

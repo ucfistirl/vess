@@ -28,7 +28,7 @@
 
 #include "vsKinematics.h++"
 
-class vsConfigAvatar : public vsAvatar
+class VS_AVATAR_DLL vsConfigAvatar : public vsAvatar
 {
 private:
 

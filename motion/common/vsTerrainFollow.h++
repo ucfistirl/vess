@@ -30,7 +30,7 @@
 #define VS_TFOLLOW_DEFAULT_HEIGHT 0.5
 #define VS_TFOLLOW_FLOAT_HEIGHT   0.001
 
-class vsTerrainFollow : public vsMotionModel
+class VS_MOTION_DLL vsTerrainFollow : public vsMotionModel
 {
 private:
 

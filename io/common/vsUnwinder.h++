@@ -34,7 +34,7 @@
 
 #define VS_UW_PACKET_SIZE   19
 
-typedef struct
+typedef VS_IO_DLL struct
 {
     unsigned char xMSB;
     unsigned char yMSB;
@@ -46,7 +46,7 @@ typedef struct
     unsigned char hat;
 } vsUnwinderData;
 
-typedef struct 
+typedef VS_IO_DLL struct 
 {
     unsigned char                 status;
     unsigned char                 mode;
@@ -54,7 +54,7 @@ typedef struct
     unsigned char                 checkSum;
 } vsUnwinderPacket;
 
-class vsUnwinder : public vsJoystickBox
+class VS_IO_DLL vsUnwinder : public vsJoystickBox
 {
 protected:
 

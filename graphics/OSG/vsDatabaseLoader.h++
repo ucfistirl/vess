@@ -30,14 +30,14 @@
 #define VS_DATABASE_MODE_NAME_ALL      0x02
 #define VS_DATABASE_MODE_AUTO_UNLIT    0x04
 
-enum vsDatabaseUnits
+enum VS_GRAPHICS_DLL vsDatabaseUnits
 {
     VS_DATABASE_UNITS_METERS,
     VS_DATABASE_UNITS_FEET,
     VS_DATABASE_UNITS_KILOMETERS
 };
 
-class vsDatabaseLoader
+class VS_GRAPHICS_DLL vsDatabaseLoader
 {
 private:
 

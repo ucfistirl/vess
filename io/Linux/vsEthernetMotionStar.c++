@@ -1517,7 +1517,7 @@ void vsEthernetMotionStar::setDataFormat(int trackerNum, int format)
 
             default:
                 printf("   Invalid data format %d, "
-                    "assuming POSITIONQUATERNION\n", dataFormat);
+                    "assuming POSITIONQUATERNION\n", format);
                 dataFormat = VS_BN_FLOCK_POSITIONQUATERNION;
                 break;
         }

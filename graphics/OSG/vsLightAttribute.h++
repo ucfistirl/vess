@@ -34,13 +34,13 @@ class vsScene;
 #include "vsAttribute.h++"
 #include "vsScene.h++"
 
-enum vsLightAttributeMode
+enum VS_GRAPHICS_DLL vsLightAttributeMode
 {
     VS_LIGHT_MODE_GLOBAL,
     VS_LIGHT_MODE_LOCAL
 };
 
-class vsLightAttribute : public vsAttribute
+class VS_GRAPHICS_DLL vsLightAttribute : public vsAttribute
 {
 private:
 

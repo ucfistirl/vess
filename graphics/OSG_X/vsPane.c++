@@ -734,7 +734,7 @@ void vsPane::updateView()
                 // Vertical FOV specified, but no horizontal, so 
                 // aspect-match horizontal to vertical
                 vFOV = VS_DEG2RAD(projVval);
-                hFOV = 2 * atan(tan(0.5 * hFOV) * aspectMatch);
+                hFOV = 2 * atan(tan(0.5 * vFOV) * aspectMatch);
                 hFOV = VS_RAD2DEG(hFOV);
                 vFOV = VS_RAD2DEG(vFOV);
             }

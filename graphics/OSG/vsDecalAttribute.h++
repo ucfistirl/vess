@@ -30,7 +30,7 @@
 
 class vsDecalCallback;
 
-class vsDecalAttribute : public vsAttribute
+class VS_GRAPHICS_DLL vsDecalAttribute : public vsAttribute
 {
 private:
 

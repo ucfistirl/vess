@@ -28,24 +28,35 @@
 // Windows systems.
 
 #include "vsInputDevice.h++"
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xos.h>
-#include <X11/keysym.h>
+#include <windows.h>
 
-#define VS_KB_MAX_BUTTONS    128
+#define VS_KB_MAX_BUTTONS    150
 
 #define VS_KB_COMMAND_LENGTH 80
 
+// Windows-specific keyboard message flags and masks
+#define VS_KB_FLAG_AUTOREPEAT_BIT 0x40000000
+#define VS_KB_FLAG_EXT_KEY_BIT    0x01000000
+#define VS_KB_MASK_SCAN_CODE      0x00FF0000
+#define VS_KB_MASK_REPEAT_COUNT   0x0000FFFF
+
+// Used with the GetKeyState() function to see if a toggle key (CAPS LOCK,
+// for example) is toggled on or off
+#define VS_KB_FLAG_KEY_TOGGLED 0x0001
+
+// Scan codes (used only when necessary)
+#define VS_KB_SCAN_LSHIFT 0x2a
+#define VS_KB_SCAN_RSHIFT 0x36
+
 // Operational modes
-enum 
+enum VS_IO_DLL
 {
     VS_KB_MODE_BUTTON,
     VS_KB_MODE_TERMINAL
 };
 
 // Key "states"
-enum
+enum VS_IO_DLL
 {
     VS_KB_STABLE,
     VS_KB_JUST_PRESSED,
@@ -54,8 +65,8 @@ enum
 };
 
 // Enum to index the non-printable keys into the vsInputButton array
-// the printable keys will map directly to the corresponding X keysyms 
-enum
+// the printable keys will map directly to the corresponding ASCII codes 
+enum VS_IO_DLL
 {
     VS_KEY_ESC        = 0,
     VS_KEY_F1         = 1,
@@ -91,35 +102,39 @@ enum
     VS_KEY_PGUP       = 30,
     VS_KEY_PGDN       = 31,
 
-    // Printable characters will map to KeySyms (ASCII code) directly
+    // Printable characters will map to ASCII codes directly
+    // We'll leave 97-122 free so users can use either lower-case 
+    // letters ('a'=97 - 'z'=122) or upper-case letters 
+    // ('A'=65 - 'Z'=90) in getButton() calls to access the state 
+    // of the letter keys.
 
     // Cursor keys
-    VS_KEY_UP         = 97,
-    VS_KEY_DOWN       = 98,
-    VS_KEY_LEFT       = 99,
-    VS_KEY_RIGHT      = 100,
+    VS_KEY_UP         = 128,
+    VS_KEY_DOWN       = 129,
+    VS_KEY_LEFT       = 130,
+    VS_KEY_RIGHT      = 131,
 
     // Keypad keys
-    VS_KEY_KP0        = 101,
-    VS_KEY_KP1        = 102,
-    VS_KEY_KP2        = 103,
-    VS_KEY_KP3        = 104,
-    VS_KEY_KP4        = 105,
-    VS_KEY_KP5        = 106,
-    VS_KEY_KP6        = 107,
-    VS_KEY_KP7        = 108,
-    VS_KEY_KP8        = 109,
-    VS_KEY_KP9        = 110,
-    VS_KEY_KPDECIMAL  = 111,
-    VS_KEY_KPDIVIDE   = 112,
-    VS_KEY_KPMULTIPLY = 113,
-    VS_KEY_KPSUBTRACT = 114,
-    VS_KEY_KPADD      = 115,
-    VS_KEY_KPENTER    = 116,
-    VS_KEY_NUMLOCK    = 117
+    VS_KEY_KP0        = 132,
+    VS_KEY_KP1        = 133,
+    VS_KEY_KP2        = 134,
+    VS_KEY_KP3        = 135,
+    VS_KEY_KP4        = 136,
+    VS_KEY_KP5        = 137,
+    VS_KEY_KP6        = 138,
+    VS_KEY_KP7        = 139,
+    VS_KEY_KP8        = 140,
+    VS_KEY_KP9        = 141,
+    VS_KEY_KPDECIMAL  = 142,
+    VS_KEY_KPDIVIDE   = 143,
+    VS_KEY_KPMULTIPLY = 144,
+    VS_KEY_KPSUBTRACT = 145,
+    VS_KEY_KPADD      = 146,
+    VS_KEY_KPENTER    = 147,
+    VS_KEY_NUMLOCK    = 148
 };
 
-class vsKeyboard : public vsInputDevice
+class VS_IO_DLL vsKeyboard : public vsInputDevice
 {
 protected:
 
@@ -145,8 +160,9 @@ protected:
     // "command" key
     int              modeToggled;
 
-    // Keyboard-specific mapping function
-    int              mapToButton(KeySym keySym);
+    // Keyboard-specific mapping functions
+    int              mapToButton(unsigned virtKey, unsigned flags);
+    int              mapToChar(unsigned virtKey);
 
     // Display prompt and current command
     void             redrawPrompt();
@@ -154,38 +170,38 @@ protected:
 VS_INTERNAL:
 
     // Change the state of a key
-    void             pressKey(KeySym keySym, char *string);
-    void             releaseKey(KeySym keySym);
+    void             pressKey(unsigned virtKey, unsigned flags);
+    void             releaseKey(unsigned virtKey, unsigned flags);
 
     void             update();
 
 public:
 
-                     vsKeyboard(int mode);
-                     ~vsKeyboard();
-
-    // Inherited methods
+                          vsKeyboard(int mode);
+                          ~vsKeyboard();
+                     
+    // Inherited class name method
     virtual const char    *getClassName();
 
     // General input device methods
-    virtual int      getNumAxes();
-    virtual int      getNumButtons();
+    virtual int           getNumAxes();
+    virtual int           getNumButtons();
 
-    vsInputAxis      *getAxis(int index);
-    vsInputButton    *getButton(int index);
+    vsInputAxis           *getAxis(int index);
+    vsInputButton         *getButton(int index);
 
     // Retrieve the current command string
-    int              isCommandReady();
-    char             *getCommand();
+    int                   isCommandReady();
+    char                  *getCommand();
 
     // Set/get the operational mode
-    void             setMode(int newMode);
-    int              getMode();
+    void                  setMode(int newMode);
+    int                   getMode();
 
     // Set/get the command key (the key that temporarily switches the
     // keyboard to terminal mode so that a command can be typed)
-    void             setCommandKey(int keyIndex);
-    int              getCommandKey();
+    void                  setCommandKey(int keyIndex);
+    int                   getCommandKey();
 };
 
 #endif

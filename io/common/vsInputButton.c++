@@ -21,7 +21,6 @@
 //------------------------------------------------------------------------
 
 #include "vsInputButton.h++"
-#include <sys/time.h>
 #include <stdio.h>
 
 // ------------------------------------------------------------------------
@@ -31,9 +30,11 @@ vsInputButton::vsInputButton(void)
 {
     // Initialize variables
     pressed = VS_FALSE;
-    lastPressedTime = 0.0;
     doubleClicked = VS_FALSE;
     doubleClickInterval = VS_IB_DBLCLICK_INTERVAL;
+    
+    // Create the button timer
+    buttonTimer = new vsTimer();
 }
 
 // ------------------------------------------------------------------------
@@ -60,23 +61,6 @@ void vsInputButton::update()
 }
 
 // ------------------------------------------------------------------------
-// Returns the current system time in seconds
-// ------------------------------------------------------------------------
-double vsInputButton::getTime()
-{
-    struct timeval tv;
-    double currentTime;
-
-    // Query the system time
-    gettimeofday(&tv, NULL);
-
-    // Convert the timeval struct to floating-point seconds
-    currentTime = tv.tv_sec + (tv.tv_usec / 1000000.0);
-
-    return currentTime;
-}
-
-// ------------------------------------------------------------------------
 // Returns whether or not the button is pressed
 // ------------------------------------------------------------------------
 int vsInputButton::isPressed(void)
@@ -97,18 +81,18 @@ int vsInputButton::wasDoubleClicked(void)
 // ------------------------------------------------------------------------
 void vsInputButton::setPressed(void)
 {
-    double currentTime;
-
     // Don't count this as a press if the button is already pressed
     if (!pressed)
     {
         // Set the button to pressed
         pressed = VS_TRUE;
 
+        // Mark the button press time
+        buttonTimer->mark();
+        
         // Calculate the time interval between this and the last press,
         // and flag a double-click if the interval is small enough
-        currentTime = getTime();
-        if ((currentTime - lastPressedTime) <= doubleClickInterval)
+        if (buttonTimer->getInterval() <= doubleClickInterval)
         {
             doubleClicked = VS_TRUE;
         }
@@ -116,9 +100,6 @@ void vsInputButton::setPressed(void)
         {
             doubleClicked = VS_FALSE;
         }
-    
-        // Remember the time of this button press
-        lastPressedTime = currentTime;
     }
 }
 

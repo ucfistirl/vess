@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include "vsNode.h++"
 
-class vsScenePrinter
+class VS_GRAPHICS_DLL vsScenePrinter
 {
 private:
 

@@ -26,10 +26,11 @@
 
 // This implementation uses OpenAL
 
+#include "vsGlobals.h++"
 #include <AL/al.h>
 #include <AL/alc.h>
 
-class vsSoundPipe
+class VS_SOUND_DLL vsSoundPipe
 {
 protected:
 
@@ -37,7 +38,7 @@ protected:
     ALCdevice     *deviceHandle;
 
     // Handle to the audio rendering context
-    void          *pipeHandle;
+    ALCcontext    *pipeHandle;
 
 public:
 

@@ -21,7 +21,6 @@
 
 #include "vsAvatar.h++"
 
-#include <string.h>
 #include "vsDatabaseLoader.h++"
 #include "vsISTJoystickBox.h++"
 #include "vsUnwinder.h++"
@@ -30,7 +29,6 @@
 #include "vsFastrak.h++"
 #include "vsIS600.h++"
 #include "vsEthernetMotionStar.h++"
-#include "vsWSSpaceball.h++"
 #include "vsPinchGloveBox.h++"
 #include "vsCyberGloveBox.h++"
 #include "vs3TrackerArm.h++"
@@ -45,6 +43,12 @@
 #include "vsWalkArticulation.h++"
 #include "vsWalkInPlace.h++"
 #include "vsViewpointAttribute.h++"
+#include "vsWindowSystem.h++"
+#include <string.h>
+
+#if defined(__linux__) || defined(IRIX)
+#include "vsWSSpaceball.h++"
+#endif
 
 #ifdef __linux__
 #include "vsLinuxJoystickSystem.h++"
@@ -382,8 +386,10 @@ void *vsAvatar::createObject(char *idString)
         return makeVsIS600();
     else if (!strcmp(idString, "vsEthernetMotionStar"))
         return makeVsEthernetMotionStar();
+#if defined(__linux__) || defined(IRIX)
     else if (!strcmp(idString, "vsWSSpaceball"))
         return makeVsWSSpaceball();
+#endif
     else if (!strcmp(idString, "vsPinchGloveBox"))
         return makeVsPinchGloveBox();
     else if (!strcmp(idString, "vsCyberGloveBox"))
@@ -763,8 +769,11 @@ void *vsAvatar::makeInputDevice()
     vsWindow *window;
     vsWindowSystem *wsys;
     int screenIdx, windowIdx;
-    vsWSSpaceball *wsSpaceball;
     vsCyberGloveBox *cyberBox;
+
+#if defined(__linux__) || defined(IRIX)
+    vsWSSpaceball *wsSpaceball;
+#endif
 
 #ifdef __linux__
     vsLinuxJoystickSystem *joySys;
@@ -848,6 +857,7 @@ void *vsAvatar::makeInputDevice()
                 }
             }
         }
+#if defined(__linux__) || defined(IRIX)
         else if (!strcmp(token, "WSSpaceball"))
         {
             // Get a vsSpaceball from a vsWSSpaceball
@@ -856,6 +866,7 @@ void *vsAvatar::makeInputDevice()
             if (wsSpaceball)
                 result = wsSpaceball->getSpaceball();
         }
+#endif
         else if (!strcmp(token, "cyberGloveBox"))
         {
             // Get a vsArticulationGlove from a vsCyberGloveBox
@@ -1630,6 +1641,7 @@ void *vsAvatar::makeVsEthernetMotionStar()
     return result;
 }
 
+#if defined(__linux__) || defined(IRIX)
 // ------------------------------------------------------------------------
 // Protected function
 // Creates a vsWSSpaceball from data in the configuration file, and
@@ -1704,6 +1716,7 @@ void *vsAvatar::makeVsWSSpaceball()
     // Create and return the object
     return (new vsWSSpaceball(wsys, btnCount));
 }
+#endif
 
 // ------------------------------------------------------------------------
 // Protected function
@@ -2060,7 +2073,7 @@ void *vsAvatar::makeVsAxisRotation()
     char token[256];
     int lineType = 0;
     vsKinematics *kinematics = NULL;
-    char objName[256], strValue[256];
+    char objName[256];
     int objNum;
     double headingWidth = VS_AR_DEFAULT_HEADING_WIDTH;
     double pitchWidth = VS_AR_DEFAULT_PITCH_WIDTH;

@@ -31,7 +31,7 @@
 
 #define NUMBER_OF_AXES 2
 
-class vsRelativeMouseMotion : public vsMotionModel
+class VS_MOTION_DLL vsRelativeMouseMotion : public vsMotionModel
 {
 private:
     // The input axes that will affect the orientation

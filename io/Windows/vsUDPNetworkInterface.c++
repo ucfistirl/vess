@@ -20,6 +20,8 @@
 //------------------------------------------------------------------------
 
 #include "vsUDPNetworkInterface.h++"
+#include <sys/types.h>
+#include <sys/timeb.h>
 
 // ------------------------------------------------------------------------
 // Creates and opens a UDP (datagram) socket
@@ -27,15 +29,23 @@
 vsUDPNetworkInterface::vsUDPNetworkInterface(int blocking) 
                      : vsNetworkInterface()
 {
+    unsigned long blockMode;
+    int error;
+    
     // Open the datagram socket, and print an error if this fails
     if ( (socketValue = socket(AF_INET, SOCK_DGRAM, 0)) < 0 )
-        perror("socket");
+        fprintf(stderr, "socket:  Unable to open socket! (%d)\n", WSAGetLastError());
 
     // Set to non blocking, if so configured
     if (!blocking)
     {
-        if (fcntl(socketValue, F_SETFL, FNDELAY) < 0)
-            perror("fcntl");
+        blockMode = 1;
+        
+        if (ioctlsocket(socketValue, FIONBIO, &blockMode) < 0)
+        {
+            error = WSAGetLastError();
+            fprintf(stderr, "ioctlsocket:  Unable to set socket to non-blocking\n");
+        }
     }
 }
 
@@ -46,7 +56,7 @@ vsUDPNetworkInterface::vsUDPNetworkInterface(int blocking)
 vsUDPNetworkInterface::~vsUDPNetworkInterface()
 {
     // Close the socket
-    close(socketValue);
+    closesocket(socketValue);
 }
 
 // ------------------------------------------------------------------------
@@ -56,19 +66,23 @@ vsUDPNetworkInterface::~vsUDPNetworkInterface()
 int vsUDPNetworkInterface::readPacket(u_char *buffer, int maxSize)
 {
     int length;
+    int error;
 
     // Get the length of the socket structure for the origin of the packet
     readNameLength = sizeof(readName);
 
     // Receive a packet from the socket
-    length = recvfrom(socketValue, buffer, maxSize, 0,
-                      (struct sockaddr *) &readName, 
-                      (SOCKET_LENGTH *) &readNameLength);
+    length = recvfrom(socketValue, (char *)buffer, maxSize, 0,
+        (struct sockaddr *) &readName, (int *) &readNameLength);
 
     // Check the length and error conditions, and print an error
     // if anything is wrong
-    if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
-        perror("recvfrom");
+    if (length == SOCKET_ERROR)
+    { 
+        error = WSAGetLastError();
+        if ((error != WSAEINTR) && (error != WSAEWOULDBLOCK))
+            fprintf(stderr, "recvfrom: Error receiving data! (%d)\n", error);
+    }
 
     // Return the length of the packet
     return (length);
@@ -82,22 +96,34 @@ int vsUDPNetworkInterface::readPacket(u_char *buffer, int maxSize,
                                       struct timeval *packetTime)
 {
     int length;
+    int error;
+    struct _timeb timeBuffer;
 
     // Get the length of the socket structure for the origin of the packet
     readNameLength = sizeof(readName);
 
     // Receive a packet from the socket
-    length = recvfrom(socketValue, buffer, maxSize, 0,
-                      (struct sockaddr *) &readName,
-                      (SOCKET_LENGTH *) &readNameLength);
+    length = recvfrom(socketValue, (char *)buffer, maxSize, 0,
+        (struct sockaddr *) &readName, (int *) &readNameLength);
 
     // Check the length and error conditions, and print an error
-    // if anything is wrong.  Otherwise, return the current system
-    // time in the packetTime field
-    if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
-        perror("recvfrom");
+    // if anything is wrong.  Otherwise, copy the current system time
+    // into the packetTime field.
+    if (length == SOCKET_ERROR)
+    { 
+        error = WSAGetLastError();
+        if ((error != WSAEINTR) && (error != WSAEWOULDBLOCK))
+            fprintf(stderr, "recvfrom: Error receiving data! (%d)\n", error);
+    }
     else
-        gettimeofday(packetTime, NULL);
+    {
+        // Use Windows' _ftime command and pack the result into the given 
+        // struct timeval.  Unfortunately, this method is only accurate to
+        // about 55ms.
+        _ftime(&timeBuffer);
+        packetTime->tv_sec = timeBuffer.time;
+        packetTime->tv_usec = 1000 * timeBuffer.millitm;
+    }
 
     return (length);
 }
@@ -110,20 +136,24 @@ int vsUDPNetworkInterface::readPacket(u_char *buffer, int maxSize,
 int vsUDPNetworkInterface::readPacket(u_char *buffer, int maxSize, char *origin)
 {
     int    length;
+    int    error;
     char   *addr;
 
     // Get the length of the socket structure for the origin of the packet
     readNameLength = sizeof(readName);
 
     // Receive a packet from the socket
-    length = recvfrom(socketValue, buffer, maxSize, 0,
-                      (struct sockaddr *) &readName,
-                      (SOCKET_LENGTH *) &readNameLength);
+    length = recvfrom(socketValue, (char *)buffer, maxSize, 0,
+        (struct sockaddr *) &readName, (int *) &readNameLength);
 
     // Check the length and error conditions, and print an error
-    // if anything is wrong.
-    if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
-        perror("recvfrom");
+    // if anything is wrong
+    if (length == SOCKET_ERROR)
+    { 
+        error = WSAGetLastError();
+        if ((error != WSAEINTR) && (error != WSAEWOULDBLOCK))
+            fprintf(stderr, "recvfrom: Error receiving data! (%d)\n", error);
+    }
 
     // Copy the packet's origin IP address into the origin field
     addr = (char *) &readName.sin_addr.s_addr;
@@ -142,23 +172,35 @@ int vsUDPNetworkInterface::readPacket(u_char *buffer, int maxSize,
                                       struct timeval *packetTime, char *origin)
 {
     int  length;
+    int  error;
     char *addr;
+    struct _timeb timeBuffer;
 
     // Get the length of the socket structure for the origin of the packet
     readNameLength = sizeof(readName);
 
     // Receive a packet from the socket
-    length = recvfrom(socketValue, buffer, maxSize, 0,
-                      (struct sockaddr *) &readName,
-                      (SOCKET_LENGTH *) &readNameLength);
+    length = recvfrom(socketValue, (char *)buffer, maxSize, 0,
+        (struct sockaddr *) &readName, (int *) &readNameLength);
 
     // Check the length and error conditions, and print an error
-    // if anything is wrong.  Otherwise, return the current system
-    // time in the packetTime field
-    if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
-        perror("recvfrom");
+    // if anything is wrong.  Otherwise, copy the current system time
+    // into the packetTime field.
+    if (length == SOCKET_ERROR)
+    { 
+        error = WSAGetLastError();
+        if ((error != WSAEINTR) && (error != WSAEWOULDBLOCK))
+            fprintf(stderr, "recvfrom: Error receiving data! (%d)\n", error);
+    }
     else
-        gettimeofday(packetTime, NULL);
+    {
+        // Use Windows' _ftime command and pack the result into the given 
+        // struct timeval.  Unfortunately, this method is only accurate to
+        // about 55ms.
+        _ftime(&timeBuffer);
+        packetTime->tv_sec = timeBuffer.time;
+        packetTime->tv_usec = 1000 * timeBuffer.millitm;
+    }
 
     // Copy the packet's origin IP address into the origin field
     addr = (char *) &readName.sin_addr.s_addr;
@@ -177,13 +219,19 @@ int vsUDPNetworkInterface::writePacket(u_char *buffer, int length)
     int error;
 
     // Send the packet on the open socket
-    error = sendto(socketValue, buffer, length, 0,
-                   (struct sockaddr *) &writeName, writeNameLength);
+    error = sendto(socketValue, (char *)buffer, length, 0,
+        (struct sockaddr *) &writeName, writeNameLength);
 
-    // Check for any error condition, and print an error message if
-    // any exists
-    if ( (error == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
-        perror("sendto");
+    // Check the length and error conditions, and print an error
+    // if anything is wrong
+    if (error == SOCKET_ERROR)
+    { 
+        error = WSAGetLastError();
+        if ((error != WSAEINTR) && (error != WSAEWOULDBLOCK))
+            fprintf(stderr, "sendto: Error transmitting data! (%d)\n", error);
+            
+        return -1;
+    }
 
     // Return the length of the packet
     return (error);

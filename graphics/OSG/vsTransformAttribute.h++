@@ -31,7 +31,7 @@
 #include "vsComponent.h++"
 #include "vsAttribute.h++"
 
-class vsTransformAttribute : public vsAttribute
+class VS_GRAPHICS_DLL vsTransformAttribute : public vsAttribute
 {
 private:
 

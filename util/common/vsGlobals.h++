@@ -113,6 +113,91 @@ enum vsMathEulerAxisOrder
 // specified as 'forward' being positive Y. 
 #define VS_EULER_ANGLES_PERFORMER    VS_EULER_ANGLES_ZXY_R
 
+// Windows-specific DLL linkage directives.  Windows requires explicit export
+// and import instructions for its shared libraries (DLL's).  The following
+// sections define a token VS_*_DLL for each VESS library that specifies
+// the linkage.  The token is defined conditionally. If the library itself 
+// is being compiled the token expands into an export directive.  If a module 
+// that is using the library is being compiled, the token expands into an
+// import directive.  On platforms other than Windows, the tokens expand to
+// nothing.
+//
+#ifdef WIN32
 
+    // vsUtil library
+    #ifdef VS_UTIL_EXPORTS
+        #define VS_UTIL_DLL  __declspec(dllexport)
+    #else
+        #define VS_UTIL_DLL  __declspec(dllimport)
+    #endif
+
+    // vsAvatar library
+    #ifdef VS_AVATAR_EXPORTS
+        #define VS_AVATAR_DLL  __declspec(dllexport)
+    #else
+        #define VS_AVATAR_DLL  __declspec(dllimport)
+    #endif
+
+    // vsGraphics library
+    #ifdef VS_GRAPHICS_EXPORTS
+        #define VS_GRAPHICS_DLL  __declspec(dllexport)
+    #else
+        #define VS_GRAPHICS_DLL  __declspec(dllimport)
+    #endif
+
+    // vsIO library
+    #ifdef VS_IO_EXPORTS
+        #define VS_IO_DLL  __declspec(dllexport)
+    #else
+        #define VS_IO_DLL  __declspec(dllimport)
+    #endif
+
+    // vsMotion library
+    #ifdef VS_MOTION_EXPORTS
+        #define VS_MOTION_DLL  __declspec(dllexport)
+    #else
+        #define VS_MOTION_DLL  __declspec(dllimport)
+    #endif
+
+    // vsSound library
+    #ifdef VS_SOUND_EXPORTS
+        #define VS_SOUND_DLL  __declspec(dllexport)
+    #else
+        #define VS_SOUND_DLL  __declspec(dllimport)
+    #endif
+
+    // vsSystem library
+    #ifdef VS_SYSTEM_EXPORTS
+        #define VS_SYSTEM_DLL  __declspec(dllexport)
+    #else
+        #define VS_SYSTEM_DLL  __declspec(dllimport)
+    #endif
+
+#else
+
+     // Define all tokens to be nothing
+     #define VS_UTIL_DLL
+     #define VS_AVATAR_DLL
+     #define VS_GRAPHICS_DLL
+     #define VS_IO_DLL
+     #define VS_MOTION_DLL
+     #define VS_SOUND_DLL
+     #define VS_SYSTEM_DLL
+     
+#endif
+
+// Under Windows, define the sleep() and usleep() functions as macros of
+// the Windows Sleep() function
+#ifdef WIN32
+    #include <windows.h>
+
+    // Sleep() takes milliseconds so multiply x by 1000 for sleep()
+    #define sleep(x)  Sleep((x) * 1000)
+
+    // Sleep() takes milliseconds, so divide x by 1000 for usleep()
+    // if the result of (x/1000) is zero, the thread will still sleep
+    // (give up the processor).
+    #define usleep(x) Sleep((x) / 1000)
+#endif
 
 #endif

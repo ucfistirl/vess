@@ -240,7 +240,7 @@ int vsChordGloves::getContactPairs(int *pairs, int maxSize)
             if (getButton(i, j)->isPressed())
             {
                 // Found a contact pair, add it to the array if there's room
-                if (((2*numPairs + 1) * sizeof(int)) <= maxSize)
+                if (((2*numPairs + 1) * (int)sizeof(int)) <= maxSize)
                 {
                     pairs[2*numPairs]       = i;
                     pairs[(2*numPairs) + 1] = j;

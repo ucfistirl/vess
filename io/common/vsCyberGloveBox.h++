@@ -75,7 +75,7 @@
 
 // CyberTouch actuator indices
 #define VS_CYG_NUM_ACTUATORS 6
-enum
+enum VS_IO_DLL
 {
     VS_CYG_TOUCH_THUMB  = 0,
     VS_CYG_TOUCH_INDEX  = 1,
@@ -85,7 +85,7 @@ enum
     VS_CYG_TOUCH_PALM   = 5
 };
 
-class vsCyberGloveBox : public vsInputSystem
+class VS_IO_DLL vsCyberGloveBox : public vsInputSystem
 {
 protected:
 
