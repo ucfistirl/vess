@@ -65,33 +65,14 @@ vsComponent::vsComponent() : childList(32, 32)
 // ------------------------------------------------------------------------
 vsComponent::~vsComponent()
 {
-    vsAttribute *attr;
-    vsNode *child, *parent;
+    // Remove all parents
+    detachFromParents();
 
-    // Remove all attached attributes; destroy those that aren't being
-    // used by other nodes.
-    while (getAttributeCount() > 0)
-    {
-        attr = getAttribute(0);
-        removeAttribute(attr);
-        if (!(attr->isAttached()))
-            delete attr;
-    }
-    
-    // Remove this node from its parents
-    while (getParentCount() > 0)
-    {
-        parent = getParent(0);
-        parent->removeChild(this);
-    }
+    // Remove all children
+    deleteTree();
 
-    // Detach all remaining children; don't delete any (in case someone
-    // else is using them).
-    while (getChildCount() > 0)
-    {
-        child = getChild(0);
-        removeChild(child);
-    }
+    // Remove all attributes
+    deleteAttributes();
 
     // Remove the node map entry that relates the component to its pfGroups
     getMap()->removeLink(this, VS_OBJMAP_FIRST_LIST);
@@ -153,36 +134,6 @@ vsNode *vsComponent::cloneTree()
     
     // Return the cloned tree
     return result;
-}
-
-// ------------------------------------------------------------------------
-// Destroys the entire scene graph rooted at this component, up to but not
-// including this component itself. Won't delete instanced nodes unless all
-// of the parents of the node are being deleted as well.
-// ------------------------------------------------------------------------
-void vsComponent::deleteTree()
-{
-    vsNode *node;
-    
-    // Delete all children of this node
-    while (getChildCount() > 0)
-    {
-	// We can always get the first child, because removing a child
-	// causes all of the other children to slide over to fill the
-	// gap.
-        node = getChild(0);
-
-        // If it's a component, recurse
-        if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
-            ((vsComponent *)node)->deleteTree();
-
-        // Remove the child from this node
-        removeChild(node);
-
-        // Delete the child if it's now unowned
-        if (node->getParentCount() == 0)
-            delete node;
-    }
 }
 
 // ------------------------------------------------------------------------

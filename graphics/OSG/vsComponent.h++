@@ -60,7 +60,6 @@ public:
     virtual const char    *getClassName();
 
     virtual vsNode        *cloneTree();
-    virtual void          deleteTree();
 
     virtual int           getNodeType();
 

@@ -77,13 +77,31 @@ vsNode *vsNode::cloneTree()
 
 // ------------------------------------------------------------------------
 // Destroys the entire scene graph rooted at this node, up to but not
-// including this node itself. Won't delete instanced nodes unless all
-// of the parents of the node are being deleted as well.
-// As nodes don't have any children by default, this version of the
-// function does nothing.
+// including this node itself. Deletes any objects whose reference counts
+// reach zero.
 // ------------------------------------------------------------------------
 void vsNode::deleteTree()
 {
+    vsNode *node;
+    
+    // Delete all children of this node
+    while (getChildCount() > 0)
+    {
+	// We can always get the first child, because removing a child
+	// causes all of the other children to slide over to fill the
+	// gap.
+        node = getChild(0);
+
+	// Delete the subgraph below the selected child
+        if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
+            ((vsComponent *)node)->deleteTree();
+
+        // Remove the child from this node
+        removeChild(node);
+
+        // Delete the child if it's now unowned
+        vsObject::checkDelete(node);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -376,6 +394,40 @@ vsNode *vsNode::nodeSearch(const char *name, int *idx)
             return result;
 
     return NULL;
+}
+
+// ------------------------------------------------------------------------
+// Protected function
+// Removes this node from all of its parents
+// ------------------------------------------------------------------------
+void vsNode::detachFromParents()
+{
+    vsNode *parentNode;
+
+    // While there are parents left, remove this node from the first one
+    while (getParentCount() > 0)
+    {
+        parentNode = getParent(0);
+        parentNode->removeChild(this);
+    }
+}
+
+// ------------------------------------------------------------------------
+// Protected function
+// Removes all attributes from this node, and deletes those not otherwise
+// in use
+// ------------------------------------------------------------------------
+void vsNode::deleteAttributes()
+{
+    vsAttribute *attribute;
+
+    // While there are attributes left, remove and release the first one
+    while (getAttributeCount() > 0)
+    {
+        attribute = getAttribute(0);
+        removeAttribute(attribute);
+        vsObject::checkDelete(attribute);
+    }
 }
 
 // ------------------------------------------------------------------------

@@ -58,13 +58,11 @@ vsScene::~vsScene()
 {
     int loop;
 
-    // If we have a current child, remove and unreference it.
-    if (child != NULL)
-    {
-        child->removeParent(this);
-        child->unref();
-        child = NULL;
-    }
+    // Remove all children
+    deleteTree();
+
+    // Remove all attributes
+    deleteAttributes();
 
     // Remove any lights we may have in the lightList.
     for (loop = 0; loop < VS_LIGHT_MAX; loop++)
@@ -123,34 +121,6 @@ vsNode *vsScene::cloneTree()
     }
     
     return result;
-}
-
-// ------------------------------------------------------------------------
-// Destroys the entire scene graph rooted at this node, up to but not
-// including this node itself. Won't delete instanced nodes unless all
-// of the parents of the node are being deleted as well.
-// ------------------------------------------------------------------------
-void vsScene::deleteTree()
-{
-    vsNode *node;
- 
-    // Iterate until we have no more children
-    while (getChildCount() > 0)
-    {
-        // We can always get the first child, because removing a child
-        // causes all of the other children to slide over to fill the gap.
-        node = getChild(0);
-
-        // Delete the subgraph below the selected child
-        if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
-            ((vsComponent *)node)->deleteTree();
-
-        // Remove the child from the scene, and delete it if
-        // it no longer being used
-        removeChild(node);
-        if (node->getParentCount() == 0)
-            delete node;
-    }
 }
 
 // ------------------------------------------------------------------------

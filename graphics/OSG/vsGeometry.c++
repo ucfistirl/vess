@@ -98,28 +98,11 @@ vsGeometry::vsGeometry() : parentList(5, 5)
 // ------------------------------------------------------------------------
 vsGeometry::~vsGeometry()
 {
-    vsAttribute *attr;
-    vsNode *parent;
+    // Remove all parents
+    detachFromParents();
 
-    // Remove all attached attributes; destroy those that aren't being
-    // used by other nodes.
-    while (getAttributeCount() > 0)
-    {
-        // Get the first attribute, remove it, and delete it if it's
-	// unused
-        attr = getAttribute(0);
-        removeAttribute(attr);
-        if (!(attr->isAttached()))
-            delete attr;
-    }
- 
-    // Remove this node from its parents
-    while (getParentCount() > 0)
-    {
-        // Get the first parent, and remove this node from it
-        parent = getParent(0);
-        parent->removeChild(this);
-    }
+    // Remove all attributes
+    deleteAttributes();
 
     // Unlink and destroy the OSG objects
     colorList->unref();

@@ -58,6 +58,9 @@ protected:
 
     int                dirtyFlag;
 
+    void               detachFromParents();
+    void               deleteAttributes();
+
 VS_INTERNAL:
 
     static vsObjectMap *getMap();

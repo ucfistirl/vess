@@ -96,25 +96,11 @@ vsDynamicGeometry::vsDynamicGeometry() : parentList(5, 5)
 // ------------------------------------------------------------------------
 vsDynamicGeometry::~vsDynamicGeometry()
 {
-    vsAttribute *attr;
-    vsNode *parent;
+    // Remove all parents
+    detachFromParents();
 
-    // Remove all attached attributes; destroy those that aren't being
-    // used by other nodes.
-    while (getAttributeCount() > 0)
-    {
-        attr = getAttribute(0);
-        removeAttribute(attr);
-        if (!(attr->isAttached()))
-            delete attr;
-    }
- 
-    // Remove this node from its parents
-    while (getParentCount() > 0)
-    {
-        parent = getParent(0);
-        parent->removeChild(this);
-    }
+    // Remove all attributes
+    deleteAttributes();
 
     // Unlink and destroy the OSG objects
     colorList->unref();
