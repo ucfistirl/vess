@@ -230,6 +230,24 @@ vsMatrix *vsSkeleton::getITBoneMatrix(int boneID)
 }
 
 //------------------------------------------------------------------------
+// Return the Cal3D bone space matrix for the given bone.
+//------------------------------------------------------------------------
+vsMatrix *vsSkeleton::getBoneSpaceMatrix(int boneID)
+{
+    vsMatrix *returnValue;
+
+    returnValue = NULL;
+
+    // If given a valid boneID, return the vsMatrix for that boneID.
+    if ((boneID < boneCount) && (boneID >= 0))
+    {
+        returnValue = (vsMatrix *) skeletonBoneSpaceMatrices->getData(boneID);
+    }
+
+    return returnValue;
+}
+
+//------------------------------------------------------------------------
 // Return the list of absolute bone matrices.  This is used to transfrom
 // the vertices of the skin.
 //------------------------------------------------------------------------

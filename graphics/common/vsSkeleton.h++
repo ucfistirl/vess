@@ -65,6 +65,7 @@ public:
 
     vsMatrix              *getBoneMatrix(int boneID);
     vsMatrix              *getITBoneMatrix(int boneID);
+    vsMatrix              *getBoneSpaceMatrix(int boneID);
 
     vsGrowableArray       *getBoneMatrixList();
     vsGrowableArray       *getITBoneMatrixList();
