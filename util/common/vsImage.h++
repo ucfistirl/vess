@@ -1,3 +1,24 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2003, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsImage.h++
+//
+//    Description:  Representation of a 2D image
+//
+//    Author(s):    Ryan Wilson
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_IMAGE_HPP
 #define VS_IMAGE_HPP
 
@@ -6,7 +27,6 @@
 enum vsImageFormat
 {
     VS_IMAGE_FORMAT_RGB,
-    VS_IMAGE_FORMAT_RGBA,
 };
 
 class vsImage : public vsObject
@@ -15,6 +35,7 @@ class vsImage : public vsObject
         // Like OpenGL, we will store the lower left corner first
         unsigned char * data;
 
+        // The width (x-axis) and height (y-axis) of the image
         int             width, height;
 
         vsImageFormat   imageFormat;
@@ -53,6 +74,7 @@ class vsImage : public vsObject
         const unsigned char * getData( );
         unsigned char * cloneData();
 
+        // (Save|Load) the image (to|from) the given file streams
         void            loadFromFile( FILE * input );
         void            saveToFile( FILE * output );
 };

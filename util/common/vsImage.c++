@@ -1,3 +1,24 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2003, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsImage.c++
+//
+//    Description:  Representation of a 2D image
+//
+//    Author(s):    Ryan Wilson
+//
+//------------------------------------------------------------------------
+
 #include "vsImage.h++"
 
 #include <string.h>
@@ -80,10 +101,12 @@ const char * vsImage::getClassName()
 // ---------------------------------------------------------------------------
 void vsImage::clear()
 {
+    // Empty out our image data buffer
     if( data != NULL )
         delete [] data;
     data = NULL;
 
+    // Reset the size of the image
     width = height = 0;
 }
 
@@ -104,9 +127,6 @@ int vsImage::getBytesPerPixel()
     {
         case VS_IMAGE_FORMAT_RGB:
             return 3;
-
-        case VS_IMAGE_FORMAT_RGBA:
-            return 4;
     }
 
 #ifdef VESS_DEBUG
@@ -238,6 +258,9 @@ void vsImage::flipHorizontal()
     }
 }
 
+// ---------------------------------------------------------------------------
+// Save the image to a file (just jpeg right now)
+// ---------------------------------------------------------------------------
 void vsImage::saveToFile( FILE * output )
 {
     struct jpeg_compress_struct cinfo;
@@ -246,11 +269,12 @@ void vsImage::saveToFile( FILE * output )
     JSAMPROW row_pointer[1];
 
     // How many bytes wide is each of our rows
-    int row_stride = width * getBytesPerPixel();
+    int rowStride = width * getBytesPerPixel();
 
-    // FIXME: make it work for other formats?
-    if( imageFormat != VS_IMAGE_FORMAT_RGB )
-        return;
+    // save to jpeg only works for RGB formats which isn't a problem right
+    // now since we only support RGB images. But if we ever needed to
+    // support alpha values... we'd need to drop them before writing the
+    // image to libjpeg
 
     cinfo.err = jpeg_std_error( &jerr );
 
@@ -279,7 +303,7 @@ void vsImage::saveToFile( FILE * output )
         // Mark a pointer to our data (libjpeg expects the first row to be
         // from the top left corner of the picture while we store the lower
         // left corner of the picture first - see note in header file)
-        row_pointer[0] = & data[ (height-row-1) * row_stride ];
+        row_pointer[0] = & data[ (height-row-1) * rowStride ];
 
         // Pass a single row to libjpeg at a time
         jpeg_write_scanlines( &cinfo, row_pointer, 1 );
@@ -292,12 +316,15 @@ void vsImage::saveToFile( FILE * output )
     jpeg_destroy_compress( &cinfo );
 }
 
+// ---------------------------------------------------------------------------
+// Load the image from a file (just jpeg right now)
+// ---------------------------------------------------------------------------
 void vsImage::loadFromFile( FILE * input )
 {
     struct jpeg_decompress_struct dinfo;
     struct jpeg_error_mgr jerr;
 
-    int row_stride, row, data_size;
+    int rowStride, row, dataSize;
 
     // This is where we'll stuff our image data while it is loading
     // Setting 1 to a number greater than 1 would allow us to read
@@ -320,23 +347,27 @@ void vsImage::loadFromFile( FILE * input )
     // Read the header of the jpeg to determine its properties
     jpeg_read_header( &dinfo, TRUE );
 
-    // Start the decompression
-    jpeg_start_decompress( &dinfo );
+    // Save some important header info
+    width = dinfo.image_width;
+    height = dinfo.image_height;
+    imageFormat = VS_IMAGE_FORMAT_RGB;
+    dataSize = getDataSize();
+
+    // Force libjpeg to give us an RGB image
+    dinfo.out_color_space = JCS_RGB;
+    dinfo.output_components = 3;
 
     // Calculate the length of each row (scanline)
-    row_stride = dinfo.output_width * dinfo.output_components;
-
-    // Save some important header info
-    width = dinfo.output_width;
-    height = dinfo.output_height;
-    imageFormat = VS_IMAGE_FORMAT_RGB;
-    data_size = getDataSize();
+    rowStride = width * 3;
 
     // Allocate a place to put the row data
-    buffer[0] = new JSAMPLE[ row_stride ];
+    buffer[0] = new JSAMPLE[ rowStride ];
     
     // Allocate the final destination for the data
-    data = new unsigned char[ data_size ];
+    data = new unsigned char[ dataSize ];
+
+    // Start the decompression
+    jpeg_start_decompress( &dinfo );
 
     // Read each row (scanline) one at a time
     for( row=0; row<height; row++ )
@@ -346,7 +377,7 @@ void vsImage::loadFromFile( FILE * input )
         // Because we want to store the lower left part of the data first, store
         // the read data backwards (because JPEG's store the upper right part of
         // the data first)
-        memcpy( & data[ (height-row-1) * row_stride ], buffer[0], row_stride );
+        memcpy( & data[ (height-row-1) * rowStride ], buffer[0], rowStride );
     }
 
     // Indicate that the decompression is over
