@@ -1,14 +1,14 @@
 #!/bin/make
 
 VSLIBS = \
-         avatar \
-         math \
-         scene \
-         input \
-         motion \
-         sound \
-         system \
-         test
+    avatar \
+    input \
+    math \
+    motion \
+    scene \
+    sound \
+    system \
+    test
 
 OS = `uname`
 
