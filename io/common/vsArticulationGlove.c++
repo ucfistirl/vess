@@ -86,13 +86,14 @@ void vsArticulationGlove::update()
 {
     int    i;
     double deg1, deg2;
+    double middleRingAbd;
     vsQuat quat1, quat2;
 
     // A calibrated glove has all axis idle positions at the beginning of
     // the range of motion (joints fully extended).  If we're currently 
     // calibrating, we need to see if we need to update any idle positions
     // to have a smaller axis value.  If we're not calibrating, we need to
-    // make sure the axis values don't go negative.
+    // make sure the axis values don't go beyond the idle position.
     for (i = 0; i < VS_AG_NUM_SENSORS; i++)
     {
         // See if the axis value is negative
@@ -102,42 +103,59 @@ void vsArticulationGlove::update()
             // the axis value to zero if not
             if (calibrating)
             {
-                // Change the idle position to the current sensor position if
-                // the current position is less than the current idle position
+                // Change the idle position to the current sensor position 
+                // if the current position is less than the current idle 
+                // position
                 sensors[i]->setIdlePosition();
             }
             else
             {
-                // The axis is behind the idle position, so clamp it to the
-                // idle position
+                // The axis is behind the idle position, so clamp it to
+                // the idle position
                 sensors[i]->setPosition(sensors[i]->getIdlePosition());
             }
         }
     }
 
+    // Read the thumb abduction sensor
+    deg1 = sensors[VS_AG_SENSOR_THUMB_ABD]->getPosition() *
+        VS_AG_THUMB_ABD_LIMIT;
+        
     // Read the thumb MJ sensor
-    deg1 = sensors[VS_AG_SENSOR_THUMB_MJ]->getPosition() * 90.0;
-
-    // Compute the joint angle
-    joints[VS_AG_JOINT_THUMB_MJ].setAxisAngleRotation(0, 1, 0, deg1);
+    deg2 = sensors[VS_AG_SENSOR_THUMB_MJ]->getPosition() * 
+        VS_AG_THUMB_MJ_LIMIT;
+        
+    // Compute the thumb CMC joint angle
+    quat1.setAxisAngleRotation(0, 0, 1, deg1);
+    quat2.setAxisAngleRotation(0, 1, 0, -deg2);
+    joints[VS_AG_JOINT_THUMB_MJ] = quat2 * quat1;
 
     // Read the thumb MPJ sensor
-    deg1 = sensors[VS_AG_SENSOR_THUMB_MPJ]->getPosition() * VS_AG_MPJ_LIMIT;
+    deg1 = sensors[VS_AG_SENSOR_THUMB_MPJ]->getPosition() * 
+        VS_AG_THUMB_MPJ_LIMIT;
 
     // Compute the joint angle
     joints[VS_AG_JOINT_THUMB_MPJ].setAxisAngleRotation(1, 0, 0, deg1);
 
     // Read the thumb IJ sensor
-    deg1 = sensors[VS_AG_SENSOR_THUMB_IJ]->getPosition() * VS_AG_PIJ_LIMIT;
+    deg1 = sensors[VS_AG_SENSOR_THUMB_IJ]->getPosition() * 
+        VS_AG_THUMB_IJ_LIMIT;
 
     // Compute the joint angle
     joints[VS_AG_JOINT_THUMB_IJ].setAxisAngleRotation(1, 0, 0, deg1);
 
     // Read the index MPJ sensor
     deg1 = sensors[VS_AG_SENSOR_INDEX_MPJ]->getPosition() * VS_AG_MPJ_LIMIT;
+    
+    // Read the index/middle abduction sensor (use this to rotate the index 
+    // finger to the left)
+    deg2 = sensors[VS_AG_SENSOR_MIDDLE_ABD]->getPosition() * 
+        VS_AG_INDEX_MIDDLE_ABD_LIMIT;
 
     // Compute the joint angle
-    joints[VS_AG_JOINT_INDEX_MPJ].setAxisAngleRotation(1, 0, 0, deg1);
+    quat1.setAxisAngleRotation(1, 0, 0, deg1);
+    quat2.setAxisAngleRotation(0, 0, 1, -deg2);
+    joints[VS_AG_JOINT_INDEX_MPJ] = quat1 * quat2;
  
     // Read the index PIJ sensor
     deg2 = sensors[VS_AG_SENSOR_INDEX_PIJ]->getPosition() * VS_AG_PIJ_LIMIT;
@@ -179,9 +197,16 @@ void vsArticulationGlove::update()
 
     // Read the ring MPJ sensor
     deg1 = sensors[VS_AG_SENSOR_RING_MPJ]->getPosition() * VS_AG_MPJ_LIMIT;
+    
+    // Read the middle/ring abduction sensor
+    deg2 = sensors[VS_AG_SENSOR_RING_ABD]->getPosition() *
+        VS_AG_MIDDLE_RING_ABD_LIMIT;
+    middleRingAbd = deg2;
 
     // Compute the joint angle
-    joints[VS_AG_JOINT_RING_MPJ].setAxisAngleRotation(1, 0, 0, deg1);
+    quat1.setAxisAngleRotation(1, 0, 0, deg1);
+    quat2.setAxisAngleRotation(0, 0, 1, deg2);
+    joints[VS_AG_JOINT_RING_MPJ] = quat1 * quat2;
 
     // Read the ring PIJ sensor
     deg2 = sensors[VS_AG_SENSOR_RING_PIJ]->getPosition() * VS_AG_PIJ_LIMIT;
@@ -201,9 +226,16 @@ void vsArticulationGlove::update()
 
     // Read the MPJ sensor
     deg1 = sensors[VS_AG_SENSOR_PINKY_MPJ]->getPosition() * VS_AG_MPJ_LIMIT;
+    
+    // Read the ring/pinky abduction sensor, and add it to the abduction
+    // sensor reading of the middle/ring fingers
+    deg2 = sensors[VS_AG_SENSOR_PINKY_ABD]->getPosition() *
+        VS_AG_RING_PINKY_ABD_LIMIT + middleRingAbd;
 
     // Compute the joint angle
-    joints[VS_AG_JOINT_PINKY_MPJ].setAxisAngleRotation(1, 0, 0, deg1);
+    quat1.setAxisAngleRotation(1, 0, 0, deg1);
+    quat2.setAxisAngleRotation(0, 0, 1, deg2);
+    joints[VS_AG_JOINT_PINKY_MPJ] = quat1 * quat2;
 
     // Read the PIJ sensor
     deg2 = sensors[VS_AG_SENSOR_PINKY_PIJ]->getPosition() * VS_AG_PIJ_LIMIT;
@@ -270,8 +302,6 @@ void vsArticulationGlove::update()
     // Palm Arch not yet supported
     joints[VS_AG_JOINT_PALM_ARCH].setAxisAngleRotation(0, 0, 0, 1);
 
-    // Abduction values not yet supported
-
     // Update all buttons and axes
     vsIODevice::update();
 }
@@ -329,11 +359,78 @@ vsQuat vsArticulationGlove::getJoint(int index)
 }
 
 // ------------------------------------------------------------------------
+// Saves the current calibration information for all axes to a file
+// ------------------------------------------------------------------------
+void vsArticulationGlove::saveCalibration(char *filename)
+{
+    FILE *fp;
+    int  i;
+    double idle, min, max;
+
+    // Open a file with the given name for writing
+    fp = fopen(filename, "w");
+
+    // Bail out if the file doesn't open
+    if (!fp)
+    {
+        printf("vsArticulationGlove::saveCalibration:\n");
+        printf("    Unable to create file %s\n", filename);
+        return;
+    }
+
+    // For each sensor axis...
+    for (i = 0; i < VS_AG_NUM_SENSORS; i++)
+    {
+        // Get the axis range and write it to the file on its own line
+        idle = sensors[i]->getIdlePosition();
+        sensors[i]->getRange(&min, &max);
+        fprintf(fp, "%0.10lf %0.10lf %0.10lf\n", idle, min, max);
+    }
+
+    // Close the file
+    fclose(fp);
+}
+
+// ------------------------------------------------------------------------
+// Retrieves saved calibration information for all axes from a file
+// ------------------------------------------------------------------------
+void vsArticulationGlove::loadCalibration(char *filename)
+{
+    FILE *fp;
+    int  i;
+    double idle, min, max;
+
+    // Open a file with the given name for reading
+    fp = fopen(filename, "r");
+
+    // Bail out if the file doesn't open
+    if (!fp)
+    {
+        printf("vsArticulationGlove::loadCalibration:\n");
+        printf("    Unable to open file %s\n", filename);
+        return;
+    }
+
+    // For each sensor axis...
+    for (i = 0; i < VS_AG_NUM_SENSORS; i++)
+    {
+        // Get the axis range and write it to the file on its own line
+        fscanf(fp, "%lf %lf %lf\n", &idle, &min, &max);
+        sensors[i]->setIdlePosition(idle);
+        sensors[i]->setRange(min, max);
+    }
+
+    // Close the file
+    fclose(fp);
+}
+
+// ------------------------------------------------------------------------
 // Enables/disables passive calibration for all sensors
 // ------------------------------------------------------------------------
 void vsArticulationGlove::passiveCalibrate(bool enable)
 {
     int i;
+    double axisMin, axisMax, idlePos;
 
     // The calibration procedure for the glove is as follows.  Set the
     // idle position of each sensor to maximum (255), and enable passive
@@ -359,7 +456,14 @@ void vsArticulationGlove::passiveCalibrate(bool enable)
         // calibration on the input axes
         for (i = 0; i < VS_AG_NUM_SENSORS; i++)
         {
-            sensors[i]->setIdlePosition(255);
+            // The idle position will need to be on the opposite end of the
+            // axis if it's inverted
+            if (sensors[i]->isInverted())
+                sensors[i]->setIdlePosition(0);
+            else
+                sensors[i]->setIdlePosition(255);
+                
+            // Enable calibration
             sensors[i]->passiveCalibrate(true);
         }
     }
@@ -371,7 +475,17 @@ void vsArticulationGlove::passiveCalibrate(bool enable)
         // Disable calibration on the input axes
         for (i = 0; i < VS_AG_NUM_SENSORS; i++)
         {
+            // Disable calibration
             sensors[i]->passiveCalibrate(false);
+            
+            // Get the new sensor axis range and idle position
+            sensors[i]->getRange(&axisMin, &axisMax);
+            idlePos = sensors[i]->getIdlePosition();
+            
+            // Set the axis minimum to the same value as the idle position 
+            // to eliminate any artifacts that might occur if the calibrated 
+            // axis travels behind its idle position.
+            sensors[i]->setRange(idlePos, axisMax);
         }
     }
 

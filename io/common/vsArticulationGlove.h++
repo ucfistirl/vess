@@ -62,16 +62,30 @@
 // the VS_AG_SENSOR_* symbols should be used to index the axes, and the
 // VS_AG_JOINT_* symbols should be used to index the joints.
 
+// Item counts
 #define VS_AG_NUM_SENSORS 23
 #define VS_AG_NUM_JOINTS  17
 #define VS_AG_NUM_BUTTONS 1 
 
-#define VS_AG_MPJ_LIMIT 75.0
-#define VS_AG_PIJ_LIMIT 80.0
-#define VS_AG_DIJ_LIMIT 60.0
+// Knuckle joint limits for all fingers
+#define VS_AG_MPJ_LIMIT       90.0
+#define VS_AG_PIJ_LIMIT      100.0
+#define VS_AG_DIJ_LIMIT       70.0
 
+// Abduction limits
+#define VS_AG_INDEX_MIDDLE_ABD_LIMIT 30.0
+#define VS_AG_MIDDLE_RING_ABD_LIMIT  30.0
+#define VS_AG_RING_PINKY_ABD_LIMIT   45.0
+
+// Limits for the thumb
+#define VS_AG_THUMB_MJ_LIMIT  90.0
+#define VS_AG_THUMB_MPJ_LIMIT 45.0
+#define VS_AG_THUMB_IJ_LIMIT  70.0
+#define VS_AG_THUMB_ABD_LIMIT 30.0
+
+// Wrist scale factors and offsets
 #define VS_AG_WRIST_FLEX_SCALE  140.0
-#define VS_AG_WRIST_FLEX_OFFSET 100.0
+#define VS_AG_WRIST_FLEX_OFFSET 40.0
 #define VS_AG_WRIST_ABD_SCALE    40.0
 #define VS_AG_WRIST_ABD_OFFSET   10.0
 
@@ -81,29 +95,29 @@
 // The glove sensors; use these for the getAxis() method.
 enum VS_IO_DLL 
 {
-     VS_AG_SENSOR_THUMB_MJ,    // Thumb arch joint
-     VS_AG_SENSOR_THUMB_MPJ,   // Thumb metacarpophalangial joint
-     VS_AG_SENSOR_THUMB_IJ,    // Thumb interphalangial joint
-     VS_AG_SENSOR_THUMB_ABD,   // Thumb abduction
-     VS_AG_SENSOR_INDEX_MPJ,   // Index metacarpophalangial joint
-     VS_AG_SENSOR_INDEX_PIJ,   // Index proximal interphalangial joint
-     VS_AG_SENSOR_INDEX_DIJ,   // Index distal interphalangial joint
-     VS_AG_SENSOR_INDEX_ABD,   // Index absolute abduction (not used)
-     VS_AG_SENSOR_MIDDLE_MPJ,  // Middle metacarpophalangial joint
-     VS_AG_SENSOR_MIDDLE_PIJ,  // Middle proximal interphalangial joint
-     VS_AG_SENSOR_MIDDLE_DIJ,  // Middle distal interphalangial joint
-     VS_AG_SENSOR_MIDDLE_ABD,  // Index/Middle relative abduction
-     VS_AG_SENSOR_RING_MPJ,    // Ring metacarpophalangial joint
-     VS_AG_SENSOR_RING_PIJ,    // Ring proximal interphalangial joint
-     VS_AG_SENSOR_RING_DIJ,    // Ring distal interphalangial joint
-     VS_AG_SENSOR_RING_ABD,    // Middle/Ring relative abduction
-     VS_AG_SENSOR_PINKY_MPJ,   // Pinky metacarpophalangial joint
-     VS_AG_SENSOR_PINKY_PIJ,   // Pinky proximal interphalangial joint
-     VS_AG_SENSOR_PINKY_DIJ,   // Pinky distal interphalangial joint
-     VS_AG_SENSOR_PINKY_ABD,   // Ring/Pinky relative abduction
-     VS_AG_SENSOR_PALM_ARCH,   // Palm arch joint
-     VS_AG_SENSOR_WRIST_PITCH, // Wrist pitch (flexion/extension)
-     VS_AG_SENSOR_WRIST_YAW    // Wrist yaw (abduction/adduction)
+    VS_AG_SENSOR_THUMB_MJ,    // Thumb arch joint
+    VS_AG_SENSOR_THUMB_MPJ,   // Thumb metacarpophalangial joint
+    VS_AG_SENSOR_THUMB_IJ,    // Thumb interphalangial joint
+    VS_AG_SENSOR_THUMB_ABD,   // Thumb abduction
+    VS_AG_SENSOR_INDEX_MPJ,   // Index metacarpophalangial joint
+    VS_AG_SENSOR_INDEX_PIJ,   // Index proximal interphalangial joint
+    VS_AG_SENSOR_INDEX_DIJ,   // Index distal interphalangial joint
+    VS_AG_SENSOR_INDEX_ABD,   // Index absolute abduction (not used)
+    VS_AG_SENSOR_MIDDLE_MPJ,  // Middle metacarpophalangial joint
+    VS_AG_SENSOR_MIDDLE_PIJ,  // Middle proximal interphalangial joint
+    VS_AG_SENSOR_MIDDLE_DIJ,  // Middle distal interphalangial joint
+    VS_AG_SENSOR_MIDDLE_ABD,  // Index/Middle relative abduction
+    VS_AG_SENSOR_RING_MPJ,    // Ring metacarpophalangial joint
+    VS_AG_SENSOR_RING_PIJ,    // Ring proximal interphalangial joint
+    VS_AG_SENSOR_RING_DIJ,    // Ring distal interphalangial joint
+    VS_AG_SENSOR_RING_ABD,    // Middle/Ring relative abduction
+    VS_AG_SENSOR_PINKY_MPJ,   // Pinky metacarpophalangial joint
+    VS_AG_SENSOR_PINKY_PIJ,   // Pinky proximal interphalangial joint
+    VS_AG_SENSOR_PINKY_DIJ,   // Pinky distal interphalangial joint
+    VS_AG_SENSOR_PINKY_ABD,   // Ring/Pinky relative abduction
+    VS_AG_SENSOR_PALM_ARCH,   // Palm arch joint
+    VS_AG_SENSOR_WRIST_PITCH, // Wrist pitch (flexion/extension)
+    VS_AG_SENSOR_WRIST_YAW    // Wrist yaw (abduction/adduction)
 };
 
 // The actual joints; use these for the getJoint() method.
@@ -174,6 +188,10 @@ public:
     // This method returns the computed articulation of the joint, which 
     // is probably more useful than the actual axis value
     vsQuat           getJoint(int index);
+
+    // Load/Save calibration data
+    void             saveCalibration(char *filename);
+    void             loadCalibration(char *filename);
 
     // Enables/disables passive calibration
     void             passiveCalibrate(bool enable);
