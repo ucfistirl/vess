@@ -339,7 +339,7 @@ void vsSequencer::setUpdatablePosition(vsUpdatable *updatable,
     {
         // If we are in the position where we want to move to, remember
         // what entry is currently there.
-        if (position == newPosition)
+        if ( (position == newPosition) && (!destinationEntry) )
         {
             destinationEntry = tempEntry;
             found = ((destinationEntry) && (sourceEntry));
