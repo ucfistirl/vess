@@ -168,6 +168,11 @@ dnl This variable is used for any extra classes that need compiling aside
 dnl from the standard VESS classes.  OSG makes use of this.
 EXTRA_GRAPHICS_OBJECTS=
 
+dnl Initialize the graphics include and library paths
+GFX_INCLUDE_DIR=
+GFX_LIB_DIR=
+GFX_LIB=
+
 dnl Provide the option to use Performer.  Set the scene graph variable
 dnl to indicate Performer if this option is chosen.
 AC_ARG_WITH(performer,
@@ -181,6 +186,47 @@ AC_ARG_WITH(osg,
                           the path to the libraries may be specified) [no]]],
 SG=OSG, with_osg=no)
 
+dnl Provide the path for the OpenThreads library. This is required for OSG
+dnl operation. Defaults to /usr/local.
+AC_ARG_WITH(openthreads,
+[[  --with-openthreads=[PREFIX]     Path for OpenThreads library [/usr/local]]],
+, with_openthreads="/usr/local")
+
+dnl Provide the option to use libmpeg2, the MPEG reader library. Enables the
+dnl compilation of the vsMPEGReader class. The argument should be the path to
+dnl the library; assumes /usr/local if no argument is given.
+AC_ARG_WITH(mpeg2,
+[[  --with-mpeg2=[prefix]   Use the mpeg2 library for MPEG file reading (if
+                          necessary, the path to the library may be
+                          specified) [no]]],
+, with_mpeg2=no)
+dnl Default to /usr/local if no argument given
+if test x$with_mpeg2 = xyes ; then
+    with_mpeg2=/usr/local
+fi
+dnl Verify the mpeg2 path data if present
+if test x$with_mpeg2 != xno ; then
+    LIBS=
+    AC_CHECK_LIB(mpeg2, mpeg2_init,,MPEG_ERROR=yes,-L$with_mpeg2/lib)
+    if test x$MPEG_ERROR = xyes ; then
+        AC_MSG_ERROR([
+
+    There is a problem with the mpeg2 library. Check to make sure that it
+    is installed correctly and in the specified location. 
+
+    E-mail vess@ist.ucf.edu if you think you've received this message in
+    error.
+
+])
+    fi
+    dnl Add the mpeg2 path information to the variables that will eventually
+    dnl get exported to the graphics makefile.
+    EXTRA_GRAPHICS_OBJECTS="$EXTRA_GRAPHICS_OBJECTS vsMPEGReader.$OBJEXT"
+    GFX_INCLUDE_DIR="$GFX_INCLUDE_DIR -I$with_mpeg2/include"
+    GFX_LIB_DIR="$GFX_LIB_DIR -L$with_mpeg2/lib"
+    GFX_LIB="$GFX_LIB -lmpeg2"
+fi
+
 dnl Figure out which graphics library we're using
 AC_MSG_CHECKING([which graphics library to use])
 case "$SG" in
@@ -190,9 +236,9 @@ case "$SG" in
 
         dnl Performer can only be in one place (/usr/include).  Configure 
         dnl the include and library directories accordingly.
-        GFX_INCLUDE_DIR=
-        GFX_LIB_DIR="-L$x_libraries -L/usr/$LIBDIR -L/usr/$LIBDIR/libpfdb"
-        GFX_LIB="-lpf -lpfflt -lpfutil -lpfdu -lpfui -lXi -lXm -lXt -lGLU -lGL -lXext -lXmu -lX11 -ldl"
+        GFX_INCLUDE_DIR="$GFX_INCLUDE_DIR"
+        GFX_LIB_DIR="$GFX_LIB_DIR -L$x_libraries -L/usr/$LIBDIR -L/usr/$LIBDIR/libpfdb"
+        GFX_LIB="$GFX_LIB -lpf -lpfflt -lpfutil -lpfdu -lpfui -lXi -lXm -lXt -lGLU -lGL -lXext -lXmu -lX11 -ldl"
 
         dnl If we're on an IRIX box, we also need to link libimage
         case "$target" in
@@ -242,18 +288,38 @@ case "$SG" in
         fi
         AC_MSG_RESULT($OSG_PATH)
 
+        dnl Check to make sure that the OpenThreads library is present. Use the path specified
+        dnl in --with-openthreads, or default to /usr/local if not specified. (Only checks for
+        dnl the existance of the library file, as there isn't any good C function in the library
+        dnl to check for.)
+        AC_CHECK_FILE($with_openthreads/lib/libOpenThreads.so,,THREAD_ERROR=yes)
+
+        dnl If there was an error, abort; this library is required for OSG to compile.
+        if test x$THREAD_ERROR = xyes ; then
+            AC_MSG_ERROR([
+
+    There is a problem with the OpenThreads library.  OpenThreads is required for 
+    Open Scene Graph (and VESS) to work properly.
+
+    E-mail vess@ist.ucf.edu if you think you've received this message in
+    error.
+
+]
+            )
+        fi
+
         dnl Set the graphics library directories
-        GFX_INCLUDE_DIR="-I$OSG_PATH/include -I$OSG_PATH/src/osgText"
-        GFX_LIB_DIR="-L$x_libraries -L$OSG_PATH/lib -L$OSG_PATH/lib/osgPlugins"
-        GFX_LIB="-lXi -lXm -lXt -lGLU -lGL -losg -losgDB -losgUtil -losgText -lfreetype -lXext -lXmu -lX11 -ldl"
-        
+        GFX_INCLUDE_DIR="$GFX_INCLUDE_DIR -I$OSG_PATH/include -I$OSG_PATH/src/osgText -I$with_openthreads/include"
+        GFX_LIB_DIR="$GFX_LIB_DIR -L$x_libraries -L$OSG_PATH/lib -L$OSG_PATH/lib/osgPlugins -L$with_openthreads/lib"
+        GFX_LIB="$GFX_LIB -lXi -lXm -lXt -lGLU -lGL -lOpenThreads -losg -losgDB -losgUtil -losgText -lfreetype -lXext -lXmu -lX11 -ldl"
+
         dnl Check the OSG libraries to see if they're where they are
         dnl supposed to be.  Set an error flag if not.
         LIBS=
         AC_CHECK_LIB(osg, osgGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib)
-        AC_CHECK_LIB(osgDB, osgDBGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib)
-        AC_CHECK_LIB(osgUtil, osgUtilGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib)
-        AC_CHECK_LIB(osgText, osgTextGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib)
+        AC_CHECK_LIB(osgDB, osgDBGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib -L$with_openthreads/lib -lOpenThreads)
+        AC_CHECK_LIB(osgUtil, osgUtilGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib -L$with_openthreads/lib -lOpenThreads)
+        AC_CHECK_LIB(osgText, osgTextGetVersion,,GFX_ERROR=yes,-L$OSG_PATH/lib -L$with_openthreads/lib -lOpenThreads)
 
         dnl Look for freetype 2.  We need this for osgText.
         AC_MSG_CHECKING([path for freetype2])
@@ -335,7 +401,7 @@ case "$SG" in
         fi
 
         dnl Add the extra objects that OSG requires
-        EXTRA_GRAPHICS_OBJECTS="vsBillboardCallback.$OBJEXT vsDecalCallback.$OBJEXT vsIntersectTraverser.$OBJEXT vsLocalLightCallback.$OBJEXT vsSequenceCallback.$OBJEXT"
+        EXTRA_GRAPHICS_OBJECTS="$EXTRA_GRAPHICS_OBJECTS vsBillboardCallback.$OBJEXT vsDecalCallback.$OBJEXT vsIntersectTraverser.$OBJEXT vsLocalLightCallback.$OBJEXT vsSequenceCallback.$OBJEXT"
         ;;
     *)
         dnl Unknown graphics library
