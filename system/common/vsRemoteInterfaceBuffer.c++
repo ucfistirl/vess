@@ -563,7 +563,7 @@ void vsRemoteInterfaceBuffer::processBuffer(u_char *buffer, int lengthRead)
 
     // Stick any partial buffer that was saved last go around in front
     // of the new buffer (this is necessary to cover the case when the
-    // end tag "</vessxml>" gets split between packets
+    // end tag "</vessxml>" gets split between packets)
     memmove(&buffer[xmlBufferSize], &buffer[0], lengthRead);
     memcpy(&buffer[0], &xmlBuffer[0], xmlBufferSize);
     lengthRead += xmlBufferSize;
