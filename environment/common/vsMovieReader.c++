@@ -375,6 +375,11 @@ bool vsMovieReader::openFile(char *filename)
         // Return true to indicate that we successfully opened the file
         return true;
     }
+    else
+    {
+        printf("vsMovieReader::openFile:  Unable to find a video or "
+            "audio stream\n");
+    }
 
     // Return false to indicate that we couldn't open the file or that we
     // have nothing to play
@@ -887,6 +892,9 @@ void *vsMovieReader::fileThreadFunc(void *readerObject)
     AVPacket moviePacket;
     int readStatus;
     bool needVideo, needAudio;
+    
+    // Initialize readStatus
+    readStatus = 0;
 
     // Get the instance of the reader object from the parameter
     instance = (vsMovieReader *)readerObject;
@@ -968,6 +976,8 @@ void *vsMovieReader::fileThreadFunc(void *readerObject)
         // Sleep for a while to yield the processor to other threads
         usleep(10000);
     }
+    
+    return NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -1016,4 +1026,6 @@ void *vsMovieReader::audioThreadFunc(void *readerObject)
         // Sleep for a while
         usleep(10000);
     }
+    
+    return NULL;
 }
