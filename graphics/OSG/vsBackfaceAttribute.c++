@@ -37,8 +37,8 @@ vsBackfaceAttribute::vsBackfaceAttribute()
     lightModel->ref();
     lightModel->setAmbientIntensity(osg::Vec4(0.0, 0.0, 0.0, 1.0));
     lightModel->setColorControl(osg::LightModel::SEPARATE_SPECULAR_COLOR);
-    lightModel->setLocalViewer(VS_TRUE);
-    lightModel->setTwoSided(VS_FALSE);
+    lightModel->setLocalViewer(true);
+    lightModel->setTwoSided(false);
     
     // Create an osg CullFace object and set it to cull the back faces
     // of geometry
@@ -46,7 +46,7 @@ vsBackfaceAttribute::vsBackfaceAttribute()
     cullFace->ref();
     cullFace->setMode(osg::CullFace::BACK);
     
-    backfaceEnabled = VS_FALSE;
+    backfaceEnabled = false;
 }
 
 // ------------------------------------------------------------------------
@@ -81,9 +81,9 @@ int vsBackfaceAttribute::getAttributeType()
 void vsBackfaceAttribute::enable()
 {
     // Enable backside lighting
-    lightModel->setTwoSided(VS_TRUE);
+    lightModel->setTwoSided(true);
 
-    backfaceEnabled = VS_TRUE;
+    backfaceEnabled = true;
 
     // Update the owners' StateSets
     setAllOwnersOSGAttrModes();
@@ -95,9 +95,9 @@ void vsBackfaceAttribute::enable()
 void vsBackfaceAttribute::disable()
 {
     // Disable backside lighting
-    lightModel->setTwoSided(VS_FALSE);
+    lightModel->setTwoSided(false);
 
-    backfaceEnabled = VS_FALSE;
+    backfaceEnabled = false;
 
     // Update the owners' osg StateSets
     setAllOwnersOSGAttrModes();
@@ -106,7 +106,7 @@ void vsBackfaceAttribute::disable()
 // ------------------------------------------------------------------------
 // Retrieves a flag stating if backfacing is enabled
 // ------------------------------------------------------------------------
-int vsBackfaceAttribute::isEnabled()
+bool vsBackfaceAttribute::isEnabled()
 {
     return backfaceEnabled;
 }
@@ -206,22 +206,22 @@ void vsBackfaceAttribute::attachDuplicate(vsNode *theNode)
 // Determines if the specified attribute has state information that is
 // equivalent to what this attribute has
 // ------------------------------------------------------------------------
-int vsBackfaceAttribute::isEquivalent(vsAttribute *attribute)
+bool vsBackfaceAttribute::isEquivalent(vsAttribute *attribute)
 {
     vsBackfaceAttribute *attr;
-    int val1, val2;
+    bool val1, val2;
     
     // NULL check
     if (!attribute)
-        return VS_FALSE;
+        return false;
 
     // Equal pointer check
     if (this == attribute)
-        return VS_TRUE;
+        return true;
     
     // Type check
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_BACKFACE)
-        return VS_FALSE;
+        return false;
 
     // Type cast
     attr = (vsBackfaceAttribute *)attribute;
@@ -230,8 +230,8 @@ int vsBackfaceAttribute::isEquivalent(vsAttribute *attribute)
     val1 = isEnabled();
     val2 = attr->isEnabled();
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Attributes are equivalent if all checks pass
-    return VS_TRUE;
+    return true;
 }

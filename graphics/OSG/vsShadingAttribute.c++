@@ -182,22 +182,22 @@ void vsShadingAttribute::attachDuplicate(vsNode *theNode)
 // Determines if the specified attribute has state information that is
 // equivalent to what this attribute has
 // ------------------------------------------------------------------------
-int vsShadingAttribute::isEquivalent(vsAttribute *attribute)
+bool vsShadingAttribute::isEquivalent(vsAttribute *attribute)
 {
     vsShadingAttribute *attr;
     int val1, val2;
     
     // Make sure the given attribute is valid, return FALSE if not
     if (!attribute)
-        return VS_FALSE;
+        return false;
 
     // Check if we're comparing the attribute to itself
     if (this == attribute)
-        return VS_TRUE;
+        return true;
     
     // Make sure the given attribute is a shading attribute
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_SHADING)
-        return VS_FALSE;
+        return false;
 
     // Cast the given attribute to a shading attribute
     attr = (vsShadingAttribute *)attribute;
@@ -206,8 +206,8 @@ int vsShadingAttribute::isEquivalent(vsAttribute *attribute)
     val1 = getShading();
     val2 = attr->getShading();
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Return true if we get this far (they are equivalent)
-    return VS_TRUE;
+    return true;
 }

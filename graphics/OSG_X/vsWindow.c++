@@ -94,7 +94,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
                "buffer configuration!\n");
 
         // Signal this window object is not valid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -110,7 +110,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
         printf("vsWindow::vsWindow:  Unable to create an OpenGL context!\n");
 
         // Signal this window object is not valid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -128,7 +128,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
         printf("vsWindow::vsWindow:  Unable to create colormap for visual!\n");
 
         // Signal this window object is not valid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -154,7 +154,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
         printf("vsWindow::vsWindow:  Unable to create X Window!\n");
 
         // Signal that this window object is not valid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -347,7 +347,7 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
                "buffer configuration!\n");
 
         // Signal this window object is not valid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -363,7 +363,7 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
         printf("vsWindow::vsWindow:  Unable to create an OpenGL context!\n");
 
         // Signal this window object is not valid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -381,7 +381,7 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
         printf("vsWindow::vsWindow:  Unable to create colormap for visual!\n");
 
         // Signal this window object is not valid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -406,7 +406,7 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
         printf("vsWindow::vsWindow:  Unable to create X Window!\n");
 
         // Flag this object as invalid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -600,7 +600,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
                "buffer configuration!\n");
 
         // Flag this window object as not valid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -616,7 +616,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
         printf("vsWindow::vsWindow:  Unable to create an OpenGL context!\n");
 
         // Flag this window object as invalid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -634,7 +634,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
         printf("vsWindow::vsWindow:  Unable to create colormap for visual!\n");
 
         // Signal this window object is not valid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -659,7 +659,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
         printf("vsWindow::vsWindow:  Unable to create X Window!\n");
 
         // Signal that this window object is not valid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -857,7 +857,7 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
                "buffer configuration!\n");
 
         // Flag this window object as invalid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -873,7 +873,7 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
         printf("vsWindow::vsWindow:  Unable to create an OpenGL context!\n");
 
         // Flag this object as invalid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -891,7 +891,7 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
         printf("vsWindow::vsWindow:  Unable to create colormap for visual!\n");
 
         // Signal this window object is not valid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -915,7 +915,7 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
         printf("vsWindow::vsWindow:  Unable to create X Window!\n");
 
         // Signal that this window object is not valid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -1099,7 +1099,7 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
             "Window!\n");
 
         // Flag this object as invalid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;
@@ -1128,7 +1128,7 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
         printf("vsWindow::vsWindow:  Unable to create an OpenGL context!\n");
 
         // Flag this object as invalid
-        validObject = VS_FALSE;
+        validObject = false;
 
         // Bail out
         return;

@@ -803,7 +803,7 @@ void vsDynamicGeometry::enableLighting()
     osgStateSet = osgGeode->getOrCreateStateSet();
     osgStateSet->setMode(GL_LIGHTING, osg::StateAttribute::ON);
     
-    lightingEnable = 1;
+    lightingEnable = true;
 }
 
 // ------------------------------------------------------------------------
@@ -817,13 +817,13 @@ void vsDynamicGeometry::disableLighting()
     osgStateSet = osgGeode->getOrCreateStateSet();
     osgStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
     
-    lightingEnable = 0;
+    lightingEnable = false;
 }
 
 // ------------------------------------------------------------------------
 // Returns if lighting is enabled for this geometry
 // ------------------------------------------------------------------------
-int vsDynamicGeometry::isLightingEnabled()
+bool vsDynamicGeometry::isLightingEnabled()
 {
     return lightingEnable;
 }
@@ -1084,18 +1084,18 @@ void vsDynamicGeometry::rebuildPrimitives()
 // Internal function
 // Adds a node to this node's list of parent nodes
 // ------------------------------------------------------------------------
-int vsDynamicGeometry::addParent(vsNode *newParent)
+bool vsDynamicGeometry::addParent(vsNode *newParent)
 {
     parentList[parentCount++] = newParent;
     
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
 // Internal function
 // Removes a node from this node's list of parent nodes
 // ------------------------------------------------------------------------
-int vsDynamicGeometry::removeParent(vsNode *targetParent)
+bool vsDynamicGeometry::removeParent(vsNode *targetParent)
 {
     int loop, sloop;
 
@@ -1105,10 +1105,10 @@ int vsDynamicGeometry::removeParent(vsNode *targetParent)
             for (sloop = loop; sloop < parentCount-1; sloop++)
                 parentList[sloop] = parentList[sloop+1];
             parentCount--;
-            return VS_TRUE;
+            return true;
         }
 
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------

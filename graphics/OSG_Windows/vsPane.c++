@@ -67,7 +67,7 @@ vsPane::vsPane(vsWindow *parent)
     parentPipe = parentScreen->getParentPipe();
 
     // Panes are visible by default
-    paneVisible = VS_TRUE;
+    paneVisible = true;
 
     // Normally, this will be a monovision pane, so set it up accordingly
     bufferMode = VS_PANE_BUFFER_MONO;
@@ -525,7 +525,7 @@ vsPaneBufferMode vsPane::getBufferMode()
 // ------------------------------------------------------------------------
 void vsPane::showPane()
 {
-    paneVisible = VS_TRUE;
+    paneVisible = true;
 }
 
 // ------------------------------------------------------------------------
@@ -534,7 +534,7 @@ void vsPane::showPane()
 // ------------------------------------------------------------------------
 void vsPane::hidePane()
 {
-    paneVisible = VS_FALSE;
+    paneVisible = false;
 }
 
 // ------------------------------------------------------------------------
@@ -652,10 +652,10 @@ void vsPane::disableStats()
 // ------------------------------------------------------------------------
 // Returns whether or not frame statistics are set to be drawn
 // ------------------------------------------------------------------------
-int vsPane::areStatsEnabled()
+bool vsPane::areStatsEnabled()
 {
     // No support for stats under OSG, so always return false
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------
@@ -670,7 +670,7 @@ osgUtil::SceneView *vsPane::getBaseLibraryObject()
 // Internal function
 // Returns whether or not this pane is visible (i.e.: should be drawn)
 // ------------------------------------------------------------------------
-int vsPane::isVisible()
+bool vsPane::isVisible()
 {
     return paneVisible;
 }

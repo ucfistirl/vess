@@ -32,17 +32,17 @@
 vsTransparencyAttribute::vsTransparencyAttribute()
 {
     // Start with occlusion enabled and high quality transparency
-    occlusion = VS_TRUE;
+    occlusion = true;
     quality = VS_TRANSP_QUALITY_DEFAULT;
 
     // Start with transparency enabled
-    transpValue = VS_TRUE;
+    transpValue = true;
     
     // Create an osg::Depth object to handle occlusion settings, start
     // with occlusion on
     osgDepth = new osg::Depth();
     osgDepth->ref();
-    osgDepth->setWriteMask(VS_TRUE);
+    osgDepth->setWriteMask(true);
 }
 
 // ------------------------------------------------------------------------
@@ -76,7 +76,7 @@ int vsTransparencyAttribute::getAttributeType()
 void vsTransparencyAttribute::enable()
 {
     // Enable transparency
-    transpValue = VS_TRUE;
+    transpValue = true;
     
     // Mark all attached nodes dirty
     markOwnersDirty();
@@ -88,7 +88,7 @@ void vsTransparencyAttribute::enable()
 void vsTransparencyAttribute::disable()
 {
     // Disable transparency
-    transpValue = VS_FALSE;
+    transpValue = false;
     
     // Mark all attached nodes dirty
     markOwnersDirty();
@@ -97,7 +97,7 @@ void vsTransparencyAttribute::disable()
 // ------------------------------------------------------------------------
 // Returns a flag specifying if transparency is enabled
 // ------------------------------------------------------------------------
-int vsTransparencyAttribute::isEnabled()
+bool vsTransparencyAttribute::isEnabled()
 {
     return transpValue;
 }
@@ -135,10 +135,10 @@ int vsTransparencyAttribute::getQuality()
 void vsTransparencyAttribute::enableOcclusion()
 {
     // Mark occlusion as on
-    occlusion = VS_TRUE;
+    occlusion = true;
 
     // Enable z-buffer writes
-    osgDepth->setWriteMask(VS_TRUE);
+    osgDepth->setWriteMask(true);
 }
 
 // ------------------------------------------------------------------------
@@ -147,16 +147,16 @@ void vsTransparencyAttribute::enableOcclusion()
 void vsTransparencyAttribute::disableOcclusion()
 {
     // Mark occlusion as off
-    occlusion = VS_FALSE;
+    occlusion = false;
 
     // Disable z-buffer writes
-    osgDepth->setWriteMask(VS_FALSE);
+    osgDepth->setWriteMask(false);
 }
 
 // ------------------------------------------------------------------------
 // Returns a flag specifying if occlusion is enabled
 // ------------------------------------------------------------------------
-int vsTransparencyAttribute::isOcclusionEnabled()
+bool vsTransparencyAttribute::isOcclusionEnabled()
 {
     return occlusion;
 }
@@ -329,44 +329,45 @@ void vsTransparencyAttribute::setState(osg::StateSet *stateSet)
 // Determines if the specified attribute has state information that is
 // equivalent to what this attribute has
 // ------------------------------------------------------------------------
-int vsTransparencyAttribute::isEquivalent(vsAttribute *attribute)
+bool vsTransparencyAttribute::isEquivalent(vsAttribute *attribute)
 {
     vsTransparencyAttribute *attr;
     int val1, val2;
+    bool b1, b2;
     
     // Make sure the given attribute is valid
     if (!attribute)
-        return VS_FALSE;
+        return false;
 
     // Check to see if we're comparing this attribute to itself
     if (this == attribute)
-        return VS_TRUE;
+        return true;
     
     // Make sure the given attribute is a transparency attribute
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_TRANSPARENCY)
-        return VS_FALSE;
+        return false;
 
     // Cast the given attribute to a transparency attribute
     attr = (vsTransparencyAttribute *)attribute;
 
     // Compare enable flags
-    val1 = isEnabled();
-    val2 = attr->isEnabled();
-    if (val1 != val2)
-        return VS_FALSE;
+    b1 = isEnabled();
+    b2 = attr->isEnabled();
+    if (b1 != b2)
+        return false;
 
     // Compare quality settings
     val1 = getQuality();
     val2 = attr->getQuality();
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Compare occlusion settings
-    val1 = isOcclusionEnabled();
-    val2 = attr->isOcclusionEnabled();
-    if (val1 != val2)
-        return VS_FALSE;
+    b1 = isOcclusionEnabled();
+    b2 = attr->isOcclusionEnabled();
+    if (b1 != b2)
+        return false;
 
     // If we get this far, the attributes are equivalent
-    return VS_TRUE;
+    return true;
 }

@@ -38,9 +38,9 @@ class VS_GRAPHICS_DLL vsTransparencyAttribute : public vsStateAttribute
 {
 private:
 
-    int             occlusion;
+    bool            occlusion;
     int             quality;
-    int             transpValue;
+    bool            transpValue;
     
     osg::Depth      *osgDepth;
 
@@ -58,7 +58,7 @@ VS_INTERNAL:
     virtual void    restoreSaved();
     virtual void    setState(osg::StateSet *stateSet);
 
-    virtual int     isEquivalent(vsAttribute *attribute);
+    virtual bool    isEquivalent(vsAttribute *attribute);
 
 public:
 
@@ -71,14 +71,14 @@ public:
 
     void                  enable();
     void                  disable();
-    int                   isEnabled();
+    bool                  isEnabled();
     
     void                  setQuality(int newQuality);
     int                   getQuality();
 
     void                  enableOcclusion();
     void                  disableOcclusion();
-    int                   isOcclusionEnabled();
+    bool                  isOcclusionEnabled();
 };
 
 #endif

@@ -88,8 +88,8 @@ public:
     void               clearPath();
     const char         *getPath();
 
-    void               setLoaderMode(int whichMode, int modeVal);
-    int                getLoaderMode(int whichMode);
+    void               setLoaderMode(int whichMode, bool modeVal);
+    bool               getLoaderMode(int whichMode);
 
     vsComponent        *loadDatabase(char *databaseFilename);
 };

@@ -40,7 +40,7 @@ vsIntersect::vsIntersect() : segList(5, 10)
     segListSize = 0;
 
     // Initialize the path array
-    pathsEnabled = 0;
+    pathsEnabled = false;
     for (loop = 0; loop < VS_INTERSECT_SEGS_MAX; loop++)
         sectPath[loop] = NULL;
 
@@ -408,7 +408,7 @@ unsigned int vsIntersect::getMask()
 // ------------------------------------------------------------------------
 void vsIntersect::enablePaths()
 {
-    pathsEnabled = VS_TRUE;
+    pathsEnabled = true;
 }
 
 // ------------------------------------------------------------------------
@@ -419,7 +419,7 @@ void vsIntersect::enablePaths()
 // ------------------------------------------------------------------------
 void vsIntersect::disablePaths()
 {
-    pathsEnabled = VS_FALSE;
+    pathsEnabled = false;
 }
 
 // ------------------------------------------------------------------------

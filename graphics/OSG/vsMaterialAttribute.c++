@@ -469,7 +469,7 @@ void vsMaterialAttribute::attachDuplicate(vsNode *theNode)
 // Determines if the specified attribute has state information that is
 // equivalent to what this attribute has
 // ------------------------------------------------------------------------
-int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
+bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
 {
     vsMaterialAttribute *attr;
     double val1, val2;
@@ -478,16 +478,16 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     
     // Make sure the given attribute exists
     if (!attribute)
-        return VS_FALSE;
+        return false;
 
     // Check for pointer equality (if we're comparing the attribute to
     // itself)
     if (this == attribute)
-        return VS_TRUE;
+        return true;
     
     // Check the attribute type
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_MATERIAL)
-        return VS_FALSE;
+        return false;
 
     // Cast the given attribute to a vsMaterialAttribute
     attr = (vsMaterialAttribute *)attribute;
@@ -498,7 +498,7 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_AMBIENT,
         &r2, &g2, &b2);
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
-        return VS_FALSE;
+        return false;
 
     // Compare the back ambient colors
     getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_AMBIENT,
@@ -506,7 +506,7 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_AMBIENT,
         &r2, &g2, &b2);
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
-        return VS_FALSE;
+        return false;
 
     // Compare the front diffuse colors
     getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_DIFFUSE,
@@ -514,7 +514,7 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_DIFFUSE,
         &r2, &g2, &b2);
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
-        return VS_FALSE;
+        return false;
 
     // Compare the back diffuse colors
     getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_DIFFUSE,
@@ -522,7 +522,7 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_DIFFUSE,
         &r2, &g2, &b2);
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
-        return VS_FALSE;
+        return false;
 
     // Compare the front specular colors
     getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_SPECULAR,
@@ -530,7 +530,7 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_SPECULAR,
         &r2, &g2, &b2);
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
-        return VS_FALSE;
+        return false;
 
     // Compare the back specular colors
     getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_SPECULAR,
@@ -538,7 +538,7 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_SPECULAR,
         &r2, &g2, &b2);
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
-        return VS_FALSE;
+        return false;
 
     // Compare the front emissive colors
     getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_EMISSIVE,
@@ -546,7 +546,7 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_EMISSIVE,
         &r2, &g2, &b2);
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
-        return VS_FALSE;
+        return false;
 
     // Compare the back emissive colors
     getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_EMISSIVE,
@@ -554,44 +554,44 @@ int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_EMISSIVE,
         &r2, &g2, &b2);
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
-        return VS_FALSE;
+        return false;
 
     // Compare the front alpha values
     val1 = getAlpha(VS_MATERIAL_SIDE_FRONT);
     val2 = attr->getAlpha(VS_MATERIAL_SIDE_FRONT);
     if (!VS_EQUAL(val1,val2))
-        return VS_FALSE;
+        return false;
 
     // Compare the back alpha values
     val1 = getAlpha(VS_MATERIAL_SIDE_BACK);
     val2 = attr->getAlpha(VS_MATERIAL_SIDE_BACK);
     if (!VS_EQUAL(val1,val2))
-        return VS_FALSE;
+        return false;
 
     // Compare the front shininess values
     val1 = getShininess(VS_MATERIAL_SIDE_FRONT);
     val2 = attr->getShininess(VS_MATERIAL_SIDE_FRONT);
     if (!VS_EQUAL(val1,val2))
-        return VS_FALSE;
+        return false;
 
     // Compare the back shininess values
     val1 = getShininess(VS_MATERIAL_SIDE_BACK);
     val2 = attr->getShininess(VS_MATERIAL_SIDE_BACK);
     if (!VS_EQUAL(val1,val2))
-        return VS_FALSE;
+        return false;
 
     // Compare the front color mode values
     ival1 = getColorMode(VS_MATERIAL_SIDE_FRONT);
     ival2 = attr->getColorMode(VS_MATERIAL_SIDE_FRONT);
     if (ival1 != ival2)
-        return VS_FALSE;
+        return false;
 
     // Compare the back color mode values
     ival1 = getColorMode(VS_MATERIAL_SIDE_BACK);
     ival2 = attr->getColorMode(VS_MATERIAL_SIDE_BACK);
     if (ival1 != ival2)
-        return VS_FALSE;
+        return false;
 
     // If we get all the way here, the materials are equivalent
-    return VS_TRUE;
+    return true;
 }

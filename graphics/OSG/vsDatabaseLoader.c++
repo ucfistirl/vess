@@ -204,7 +204,7 @@ const char *vsDatabaseLoader::getPath()
 // ------------------------------------------------------------------------
 // Sets the specified loader mode to the given value
 // ------------------------------------------------------------------------
-void vsDatabaseLoader::setLoaderMode(int whichMode, int modeVal)
+void vsDatabaseLoader::setLoaderMode(int whichMode, bool modeVal)
 {
     // OR the mode in if we're adding it, ~AND it out if we're removing it
     if (modeVal)
@@ -216,13 +216,13 @@ void vsDatabaseLoader::setLoaderMode(int whichMode, int modeVal)
 // ------------------------------------------------------------------------
 // Retrieves the value of the specified loader mode
 // ------------------------------------------------------------------------
-int vsDatabaseLoader::getLoaderMode(int whichMode)
+bool vsDatabaseLoader::getLoaderMode(int whichMode)
 {
     // Check the desired mode mask against our mode variable
     if (loaderModes & whichMode)
-        return VS_TRUE;
+        return true;
     else
-        return VS_FALSE;
+        return false;
 }
 
 // ------------------------------------------------------------------------
@@ -296,7 +296,7 @@ int vsDatabaseLoader::importanceCheck(osg::Node *targetNode)
     
     // The node is automatically important if the 'all' mode is set
     if (loaderModes & VS_DATABASE_MODE_NAME_ALL)
-        return VS_TRUE;
+        return true;
 
     // Get the name from the OSG Node
     targetName = targetNode->getName().c_str();
@@ -304,14 +304,14 @@ int vsDatabaseLoader::importanceCheck(osg::Node *targetNode)
     // Check the node's name against the list of important names
     for (loop = 0; loop < nodeNameCount; loop++)
         if (!strcmp((char *)(nodeNames[loop]), targetName))
-            return VS_TRUE;
+            return true;
 
     // Check for a transform and the transforms-are-important enable
     if ((loaderModes & VS_DATABASE_MODE_NAME_XFORM) && 
         (dynamic_cast<osg::Transform *>(targetNode) != NULL))
-        return VS_TRUE;
+        return true;
 
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------
@@ -940,7 +940,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
         osgRefAttrPair = stateSet->getAttributePair(osg::StateAttribute::FOG);
         overrideFlag = osgRefAttrPair->second;
         if (overrideFlag & osg::StateAttribute::OVERRIDE)
-            vsFogAttr->setOverride(VS_TRUE);
+            vsFogAttr->setOverride(true);
     }
     
     // Material
@@ -963,7 +963,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
                 stateSet->getAttributePair(osg::StateAttribute::MATERIAL);
             overrideFlag = osgRefAttrPair->second;
             if (overrideFlag & osg::StateAttribute::OVERRIDE)
-                vsMaterialAttr->setOverride(VS_TRUE);
+                vsMaterialAttr->setOverride(true);
 
             // Record that we've seen this material, in case it comes up again
             attrMap->registerLink(vsMaterialAttr, osgMaterial);
@@ -1015,7 +1015,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
                 osg::StateAttribute::TEXTURE);
             overrideFlag = osgRefAttrPair->second;
             if (overrideFlag & osg::StateAttribute::OVERRIDE)
-                vsTextureAttr->setOverride(VS_TRUE);
+                vsTextureAttr->setOverride(true);
 
             // Record that we've seen this texture, in case it comes up again
             attrMap->registerLink(vsTextureAttr, osgTexture);
@@ -1042,7 +1042,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
         // Check the status of the override flag
         overrideFlag = stateSet->getRenderBinMode();
         if (overrideFlag == osg::StateSet::OVERRIDE_RENDERBIN_DETAILS)
-            vsTransparencyAttr->setOverride(VS_TRUE);
+            vsTransparencyAttr->setOverride(true);
     }
 
     // Backface (Cull Face)
@@ -1092,7 +1092,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
 
         // Check the status of the override flag
         if (cullfaceMode & osg::StateAttribute::OVERRIDE)
-            vsBackfaceAttr->setOverride(VS_TRUE);
+            vsBackfaceAttr->setOverride(true);
     }
 
     // Shading
@@ -1116,7 +1116,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
             stateSet->getAttributePair(osg::StateAttribute::SHADEMODEL);
         overrideFlag = osgRefAttrPair->second;
         if (overrideFlag & osg::StateAttribute::OVERRIDE)
-            vsShadingAttr->setOverride(VS_TRUE);
+            vsShadingAttr->setOverride(true);
     }
     
     // Wireframe (Polygon Mode)
@@ -1141,7 +1141,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
             stateSet->getAttributePair(osg::StateAttribute::POLYGONMODE);
         overrideFlag = osgRefAttrPair->second;
         if (overrideFlag & osg::StateAttribute::OVERRIDE)
-            vsWireframeAttr->setOverride(VS_TRUE);
+            vsWireframeAttr->setOverride(true);
     }
 }
 

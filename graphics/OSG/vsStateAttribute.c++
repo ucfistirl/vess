@@ -33,7 +33,7 @@ vsStateAttribute::vsStateAttribute() : attrSaveList(1, 1), ownerList(10, 50)
     // Initialize class members
     attrSaveCount = 0;
     ownerCount = 0;
-    overrideFlag = VS_FALSE;
+    overrideFlag = false;
 }
 
 // ------------------------------------------------------------------------
@@ -54,7 +54,7 @@ int vsStateAttribute::getAttributeCategory()
 // ------------------------------------------------------------------------
 // Sets the value of the override flag for this graphics state
 // ------------------------------------------------------------------------
-void vsStateAttribute::setOverride(int override)
+void vsStateAttribute::setOverride(bool override)
 {
     // Set the attribute's override flag to the given value
     overrideFlag = override;
@@ -67,7 +67,7 @@ void vsStateAttribute::setOverride(int override)
 // ------------------------------------------------------------------------
 // Gets the value of the override flag for this graphics state
 // ------------------------------------------------------------------------
-int vsStateAttribute::getOverride()
+bool vsStateAttribute::getOverride()
 {
     return overrideFlag;
 }

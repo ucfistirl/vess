@@ -49,8 +49,8 @@ VS_INTERNAL:
     osg::Group        *getBottomGroup();
     void              replaceBottomGroup(osg::Group *newGroup);
 
-    virtual int       addParent(vsNode *newParent);
-    virtual int       removeParent(vsNode *targetParent);
+    virtual bool      addParent(vsNode *newParent);
+    virtual bool      removeParent(vsNode *targetParent);
 
 public:
 
@@ -63,10 +63,10 @@ public:
 
     virtual int           getNodeType();
 
-    virtual int           addChild(vsNode *newChild);
-    virtual int           insertChild(vsNode *newChild, int index);
-    virtual int           removeChild(vsNode *targetChild);
-    virtual int           replaceChild(vsNode *targetChild, vsNode *newChild);
+    virtual bool          addChild(vsNode *newChild);
+    virtual bool          insertChild(vsNode *newChild, int index);
+    virtual bool          removeChild(vsNode *targetChild);
+    virtual bool          replaceChild(vsNode *targetChild, vsNode *newChild);
 
     virtual int           getParentCount();
     virtual vsNode        *getParent(int index);

@@ -55,7 +55,7 @@ private:
     int                xPositionOffset, yPositionOffset;
     int                widthOffset, heightOffset;
 
-    int                validObject;
+    bool               validObject;
 
     static int         windowCount;
 

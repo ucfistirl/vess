@@ -58,7 +58,7 @@ vsLightAttribute::vsLightAttribute()
     setSpecularColor(0.0, 0.0, 0.0);
 
     // Initialize the VESS light to off.
-    lightOn = VS_FALSE;
+    lightOn = false;
  
     // Insure the OSG light is set to OFF, to match the VESS light.
     lightNode->setLocalStateSetModes(osg::StateAttribute::OFF);
@@ -394,7 +394,7 @@ int vsLightAttribute::getScope()
 void vsLightAttribute::on()
 {
     // Flag the light as turned on
-    lightOn = VS_TRUE;
+    lightOn = true;
 
     // If it is a global light, attempt to add it to the scene now.
     if (lightScope == VS_LIGHT_MODE_GLOBAL)
@@ -412,7 +412,7 @@ void vsLightAttribute::on()
 void vsLightAttribute::off()
 {
     // Flag the light as turned off
-    lightOn = VS_FALSE;
+    lightOn = false;
 
     // If it is a global light, attempt to remove it to the scene now.
     if (lightScope == VS_LIGHT_MODE_GLOBAL)
@@ -427,7 +427,7 @@ void vsLightAttribute::off()
 // ------------------------------------------------------------------------
 // Returns a flag indicating if this light source is currently active
 // ------------------------------------------------------------------------
-int vsLightAttribute::isOn()
+bool vsLightAttribute::isOn()
 {
     return lightOn;
 }
@@ -572,15 +572,15 @@ void vsLightAttribute::disableLocalLight(osg::State *state)
 // Internal function
 // Returns if this attribute is available to be attached to a node
 // ------------------------------------------------------------------------
-int vsLightAttribute::canAttach()
+bool vsLightAttribute::canAttach()
 {
     // If we're already attached to a node, don't allow any further 
     // attachments
     if (attachedFlag)
-        return VS_FALSE;
+        return false;
 
     // Otherwise, we can be attached
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

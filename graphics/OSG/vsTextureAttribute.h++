@@ -90,7 +90,7 @@ VS_INTERNAL:
 
     virtual void    attachDuplicate(vsNode *theNode);
 
-    virtual int     isEquivalent(vsAttribute *attribute);
+    virtual bool    isEquivalent(vsAttribute *attribute);
 
 public:
 

@@ -315,14 +315,14 @@ int vsSequenceAttribute::getCurrentChildNum()
 // Internal function
 // Returns if this attribute is available to be attached to a node
 // ------------------------------------------------------------------------
-int vsSequenceAttribute::canAttach()
+bool vsSequenceAttribute::canAttach()
 {
     // If a node is already attached, we can't attach another one
     if (attachedFlag)
-        return VS_FALSE;
+        return false;
 
     // Otherwise, return TRUE
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

@@ -48,7 +48,7 @@ private:
     osg::LightSource    *lightNode;
     osg::Light          *lightObject;
  
-    int                 lightOn;
+    bool                lightOn;
     int                 lightScope;
 
     vsNode              *parentNode;
@@ -59,7 +59,7 @@ private:
 
 VS_INTERNAL:
 
-    virtual int     canAttach();
+    virtual bool    canAttach();
     virtual void    attach(vsNode *theNode);
     virtual void    detach(vsNode *theNode);
 
@@ -112,7 +112,7 @@ public:
 
     void                  on();
     void                  off();
-    int                   isOn();
+    bool                  isOn();
 };
 
 #endif

@@ -46,7 +46,7 @@ VS_INTERNAL:
     static vsObjectMap    *getMap();
     static void           deleteMap();
 
-    virtual int           canAttach();
+    virtual bool          canAttach();
     virtual void          attach(vsNode *theNode);
     virtual void          detach(vsNode *theNode);
 

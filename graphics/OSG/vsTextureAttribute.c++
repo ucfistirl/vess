@@ -493,7 +493,7 @@ void vsTextureAttribute::attachDuplicate(vsNode *theNode)
 // Determines if the specified attribute has state information that is
 // equivalent to what this attribute has
 // ------------------------------------------------------------------------
-int vsTextureAttribute::isEquivalent(vsAttribute *attribute)
+bool vsTextureAttribute::isEquivalent(vsAttribute *attribute)
 {
     vsTextureAttribute *attr;
     unsigned char *image1, *image2;
@@ -501,15 +501,15 @@ int vsTextureAttribute::isEquivalent(vsAttribute *attribute)
     
     // Make sure the given attribute is valid
     if (!attribute)
-        return VS_FALSE;
+        return false;
 
     // Check to see if we're comparing this attribute to itself
     if (this == attribute)
-        return VS_TRUE;
+        return true;
     
     // Make sure the given attribute is a texture attribute
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_TEXTURE)
-        return VS_FALSE;
+        return false;
 
     // Cast the given attribute to a texture attribute
     attr = (vsTextureAttribute *)attribute;
@@ -520,38 +520,38 @@ int vsTextureAttribute::isEquivalent(vsAttribute *attribute)
     attr->getImage(&image2, &xval2, &yval2, &val2);
     if ((image1 != image2) || (xval1 != xval2) || (yval1 != val2) ||
         (val1 != val2))
-        return VS_FALSE;
+        return false;
 
     // Compare S boundary modes
     val1 = getBoundaryMode(VS_TEXTURE_DIRECTION_S);
     val2 = attr->getBoundaryMode(VS_TEXTURE_DIRECTION_S);
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Compare T boundary modes
     val1 = getBoundaryMode(VS_TEXTURE_DIRECTION_T);
     val2 = attr->getBoundaryMode(VS_TEXTURE_DIRECTION_T);
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Compare apply modes
     val1 = getApplyMode();
     val2 = attr->getApplyMode();
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Compare magnification filter modes
     val1 = getMagFilter();
     val2 = attr->getMagFilter();
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // Compare minification filter modes
     val1 = getMinFilter();
     val2 = attr->getMinFilter();
     if (val1 != val2)
-        return VS_FALSE;
+        return false;
 
     // If all pass, the attribute is equivalent
-    return VS_TRUE;
+    return true;
 }

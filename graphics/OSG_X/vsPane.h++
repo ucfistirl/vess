@@ -92,7 +92,7 @@ private:
     double                  widthNorm, heightNorm;
 
     // Pane visibility flag.  Pane is not drawn if false
-    int                     paneVisible;
+    bool                    paneVisible;
 
     // Stereo parameters
     double                  eyeSeparation;
@@ -107,7 +107,7 @@ private:
 VS_INTERNAL:
 
     // Checks the visibility flag of the pane
-    int            isVisible();
+    bool           isVisible();
 
     // Resizes the pane according to the parent window's size and
     // normalized pane position and size
@@ -162,7 +162,7 @@ public:
 
     void                  enableStats();
     void                  disableStats();
-    int                   areStatsEnabled();
+    bool                  areStatsEnabled();
 
     // OSG object accessor
     osgUtil::SceneView    *getBaseLibraryObject();

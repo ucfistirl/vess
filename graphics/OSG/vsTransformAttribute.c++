@@ -180,12 +180,12 @@ void vsTransformAttribute::applyTransformations()
 // Internal function
 // Returns if this attribute is available to be attached to a node
 // ------------------------------------------------------------------------
-int vsTransformAttribute::canAttach()
+bool vsTransformAttribute::canAttach()
 {
     if (attachedFlag)
-        return VS_FALSE;
+        return false;
 
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

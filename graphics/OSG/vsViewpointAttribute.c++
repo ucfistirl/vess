@@ -189,14 +189,14 @@ void vsViewpointAttribute::deleteMap()
 // Internal function
 // Returns if this attribute is available to be attached to a node
 // ------------------------------------------------------------------------
-int vsViewpointAttribute::canAttach()
+bool vsViewpointAttribute::canAttach()
 {
     // Return false if we're already attached to a component
     if (attachedFlag)
-        return VS_FALSE;
+        return false;
 
     // Otherwise, return true
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

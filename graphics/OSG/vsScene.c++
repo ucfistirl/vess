@@ -126,7 +126,7 @@ vsNode *vsScene::cloneTree()
 // ------------------------------------------------------------------------
 // Add a node to this node's child list
 // ------------------------------------------------------------------------
-int vsScene::addChild(vsNode *newChild)
+bool vsScene::addChild(vsNode *newChild)
 {
     vsComponent *childComponent;
     vsGeometry *childGeometry;
@@ -136,16 +136,16 @@ int vsScene::addChild(vsNode *newChild)
     if (child)
     {
         printf("vsScene::addChild: Scene object already has a child\n");
-        return VS_FALSE;
+        return false;
     }
 
     // Notify the newChild node that it is getting a new parent. This might
     // fail, as the child node is permitted to object to getting a parent.
-    if (newChild->addParent(this) == VS_FALSE)
+    if (newChild->addParent(this) == false)
     {
         printf("vsScene::addChild: 'newChild' node may not have any "
             "more parent nodes\n");
-        return VS_FALSE;
+        return false;
     }
 
     // Connect the OSG nodes together. This differs by type because the
@@ -176,13 +176,13 @@ int vsScene::addChild(vsNode *newChild)
     newChild->dirty();
     
     // Return success
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
 // Insert a node into this node's child list at the specified index
 // ------------------------------------------------------------------------
-int vsScene::insertChild(vsNode *newChild, int index)
+bool vsScene::insertChild(vsNode *newChild, int index)
 {
     vsComponent *childComponent;
     vsGeometry *childGeometry;
@@ -192,23 +192,23 @@ int vsScene::insertChild(vsNode *newChild, int index)
     if (child)
     {
         printf("vsScene::insertChild: Scene object already has a child\n");
-        return VS_FALSE;
+        return false;
     }
     
     // Make sure the index is valid (only 0 is allowed for vsScenes)
     if (index != 0)
     {
         printf("vsScene::insertChild: Invalid index\n");
-        return VS_FALSE;
+        return false;
     }
 
     // Notify the newChild node that it is getting a new parent. This might
     // fail, as the child node is permitted to object to getting a parent.
-    if (newChild->addParent(this) == VS_FALSE)
+    if (newChild->addParent(this) == false)
     {
         printf("vsScene::insertChild: 'newChild' node may not have any "
             "more parent nodes\n");
-        return VS_FALSE;
+        return false;
     }
 
     // Connect the OSG nodes together. This differs by type because the
@@ -238,13 +238,13 @@ int vsScene::insertChild(vsNode *newChild, int index)
     // Mark the entire tree above and below this node as needing an update
     newChild->dirty();
     
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
 // Remove a node from this node's child list
 // ------------------------------------------------------------------------
-int vsScene::removeChild(vsNode *targetChild)
+bool vsScene::removeChild(vsNode *targetChild)
 {
     vsComponent *childComponent;
     vsGeometry *childGeometry;
@@ -255,7 +255,7 @@ int vsScene::removeChild(vsNode *targetChild)
     {
         printf("vsScene::removeChild: 'targetChild' is not a child of "
             "this node\n");
-        return VS_FALSE;
+        return false;
     }
 
     // Mark the entire portion of the tree that has any connection
@@ -288,19 +288,19 @@ int vsScene::removeChild(vsNode *targetChild)
     
     // Check for errors as we remove this component from the
     // child's parent list
-    if (targetChild->removeParent(this) == VS_FALSE)
+    if (targetChild->removeParent(this) == false)
         printf("vsScene::removeChild: Scene graph inconsistency: "
             "child to be removed does not have this component as "
             "a parent\n");
 
     // Return success
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------
 // Replace a node in this node's child list with a new node
 // ------------------------------------------------------------------------
-int vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
+bool vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
 {
     vsComponent *childComponent;
     vsGeometry *childGeometry;
@@ -312,17 +312,17 @@ int vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
     {
         printf("vsScene::replaceChild: 'targetChild' is not a child of "
             "this node\n");
-        return VS_FALSE;
+        return false;
     }
 
     // Notify the newChild node that it is getting a new parent.
     // This might fail, as the child node is permitted to object to
     // getting a parent.
-    if (newChild->addParent(this) == VS_FALSE)
+    if (newChild->addParent(this) == false)
     {
         printf("vsScene::replaceChild: 'newChild' node may not "
             "have any more parent nodes\n");
-        return VS_FALSE;
+        return false;
     }
 
     // Mark the entire portion of the tree that has any connection
@@ -378,7 +378,7 @@ int vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
 
     // Check for errors as we remove this component from the
     // child's parent list
-    if (targetChild->removeParent(this) == VS_FALSE)
+    if (targetChild->removeParent(this) == false)
         printf("vsScene::replaceChild: Scene graph inconsistency: "
             "child to be removed does not have this component as "
             "a parent\n");
@@ -388,7 +388,7 @@ int vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
     newChild->dirty();
 
     // Return success
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

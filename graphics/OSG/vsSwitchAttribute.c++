@@ -87,7 +87,7 @@ void vsSwitchAttribute::enableOne(int index)
     }
 
     // Turn the requested child on on the osg::Switch
-    osgSwitch->setValue(index, VS_TRUE);
+    osgSwitch->setValue(index, true);
 }
 
 // ------------------------------------------------------------------------
@@ -112,7 +112,7 @@ void vsSwitchAttribute::disableOne(int index)
     }
 
     // Turn the requested child off on the osg::Switch
-    osgSwitch->setValue(index, VS_FALSE);
+    osgSwitch->setValue(index, false);
 }
 
 // ------------------------------------------------------------------------
@@ -155,21 +155,21 @@ void vsSwitchAttribute::disableAll()
 // Returns a flag indicating if the child with the specified index is
 // enabled. The index of the first child is 0.
 // ------------------------------------------------------------------------
-int vsSwitchAttribute::isEnabled(int index)
+bool vsSwitchAttribute::isEnabled(int index)
 {
     // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSwitchAttribute::isEnabled: Attribute must be attached "
             "before switch can be manipulated\n");
-        return VS_FALSE;
+        return false;
     }
 
     // Ensure the given index is valid.
     if ((index < 0) || (index >= (int)osgSwitch->getNumChildren()))
     {
         printf("vsSwitchAttribute::isEnabled: Index out of bounds\n");
-        return VS_FALSE;
+        return true;
     }
 
     // Fetch and return the value (ON/OFF) of the given child
@@ -180,15 +180,15 @@ int vsSwitchAttribute::isEnabled(int index)
 // Internal function
 // Returns if this attribute is available to be attached to a node
 // ------------------------------------------------------------------------
-int vsSwitchAttribute::canAttach()
+bool vsSwitchAttribute::canAttach()
 {
     // Make sure we're not already attached to a node, if we are, we can't
     // be attached to another
     if (attachedFlag)
-        return VS_FALSE;
+        return false;
 
     // Otherwise, we can be attached
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

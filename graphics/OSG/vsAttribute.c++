@@ -74,9 +74,9 @@ const char *vsAttribute::getName()
 // Internal function
 // Determines if this attribute is available to be attached to a node
 // ------------------------------------------------------------------------
-int vsAttribute::canAttach()
+bool vsAttribute::canAttach()
 {
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

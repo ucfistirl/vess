@@ -41,7 +41,7 @@ VS_INTERNAL:
 
     virtual void    attachDuplicate(vsNode *theNode);
 
-    virtual int     isEquivalent(vsAttribute *attribute);
+    virtual bool    isEquivalent(vsAttribute *attribute);
 
 public:
 
@@ -54,7 +54,7 @@ public:
 
     void                  enable();
     void                  disable();
-    int                   isEnabled();
+    bool                  isEnabled();
     
 };
 

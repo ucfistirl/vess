@@ -39,7 +39,7 @@ private:
 
 VS_INTERNAL:
 
-    virtual int     canAttach();
+    virtual bool    canAttach();
     virtual void    attach(vsNode *theNode);
     virtual void    detach(vsNode *theNode);
 

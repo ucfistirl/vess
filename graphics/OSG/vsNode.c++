@@ -46,7 +46,7 @@ vsNode::vsNode() : attributeList(10, 5)
     attributeCount = 0;
 
     // Start dirty (require a preFrameTraversal from the beginning)
-    dirtyFlag = VS_TRUE;
+    dirtyFlag = true;
 }
 
 // ------------------------------------------------------------------------
@@ -122,33 +122,33 @@ void vsNode::deleteTree()
 // ------------------------------------------------------------------------
 // Add a node to this node's child list
 // ------------------------------------------------------------------------
-int vsNode::addChild(vsNode *newChild)
+bool vsNode::addChild(vsNode *newChild)
 {
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------
 // Insert a node into this node's child list at the specified index
 // ------------------------------------------------------------------------
-int vsNode::insertChild(vsNode *newChild, int index)
+bool vsNode::insertChild(vsNode *newChild, int index)
 {
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------
 // Remove a node from this node's child list
 // ------------------------------------------------------------------------
-int vsNode::removeChild(vsNode *targetChild)
+bool vsNode::removeChild(vsNode *targetChild)
 {
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------
 // Replace a node in this node's child list with a new node
 // ------------------------------------------------------------------------
-int vsNode::replaceChild(vsNode *targetChild, vsNode *newChild)
+bool vsNode::replaceChild(vsNode *targetChild, vsNode *newChild)
 {
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------
@@ -498,18 +498,18 @@ void vsNode::deleteMap()
 // Internal function
 // Adds a node to this node's list of parent nodes
 // ------------------------------------------------------------------------
-int vsNode::addParent(vsNode *newParent)
+bool vsNode::addParent(vsNode *newParent)
 {
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------
 // Internal function
 // Removes a node from this node's list of parent nodes
 // ------------------------------------------------------------------------
-int vsNode::removeParent(vsNode *targetParent)
+bool vsNode::removeParent(vsNode *targetParent)
 {
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------
@@ -576,27 +576,28 @@ void vsNode::dirty()
 // ------------------------------------------------------------------------
 void vsNode::clean()
 {
-    int loop, flag;
+    int loop;
+    bool flag;
 
     // Assume clean to begin with
-    flag = 1;
+    flag = true;
 
     // Check the dirty flag on all parents, if any are dirty, we can't
     // clean this node
     for (loop = 0; loop < getParentCount(); loop++)
         if (getParent(loop)->isDirty())
-            flag = 0;
+            flag = false;
 
     // If all parents are clean, this node can be marked clean
     if (flag)
-        dirtyFlag = VS_FALSE;
+        dirtyFlag = false;
 }
 
 // ------------------------------------------------------------------------
 // Internal function
 // Determines if this node is dirty or not
 // ------------------------------------------------------------------------
-int vsNode::isDirty()
+bool vsNode::isDirty()
 {
     return dirtyFlag;
 }
@@ -610,7 +611,7 @@ void vsNode::dirtyUp()
     int loop;
 
     // Mark this node dirty
-    dirtyFlag = VS_TRUE;
+    dirtyFlag = true;
 
     // Traverse all parents of this node, and mark them dirty as well
     for (loop = 0; loop < getParentCount(); loop++)
@@ -626,7 +627,7 @@ void vsNode::dirtyDown()
     int loop;
 
     // Mark this node dirty
-    dirtyFlag = VS_TRUE;
+    dirtyFlag = true;
 
     // Check the attribute list for light attributes.  If we find any,
     // clear their vsScene pointer, so it can be reset on the 

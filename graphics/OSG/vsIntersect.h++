@@ -58,7 +58,7 @@ private:
     int                          segListSize;
     int                          segListChanged;
 
-    int                          pathsEnabled;
+    bool                         pathsEnabled;
     int                          facingMode;
     int                          travMode;
 
