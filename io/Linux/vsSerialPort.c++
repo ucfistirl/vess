@@ -210,9 +210,10 @@ bool vsSerialPort::isDataWaiting( double secondsToWait )
         FD_SET( portDescriptor, &readfds );
 
         // Determine how much time we should wait to see if there is data
-        if( fabs( secondsToWait )<1e-6 )
+        if( secondsToWait < 1e-6 )
         {
-            // The input (secondsToWait) was almost 0.0 so we'll wait 0 seconds
+            // The input (secondsToWait) was almost 0.0 (or a negative number)
+            // so we'll wait 0 seconds
             tv.tv_sec = 0;
             tv.tv_usec = 0;
         }
@@ -220,8 +221,8 @@ bool vsSerialPort::isDataWaiting( double secondsToWait )
         {
             // The input (secondsToWait) wasn't 0.0 so calculate the correct
             // time to wait
-            tv.tv_sec = (long)trunc( secondsToWait );
-            tv.tv_usec = (long)((secondsToWait - trunc( secondsToWait ))
+            tv.tv_sec = (long)floor( secondsToWait );
+            tv.tv_usec = (long)((secondsToWait - floor( secondsToWait ))
                     *((double)1e6));
         }
 
