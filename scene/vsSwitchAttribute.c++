@@ -81,7 +81,7 @@ void vsSwitchAttribute::enableOne(int index)
         return;
     }
 
-    if ((index < 0) && (index >= performerSwitch->getNumChildren()))
+    if ((index < 0) || (index >= performerSwitch->getNumChildren()))
     {
         printf("vsSwitchAttribute::enableOne: Index out of bounds\n");
         return;
@@ -103,7 +103,7 @@ void vsSwitchAttribute::disableOne(int index)
         return;
     }
 
-    if ((index < 0) && (index >= performerSwitch->getNumChildren()))
+    if ((index < 0) || (index >= performerSwitch->getNumChildren()))
     {
         printf("vsSwitchAttribute::disableOne: Index out of bounds\n");
         return;
@@ -156,7 +156,7 @@ int vsSwitchAttribute::isEnabled(int index)
         return VS_FALSE;
     }
 
-    if ((index < 0) && (index >= performerSwitch->getNumChildren()))
+    if ((index < 0) || (index >= performerSwitch->getNumChildren()))
     {
         printf("vsSwitchAttribute::isEnabled: Index out of bounds\n");
         return VS_FALSE;
