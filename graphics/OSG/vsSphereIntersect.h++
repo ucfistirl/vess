@@ -1,3 +1,25 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsSphereIntersect.h++
+//
+//    Description:  Class for performing intersection tests between a set
+//                  of spheres and a whole or part of a VESS scene graph
+//
+//    Author(s):    Jason Daly, Bryan Kline
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_SPHERE_INTERSECT_HPP
 #define VS_SPHERE_INTERSECT_HPP
 
