@@ -57,9 +57,6 @@ vsDynamicGeometry::vsDynamicGeometry()
     performerGeoset = (pfGeoSet *)performerFlux->getCurData();
     performerGeode->addGSet(performerGeoset);
 
-    // Initialize the primitive count to zero
-    setPrimitiveCount(0);
-    
     // Initialize the attribute lists to NULL and size 0
     colorList = NULL;
     colorListSize = 0;
@@ -71,6 +68,9 @@ vsDynamicGeometry::vsDynamicGeometry()
     vertexListSize = 0;
     lengthsList = NULL;
 
+    // Initialize the primitive count to zero
+    setPrimitiveCount(0);
+    
     // Initialize the attribute bindings
     colorBinding = VS_GEOMETRY_BIND_NONE;
     normalBinding = VS_GEOMETRY_BIND_NONE;
