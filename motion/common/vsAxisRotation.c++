@@ -41,7 +41,7 @@ vsAxisRotation::vsAxisRotation(vsInputAxis *hAxis, vsInputAxis *pAxis,
     resetButton = NULL;
 
     // Save the kinematics
-    kin = kin;
+    kinematics = kin;
 
     // Set default values for width and rotation speed
     headingHalfWidth = VS_AR_DEFAULT_HEADING_WIDTH / 2.0;
@@ -50,7 +50,7 @@ vsAxisRotation::vsAxisRotation(vsInputAxis *hAxis, vsInputAxis *pAxis,
     pitchSpeed = VS_AR_DEFAULT_PITCH_SPEED;
 
     // Grab the current orientation for the starting orientation
-    startingOrientation = kin->getOrientation();
+    startingOrientation = kinematics->getOrientation();
 }
 
 // ------------------------------------------------------------------------
@@ -70,7 +70,7 @@ vsAxisRotation::vsAxisRotation(vsInputAxis *hAxis, vsInputAxis *pAxis,
     resetButton = rButton;
 
     // Save the kinematics
-    kin = kin;
+    kinematics = kin;
 
     // Set default values for width and rotation speed
     headingHalfWidth = VS_AR_DEFAULT_HEADING_WIDTH / 2.0;
@@ -79,7 +79,7 @@ vsAxisRotation::vsAxisRotation(vsInputAxis *hAxis, vsInputAxis *pAxis,
     pitchSpeed = VS_AR_DEFAULT_PITCH_SPEED;
 
     // Grab the current orientation for the starting orientation
-    startingOrientation = kin->getOrientation();
+    startingOrientation = kinematics->getOrientation();
 }
 
 // ------------------------------------------------------------------------
@@ -113,7 +113,7 @@ void vsAxisRotation::update()
     pitchPos = 0.0;
 
     // If the kinematics object is invalid, bail
-    if (kin == NULL)
+    if (kinematics == NULL)
         return;
 
     // Check the reset button
@@ -121,7 +121,7 @@ void vsAxisRotation::update()
     {
         // Reset the orientation to the default if the button is pressed
         if (resetButton->isPressed())
-            reset();
+            center();
     }
 
     // Get the position of the heading axis
@@ -163,7 +163,7 @@ void vsAxisRotation::update()
     }
 
     // Get the current orientation of the kinematics in Euler angles
-    tempQuat = kin->getOrientation();
+    tempQuat = kinematics->getOrientation();
     tempQuat.getEulerRotation(VS_EULER_ANGLES_ZXY_R, &h, &p, &r);
 
     // Ensure that the heading rotation doesn't exceed the limits
@@ -171,12 +171,12 @@ void vsAxisRotation::update()
         ((headingPos > 0) && (h < headingHalfWidth)))
     {
         // Don't do anything if the axis is centered
-        if(fabs(headingPos) < VS_AR_DOUBLE_TOLERANCE)
+        if(fabs(headingPos) > VS_AR_DOUBLE_TOLERANCE)
         {
             // Update the angular velocity of the kinematics based
             // on the position of the heading axis and the heading 
             // rotation speed
-            kin->modifyAngularVelocity(vsVector(0.0, 0.0, 1.0),
+            kinematics->modifyAngularVelocity(vsVector(0.0, 0.0, 1.0),
                 headingPos * headingSpeed);
         }
     }
@@ -186,12 +186,12 @@ void vsAxisRotation::update()
         ((pitchPos > 0) && (p < pitchHalfWidth)))
     {
         // Don't do anything if the axis is centered
-        if (fabs(pitchPos) < VS_AR_DOUBLE_TOLERANCE)
+        if (fabs(pitchPos) > VS_AR_DOUBLE_TOLERANCE)
         {
             // Update the angular velocity of the kinematics based
             // on the position of the pitch axis and the pitch 
             // rotation speed
-            kin->modifyAngularVelocity(vsVector(1.0, 0.0, 0.0),
+            kinematics->modifyAngularVelocity(vsVector(1.0, 0.0, 0.0),
                 pitchPos * pitchSpeed);
         }
     }
@@ -203,7 +203,7 @@ void vsAxisRotation::update()
 // ------------------------------------------------------------------------
 void vsAxisRotation::center()
 {
-    kin->setOrientation(startingOrientation);
+    kinematics->setOrientation(startingOrientation);
 }
 
 // ------------------------------------------------------------------------
