@@ -311,8 +311,12 @@ vsNode *vsComponent::cloneTree()
     vsAttribute *attr;
     int loop;
     
+    // Create a new component
     result = new vsComponent();
     
+    // Copy the name (all other data members are handled in the process)
+    result->setName(getName());
+   
     // Clone the children of this component and add them to the new
     // component
     for (loop = 0; loop < getChildCount(); loop++)
