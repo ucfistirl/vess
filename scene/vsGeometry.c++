@@ -385,6 +385,16 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
 // ------------------------------------------------------------------------
 vsGeometry::~vsGeometry()
 {
+    vsComponent *parent;
+
+    // Remove this node from its parents
+    while (getParentCount() > 0)
+    {
+        parent = getParent(0);
+        parent->removeChild(this);
+    }
+
+    // Unlink and destroy the Performer objects
     performerGeode->unref();
     pfDelete(performerGeode);
     performerGeoset->unref();
