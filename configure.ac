@@ -36,9 +36,9 @@ case "$target" in
    AM_CFLAGS="$AM_CFLAGS -g -ansi -D__linux__ -D_MISC_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE -Wno-deprecated"
    AM_CXXFLAGS="$AM_CXXFLAGS -g -ansi -D__linux__ -D_MISC_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE -Wno-deprecated" ;;
    mips-sgi-irix*)
-   AM_CFLAGS="$AM_CFLAGS -g -xansi -DIRIX -n32 -mips3 -DSGI"
-   AM_CXXFLAGS="$AM_CXXFLAGS -g -xansi -DIRIX -n32 -mips3 -DSGI"
-   AM_LDFLAGS="-n32 -mips3" ;;
+   AM_CFLAGS="$AM_CFLAGS -g -xansi -DIRIX -n32 -DSGI"
+   AM_CXXFLAGS="$AM_CXXFLAGS -g -xansi -DIRIX -n32 -DSGI"
+   AM_LDFLAGS="-n32" ;;
    *)
    AC_MSG_ERROR(
 [  Unsupported target $target.  VESS cannot be installed on this machine.]) ;;
@@ -52,14 +52,13 @@ dnl Operating system*******************************************************
 
 dnl gcc/g++ doesn't seem to work well in IRIX, so we'll specify a 
 dnl compiler to use.  The IRIX n32 ABI uses /usr/lib32 for its libraries, 
-dnl and requires -n32 and -mips3 (or -mips4) for compiler arguments, we'll 
-dnl need to know this for the library tests.  Complicating this is the fact
-dnl that the MIPSPro 7.3 compiler needs additional options to specify the
-dnl language conventions (-LANG:std for STL support, required for Open 
-dnl Scene Graph version), whereas 7.2.1 does not support these features at 
-dnl all. We have to set the CFLAGS for this, so we'll save the current 
-dnl CFLAGS in a temporary variable, and restore them when we're done with 
-dnl our tests.
+dnl and requires -n32 for a compiler argument, we'll need to know this for 
+dnl the library tests.  Complicating this is the fact that the MIPSPro 7.3
+dnl compiler needs additional options to specify the language conventions 
+dnl (-LANG:std for STL support, required for Open Scene Graph version), 
+dnl whereas 7.2.1 does not support these features at all. We have to set 
+dnl the CFLAGS for this, so we'll save the current CFLAGS in a temporary 
+dnl variable, and restore them when we're done with our tests.
 OLDCFLAGS=
 OLDCXXFLAGS=
 
@@ -111,8 +110,8 @@ case "$target" in
 
        dnl Add the n32 options to the CFLAGS so the library tests will
        dnl work correctly
-       CFLAGS="$CFLAGS -n32 -mips3"
-       CXXFLAGS="$CXXFLAGS -n32 -mips3" 
+       CFLAGS="$CFLAGS -n32"
+       CXXFLAGS="$CXXFLAGS -n32" 
 
        dnl Also add the -LANG:std option to both CXXFLAGS for the library 
        dnl tests and AM_CXXFLAGS for the actual compiler options if we're 
