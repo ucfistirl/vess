@@ -329,9 +329,9 @@ void vsDatabaseLoader::fixGeodes(pfNode *targetGraph)
         {
             // 'Fix' the geode by creating one geode for every geoset
             newMasterGroup = new pfGroup();
-            for (loop = 0; loop < oldGeode->getNumParents(); loop++)
+	    while (oldGeode->getNumParents() > 0)
             {
-                parentGroup = oldGeode->getParent(loop);
+                parentGroup = oldGeode->getParent(0);
                 parentGroup->replaceChild(oldGeode, newMasterGroup);
             }
             
