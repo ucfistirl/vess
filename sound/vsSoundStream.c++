@@ -96,7 +96,13 @@ int vsSoundStream::swapBuffers()
     int tempBuffer;
 
     if (backBufferEmpty)
+    {
+        // The back buffer is not ready, so just mark the front
+        // buffer empty as well
+        frontBufferEmpty = VS_TRUE;
+
         return VS_FALSE;
+    }
 
     tempBuffer = frontBuffer;
     frontBuffer = backBuffer;
@@ -113,6 +119,15 @@ int vsSoundStream::swapBuffers()
 int vsSoundStream::isBufferReady()
 {
     return (frontBufferEmpty || backBufferEmpty); 
+}
+
+// ------------------------------------------------------------------------
+// Returns the size of each of the buffers.  This indicates how many
+// bytes are expected for each call to queueBuffer()
+// ------------------------------------------------------------------------
+int vsSoundStream::getBufferSize()
+{
+    return bufferSize;
 }
 
 // ------------------------------------------------------------------------
@@ -135,7 +150,7 @@ int vsSoundStream::queueBuffer(void *audioData)
     {
         alBufferData(frontBuffer, bufferFormat, audioData, bufferSize,
             bufferFrequency);
-        alQueuei(sourceID, 1, frontBuffer);
+        alSourceQueueBuffers(sourceID, 1, &frontBuffer);
 
         frontBufferEmpty = VS_FALSE;
 
@@ -146,7 +161,7 @@ int vsSoundStream::queueBuffer(void *audioData)
     {
         alBufferData(backBuffer, bufferFormat, audioData, bufferSize,
             bufferFrequency);
-        alQueuei(sourceID, 1, backBuffer);
+        alSourceQueueBuffers(sourceID, 1, &backBuffer);
 
         backBufferEmpty = VS_FALSE;
 

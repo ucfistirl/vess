@@ -67,6 +67,10 @@ public:
     // Returns VS_TRUE if the back buffer is empty and ready for queuing
     int         isBufferReady();
 
+    // Returns the current buffer size in bytes.  This his how many
+    // bytes of audio data are expected in the call to queueData
+    int         getBufferSize();
+
     // Fills the back buffer with the given audio data and queues it for
     // playing.  Return value indicates success or failure.
     int         queueBuffer(void *audioData);
