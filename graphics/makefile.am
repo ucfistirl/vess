@@ -3,8 +3,13 @@ lib_LIBRARIES = libvsGraphics.a libvsGraphics.so
 
 # Sources for libvsGraphics.a
 libvsGraphics_a_SOURCES = \
+                          common/vsCal3DBoneLoader.c++ \
+                          common/vsCal3DLoader.c++ \
+                          common/vsCal3DMeshLoader.c++ \
                           common/vsOptimizer.c++ \
                           common/vsScenePrinter.c++ \
+                          common/vsSkeleton.c++ \
+                          common/vsSkeletonMesh.c++ \
                           @SG@/vsAttribute.c++ \
                           @SG@/vsBackfaceAttribute.c++ \
                           @SG@/vsBillboardAttribute.c++ \
@@ -24,6 +29,7 @@ libvsGraphics_a_SOURCES = \
                           @SG@/vsSequenceAttribute.c++ \
                           @SG@/vsShaderAttribute.c++ \
                           @SG@/vsShadingAttribute.c++ \
+                          @SG@/vsSkeletonMeshGeometry.c++ \
                           @SG@/vsSphereIntersect.c++ \
                           @SG@/vsStateAttribute.c++ \
                           @SG@/vsSwitchAttribute.c++ \
@@ -68,8 +74,13 @@ EXTRA_libvsGraphics_so_SOURCES = $(EXTRA_libvsGraphics_a_SOURCES)
 
 # Header files
 include_HEADERS = \
+                  common/vsCal3DBoneLoader.h++ \
+                  common/vsCal3DLoader.h++ \
+                  common/vsCal3DMeshLoader.h++ \
                   common/vsOptimizer.h++ \
                   common/vsScenePrinter.h++ \
+                  common/vsSkeleton.h++ \
+                  common/vsSkeletonMesh.h++ \
                   @SG@/vsAttribute.h++ \
                   @SG@/vsBackfaceAttribute.h++ \
                   @SG@/vsBillboardAttribute.h++ \
@@ -89,6 +100,7 @@ include_HEADERS = \
                   @SG@/vsSequenceAttribute.h++ \
                   @SG@/vsShaderAttribute.h++ \
                   @SG@/vsShadingAttribute.h++ \
+                  @SG@/vsSkeletonMeshGeometry.h++ \
                   @SG@/vsSphereIntersect.h++ \
                   @SG@/vsStateAttribute.h++ \
                   @SG@/vsSwitchAttribute.h++ \
@@ -141,7 +153,8 @@ INCLUDES = \
            -I../llio/@OS@ \
            -I../util/common \
            -I../util/@OS@ \
-           -I../util/@SG@
+           -I../util/@SG@ \
+           @XML_INCLUDE_DIR@
 
 # Extra object files.  If any conditionally-compiled sources are used, this
 # rule adds the object files to libvsIO.a.
