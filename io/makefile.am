@@ -5,6 +5,7 @@ lib_LIBRARIES = libvsIO.a libvsIO.so
 libvsIO_a_SOURCES = \
                     common/vs6DInputDevice.c++ \
                     common/vsArticulationGlove.c++ \
+                    common/vsButtonAxis.c++ \
                     common/vsChordGloves.c++ \
                     common/vsCyberGloveBox.c++ \
                     common/vsFlockOfBirds.c++ \
@@ -52,6 +53,7 @@ EXTRA_libvsIO_so_SOURCES = $(EXTRA_libvsIO_a_SOURCES)
 include_HEADERS = \
                   common/vs6DInputDevice.h++ \
                   common/vsArticulationGlove.h++ \
+                  common/vsButtonAxis.h++ \
                   common/vsChordGloves.h++ \
                   common/vsCyberGloveBox.h++ \
                   common/vsFlockOfBirds.h++ \
