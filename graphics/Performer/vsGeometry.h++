@@ -158,6 +158,9 @@ public:
 
     virtual void          addAttribute(vsAttribute *newAttribute);
 
+    virtual void          enableCull();
+    virtual void          disableCull();
+
     pfGeode               *getBaseLibraryObject();
 };
 

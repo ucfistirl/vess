@@ -68,6 +68,9 @@ public:
 
     virtual void            addAttribute(vsAttribute *newAttribute);
 
+    virtual void            enableCull();
+    virtual void            disableCull();
+
     pfScene                 *getBaseLibraryObject();
 };
 

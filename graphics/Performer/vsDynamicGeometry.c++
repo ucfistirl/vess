@@ -25,6 +25,8 @@
 
 #include <Performer/pf/pfSCS.h>
 #include <Performer/pr/pfLight.h>
+#include <Performer/pf/pfNode.h>
+#include <Performer/pf/pfTraverser.h>
 #include "vsComponent.h++"
 #include "vsShadingAttribute.h++"
 #include "vsGraphicsState.h++"
@@ -96,12 +98,6 @@ vsDynamicGeometry::vsDynamicGeometry() : parentList(5, 5)
     // Enable lighting (by default)
     enableLighting();
 
-    // Set the performer geode's CULL mask to 0x0 to disable view frustum
-    // culling.  This is necessary because Performer cannot accurately
-    // compute bounding spheres for fluxed geometry.
-    performerGeode->setTravMask(PFTRAV_CULL, 0x0, PFTRAV_SELF | PFTRAV_DESCEND,
-        PF_SET);
-    
     // Register the pfGeode with the vsObjectMap
     getMap()->registerLink(this, performerGeode);
 }
@@ -1339,6 +1335,24 @@ void vsDynamicGeometry::addAttribute(vsAttribute *newAttribute)
 
     // If we made it this far, it must be okay to add the attribute in
     vsNode::addAttribute(newAttribute);
+}
+
+// ------------------------------------------------------------------------
+// Enables culling (view frustum and otherwise) on this node
+// ------------------------------------------------------------------------
+void vsDynamicGeometry::enableCull()
+{
+    performerGeode->setTravMask(PFTRAV_CULL, 0xFFFFFFFF, 
+        PFTRAV_SELF | PFTRAV_DESCEND, PF_SET);
+}
+
+// ------------------------------------------------------------------------
+// Disables culling (view frustum and otherwise) on this node
+// ------------------------------------------------------------------------
+void vsDynamicGeometry::disableCull()
+{
+    performerGeode->setTravMask(PFTRAV_CULL, 0x0, PFTRAV_SELF | PFTRAV_DESCEND,
+        PF_SET);
 }
 
 // ------------------------------------------------------------------------

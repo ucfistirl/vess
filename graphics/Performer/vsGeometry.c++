@@ -1278,6 +1278,24 @@ void vsGeometry::addAttribute(vsAttribute *newAttribute)
 }
 
 // ------------------------------------------------------------------------
+// Enables culling (view frustum and otherwise) on this node
+// ------------------------------------------------------------------------
+void vsGeometry::enableCull()
+{
+    performerGeode->setTravMask(PFTRAV_CULL, 0xFFFFFFFF,
+        PFTRAV_SELF | PFTRAV_DESCEND, PF_SET);
+}
+
+// ------------------------------------------------------------------------
+// Disables culling (view frustum and otherwise) on this node
+// ------------------------------------------------------------------------
+void vsGeometry::disableCull()
+{
+    performerGeode->setTravMask(PFTRAV_CULL, 0x0, PFTRAV_SELF | PFTRAV_DESCEND,
+        PF_SET);
+}
+
+// ------------------------------------------------------------------------
 // Returns the Performer object associated with this object
 // ------------------------------------------------------------------------
 pfGeode *vsGeometry::getBaseLibraryObject()

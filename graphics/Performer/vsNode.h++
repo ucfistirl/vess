@@ -95,7 +95,6 @@ public:
     virtual int         getChildCount();
     virtual vsNode      *getChild(int index);
 
-
     void                setName(const char *newName);
     const char          *getName();
     virtual vsNode      *findNodeByName(const char *targetName);
@@ -116,6 +115,9 @@ public:
     vsAttribute         *getTypedAttribute(int attribType, int index);
     vsAttribute         *getCategoryAttribute(int attribCategory, int index);
     vsAttribute         *getNamedAttribute(char *attribName);
+
+    virtual void        enableCull() = 0;
+    virtual void        disableCull() = 0;
 };
 
 #endif

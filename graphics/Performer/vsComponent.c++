@@ -678,6 +678,24 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
 }
 
 // ------------------------------------------------------------------------
+// Enables culling (view frustum and otherwise) on this node
+// ------------------------------------------------------------------------
+void vsComponent::enableCull()
+{
+    topGroup->setTravMask(PFTRAV_CULL, 0xFFFFFFFF,
+        PFTRAV_SELF | PFTRAV_DESCEND, PF_SET);
+}
+
+// ------------------------------------------------------------------------
+// Disables culling (view frustum and otherwise) on this node
+// ------------------------------------------------------------------------
+void vsComponent::disableCull()
+{
+    topGroup->setTravMask(PFTRAV_CULL, 0x0, PFTRAV_SELF | PFTRAV_DESCEND,
+        PF_SET);
+}
+
+// ------------------------------------------------------------------------
 // Returns the Performer object associated with this object
 // ------------------------------------------------------------------------
 pfGroup *vsComponent::getBaseLibraryObject()

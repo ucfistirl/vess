@@ -71,6 +71,8 @@ private:
 
     void               inflateFlatGeometry();
 
+    static int         preCullNode(pfTraverser *trav, void *data);
+
 VS_INTERNAL:
 
     virtual int     addParent(vsNode *newParent);
@@ -131,6 +133,9 @@ public:
     virtual unsigned int    getIntersectValue();
 
     virtual void          addAttribute(vsAttribute *newAttribute);
+
+    virtual void          enableCull();
+    virtual void          disableCull();
 
     pfGeode               *getBaseLibraryObject();
 };

@@ -561,6 +561,24 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
 }
 
 // ------------------------------------------------------------------------
+// Enables culling (view frustum and otherwise) on this node
+// ------------------------------------------------------------------------
+void vsScene::enableCull()
+{
+    performerScene->setTravMask(PFTRAV_CULL, 0xFFFFFFFF,
+        PFTRAV_SELF | PFTRAV_DESCEND, PF_SET);
+}
+
+// ------------------------------------------------------------------------
+// Disables culling (view frustum and otherwise) on this node
+// ------------------------------------------------------------------------
+void vsScene::disableCull()
+{
+    performerScene->setTravMask(PFTRAV_CULL, 0x0, PFTRAV_SELF | PFTRAV_DESCEND,
+        PF_SET);
+}
+
+// ------------------------------------------------------------------------
 // Returns the Performer object associated with this object
 // ------------------------------------------------------------------------
 pfScene *vsScene::getBaseLibraryObject()
