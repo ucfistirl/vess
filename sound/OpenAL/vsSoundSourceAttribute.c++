@@ -395,6 +395,63 @@ void vsSoundSourceAttribute::rewind()
 }
 
 // ------------------------------------------------------------------------
+// Returns true if the source is currently playing
+// ------------------------------------------------------------------------
+int vsSoundSourceAttribute::isPlaying()
+{
+    int srcState;
+
+    // Get the state of the sound source from OpenAL
+    alGetSourceiv(sourceID, AL_SOURCE_STATE, &srcState);
+
+    // Return true if playing, false otherwise
+    if (srcState == AL_PLAYING)
+        return VS_TRUE;
+    else
+        return VS_FALSE;
+}
+
+// ------------------------------------------------------------------------
+// Returns true if the source is currently stopped (or if it has been
+// paused and then rewound)
+// ------------------------------------------------------------------------
+int vsSoundSourceAttribute::isStopped()
+{
+    int srcState;
+
+    // Get the state of the sound source from OpenAL
+    alGetSourceiv(sourceID, AL_SOURCE_STATE, &srcState);
+
+    // Return true if stopped.  OpenAL also has an INITIAL state, which
+    // is almost the same as STOPPED, but is slightly different (an
+    // INITIAL source has never been played or has not been played since
+    // the last call to alSourceRewind()).  We don't distinguish between
+    // STOPPED and INITIAL.  Note that rewinding a PAUSED source will
+    // make it INITIAL, thus VESS will then consider it STOPPED.
+    if ((srcState == AL_STOPPED) || (srcState == AL_INITIAL))
+        return VS_TRUE;
+    else
+        return VS_FALSE;
+}
+
+// ------------------------------------------------------------------------
+// Returns true if the source is currently paused (not stopped)
+// ------------------------------------------------------------------------
+int vsSoundSourceAttribute::isPaused()
+{
+    int srcState;
+
+    // Get the state of the sound source from OpenAL
+    alGetSourceiv(sourceID, AL_SOURCE_STATE, &srcState);
+
+    // Return true if paused, false otherwise
+    if (srcState == AL_PAUSED)
+        return VS_TRUE;
+    else
+        return VS_FALSE;
+}
+
+// ------------------------------------------------------------------------
 // Returns whether or not this source is looping
 // ------------------------------------------------------------------------
 int vsSoundSourceAttribute::isLooping()

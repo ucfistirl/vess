@@ -99,6 +99,9 @@ public:
     void                  stop();
     void                  pause();
     void                  rewind();
+    int                   isPlaying();
+    int                   isStopped();
+    int                   isPaused();
 
     // Loop control
     int                   isLooping();
