@@ -224,11 +224,6 @@ int vsBillboardAttribute::travCallback(pfTraverser *_trav, void *_userData)
         for (sloop = 0; sloop < 4; sloop++)
             viewMatrix[loop][sloop] = performerMatrix[sloop][loop];
 
-    // Adjust the matrix we just got from Performer to fit into the
-    // user-specified coordinate system
-    viewMatrix = (vsSystem::systemObject)->getCoordinateXform() *
-        viewMatrix;
-
     _trav->getMat(performerMatrix);
     for (loop = 0; loop < 4; loop++)
         for (sloop = 0; sloop < 4; sloop++)
