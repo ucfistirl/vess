@@ -22,6 +22,8 @@
 
 #include <Performer/pf/pfTraverser.h>
 #include "vsIntersect.h++"
+#include <Performer/pr/pfLinMath.h>
+#include <Performer/pf/pfSCS.h>
 
 // ------------------------------------------------------------------------
 // Constructor - Initializes the segment list
@@ -363,7 +365,19 @@ void vsIntersect::intersect(vsNode *targetNode)
     pfVec3 hitPoint, polyNormal;
     pfMatrix xformMat;
     pfPath *hitNodePath;
+    int pathLength;
+    int pathIndex;
+    int workingIndex;
+    pfNode *newIsectNode;
     vsNode *vessNode;
+    pfMatrix xformAccum, lastXformAccum;
+    pfMatrix *nodeXform;
+    pfMatrix segmentXform;
+    pfVec3 segPos, segDir;
+    vsGrowableArray *performerPath;
+    pfSegSet secondIsectSegs;
+    pfHit **secondHits[PFIS_MAX_SEGS];
+    int i, j, result;
 
     // This is where the fun begins
     
@@ -421,7 +435,7 @@ void vsIntersect::intersect(vsNode *targetNode)
             sectXform[loop].setIdentity();
         sectPoint[loop].set(hitPoint[0], hitPoint[1], hitPoint[2]);
         sectNorm[loop].set(polyNormal[0], polyNormal[1], polyNormal[2]);
-        
+
         (hits[loop][0])->query(PFQHIT_NODE, &geoNode);
         sectGeom[loop] = (vsGeometry *)((vsSystem::systemObject)->
             getNodeMap()->mapSecondToFirst(geoNode));
@@ -430,19 +444,147 @@ void vsIntersect::intersect(vsNode *targetNode)
         // Create path information if so requested
         if (pathsEnabled)
         {
+            // If the path array for this segment hasn't been allocated,
+            // do it now.
             if (sectPath[loop] == NULL)
                 sectPath[loop] = new vsGrowableArray(10, 10);
+
+            // Query the intersection path from Performer
             (hits[loop][0])->query(PFQHIT_PATH, &hitNodePath);
+
             if (hitNodePath)
             {
-                arraySize = 0;
-                for (sloop = 0; sloop < hitNodePath->getNum(); sloop++)
+                // Get the length of the path
+                pathLength = hitNodePath->getNum();
+
+                // WORKAROUND:
+                // Performer has the undesirable habit of not returning
+                // the complete intersection path if it is deeper than
+                // 32 nodes.  The loop below attempts to alleviate this
+                // by tracing down until the path prematurely ends, then
+                // performing another intersection from that point. This
+                // is repeated until the original length of the intersection
+                // path is reached.
+
+                // Create a vsGrowableArray to store the pfNodes in the
+                // intersection path.  Initialize index counters.
+                pathIndex = 0;
+                workingIndex = 0;
+                performerPath = new vsGrowableArray(pathLength, 10);
+
+                // Set up a matrix to accumulate transforms as we go down
+                xformAccum.makeIdent();
+                lastXformAccum.makeIdent();
+                while (pathIndex < pathLength)
                 {
-                    pathNode = (pfNode *)(hitNodePath->get(sloop));
-                    vessNode = (vsNode *)((vsSystem::systemObject)->
-                        getNodeMap()->mapSecondToFirst(pathNode));
-                    if (vessNode)
-                        (sectPath[loop])->setData(arraySize++, vessNode);
+                    // Get the next node in the path
+                    pathNode = (pfNode *)(hitNodePath->get(workingIndex));
+
+                    // If the node we get back is NULL, but it should
+                    // be valid based on the path length reported,
+                    // run the intersection again, starting with the
+                    // previous node in the path
+                    if (workingIndex >= 32)
+                    {
+                        newIsectNode = 
+                            (pfNode *)(performerPath->getData(pathIndex-1));
+
+                        // Transform the position and direction of the 
+                        // original segment to the current coordinate
+                        // frame.  The lastXformAccum matrix contains
+                        // the global transform before newIsectNode.
+                        segPos = performerSegSet.segs[loop].pos;
+                        segDir = performerSegSet.segs[loop].dir;
+
+                        segmentXform.invertFull(lastXformAccum);
+                        segPos.xformPt(segPos, segmentXform);
+                        segDir.xformVec(segDir, segmentXform);
+                        segDir.normalize();
+
+                        // Duplicate the current segment and put in the
+                        // transformed position and direction
+                        secondIsectSegs.mode = performerSegSet.mode;
+                        secondIsectSegs.userData = NULL;
+                        secondIsectSegs.segs[0].pos = segPos;
+                        secondIsectSegs.segs[0].dir = segDir;
+                        secondIsectSegs.segs[0].length = 
+                            performerSegSet.segs[loop].length;
+                        secondIsectSegs.activeMask = 0x1;
+                        secondIsectSegs.isectMask = performerSegSet.isectMask;
+                        secondIsectSegs.bound = NULL;
+                        secondIsectSegs.discFunc = NULL;
+                        
+                        // Run the intersection with the new segment from
+                        // the previous node in the path.
+                        result = 
+                            newIsectNode->isect(&secondIsectSegs, secondHits);
+
+                        // Query the path again
+                        (secondHits[0][0])->query(PFQHIT_FLAGS, &flags);
+                        if (flags & PFQHIT_POINT)
+                        {
+                            // Retrieve the new path
+                            (secondHits[0][0])->query(PFQHIT_PATH, 
+                                 &hitNodePath);
+
+                            // Reset the working index so that it points
+                            // to first node after the beginning of the new 
+                            // path (we already have the node at index 0).
+                            workingIndex = 1;
+                        }
+                        else
+                        {
+                            // Print an error
+                            printf("vsIntersect::intersect: Unable to "
+                                   "complete the intersection path!\n");
+
+                            // Fill the rest of the path with NULLs
+                            for (sloop = pathIndex; sloop < pathLength; sloop++)
+                                performerPath->setData(sloop, NULL);
+
+                            // Exit the loop
+                            pathIndex = pathLength;
+                        }
+                    }
+                    else
+                    {
+                        // The node is valid.
+                        // If it's a SCS/DCS node, multiply its matrix into
+                        // the tranform accumulation matrix
+                        if (pathNode->isOfType(pfSCS::getClassType()))
+                        {
+                            lastXformAccum = xformAccum;
+
+                            nodeXform = 
+                                (pfMatrix *)((pfSCS *)pathNode)->getMatPtr();
+
+                            xformAccum.preMult(*nodeXform);
+                        }
+ 
+                        // Copy the pathNode into the path array and increment
+                        // the indices.
+                        performerPath->setData(pathIndex, pathNode);
+                        pathIndex++;
+                        workingIndex++;
+                    }
+                }
+
+                // Initialize the index for the array of vsNodes
+                arraySize = 0;
+                for (sloop = 0; sloop < pathLength; sloop++)
+                {
+                    // Get the path node from the Performer path array
+                    pathNode = (pfNode *)(performerPath->getData(sloop));
+
+                    if (pathNode != NULL)
+                    {
+                        vessNode = (vsNode *)((vsSystem::systemObject)->
+                            getNodeMap()->mapSecondToFirst(pathNode));
+                        if (vessNode)
+                        {
+                            (sectPath[loop])->setData(arraySize++, vessNode);
+                        }
+                    }
                 }
                 
                 // Terminate the path with a NULL
