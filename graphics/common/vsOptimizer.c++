@@ -49,9 +49,7 @@ void vsOptimizer::optimize(vsNode *rootNode)
 {
     // Call the recursive optimization function, starting at the
     // given scene root node
-    printf("Beginning optimization run...\n");
     optimizeNode(rootNode);
-    printf("Optimization completed\n");
 }
 
 // ------------------------------------------------------------------------
