@@ -28,7 +28,7 @@
 
 #define VS_SERIAL_NUM_READ_RETRYS  320000
 
-class VS_IO_DLL vsSerialPort : public vsObject
+class VS_LLIO_DLL vsSerialPort : public vsObject
 {
 private:
 

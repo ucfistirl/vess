@@ -24,7 +24,7 @@
 
 #include "vsNetworkInterface.h++"
 
-class VS_IO_DLL vsUDPNetworkInterface : public vsNetworkInterface
+class VS_LLIO_DLL vsUDPNetworkInterface : public vsNetworkInterface
 {
 public:
                           vsUDPNetworkInterface(char *address, u_short port);

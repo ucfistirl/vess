@@ -26,7 +26,7 @@
 
 #define VS_MAX_TCP_CLIENTS   20
 
-class VS_IO_DLL vsTCPNetworkInterface : public vsNetworkInterface
+class VS_LLIO_DLL vsTCPNetworkInterface : public vsNetworkInterface
 {
 protected:
 

@@ -26,7 +26,7 @@
 #include "vsIPCInterface.h++"
 
 
-class VS_IO_DLL vsNetworkInterface : public vsIPCInterface
+class VS_LLIO_DLL vsNetworkInterface : public vsIPCInterface
 {
 protected:
 
