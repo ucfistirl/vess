@@ -149,6 +149,17 @@ WS=X
 
 dnl Where is X??  Find it and export the include and lib directories
 AC_PATH_X
+
+dnl If the X paths returned are empty, fix them to be /usr/include and
+dnl /usr/lib to avoid compilation problems on certain platforms
+if test x$x_includes = "x" ; then
+    x_includes=/usr/include
+fi
+if test x$x_libraries = "x" ; then
+    x_libraries=/usr/$LIBDIR
+fi
+
+dnl Export the X include and library paths
 AC_SUBST(x_includes)
 AC_SUBST(x_libraries)
 
