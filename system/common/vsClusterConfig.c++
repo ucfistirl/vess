@@ -38,7 +38,7 @@ vsClusterConfig::vsClusterConfig(const char *master, const int slaveCount,
     struct hostent  *ip;
     int             i;
     
-    legitimate = 0;
+    legitimate = false;
     
     // Identify the master
     ip = gethostbyname(master);
@@ -80,7 +80,7 @@ vsClusterConfig::vsClusterConfig(const char *master, const int slaveCount,
     }
 
     // A cluster configuration is valid only if all addresses are valid
-    legitimate = 1;
+    legitimate = true;
 }
 
 // ------------------------------------------------------------------------
