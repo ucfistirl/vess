@@ -52,6 +52,10 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     // No panes attached to start with
     childPaneCount = 0;
     
+    // Flag that we created an MS Window along with the Performer window
+    // (this affects what we do with it in the destructor)
+    createdMSWindow = true;
+
     // Get the parent screen
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
@@ -144,6 +148,10 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     // No panes attached to start with
     childPaneCount = 0;
     
+    // Flag that we created an MS Window along with the Performer window
+    // (this affects what we do with it in the destructor)
+    createdMSWindow = true;
+
     // Get the parent screen
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
@@ -239,6 +247,10 @@ vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
     // Start with no panes attached
     childPaneCount = 0;
     
+    // Flag that we are not creating an MS Window along with the Performer 
+    // window in this case (this affects what we do with it in the destructor)
+    createdMSWindow = false;
+
     // Get the parent screen and pipe
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
@@ -285,6 +297,20 @@ vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
 // ------------------------------------------------------------------------
 vsWindow::~vsWindow()
 {
+    // Check to see if we created the MS Window that this pfPipeWindow used
+    if (createdMSWindow)
+    {
+        // We did create the window, so we should close it
+        performerPipeWindow->close();
+    }
+    else
+    {
+        // We did not create the window, so we should not close it, but we
+        // should destroy the GL context and child windows that Performer
+        // likes to create (this is what closeGL() does).
+        performerPipeWindow->closeGL();
+    }
+
     // Performer bug: pfPipeWindows can't be deleted
     //delete performerPipeWindow;
     performerPipeWindow->unref();

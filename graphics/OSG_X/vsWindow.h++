@@ -64,6 +64,7 @@ private:
     static Bool        waitForMap(Display *display, XEvent *event, char *arg);
 
     bool               isOffScreenWindow;
+    bool               createdXWindow;
 
 VS_INTERNAL:
 

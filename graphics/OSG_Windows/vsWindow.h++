@@ -83,6 +83,7 @@ private:
                                                     LPARAM lParam);
 
     bool                       isOffScreenWindow;
+    bool                       createdMSWindow;
 
     // Function pointers for the WGL Extensions for off-screen windows
     static PFNWGLGETEXTENSIONSSTRINGARBPROC    wglGetExtensionsStringARB;

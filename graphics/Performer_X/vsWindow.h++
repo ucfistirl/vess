@@ -53,6 +53,8 @@ private:
     int                xPositionOffset, yPositionOffset;
     int                widthOffset, heightOffset;
 
+    bool               createdXWindow;
+
 VS_INTERNAL:
 
     void        addPane(vsPane *newPane);

@@ -62,6 +62,10 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     // Indicate that the window is not off-screen
     isOffScreenWindow = false;
 
+    // Indicate that we created this X window (so we need to destroy it in the
+    // destructor)
+    createdXWindow = true;
+
     // Default frame buffer configuration
     int frameBufferAttributes[20] =
     {
@@ -327,7 +331,11 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
 
     // Indicate that the window is not off-screen
     isOffScreenWindow = false;
-                                                                                                                                                             
+
+    // Indicate that we created this X window (so we need to destroy it in the
+    // destructor)
+    createdXWindow = true;
+
     // Default frame buffer configuration
     int frameBufferAttributes[20] =
     {
@@ -582,6 +590,10 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
     // Indicate that the window is off-screen
     isOffScreenWindow = true;
 
+    // Indicate that we did not create an X window (so we shouldn't destroy 
+    // it in the destructor)
+    createdXWindow = false;
+
     // An off-screen window has no X Window
     xWindow = 0;
 
@@ -697,6 +709,10 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
 
     // Indicate that the window is not off-screen
     isOffScreenWindow = false;
+
+    // Indicate that we did NOT create this X window (so we shouldn't destroy
+    // it in the destructor)
+    createdXWindow = false;
 
     // Check the value of the xWin parameter, and print a warning if it
     // looks like the user is trying to use the old vsWindow constructor
@@ -881,14 +897,15 @@ vsWindow::~vsWindow()
     glXDestroyContext(display, glContext);
 
     // Treat off screen and on screen windows differently
-    if(isOffScreenWindow)
+    if (isOffScreenWindow)
     {
         // Destroy the off screen component
         glXDestroyPbuffer(display, drawable);
     }
-    else
+    else if (createdXWindow)
     {
-        // Destroy the window itself
+        // Destroy the window itself (but only if we created it in the
+        // first place)
         glXDestroyWindow(display, drawable);
         XDestroyWindow(display, xWindow);
     }

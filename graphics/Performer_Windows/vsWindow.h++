@@ -50,6 +50,8 @@ private:
 
     static vsObjectMap    *windowMap;
     static vsObjectMap    *drawableMap;
+
+    bool                  createdMSWindow;
     
 VS_INTERNAL:
 

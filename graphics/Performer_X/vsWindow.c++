@@ -50,6 +50,10 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     
     // No panes attached to start with
     childPaneCount = 0;
+
+    // Flag that we created a new X Window in this case (this affects how
+    // we deal with it in the destructor)
+    createdXWindow = true;
     
     // Get the parent screen
     parentScreen = parent;
@@ -186,6 +190,10 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     // No panes attached to start with
     childPaneCount = 0;
     
+    // Flag that we created a new X Window in this case (this affects how
+    // we deal with it in the destructor)
+    createdXWindow = true;
+    
     // Get the parent screen
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
@@ -310,6 +318,10 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
     // No panes attached to start with
     childPaneCount = 0;
     
+    // Flag that we created a new X Window in this case (this affects how
+    // we deal with it in the destructor)
+    createdXWindow = true;
+    
     // Get the parent screen
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
@@ -368,6 +380,10 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
 
     // Start with no panes attached
     childPaneCount = 0;
+    
+    // Flag that we did not create a new X Window in this case (instead, we
+    // told Peformer to use an existing one)
+    createdXWindow = false;
     
     // Get the parent screen and pipe
     parentScreen = parent;
@@ -447,7 +463,19 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
 // ------------------------------------------------------------------------
 vsWindow::~vsWindow()
 {
-    performerPipeWindow->close();
+    // See if we created the X Window that this pfPipeWindow used
+    if (createdXWindow)
+    {
+        // We did create the X Window, so we should close it
+        performerPipeWindow->close();
+    }
+    else
+    {
+        // We did not create the X Window, so we should not close it, but
+        // we should destroy the GL context and child windows that Performer
+        // likes to create (this is what closeGL() does).
+        performerPipeWindow->closeGL();
+    }
 
     // Performer bug: pfPipeWindows can't be deleted
     //delete performerPipeWindow;

@@ -45,7 +45,7 @@ PFNWGLGETPBUFFERDCARBPROC vsWindow::wglGetPbufferDCARB = NULL;
 PFNWGLQUERYPBUFFERARBPROC vsWindow::wglQueryPbufferARB = NULL;
 
 // ------------------------------------------------------------------------
-// Constructor - Initializes the window by creating a GLX window and 
+// Constructor - Initializes the window by creating a WGL window and 
 // creating connections with that, verifying that the window is being 
 // properly displayed, recording some size data from the window manager, 
 // and configuring the window with its default position and size.  Also 
@@ -61,6 +61,13 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
 
     // Initialize the pane count
     childPaneCount = 0;
+
+    // Flag that this window is not an offscreen window
+    isOffscreenWindow = false;
+
+    // Flag that we're creating the MS Window in this case (so we should
+    // destroy it in the destructor)
+    createdMSWindow = true;
 
     // Assign this window an index and increment the window count.
     // Note: this procedure may need to be protected for thread-safeness 
@@ -231,6 +238,13 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     
     // Initialize the pane count
     childPaneCount = 0;
+
+    // Flag that this window is an offscreen window
+    isOffscreenWindow = false;
+
+    // Flag that we're creating the MS Window in this case (so we should
+    // destroy it in the destructor)
+    createdMSWindow = true;
 
     // Assign this window an index and increment the window count.
     // Note: this procedure may need to be protected for thread-safeness 
@@ -418,6 +432,13 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
     // Initialize the pane count
     childPaneCount = 0;
 
+    // Flag that this window is an offscreen window
+    isOffscreenWindow = true;
+
+    // Flag that we're not creating an MS Window in this case (we create a
+    // pbuffer instead) 
+    createdMSWindow = true;
+
     // Assign this window an index and increment the window count.
     // Note: this procedure may need to be protected for thread-safeness
     // if OSG becomes multi-threaded.
@@ -478,8 +499,8 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
                 wglPixelFormatFlag = true;
         }
     
-        // If either the pbuffer or pixel format extensions are missing, the window
-        // cannot be instantiated
+        // If either the pbuffer or pixel format extensions are missing, the 
+        // window cannot be instantiated
         if((!wglPbufferFlag) || (!wglPixelFormatFlag))
         {
             printf("vsWindow::vsWindow:  WGL extensions not installed!\n");
@@ -563,6 +584,13 @@ vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
     // Initialize the pane count
     childPaneCount = 0;
     
+    // Flag that this window is not an offscreen window
+    isOffscreenWindow = false;
+
+    // Flag that we're not creating an MS Window in this case (we're using
+    // an existing one, so we shouldn't destroy it later)
+    createdMSWindow = false;
+
     // Remember the msWin parameter
     msWindow = msWin;
 
@@ -676,8 +704,9 @@ vsWindow::~vsWindow()
         if (getMap()->mapSecondToFirst(this))
             getMap()->removeLink(this, VS_OBJMAP_SECOND_LIST);
 
-        // Destroy the window
-        DestroyWindow(msWindow);
+        // Destroy the MS window, if we created it
+        if (createdMSWindow)
+            DestroyWindow(msWindow);
     }
 }
 
