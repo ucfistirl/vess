@@ -24,19 +24,25 @@
 #ifndef VS_CG_VECTOR_PARAMETER_HPP
 #define VS_CG_VECTOR_PARAMETER_HPP
 
-#include "vsVector.h++"
-#include "vsCgParameter.h++"
 #include <osgNVCg/VectorParameter>
+#include "vsCgParameter.h++"
+#include "vsVector.h++"
 
 class vsCgVectorParameter : public vsCgParameter
 {
 protected:
     osgNVCg::VectorParameter *vectorParameter;
 
+VS_INTERNAL:
+    virtual osgNVCg::Parameter    *getCgParameter();
+
 public:
-    vsCgVectorParameter(osgNVCg::Program *newProgram, char *newVariableName);
+    vsCgVectorParameter(vsCgShaderAttribute *newShaderAttribute,
+                        vsCgShaderProgramType newWhichProgram,
+                        char *newVariableName);
     ~vsCgVectorParameter();   
 
+    virtual const char        *getClassName();
     virtual vsCgParameterType getCgParameterType();
 
     void set(double x);

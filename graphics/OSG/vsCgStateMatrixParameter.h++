@@ -51,11 +51,16 @@ class vsCgStateMatrixParameter : public vsCgParameter
 protected:
     osgNVCg::StateMatrixParameter *stateMatrixParameter;
 
+VS_INTERNAL:
+    virtual osgNVCg::Parameter    *getCgParameter();
+
 public:
-    vsCgStateMatrixParameter(osgNVCg::Program *newProgram,
+    vsCgStateMatrixParameter(vsCgShaderAttribute *newShaderAttribute,
+                             vsCgShaderProgramType newWhichProgram,
                              char *newVariableName);
     ~vsCgStateMatrixParameter();   
 
+    virtual const char        *getClassName();
     virtual vsCgParameterType getCgParameterType();
 
     void set(vsCgStateMatrix matrix);

@@ -26,16 +26,19 @@
 // ------------------------------------------------------------------------
 // Constructor - Copy the variable name and create the osgNVCg parameter.
 // ------------------------------------------------------------------------
-vsCgVectorParameter::vsCgVectorParameter(osgNVCg::Program *newProgram,
-                                         char *newVariableName) :
-                                         vsCgParameter(newProgram)
+vsCgVectorParameter::vsCgVectorParameter(
+    vsCgShaderAttribute *newShaderAttribute,
+    vsCgShaderProgramType newWhichProgram,
+    char *newVariableName) :
+    vsCgParameter(newShaderAttribute, newWhichProgram, newVariableName)
 {
-    // Keep a copy of the variable name.
-    strncpy(variableName, newVariableName, VARIABLE_NAME_MAX);
-
     // Create the parameter and add it to the program.
-    vectorParameter = new osgNVCg::VectorParameter(program, variableName);
-    program->addParameter(vectorParameter);
+    vectorParameter = new osgNVCg::VectorParameter(getCgProgram(),
+        variableName);
+
+    // Add the parameter to the program, in case there will not be a
+    // a parameter block to handle this.
+    getCgProgram()->addParameter(vectorParameter);
 }
 
 // ------------------------------------------------------------------------
@@ -43,6 +46,22 @@ vsCgVectorParameter::vsCgVectorParameter(osgNVCg::Program *newProgram,
 // ------------------------------------------------------------------------
 vsCgVectorParameter::~vsCgVectorParameter()
 {
+}
+
+// ------------------------------------------------------------------------
+// Return the osgNVCg parameter object this object uses.
+// ------------------------------------------------------------------------
+osgNVCg::Parameter *vsCgVectorParameter::getCgParameter()
+{
+    return vectorParameter;
+}
+
+// ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsCgVectorParameter::getClassName()
+{
+    return "vsCgVectorParameter";
 }
 
 // ------------------------------------------------------------------------

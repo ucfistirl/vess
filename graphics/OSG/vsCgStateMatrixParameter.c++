@@ -27,17 +27,19 @@
 // ------------------------------------------------------------------------
 // Constructor - Copy the variable name and create the osgNVCg parameter.
 // ------------------------------------------------------------------------
-vsCgStateMatrixParameter::vsCgStateMatrixParameter(osgNVCg::Program *newProgram,
-                                         char *newVariableName) :
-                                         vsCgParameter(newProgram)
+vsCgStateMatrixParameter::vsCgStateMatrixParameter(
+    vsCgShaderAttribute *newShaderAttribute,
+    vsCgShaderProgramType newWhichProgram,
+    char *newVariableName) :
+    vsCgParameter(newShaderAttribute, newWhichProgram, newVariableName)
 {
-    // Keep a copy of the variable name.
-    strncpy(variableName, newVariableName, VARIABLE_NAME_MAX);
-
     // Create the parameter and add it to the program.
     stateMatrixParameter =
-      new osgNVCg::StateMatrixParameter(program, variableName);
-    program->addParameter(stateMatrixParameter);
+        new osgNVCg::StateMatrixParameter(getCgProgram(), variableName);
+
+    // Add the parameter to the program, in case there will not be a
+    // a parameter block to handle this.
+    getCgProgram()->addParameter(stateMatrixParameter);
 }
 
 // ------------------------------------------------------------------------
@@ -45,6 +47,22 @@ vsCgStateMatrixParameter::vsCgStateMatrixParameter(osgNVCg::Program *newProgram,
 // ------------------------------------------------------------------------
 vsCgStateMatrixParameter::~vsCgStateMatrixParameter()
 {
+}
+
+// ------------------------------------------------------------------------
+// Return the osgNVCg parameter object this object uses.
+// ------------------------------------------------------------------------
+osgNVCg::Parameter *vsCgStateMatrixParameter::getCgParameter()
+{
+    return stateMatrixParameter;
+}
+
+// ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsCgStateMatrixParameter::getClassName()
+{
+    return "vsCgStateMatrixParameter";
 }
 
 // ------------------------------------------------------------------------

@@ -24,6 +24,9 @@
 #define VS_CG_PARAMETER_HPP
 
 #include <osgNVCg/Program>
+#include <osgNVCg/Parameter>
+#include "vsObject.h++"
+#include "vsCgShaderAttribute.h++"
 
 #define VARIABLE_NAME_MAX 64
 
@@ -35,18 +38,28 @@ enum vsCgParameterType
     VS_CG_TEXTURE_PARAMETER
 };
 
-class vsCgParameter
+class vsCgParameter : public vsObject
 {
 protected:
-    osgNVCg::Program *program;
+    vsCgShaderAttribute      *shaderAttribute;
+    vsCgShaderProgramType    whichProgram;
     char variableName[VARIABLE_NAME_MAX];
 
+VS_INTERNAL:
+    osgNVCg::Program             *getCgProgram();
+    virtual osgNVCg::Parameter   *getCgParameter() = 0;
+
 public:
-                                 vsCgParameter(osgNVCg::Program *newProgram);
+                                 vsCgParameter(
+                                        vsCgShaderAttribute *newShaderAttribute,
+                                        vsCgShaderProgramType newWhichProgram,
+                                        char *newVariableName);
                                  ~vsCgParameter();
 
-    osgNVCg::Program             *getProgram();
-    char                         *getVariableName();
+    vsCgShaderAttribute          *getCgShaderAttribute();
+    vsCgShaderProgramType        getCgShaderProgramType();
+    char                         *getCgVariableName();
+
     virtual vsCgParameterType    getCgParameterType() = 0;
 };
 

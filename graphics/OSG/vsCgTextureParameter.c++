@@ -26,16 +26,19 @@
 // ------------------------------------------------------------------------
 // Constructor - Copy the variable name and create the osgNVCg parameter.
 // ------------------------------------------------------------------------
-vsCgTextureParameter::vsCgTextureParameter(osgNVCg::Program *newProgram,
-                                         char *newVariableName) :
-                                         vsCgParameter(newProgram)
+vsCgTextureParameter::vsCgTextureParameter(
+    vsCgShaderAttribute *newShaderAttribute,
+    vsCgShaderProgramType newWhichProgram,
+    char *newVariableName) :
+    vsCgParameter(newShaderAttribute, newWhichProgram, newVariableName)
 {
-    // Keep a copy of the variable name.
-    strncpy(variableName, newVariableName, VARIABLE_NAME_MAX);
-
     // Create the parameter and add it to the program.
-    textureParameter = new osgNVCg::TextureParameter(program, variableName);
-    program->addParameter(textureParameter);
+    textureParameter = new osgNVCg::TextureParameter(getCgProgram(),
+        variableName);
+
+    // Add the parameter to the program, in case there will not be a
+    // a parameter block to handle this.
+    getCgProgram()->addParameter(textureParameter);
 
     // Initialize the texture attribute to none.
     textureAttribute = NULL;
@@ -49,6 +52,22 @@ vsCgTextureParameter::~vsCgTextureParameter()
     // If there is a textureAttribute in use, unrefDelete it.
     if (textureAttribute != NULL)
         vsObject::unrefDelete(textureAttribute);
+}
+
+// ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsCgTextureParameter::getClassName()
+{
+    return "vsCgTextureParameter";
+}
+
+// ------------------------------------------------------------------------
+// Return the osgNVCg parameter object this object uses.
+// ------------------------------------------------------------------------
+osgNVCg::Parameter *vsCgTextureParameter::getCgParameter()
+{
+    return textureParameter;
 }
 
 // ------------------------------------------------------------------------
@@ -75,5 +94,25 @@ void vsCgTextureParameter::set(vsTextureAttribute *value)
     textureAttribute->ref();
 
     // Give the osgNV parameter object the OSG texture.
-    textureParameter->set(textureAttribute->getBaseLibraryObject());
+    textureParameter->set(value->getBaseLibraryObject());
 }
+
+// ------------------------------------------------------------------------
+// Get the osg::Texture object which vsTextureCubeAttribute uses and hand it
+// to the osgNVCg texture parameter.
+// ------------------------------------------------------------------------
+void vsCgTextureParameter::set(vsTextureCubeAttribute *value)
+{
+    // If there was a previous textureAttribute in use, unrefDelete it.
+    if (textureAttribute != NULL)
+        vsObject::unrefDelete(textureAttribute);
+                                                                                
+    // Store a reference to the texture attribute, so it is not prematurely
+    // deleted.
+    textureAttribute = value;
+    textureAttribute->ref();
+                                                                                
+    // Give the osgNV parameter object the OSG texture.
+    textureParameter->set(value->getBaseLibraryObject());
+}
+

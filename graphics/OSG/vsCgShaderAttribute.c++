@@ -90,6 +90,20 @@ osgNVCg::Context *vsCgShaderAttribute::getCgContext()
 }
 
 // ------------------------------------------------------------------------
+// Return the current Cg context for the programs.
+// ------------------------------------------------------------------------
+osgNVCg::Program *vsCgShaderAttribute::getCgProgram(vsCgShaderProgramType
+                                                    whichProgram)
+{
+    if (whichProgram == VS_SHADER_VERTEX)
+        return cgVertexProgram;
+    else if (whichProgram == VS_SHADER_FRAGMENT)
+        return cgFragmentProgram;
+
+    return NULL;
+}
+
+// ------------------------------------------------------------------------
 // Internal function
 // Notifies the attribute that it is being added to the given node's
 // attribute list
@@ -170,121 +184,6 @@ const char *vsCgShaderAttribute::getClassName()
 int vsCgShaderAttribute::getAttributeType()
 {
     return VS_ATTRIBUTE_TYPE_CG_SHADER;
-}
-
-// ------------------------------------------------------------------------
-// Return a vsCgVectorParameter object linked to the specified varibale name
-// in the vertex shader source code.  The returned object can then be used
-// to set the variable.
-// ------------------------------------------------------------------------
-vsCgVectorParameter *vsCgShaderAttribute::getVertexVectorParameter(char *name)
-{
-    // If the program has not been created, return NULL.
-    if (cgVertexProgram == NULL)
-        return (NULL);
-    else
-        return (new vsCgVectorParameter(cgVertexProgram, name));
-}
-
-// ------------------------------------------------------------------------
-// Return a vsCgVectorParameter object linked to the specified varibale name
-// in the fragment shader source code.  The returned object can then be used
-// to set the variable.
-// ------------------------------------------------------------------------
-vsCgVectorParameter *vsCgShaderAttribute::getFragmentVectorParameter(char *name)
-{
-    // If the program has not been created, return NULL.
-    if (cgFragmentProgram == NULL)
-        return (NULL);
-    else
-        return (new vsCgVectorParameter(cgFragmentProgram, name));
-}
-
-// ------------------------------------------------------------------------
-// Return a vsCgMatrixParameter object linked to the specified varibale name
-// in the vertex shader source code.  The returned object can then be used
-// to set the variable.
-// ------------------------------------------------------------------------
-vsCgMatrixParameter *vsCgShaderAttribute::getVertexMatrixParameter(char *name)
-{
-    // If the program has not been created, return NULL.
-    if (cgVertexProgram == NULL)
-        return (NULL);
-    else
-        return (new vsCgMatrixParameter(cgVertexProgram, name));
-}
-
-// ------------------------------------------------------------------------
-// Return a vsCgMatrixParameter object linked to the specified varibale name
-// in the fragment shader source code.  The returned object can then be used
-// to set the variable.
-// ------------------------------------------------------------------------
-vsCgMatrixParameter *vsCgShaderAttribute::getFragmentMatrixParameter(char *name)
-{
-    // If the program has not been created, return NULL.
-    if (cgFragmentProgram == NULL)
-        return (NULL);
-    else
-        return (new vsCgMatrixParameter(cgFragmentProgram, name));
-}
-
-// ------------------------------------------------------------------------
-// Return a vsCgStateMatrixParameter object linked to the specified varibale
-// name in the vertex shader source code.  The returned object can then be
-// used to set the variable.
-// ------------------------------------------------------------------------
-vsCgStateMatrixParameter *vsCgShaderAttribute::getVertexStateMatrixParameter(
-                                                                     char *name)
-{
-    // If the program has not been created, return NULL.
-    if (cgVertexProgram == NULL)
-        return (NULL);
-    else
-        return (new vsCgStateMatrixParameter(cgVertexProgram, name));
-}
-                                                                                
-// ------------------------------------------------------------------------
-// Return a vsCgStateMatrixParameter object linked to the specified varibale
-// name in the fragment shader source code.  The returned object can then be
-// used to set the variable.
-// ------------------------------------------------------------------------
-vsCgStateMatrixParameter *vsCgShaderAttribute::getFragmentStateMatrixParameter(
-                                                                     char *name)
-{
-    // If the program has not been created, return NULL.
-    if (cgFragmentProgram == NULL)
-        return (NULL);
-    else
-        return (new vsCgStateMatrixParameter(cgFragmentProgram, name));
-}
-
-// ------------------------------------------------------------------------
-// Return a vsCgTextureParameter object linked to the specified varibale
-// name in the vertex shader source code.  The returned object can then be
-// used to set the variable.
-// ------------------------------------------------------------------------
-vsCgTextureParameter *vsCgShaderAttribute::getVertexTextureParameter(char *name)
-{
-    // If the program has not been created, return NULL.
-    if (cgVertexProgram == NULL)
-        return (NULL);
-    else
-        return (new vsCgTextureParameter(cgVertexProgram, name));
-}
-
-// ------------------------------------------------------------------------
-// Return a vsCgTextureParameter object linked to the specified varibale
-// name in the fragment shader source code.  The returned object can then be
-// used to set the variable.
-// ------------------------------------------------------------------------
-vsCgTextureParameter *vsCgShaderAttribute::getFragmentTextureParameter(char
-                                                                       *name)
-{
-    // If the program has not been created, return NULL.
-    if (cgFragmentProgram == NULL)
-        return (NULL);
-    else
-        return (new vsCgTextureParameter(cgFragmentProgram, name));
 }
 
 // ------------------------------------------------------------------------
@@ -400,7 +299,7 @@ char *vsCgShaderAttribute::getCgFragmentEntryPoint()
 // ------------------------------------------------------------------------
 // Set the profile to compile the vertex program with.
 // ------------------------------------------------------------------------
-void vsCgShaderAttribute::setCgVertexProfile(vsShaderProfile profile)
+void vsCgShaderAttribute::setCgVertexProfile(vsCgShaderProfile profile)
 {
     // If the profile is unknown, do nothing.
     if (profile == VS_SHADER_UNKNOWN)
@@ -416,7 +315,7 @@ void vsCgShaderAttribute::setCgVertexProfile(vsShaderProfile profile)
 // ------------------------------------------------------------------------
 // Set the profile to compile the fragment program with.
 // ------------------------------------------------------------------------
-void vsCgShaderAttribute::setCgFragmentProfile(vsShaderProfile profile)
+void vsCgShaderAttribute::setCgFragmentProfile(vsCgShaderProfile profile)
 {
     // If the profile is unknown, do nothing.
     if (profile == VS_SHADER_UNKNOWN)
@@ -432,23 +331,23 @@ void vsCgShaderAttribute::setCgFragmentProfile(vsShaderProfile profile)
 // ------------------------------------------------------------------------
 // Return what we have set as the profile for the vertex program.
 // ------------------------------------------------------------------------
-vsShaderProfile vsCgShaderAttribute::getCgVertexProfile()
+vsCgShaderProfile vsCgShaderAttribute::getCgVertexProfile()
 {
     // If the program has not been created, return an unknown profile.
     if (cgVertexProgram == NULL)
         return VS_SHADER_UNKNOWN;
     else
-        return (vsShaderProfile) cgVertexProgram->getProfile();
+        return (vsCgShaderProfile) cgVertexProgram->getProfile();
 }
 
 // ------------------------------------------------------------------------
 // Return what we have set as the profile for the fragment program.
 // ------------------------------------------------------------------------
-vsShaderProfile vsCgShaderAttribute::getCgFragmentProfile()
+vsCgShaderProfile vsCgShaderAttribute::getCgFragmentProfile()
 {
     // If the program has not been created, return an unknown profile.
     if (cgFragmentProgram == NULL)
         return VS_SHADER_UNKNOWN;
     else
-        return (vsShaderProfile) cgFragmentProgram->getProfile();
+        return (vsCgShaderProfile) cgFragmentProgram->getProfile();
 }

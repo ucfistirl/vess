@@ -32,13 +32,19 @@
 class vsCgMatrixParameter : public vsCgParameter
 {
 protected:
-    osgNVCg::MatrixParameter *matrixParameter;
+    osgNVCg::MatrixParameter    *matrixParameter;
     osg::Matrix osgMatrix;
 
+VS_INTERNAL:
+    virtual osgNVCg::Parameter    *getCgParameter();
+
 public:
-    vsCgMatrixParameter(osgNVCg::Program *newProgram, char *newVariableName);
+    vsCgMatrixParameter(vsCgShaderAttribute *newShaderAttribute,
+                        vsCgShaderProgramType newWhichProgram,
+                        char *newVariableName);
     ~vsCgMatrixParameter();   
 
+    virtual const char        *getClassName();
     virtual vsCgParameterType getCgParameterType();
 
     void set(vsMatrix value);

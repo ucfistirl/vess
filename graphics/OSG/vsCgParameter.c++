@@ -25,13 +25,24 @@
 // ------------------------------------------------------------------------
 // Constructor
 // ------------------------------------------------------------------------
-vsCgParameter::vsCgParameter(osgNVCg::Program *newProgram)
+vsCgParameter::vsCgParameter(vsCgShaderAttribute *newShaderAttribute,
+                             vsCgShaderProgramType newWhichProgram,
+                             char *newVariableName)
 {
-    // Store the program which this parameter belongs to.
-    program = newProgram;
+    // Store the shader attribute which this parameter belongs to.
+    shaderAttribute = newShaderAttribute;
 
-    // Clear the stored variable string.
-    variableName[0] = 0;
+    // Store the type of program this parameter belongs to.
+    whichProgram = newWhichProgram;
+
+    // Keep a copy of the variable name.
+    strncpy(variableName, newVariableName, VARIABLE_NAME_MAX);
+
+    if (getCgProgram() == NULL)
+    {
+        printf("vsCgParameter::vsCgParameter: Error: "
+            "Specified shader program is currently NULL!\n");
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -44,15 +55,31 @@ vsCgParameter::~vsCgParameter()
 // ------------------------------------------------------------------------
 // Return the program which this parameter is a part of.
 // ------------------------------------------------------------------------
-osgNVCg::Program *vsCgParameter::getProgram()
+osgNVCg::Program *vsCgParameter::getCgProgram()
 {
-    return program;
+    return shaderAttribute->getCgProgram(whichProgram);
+}
+
+// ------------------------------------------------------------------------
+// Return the vsCgShaderAttribute which this parameter is a part of.
+// ------------------------------------------------------------------------
+vsCgShaderAttribute *vsCgParameter::getCgShaderAttribute()
+{
+    return shaderAttribute;
+}
+
+// ------------------------------------------------------------------------
+// Return the type of program this parameter is for within the attribute.
+// ------------------------------------------------------------------------
+vsCgShaderProgramType vsCgParameter::getCgShaderProgramType()
+{
+    return whichProgram;
 }
 
 // ------------------------------------------------------------------------
 // Return the variable name which this parameter is linked to.
 // ------------------------------------------------------------------------
-char *vsCgParameter::getVariableName()
+char *vsCgParameter::getCgVariableName()
 {
     return variableName;
 }
