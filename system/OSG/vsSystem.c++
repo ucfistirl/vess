@@ -568,7 +568,9 @@ void vsSystem::drawFrame()
     }
     
 #ifdef WIN32
-    // Windows only:  the message pump
+    // Windows only:  the message pump.  Check for Windows messages
+    // in the message queue, and dispatch them to the message handler 
+    // if any are waiting.
     while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE))
     {
         DispatchMessage(&message);
