@@ -87,6 +87,23 @@ vsDatabaseLoader::~vsDatabaseLoader()
 }
 
 // ------------------------------------------------------------------------
+// Replaces strdup because, for some reason, that function is incompatible
+// in Windows
+// ------------------------------------------------------------------------
+char *vsDatabaseLoader::stringDup(char *from)
+{
+    char *to;
+
+    // Allocate the memory
+    to = (char *) malloc(sizeof(char) * (strlen(from) + 1));
+
+    // Copy the string
+    strcpy(to, from);
+
+    return to;
+}
+
+// ------------------------------------------------------------------------
 // Gets a string representation of this object's class name
 // ------------------------------------------------------------------------
 const char *vsDatabaseLoader::getClassName()
