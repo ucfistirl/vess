@@ -240,7 +240,10 @@ void vsPane::setView(vsView *view)
     sceneView = view;
 
     // Set the osg::SceneView's camera to use the new vsView's osg::Camera
-    osgSceneView->setCamera(view->getBaseLibraryObject());
+    if (view)
+        osgSceneView->setCamera(view->getBaseLibraryObject());
+    else
+        osgSceneView->setCamera(NULL);
 }
 
 // ------------------------------------------------------------------------
