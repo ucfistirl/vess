@@ -39,65 +39,67 @@ public:
 
                 vsQuat();
                 vsQuat(double x, double y, double z, double w);
-                vsQuat(double values[]);
+                vsQuat(const double values[]);
                 ~vsQuat();
 
     void        set(double x, double y, double z, double w);
-    void        set(double values[]);
-    void        copy(vsQuat source);
+    void        set(const double values[]);
+    void        copy(const vsQuat &source);
     void        clear();
     
     void        setValue(int index, double value);
-    double      getValue(int index);
-    int         isEqual(vsQuat operand);
-    int         isAlmostEqual(vsQuat operand, double tolerance);
+    double      getValue(int index) const;
+    int         isEqual(const vsQuat &operand) const;
+    int         isAlmostEqual(const vsQuat &operand, double tolerance) const;
 
-    void        add(vsQuat addend);
-    vsQuat      getSum(vsQuat addend);
-    void        subtract(vsQuat subtrahend);
-    vsQuat      getDifference(vsQuat subtrahend);
+    void        add(const vsQuat &addend);
+    vsQuat      getSum(const vsQuat &addend) const;
+    void        subtract(const vsQuat &subtrahend);
+    vsQuat      getDifference(const vsQuat &subtrahend) const;
     void        scale(double multiplier);
-    vsQuat      getScaled(double multiplier);
-    void        multiplyQuat(vsQuat operand);
-    vsQuat      getMultipliedQuat(vsQuat operand);
+    vsQuat      getScaled(double multiplier) const;
+    void        multiplyQuat(const vsQuat &operand);
+    vsQuat      getMultipliedQuat(const vsQuat &operand) const;
     
-    double      getMagnitude();
-    vsQuat      getNormalized();
+    double      getMagnitude() const;
+    vsQuat      getNormalized() const;
     void        normalize();
     void        conjugate();
-    vsQuat      getConjugate();
+    vsQuat      getConjugate() const;
     void        invert();
-    vsQuat      getInverse();
+    vsQuat      getInverse() const;
     
-    void        setMatrixRotation(vsMatrix theMatrix);
+    void        setMatrixRotation(const vsMatrix &theMatrix);
     void        setEulerRotation(vsMathEulerAxisOrder axisOrder,
                     double axis1Degrees, double axis2Degrees,
                     double axis3Degrees);
     void        getEulerRotation(vsMathEulerAxisOrder axisOrder,
                     double *axis1Degrees, double *axis2Degrees,
-                    double *axis3Degrees);
+                    double *axis3Degrees) const;
     void        setAxisAngleRotation(double x, double y, double z,
                     double rotDegrees);
     void        getAxisAngleRotation(double *x, double *y, double *z,
-                    double *rotDegrees);
-    void        setVecsRotation(vsVector originForward, vsVector originUp,
-                    vsVector targetForward, vsVector targetUp);
+                    double *rotDegrees) const;
+    void        setVecsRotation(const vsVector &originForward,
+                    const vsVector &originUp,
+                    const vsVector &targetForward,
+                    const vsVector &targetUp);
 
-    vsVector    rotatePoint(vsVector targetPoint);
+    vsVector    rotatePoint(const vsVector &targetPoint) const;
 
-    vsQuat      slerp(vsQuat destination, double parameter);
+    vsQuat      slerp(const vsQuat &destination, double parameter) const;
     
     double      &operator[](int index);
-    vsQuat      operator+(vsQuat addend);
-    vsQuat      operator-(vsQuat subtrahend);
-    vsQuat      operator*(vsQuat operand);
-    void        operator+=(vsQuat addend);
-    void        operator-=(vsQuat subtrahend);
-    void        operator*=(vsQuat operand);
-    int         operator==(vsQuat operand);
+    vsQuat      operator+(const vsQuat &addend) const;
+    vsQuat      operator-(const vsQuat &subtrahend) const;
+    vsQuat      operator*(const vsQuat &operand) const;
+    void        operator+=(const vsQuat &addend);
+    void        operator-=(const vsQuat &subtrahend);
+    void        operator*=(const vsQuat &operand);
+    int         operator==(const vsQuat &operand) const;
 
-    void        print();
-    void        print(FILE *fp);
+    void        print() const;
+    void        print(FILE *fp) const;
 };
 
 vsQuat operator*(double multiplier, vsQuat operand);

@@ -49,45 +49,45 @@ public:
     void        set(double x, double y);
     void        set(double x, double y, double z);
     void        set(double x, double y, double z, double w);
-    void        copy(vsVector source);
+    void        copy(const vsVector &source);
     
     void        clear();
-    void        clearCopy(vsVector source);
+    void        clearCopy(const vsVector &source);
 
     void        setSize(int size);
-    int         getSize();
+    int         getSize() const;
     void        setValue(int index, double value);
-    double      getValue(int index);
-    int         isEqual(vsVector operand);
-    int         isAlmostEqual(vsVector operand, double tolerance);
+    double      getValue(int index) const;
+    int         isEqual(const vsVector &operand) const;
+    int         isAlmostEqual(const vsVector &operand, double tolerance) const;
 
-    void        add(vsVector addend);
-    vsVector    getSum(vsVector addend);
-    void        subtract(vsVector subtrahend);
-    vsVector    getDifference(vsVector subtrahend);
+    void        add(const vsVector &addend);
+    vsVector    getSum(const vsVector &addend) const;
+    void        subtract(const vsVector &subtrahend);
+    vsVector    getDifference(const vsVector &subtrahend) const;
     void        scale(double multiplier);
-    vsVector    getScaled(double multiplier);
+    vsVector    getScaled(double multiplier) const;
     
-    double      getMagnitude();
-    double      getMagnitudeSquared();
-    double      getDotProduct(vsVector operand);
+    double      getMagnitude() const;
+    double      getMagnitudeSquared() const;
+    double      getDotProduct(const vsVector &operand) const;
     void        normalize();
-    vsVector    getNormalized();
-    void        crossProduct(vsVector operand);
-    vsVector    getCrossProduct(vsVector operand);
-    double      getAngleBetween(vsVector endVector);
+    vsVector    getNormalized() const;
+    void        crossProduct(const vsVector &operand);
+    vsVector    getCrossProduct(const vsVector &operand) const;
+    double      getAngleBetween(const vsVector &endVector) const;
 
     double      &operator[](int index);
-    vsVector    operator+(vsVector addend);
-    vsVector    operator-(vsVector subtrahend);
-    vsVector    operator*(double multiplier);
-    void        operator+=(vsVector addend);
-    void        operator-=(vsVector subtrahend);
+    vsVector    operator+(const vsVector &addend) const;
+    vsVector    operator-(const vsVector &subtrahend) const;
+    vsVector    operator*(double multiplier) const;
+    void        operator+=(const vsVector &addend);
+    void        operator-=(const vsVector &subtrahend);
     void        operator*=(double multiplier);
-    int         operator==(vsVector operand);
+    int         operator==(const vsVector &operand) const;
 
-    void        print();
-    void        print(FILE *fp);
+    void        print() const;
+    void        print(FILE *fp) const;
 };
 
 vsVector operator*(double multiplier, vsVector operand);

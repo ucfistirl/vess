@@ -45,36 +45,36 @@ public:
     virtual     ~vsMatrix();
 
     void        set(double values[4][4]);
-    void        copy(vsMatrix source);
+    void        copy(const vsMatrix &source);
 
     void        clear();
     
     void        setValue(int row, int column, double value);
-    double      getValue(int row, int column);
-    int         isEqual(vsMatrix operand);
-    int         isAlmostEqual(vsMatrix operand, double tolerance);
+    double      getValue(int row, int column) const;
+    int         isEqual(const vsMatrix &operand) const;
+    int         isAlmostEqual(const vsMatrix &operand, double tolerance) const;
 
-    void        add(vsMatrix addend);
-    vsMatrix    getSum(vsMatrix addend);
-    void        subtract(vsMatrix subtrahend);
-    vsMatrix    getDifference(vsMatrix subtrahend);
+    void        add(const vsMatrix &addend);
+    vsMatrix    getSum(const vsMatrix &addend) const;
+    void        subtract(const vsMatrix &subtrahend);
+    vsMatrix    getDifference(const vsMatrix &subtrahend) const;
     void        scale(double multiplier);
-    vsMatrix    getScaled(double multiplier);
+    vsMatrix    getScaled(double multiplier) const;
     void        transpose();
-    vsMatrix    getTranspose();
+    vsMatrix    getTranspose() const;
     
-    double      getDeterminant();
+    double      getDeterminant() const;
     void        invert();
-    vsMatrix    getInverse();
+    vsMatrix    getInverse() const;
     
-    void        preMultiply(vsMatrix operand);
-    vsMatrix    getPreMultiplied(vsMatrix operand);
-    void        postMultiply(vsMatrix operand);
-    vsMatrix    getPostMultiplied(vsMatrix operand);
+    void        preMultiply(const vsMatrix &operand);
+    vsMatrix    getPreMultiplied(const vsMatrix &operand) const;
+    void        postMultiply(const vsMatrix &operand);
+    vsMatrix    getPostMultiplied(const vsMatrix &operand) const;
     
-    vsVector    getPointXform(vsVector operand);
-    vsVector    getVectorXform(vsVector operand);
-    vsVector    getFullXform(vsVector operand);
+    vsVector    getPointXform(const vsVector &operand) const;
+    vsVector    getVectorXform(const vsVector &operand) const;
+    vsVector    getFullXform(const vsVector &operand) const;
     
     void        setIdentity();
     void        setEulerRotation(vsMathEulerAxisOrder axisOrder,
@@ -82,24 +82,24 @@ public:
                                  double axis3Degrees);
     void        getEulerRotation(vsMathEulerAxisOrder axisOrder,
                                  double *axis1Degrees, double *axis2Degrees,
-                                 double *axis3Degrees);
-    void        setQuatRotation(vsQuat quat);
+                                 double *axis3Degrees) const;
+    void        setQuatRotation(const vsQuat &quat);
     void        setTranslation(double dx, double dy, double dz);
     void        setScale(double sx, double sy, double sz);
 
     vsVector    &operator[](int index);
-    vsMatrix    operator+(vsMatrix addend);
-    vsMatrix    operator-(vsMatrix subtrahend);
-    vsMatrix    operator*(vsMatrix operand);
-    void        operator+=(vsMatrix addend);
-    void        operator-=(vsMatrix subtrahend);
-    int         operator==(vsMatrix operand);
+    vsMatrix    operator+(const vsMatrix &addend) const;
+    vsMatrix    operator-(const vsMatrix &subtrahend) const;
+    vsMatrix    operator*(const vsMatrix &operand) const;
+    void        operator+=(const vsMatrix &addend);
+    void        operator-=(const vsMatrix &subtrahend);
+    int         operator==(const vsMatrix &operand) const;
 
-    void        printRow(int rowNum);
-    void        printRow(int rowNum, FILE *fp);
+    void        printRow(int rowNum) const;
+    void        printRow(int rowNum, FILE *fp) const;
 
-    void        print();
-    void        print(FILE *fp);
+    void        print() const;
+    void        print(FILE *fp) const;
 };
 
 #endif
