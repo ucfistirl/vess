@@ -49,13 +49,15 @@ private:
     pfPipeWindow          *performerPipeWindow;
 
     static vsObjectMap    *windowMap;
+    static vsObjectMap    *drawableMap;
     
 VS_INTERNAL:
 
     void                  addPane(vsPane *newPane);
     void                  removePane(vsPane *targetPane);
 
-    static vsObjectMap    *getMap();
+    static vsObjectMap    *getWindowMap();
+    static vsObjectMap    *getDrawableMap();
     static void           deleteMap();
 
 public:

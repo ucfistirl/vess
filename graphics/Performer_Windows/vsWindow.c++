@@ -26,6 +26,13 @@
 // and their respective Microsoft Windows window instances
 vsObjectMap *vsWindow::windowMap = NULL;
 
+// Performer makes use of two handles per window, one is the HWND, which is
+// stored in the windowMap above.  The other is a generic HANDLE to a "drawable"
+// object.  A drawable can either be an off-screen pixel buffer or a real window.
+// In the case of real windows, we need to store this handle as well, so we'll
+// use a second map.
+vsObjectMap *vsWindow::drawableMap = NULL;
+
 // ------------------------------------------------------------------------
 // Constructor - Initializes the window by creating a Performer pipe window
 // object and creating connections with that, verifying that the window is
@@ -111,7 +118,11 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
 
     // Register a mapping between this vsWindow and its corresponding
     // MS window handle
-    getMap()->registerLink(performerPipeWindow->getWSWindow(), this);
+    getWindowMap()->registerLink(performerPipeWindow->getWSWindow(), this);
+
+    // Also register a mapping between this vsWindow and its corresponding
+    // drawable handle
+    getDrawableMap()->registerLink(performerPipeWindow->getWSDrawable(), this);
 }
 
 // ------------------------------------------------------------------------
@@ -197,7 +208,11 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
 
     // Register a mapping between this vsWindow and its corresponding
     // MS window handle
-    getMap()->registerLink(performerPipeWindow->getWSWindow(), this);
+    getWindowMap()->registerLink(performerPipeWindow->getWSWindow(), this);
+
+    // Also register a mapping between this vsWindow and its corresponding
+    // drawable handle
+    getDrawableMap()->registerLink(performerPipeWindow->getWSDrawable(), this);
 }
 
 // ------------------------------------------------------------------------
@@ -258,7 +273,11 @@ vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
 
     // Register a mapping between this vsWindow and its corresponding
     // MS window handle
-    getMap()->registerLink(performerPipeWindow->getWSWindow(), this);
+    getWindowMap()->registerLink(performerPipeWindow->getWSWindow(), this);
+
+    // Also register a mapping between this vsWindow and its corresponding
+    // drawable handle
+    getDrawableMap()->registerLink(performerPipeWindow->getWSDrawable(), this);
 }
 
 // ------------------------------------------------------------------------
@@ -280,16 +299,20 @@ vsWindow::~vsWindow()
     // Remove this window from the parent screen's window list
     parentScreen->removeWindow(this);
 
-    // Remove the window from the vsWindow map
-    if (getMap()->mapSecondToFirst(this))
-        getMap()->removeLink(this, VS_OBJMAP_SECOND_LIST);
+    // Remove the window from the window map
+    if (getWindowMap()->mapSecondToFirst(this))
+        getWindowMap()->removeLink(this, VS_OBJMAP_SECOND_LIST);
+
+    // Remove the window from the drawable map
+    if (getDrawableMap()->mapSecondToFirst(this))
+        getDrawableMap()->removeLink(this, VS_OBJMAP_SECOND_LIST);
 }
     
 // ------------------------------------------------------------------------
 // Static internal function
 // Return the window object map
 // ------------------------------------------------------------------------
-vsObjectMap *vsWindow::getMap()
+vsObjectMap *vsWindow::getWindowMap()
 {
     if (!windowMap)
         windowMap = new vsObjectMap();
@@ -299,7 +322,20 @@ vsObjectMap *vsWindow::getMap()
 
 // ------------------------------------------------------------------------
 // Static internal function
-// Deletes the object map that holds the window mappings, if it exists
+// Return the window object map
+// ------------------------------------------------------------------------
+vsObjectMap *vsWindow::getDrawableMap()
+{
+    if (!drawableMap)
+        drawableMap = new vsObjectMap();
+
+    return drawableMap;
+}
+
+// ------------------------------------------------------------------------
+// Static internal function
+// Deletes both of the object maps that hold the window and drawable 
+// mappings, if they exist
 // ------------------------------------------------------------------------
 void vsWindow::deleteMap()
 {
@@ -307,6 +343,12 @@ void vsWindow::deleteMap()
     {
         delete windowMap;
         windowMap = NULL;
+    }
+
+    if (drawableMap)
+    {
+        delete drawableMap;
+        drawableMap = NULL;
     }
 }
 
@@ -502,11 +544,13 @@ void vsWindow::setName(char *newName)
 void vsWindow::saveImage(char *filename)
 {
     HWND msWindow;
-    HDC devContext;
+    HDC devContext, memDevContext;
     int xpos, ypos;
+    RECT windowRect;
     unsigned int width, height;
     unsigned int border, depth;
     HBITMAP bitmapHandle;
+    HGDIOBJ oldBitmap;
     BITMAP bitmap;
     int bitmapSize;
     BITMAPINFO bitmapInfo;
@@ -520,11 +564,29 @@ void vsWindow::saveImage(char *filename)
     int tempInt;
 
     // Get the MS window handle and the handle to it's GDI device context
-    msWindow = performerPipeWindow->getWSWindow();
+    msWindow = (HWND)performerPipeWindow->getWSWindow();
     devContext = GetDC(msWindow);
     
-    // Get the current bitmap object from the device context
-    bitmapHandle = (HBITMAP)GetCurrentObject(devContext, OBJ_BITMAP);
+    // Create a new device context in memory to copy the window data to
+    memDevContext = CreateCompatibleDC(NULL);
+    
+    // Get the current window rectangle and calculate width and height
+    GetClientRect(msWindow, &windowRect);
+    width = windowRect.right - windowRect.left;
+    height = windowRect.bottom - windowRect.top;
+    
+    // Create a new bitmap structure to hold the window's contents
+    bitmapHandle = CreateCompatibleBitmap(devContext, width, height);
+        
+    // Select the new bitmap into the new device context
+    oldBitmap = SelectObject(memDevContext, bitmapHandle);
+    
+    // Copy the window's contents to the new device context
+    BitBlt(memDevContext, 0, 0, width, height, devContext, 0, 0, 
+        SRCCOPY);
+    
+    // Release the window's device context
+    ReleaseDC(msWindow, devContext);
     
     // Get the size and shape info for the image
     bitmapSize = GetObject(bitmapHandle, sizeof(BITMAP), &bitmap);
@@ -535,11 +597,8 @@ void vsWindow::saveImage(char *filename)
         return;
     }
 
-    // Get the width and height
-    width = bitmap.bmWidth;
-    height = bitmap.bmHeight;
-    
     // Fill out a BITMAPINFO structure to describe the desired bitmap format
+    memset(&bitmapInfo, 0, sizeof(BITMAPINFO));
     bitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bitmapInfo.bmiHeader.biWidth = width;
     bitmapInfo.bmiHeader.biHeight = height;
@@ -554,8 +613,8 @@ void vsWindow::saveImage(char *filename)
     
     // Get the bitmap data
     bitmapData = (LPVOID)malloc(width * height * 3);
-    bitmapDataSize = GetDIBits(devContext, bitmapHandle, 0, height, bitmapData, 
-        &bitmapInfo, DIB_RGB_COLORS);
+    bitmapDataSize = GetDIBits(devContext, bitmapHandle, 0, height,
+        bitmapData, &bitmapInfo, DIB_RGB_COLORS);
 
     // Create a buffer area for each color component of the image
     redBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
@@ -576,16 +635,16 @@ void vsWindow::saveImage(char *filename)
         for (sloop = 0; sloop < width; sloop++)
         {
             // Get the red, green, and blue pixels from the bitmap
-            index = loop*width*3 + sloop * 3;
+            index = ((height-1) - loop)*width*3 + sloop * 3;
             
             // Red
-            redBuffer[sloop] = ((char *)bitmapData)[index];
+            blueBuffer[sloop] = ((char *)bitmapData)[index];
 
             // Green
             greenBuffer[sloop] = ((char *)bitmapData)[index+1];
 
             // Blue
-            blueBuffer[sloop] = ((char *)bitmapData)[index+2];
+            redBuffer[sloop] = ((char *)bitmapData)[index+2];
         }
 
         // Dump each completed row to the image file
@@ -607,23 +666,49 @@ vsImage * vsWindow::getImage()
 {
     vsImage * image;
     HWND msWindow;
-    HDC devContext;
+    HDC devContext, memDevContext;
     int xpos, ypos;
+    RECT windowRect;
     unsigned int width, height;
     unsigned int border, depth;
     HBITMAP bitmapHandle;
+    HGDIOBJ oldBitmap;
     BITMAP bitmap;
     int bitmapSize;
     BITMAPINFO bitmapInfo;
     int bitmapDataSize;
     LPVOID bitmapData;
 
+    unsigned long redPixel, greenPixel, bluePixel;
+    unsigned short *redBuffer, *greenBuffer, *blueBuffer;
+    int loop, sloop, index;
+    IMAGE *imageOut;
+    int tempInt;
+
     // Get the MS window handle and the handle to it's GDI device context
-    msWindow = performerPipeWindow->getWSWindow();
+    msWindow = (HWND)performerPipeWindow->getWSWindow();
     devContext = GetDC(msWindow);
     
-    // Get the current bitmap object from the device context
-    bitmapHandle = (HBITMAP)GetCurrentObject(devContext, OBJ_BITMAP);
+    // Create a new device context in memory to copy the window data to
+    memDevContext = CreateCompatibleDC(NULL);
+    
+    // Get the current window rectangle and calculate width and height
+    GetClientRect(msWindow, &windowRect);
+    width = windowRect.right - windowRect.left;
+    height = windowRect.bottom - windowRect.top;
+    
+    // Create a new bitmap structure to hold the window's contents
+    bitmapHandle = CreateCompatibleBitmap(devContext, width, height);
+        
+    // Select the new bitmap into the new device context
+    oldBitmap = SelectObject(memDevContext, bitmapHandle);
+    
+    // Copy the window's contents to the new device context
+    BitBlt(memDevContext, 0, 0, width, height, devContext, 0, 0, 
+        SRCCOPY);
+    
+    // Release the window's device context
+    ReleaseDC(msWindow, devContext);
     
     // Get the size and shape info for the image
     bitmapSize = GetObject(bitmapHandle, sizeof(BITMAP), &bitmap);
@@ -634,11 +719,8 @@ vsImage * vsWindow::getImage()
         return NULL;
     }
 
-    // Get the width and height
-    width = bitmap.bmWidth;
-    height = bitmap.bmHeight;
-    
     // Fill out a BITMAPINFO structure to describe the desired bitmap format
+    memset(&bitmapInfo, 0, sizeof(BITMAPINFO));
     bitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bitmapInfo.bmiHeader.biWidth = width;
     bitmapInfo.bmiHeader.biHeight = height;
@@ -653,11 +735,12 @@ vsImage * vsWindow::getImage()
     
     // Get the bitmap data
     bitmapData = (LPVOID)malloc(width * height * 3);
-    bitmapDataSize = GetDIBits(devContext, bitmapHandle, 0, height, bitmapData, 
-        &bitmapInfo, DIB_RGB_COLORS);
+    bitmapDataSize = GetDIBits(devContext, bitmapHandle, 0, height,
+        bitmapData, &bitmapInfo, DIB_RGB_COLORS);
 
     // Put the data into vsImage
-    image = new vsImage( width, height, VS_IMAGE_FORMAT_RGB, (unsigned char *)bitmapData);
+    image = new vsImage( width, height, VS_IMAGE_FORMAT_RGB, 
+        (unsigned char *)bitmapData);
 
     // Windows returns the image with the origin in the top left. We store our
     // image like OpenGL with the origin in the bottom left. Flip it
