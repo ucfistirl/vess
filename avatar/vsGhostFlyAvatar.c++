@@ -29,9 +29,11 @@
 vsGhostFlyAvatar::vsGhostFlyAvatar(vsPane *targetPane,
     vsComponent *targetScene)
 {
+    // Store the given object pointers
     pane = targetPane;
     scene = targetScene;
 
+    // Initialize the other pointers
     view = NULL;
     ghostKin = NULL;
     flyMotion = NULL;
@@ -43,6 +45,7 @@ vsGhostFlyAvatar::vsGhostFlyAvatar(vsPane *targetPane,
 // ------------------------------------------------------------------------
 vsGhostFlyAvatar::~vsGhostFlyAvatar()
 {
+    // Delete the object associated with this avatar
     delete flyMotion;
     delete ghostKin;
     delete geometryRoot;
@@ -56,9 +59,12 @@ vsGhostFlyAvatar::~vsGhostFlyAvatar()
 // ------------------------------------------------------------------------
 void vsGhostFlyAvatar::update()
 {
+    // The window system object is only updated if we created it; if an
+    // existing one was obtained instead, then windowSystem will be NULL.
     if (windowSystem)
 	windowSystem->update();
 
+    // Update those object that need updating every frame
     flyMotion->update();
     ghostKin->update();
 }
@@ -83,7 +89,7 @@ vsFlyingMotion *vsGhostFlyAvatar::getFlyingMotion()
 
 // ------------------------------------------------------------------------
 // Sets up this avatar by creating the viewpoint, component, and motion
-// model needed by this avatar.
+// model needed by this avatar
 // ------------------------------------------------------------------------
 void vsGhostFlyAvatar::setup()
 {
@@ -95,6 +101,8 @@ void vsGhostFlyAvatar::setup()
     double boundRadius;
     vsQuat initOrient;
 
+    // There shouldn't be any objects in the object arrays; vsGhostFlyAvatar
+    // doesn't need (or use) any.
     if (objectCount > 0)
 	printf("vsGhostFlyAvatar::setup: Avatar setup does not need any "
 	    "configuration objects\n");
@@ -105,12 +113,13 @@ void vsGhostFlyAvatar::setup()
     viewAttr = new vsViewpointAttribute(view);
     geometryRoot->addAttribute(viewAttr);
 
+    // Set the viewpoint and scene objects on the avatar's vsPane object
     pane->setView(view);
     pane->setScene(scene);
 
     // Obtain the mouse object for the given pane by checking its parent
     // window. If there is no window system for that window, create one
-    // and set it so that its gets updated with everything else each frame.
+    // and set it so that it gets updated with everything else each frame.
     window = pane->getParentWindow();
     wsys = window->getWSystem();
     if (!wsys)
@@ -135,6 +144,6 @@ void vsGhostFlyAvatar::setup()
 	vsVector(0.0, 0.0, 1.0));
     ghostKin->setOrientation(initOrient);
 
-    // Complete the process by adding the avatar's 'geometry' to the scene
+    // Complete the process by adding the avatar's "geometry" to the scene
     scene->addChild(geometryRoot);
 }

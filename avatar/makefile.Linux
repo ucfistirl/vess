@@ -44,3 +44,385 @@ clean:
 .c.o:
 	g++ $(FLAGS) -c $< -o ./$*.o -Wno-deprecated
 
+# DO NOT DELETE
+
+vsAvatar.o: vsAvatar.h++ /usr/include/stdio.h /usr/include/features.h
+vsAvatar.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsAvatar.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsAvatar.o: /usr/include/bits/types.h /usr/include/libio.h
+vsAvatar.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsAvatar.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsAvatar.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsAvatar.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+vsAvatar.o: /usr/include/getopt.h ../system/vsUpdatable.h++
+vsAvatar.o: ../system/vsSystem.h++ ../system/vsPipe.h++
+vsAvatar.o: /usr/include/Performer/pf/pfPipe.h
+vsAvatar.o: /usr/include/Performer/pf/pfUpdatable.h
+vsAvatar.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
+vsAvatar.o: /usr/include/sys/types.h /usr/include/time.h
+vsAvatar.o: /usr/include/endian.h /usr/include/bits/endian.h
+vsAvatar.o: /usr/include/sys/select.h /usr/include/bits/select.h
+vsAvatar.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+vsAvatar.o: /usr/include/sys/sysmacros.h /usr/include/ulocks.h
+vsAvatar.o: /usr/include/malloc.h /usr/include/limits.h
+vsAvatar.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/limits.h
+vsAvatar.o: /usr/include/bits/posix1_lim.h /usr/include/bits/local_lim.h
+vsAvatar.o: /usr/include/linux/limits.h /usr/include/bits/posix2_lim.h
+vsAvatar.o: /usr/include/bits/xopen_lim.h /usr/include/unistd.h
+vsAvatar.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+vsAvatar.o: /usr/include/errno.h /usr/include/bits/errno.h
+vsAvatar.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+vsAvatar.o: /usr/include/X11/X.h /usr/include/X11/Xlib.h
+vsAvatar.o: /usr/include/X11/Xfuncproto.h /usr/include/X11/Xosdefs.h
+vsAvatar.o: /usr/include/X11/Xutil.h /usr/include/GL/gl.h
+vsAvatar.o: /usr/include/GL/glx.h /usr/include/GL/glxtokens.h
+vsAvatar.o: /usr/include/GL/glu.h /usr/include/Performer/opengl.h
+vsAvatar.o: /usr/include/Performer/linuxstubs.h
+vsAvatar.o: /usr/include/Performer/image.h /usr/include/stdlib.h
+vsAvatar.o: /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h
+vsAvatar.o: /usr/include/alloca.h /usr/include/string.h
+vsAvatar.o: /usr/include/sys/prctl.h /usr/include/linux/prctl.h
+vsAvatar.o: /usr/include/stdint.h /usr/include/bits/wordsize.h
+vsAvatar.o: /usr/include/Performer/prmath.h /usr/include/math.h
+vsAvatar.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsAvatar.o: /usr/include/bits/mathcalls.h /usr/include/Performer/prstats.h
+vsAvatar.o: /usr/include/Performer/pr/pfLinMath.h
+vsAvatar.o: /usr/include/Performer/pr/pfObject.h
+vsAvatar.o: /usr/include/Performer/pr/pfMemory.h
+vsAvatar.o: /usr/include/Performer/pr/pfType.h
+vsAvatar.o: /usr/include/Performer/pr/pfStruct.h
+vsAvatar.o: /usr/include/Performer/pfstats.h
+vsAvatar.o: /usr/include/Performer/pf/pfBuffer.h
+vsAvatar.o: /usr/include/Performer/pf/pfUpdate.h
+vsAvatar.o: /usr/include/Performer/pf/pfLists.h
+vsAvatar.o: /usr/include/Performer/pr/pfVideoChannel.h
+vsAvatar.o: /usr/include/Performer/pr/pfList.h
+vsAvatar.o: /usr/include/Performer/pr/pfCalligraphic.h
+vsAvatar.o: /usr/include/Performer/pr/pfStats.h
+vsAvatar.o: /usr/include/Performer/pr/pfDispList.h
+vsAvatar.o: /usr/include/Performer/pr/pfGeoState.h
+vsAvatar.o: /usr/include/Performer/pr/pfState.h
+vsAvatar.o: /usr/include/Performer/pr/pfByteBank.h
+vsAvatar.o: /usr/include/Performer/pr/pfGSetBank.h ../system/vsGlobals.h++
+vsAvatar.o: ../system/vsScreen.h++ ../system/vsWindow.h++
+vsAvatar.o: /usr/include/Performer/pf/pfPipeWindow.h
+vsAvatar.o: /usr/include/Performer/pr/pfWindow.h ../system/vsPane.h++
+vsAvatar.o: /usr/include/Performer/pf/pfChannel.h
+vsAvatar.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
+vsAvatar.o: /usr/include/Performer/pf/pfEarthSky.h
+vsAvatar.o: /usr/include/Performer/pf/pfLODState.h
+vsAvatar.o: /usr/include/Performer/pf/pfFrameStats.h
+vsAvatar.o: /usr/include/Performer/pf/pfScene.h
+vsAvatar.o: /usr/include/Performer/pf/pfGroup.h
+vsAvatar.o: /usr/include/Performer/pf/pfNode.h
+vsAvatar.o: /usr/include/Performer/pr/pfGeoMath.h
+vsAvatar.o: /usr/include/Performer/pr/pfGeoSet.h
+vsAvatar.o: /usr/include/Performer/pr/pfFlux.h
+vsAvatar.o: /usr/include/Performer/pr/pfEngine.h
+vsAvatar.o: /usr/include/Performer/pr/pfCycleBuffer.h
+vsAvatar.o: /usr/include/Performer/pr/pfPassList.h
+vsAvatar.o: /usr/include/Performer/pr/pfFBState.h ../system/vsView.h++
+vsAvatar.o: ../math/vsVector.h++ ../math/vsMatrix.h++ ../math/vsQuat.h++
+vsAvatar.o: ../scene/vsViewpointAttribute.h++ ../scene/vsComponent.h++
+vsAvatar.o: ../system/vsGrowableArray.h++ ../scene/vsAttribute.h++
+vsAvatar.o: ../system/vsObject.h++ ../scene/vsNode.h++
+vsAvatar.o: ../system/vsDatabaseLoader.h++
+vsAvatar.o: /usr/include/Performer/pfdb/pfflt.h ../input/vsWindowSystem.h++
+vsAvatar.o: /usr/include/X11/Xos.h /usr/include/fcntl.h
+vsAvatar.o: /usr/include/bits/fcntl.h /usr/include/sys/stat.h
+vsAvatar.o: /usr/include/bits/stat.h /usr/include/sys/time.h
+vsAvatar.o: /usr/include/X11/Xarch.h ../input/vsInputSystem.h++
+vsAvatar.o: ../input/vsMouse.h++ ../input/vsInputDevice.h++
+vsAvatar.o: ../input/vsInputAxis.h++ ../input/vsInputButton.h++
+vsAvatar.o: ../input/vsKeyboard.h++ /usr/include/X11/keysym.h
+vsAvatar.o: /usr/include/X11/keysymdef.h ../system/vsObjectMap.h++
+vsAvatar.o: ../system/vsTreeMap.h++ ../system/vsGraphicsState.h++
+vsAvatar.o: ../scene/vsBackfaceAttribute.h++ ../scene/vsStateAttribute.h++
+vsAvatar.o: ../scene/vsFogAttribute.h++ /usr/include/Performer/pr/pfFog.h
+vsAvatar.o: ../scene/vsMaterialAttribute.h++
+vsAvatar.o: /usr/include/Performer/pr/pfMaterial.h
+vsAvatar.o: ../scene/vsShadingAttribute.h++ ../scene/vsTextureAttribute.h++
+vsAvatar.o: /usr/include/Performer/pr/pfTexture.h
+vsAvatar.o: /usr/include/Performer/image.h
+vsAvatar.o: ../scene/vsTransparencyAttribute.h++
+vsAvatar.o: ../scene/vsWireframeAttribute.h++ ../scene/vsLightAttribute.h++
+vsAvatar.o: /usr/include/Performer/pr/pfLight.h
+vsAvatar.o: /usr/include/Performer/pf/pfLightSource.h
+vsAvatar.o: ../scene/vsOptimizer.h++ ../scene/vsGeometry.h++
+vsAvatar.o: /usr/include/Performer/pf/pfGeode.h ../input/vsISTJoystickBox.h++
+vsAvatar.o: ../input/vsJoystick.h++ ../input/vsJoystickBox.h++
+vsAvatar.o: ../input/vsSerialPort.h++ /usr/include/termios.h
+vsAvatar.o: /usr/include/bits/termios.h /usr/include/sys/ttydefaults.h
+vsAvatar.o: ../input/vsUnwinder.h++ ../input/vsFlockOfBirds.h++
+vsAvatar.o: ../input/vsAscensionSerialTrackingSystem.h++
+vsAvatar.o: ../input/vsMotionTracker.h++ ../input/vs6DInputDevice.h++
+vsAvatar.o: ../input/vsTrackingSystem.h++ ../input/vsSharedInputData.h++
+vsAvatar.o: /usr/include/sys/ipc.h /usr/include/bits/ipc.h
+vsAvatar.o: /usr/include/sys/shm.h /usr/include/bits/shm.h
+vsAvatar.o: /usr/include/sys/sem.h /usr/include/bits/sem.h
+vsAvatar.o: ../input/vsSerialMotionStar.h++ ../input/vsFastrak.h++
+vsAvatar.o: ../input/vsIS600.h++ ../input/vsEthernetMotionStar.h++
+vsAvatar.o: ../input/vsUDPUnicastNetworkInterface.h++
+vsAvatar.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+vsAvatar.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+vsAvatar.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+vsAvatar.o: /usr/include/asm/sockios.h /usr/include/netinet/in.h
+vsAvatar.o: /usr/include/bits/in.h /usr/include/bits/byteswap.h
+vsAvatar.o: /usr/include/arpa/inet.h /usr/include/netdb.h
+vsAvatar.o: /usr/include/rpc/netdb.h /usr/include/bits/netdb.h
+vsAvatar.o: ../input/vsUDPNetworkInterface.h++
+vsAvatar.o: ../input/vsNetworkInterface.h++ ../input/vsWSSpaceball.h++
+vsAvatar.o: ../input/vsSpaceball.h++ /usr/include/X11/extensions/XI.h
+vsAvatar.o: /usr/include/X11/extensions/XInput.h ../input/vsPinchGloveBox.h++
+vsAvatar.o: ../input/vsChordGloves.h++ ../input/vsCyberGloveBox.h++
+vsAvatar.o: ../input/vsArticulationGlove.h++ ../motion/vs3TrackerArm.h++
+vsAvatar.o: ../motion/vsMotionModel.h++ ../motion/vsKinematics.h++
+vsAvatar.o: ../scene/vsTransformAttribute.h++
+vsAvatar.o: /usr/include/Performer/pf/pfDCS.h
+vsAvatar.o: /usr/include/Performer/pf/pfSCS.h ../motion/vsCollision.h++
+vsAvatar.o: ../scene/vsIntersect.h++ ../motion/vsDrivingMotion.h++
+vsAvatar.o: ../motion/vsFlyingMotion.h++ ../motion/vsHeadMotion.h++
+vsAvatar.o: ../motion/vsTerrainFollow.h++ ../motion/vsTrackballMotion.h++
+vsAvatar.o: ../motion/vsTrackedMotion.h++ ../motion/vsWalkArticulation.h++
+vsAvatar.o: ../motion/vsWalkInPlace.h++ ../input/vsLinuxJoystickSystem.h++
+vsAvatar.o: /usr/include/linux/joystick.h /usr/include/asm/types.h
+vsAvatar.o: /usr/include/linux/input.h /usr/include/sys/ioctl.h
+vsAvatar.o: /usr/include/bits/ioctls.h /usr/include/asm/ioctls.h
+vsAvatar.o: /usr/include/asm/ioctl.h /usr/include/bits/ioctl-types.h
+vsConfigAvatar.o: vsConfigAvatar.h++ vsAvatar.h++ /usr/include/stdio.h
+vsConfigAvatar.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsConfigAvatar.o: /usr/include/gnu/stubs.h
+vsConfigAvatar.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsConfigAvatar.o: /usr/include/bits/types.h /usr/include/libio.h
+vsConfigAvatar.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsConfigAvatar.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsConfigAvatar.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsConfigAvatar.o: /usr/include/bits/stdio_lim.h
+vsConfigAvatar.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
+vsConfigAvatar.o: ../system/vsUpdatable.h++ ../system/vsSystem.h++
+vsConfigAvatar.o: ../system/vsPipe.h++ /usr/include/Performer/pf/pfPipe.h
+vsConfigAvatar.o: /usr/include/Performer/pf/pfUpdatable.h
+vsConfigAvatar.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
+vsConfigAvatar.o: /usr/include/sys/types.h /usr/include/time.h
+vsConfigAvatar.o: /usr/include/endian.h /usr/include/bits/endian.h
+vsConfigAvatar.o: /usr/include/sys/select.h /usr/include/bits/select.h
+vsConfigAvatar.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+vsConfigAvatar.o: /usr/include/sys/sysmacros.h /usr/include/ulocks.h
+vsConfigAvatar.o: /usr/include/malloc.h /usr/include/limits.h
+vsConfigAvatar.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/limits.h
+vsConfigAvatar.o: /usr/include/bits/posix1_lim.h
+vsConfigAvatar.o: /usr/include/bits/local_lim.h /usr/include/linux/limits.h
+vsConfigAvatar.o: /usr/include/bits/posix2_lim.h
+vsConfigAvatar.o: /usr/include/bits/xopen_lim.h /usr/include/unistd.h
+vsConfigAvatar.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+vsConfigAvatar.o: /usr/include/errno.h /usr/include/bits/errno.h
+vsConfigAvatar.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+vsConfigAvatar.o: /usr/include/X11/X.h /usr/include/X11/Xlib.h
+vsConfigAvatar.o: /usr/include/X11/Xfuncproto.h /usr/include/X11/Xosdefs.h
+vsConfigAvatar.o: /usr/include/X11/Xutil.h /usr/include/GL/gl.h
+vsConfigAvatar.o: /usr/include/GL/glx.h /usr/include/GL/glxtokens.h
+vsConfigAvatar.o: /usr/include/GL/glu.h /usr/include/Performer/opengl.h
+vsConfigAvatar.o: /usr/include/Performer/linuxstubs.h
+vsConfigAvatar.o: /usr/include/Performer/image.h /usr/include/stdlib.h
+vsConfigAvatar.o: /usr/include/bits/waitflags.h
+vsConfigAvatar.o: /usr/include/bits/waitstatus.h /usr/include/alloca.h
+vsConfigAvatar.o: /usr/include/string.h /usr/include/sys/prctl.h
+vsConfigAvatar.o: /usr/include/linux/prctl.h /usr/include/stdint.h
+vsConfigAvatar.o: /usr/include/bits/wordsize.h
+vsConfigAvatar.o: /usr/include/Performer/prmath.h /usr/include/math.h
+vsConfigAvatar.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsConfigAvatar.o: /usr/include/bits/mathcalls.h
+vsConfigAvatar.o: /usr/include/Performer/prstats.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfLinMath.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfObject.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfMemory.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfType.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfStruct.h
+vsConfigAvatar.o: /usr/include/Performer/pfstats.h
+vsConfigAvatar.o: /usr/include/Performer/pf/pfBuffer.h
+vsConfigAvatar.o: /usr/include/Performer/pf/pfUpdate.h
+vsConfigAvatar.o: /usr/include/Performer/pf/pfLists.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfVideoChannel.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfList.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfCalligraphic.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfStats.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfDispList.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfGeoState.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfState.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfByteBank.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfGSetBank.h
+vsConfigAvatar.o: ../system/vsGlobals.h++ ../system/vsScreen.h++
+vsConfigAvatar.o: ../system/vsWindow.h++
+vsConfigAvatar.o: /usr/include/Performer/pf/pfPipeWindow.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfWindow.h ../system/vsPane.h++
+vsConfigAvatar.o: /usr/include/Performer/pf/pfChannel.h
+vsConfigAvatar.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
+vsConfigAvatar.o: /usr/include/Performer/pf/pfEarthSky.h
+vsConfigAvatar.o: /usr/include/Performer/pf/pfLODState.h
+vsConfigAvatar.o: /usr/include/Performer/pf/pfFrameStats.h
+vsConfigAvatar.o: /usr/include/Performer/pf/pfScene.h
+vsConfigAvatar.o: /usr/include/Performer/pf/pfGroup.h
+vsConfigAvatar.o: /usr/include/Performer/pf/pfNode.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfGeoMath.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfGeoSet.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfFlux.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfEngine.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfCycleBuffer.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfPassList.h
+vsConfigAvatar.o: /usr/include/Performer/pr/pfFBState.h ../system/vsView.h++
+vsConfigAvatar.o: ../math/vsVector.h++ ../math/vsMatrix.h++
+vsConfigAvatar.o: ../math/vsQuat.h++ ../scene/vsViewpointAttribute.h++
+vsConfigAvatar.o: ../scene/vsComponent.h++ ../system/vsGrowableArray.h++
+vsConfigAvatar.o: ../scene/vsAttribute.h++ ../system/vsObject.h++
+vsConfigAvatar.o: ../scene/vsNode.h++ ../system/vsDatabaseLoader.h++
+vsConfigAvatar.o: /usr/include/Performer/pfdb/pfflt.h
+vsConfigAvatar.o: ../input/vsWindowSystem.h++ /usr/include/X11/Xos.h
+vsConfigAvatar.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+vsConfigAvatar.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+vsConfigAvatar.o: /usr/include/sys/time.h /usr/include/X11/Xarch.h
+vsConfigAvatar.o: ../input/vsInputSystem.h++ ../input/vsMouse.h++
+vsConfigAvatar.o: ../input/vsInputDevice.h++ ../input/vsInputAxis.h++
+vsConfigAvatar.o: ../input/vsInputButton.h++ ../input/vsKeyboard.h++
+vsConfigAvatar.o: /usr/include/X11/keysym.h /usr/include/X11/keysymdef.h
+vsConfigAvatar.o: ../system/vsObjectMap.h++ ../system/vsTreeMap.h++
+vsConfigAvatar.o: ../system/vsGraphicsState.h++
+vsConfigAvatar.o: ../scene/vsBackfaceAttribute.h++
+vsConfigAvatar.o: ../scene/vsStateAttribute.h++ ../scene/vsFogAttribute.h++
+vsConfigAvatar.o: /usr/include/Performer/pr/pfFog.h
+vsConfigAvatar.o: ../scene/vsMaterialAttribute.h++
+vsConfigAvatar.o: /usr/include/Performer/pr/pfMaterial.h
+vsConfigAvatar.o: ../scene/vsShadingAttribute.h++
+vsConfigAvatar.o: ../scene/vsTextureAttribute.h++
+vsConfigAvatar.o: /usr/include/Performer/pr/pfTexture.h
+vsConfigAvatar.o: /usr/include/Performer/image.h
+vsConfigAvatar.o: ../scene/vsTransparencyAttribute.h++
+vsConfigAvatar.o: ../scene/vsWireframeAttribute.h++
+vsConfigAvatar.o: ../scene/vsLightAttribute.h++
+vsConfigAvatar.o: /usr/include/Performer/pr/pfLight.h
+vsConfigAvatar.o: /usr/include/Performer/pf/pfLightSource.h
+vsConfigAvatar.o: ../scene/vsOptimizer.h++ ../scene/vsGeometry.h++
+vsConfigAvatar.o: /usr/include/Performer/pf/pfGeode.h
+vsConfigAvatar.o: ../motion/vsKinematics.h++
+vsConfigAvatar.o: ../scene/vsTransformAttribute.h++
+vsConfigAvatar.o: /usr/include/Performer/pf/pfDCS.h
+vsConfigAvatar.o: /usr/include/Performer/pf/pfSCS.h
+vsGhostFlyAvatar.o: vsGhostFlyAvatar.h++ vsAvatar.h++ /usr/include/stdio.h
+vsGhostFlyAvatar.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsGhostFlyAvatar.o: /usr/include/gnu/stubs.h
+vsGhostFlyAvatar.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
+vsGhostFlyAvatar.o: /usr/include/bits/types.h /usr/include/libio.h
+vsGhostFlyAvatar.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsGhostFlyAvatar.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+vsGhostFlyAvatar.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
+vsGhostFlyAvatar.o: /usr/include/bits/stdio_lim.h
+vsGhostFlyAvatar.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
+vsGhostFlyAvatar.o: ../system/vsUpdatable.h++ ../system/vsSystem.h++
+vsGhostFlyAvatar.o: ../system/vsPipe.h++ /usr/include/Performer/pf/pfPipe.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfUpdatable.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
+vsGhostFlyAvatar.o: /usr/include/sys/types.h /usr/include/time.h
+vsGhostFlyAvatar.o: /usr/include/endian.h /usr/include/bits/endian.h
+vsGhostFlyAvatar.o: /usr/include/sys/select.h /usr/include/bits/select.h
+vsGhostFlyAvatar.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+vsGhostFlyAvatar.o: /usr/include/sys/sysmacros.h /usr/include/ulocks.h
+vsGhostFlyAvatar.o: /usr/include/malloc.h /usr/include/limits.h
+vsGhostFlyAvatar.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/limits.h
+vsGhostFlyAvatar.o: /usr/include/bits/posix1_lim.h
+vsGhostFlyAvatar.o: /usr/include/bits/local_lim.h /usr/include/linux/limits.h
+vsGhostFlyAvatar.o: /usr/include/bits/posix2_lim.h
+vsGhostFlyAvatar.o: /usr/include/bits/xopen_lim.h /usr/include/unistd.h
+vsGhostFlyAvatar.o: /usr/include/bits/posix_opt.h
+vsGhostFlyAvatar.o: /usr/include/bits/confname.h /usr/include/errno.h
+vsGhostFlyAvatar.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+vsGhostFlyAvatar.o: /usr/include/asm/errno.h /usr/include/X11/X.h
+vsGhostFlyAvatar.o: /usr/include/X11/Xlib.h /usr/include/X11/Xfuncproto.h
+vsGhostFlyAvatar.o: /usr/include/X11/Xosdefs.h /usr/include/X11/Xutil.h
+vsGhostFlyAvatar.o: /usr/include/GL/gl.h /usr/include/GL/glx.h
+vsGhostFlyAvatar.o: /usr/include/GL/glxtokens.h /usr/include/GL/glu.h
+vsGhostFlyAvatar.o: /usr/include/Performer/opengl.h
+vsGhostFlyAvatar.o: /usr/include/Performer/linuxstubs.h
+vsGhostFlyAvatar.o: /usr/include/Performer/image.h /usr/include/stdlib.h
+vsGhostFlyAvatar.o: /usr/include/bits/waitflags.h
+vsGhostFlyAvatar.o: /usr/include/bits/waitstatus.h /usr/include/alloca.h
+vsGhostFlyAvatar.o: /usr/include/string.h /usr/include/sys/prctl.h
+vsGhostFlyAvatar.o: /usr/include/linux/prctl.h /usr/include/stdint.h
+vsGhostFlyAvatar.o: /usr/include/bits/wordsize.h
+vsGhostFlyAvatar.o: /usr/include/Performer/prmath.h /usr/include/math.h
+vsGhostFlyAvatar.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsGhostFlyAvatar.o: /usr/include/bits/mathcalls.h
+vsGhostFlyAvatar.o: /usr/include/Performer/prstats.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfLinMath.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfObject.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfMemory.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfType.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfStruct.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pfstats.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfBuffer.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfUpdate.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfLists.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfVideoChannel.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfList.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfCalligraphic.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfStats.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfDispList.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfGeoState.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfState.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfByteBank.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfGSetBank.h
+vsGhostFlyAvatar.o: ../system/vsGlobals.h++ ../system/vsScreen.h++
+vsGhostFlyAvatar.o: ../system/vsWindow.h++
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfPipeWindow.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfWindow.h ../system/vsPane.h++
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfChannel.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfEarthSky.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfLODState.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfFrameStats.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfScene.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfGroup.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfNode.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfGeoMath.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfGeoSet.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfFlux.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfEngine.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfCycleBuffer.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfPassList.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfFBState.h
+vsGhostFlyAvatar.o: ../system/vsView.h++ ../math/vsVector.h++
+vsGhostFlyAvatar.o: ../math/vsMatrix.h++ ../math/vsQuat.h++
+vsGhostFlyAvatar.o: ../scene/vsViewpointAttribute.h++
+vsGhostFlyAvatar.o: ../scene/vsComponent.h++ ../system/vsGrowableArray.h++
+vsGhostFlyAvatar.o: ../scene/vsAttribute.h++ ../system/vsObject.h++
+vsGhostFlyAvatar.o: ../scene/vsNode.h++ ../system/vsDatabaseLoader.h++
+vsGhostFlyAvatar.o: /usr/include/Performer/pfdb/pfflt.h
+vsGhostFlyAvatar.o: ../input/vsWindowSystem.h++ /usr/include/X11/Xos.h
+vsGhostFlyAvatar.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+vsGhostFlyAvatar.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+vsGhostFlyAvatar.o: /usr/include/sys/time.h /usr/include/X11/Xarch.h
+vsGhostFlyAvatar.o: ../input/vsInputSystem.h++ ../input/vsMouse.h++
+vsGhostFlyAvatar.o: ../input/vsInputDevice.h++ ../input/vsInputAxis.h++
+vsGhostFlyAvatar.o: ../input/vsInputButton.h++ ../input/vsKeyboard.h++
+vsGhostFlyAvatar.o: /usr/include/X11/keysym.h /usr/include/X11/keysymdef.h
+vsGhostFlyAvatar.o: ../system/vsObjectMap.h++ ../system/vsTreeMap.h++
+vsGhostFlyAvatar.o: ../system/vsGraphicsState.h++
+vsGhostFlyAvatar.o: ../scene/vsBackfaceAttribute.h++
+vsGhostFlyAvatar.o: ../scene/vsStateAttribute.h++ ../scene/vsFogAttribute.h++
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfFog.h
+vsGhostFlyAvatar.o: ../scene/vsMaterialAttribute.h++
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfMaterial.h
+vsGhostFlyAvatar.o: ../scene/vsShadingAttribute.h++
+vsGhostFlyAvatar.o: ../scene/vsTextureAttribute.h++
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfTexture.h
+vsGhostFlyAvatar.o: /usr/include/Performer/image.h
+vsGhostFlyAvatar.o: ../scene/vsTransparencyAttribute.h++
+vsGhostFlyAvatar.o: ../scene/vsWireframeAttribute.h++
+vsGhostFlyAvatar.o: ../scene/vsLightAttribute.h++
+vsGhostFlyAvatar.o: /usr/include/Performer/pr/pfLight.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfLightSource.h
+vsGhostFlyAvatar.o: ../scene/vsOptimizer.h++ ../scene/vsGeometry.h++
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfGeode.h
+vsGhostFlyAvatar.o: ../motion/vsKinematics.h++
+vsGhostFlyAvatar.o: ../scene/vsTransformAttribute.h++
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfDCS.h
+vsGhostFlyAvatar.o: /usr/include/Performer/pf/pfSCS.h
+vsGhostFlyAvatar.o: ../motion/vsFlyingMotion.h++ ../motion/vsMotionModel.h++

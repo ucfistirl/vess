@@ -151,7 +151,7 @@ void vsAvatar::init(char *configFile)
         newObject = createObject(objectType);
         
         // Add the object, the object name, and the object type
-        // to the respective array
+        // to their respective arrays
         addObjectToArrays(newObject, objectName, objectType);
     }
     
@@ -191,14 +191,17 @@ vsNode *vsAvatar::getGeometry()
 // Protected function
 // Adds an object and its associated string data to the arrays that hold
 // the current configuration objects. Has no effect if the avatar is not
-// currently being initialized. The strings passed in are duplicated; the
-// space they occupy can be reused after this function finishes.
+// currently being initialized. The arrays store the pointer to the given
+// object but only make copies of the name and type strings; the space for
+// those strings should be reused or deleted afterwards.
 // ------------------------------------------------------------------------
 void vsAvatar::addObjectToArrays(void *object, char *name, char *type)
 {
     if (!objectArray)
         return;
 
+    // Store the given data in our data arrays and increment the
+    // current-stored-nuber-of-objects counter
     objectArray->setData(objectCount, object);
     objNameArray->setData(objectCount, strdup(name));
     objTypeArray->setData(objectCount, strdup(type));
@@ -219,18 +222,22 @@ int vsAvatar::readCfgLine(char *buffer)
 {
     char *p;
     char inBuffer[256], keyword[256];
-    int goodLine = 0;
     
+    // If there's no currently open configuration file, then just return
+    // an 'end' value
     if (!cfgFile)
         return VS_AVT_LINE_END;
 
+    // Strip whitespace
     fscanf(cfgFile, " \n");
+
+    // If at the end-of-file, return an 'end' value
     if (feof(cfgFile))
         return VS_AVT_LINE_END;
 
     // Keep trying until we get a good line, or we run out of
     // config file
-    while (!goodLine)
+    while (1)
     {
         // Clear whitespace and check for end-of-file
         fscanf(cfgFile, " \n");
@@ -292,6 +299,7 @@ int vsAvatar::readCfgLine(char *buffer)
         }
     }
     
+    // Shouldn't ever reach this line
     return VS_AVT_LINE_END;
 }
 
@@ -305,16 +313,19 @@ void *vsAvatar::findObject(char *targetStr)
 {
     int loop;
 
+    // If the target is NULL, or if the object arrays aren't currently
+    // in use, abort.
     if (!targetStr || !objectArray)
         return NULL;
 
     // Look for an object with the given name
     for (loop = 0; loop < objectCount; loop++)
     {
+        // Check the target name against the loop'th object's name
         if (strcmp(targetStr,
             (const char *)(objNameArray->getData(loop))) == 0)
         {
-            // Found it!  Return a handle to the associated object
+            // Found it!  Return a pointer to the associated object
             return objectArray->getData(loop);
         }
     }
@@ -327,7 +338,7 @@ void *vsAvatar::findObject(char *targetStr)
 // ------------------------------------------------------------------------
 // Protected function
 // Initiates construction of an object of the type specified by the given
-// string. The various make* function do the actual work of creating the
+// string. The various make* functions do the actual work of creating the
 // requested object. If this function is overridden, it should still be
 // called from the child class' version to handle the object types listed
 // here. All of the make* functions have access to the configuration file
@@ -335,6 +346,9 @@ void *vsAvatar::findObject(char *targetStr)
 // ------------------------------------------------------------------------
 void *vsAvatar::createObject(char *idString)
 {
+    // Hand off processing to the object creation function corresponding
+    // to the given type name
+
     if (!strcmp(idString, "geometry"))
         return makeGeometry();
     else if (!strcmp(idString, "viewpoint"))
@@ -388,6 +402,7 @@ void *vsAvatar::createObject(char *idString)
         return makeVsLinuxJoystickSystem();
 #endif
     
+    // If the type name is unrecognized, just return NULL
     return NULL;
 }
 
@@ -415,6 +430,7 @@ void vsAvatar::setup()
 void vsAvatar::setup(vsGrowableArray *objArray, vsGrowableArray *strArray,
     int objCount)
 {
+    // We should never get here
     printf("vsAvatar::setup: A subclass of vsAvatar must override "
         "the setup function to operate\n");
     isInitted = 0;
@@ -447,12 +463,15 @@ void *vsAvatar::makeGeometry()
     result = NULL;
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "name"))
         {
             // Add the given name to the loader's "important node name" list
@@ -461,7 +480,7 @@ void *vsAvatar::makeGeometry()
         }
         else if (!strcmp(token, "clearnames"))
         {
-            // Clear the loaders "important node name" list
+            // Clear the loader's "important node name" list
             dbLoader->clearNames();
         }
         else if (!strcmp(token, "allnames"))
@@ -521,9 +540,11 @@ void *vsAvatar::makeGeometry()
                 token);
     }
 
+    // Attempt to load the specified database file
     if (emptyFlag)
     {
-        // If the empty flag is set, just create a vsComponent with no children
+        // If the empty flag is set, then there's no file to load;
+	// just create a vsComponent with no children
         result = new vsComponent();
     }
     else if (strlen(dbName) > 0)
@@ -546,6 +567,7 @@ void *vsAvatar::makeGeometry()
     if (autoAdd && masterScene)
         masterScene->addChild(result);
     
+    // Return the component with the geometry attached
     return result;
 }
 
@@ -582,20 +604,30 @@ void *vsAvatar::makeViewpoint()
     // Try to read all the parameters
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "geometry"))
         {
-            // Find the vsComponent in the avatar's scene graph
+            // Read in the name(s) of the object to find
             lineLen = sscanf(cfgLine, "%*s %s %s", geoObjectName, nodeName);
+
+            // Find the vsComponent in the avatar's scene graph
             if (lineLen < 2)
+	    {
+		// Search directly for the specified node
                 geom = (vsComponent *)(findObject(geoObjectName));
+	    }
             else
             {
+		// Search for the first node, and then search under that
+		// one for the second node
                 root = (vsComponent *)(findObject(geoObjectName));
                 if (root)
                     geom = (vsComponent *)(root->findNodeByName(nodeName));
@@ -656,6 +688,7 @@ void *vsAvatar::makeViewpoint()
     offsetMat = offsetMat * tempMat;
     result->setOffsetMatrix(offsetMat);
 
+    // Return the create viewpoint attribute
     return result;
 }
 
@@ -690,12 +723,15 @@ void *vsAvatar::makeInputDevice()
     // Read all of the parameters for this object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "joystickBox"))
         {
             // Get a vsJoystick from a vsJoystickBox
@@ -704,16 +740,6 @@ void *vsAvatar::makeInputDevice()
             if (joyBox)
                 result = joyBox->getJoystick(objNum);
         }
-#ifdef __linux__
-        else if (!strcmp(token, "linuxJoystickSystem"))
-        {
-            // Get a vsJoystick from a vsLinuxJoystickSystem
-            sscanf(cfgLine, "%*s %s", objName);
-            joySys = (vsLinuxJoystickSystem *)(findObject(objName));
-            if (joySys)
-                result = joySys->getJoystick();
-        }
-#endif
         else if (!strcmp(token, "trackingSystem"))
         {
             // Get a vsMotionTracker from a vsTrackingSystem
@@ -732,14 +758,20 @@ void *vsAvatar::makeInputDevice()
         }
         else if (!strcmp(token, "windowSystem"))
         {
-            // Get a vsMouse or vsKeyboard from a vsWindowSystem
+            // * Get a vsMouse or vsKeyboard from a vsWindowSystem
             sscanf(cfgLine, "%*s %d %d %s", &screenIdx, &windowIdx, objName);
+
+	    // Attempt to obtain the specified screen
             screen = (vsSystem::systemObject)->getScreen(screenIdx);
             if (screen)
             {
+		// Attempt to obtain the specified window
                 window = screen->getChildWindow(windowIdx);
                 if (window)
                 {
+		    // Obtain the vsWindowSystem object from the specified
+		    // window; if it doesn't have one, create a new one
+		    // and add it to the avatar's arrays.
                     wsys = window->getWSystem();
                     if (!wsys)
                     {
@@ -747,6 +779,8 @@ void *vsAvatar::makeInputDevice()
                         addObjectToArrays(wsys, "vsWindowSystem",
                             "vsWindowSystem");
                     }
+
+                    // Determine if a keyboard or mouse is desired
                     if (!strcmp(objName, "mouse"))
                         result = wsys->getMouse();
                     else if (!strcmp(objName, "keyboard"))
@@ -774,14 +808,26 @@ void *vsAvatar::makeInputDevice()
             if (cyberBox)
                 result = cyberBox->getGlove();
         }
+#ifdef __linux__
+        else if (!strcmp(token, "linuxJoystickSystem"))
+        {
+            // Get a vsJoystick from a vsLinuxJoystickSystem
+            sscanf(cfgLine, "%*s %s", objName);
+            joySys = (vsLinuxJoystickSystem *)(findObject(objName));
+            if (joySys)
+                result = joySys->getJoystick();
+        }
+#endif
         else
             printf("vsAvatar::makeInputDevice: Unrecognized token '%s'\n",
                 token);
     }
     
+    // Error checking
     if (!result)
         printf("vsAvatar::makeInputDevice: No vsInputSystem specified\n");
 
+    // Return the created input device
     return result;
 }
 
@@ -800,12 +846,15 @@ void *vsAvatar::makeVsISTJoystickBox()
     // Read all the parameters
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "port"))
         {
             // Set the serial port for the joystick box
@@ -844,12 +893,15 @@ void *vsAvatar::makeVsUnwinder()
     // Read the parameters
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "port"))
         {
             // Set the serial port for the box
@@ -877,6 +929,8 @@ void *vsAvatar::makeVsUnwinder()
         return NULL;
     }
 
+    // Create the unwinder object with the specified parameters and
+    // return it
     return (new vsUnwinder(portNumber, joy1, joy2));
 }
 
@@ -896,12 +950,15 @@ void *vsAvatar::makeVsLinuxJoystickSystem()
     // Read the parameters for the object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
 
+        // Interpret the first token
         if (!strcmp(token, "port"))
         {
             // Set the port (actually the device file) for the object
@@ -921,6 +978,8 @@ void *vsAvatar::makeVsLinuxJoystickSystem()
         return NULL;
     }
 
+    // Create the joystick system object with the specified parameters and
+    // return it
     return (new vsLinuxJoystickSystem(portName));
 }
 #endif
@@ -947,17 +1006,21 @@ void *vsAvatar::makeVsFlockOfBirds()
     int forkFlag = 0;
     vsFlockOfBirds *result;
     
+    // Set the first port number to a sentinel value
     portNumbers[0] = -1;
 
     // Read the parameters for the object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "port"))
         {
             // Set the serial port
@@ -1074,6 +1137,7 @@ void *vsAvatar::makeVsFlockOfBirds()
     if (forkFlag)
         result->forkTracking();
 
+    // Return the created flock of birds object
     return result;
 }
 
@@ -1098,17 +1162,21 @@ void *vsAvatar::makeVsSerialMotionStar()
     int forkFlag = 0;
     vsSerialMotionStar *result;
     
+    // Set the first port number to a sentinel value
     portNumbers[0] = -1;
 
     // Read the parameters
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "port"))
         {
             // Set the serial port
@@ -1132,6 +1200,7 @@ void *vsAvatar::makeVsSerialMotionStar()
             // Set the data format to use
             sscanf(cfgLine, "%*s %s", strValue);
             
+            // Interpret the data format string constant
             if (!strcmp(strValue, "VS_AS_DATA_POSITION"))
                 dataFormat = VS_AS_DATA_POSITION;
             else if (!strcmp(strValue, "VS_AS_DATA_ANGLES"))
@@ -1211,6 +1280,7 @@ void *vsAvatar::makeVsSerialMotionStar()
     if (forkFlag)
         result->forkTracking();
 
+    // Return the created motion star object
     return result;
 }
 
@@ -1236,12 +1306,15 @@ void *vsAvatar::makeVsFastrak()
     // Read all the parameters for this object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
 
+        // Interpret the first token
         if (!strcmp(token, "port"))
         {
             // Set the serial port
@@ -1294,6 +1367,7 @@ void *vsAvatar::makeVsFastrak()
     if (forkFlag)
         result->forkTracking();
 
+    // Return the created Fastrak object
     return result;
 }
 
@@ -1316,12 +1390,15 @@ void *vsAvatar::makeVsIS600()
     // Read all of the settings for this object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
 
+        // Interpret the first token
         if (!strcmp(token, "port"))
         {
             // Set the serial port
@@ -1361,6 +1438,7 @@ void *vsAvatar::makeVsIS600()
     if (forkFlag)
         result->forkTracking();
 
+    // Return the created IS600 object
     return result;
 }
 
@@ -1383,17 +1461,21 @@ void *vsAvatar::makeVsEthernetMotionStar()
     int forkFlag = 0;
     vsEthernetMotionStar *result;
     
+    // Clear the server name as a sentinel value
     serverName[0] = 0;
 
     // Read all the parameters for this object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "port"))
         {
             // Set the UDP or TCP port used by the system
@@ -1497,6 +1579,7 @@ void *vsAvatar::makeVsEthernetMotionStar()
     if (forkFlag)
         result->forkTracking();
 
+    // Return the created motion star object
     return result;
 }
 
@@ -1519,15 +1602,19 @@ void *vsAvatar::makeVsWSSpaceball()
     // Read the settings for this object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "window"))
         {
-            // Set which window this spaceball is attached to
+            // Set which window this spaceball is attached to. If the
+	    // screen or window number is invalid, no action is taken.
             sscanf(cfgLine, "%*s %d %d", &screenNum, &windowNum);
             screen = (vsSystem::systemObject)->getScreen(screenNum);
             if (screen)
@@ -1540,6 +1627,8 @@ void *vsAvatar::makeVsWSSpaceball()
                     wsys = window->getWSystem();
                     if (!wsys)
                     {
+                        // Create a new window system object on the
+			// specified window
                         wsys = new vsWindowSystem(window);
                         addObjectToArrays(wsys, "vsWindowSystem",
                             "vsWindowSystem");
@@ -1584,12 +1673,15 @@ void *vsAvatar::makeVsPinchGloveBox()
     // Get the settings for this object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "port"))
         {
             // Set the serial port
@@ -1630,14 +1722,18 @@ void *vsAvatar::makeVsCyberGloveBox()
     int baud = 9600;
     int numSensors = 0;
 
+    // Read all the parameters for this object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "port"))
         {
             // Set the serial port
@@ -1693,20 +1789,32 @@ void *vsAvatar::makeVsKinematics()
     // Read all the parameters for this object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "geometry"))
         {
             // Set the vsComponent that this kinematics object will control
+
+            // Read in the name(s) of the object to find
             lineLen = sscanf(cfgLine, "%*s %s %s", geoObjectName, nodeName);
+
+            // Find the vsComponent in the avatar's scene graph
             if (lineLen < 2)
+	    {
+		// Search directly for the specified node
                 geom = (vsComponent *)(findObject(geoObjectName));
+	    }
             else
             {
+		// Search for the first node, and then search under that
+		// one for the second node
                 root = (vsComponent *)(findObject(geoObjectName));
                 if (root)
                     geom = (vsComponent *)(root->findNodeByName(nodeName));
@@ -1761,6 +1869,7 @@ void *vsAvatar::makeVsKinematics()
     result->setPosition(startPos);
     result->setOrientation(startOrient);
     
+    // Return the created vsKinematics object
     return result;
 }
 
@@ -1799,12 +1908,15 @@ void *vsAvatar::makeVs3TrackerArm()
     // Read all the parameter settings
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "tracker"))
         {
             // Set one of the arm trackers
@@ -1886,6 +1998,7 @@ void *vsAvatar::makeVs3TrackerArm()
     result->setWristPreRot(preRotations[2]);
     result->setWristPostRot(postRotations[2]);
 
+    // Return the created vs3TrackerArm object
     return result;
 }
 
@@ -1914,12 +2027,15 @@ void *vsAvatar::makeVsCollision()
     // Read the parameters for this object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "kinematics"))
         {
             // Set the kinematics that will be collided
@@ -2017,6 +2133,7 @@ void *vsAvatar::makeVsCollision()
     result->setIntersectMask(isectMask);
     result->setMargin(margin);
     
+    // Return the created vsCollision object
     return result;
 }
 
@@ -2050,12 +2167,15 @@ void *vsAvatar::makeVsDrivingMotion()
     // Read the parameters for this object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "kinematics"))
         {
             // Set the kinematics object
@@ -2218,6 +2338,7 @@ void *vsAvatar::makeVsDrivingMotion()
     result->setSteeringMode(steering);
     result->setSteeringRate(steeringRate);
     
+    // Return the created vsDrivingMotion object
     return result;
 }
 
@@ -2253,12 +2374,15 @@ void *vsAvatar::makeVsFlyingMotion()
     // Read in the object parameters
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "kinematics"))
         {
             // Set the kinematics
@@ -2438,6 +2562,7 @@ void *vsAvatar::makeVsFlyingMotion()
     result->setTurningRate(turnRate);
     result->setMaxSpeed(maxSpeed);
 
+    // Return the created vsFlyingMotion object
     return result;
 }
 
@@ -2460,17 +2585,22 @@ void *vsAvatar::makeVsHeadMotion()
     vsHeadMotion *result;
     double h, p, r;
     
+    // Initialize the tracker pointer values to sentinel values
     trackers[0] = NULL;
     trackers[1] = NULL;
 
+    // Read in the object parameters
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "kinematics"))
         {
             // Set the kinematics object
@@ -2537,6 +2667,7 @@ void *vsAvatar::makeVsHeadMotion()
     // Set the orientation offset
     result->setOrientationOffset(oriOffset);
     
+    // Return the created vsHeadMotion object
     return result;
 }
 
@@ -2561,12 +2692,15 @@ void *vsAvatar::makeVsTerrainFollow()
     // Read all of the parameters for the object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "kinematics"))
         {
             // Set the kinematics object
@@ -2618,6 +2752,7 @@ void *vsAvatar::makeVsTerrainFollow()
     result->setStepHeight(stepHeight);
     result->setIntersectMask(isectMask);
 
+    // Return the created vsTerrainFollow object
     return result;
 }
 
@@ -2648,12 +2783,15 @@ void *vsAvatar::makeVsTrackballMotion()
     // Read all the parameters for the object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "kinematics"))
         {
             // Set the kinematics object
@@ -2668,7 +2806,8 @@ void *vsAvatar::makeVsTrackballMotion()
         }
         else if (!strcmp(token, "horizontalAxis"))
         {
-            // Set the horizontal axis
+            // Read the name of the input device to find and the number
+	    // of the axis to use from it
             sscanf(cfgLine, "%*s %s %d", objName, &objNum);
 
             // Find the specified input device and extract the specified
@@ -2679,16 +2818,20 @@ void *vsAvatar::makeVsTrackballMotion()
         }
         else if (!strcmp(token, "verticalAxis"))
         {
+            // Read the name of the input device to find and the number
+	    // of the axis to use from it
             sscanf(cfgLine, "%*s %s %d", objName, &objNum);
-            inputDev = (vsInputDevice *)(findObject(objName));
 
             // Find the specified input device and extract the specified
             // axis from it
+            inputDev = (vsInputDevice *)(findObject(objName));
             if (inputDev)
                 vertiAxis = inputDev->getAxis(objNum);
         }
         else if (!strcmp(token, "xyButton"))
         {
+            // Read the name of the input device to find and the number
+	    // of the button to use from it
             sscanf(cfgLine, "%*s %s %d", objName, &objNum);
 
             // Find the specified input device and extract the specified
@@ -2699,21 +2842,25 @@ void *vsAvatar::makeVsTrackballMotion()
         }
         else if (!strcmp(token, "zButton"))
         {
+            // Read the name of the input device to find and the number
+	    // of the button to use from it
             sscanf(cfgLine, "%*s %s %d", objName, &objNum);
-            inputDev = (vsInputDevice *)(findObject(objName));
 
             // Find the specified input device and extract the specified
             // button from it
+            inputDev = (vsInputDevice *)(findObject(objName));
             if (inputDev)
                 zBtn = inputDev->getButton(objNum);
         }
         else if (!strcmp(token, "rotateButton"))
         {
+            // Read the name of the input device to find and the number
+	    // of the button to use from it
             sscanf(cfgLine, "%*s %s %d", objName, &objNum);
-            inputDev = (vsInputDevice *)(findObject(objName));
 
             // Find the specified input device and extract the specified
             // button from it
+            inputDev = (vsInputDevice *)(findObject(objName));
             if (inputDev)
                 rotBtn = inputDev->getButton(objNum);
         }
@@ -2765,6 +2912,7 @@ void *vsAvatar::makeVsTrackballMotion()
     result->setTranslationConstant(translate);
     result->setRotationConstant(rotate);
     
+    // Return the created vsTrackballMotion object
     return result;
 }
 
@@ -2794,12 +2942,15 @@ void *vsAvatar::makeVsTrackedMotion()
     // Read the parameters for the object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "kinematics"))
         {
             // Set the kinematics object
@@ -2875,6 +3026,7 @@ void *vsAvatar::makeVsTrackedMotion()
     result->setOrientationOffset(oriOffset);
     result->setPositionScale(posScale);
     
+    // Return the created vsTrackedMotion object
     return result;
 }
 
@@ -2904,12 +3056,15 @@ void *vsAvatar::makeVsWalkArticulation()
     // Read the parameters for the object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "kinematics"))
         {
             // Set the main kinematics object
@@ -2964,12 +3119,17 @@ void *vsAvatar::makeVsWalkArticulation()
         return NULL;
     }
 
+    // Create the vsWalkArticulation object using the vsKinematics
+    // object and the name of the articulation data file
     result = new vsWalkArticulation(kinematics, dataFilename);
     
+    // For each joint that was specified, pass that joint's vsKinematics
+    // object to the walk articulation object
     for (loop = 0; loop < VS_WALK_ARTIC_JOINT_COUNT; loop++)
         if (jointKins[loop])
             result->setJointKinematics(loop, jointKins[loop]);
     
+    // Return the created vsWalkArticulation object
     return result;
 }
 
@@ -3009,12 +3169,15 @@ void *vsAvatar::makeVsWalkInPlace()
     // Read in parameters for the object
     while (lineType != VS_AVT_LINE_END)
     {
+        // Get the next line from the config file
         lineType = readCfgLine(cfgLine);
         if (lineType != VS_AVT_LINE_PARAM)
             continue;
 
+        // Read the first token on the config line
         sscanf(cfgLine, "%s", token);
         
+        // Interpret the first token
         if (!strcmp(token, "kinematics"))
         {
             // Set the kinematics object
@@ -3142,5 +3305,6 @@ void *vsAvatar::makeVsWalkInPlace()
     else
         result->disableMovementLimit();
     
+    // Return the created vsWalkInPlace object
     return result;
 }
