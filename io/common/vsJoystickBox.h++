@@ -30,7 +30,7 @@ class VS_IO_DLL vsJoystickBox : public vsInputSystem
 public:
 
                           vsJoystickBox();
-                          ~vsJoystickBox();
+    virtual               ~vsJoystickBox();
 
     virtual int           getNumJoysticks() = 0;
     virtual vsJoystick    *getJoystick() = 0;

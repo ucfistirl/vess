@@ -158,7 +158,7 @@ VS_INTERNAL:
 
 public:
                      vsArticulationGlove(int estDistal);
-                     ~vsArticulationGlove();
+    virtual          ~vsArticulationGlove();
 
     // Inherited methods
     virtual const char    *getClassName();

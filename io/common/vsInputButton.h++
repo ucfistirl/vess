@@ -56,8 +56,8 @@ VS_INTERNAL:
 
 public:
   
-                            vsInputButton(void);
-                            ~vsInputButton(void);
+                            vsInputButton();
+    virtual                 ~vsInputButton();
 
     virtual const char *    getClassName();
 

@@ -43,7 +43,7 @@ public:
 
                           vsMotionTracker(int trackerNum);
                           vsMotionTracker();
-                          ~vsMotionTracker();
+    virtual               ~vsMotionTracker();
 
     virtual const char    *getClassName();
 

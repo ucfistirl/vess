@@ -83,7 +83,7 @@ public:
 
                             vsInputAxis();
                             vsInputAxis(double minPos, double maxPos);
-                            ~vsInputAxis();
+    virtual                 ~vsInputAxis();
 
     virtual const char *    getClassName();
 

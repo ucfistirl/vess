@@ -91,7 +91,7 @@ public:
 
     // Constructor/Destructor
                              vsChordGloves();
-                             ~vsChordGloves();
+    virtual                  ~vsChordGloves();
 
     // Inherited functions
     virtual const char       *getClassName();

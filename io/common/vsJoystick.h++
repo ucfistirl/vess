@@ -53,7 +53,7 @@ public:
                 vsJoystick(int nAxes, int nButtons, 
                            double axisMin, double axisMax);
                 vsJoystick(int nAxes, int nButtons);
-                ~vsJoystick();
+    virtual     ~vsJoystick();
 
     // Inherited methods
     virtual const char       *getClassName();
