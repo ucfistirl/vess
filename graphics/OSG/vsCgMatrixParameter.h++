@@ -47,7 +47,7 @@ public:
     virtual const char           *getClassName();
     virtual vsCgParameterType    getCgParameterType();
 
-    void                         set(vsMatrix value);
+    void                         set(const vsMatrix &value);
 };
 
 #endif

@@ -49,7 +49,7 @@ public:
     void                         set(double x, double y);
     void                         set(double x, double y, double z);
     void                         set(double x, double y, double z, double w);
-    void                         set(vsVector value);
+    void                         set(const vsVector &value);
 };
 
 #endif
