@@ -88,7 +88,6 @@ int vsKeyboard::mapToButton(KeySym keySym)
     }
     else if ((keySym >= XK_F1) && (keySym <= XK_F12))
     {
-        printf("function key pressed!\n");
         return (keySym - XK_F1 + 1);
     }
     else if ((keySym >= XK_Home) && (keySym <= XK_End))
@@ -480,7 +479,7 @@ void vsKeyboard::setCommandKey(int keyIndex)
 {
     if (keyIndex < numButtons)
     {
-        if ((keyIndex >= 'a') || (keyIndex <= 'z'))
+        if ((keyIndex >= 'a') && (keyIndex <= 'z'))
             keyIndex -= 0x20;
 
         commandKey = keyIndex;
