@@ -98,7 +98,7 @@ public:
     void                  setName(char *newName);
 
     void                  saveImage(char *filename);
-    vsImage *             getImage( );
+    vsImage               *getImage();
 
     Window                getBaseLibraryObject();
 };
