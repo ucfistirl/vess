@@ -202,6 +202,8 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
     nodeMap = new vsObjectMap();
     graphicsState = new vsGraphicsState();
 
+    isInitted = 1;
+
     // Quick start: Set up the default window, pane, and view objects
     defaultWindow = new vsWindow(getScreen(0), fullScreen);
     if (fullScreen)
@@ -252,8 +254,6 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
         *viewpoint = defaultView;
     if (window)
         *window = defaultWindow;
-
-    isInitted = 1;
 }
 
 // ------------------------------------------------------------------------
