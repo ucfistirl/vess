@@ -28,9 +28,11 @@
 // ------------------------------------------------------------------------
 vsFogAttribute::vsFogAttribute()
 {
+    // Create a new osg Fog object
     osgFog = new osg::Fog();
     osgFog->ref();
     
+    // Set defaults
     osgFog->setMode(osg::Fog::LINEAR);
     osgFog->setDensity(1.0);
     osgFog->setStart(0.0);
@@ -44,6 +46,7 @@ vsFogAttribute::vsFogAttribute()
 // ------------------------------------------------------------------------
 vsFogAttribute::~vsFogAttribute()
 {
+    // Delete the osg Fog object
     osgFog->unref();
 }
 
@@ -68,6 +71,7 @@ int vsFogAttribute::getAttributeType()
 // ------------------------------------------------------------------------
 void vsFogAttribute::setEquationType(int equType)
 {
+    // Translate the VESS constant to OSG
     switch (equType)
     {
         case VS_FOG_EQTYPE_LINEAR:
@@ -91,6 +95,7 @@ void vsFogAttribute::setEquationType(int equType)
 // ------------------------------------------------------------------------
 int vsFogAttribute::getEquationType()
 {
+    // Translate the OSG fog mode to VESS
     switch (osgFog->getMode())
     {
         case osg::Fog::LINEAR:
@@ -101,6 +106,7 @@ int vsFogAttribute::getEquationType()
             return VS_FOG_EQTYPE_EXP2;
     }
     
+    // If the fog type is unrecognized, return a default value
     return 0;
 }
 
@@ -122,6 +128,7 @@ void vsFogAttribute::getColor(double *r, double *g, double *b)
     
     color = osgFog->getColor();
     
+    // Return the elements of the fog color that the caller desires
     if (r)
         *r = color[0];
     if (g)
@@ -161,11 +168,13 @@ void vsFogAttribute::setOSGAttrModes(vsNode *node)
     unsigned int attrMode;
     osg::StateSet *osgStateSet;
     
+    // Calculate the attribute mode
     attrMode = osg::StateAttribute::ON;
 
     if (overrideFlag)
         attrMode |= osg::StateAttribute::OVERRIDE;
 
+    // Set the Fog object on the node's StateSet using the calculated mode
     osgStateSet = getOSGStateSet(node);
 
     osgStateSet->setAttributeAndModes(osgFog, attrMode);
@@ -178,8 +187,10 @@ void vsFogAttribute::setOSGAttrModes(vsNode *node)
 // ------------------------------------------------------------------------
 void vsFogAttribute::attach(vsNode *node)
 {
+    // Inherited attach
     vsStateAttribute::attach(node);
 
+    // Update the new owner's osg StateSet
     setOSGAttrModes(node);
 }
 
@@ -193,8 +204,11 @@ void vsFogAttribute::detach(vsNode *node)
     osg::StateSet *osgStateSet;
     osgStateSet = getOSGStateSet(node);
 
+    // Setting the mode to INHERIT should remove this attribute from
+    // the StateSet entirely
     osgStateSet->setAttributeAndModes(osgFog, osg::StateAttribute::INHERIT);
 
+    // Inherited detach
     vsStateAttribute::detach(node);
 }
 
@@ -206,9 +220,11 @@ void vsFogAttribute::attachDuplicate(vsNode *theNode)
 {
     vsFogAttribute *newAttrib;
 
+    // Create a new fog attribute on the specified node
     newAttrib = new vsFogAttribute();
     theNode->addAttribute(newAttrib);
 
+    // Copy the fog parameters to the new attribute
     newAttrib->setEquationType(getEquationType());
 
     double r, g, b;
@@ -232,31 +248,39 @@ int vsFogAttribute::isEquivalent(vsAttribute *attribute)
     double r1, g1, b1, r2, g2, b2;
     double near1, far1, near2, far2;
     
+    // NULL check
     if (!attribute)
         return VS_FALSE;
 
+    // Equal pointer check
     if (this == attribute)
         return VS_TRUE;
     
+    // Type check
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_FOG)
         return VS_FALSE;
 
+    // Type cast
     attr = (vsFogAttribute *)attribute;
 
+    // Equation type check
     val1 = getEquationType();
     val2 = attr->getEquationType();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Color check
     getColor(&r1, &g1, &b1);
     attr->getColor(&r2, &g2, &b2);
     if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
         return VS_FALSE;
 
+    // Range check
     getRanges(&near1, &far1);
     attr->getRanges(&near2, &far2);
     if (!VS_EQUAL(near1,near2) || !VS_EQUAL(far1,far2))
         return VS_FALSE;
 
+    // Attributes are equivalent if all checks pass
     return VS_TRUE;
 }
