@@ -498,5 +498,22 @@ void vsTransformAttribute::attachDuplicate(vsNode *theNode)
 // ------------------------------------------------------------------------
 vsMatrix vsTransformAttribute::getCombinedTransform()
 {
-    return postMatrix * dynMatrix * preMatrix;
+    vsMatrix identityMatrix, productMatrix;
+
+    // Initialize the identity matrix
+    identityMatrix.setIdentity();
+
+    // Initialize the matrix that will hold the final product
+    productMatrix.setIdentity();
+
+    // Multiply the three matrices together, avoiding any identity matrix
+    // multiplication
+    if (!(preMatrix == identityMatrix))
+        productMatrix = productMatrix * preMatrix;
+    if (!(dynMatrix == identityMatrix))
+        productMatrix = productMatrix * dynMatrix;
+    if (!(postMatrix == identityMatrix))
+        productMatrix = productMatrix * postMatrix;
+
+    return productMatrix;
 }
