@@ -278,7 +278,7 @@ void vsIntersect::intersect(vsNode *targetNode)
 {
     pfNode *performerNode, *geoNode, *pathNode;
     pfHit **hits[PFIS_MAX_SEGS];
-    int loop, sloop, arraySize;
+    int loop, sloop, tloop, arraySize;
     int flags;
     pfVec3 hitPoint, polyNormal;
     pfMatrix xformMat;
@@ -328,10 +328,17 @@ void vsIntersect::intersect(vsNode *targetNode)
         if (flags & PFHIT_XFORM)
         {
             (hits[loop][0])->query(PFQHIT_XFORM, &xformMat);
+            
+            for (sloop = 0; sloop < 4; sloop++)
+                for (tloop = 0; tloop < 4; tloop++)
+                    sectXform[sloop][tloop] = xformMat[tloop][sloop];
+
             hitPoint.xformPt(hitPoint, xformMat);
             polyNormal.xformVec(polyNormal, xformMat);
             polyNormal.normalize();
         }
+        else
+            sectXform[loop].setIdentity();
         sectPoint[loop].set(hitPoint[0], hitPoint[1], hitPoint[2]);
         sectNorm[loop].set(polyNormal[0], polyNormal[1], polyNormal[2]);
         
@@ -389,9 +396,9 @@ int vsIntersect::getIsectValid(int segNum)
 }
 
 // ------------------------------------------------------------------------
-// Returns the point of intersection determined during the last
-// intersection traversal for the specified segment. The number of the
-// first segment is 0.
+// Returns the point of intersection in global coordinates determined
+// during the last intersection traversal for the specified segment. The
+// number of the first segment is 0.
 // ------------------------------------------------------------------------
 vsVector vsIntersect::getIsectPoint(int segNum)
 {
@@ -407,9 +414,9 @@ vsVector vsIntersect::getIsectPoint(int segNum)
 }
 
 // ------------------------------------------------------------------------
-// Returns the polygon normal at the point of intersection determined
-// during the last intersection traversal for the specified segment. The
-// number of the first segment is 0.
+// Returns the polygon normal in global coordinates at the point of
+// intersection determined during the last intersection traversal for the
+// specified segment. The number of the first segment is 0.
 // ------------------------------------------------------------------------
 vsVector vsIntersect::getIsectNorm(int segNum)
 {
@@ -422,6 +429,27 @@ vsVector vsIntersect::getIsectNorm(int segNum)
     }
 
     return sectNorm[segNum];
+}
+
+// ------------------------------------------------------------------------
+// Returns a matrix containing the local-to-global coordinate transform for
+// the object intersected with during the last intersection traversal for
+// the specified segment. Note that the point and normal values for the
+// same segment already have this data multiplied in. The number of the
+// first segment is 0.
+// ------------------------------------------------------------------------
+vsMatrix vsIntersect::getIsectXform(int segNum)
+{
+    vsMatrix errResult;
+
+    if ((segNum < 0) || (segNum >= segListSize))
+    {
+        printf("vsIntersect::getIsectXform: Segment number out of bounds\n");
+        errResult.setIdentity();
+        return errResult;
+    }
+
+    return sectXform[segNum];
 }
 
 // ------------------------------------------------------------------------

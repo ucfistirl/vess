@@ -46,6 +46,7 @@ private:
     int                validFlag[VS_INTERSECT_SEGS_MAX];
     vsVector           sectPoint[VS_INTERSECT_SEGS_MAX];
     vsVector           sectNorm[VS_INTERSECT_SEGS_MAX];
+    vsMatrix           sectXform[VS_INTERSECT_SEGS_MAX];
     vsGeometry         *sectGeom[VS_INTERSECT_SEGS_MAX];
     int                sectPrim[VS_INTERSECT_SEGS_MAX];
     vsGrowableArray    *sectPath[VS_INTERSECT_SEGS_MAX];
@@ -77,6 +78,7 @@ public:
     int                getIsectValid(int segNum);
     vsVector           getIsectPoint(int segNum);
     vsVector           getIsectNorm(int segNum);
+    vsMatrix           getIsectXform(int segNum);
     vsGeometry         *getIsectGeometry(int segNum);
     int                getIsectPrimNum(int segNum);
     vsGrowableArray    *getIsectPath(int segNum);
