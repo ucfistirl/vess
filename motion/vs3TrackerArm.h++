@@ -35,7 +35,11 @@ private:
 
     vsMotionTracker    *backTrack, *elbowTrack, *handTrack;
     vsKinematics       *shoulderKin, *elbowKin, *wristKin;
+
     vsVector           shoulderOffset, elbowOffset, wristOffset;
+    vsQuat	       shoulderPreRot, shoulderPostRot;
+    vsQuat	       elbowPreRot, elbowPostRot;
+    vsQuat	       wristPreRot, wristPostRot;
 
 public:
 
@@ -53,6 +57,19 @@ public:
     vsVector    getElbowOffset();
     void        setWristOffset(vsVector newOffset);
     vsVector    getWristOffset();
+    
+    void	setShoulderPreRot(vsQuat rotQuat);
+    vsQuat	getShoulderPreRot();
+    void	setShoulderPostRot(vsQuat rotQuat);
+    vsQuat	getShoulderPostRot();
+    void	setElbowPreRot(vsQuat rotQuat);
+    vsQuat	getElbowPreRot();
+    void	setElbowPostRot(vsQuat rotQuat);
+    vsQuat	getElbowPostRot();
+    void	setWristPreRot(vsQuat rotQuat);
+    vsQuat	getWristPreRot();
+    void	setWristPostRot(vsQuat rotQuat);
+    vsQuat	getWristPostRot();
 
     void        update();
 };

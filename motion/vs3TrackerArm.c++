@@ -46,6 +46,13 @@ vs3TrackerArm::vs3TrackerArm(vsMotionTracker *backTracker,
     shoulderOffset.set(0.0, 0.0, 0.0);
     elbowOffset.set(0.0, 0.0, 0.0);
     wristOffset.set(0.0, 0.0, 0.0);
+
+    shoulderPreRot.set(0.0, 0.0, 0.0, 1.0);
+    shoulderPostRot.set(0.0, 0.0, 0.0, 1.0);
+    elbowPreRot.set(0.0, 0.0, 0.0, 1.0);
+    elbowPostRot.set(0.0, 0.0, 0.0, 1.0);
+    wristPreRot.set(0.0, 0.0, 0.0, 1.0);
+    wristPostRot.set(0.0, 0.0, 0.0, 1.0);
 }
 
 // ------------------------------------------------------------------------
@@ -110,6 +117,102 @@ vsVector vs3TrackerArm::getWristOffset()
 }
 
 // ------------------------------------------------------------------------
+// Sets the pre-multiplied shoulder rotation offset
+// ------------------------------------------------------------------------
+void vs3TrackerArm::setShoulderPreRot(vsQuat rotQuat)
+{
+    shoulderPreRot = rotQuat;
+}
+
+// ------------------------------------------------------------------------
+// Gets the pre-multiplied shoulder rotation offset
+// ------------------------------------------------------------------------
+vsQuat vs3TrackerArm::getShoulderPreRot()
+{
+    return shoulderPreRot;
+}
+
+// ------------------------------------------------------------------------
+// Sets the post-multiplied shoulder rotation offset
+// ------------------------------------------------------------------------
+void vs3TrackerArm::setShoulderPostRot(vsQuat rotQuat)
+{
+    shoulderPostRot = rotQuat;
+}
+
+// ------------------------------------------------------------------------
+// Gets the pre-multiplied shoulder rotation offset
+// ------------------------------------------------------------------------
+vsQuat vs3TrackerArm::getShoulderPostRot()
+{
+    return shoulderPostRot;
+}
+
+// ------------------------------------------------------------------------
+// Sets the pre-multiplied elbow rotation offset
+// ------------------------------------------------------------------------
+void vs3TrackerArm::setElbowPreRot(vsQuat rotQuat)
+{
+    elbowPreRot = rotQuat;
+}
+
+// ------------------------------------------------------------------------
+// Gets the pre-multiplied elbow rotation offset
+// ------------------------------------------------------------------------
+vsQuat vs3TrackerArm::getElbowPreRot()
+{
+    return elbowPreRot;
+}
+
+// ------------------------------------------------------------------------
+// Sets the post-multiplied elbow rotation offset
+// ------------------------------------------------------------------------
+void vs3TrackerArm::setElbowPostRot(vsQuat rotQuat)
+{
+    elbowPostRot = rotQuat;
+}
+
+// ------------------------------------------------------------------------
+// Gets the post-multiplied elbow rotation offset
+// ------------------------------------------------------------------------
+vsQuat vs3TrackerArm::getElbowPostRot()
+{
+    return elbowPostRot;
+}
+
+// ------------------------------------------------------------------------
+// Sets the pre-multiplied wrist rotation offset
+// ------------------------------------------------------------------------
+void vs3TrackerArm::setWristPreRot(vsQuat rotQuat)
+{
+    wristPreRot = rotQuat;
+}
+
+// ------------------------------------------------------------------------
+// Gets the pre-multiplied wrist rotation offset
+// ------------------------------------------------------------------------
+vsQuat vs3TrackerArm::getWristPreRot()
+{
+    return wristPreRot;
+}
+
+// ------------------------------------------------------------------------
+// Sets the post-multiplied wrist rotation offset
+// ------------------------------------------------------------------------
+void vs3TrackerArm::setWristPostRot(vsQuat rotQuat)
+{
+    wristPostRot = rotQuat;
+}
+
+// ------------------------------------------------------------------------
+// Gets the post-multiplied wrist rotation offset
+// ------------------------------------------------------------------------
+vsQuat vs3TrackerArm::getWristPostRot()
+{
+    return wristPostRot;
+}
+
+// ------------------------------------------------------------------------
 // Updates the motion model by reading the current tracker data and
 // computing rotations for the three joints of the avatar's arm
 // ------------------------------------------------------------------------
@@ -169,12 +272,6 @@ void vs3TrackerArm::update()
     // coordinate space
     shoulderRot = backOri.getInverse() * shoulderRot * backOri;
 
-    // Correct for the model; in the 'zero' position, the avatar's arm
-    // isn't quite pointed straight down but is rather about ten degrees
-    // out to the side. This extra rotation should compensate.
-    coordFix.setAxisAngleRotation(0.0, 1.0, 0.0, -10.0);
-    shoulderRot = coordFix * shoulderRot;
-
     // * Compute the elbow pitch
     // The elbow pitch is simply the angle between the vector from the
     // shoulder to the elbow and the one from the elbow to the wrist.
@@ -211,11 +308,10 @@ void vs3TrackerArm::update()
     coordFix.setAxisAngleRotation(1.0, 0.0, 0.0, 90.0);
     wristRot = coordFix.getInverse() * wristRot * coordFix;
     
-    // Correct for the tracker mounting; the tracker mounted on the
-    // joystick handle doesn't point exactly the same way the arm does.
-    // Instead, it's pitched down a bit. This should compensate.
-    coordFix.setAxisAngleRotation(1.0, 0.0, 0.0, 10.0);
-    wristRot = wristRot * coordFix;
+    // Apply the rotation offsets
+    shoulderRot = shoulderPostRot * shoulderRot * shoulderPreRot;
+    elbowRot = elbowPostRot * elbowRot * elbowPreRot;
+    wristRot = wristPostRot * wristRot * wristPreRot;
 
     // * Apply the results
     shoulderKin->setOrientation(shoulderRot);
