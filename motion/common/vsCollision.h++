@@ -57,6 +57,8 @@ private:
     double          wallMargin;
     
     double          distance(vsVector start, vsVector end);
+    vsVector        fixNormal(vsVector sourcePt, vsVector isectPt,
+                              vsVector isectNorm);
     
     double          calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
                                     vsVector moveDir, double maxMove,

@@ -234,8 +234,8 @@ void vsCollision::update()
     // Attempt to perform the desired movement
     while ((distLeft > 1E-6) && (passCount < VS_COLLISION_MAX_PASSES))
     {
-	// Determine how far we are permitted to move by checking
-	// for obstacles in our path
+        // Determine how far we are permitted to move by checking
+        // for obstacles in our path
         distMoved = calcMoveAllowed(globalXform, positionDelta,
             currentDirection, distLeft, &collideNorm);
         distLeft -= distMoved;
@@ -243,9 +243,9 @@ void vsCollision::update()
         // Move the allowed distance
         positionDelta += (currentDirection.getScaled(distMoved));
 
-	// If there is any distance left to move, then we didn't get to
-	// go as far as we wanted, indicating that a collision occurred.
-	// Alter the current position and/or velocity as indicated.
+        // If there is any distance left to move, then we didn't get to
+        // go as far as we wanted, indicating that a collision occurred.
+        // Alter the current position and/or velocity as indicated.
         if (distLeft > 1E-6)
             switch (collisionMode)
             {
@@ -263,12 +263,12 @@ void vsCollision::update()
                     // For the sliding motion, the portion of the movement
                     // vector that is parallel to the wall normal is removed
                     currentDirection -= tempVec;
-                    
+
                     // Scale down the speed based on how much magnitude the
                     // direction vector lost
                     currentSpeed *= currentDirection.getMagnitude();
                     distLeft *= currentDirection.getMagnitude();
-                    
+
                     // Clean up the direction vector
                     currentDirection.normalize();
                     break;
@@ -295,7 +295,7 @@ void vsCollision::update()
     if (passCount < VS_COLLISION_MAX_PASSES)
     {
         // Set our kinematics object's velocity to the computed direction
-	// and speed
+        // and speed
         tempVec = currentDirection.getScaled(currentSpeed);
         kinematics->setVelocity(tempVec);
 
@@ -308,10 +308,10 @@ void vsCollision::update()
     }
     else
     {
-	// Too many passes; either we're in a narrow area and bouncing
-	// back and forth between the walls, or there's some other
-	// unanticipated problem. In either case, give up and stop
-	// moving completely.
+        // Too many passes; either we're in a narrow area and bouncing
+        // back and forth between the walls, or there's some other
+        // unanticipated problem. In either case, give up and stop
+        // moving completely.
         tempVec.set(0.0, 0.0, 0.0);
         kinematics->setVelocity(tempVec);
     }
@@ -326,6 +326,27 @@ double vsCollision::distance(vsVector start, vsVector end)
     return sqrt(VS_SQR(start[0] - end[0]) +
                 VS_SQR(start[1] - end[1]) +
                 VS_SQR(start[2] - end[2]));
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Utility function - 'Fixes' the normal of an intersection hit by forcing
+// the direction of the normal to be opposite the direction of the
+// intersection ray. Used to correct for intersections with the back faces
+// of geometry.
+// ------------------------------------------------------------------------
+vsVector vsCollision::fixNormal(vsVector sourcePt, vsVector isectPt,
+    vsVector isectNorm)
+{
+    // The intersection 'ray' is the vector from the start point of the
+    // intersection segment to the point of intersection for that segment.
+    // For the normal to be opposite in direction from that vector, its dot
+    // product with the vector should be negative. If it's not, then negate
+    // the normal.
+    if (isectNorm.getDotProduct(isectPt - sourcePt) > 0.0)
+        return isectNorm.getScaled(-1.0);
+    else
+        return isectNorm;
 }
 
 // ------------------------------------------------------------------------
@@ -347,6 +368,8 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
     int valid2[VS_COLLISION_POINTS_MAX];
     double resultDist, newDist;
     vsVector segmentDir;
+    vsVector secondNormal;
+    double dotProd;
     
     // Clear the reported intersection normal
     hitNorm->set(0.0, 0.0, 0.0);
@@ -356,14 +379,14 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
     for (loop = 0; loop < offsetCount; loop++)
     {
         // Compute the world location of the hot point by transforming
-	// the point into global coordinates, and adding on any specified
-	// offset translation.
+        // the point into global coordinates, and adding on any specified
+        // offset translation.
         startPoints[loop] = globalXform.getPointXform(offsetPoints[loop]);
         startPoints[loop] += posOffset;
 
         // Set the intersection segment for the point as starting at
-	// the point's global position, and proceeding in the direction
-	// of movement an arbitrarily long distance.
+        // the point's global position, and proceeding in the direction
+        // of movement an arbitrarily long distance.
         intersect->setSeg(loop, startPoints[loop], moveDir, 10000.0);
     }
 
@@ -377,23 +400,23 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
         {
             // Obtain the point and normal of intersection
             hitPoints1[loop] = intersect->getIsectPoint(loop);
-            normals[loop] = intersect->getIsectNorm(loop);
 
             // Check to see if we hit the back side of a poly; if so, we
             // need to invert the normal
-            if (moveDir.getDotProduct(normals[loop]) > 0.0)
-                normals[loop].scale(-1.0);
+            normals[loop] = fixNormal(startPoints[loop], hitPoints1[loop],
+                intersect->getIsectNorm(loop));
+
             valid1[loop] = 1;
         }
         else
         {
             // If there was no intersection, set the valid flag to false
-	    // and zero the normal direction
+            // and zero the normal direction
             normals[loop].clear();
             valid1[loop] = 0;
         }
     }
-    
+
     // The second intersection test consists of rays still fired from
     // the key points, but in the directions of the walls found by the
     // first intersection. This is needed because we often approach walls
@@ -406,20 +429,20 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
     for (loop = 0; loop < offsetCount; loop++)
     {
         // Compute the world location of the hot point by transforming
-	// the point into global coordinates, and adding on any specified
-	// offset translation.
+        // the point into global coordinates, and adding on any specified
+        // offset translation.
         startPoints[loop] = globalXform.getPointXform(offsetPoints[loop]);
         startPoints[loop] += posOffset;
 
-	// If the first intersection worked, use the calculated normal;
-	// if it failed, then use the direction of motion instead.
+        // If the first intersection worked, use the calculated normal;
+        // if it failed, then use the direction of motion instead.
         if (valid1[loop])
             intersect->setSeg(loop, startPoints[loop],
                 normals[loop].getScaled(-1.0), 10000.0);
         else
             intersect->setSeg(loop, startPoints[loop], moveDir, 10000.0);
     }
-    
+
     // Run the intersection traversal
     intersect->intersect(scene);
 
@@ -446,7 +469,7 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
         if (valid1[loop])
         {
             // Figure out the distance from the hot point to the
-	    // intersection point, accounting for the margin distance
+            // intersection point, accounting for the margin distance
             newDist = distance(startPoints[loop], hitPoints1[loop]);
             newDist -= wallMargin;
 
@@ -457,41 +480,52 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
                 (*hitNorm) = normals[loop];
             }
         }
-        
+
         // Second intersection: adjust for angle between movement direction
         // and segment direction
         if (valid2[loop])
         {
-            // Figure out the distance from the hot point to the
-	    // intersection point, accounting for the margin distance
-            newDist = distance(startPoints[loop], hitPoints2[loop]);
-            newDist -= wallMargin;
+            // Get the intersection normal for this second intersection. This
+            // data should still be in the intersection object.
+            secondNormal = fixNormal(startPoints[loop], hitPoints2[loop],
+                intersect->getIsectNorm(loop));
 
-            // Scale the distance by the inverse of the dot product of the
-            // normal and movement direction vectors. This dot product is
-            // always negative and so is negated before it is used so that we
-            // end up with a positive value. This scaling is done to take
-	    // into account the angle of approach of the obstacle; we can
-	    // go farther towards something if we're not going along the
-	    // shortest (perpendicular) distance towards it.
-            newDist /= (-(moveDir.getDotProduct(normals[loop])));
+            // Compute the dot product of the travel direction and
+            // intersection normal. If this product is positive or zero, then
+            // the object that we intersected with isn't actually in our way;
+            // don't bother computing how far away it is.
+            dotProd = moveDir.getDotProduct(secondNormal);
 
-            if (newDist < resultDist)
+            if (dotProd < -VS_DEFAULT_TOLERANCE)
             {
-                // Store the shorter distance, and copy the intersection
-		// normal into the return data pointer location
-                resultDist = newDist;
-                (*hitNorm) = intersect->getIsectNorm(loop);
-		
-		// Check the normal of the second intersection to see if we
-		// hit the back side of a polygon; invert the normal if so.
-		segmentDir = normals[loop].getScaled(-1.0);
-		if (segmentDir.getDotProduct(*hitNorm) > 0.0)
-		    hitNorm->scale(-1.0);
+                // Figure out the distance from the hot point to the
+                // intersection point, accounting for the margin distance
+                newDist = distance(startPoints[loop], hitPoints2[loop]);
+                newDist -= wallMargin;
+
+                // Scale the distance by the inverse of the dot product of the
+                // normal and movement direction vectors. This dot product is
+                // always negative and so is negated before it is used so that
+                // we end up with a positive value. This scaling is done to
+                // take into account the angle of approach of the obstacle; we
+                // can go farther towards something if we're not going along
+                // the shortest (perpendicular) distance towards it.
+                newDist /= (-dotProd);
+
+                // Use this new distance if it is shorter than anything else
+                // so far
+                if (newDist < resultDist)
+                {
+                    // Store the shorter distance, and copy the intersection
+                    // normal into the return data pointer location
+                    resultDist = newDist;
+                    (*hitNorm) = secondNormal;
+                }
             }
+
         }
     }
-    
+
     // Cap the lower bound of the result to zero; we don't want to back up
     // if we're too close to an object.
     if (resultDist < 0.0)
