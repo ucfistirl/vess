@@ -26,6 +26,7 @@
 #include <osg/Camera>
 #include "vsVector.h++"
 #include "vsMatrix.h++"
+#include "vsObject.h++"
 
 enum VS_GRAPHICS_DLL vsViewProjectionMode
 {
@@ -33,7 +34,7 @@ enum VS_GRAPHICS_DLL vsViewProjectionMode
     VS_VIEW_PROJMODE_ORTHO
 };
 
-class VS_GRAPHICS_DLL vsView
+class VS_GRAPHICS_DLL vsView : public vsObject
 {
 private:
 

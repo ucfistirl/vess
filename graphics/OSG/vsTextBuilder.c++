@@ -185,6 +185,14 @@ vsTextBuilder::~vsTextBuilder()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsTextBuilder::getClassName()
+{
+    return "vsTextBuilder";
+}
+
+// ------------------------------------------------------------------------
 // Attempts to load the font, if there is an error it will print out a
 // message.
 // ------------------------------------------------------------------------

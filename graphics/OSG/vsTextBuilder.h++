@@ -59,7 +59,7 @@ enum VS_GRAPHICS_DLL vsTextBuilderJustification
     VS_TEXTBUILDER_JUSTIFY_CENTER
 };
 
-class VS_GRAPHICS_DLL vsTextBuilder
+class VS_GRAPHICS_DLL vsTextBuilder : public vsObject
 {
 private:
     static vsVector         currentColor;
@@ -100,22 +100,25 @@ private:
 
 VS_INTERNAL:
 
-    static void             deleteVertexArray();
+    static void    deleteVertexArray();
 
 public:
-    vsTextBuilder();
-    vsTextBuilder(char *newFont);
-    vsTextBuilder(char *newFont, vsVector newColor);
-    vsTextBuilder(char *newFont, vsVector newColor, vsMatrix newTransform);
 
-    ~vsTextBuilder();
+                       vsTextBuilder();
+                       vsTextBuilder(char *newFont);
+                       vsTextBuilder(char *newFont, vsVector newColor);
+                       vsTextBuilder(char *newFont, vsVector newColor,
+                                     vsMatrix newTransform);
+                       ~vsTextBuilder();
 
-    void         setFont(char *newFont);
-    void         setColor(vsVector newColor);
-    void         setTransformMatrix(vsMatrix newTransform);
-    void         setJustification(int newJustification);
+    virtual const char *getClassName();
 
-    vsComponent  *buildText(char *text);
+    void               setFont(char *newFont);
+    void               setColor(vsVector newColor);
+    void               setTransformMatrix(vsMatrix newTransform);
+    void               setJustification(int newJustification);
+
+    vsComponent        *buildText(char *text);
 };
 
 #endif

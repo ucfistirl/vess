@@ -28,7 +28,7 @@
 #include "vsGrowableArray.h++"
 #include "vsScene.h++"
 
-class VS_GRAPHICS_DLL vsGraphicsState
+class VS_GRAPHICS_DLL vsGraphicsState : public vsObject
 {
 private:
 
@@ -61,6 +61,8 @@ VS_INTERNAL:
     vsScene            *getCurrentScene();
 
 public:
+
+    virtual const char     *getClassName();
 
     static vsGraphicsState *getInstance();
     static void            deleteInstance();

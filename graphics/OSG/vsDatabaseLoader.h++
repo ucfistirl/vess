@@ -37,7 +37,7 @@ enum VS_GRAPHICS_DLL vsDatabaseUnits
     VS_DATABASE_UNITS_KILOMETERS
 };
 
-class VS_GRAPHICS_DLL vsDatabaseLoader
+class VS_GRAPHICS_DLL vsDatabaseLoader : public vsObject
 {
 private:
 
@@ -74,22 +74,24 @@ VS_INTERNAL:
 
 public:
 
-                   vsDatabaseLoader();
-    virtual        ~vsDatabaseLoader();
+                       vsDatabaseLoader();
+    virtual            ~vsDatabaseLoader();
 
-    void           addImportantNodeName(char *newName);
-    void           clearNames();
+    virtual const char *getClassName();
 
-    void           setUnits(int databaseUnit);
+    void               addImportantNodeName(char *newName);
+    void               clearNames();
 
-    void           addPath(char *filePath);
-    void           clearPath();
-    const char     *getPath();
+    void               setUnits(int databaseUnit);
 
-    void           setLoaderMode(int whichMode, int modeVal);
-    int            getLoaderMode(int whichMode);
+    void               addPath(char *filePath);
+    void               clearPath();
+    const char         *getPath();
 
-    vsComponent    *loadDatabase(char *databaseFilename);
+    void               setLoaderMode(int whichMode, int modeVal);
+    int                getLoaderMode(int whichMode);
+
+    vsComponent        *loadDatabase(char *databaseFilename);
 };
 
 #endif
