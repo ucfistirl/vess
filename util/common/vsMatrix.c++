@@ -14,7 +14,7 @@
 //    VESS Module:  vsMatrix.c++
 //
 //    Description:  Class implementing a 4x4 graphical transformation
-//		    matrix
+//                  matrix
 //
 //    Author(s):    Bryan Kline
 //
@@ -390,13 +390,13 @@ vsMatrix vsMatrix::getInverse() const
     // as well be zero), then the matrix can't be inverted
     if (fabs(getDeterminant()) < VS_DEFAULT_TOLERANCE)
     {
-	result.clear();
+        result.clear();
     }
     else
     {
-	// Cheat: call the other version of the inverse function
-	result = (*this);
-	result.invert();
+        // Cheat: call the other version of the inverse function
+        result = (*this);
+        result.invert();
     }
     
     // Return the inverted matrix
@@ -567,7 +567,7 @@ vsVector vsMatrix::getVectorXform(const vsVector &operand) const
     for (i = 0; i < 4; i++)
     {
         // Vectors start cleared by default; no need to set to zero here.
-	// Ignore the fourth value of the vector, if there is one.
+        // Ignore the fourth value of the vector, if there is one.
         for (j = 0; j < 3; j++)
             result[i] += (data[i].getValue(j) * operand.getValue(j));
     }
@@ -703,23 +703,23 @@ void vsMatrix::setEulerRotation(vsMathEulerAxisOrder axisOrder,
     for (i = 0; i < 3; i++)
     {
         // Initialize the matrix to zero, with a one in the
-	// homogeneous scale position
+        // homogeneous scale position
         axisRotation[i].clear();
         axisRotation[i].data[3][3] = 1.0;
 
         // Construct a rotation matrix based on the rotation degree
-	// value and the axis of rotation
+        // value and the axis of rotation
         switch (axis[i])
         {
             case 0:
-		// X-axis rotation matrix
+                // X-axis rotation matrix
                 axisRotation[i].data[0][0] = 1.0;
 
-		tempVal = cos(VS_DEG2RAD(axisDegrees[i]));
+                tempVal = cos(VS_DEG2RAD(axisDegrees[i]));
                 axisRotation[i].data[1][1] = tempVal;
                 axisRotation[i].data[2][2] = tempVal;
 
-		tempVal = sin(VS_DEG2RAD(axisDegrees[i]));
+                tempVal = sin(VS_DEG2RAD(axisDegrees[i]));
                 axisRotation[i].data[2][1] = tempVal;
                 axisRotation[i].data[1][2] = -tempVal;
 
@@ -778,7 +778,7 @@ void vsMatrix::getEulerRotation(vsMathEulerAxisOrder axisOrder,
     // compresses all of the different axis combinations into
     // two different cases.
     
-    int isRepeat, isOdd;
+    bool isRepeat, isOdd;
     int i, j, k;
     double tempDouble;
     double result1, result2, result3;
