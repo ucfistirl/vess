@@ -28,6 +28,7 @@ SRCS = \
        vsHeadMotion.c++ \
        vsKinematics.c++ \
        vsMotionModel.c++ \
+       vsSphericalMotion.c++ \
        vsTerrainFollow.c++ \
        vsTrackballMotion.c++ \
        vsTrackedMotion.c++ \
@@ -42,6 +43,7 @@ OBJS = \
        vsHeadMotion.o \
        vsKinematics.o \
        vsMotionModel.o \
+       vsSphericalMotion.o \
        vsTerrainFollow.o \
        vsTrackballMotion.o \
        vsTrackedMotion.o \
