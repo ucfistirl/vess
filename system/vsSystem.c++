@@ -30,22 +30,22 @@
 #include "vsLightAttribute.h++"
 #include "vsComponent.h++"
 #include "vsGeometry.h++"
+#include "vsOptimizer.h++"
 
 vsSystem *vsSystem::systemObject = NULL;
 
 // ------------------------------------------------------------------------
-// Constructor - Initializes Performer, initializes some basic objects that
-// depend on connections to Performer objects, initializes the given
-// database loader, and sets up an empty object correspondence map.
+// Constructor - Pre-initializes the system object and initializes
+// Performer.
 // *Note: Only one of these objects may exist in a program at any one time.
 // Attemps to create more will return in a non-functional vsSystem object.
 // ------------------------------------------------------------------------
-vsSystem::vsSystem(vsDatabaseLoader *fileLoader)
+vsSystem::vsSystem()
 {
     pfWSConnection winConnection;
-    int numScreens, loop;
-    struct timeval timeStruct;
-    
+
+    isInitted = 0;
+
     if (systemObject)
     {
         printf("vsSystem::vsSystem: Only one vsSystem object may be in "
@@ -57,27 +57,73 @@ vsSystem::vsSystem(vsDatabaseLoader *fileLoader)
     validObject = 1;
     systemObject = this;
 
-    // Enlarge the semaphore arena size to twice the default; Performer
-    // produces a strange out-of-arena-memory error when VESS is given
-    // a very large database
-    pfSemaArenaSize(262144 * 2);
-
     pfInit();
     pfuInit();
 
     // Configure the system for the available number of graphics pipelines
     winConnection = pfGetCurWSConnection();
-    numScreens = ScreenCount(winConnection);
-    if (numScreens > 1)
-        pfMultipipe(numScreens);
-    screenCount = numScreens;
+    screenCount = ScreenCount(winConnection);
+    if (screenCount > 1)
+        pfMultipipe(screenCount);
     
-    // Initialize the datbase loader object
-    databaseLoader = fileLoader;
-    if (databaseLoader)
-        databaseLoader->init();
+    databaseLoader = new vsDatabaseLoader();
+}
 
-    graphicsState = new vsGraphicsState();
+// ------------------------------------------------------------------------
+// Destructor - Shuts down Performer, usually resulting in the program
+// exiting
+// ------------------------------------------------------------------------
+vsSystem::~vsSystem()
+{
+    if (!validObject)
+        return;
+        
+    systemObject = NULL;
+    pfExit();
+}
+
+// ------------------------------------------------------------------------
+// Sets the multiprocessing mode for the application. This should be set
+// before init (or simpleInit) is called if it is to be set at all.
+// ------------------------------------------------------------------------
+void vsSystem::setMultiprocessMode(int mpMode)
+{
+    switch (mpMode)
+    {
+	case VS_MPROC_DEFAULT:
+	    // Let Performer decide
+	    pfMultiprocess(PFMP_DEFAULT);
+	    break;
+	case VS_MPROC_SINGLE:
+	    // One process only
+	    pfMultiprocess(PFMP_APPCULLDRAW);
+	    break;
+	case VS_MPROC_MULTI:
+	    // Split into three processes
+	    pfMultiprocess(PFMP_APP_CULL_DRAW);
+	    break;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Initializes the system object. This involves constructing internally-
+// used objects, forking multiple processes, and priming timestamp data.
+// ------------------------------------------------------------------------
+void vsSystem::init()
+{
+    int loop;
+    struct timeval timeStruct;
+
+    if (!validObject)
+	return;
+
+    if (isInitted)
+    {
+	printf("vsSystem::init: vsSystem object is already initialized\n");
+	return;
+    }
+
+    databaseLoader->init();
 
     // * This call can potentially fork new processes, so every object
     // that must be visible to all processes should be created before this
@@ -92,85 +138,54 @@ vsSystem::vsSystem(vsDatabaseLoader *fileLoader)
     }
     
     nodeMap = new vsObjectMap();
+    graphicsState = new vsGraphicsState();
 
     // Initialize the current time
     gettimeofday(&timeStruct, NULL);
     lastFrameTimestamp = timeStruct.tv_sec + (timeStruct.tv_usec / 1000000.0);
     lastFrameDuration = 0.0;
+    
+    isInitted = 1;
 }
 
 // ------------------------------------------------------------------------
-// Constructor - Quick-start program
-// Initializes Performer, initializes basic VESS objects, creates a
-// database loader using the specified filename as an extension and
-// initializes it, creates a window with the specified name (the database
-// filename if windowTitle is NULL) and size (default size if fullScreen is
-// FALSE, full screen with no border if fullScreen is TRUE), creates a pane
-// for the window, loads in the specified database from the given database
-// file and with the specified list of node names, and attaches it to the
-// pane, creates a viewpoint object at a default location, and adds a
-// global ambient light source to the scene.
-//   The nameList parameter is an array of pointers to node name strings.
-// This list is terminated by a NULL pointer in place of a node name. A
-// NULL pointer may be passed in for the entire list if important node
-// names are not needed.
-//   The last three parameters are used for retrieving pointers to some of
-// the objects that this constructor generates. NULL may be passed in for
-// those values that are undesired.
-// *Note: Only one of these objects may exist in a program at any one time.
-// Attemps to create more will return in a non-functional vsSystem object.
+// Basic VR application quick start initialization. Initializes the system
+// object by constructing internally-used objects, forking multiple
+// processes, and priming timestamp data. Also creates a default-sized
+// window (full screen or not as desired), loads the given database, and
+// creates a view object that looks onto the new scene. Returns pointers
+// to the newly-created window, scene, and viewpoint object; NULL pointers
+// may be specified for undesired return values.
 // ------------------------------------------------------------------------
-vsSystem::vsSystem(char *databaseFilename, char **nameList, char *windowTitle,
-                   int fullScreen, vsNode **sceneGraph, vsView **viewpoint,
-                   vsWindow **window)
+void vsSystem::simpleInit(char *databaseFilename, char *windowName,
+			  int fullScreen, vsNode **sceneGraph,
+			  vsView **viewpoint, vsWindow **window)
 {
-    pfWSConnection winConnection;
-    int numScreens, loop;
-    char *nodeName;
+    int loop;
     vsWindow *defaultWindow;
     vsPane *defaultPane;
     vsView *defaultView;
-    vsVector viewPt, upDir;
+    vsVector upDir;
+    vsVector dbCenter;
+    double dbRadius;
     vsComponent *scene;
     vsLightAttribute *globalLight;
     struct timeval timeStruct;
+    vsOptimizer *optimizer;
 
-    if (systemObject)
+    if (!validObject)
+	return;
+
+    if (isInitted)
     {
-        printf("vsSystem::vsSystem: Only one vsSystem object may be in "
-            "existance at any time\n");
-        validObject = 0;
-        return;
+	printf("vsSystem::init: vsSystem object is already initialized\n");
+	return;
     }
-
-    databaseLoader = new vsDatabaseLoader(databaseFilename);
-    validObject = 1;
-    systemObject = this;
-
-    pfInit();
-    pfuInit();
-
-    // Configure the system for the available number of graphics pipelines
-    winConnection = pfGetCurWSConnection();
-    numScreens = ScreenCount(winConnection);
-    if (numScreens > 1)
-        pfMultipipe(numScreens);
-    screenCount = numScreens;
 
     // Initialize the datbase loader object
+    databaseLoader->initExtension(databaseFilename);
     databaseLoader->init();
-    if (nameList)
-    {
-        loop = 0;
-        nodeName = nameList[0];
-        while (nodeName)
-        {
-            databaseLoader->addImportantNodeName(nodeName);
-            nodeName = nameList[++loop];
-        }
-    }
-
-    graphicsState = new vsGraphicsState();
+    databaseLoader->setLoaderMode(VS_DATABASE_MODE_NAME_XFORM, 1);
 
     // * This call can potentially fork new processes, so every object
     // that must be visible to all processes should be created before this
@@ -185,29 +200,35 @@ vsSystem::vsSystem(char *databaseFilename, char **nameList, char *windowTitle,
     }
     
     nodeMap = new vsObjectMap();
+    graphicsState = new vsGraphicsState();
 
-    // Set up the default window, pane, and view objects
+    // Quick start: Set up the default window, pane, and view objects
     defaultWindow = new vsWindow(getScreen(0), fullScreen);
     if (fullScreen)
         defaultWindow->setFullScreen();
-    if (windowTitle)
-        defaultWindow->setName(windowTitle);
+    if (windowName)
+        defaultWindow->setName(windowName);
     else
         defaultWindow->setName(databaseFilename);
 
     defaultPane = new vsPane(defaultWindow);
     defaultPane->autoConfigure(VS_PANE_PLACEMENT_FULL_WINDOW);
 
-    defaultView = new vsView();
-    defaultView->setViewpoint(0.0, 10.0, 10.0);
-    viewPt.set(0.0, 0.0, 0.0);
-    upDir.set(0.0, 0.0, 1.0);
-    defaultView->lookAtPoint(viewPt, upDir);
-    defaultPane->setView(defaultView);
-
     // Load the specified database
     scene = databaseLoader->loadDatabase(databaseFilename);
+    optimizer = new vsOptimizer();
+    optimizer->optimize(scene);
+    delete optimizer;
     defaultPane->setScene(scene);
+
+    // Set up the viewpoint
+    defaultView = new vsView();
+    scene->getBoundSphere(&dbCenter, &dbRadius);
+    defaultView->setViewpoint(dbCenter[0], dbCenter[1] + dbRadius,
+	dbCenter[2] + dbRadius);
+    upDir.set(0.0, 0.0, 1.0);
+    defaultView->lookAtPoint(dbCenter, upDir);
+    defaultPane->setView(defaultView);
     
     // Add a global ambient (white) light source
     globalLight = new vsLightAttribute();
@@ -231,20 +252,8 @@ vsSystem::vsSystem(char *databaseFilename, char **nameList, char *windowTitle,
         *viewpoint = defaultView;
     if (window)
         *window = defaultWindow;
-}
 
-
-// ------------------------------------------------------------------------
-// Destructor - Shuts down Performer, usually resulting in the program
-// exiting
-// ------------------------------------------------------------------------
-vsSystem::~vsSystem()
-{
-    if (!validObject)
-        return;
-        
-    pfExit();
-    systemObject = NULL;
+    isInitted = 1;
 }
 
 // ------------------------------------------------------------------------
@@ -255,6 +264,12 @@ vsPipe *vsSystem::getPipe(int index)
 {
     if (!validObject)
         return NULL;
+
+    if (!isInitted)
+    {
+	printf("vsSystem::getPipe: System object is not initialized\n");
+	return NULL;
+    }
         
     if ((index < 0) || (index >= screenCount))
     {
@@ -274,6 +289,12 @@ vsScreen *vsSystem::getScreen(int index)
     if (!validObject)
         return NULL;
         
+    if (!isInitted)
+    {
+	printf("vsSystem::getScreen: System object is not initialized\n");
+	return NULL;
+    }
+
     if ((index < 0) || (index >= screenCount))
     {
         printf("vsSystem::getScreen: Bad screen index\n");
@@ -303,12 +324,12 @@ vsComponent *vsSystem::loadDatabase(char *databaseFilename)
     if (!validObject)
         return NULL;
         
-    if (databaseLoader == NULL)
+    if (!isInitted)
     {
-        printf("vsSystem::loadDatabase: Database loader not specified\n");
-        return NULL;
+	printf("vsSystem::loadDatabase: System object is not initialized\n");
+	return NULL;
     }
-    
+
     return (databaseLoader->loadDatabase(databaseFilename));
 }
 
@@ -375,6 +396,12 @@ void vsSystem::drawFrame()
     if (!validObject)
         return;
         
+    if (!isInitted)
+    {
+	printf("vsSystem::drawFrame: System object is not initialized\n");
+	return;
+    }
+
     int screenLoop, windowLoop, paneLoop;
     int windowCount, paneCount;
     vsScreen *targetScreen;
@@ -427,6 +454,15 @@ void vsSystem::drawFrame()
 // ------------------------------------------------------------------------
 double vsSystem::getFrameTime()
 {
+    if (!validObject)
+        return 0.0;
+        
+    if (!isInitted)
+    {
+	printf("vsSystem::drawFrame: System object is not initialized\n");
+	return 0.0;
+    }
+
     return lastFrameDuration;
 }
 

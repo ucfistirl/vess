@@ -35,11 +35,8 @@
 // Constructor - Adds the given file extension as the first in the loader's
 // list of file extensions. Initializes the list of important node names.
 // ------------------------------------------------------------------------
-vsDatabaseLoader::vsDatabaseLoader(char *fileExtension) :
-    extensions(1, 5), nodeNames(0, 50)
+vsDatabaseLoader::vsDatabaseLoader() : nodeNames(0, 50)
 {
-    extensions[0] = strdup(fileExtension);
-    extensionCount = 1;
     nodeNameCount = 0;
     
     unitMode = VS_DATABASE_UNITS_METERS;
@@ -58,24 +55,37 @@ vsDatabaseLoader::~vsDatabaseLoader()
 }
 
 // ------------------------------------------------------------------------
-// Adds the given filename extension to the loader's list of recognized
-// extensions. Can only be called before a vsSystem object is created.
+// Initializes the internal database laoder corresponding to the given
+// filename extension. Can only be called before the vsSystem object is
+// initialized.
 // ------------------------------------------------------------------------
-void vsDatabaseLoader::addExtension(char *fileExtension)
+void vsDatabaseLoader::initExtension(char *fileExtension)
 {
+    fltRegisterNodeT callbackPtr;
+    void *callbackHandle;
+
     if (inittedFlag)
     {
-        printf("vsDatabaseLoader::addExtension: Can't add extensions after "
-            "loader initialization by vsSystem object\n");
+        printf("vsDatabaseLoader::initExtension: Can't initialize extensions "
+	    "after initialization of vsSystem object\n");
         return;
     }
 
-    extensions[extensionCount] = strdup(fileExtension);
-    if (!(extensions[extensionCount]))
-        printf("vsDatabaseLoader::addExtension: Error allocating space "
-            "for extension string\n");
-    else
-        extensionCount++;
+    if (!pfdInitConverter(fileExtension))
+    {
+        printf("vsDatabaseLoader::initExtension: Unable to initialize '%s' "
+	    "loader\n", fileExtension);
+        return;
+    }
+    if (classifyExtension(fileExtension) == VS_DATABASE_TYPE_FLT)
+    {
+        callbackPtr = fltLoaderCallback;
+        callbackHandle = &callbackPtr;
+        pfdConverterAttr_flt(PFFLT_REGISTER_NODE, callbackHandle);
+        pfdConverterMode_flt(PFFLT_FLATTEN, PF_OFF);
+        pfdConverterMode_flt(PFFLT_CLEAN, PF_OFF);
+    }
+
 }
 
 // ------------------------------------------------------------------------
@@ -121,13 +131,6 @@ void vsDatabaseLoader::setUnits(int databaseUnit)
 // ------------------------------------------------------------------------
 void vsDatabaseLoader::addPath(char *filePath)
 {
-    if (!inittedFlag)
-    {
-        printf("vsDatabaseLoader::addExtension: Can't change directory path "
-	    "before loader initialization by vsSystem object\n");
-        return;
-    }
-
     const char *performerPath;
     char fullPath[1000];
     
@@ -186,7 +189,7 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
     if (!inittedFlag)
     {
         printf("vsDatabaseLoader::loadDatabase: Can't load database until "
-            "loader initialization by vsSystem object\n");
+            "vsSystem has been initialized\n");
         return NULL;
     }
 
@@ -463,29 +466,6 @@ void vsDatabaseLoader::replaceBillboards(pfNode *targetGraph)
 // ------------------------------------------------------------------------
 void vsDatabaseLoader::init()
 {
-    int loop;
-    fltRegisterNodeT callbackPtr;
-    void *callbackHandle;
-
-    for (loop = 0; loop < extensionCount; loop++)
-    {
-        if (!pfdInitConverter((char *)(extensions[loop])))
-        {
-            printf("vsDatabaseLoader::init: Unable to initialize '%s' loader\n",
-                extensions[loop]);
-            continue;
-        }
-        if (classifyExtension((char *)(extensions[loop])) ==
-            VS_DATABASE_TYPE_FLT)
-        {
-            callbackPtr = fltLoaderCallback;
-            callbackHandle = &callbackPtr;
-            pfdConverterAttr_flt(PFFLT_REGISTER_NODE, callbackHandle);
-            pfdConverterMode_flt(PFFLT_FLATTEN, PF_OFF);
-            pfdConverterMode_flt(PFFLT_CLEAN, PF_OFF);
-        }
-    }
-
     inittedFlag = 1;
 }
 

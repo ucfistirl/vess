@@ -33,11 +33,19 @@
 #define MAX_PIPE_COUNT 10
 #define MAX_SCREEN_COUNT 10
 
+enum vsMultiprocessMode
+{
+    VS_MPROC_DEFAULT,
+    VS_MPROC_SINGLE,
+    VS_MPROC_MULTI
+};
+
 class vsSystem
 {
 private:
 
     int                 validObject;
+    int			isInitted;
 
     int                 screenCount;
     vsScreen            *screenArray[MAX_SCREEN_COUNT];
@@ -59,24 +67,27 @@ private:
 
 VS_INTERNAL:
 
-    static vsSystem    *systemObject;
-
     vsObjectMap        *getNodeMap();
     vsGraphicsState    *getGraphicsState();
 
 public:
 
-                        vsSystem(vsDatabaseLoader *fileLoader);
-                        vsSystem(char *databaseFilename, char **nameList,
-                                 char *windowTitle, int fullScreen,
-                                 vsNode **sceneGraph, vsView **viewpoint,
-                                 vsWindow **window);
+    static vsSystem    *systemObject;
+
+			vsSystem();
                         ~vsSystem();
+
+    vsDatabaseLoader    *getLoader();
+    void		setMultiprocessMode(int mpMode);
+
+    void		init();
+    void		simpleInit(char *databaseFilename, char *windowName,
+				   int fullScreen, vsNode **sceneGraph,
+				   vsView **viewpoint, vsWindow **window);
 
     vsPipe              *getPipe(int index);
     vsScreen            *getScreen(int index);
     
-    vsDatabaseLoader    *getLoader();
     vsComponent         *loadDatabase(char *databaseFilename);
     
     void                drawFrame();

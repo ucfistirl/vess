@@ -53,9 +53,6 @@ class vsDatabaseLoader
 {
 private:
 
-    vsGrowableArray    extensions;
-    int                extensionCount;
-
     vsGrowableArray    nodeNames;
     int                nodeNameCount;
 
@@ -82,11 +79,11 @@ VS_INTERNAL:
 
 public:
 
-                   vsDatabaseLoader(char *fileExtension);
+                   vsDatabaseLoader();
                    ~vsDatabaseLoader();
 
-    void           addExtension(char *fileExtension);
-
+    void           initExtension(char *fileExtension);
+    
     void           addImportantNodeName(char *newName);
     void           clearNames();
 
