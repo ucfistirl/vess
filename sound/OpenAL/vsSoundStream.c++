@@ -131,7 +131,7 @@ bool vsSoundStream::swapBuffers()
 // ------------------------------------------------------------------------
 // Returns whether or not either buffer is ready for new data
 // ------------------------------------------------------------------------
-int vsSoundStream::isBufferReady()
+bool vsSoundStream::isBufferReady()
 {
     return (frontBufferEmpty || backBufferEmpty); 
 }

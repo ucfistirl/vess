@@ -66,8 +66,8 @@ public:
 
     virtual const char    *getClassName();
 
-    // Returns VS_TRUE if the back buffer is empty and ready for queuing
-    int         isBufferReady();
+    // Returns true if the back buffer is empty and ready for queuing
+    bool        isBufferReady();
 
     // Returns the current buffer size in bytes.  This his how many
     // bytes of audio data are expected in the call to queueData
