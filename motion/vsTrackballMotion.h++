@@ -1,11 +1,32 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsTrackballMotion.h++
+//
+//    Description:  Motion model that translates and rotates a component
+//		    with the motion of a trackball (or mouse, joystick,
+//		    etc. acting as a trackball)
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_TRACKBALL_MOTION_HPP
 #define VS_TRACKBALL_MOTION_HPP
 
-// Motion model that translates and rotates a component with the motion of a
-// trackball (or mouse, joystick, etc. acting as a trackball).  Useful for 
-// examining models of objects or controlling them in a direct manner.  Can be 
-// inertialess or inertia-based, depending on whether the user enables inertia 
-// on the associated vsKinematics or not.
+// Useful for examining models of objects or controlling them in a direct
+// manner.  Can be inertialess or inertia-based, depending on whether the
+// user enables inertia on the associated vsKinematics or not.
 // 
 // Because of its nature (trackball-style control) this motion model may not
 // work well with other motion models on the same kinematics object.

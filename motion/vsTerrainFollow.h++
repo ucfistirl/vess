@@ -1,4 +1,24 @@
-// File vsTerrainFollow.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsTerrainFollow.h++
+//
+//    Description:  Motion model for forcing an object to stay in contact
+//		    with the ground
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_TERRAIN_FOLLOW_HPP
 #define VS_TERRAIN_FOLLOW_HPP

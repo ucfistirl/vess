@@ -1,10 +1,31 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsWalkInPlace.h++
+//
+//    Description:  Motion model for walking action
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_WALK_IN_PLACE_HPP
 #define VS_WALK_IN_PLACE_HPP
 
-// Motion model for walking action.  The user walks in place to move the
-// viewpoint and/or avatar forward.  Takes three motion trackers, one mounted
-// on the back to determine heading, and one mounted on each foot or ankle.
-// Intended to be used with a vsKinematics object with inertia disabled.
+// The user walks in place to move the viewpoint and/or avatar forward.
+// Takes three motion trackers, one mounted on the back to determine heading,
+// and one mounted on each foot or ankle.  Intended to be used with a
+// vsKinematics object with inertia disabled.
 
 #include "vsMotionModel.h++"
 #include "vsMotionTracker.h++"

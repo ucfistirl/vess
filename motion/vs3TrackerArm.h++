@@ -1,4 +1,26 @@
-// File vs3TrackerArm.h++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vs3TrackerArm.h++
+//
+//    Description:  Motion model that manipulates the three joints of a
+//		    human figure's arm. Works with three motion trackers
+//		    ideally mounted on the subject's back, upper arm,
+//		    and hand.
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #ifndef VS_3_TRACKER_ARM_HPP
 #define VS_3_TRACKER_ARM_HPP

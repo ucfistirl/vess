@@ -1,8 +1,27 @@
-// File vsKinematics.c++
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsKinematics.c++
+//
+//    Description:  Main object for associating a motion model with a
+//		    component in the scene graph
+//
+//    Author(s):    Bryan Kline
+//
+//------------------------------------------------------------------------
 
 #include "vsSystem.h++"
 #include "vsKinematics.h++"
-
 
 // ------------------------------------------------------------------------
 // Constructor - Verfies that there is a transform attribute on the

@@ -1,15 +1,36 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsFlyingMotion.h++
+//
+//    Description:  Motion model for simple flying action (not true
+//		    aerodynamic flying)
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_FLYING_MOTION_HPP
 #define VS_FLYING_MOTION_HPP
 
-// Motion model for simple flying action (not true aerodynamic flying).  Takes 
-// either three axes (heading, pitch, and throttle), or two axes (heading 
-// and pitch) and up to three buttons (accelerate, decelerate, and stop)
-// Intended to provide a simple way to explore a scene with either mouse 
-// controls or a joystick.
+// Takes either three axes (heading, pitch, and throttle), or two axes
+// (heading and pitch) and up to three buttons (accelerate, decelerate, and
+// stop).  Intended to provide a simple way to explore a scene with either
+// mouse controls or a joystick.
 //
 // Note that the motion model expects the vsInputAxes it's given to be
 // normalized.  A warning message will be printed if they are not, and 
-// performace will not likely be what is expected.
+// performance will not likely be what is expected.
 //
 // Also note that this motion model is exclusive.  It most likely will not
 // work well with other motion models on the same vsKinematics object, since it

@@ -1,12 +1,32 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsHeadMotion.h++
+//
+//    Description:  Class intended to handle viewpoint head tracking
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_HEAD_MOTION_HPP
 #define VS_HEAD_MOTION_HPP
 
-// Class intended to handle viewpoint head tracking.  Takes two trackers, one
-// to represent the base orientation (the back or waist) and one to handle the 
-// head orientation.  No position tracking is provided, as the head is assumed 
-// to be a part of a hieararchy.  Because of the nature of this motion model
-// (explicit orientation tracking), no linear or angular velocities are 
-// computed.
+// Takes two trackers, one to represent the base orientation (the back or
+// waist) and one to handle the head orientation.  No position tracking is
+// provided, as the head is assumed  to be a part of a hieararchy.  Because
+// of the nature of this motion model (explicit orientation tracking), no
+// linear or angular velocities are computed.
 //
 // Not recommended for use with other motion models simultaneously on the same 
 // kinematics object.

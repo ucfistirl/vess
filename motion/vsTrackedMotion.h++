@@ -1,11 +1,33 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsTrackedMotion.h++
+//
+//    Description:  Class intended to take motion data from a motion
+//		    tracker and apply the movements directly to the
+//		    component
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_TRACKED_MOTION_HPP
 #define VS_TRACKED_MOTION_HPP
 
-// Class intended to take motion data from a motion tracker and apply
-// the movements directly to the component.  Useful for viewpoint head
-// tracking when the head is not part of a tracker hierarchy (i.e.: when
-// the back or waist is not being tracked along with the head).  Also useful
-// for positioning and orienting tracked objects in the scene.  
+// Useful for viewpoint head tracking when the head is not part of a tracker
+// hierarchy (i.e.: when the back or waist is not being tracked along with
+// the head).  Also useful for positioning and orienting tracked objects in
+// the scene.  
 //
 // Because of the nature of this motion model (explicit position/orientation
 // tracking), no linear or angular velocities are computed.  This motion model 

@@ -1,3 +1,26 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsTrackballMotion.c++
+//
+//    Description:  Motion model that translates and rotates a component
+//		    with the motion of a trackball (or mouse, joystick,
+//		    etc. acting as a trackball)
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include "vsTrackballMotion.h++"
 #include <stdio.h>
 #include "vsMatrix.h++"
