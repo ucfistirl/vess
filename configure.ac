@@ -24,7 +24,7 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 
-dnl Basic CFLAGS, CXXFLAGS and LD_FLAGS.  Use the AM_* versions so the user 
+dnl Basic CFLAGS, CXXFLAGS and LD_FLAGS.  Use the AM_* versions so the user
 dnl can specify any additional flags he or she wants.
 AM_CFLAGS="-O"
 AM_CXXFLAGS="-O"
@@ -185,9 +185,9 @@ case "$SG" in
         dnl Print that we're using Performer for graphics
         AC_MSG_RESULT(Performer)
 
-        dnl Performer can only be in one place.  Configure the include and
-        dnl library directories accordingly.
-        GFX_INCLUDE_DIR=-I/usr/include
+        dnl Performer can only be in one place (/usr/include).  Configure 
+        dnl the include and library directories accordingly.
+        GFX_INCLUDE_DIR=
         GFX_LIB_DIR="-L/usr/$LIBDIR -L/usr/$LIBDIR/libpfdb"
         GFX_LIB="-lpf -lpfflt -lpfutil -lpfdu -lpfui -lXi -lXm -lXt -lGLU -lGL -lXext -lXmu -lX11 -ldl"
 
