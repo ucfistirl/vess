@@ -7,7 +7,7 @@
 #UNAME = `uname`
 OS = $(UNAME:IRIX64=IRIX)
 #   should be 'Performer' or 'OSG'
-SG = Performer
+SG = OSG
 #   should be 'OpenAL'
 AL = OpenAL
 
