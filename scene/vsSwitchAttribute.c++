@@ -162,7 +162,8 @@ int vsSwitchAttribute::isEnabled(int index)
         return VS_FALSE;
     }
 
-    if (index == performerSwitch->getVal())
+    if ((performerSwitch->getVal() == PFSWITCH_ON) ||
+        (performerSwitch->getVal() == index))
         return VS_TRUE;
     else
         return VS_FALSE;
