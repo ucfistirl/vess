@@ -722,8 +722,8 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                     break;
 
                 case VS_ATTRIBUTE_TYPE_SHADING:
-                    attrData = ((vsShadingAttribute *)attribute)->getShading();
-                    if (attrData == VS_SHADING_FLAT)
+                    shadingData = ((vsShadingAttribute *)attribute)->getShading();
+                    if (shadingData == VS_SHADING_FLAT)
                         fprintf(outfile, "SHADING (flat)\n");
                     else
                         fprintf(outfile, "SHADING (gouraud)\n");
