@@ -49,7 +49,7 @@ OBJS = vsDatabaseLoader.o \
        vsWindow.o
 
 $(LIBNAME): $(OBJS)
-	ar -ruc libvsCore.a $(OBJS)
+	ar -ruc $(LIBNAME) $(OBJS)
 
 .SUFFIXES: .c .c++ .o .h .h++
 
