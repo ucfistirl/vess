@@ -178,6 +178,32 @@ int vsScentSourceAttribute::getAttributeCategory()
 }
 
 // ------------------------------------------------------------------------
+// Turns the scent source on, allowing the olfactory device to emit odor.
+// Scent sources are on by default.
+// ------------------------------------------------------------------------
+void vsScentSourceAttribute::on()
+{
+    scentOn = true;
+}
+
+// ------------------------------------------------------------------------
+// Turns the scent source off, preventing any odor from being emitted by
+// the hardware.
+// ------------------------------------------------------------------------
+void vsScentSourceAttribute::off()
+{
+    scentOn = false;
+}
+
+// ------------------------------------------------------------------------
+// Returns whether or not the scent source is on
+// ------------------------------------------------------------------------
+bool vsScentSourceAttribute::isOn()
+{
+    return scentOn;
+}
+
+// ------------------------------------------------------------------------
 // Sets the offset matrix for this attribute. The offset matrix is
 // multiplied into the overall transform matrix before it is used to
 // set the source's global position.

@@ -51,6 +51,8 @@ protected:
     double         refDistance, maxDistance;
     double         rolloffFactor;
 
+    bool           scentOn;
+
 VS_INTERNAL:
 
     virtual void    attach(vsNode *theNode);
@@ -76,6 +78,10 @@ public:
     vsMatrix              getOffsetMatrix();
 
     vsScent               *getScent();
+
+    void                  on();
+    void                  off();
+    bool                  isOn();
 
     double                getStrengthScale();
     void                  setStrengthScale(double newScale);

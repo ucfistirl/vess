@@ -306,18 +306,27 @@ void vsScentManager::update()
 
                 // Calculate the strength of the scent, accounting for
                 // the gain adjustments and distance.
+                strength = -1.0;
+
+                // Cheap optimization, if the rolloff factor is very small,
+                // then no distance attenuation occurs.
                 if (fabs(rolloff) < 1.0e-6)
-                {
-                    // Cheap optimization, if the rolloff factor is very small,
-                    // then no distance attenuation occurs
                     strength = scale;
-                }
-                else
+
+                // Another cheap optimization, if the strength scale is
+                // zero (or if the scent source is off), then no scent
+                // is emitted.
+                if (!scentSources[i]->isOn() || fabs(scale) < 1.0e-6)
+                    strength = 0.0;
+
+                // Calculate the effective strength normally if none of the
+                // above optimizations were applicable.  This process uses 
+                // the same linear gain distance attenuation equation used 
+                // by OpenAL.  I'm hoping that scent attenuates  with 
+                // distance in a manner similar to sound.  So far, I haven't 
+                // found any literature on the subject.
+                if (strength < 0.0)
                 {
-                    // Calculate the effective strength normally.  This uses 
-                    // the same linear gain distance attenuation equation 
-                    // used by OpenAL.  I'm hoping that scent attenuates 
-                    // with distance in a manner similar to sound.
                     strength = scale / 
                         (1 + rolloff * ((distance - reference) / reference));
                 }
@@ -325,8 +334,9 @@ void vsScentManager::update()
                 // Clamp the strength to the given minimum and maximum 
                 // strength parameters.  A scent will never be stronger 
                 // than its maximum strength, nor weaker than its minimum 
-                // strength.
-                if (strength < minStr)
+                // strength.  Don't clamp to minimum strength if the scent
+                // source is off.
+                if ((strength < minStr) && (scentSources[i]->isOn()))
                     strength = minStr;
                 if (strength > maxStr)
                     strength = maxStr;
