@@ -62,101 +62,101 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
 
-	// Set up the window class.  First pick a name for it, use the
-	// window number to keep it unique.
-	sprintf(windowClassName, "VS_WINDOW_CLASS_%d", windowNumber);
+    // Set up the window class.  First pick a name for it, use the
+    // window number to keep it unique.
+    sprintf(windowClassName, "VS_WINDOW_CLASS_%d", windowNumber);
 	
-	// Size in memory
-	windowClass.cbSize = sizeof(WNDCLASSEX); 
-	
+    // Size in memory
+    windowClass.cbSize = sizeof(WNDCLASSEX);
+
     // Make sure each window gets its own device context
-	windowClass.style = CS_OWNDC;
-	
-	// Main window procedure (message handler function)
-	windowClass.lpfnWndProc = (WNDPROC)mainWindowProc;
-	
-	// No extra per-class or per-window memory
-	windowClass.cbClsExtra = 0;
-	windowClass.cbWndExtra = 0;
-	
-	// Handle to application instance
-	windowClass.hInstance = GetModuleHandle(NULL);
-	
-	// Large icon (use the standard application icon)
-	windowClass.hIcon = LoadIcon(NULL, MAKEINTRESOURCE(IDI_VESSV));
-	
-	// Application cursor (use the standard arrow cursor)
-	windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	
-	// Background color brush
-	windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
-	
-	// No menu bar
-	windowClass.lpszMenuName = NULL;
-	
-	// A name for this window class
-	windowClass.lpszClassName = windowClassName;
-	
-	// Small icon (use the standard application icon again)
-	windowClass.hIconSm = LoadIcon(NULL, MAKEINTRESOURCE(IDI_VESSV));
-	
-	// Try to register the window class.  Print an error message and
-	// bail if this fails.
-	if (RegisterClassEx(&windowClass) == 0)
-	{
-	    printf("vsWindow::vsWindow:  Unable to register window class\n");
-	    return;
-	}
-	
-	// Set up the window style.  The following style flags are recommended
-	// in the docs for OpenGL windows.
+    windowClass.style = CS_OWNDC;
+
+    // Main window procedure (message handler function)
+    windowClass.lpfnWndProc = (WNDPROC)mainWindowProc;
+
+    // No extra per-class or per-window memory
+    windowClass.cbClsExtra = 0;
+    windowClass.cbWndExtra = 0;
+
+    // Handle to application instance
+    windowClass.hInstance = GetModuleHandle(NULL);
+
+    // Large icon (use the standard application icon)
+    windowClass.hIcon = LoadIcon(NULL, MAKEINTRESOURCE(IDI_VESSV));
+
+    // Application cursor (use the standard arrow cursor)
+    windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+
+    // Background color brush
+    windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
+
+    // No menu bar
+    windowClass.lpszMenuName = NULL;
+
+    // A name for this window class
+    windowClass.lpszClassName = windowClassName;
+
+    // Small icon (use the standard application icon again)
+    windowClass.hIconSm = LoadIcon(NULL, MAKEINTRESOURCE(IDI_VESSV));
+
+    // Try to register the window class.  Print an error message and
+    // bail if this fails.
+    if (RegisterClassEx(&windowClass) == 0)
+    {
+        printf("vsWindow::vsWindow:  Unable to register window class\n");
+        return;
+    }
+
+    // Set up the window style.  The following style flags are recommended
+    // in the docs for OpenGL windows.
     windowStyle = WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
     // The hideBorder parameter determines which kind of window we're going
     // to use.  If the border is to be hidden, we use a popup window.  If
     // not, we use an overlapped window.
     if (hideBorder)
-	    windowStyle |= WS_POPUP;
-	else
-	    windowStyle |= WS_OVERLAPPEDWINDOW;
-	    
-	// Now, try to open the window
-	msWindow = CreateWindow(windowClassName, "VESS Window", windowStyle,
-	    VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS, 
-	    VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT, NULL, NULL,
-	    GetModuleHandle(NULL), NULL);
-	    
-	// Set the oldWindowProc member to NULL, since we aren't subclassing
-	// this window
-	oldWindowProc = NULL;
-	    
-	// Print an error and bail out if the window doesn't open
-	if (msWindow == NULL)
-	{
-	    printf("vsWindow::vsWindow:  Unable to open window\n");
-	    return;
-	}
+        windowStyle |= WS_POPUP;
+    else
+        windowStyle |= WS_OVERLAPPEDWINDOW;
+
+    // Now, try to open the window
+    msWindow = CreateWindow(windowClassName, "VESS Window", windowStyle,
+        VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS, 
+        VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT, NULL, NULL,
+        GetModuleHandle(NULL), NULL);
+
+    // Set the oldWindowProc member to NULL, since we aren't subclassing
+    // this window
+    oldWindowProc = NULL;
+
+    // Print an error and bail out if the window doesn't open
+    if (msWindow == NULL)
+    {
+        printf("vsWindow::vsWindow:  Unable to open window\n");
+        return;
+    }
 
     // Describe a pixel format containing our default attributes
     // as possible (32-bit color, 24-bit z-buffer, stencil buffer, double-
     // buffered)
-  	memset(&pixelFormat, 0, sizeof(pixelFormat));
+    memset(&pixelFormat, 0, sizeof(pixelFormat));
     pixelFormatDesc.nSize = sizeof(pixelFormat);
     pixelFormatDesc.nVersion = 1;
     pixelFormatDesc.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL |
-                              PFD_DOUBLEBUFFER;
+        PFD_DOUBLEBUFFER;
     pixelFormatDesc.iPixelType = PFD_TYPE_RGBA;
     pixelFormatDesc.cColorBits = 32;
     pixelFormatDesc.cDepthBits = 24;
     pixelFormatDesc.cStencilBits = 1;
     pixelFormatDesc.iLayerType = PFD_MAIN_PLANE;
-    
+
     // Add the stereo flag to the pixel format if requested
     if (stereo)
     {
         pixelFormatDesc.dwFlags |= PFD_STEREO;
     }
-    
+ 
     // Get the device context from the window
     deviceContext = GetDC(msWindow);
 
@@ -230,98 +230,98 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     parentScreen = parent;
     parentPipe = parentScreen->getParentPipe();
 
-	// Set up the window class.  First pick a name for it, use the
-	// window number to keep it unique.
-	sprintf(windowClassName, "VS_WINDOW_CLASS_%d", windowNumber);
-	
-	// Size in memory
-	windowClass.cbSize = sizeof(WNDCLASSEX); 
-	
+    // Set up the window class.  First pick a name for it, use the
+    // window number to keep it unique.
+    sprintf(windowClassName, "VS_WINDOW_CLASS_%d", windowNumber);
+
+    // Size in memory
+    windowClass.cbSize = sizeof(WNDCLASSEX);
+
     // Make sure each window gets its own device context
-	windowClass.style = CS_OWNDC;
-	
-	// Main window procedure (message handler function)
-	windowClass.lpfnWndProc = (WNDPROC)mainWindowProc;
-	
-	// No extra per-class or per-window memory
-	windowClass.cbClsExtra = 0;
-	windowClass.cbWndExtra = 0;
-	
-	// Handle to application instance
-	windowClass.hInstance = GetModuleHandle(NULL);
-	
-	// Large icon (use the standard application icon)
-	windowClass.hIcon = LoadIcon(NULL, MAKEINTRESOURCE(IDI_VESSV));
-	
-	// Application cursor (use the standard arrow cursor)
-	windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	
-	// Background color brush
-	windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
-	
-	// No menu bar
-	windowClass.lpszMenuName = NULL;
-	
-	// A name for this window class
-	windowClass.lpszClassName = windowClassName;
-	
-	// Small icon (use the standard application icon again)
-	windowClass.hIconSm = LoadIcon(NULL, MAKEINTRESOURCE(IDI_VESSV));
-	
-	// Try to register the window class.  Print an error message and
-	// bail if this fails.
-	if (RegisterClassEx(&windowClass) == 0)
-	{
-	    printf("vsWindow::vsWindow:  Unable to register window class\n");
-	    return;
-	}
-	
-	// Set up the window style.  The following style flags are recommended
-	// in the docs for OpenGL windows.
+    windowClass.style = CS_OWNDC;
+
+    // Main window procedure (message handler function)
+    windowClass.lpfnWndProc = (WNDPROC)mainWindowProc;
+
+    // No extra per-class or per-window memory
+    windowClass.cbClsExtra = 0;
+    windowClass.cbWndExtra = 0;
+
+    // Handle to application instance
+    windowClass.hInstance = GetModuleHandle(NULL);
+
+    // Large icon (use the standard application icon)
+    windowClass.hIcon = LoadIcon(NULL, MAKEINTRESOURCE(IDI_VESSV));
+
+    // Application cursor (use the standard arrow cursor)
+    windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+
+    // Background color brush
+    windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
+
+    // No menu bar
+    windowClass.lpszMenuName = NULL;
+
+    // A name for this window class
+    windowClass.lpszClassName = windowClassName;
+
+    // Small icon (use the standard application icon again)
+    windowClass.hIconSm = LoadIcon(NULL, MAKEINTRESOURCE(IDI_VESSV));
+
+    // Try to register the window class.  Print an error message and
+    // bail if this fails.
+    if (RegisterClassEx(&windowClass) == 0)
+    {
+        printf("vsWindow::vsWindow:  Unable to register window class\n");
+        return;
+    }
+
+    // Set up the window style.  The following style flags are recommended
+    // in the docs for OpenGL windows.
     windowStyle = WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-    
+
     // The hideBorder parameter determines which kind of window we're going
     // to use.  If the border is to be hidden, we use a popup window.  If
     // not, we use an overlapped window.
     if (hideBorder)
-	    windowStyle |= WS_POPUP;
-	else
-	    windowStyle |= WS_OVERLAPPEDWINDOW;
-	
-	// Now, try to open the window
-	msWindow = CreateWindow(windowClassName, "VESS Window", windowStyle,
-	    x, y, width, height, NULL, NULL,
-	    GetModuleHandle(NULL), NULL);
-	    
-	// Set the oldWindowProc member to NULL, since we aren't subclassing
-	// this window
-	oldWindowProc = NULL;
-	    
-	// Print an error and bail out if the window doesn't open
-	if (msWindow == NULL)
-	{
-	    printf("vsWindow::vsWindow:  Unable to open window\n");
-	    return;
-	}
+        windowStyle |= WS_POPUP;
+    else
+        windowStyle |= WS_OVERLAPPEDWINDOW;
+
+    // Now, try to open the window
+    msWindow = CreateWindow(windowClassName, "VESS Window", windowStyle,
+        x, y, width, height, NULL, NULL,
+        GetModuleHandle(NULL), NULL);
+
+    // Set the oldWindowProc member to NULL, since we aren't subclassing
+    // this window
+    oldWindowProc = NULL;
+
+    // Print an error and bail out if the window doesn't open
+    if (msWindow == NULL)
+    {
+        printf("vsWindow::vsWindow:  Unable to open window\n");
+        return;
+    }
 
     // Describe a pixel format containing our default attributes
     // as possible (32-bit color, 24-bit z-buffer, stencil buffer, double-
     // buffered)
-  	memset(&pixelFormat, 0, sizeof(pixelFormat));
+    memset(&pixelFormat, 0, sizeof(pixelFormat));
     pixelFormatDesc.nSize = sizeof(pixelFormat);
     pixelFormatDesc.nVersion = 1;
     pixelFormatDesc.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL |
-                              PFD_DOUBLEBUFFER;
+        PFD_DOUBLEBUFFER;
     pixelFormatDesc.iPixelType = PFD_TYPE_RGBA;
     pixelFormatDesc.cColorBits = 32;
     pixelFormatDesc.cDepthBits = 24;
     pixelFormatDesc.cStencilBits = 1;
     pixelFormatDesc.iLayerType = PFD_MAIN_PLANE;
-    
+
     // If stereo was requested, add the stereo pixel format flag
     if (stereo)
         pixelFormatDesc.dwFlags |= PFD_STEREO;
-    
+
     // Get the device context from the window
     deviceContext = GetDC(msWindow);
 
@@ -400,11 +400,11 @@ vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
     // Describe a pixel format containing our default attributes
     // as possible (32-bit color, 24-bit z-buffer, stencil buffer, double-
     // buffered)
-  	memset(&pixelFormat, 0, sizeof(pixelFormat));
+    memset(&pixelFormat, 0, sizeof(pixelFormat));
     pixelFormatDesc.nSize = sizeof(pixelFormat);
     pixelFormatDesc.nVersion = 1;
     pixelFormatDesc.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL |
-                              PFD_DOUBLEBUFFER | PFD_STEREO;
+        PFD_DOUBLEBUFFER | PFD_STEREO;
     pixelFormatDesc.iPixelType = PFD_TYPE_RGBA;
     pixelFormatDesc.cColorBits = 32;
     pixelFormatDesc.cDepthBits = 24;
