@@ -9,10 +9,13 @@ libvsMotion_a_SOURCES = \
                         common/vsDifferentialTrackedOrientation.c++ \
                         common/vsDrivingMotion.c++ \
                         common/vsFlyingMotion.c++ \
+                        common/vsHandArticulation.c++ \
+                        common/vsHandCollision.c++ \
                         common/vsKinematics.c++ \
                         common/vsMotionModel.c++ \
                         common/vsPathMotion.c++ \
                         common/vsRelativeMouseMotion.c++ \
+                        common/vsRelativeObjectMotion.c++ \
                         common/vsSphericalMotion.c++ \
                         common/vsTerrainFollow.c++ \
                         common/vsTrackballMotion.c++ \
@@ -33,10 +36,13 @@ include_HEADERS = \
                   common/vsDifferentialTrackedOrientation.h++ \
                   common/vsDrivingMotion.h++ \
                   common/vsFlyingMotion.h++ \
+                  common/vsHandArticulation.h++ \
+                  common/vsHandCollision.h++ \
                   common/vsKinematics.h++ \
                   common/vsMotionModel.h++ \
                   common/vsPathMotion.h++ \
                   common/vsRelativeMouseMotion.h++ \
+                  common/vsRelativeObjectMotion.h++ \
                   common/vsSphericalMotion.h++ \
                   common/vsTerrainFollow.h++ \
                   common/vsTrackballMotion.h++ \
