@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/ioctl.h>
 
 #include "vsSerialPort.h++"
 
@@ -31,7 +32,6 @@
 // ------------------------------------------------------------------------
 vsSerialPort::vsSerialPort(char *deviceName)
 {
-    // Open the port
     portDescriptor = open(deviceName, O_RDWR);
     if (portDescriptor < 0)
     {
@@ -39,11 +39,9 @@ vsSerialPort::vsSerialPort(char *deviceName)
         return;
     }
    
-    // Save the old port attributes
     tcgetattr(portDescriptor, &oldAttributes);
     currentAttributes = oldAttributes;
    
-    // Set the port attributes to the default
     setDefaults(&currentAttributes);
     setAttributes(&currentAttributes);
 }
@@ -55,7 +53,6 @@ vsSerialPort::vsSerialPort(char *deviceName)
 vsSerialPort::vsSerialPort(char *deviceName, long baud, 
                            int wordLength, char parity, int stopBits)
 {
-    // Open the port
     portDescriptor = open(deviceName, O_RDWR);
     if (portDescriptor < 0)
     {
@@ -63,15 +60,12 @@ vsSerialPort::vsSerialPort(char *deviceName, long baud,
         return;
     }
    
-    // Save the old port attributes
     tcgetattr(portDescriptor, &oldAttributes);
     currentAttributes = oldAttributes;
    
-    // Set the port to the default attributes
     setDefaults(&currentAttributes);
     setAttributes(&currentAttributes);
 
-    // Set the specified baud rate, parity, word length, and stop bits
     setBaudRate(baud);
     setParity(parity);
     setWordLength(wordLength);
@@ -84,10 +78,7 @@ vsSerialPort::vsSerialPort(char *deviceName, long baud,
 // ------------------------------------------------------------------------
 vsSerialPort::~vsSerialPort()
 {
-    // Restore the old port attributes
     setAttributes(&oldAttributes);
-
-    // Close the port
     close(portDescriptor);
 }
 
@@ -100,8 +91,7 @@ int vsSerialPort::setAttributes(struct termios *desiredAttributes)
 }
 
 // ------------------------------------------------------------------------
-// Set up the default communication parameters (9600 baud, 8 data bits,
-// no parity, and one stop bit)
+// Set up the default communication parameters
 // ------------------------------------------------------------------------
 void vsSerialPort::setDefaults(struct termios *tioStructure)
 {
@@ -134,8 +124,7 @@ void vsSerialPort::termioPrint(struct termios *tioStructure)
 }
 
 // ------------------------------------------------------------------------
-// Write a packet to the port.  Returns the number of bytes actually
-// written.
+// Write a packet to the port
 // ------------------------------------------------------------------------
 int vsSerialPort::writePacket(unsigned char *packet, int length)
 {
@@ -151,30 +140,20 @@ int vsSerialPort::readPacket(unsigned char *packet, int length)
     int bytesRead;
     int timeoutCounter;
 
-    // Initialize bytesRead to zero
     bytesRead = 0;
-
-    // Initialize the timeoutCounter
     timeoutCounter = VS_SERIAL_NUM_READ_RETRYS;
 
-    // Try to read the specified number of bytes (the length parameter)
-    // If we don't get the specified number of bytes, keep trying until we 
-    // do, or until timeoutCounter reaches zero.
     while ((bytesRead < length) && (timeoutCounter > 0)) 
     {
-        // Read from the port
         result = read(portDescriptor, &(packet[bytesRead]), 
             length - bytesRead);
 
-        // Add the result to the total number of bytes read
         if (result > 0)
             bytesRead += result;
 
-        // Decrement timeoutCounter
         timeoutCounter--;
     }
 
-    // Return the number of bytes actually read
     return bytesRead;
 }
 
@@ -188,17 +167,14 @@ int vsSerialPort::readCharacter()
     int  result;
     int  readFlag;
 
-    // Try to read a byte from the port
     readFlag = read(portDescriptor, &character, 1);
 
     if (readFlag == 1)
     {
-        // If we did read a byte, return it
         result = character;
         return result;
     }
     else
-        // If we didn't read anything, return -1 
         return -1;
 }
 
@@ -368,6 +344,46 @@ void vsSerialPort::setStopBits(int stopBits)
 
     // Change the currentAttributes
     setAttributes(&currentAttributes);
+} 
+
+// ------------------------------------------------------------------------
+// Raises (if the parameter is VS_TRUE) or lowers (if VS_FALSE) the RTS
+// line on the serial port
+// ------------------------------------------------------------------------
+void vsSerialPort::setRTS(int enable)
+{
+    int status;
+
+    ioctl(portDescriptor, TIOCMGET, &status);
+
+    if (enable)
+    {
+        status |= TIOCM_RTS;
+    }
+    else
+    {
+        status &= ~TIOCM_RTS;
+    } 
+
+    ioctl(portDescriptor, TIOCMSET, &status);
+}
+
+// ------------------------------------------------------------------------
+// Raises (if the parameter is VS_TRUE) or lowers (if VS_FALSE) the DTR
+// line on the serial port
+// ------------------------------------------------------------------------
+void vsSerialPort::setDTR(int enable)
+{
+    int status;
+
+    ioctl(portDescriptor, TIOCMGET, &status);
+
+    if (enable)
+        status |= TIOCM_DTR;
+    else
+        status &= ~TIOCM_DTR;
+
+    ioctl(portDescriptor, TIOCMSET, &status);
 }
 
 // ------------------------------------------------------------------------
