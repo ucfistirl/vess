@@ -11,12 +11,11 @@
 //
 //------------------------------------------------------------------------
 //
-//    VESS Module:  vsIPList.c++
+//    VESS Module:  vsClusterConfig.c++
 //
 //    Description:  Contains a listing of the IP addresses of machines in a
 //                  cluster.
 //                  
-//
 //    Author(s):    Ben Douglass
 //
 //------------------------------------------------------------------------
@@ -38,15 +37,14 @@ private:
 
 public:
 
-//    vsIPList(long int master, int slaveCount, long int *slaves);
     vsClusterConfig(const char *master, const int slaveCount, 
             const char **slaves);
     ~vsClusterConfig();
 
-    bool isValid();
+    bool                    isValid();
 
-    const unsigned char* getMaster();
-    const unsigned char* getSlave(int slaveIndex);
-    int         numSlaves();
+    const unsigned char*    getMaster();
+    const unsigned char*    getSlave(int slaveIndex);
+    int                     numSlaves();
 };
 #endif
