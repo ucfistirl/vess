@@ -1,4 +1,3 @@
-
 //------------------------------------------------------------------------
 //
 //    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
@@ -27,14 +26,15 @@
 
 #define VS_MAX_TCP_CLIENTS   20
 
-class vsTCPNetworkInterface : public vsNetworkInterface
+class VS_IO_DLL vsTCPNetworkInterface : public vsNetworkInterface
 {
 protected:
 
-    int                   clientSockets[VS_MAX_TCP_CLIENTS];
+    SOCKET                clientSockets[VS_MAX_TCP_CLIENTS];
     struct sockaddr_in    clientNames[VS_MAX_TCP_CLIENTS];
-    socklen_t             clientNameLengths[VS_MAX_TCP_CLIENTS];
+    int                   clientNameLengths[VS_MAX_TCP_CLIENTS];
     int                   numClientSockets;
+    u_long                nonblockingMode;
 
 public:
 
@@ -58,4 +58,3 @@ public:
 };
 
 #endif
-
