@@ -475,11 +475,11 @@ void vsCallbackList::nodeRemove(void *nodeData)
 // Attempt to acquire the semaphore of the data in this callback node,
 // indicating to the application process that the data is being modified
 // and should not be used. If the data is acquired, the function will
-// return VS_TRUE, but if it is in use by the application or otherwise
-// unavailable the function returns VS_FALSE. If the semaphore is NULL,
-// the VS_TRUE is returned by default.
+// return true, but if it is in use by the application or otherwise
+// unavailable the function returns false. If the semaphore is NULL,
+// the true is returned by default.
 // ------------------------------------------------------------------------
-int vsCallbackList::nodeAcquireData(void *nodeData)
+bool vsCallbackList::nodeAcquireData(void *nodeData)
 {
     vsCallbackNode *callbackNode;
 
@@ -494,7 +494,7 @@ int vsCallbackList::nodeAcquireData(void *nodeData)
         {
             // Indicate to the callback function that the data could
             // not be acquired
-            return VS_FALSE;
+            return false;
         }
         else
         {
@@ -502,14 +502,14 @@ int vsCallbackList::nodeAcquireData(void *nodeData)
             uspsema(callbackNode->sema);
 
             // Indicate to the callback function that the data was acquired
-            return VS_TRUE;
+            return true;
         }
     }
     else
     {
         // Indicate to the application that the data is NULL and does not
         // need to be acquired
-        return VS_TRUE;
+        return true;
     }
 }
 
@@ -535,12 +535,12 @@ void vsCallbackList::nodeReleaseData(void *nodeData)
 // ------------------------------------------------------------------------
 // Search the callback list for any nodes that act upon the shared memory
 // indicated by the argument, acquiring the semaphore of that data if it
-// can be found. VS_TRUE is returned if the data cannot be found or if it
+// can be found. true is returned if the data cannot be found or if it
 // is found and its semaphore is acquired, indicating to the draw process
-// that the data is unstable and should not be modified. VS_FALSE is
+// that the data is unstable and should not be modified. False is
 // returned if the data is located but its semaphore cannot be acquired.
 // ------------------------------------------------------------------------
-int vsCallbackList::acquireData(void *sharedMemory)
+bool vsCallbackList::acquireData(void *sharedMemory)
 {
     vsCallbackNode *traversalNode;
 
@@ -568,7 +568,7 @@ int vsCallbackList::acquireData(void *sharedMemory)
                     uspsema(listSemaphore);
 
                     // Return true to indicate that the data is safe to modify
-                    return VS_TRUE;
+                    return true;
                 }
                 else
                 {
@@ -577,7 +577,7 @@ int vsCallbackList::acquireData(void *sharedMemory)
 
                     // Return false to indicate that the data is unstable and
                     // should not be modified
-                    return VS_FALSE;
+                    return false;
                 }
             }
 
@@ -591,7 +591,7 @@ int vsCallbackList::acquireData(void *sharedMemory)
 
     // Return true because the data was not found in the callback list or
     // was NULL (this sort of data is always available by default)
-    return VS_TRUE;
+    return true;
 }
 
 // ------------------------------------------------------------------------

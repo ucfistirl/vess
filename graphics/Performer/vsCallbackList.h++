@@ -27,14 +27,6 @@
 #include <ulocks.h>
 #include "vsObject.h++"
 
-#ifndef VS_TRUE
-#define VS_TRUE 1
-#endif
-
-#ifndef VS_FALSE
-#define VS_FALSE 0
-#endif
-
 struct vsCallbackNode
 {
     vsCallbackNode    *prev;
@@ -86,10 +78,10 @@ public:
     static void    *getData(void *nodeData);
     static void    nodeRemove(void *nodeData);
 
-    static int     nodeAcquireData(void *nodeData);
+    static bool    nodeAcquireData(void *nodeData);
     static void    nodeReleaseData(void *nodeData);
 
-    int            acquireData(void *sharedMemory);
+    bool           acquireData(void *sharedMemory);
     void           releaseData(void *sharedMemory);
 };
 
