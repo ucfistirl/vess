@@ -11,7 +11,7 @@
 //
 //------------------------------------------------------------------------
 //
-//    VESS Module:  vsComponent.c++
+//    VESS Module:  vsScene.h++
 //
 //    Description:  vsNode subclass that acts as the root of a VESS scene
 //                  graph.
@@ -73,6 +73,9 @@ public:
     virtual unsigned int    getIntersectValue();
 
     virtual void            addAttribute(vsAttribute *newAttribute);
+    
+    virtual void            enableLighting();
+    virtual void            disableLighting();
 
     virtual void            enableCull();
     virtual void            disableCull();
