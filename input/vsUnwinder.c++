@@ -72,24 +72,29 @@ vsUnwinder::vsUnwinder(int portNumber, int joy1, int joy2)
     // Open serial port
     port = new vsSerialPort(portDevice, 9600, 8, 'N', 1);
 
+    // Set to polled mode
+    buf = 'p';
+    port->writePacket(&buf, 1);
+    usleep(100000);
+
+    // Set to normal (not on-change) mode
+    buf = 'X';
+    port->writePacket(&buf, 1);
+    usleep(100000);
+
+    // Set to binary mode
+    buf = 'n';
+    port->writePacket(&buf, 1);
+    usleep(100000);
+
     // Set Unwinder to 38400 baud
     buf = '7';
     port->writePacket(&buf, 1);
-    usleep(20000);
-    
+    usleep(100000);
+
     // Adjust serial port to match the new baud rate
     port->setBaudRate(38400);
-
-    // Set to polled mode, and normal binary output
-    buf = 'p';
-    port->writePacket(&buf, 1);
-    usleep(20000);
-    buf = 'X';
-    port->writePacket(&buf, 1);
-    usleep(20000);
-    buf = 'n';
-    port->writePacket(&buf, 1);
-    usleep(20000);
+    port->flushPort();
 
     printf("vsUnwinder::vsUnwinder: Unwinder created on port %s\n", portDevice);
     printf("vsUnwinder::vsUnwinder:   with %d joystick(s)\n", numJoysticks);
@@ -107,13 +112,21 @@ vsUnwinder::~vsUnwinder(void)
 
     if (port)
     {
+        // Flush the serial port
+        port->flushPort();
+        usleep(100000);
+
         // Reset baud to 9600
         buf = '5';
         port->writePacket(&buf, 1);
+        usleep(100000);
+
+        // Reset the serial port to 9600 baud and flush again
+        port->setBaudRate(9600);
+        port->flushPort();
 
         // Close serial port
-        if (port)
-            delete port;
+        delete port;
     }
 }
 
@@ -210,6 +223,8 @@ void vsUnwinder::getReport(vsUnwinderPacket *packet)
 #ifdef VS_UW_DEBUG
         printf("vsUnwinder::getReport: "
             "Status byte is %02X\n", packet->status);
+        printf("vsUnwinder::getReport: "
+            "Mode byte is %02X\n", packet->mode);
 #endif
 
         // Check the status byte to see if Joystick 0 data is present
