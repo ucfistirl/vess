@@ -30,7 +30,10 @@
 // ------------------------------------------------------------------------
 vsVector::vsVector()
 {
-    clear();
+    data[0] = 0.0;
+    data[1] = 0.0;
+    data[2] = 0.0;
+    data[3] = 0.0;
     vecSize = 4;
 }
 
@@ -40,9 +43,19 @@ vsVector::vsVector()
 // ------------------------------------------------------------------------
 vsVector::vsVector(int size)
 {
-    clear();
-    vecSize = 4;
-    setSize(size);
+    data[0] = 0.0;
+    data[1] = 0.0;
+    data[2] = 0.0;
+    data[3] = 0.0;
+
+    // Bounds checking
+    if ((size < 1) || (size > 4))
+    {
+        printf("vsVector::vsVector(int): Invalid size parameter\n");
+        vecSize = 4;
+    }
+    else
+        vecSize = size;
 }
 
 // ------------------------------------------------------------------------
@@ -51,9 +64,23 @@ vsVector::vsVector(int size)
 // ------------------------------------------------------------------------
 vsVector::vsVector(int size, double values[])
 {
+    int i;
+
+    // Bounds checking
+    if ((size < 1) || (size > 4))
+    {
+        printf("vsVector::vsVector(int, double[]): Invalid size parameter\n");
+        clear();
+        vecSize = 4;
+        return;
+    }
+
+    // Copy the data values from the given array to the vector, setting
+    // the size of the vector and setting the unused entries to zero
     clear();
-    vecSize = 4;
-    set(size, values);
+    vecSize = size;
+    for (i = 0; i < size; i++)
+        data[i] = values[i];
 }
 
 // ------------------------------------------------------------------------
@@ -62,7 +89,11 @@ vsVector::vsVector(int size, double values[])
 // ------------------------------------------------------------------------
 vsVector::vsVector(double x, double y)
 {
-    set(x, y);
+    data[0] = x;
+    data[1] = y;
+    data[2] = 0.0;
+    data[3] = 0.0;
+    vecSize = 2;
 }
 
 // ------------------------------------------------------------------------
@@ -71,7 +102,11 @@ vsVector::vsVector(double x, double y)
 // ------------------------------------------------------------------------
 vsVector::vsVector(double x, double y, double z)
 {
-    set(x, y, z);
+    data[0] = x;
+    data[1] = y;
+    data[2] = z;
+    data[3] = 0.0;
+    vecSize = 3;
 }
 
 // ------------------------------------------------------------------------
@@ -80,7 +115,11 @@ vsVector::vsVector(double x, double y, double z)
 // ------------------------------------------------------------------------
 vsVector::vsVector(double x, double y, double z, double w)
 {
-    set(x, y, z, w);
+    data[0] = x;
+    data[1] = y;
+    data[2] = z;
+    data[3] = w;
+    vecSize = 4;
 }
 
 // ------------------------------------------------------------------------
@@ -121,10 +160,11 @@ void vsVector::set(double x, double y)
 {
     // Copy the data values from the given array to the vector, setting the
     // size of the vector to two and setting the unused entries to zero
-    clear();
-    vecSize = 2;
     data[0] = x;
     data[1] = y;
+    data[2] = 0.0;
+    data[3] = 0.0;
+    vecSize = 2;
 }
 
 // ------------------------------------------------------------------------
@@ -135,11 +175,11 @@ void vsVector::set(double x, double y, double z)
 {
     // Copy the data values from the given array to the vector, setting the
     // size of the vector to three and setting the unused entry to zero
-    clear();
-    vecSize = 3;
     data[0] = x;
     data[1] = y;
     data[2] = z;
+    data[3] = 0.0;
+    vecSize = 3;
 }
 
 // ------------------------------------------------------------------------
@@ -150,11 +190,11 @@ void vsVector::set(double x, double y, double z, double w)
 {
     // Copy the data values from the given array to the vector, setting the
     // size of the vector to four
-    vecSize = 4;
     data[0] = x;
     data[1] = y;
     data[2] = z;
     data[3] = w;
+    vecSize = 4;
 }
 
 // ------------------------------------------------------------------------
@@ -492,7 +532,7 @@ void vsVector::normalize()
     
     // If the magnitude is zero, then normalization is undefined. Abort.
     if (mag == 0.0)
-	return;
+        return;
     
     // Divide each element of this vector by the magnitude
     for (int i = 0; i < vecSize; i++)
@@ -513,11 +553,11 @@ vsVector vsVector::getNormalized() const
 
     // Get the magnitude of this vector
     mag = getMagnitude();
-    
+
     // If the magnitude is zero, then normalization is undefined. Return
     // a dummy zero vector result.
     if (mag == 0.0)
-	return result;
+        return result;
 
     // Divide each element of the result vector by the magnitude
     for (i = 0; i < vecSize; i++)
@@ -614,7 +654,7 @@ double vsVector::getAngleBetween(const vsVector &endVector) const
 double &vsVector::operator[](int index)
 {
     // Bounds checking
-    if ((index < 0) || (index >= getSize()))
+    if ((index < 0) || (index >= vecSize))
     {
         printf("vsVector::operator[]: Invalid index\n");
         return data[0];
@@ -630,7 +670,7 @@ double &vsVector::operator[](int index)
 const double &vsVector::operator[](int index) const
 {
     // Bounds checking
-    if ((index < 0) || (index >= getSize()))
+    if ((index < 0) || (index >= vecSize))
     {
         printf("vsVector::operator[]: Invalid index\n");
         return data[0];
