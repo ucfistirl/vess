@@ -709,140 +709,216 @@ void vsWindow::saveImage(char *filename)
     unsigned short redVals[4096], greenVals[4096], blueVals[4096];
     int tempInt;
 
+    vsCallbackList *callbackList;
+    void *sharedBuffer;
+    int offset;
+
     // Get the connections to the X window system and to the drawable region
     // of the window
     xWindowDisplay = pfGetCurWSConnection();
     winDrawable = performerPipeWindow->getWSDrawable();
-    
-    // Get the size and shape info for the window
-    XGetGeometry(xWindowDisplay, winDrawable, &rootWin, &xpos, &ypos,
-        &width, &height, &border, &depth);
 
-    // Insure we begin at winDrawable's origin.  This is done because the
-    // XGetGeometry call returns the x and y pos relative to the parent's
-    // window.
-    xpos = 0;
-    ypos = 0;
+    // If the window is a pbuffer, XGetGeometry cannot be called on its
+    // drawable, so we have to make GL calls through Performer
+    if (performerPipeWindow->getWinType() & PFPWIN_TYPE_PBUFFER)
+    {
+        // Query the drawable for its width and height
+        glXQueryDrawable(xWindowDisplay, winDrawable, GLX_WIDTH, &width);
+        glXQueryDrawable(xWindowDisplay, winDrawable, GLX_HEIGHT, &height);
 
-    // Capture the contents of the window into an X image struture
-    image = XGetImage(xWindowDisplay, winDrawable, xpos, ypos, width, height,
-        AllPlanes, ZPixmap);
-    if (!image)
-    {
-        printf("vsWindow::saveImage: Unable to access contents of window\n");
-        return;
-    }
-    
-    // * Juggle the 'mask' bits around (as given by the X image structure)
-    // to determine which color data bits occupy what space within each
-    // pixel data unit. This information is stored as a bit shift indicating
-    // the number of bits to move before we get to the start of that color
-    // component's bits, and a bit mask used to mask out bits from other
-    // color components. Also construct a lookup table to allow for quick
-    // scaling from whatever is stored in the data into the 0-255 range
-    // that the RGB format wants.
-    
-    // Computing the shift and mask involves shifting the mask down until
-    // the low bit becomes one. The mask is them saved like that, and the
-    // number of shifts is recorded.
-    
-    // Red size and offset
-    redMax = image->red_mask;
-    redShift = 0;
-    while (!(redMax & 1))
-    {
-        redShift++;
-        redMax >>= 1;
-    }
-    redMask = image->red_mask;
-    // Red scale lookup table
-    for (loop = 0; loop <= redMax; loop++)
-    {
-        redVals[loop] = ((loop * 255) / redMax);
-    }
+        // Get the callback list of the last child pane, so that the image
+        // taken is the one drawn last
+        callbackList =
+            getChildPane(childPaneCount -1)->getPerformerCallbackList();
 
-    // Green size and offset
-    greenMax = image->green_mask;
-    greenShift = 0;
-    while (!(greenMax & 1))
-    {
-        greenShift++;
-        greenMax >>= 1;
-    }
-    greenMask = image->green_mask;
-    // Green scale lookup table
-    for (loop = 0; loop <= greenMax; loop++)
-    {
-        greenVals[loop] = ((loop * 255) / greenMax);
-    }
+        // Give the callback list a save image callback, storing the shared
+        // memory on which the callback acts into the temporary buffer. The
+        // image is retreived in RGB format, which uses three bytes per pixel
+        sharedBuffer = callbackList->
+            appendCallback(saveImage, width * height * 3);
 
-    // Blue size and offset
-    blueMax = image->blue_mask;
-    blueShift = 0;
-    while (!(blueMax & 1))
-    {
-        blueShift++;
-        blueMax >>= 1;
-    }
-    blueMask = image->blue_mask;
-    // Blue scale lookup table
-    for (loop = 0; loop <= blueMax; loop++)
-    {
-        blueVals[loop] = ((loop * 255) / blueMax);
-    }
-
-    // Create a buffer area for each color component of the image
-    redBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
-    greenBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
-    blueBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
-
-    // Open the image file
-    imageOut = iopen(filename, "w", RLE(1), 3, width, height, 3);
-    if (!imageOut)
-    {
-        printf("vsWindow::saveImage: NULL image file pointer\n");
-        return;
-    }
-
-    // Process the image, one pixel at a time
-    for (loop = 0; loop < height; loop++)
-    {
-        for (sloop = 0; sloop < width; sloop++)
+        // Keep trying to acquire the data until the image has been written
+        while (!callbackList->acquireData(sharedBuffer))
         {
-            // Call an X function to extract one of the image pixels from
-            // the X image object
-            pixelData = XGetPixel(image, sloop, loop);
-
-            // Decode the three component pixel values using the associated
-            // bit mask, bit shift value, and lookup table. Store the
-            // resulting value in the pixel array for that component.
-
-            // Red
-            redPixel = pixelData & redMask;
-            redPixel >>= redShift;
-            redBuffer[sloop] = redVals[redPixel];
-
-            // Green
-            greenPixel = pixelData & greenMask;
-            greenPixel >>= greenShift;
-            greenBuffer[sloop] = greenVals[greenPixel];
-
-            // Blue
-            bluePixel = pixelData & blueMask;
-            bluePixel >>= blueShift;
-            blueBuffer[sloop] = blueVals[bluePixel];
+            // Force a traversal of the callback list in the draw process
+            pfFrame();
         }
 
-        // Dump each completed row to the image file
-        tempInt = height - loop - 1;
-        putrow(imageOut, redBuffer, tempInt, 0);
-        putrow(imageOut, greenBuffer, tempInt, 1);
-        putrow(imageOut, blueBuffer, tempInt, 2);
+        // Create a buffer area for each color component of the image
+        redBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
+        greenBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
+        blueBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
+
+        // Open the image file
+        imageOut = iopen(filename, "w", RLE(1), 3, width, height, 3);
+        if (!imageOut)
+        {
+            printf("vsWindow::saveImage: NULL image file pointer\n");
+            return;
+        }
+
+        // Process the image, one pixel at a time
+        for (loop = 0; loop < height; loop++)
+        {
+            for (sloop = 0; sloop < width; sloop++)
+            {
+                // Set the base offset of the pixel, considering that each
+                // pixel is actually three bytes
+                offset = ((loop * width) + sloop) * 3;
+
+                // Split the main buffer into colored pixel buffers
+                redBuffer[sloop] = ((unsigned char *)sharedBuffer)[offset];
+                greenBuffer[sloop] = ((unsigned char *)sharedBuffer)[offset+1];
+                blueBuffer[sloop] = ((unsigned char *)sharedBuffer)[offset+2];
+            }
+
+            // Dump each completed row to the image file
+            tempInt = height - loop - 1;
+            putrow(imageOut, redBuffer, tempInt, 0);
+            putrow(imageOut, greenBuffer, tempInt, 1);
+            putrow(imageOut, blueBuffer, tempInt, 2);
+        }
+
+        // Free the shared memory that Performer used to create the image
+        pfFree(sharedBuffer);
+    }
+    else
+    {
+        // Get the size and shape info for the window
+        XGetGeometry(xWindowDisplay, winDrawable, &rootWin, &xpos, &ypos,
+            &width, &height, &border, &depth);
+
+        // Insure we begin at winDrawable's origin.  This is done because the
+        // XGetGeometry call returns the x and y pos relative to the parent's
+        // window.
+        xpos = 0;
+        ypos = 0;
+
+        // Capture the contents of the window into an X image struture
+        image = XGetImage(xWindowDisplay, winDrawable, xpos, ypos, width, height,
+            AllPlanes, ZPixmap);
+        if (!image)
+        {
+            printf("vsWindow::saveImage: Unable to access contents of window\n");
+            return;
+        }
+    
+        // * Juggle the 'mask' bits around (as given by the X image structure)
+        // to determine which color data bits occupy what space within each
+        // pixel data unit. This information is stored as a bit shift indicating
+        // the number of bits to move before we get to the start of that color
+        // component's bits, and a bit mask used to mask out bits from other
+        // color components. Also construct a lookup table to allow for quick
+        // scaling from whatever is stored in the data into the 0-255 range
+        // that the RGB format wants.
+    
+        // Computing the shift and mask involves shifting the mask down until
+        // the low bit becomes one. The mask is them saved like that, and the
+        // number of shifts is recorded.
+    
+        // Red size and offset
+        redMax = image->red_mask;
+        redShift = 0;
+        while (!(redMax & 1))
+        {
+            redShift++;
+            redMax >>= 1;
+        }
+        redMask = image->red_mask;
+        // Red scale lookup table
+        for (loop = 0; loop <= redMax; loop++)
+        {
+            redVals[loop] = ((loop * 255) / redMax);
+        }
+
+        // Green size and offset
+        greenMax = image->green_mask;
+        greenShift = 0;
+        while (!(greenMax & 1))
+        {
+            greenShift++;
+            greenMax >>= 1;
+        }
+        greenMask = image->green_mask;
+        // Green scale lookup table
+        for (loop = 0; loop <= greenMax; loop++)
+        {
+            greenVals[loop] = ((loop * 255) / greenMax);
+        }
+
+        // Blue size and offset
+        blueMax = image->blue_mask;
+        blueShift = 0;
+        while (!(blueMax & 1))
+        {
+            blueShift++;
+            blueMax >>= 1;
+        }
+        blueMask = image->blue_mask;
+        // Blue scale lookup table
+        for (loop = 0; loop <= blueMax; loop++)
+        {
+            blueVals[loop] = ((loop * 255) / blueMax);
+        }
+
+        // Create a buffer area for each color component of the image
+        redBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
+        greenBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
+        blueBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
+
+        // Open the image file
+        imageOut = iopen(filename, "w", RLE(1), 3, width, height, 3);
+        if (!imageOut)
+        {
+            printf("vsWindow::saveImage: NULL image file pointer\n");
+            return;
+        }
+
+        // Process the image, one pixel at a time
+        for (loop = 0; loop < height; loop++)
+        {
+            for (sloop = 0; sloop < width; sloop++)
+            {
+                // Call an X function to extract one of the image pixels from
+                // the X image object
+                pixelData = XGetPixel(image, sloop, loop);
+
+                // Decode the three component pixel values using the associated
+                // bit mask, bit shift value, and lookup table. Store the
+                // resulting value in the pixel array for that component.
+
+                // Red
+                redPixel = pixelData & redMask;
+                redPixel >>= redShift;
+                redBuffer[sloop] = redVals[redPixel];
+    
+                // Green
+                greenPixel = pixelData & greenMask;
+                greenPixel >>= greenShift;
+                greenBuffer[sloop] = greenVals[greenPixel];
+
+                // Blue
+                bluePixel = pixelData & blueMask;
+                bluePixel >>= blueShift;
+                blueBuffer[sloop] = blueVals[bluePixel];
+            }
+
+            // Dump each completed row to the image file
+            tempInt = height - loop - 1;
+            putrow(imageOut, redBuffer, tempInt, 0);
+            putrow(imageOut, greenBuffer, tempInt, 1);
+            putrow(imageOut, blueBuffer, tempInt, 2);
+        }
+
+        // Get rid of the xImage now that we're done with it
+	XDestroyImage(image);
     }
 
     // Clean up
     iclose(imageOut);
-    XDestroyImage(image);
+    free(redBuffer);
+    free(blueBuffer);
+    free(greenBuffer);
 }
 
 // ------------------------------------------------------------------------
