@@ -5,6 +5,7 @@ include ../libpaths.Linux
 INCDIRS =   -I.\
             -I../system \
 	    -I../math \
+	    -I../input \
             -I/usr/X11R6/include \
             -I/usr/include/g++-2 \
             $(EXTRA_INCS)
