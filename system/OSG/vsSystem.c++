@@ -93,7 +93,6 @@ vsSystem::~vsSystem()
     // Do nothing if this isn't a real system object
     if (!validObject)
         return;
-    int i;
     
     // Unreference the osg::FrameStamp
     osgFrameStamp->unref();
@@ -345,7 +344,7 @@ void vsSystem::preFrameTraverse(vsNode *node)
     }
     // If the node is a geometry node, handle any local lights that affect it.
     else if ((node->getNodeType() == VS_NODE_TYPE_GEOMETRY) ||
-	     (node->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY))
+             (node->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY))
     {
         // Get the graphics state, we will use this further down.
         graphicsState = vsGraphicsState::getInstance();
@@ -541,7 +540,7 @@ void vsSystem::drawFrame()
             }
         }
     }
-    
+
     // Mark the system timer for this frame
     vsTimer::getSystemTimer()->mark();
 
@@ -589,7 +588,7 @@ void vsSystem::drawFrame()
             targetWindow->swapBuffers();
         }
     }
-    
+
 #ifdef WIN32
     // Windows only:  the message pump.  Check for Windows messages
     // in the message queue, and dispatch them to the message handler 
