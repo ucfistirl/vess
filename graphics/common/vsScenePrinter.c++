@@ -297,6 +297,25 @@ void vsScenePrinter::writeGeometry(vsGeometry *geometry, FILE *outfile,
             fprintf(outfile, "?");
             break;
     }
+
+    // Now, print the binding
+    fprintf(outfile, "  Vertex binding: ");
+    geoBinding = geometry->getBinding(VS_GEOMETRY_VERTEX_COORDS);
+    switch (geoBinding)
+    {
+        case VS_GEOMETRY_BIND_NONE:
+            fprintf(outfile, "NONE");
+            break;
+        case VS_GEOMETRY_BIND_OVERALL:
+            fprintf(outfile, "OVERALL");
+            break;
+        case VS_GEOMETRY_BIND_PER_PRIMITIVE:
+            fprintf(outfile, "PER PRIMITIVE");
+            break;
+        case VS_GEOMETRY_BIND_PER_VERTEX:
+            fprintf(outfile, "PER VERTEX");
+            break;
+    }
     fprintf(outfile, "\n");
 
     // Print vertex coordinates (if configured and there is geometry
@@ -343,8 +362,12 @@ void vsScenePrinter::writeGeometry(vsGeometry *geometry, FILE *outfile,
         // coords, because vertex coords are always per-vertex
         for (loop = 0; loop < 10; loop++)
         {
-            // First, print the list type
-            writeBlanks(outfile, (treeDepth * 2) + 1);
+            // Don't write the spaces for indenting if this data list
+            // isn't supported
+            if (loop - 2 < VS_MAXIMUM_TEXTURE_UNITS)
+                writeBlanks(outfile, (treeDepth * 2) + 1);
+
+            // Print the list type
             switch (loop)
             {
                 case 0:
@@ -385,24 +408,29 @@ void vsScenePrinter::writeGeometry(vsGeometry *geometry, FILE *outfile,
                     break;
             }
 
-            // Now, print the binding
-            geoBinding = geometry->getBinding(geoType);
-            switch (geoBinding)
+            // Now, print the binding if the current list is supported
+            // by the graphics library
+            if ((loop < 2) ||
+                (loop >= 2) && (textureUnit < VS_MAXIMUM_TEXTURE_UNITS))
             {
-                case VS_GEOMETRY_BIND_NONE:
-                    fprintf(outfile, "NONE");
-                    break;
-                case VS_GEOMETRY_BIND_OVERALL:
-                    fprintf(outfile, "OVERALL");
-                    break;
-                case VS_GEOMETRY_BIND_PER_PRIMITIVE:
-                    fprintf(outfile, "PER PRIMITIVE");
-                    break;
-                case VS_GEOMETRY_BIND_PER_VERTEX:
-                    fprintf(outfile, "PER VERTEX");
-                    break;
+                geoBinding = geometry->getBinding(geoType);
+                switch (geoBinding)
+                {
+                    case VS_GEOMETRY_BIND_NONE:
+                        fprintf(outfile, "NONE");
+                        break;
+                    case VS_GEOMETRY_BIND_OVERALL:
+                        fprintf(outfile, "OVERALL");
+                        break;
+                    case VS_GEOMETRY_BIND_PER_PRIMITIVE:
+                        fprintf(outfile, "PER PRIMITIVE");
+                        break;
+                    case VS_GEOMETRY_BIND_PER_VERTEX:
+                        fprintf(outfile, "PER VERTEX");
+                        break;
+                }
+                fprintf(outfile, "\n");
             }
-            fprintf(outfile, "\n");
 
             // Print out the current data list (normals, colors, or
             // texture coordinates) if configured to do so
@@ -447,8 +475,7 @@ void vsScenePrinter::writeGeometry(vsGeometry *geometry, FILE *outfile,
             }
         }
     }
-}
-
+} 
 // ------------------------------------------------------------------------
 // Prints the information for the given dynamic geometry
 // ------------------------------------------------------------------------
