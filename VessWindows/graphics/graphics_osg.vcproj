@@ -33,7 +33,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="osgd.lib osgDBd.lib osgUtild.lib osgTextd.lib opengl32.lib glu32.lib freetype.lib libmpeg2.lib libvo.lib"
+				AdditionalDependencies="osg.lib osgDB.lib osgUtil.lib osgText.lib opengl32.lib glu32.lib freetype.lib libxml2.lib iconv.lib"
 				OutputFile="$(OutDir)/vsGraphics.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../lib"
@@ -83,15 +83,15 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="osg.lib osgDB.lib osgUtil.lib osgText.lib opengl32.lib glu32.lib freetype.lib libjpeg.lib libmpeg2.lib libvo.lib"
-				OutputFile="$(OutDir)/graphics.dll"
+				AdditionalDependencies="osg.lib osgDB.lib osgUtil.lib osgText.lib opengl32.lib glu32.lib freetype.lib libjpeg.lib libmpeg2.lib libvo.lib libxml2.lib iconv.lib"
+				OutputFile="$(OutDir)/vsGraphics.dll"
 				LinkIncremental="1"
 				IgnoreDefaultLibraryNames="libcd.lib"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/graphics.lib"
+				ImportLibrary="$(OutDir)/vsGraphics.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -124,6 +124,12 @@
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG\vsBillboardCallback.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsCal3DBoneLoader.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsCal3DMeshLoader.c++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG\vsComponent.c++">
@@ -165,14 +171,6 @@
 				RelativePath="..\..\graphics\OSG\vsLocalLightCallback.c++">
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsMPEGReader.c++">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\..\graphics\OSG\vsMaterialAttribute.c++">
 			</File>
 			<File
@@ -203,7 +201,19 @@
 				RelativePath="..\..\graphics\OSG\vsSequenceCallback.c++">
 			</File>
 			<File
+				RelativePath="..\..\graphics\OSG\vsShaderAttribute.c++">
+			</File>
+			<File
 				RelativePath="..\..\graphics\OSG\vsShadingAttribute.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsSkeleton.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsSkeletonMesh.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\OSG\vsSkeletonMeshGeometry.c++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG\vsSphereIntersect.c++">
@@ -219,6 +229,12 @@
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG\vsTextureAttribute.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\OSG\vsTextureCubeAttribute.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\OSG\vsTextureRectangleAttribute.c++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG\vsTransformAttribute.c++">
@@ -256,6 +272,12 @@
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG\vsBillboardCallback.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsCal3DBoneLoader.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsCal3DMeshLoader.h++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG\vsComponent.h++">
@@ -297,9 +319,6 @@
 				RelativePath="..\..\graphics\OSG\vsLocalLightCallback.h++">
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsMPEGReader.h++">
-			</File>
-			<File
 				RelativePath="..\..\graphics\OSG\vsMaterialAttribute.h++">
 			</File>
 			<File
@@ -330,7 +349,19 @@
 				RelativePath="..\..\graphics\OSG\vsSequenceCallback.h++">
 			</File>
 			<File
+				RelativePath="..\..\graphics\OSG\vsShaderAttribute.h++">
+			</File>
+			<File
 				RelativePath="..\..\graphics\OSG\vsShadingAttribute.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsSkeleton.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsSkeletonMesh.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\OSG\vsSkeletonMeshGeometry.h++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG\vsSphereIntersect.h++">
@@ -346,6 +377,12 @@
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG\vsTextureAttribute.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\OSG\vsTextureCubeAttribute.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\OSG\vsTextureRectangleAttribute.h++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG\vsTransformAttribute.h++">
