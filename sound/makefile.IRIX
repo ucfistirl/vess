@@ -57,8 +57,8 @@ INCS = \
        -I../scene \
        -I../math \
        -I../input \
-       -I/ist/projects/vr2/usr/jdaly/openal/include \
-       -I/ist/projects/vr2/usr/jdaly/openal/linux/include
+       -I/ist/projects/vr1/tools/openal/include \
+       -I/ist/projects/vr1/tools/openal/linux/include
 
 #----------------------------------------------------------------------
 #			Default target
