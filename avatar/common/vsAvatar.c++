@@ -1752,7 +1752,7 @@ void *vsAvatar::makeVsPolaris()
         else if (!strcmp(token, "refFrame"))
         {
             // Set the reference frame of the camera box
-            sscanf(cfgLine, "%*s %lf %lf %lf", &nTrackers, &h, &p, &r);
+            sscanf(cfgLine, "%*s %lf %lf %lf", &h, &p, &r);
             refSet = true;
         }
         else if (!strcmp(token, "fork"))
