@@ -98,6 +98,9 @@ protected:
     void               *makeVsWalkArticulation();
     void               *makeVsWalkInPlace();
 
+    // haptics objects
+    void               *makeVsVestSystem();
+
 public:
 
                           vsAvatar();

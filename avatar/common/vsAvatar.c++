@@ -40,6 +40,7 @@
 #include "vsTerrainFollow.h++"
 #include "vsTrackballMotion.h++"
 #include "vsTrackedMotion.h++"
+#include "vsVestSystem.h++"
 #include "vsWalkArticulation.h++"
 #include "vsWalkInPlace.h++"
 #include "vsViewpointAttribute.h++"
@@ -415,6 +416,8 @@ void *vsAvatar::createObject(char *idString)
         return makeVsTrackballMotion();
     else if (!strcmp(idString, "vsTrackedMotion"))
         return makeVsTrackedMotion();
+    else if (!strcmp(idString, "vsVestSystem"))
+        return makeVsVestSystem();
     else if (!strcmp(idString, "vsWalkArticulation"))
         return makeVsWalkArticulation();
     else if (!strcmp(idString, "vsWalkInPlace"))
@@ -451,7 +454,7 @@ void *vsAvatar::makeGeometry()
     
     // Create a database loader
     dbLoader = new vsDatabaseLoader();
-    
+
     // Try to read all the required parameters
     dbName[0] = 0;
     result = NULL;
@@ -579,7 +582,8 @@ void *vsAvatar::makeGeometry()
     }
     
     // Set the intersect value
-    result->setIntersectValue(isectVal);
+    if (result)
+        result->setIntersectValue(isectVal);
     
     // Add the avatar geometry to the scene, if the autoAdd flag is set
     if (autoAdd && masterScene)
@@ -1934,6 +1938,7 @@ void *vsAvatar::makeVsKinematics()
                 if (root)
                     geom = (vsComponent *)(root->findNodeByName(nodeName));
             }
+
         }
         else if (!strcmp(token, "inertia"))
         {
@@ -3301,6 +3306,31 @@ void *vsAvatar::makeVsTrackedMotion()
     
     // Return the created vsTrackedMotion object
     return result;
+}
+
+// ------------------------------------------------------------------------
+// Protected function
+// Creates a vsVestSystem object that will communicate with IST's vest
+// ------------------------------------------------------------------------
+void *vsAvatar::makeVsVestSystem()
+{
+    char configLine[256];
+    char command[256];
+    int port = 1;
+    vsVestSystem * vest = NULL;
+
+    while( readCfgLine( configLine )==VS_AVT_LINE_PARAM )
+    {
+        sscanf( configLine, "%s", command );
+
+        if( !strcmp( command, "port" ) )
+            sscanf( configLine, "%*s %d", &port );
+        else
+            fprintf(stderr,"vsAvatar::makeVsVestSystem unknown command: %s\n",
+                    command );
+    }
+
+    return (void *)(new vsVestSystem(port));
 }
 
 // ------------------------------------------------------------------------
