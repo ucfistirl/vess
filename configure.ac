@@ -332,7 +332,7 @@ case "$SG" in
         fi
 
         dnl Add the extra objects that OSG requires
-        EXTRA_GRAPHICS_OBJECTS="vsBillboardCallback.$OBJEXT vsDecalCallback.$OBJEXT vsIntersectTraverser.$OBJEXT vsLocalLightCallback.$OBJEXT"
+        EXTRA_GRAPHICS_OBJECTS="vsBillboardCallback.$OBJEXT vsDecalCallback.$OBJEXT vsIntersectTraverser.$OBJEXT vsLocalLightCallback.$OBJEXT vsSequenceCallback.$OBJEXT"
         ;;
     *)
         dnl Unknown graphics library
@@ -588,10 +588,10 @@ AC_SUBST(AM_LDFLAGS)
 dnl Configure the the makefiles to write out.  Start with the ones that
 dnl will always be used (everything except sound and test).
 AC_CONFIG_FILES([makefile avatar/makefile graphics/makefile io/makefile])
-AC_CONFIG_FILES([motion/makefile system/makefile util/makefile])
+AC_CONFIG_FILES([motion/makefile system/makefile util/makefile scent/makefile])
 
 dnl Configure the subdirectories to build
-DIRECTORIES="system util graphics io motion avatar"
+DIRECTORIES="system util graphics io motion avatar scent"
 
 dnl List the individual library names.  These are used as dependencies
 dnl for the monolithic libvess library.
@@ -601,6 +601,7 @@ VESS_LIBS="$VESS_LIBS io/libvsIO.a io/libvsIO.so"
 VESS_LIBS="$VESS_LIBS motion/libvsMotion.a motion/libvsMotion.so"
 VESS_LIBS="$VESS_LIBS system/libvsSystem.a system/libvsSystem.so"
 VESS_LIBS="$VESS_LIBS util/libvsUtil.a util/libvsUtil.so"
+VESS_LIBS="$VESS_LIBS scent/libvsScent.a scent/libvsScent.so"
 
 dnl See if sound is enabled.  If so add it to the list of subdirectories,
 dnl add it to the VESS_LIBS list, and add its makefile to the output.
