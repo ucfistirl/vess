@@ -24,7 +24,7 @@ vsSoundStream::vsSoundStream(int bufSize, int bufFormat, int bufFreq)
     // Initialize
     frontBufferEmpty = VS_TRUE;
     backBufferEmpty = VS_TRUE;
-    sourceID = -1;
+    sourceID = 0xFFFFFFFF;
 }
 
 // ------------------------------------------------------------------------
