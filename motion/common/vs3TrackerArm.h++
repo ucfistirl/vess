@@ -60,7 +60,7 @@ public:
     void                  setWristOffset(vsVector newOffset);
     vsVector              getWristOffset();
     
-    void	          setShoulderPreRot(vsQuat rotQuat);
+    void	              setShoulderPreRot(vsQuat rotQuat);
     vsQuat                getShoulderPreRot();
     void                  setShoulderPostRot(vsQuat rotQuat);
     vsQuat                getShoulderPostRot();

@@ -70,15 +70,15 @@ public:
                           vsTrackballMotion(vsMouse *mouse, vsKinematics *kin);
 
                           vsTrackballMotion(vsMouse *mouse, 
-                                            int xyTransButtonIndex,
-                                            int zTransButtonIndex, 
+                                            int xzTransButtonIndex,
+                                            int yTransButtonIndex, 
                                             int rotButtonIndex,
                                             vsKinematics *kin);
 
                           vsTrackballMotion(vsInputAxis *horizAxis, 
                                             vsInputAxis *vertAxis,
-                                            vsInputButton *xyTransBtn, 
-                                            vsInputButton *zTransBtn, 
+                                            vsInputButton *xzTransBtn, 
+                                            vsInputButton *yTransBtn, 
                                             vsInputButton *rotBtn,
                                             vsKinematics *kin);
 

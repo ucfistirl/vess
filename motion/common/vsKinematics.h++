@@ -63,7 +63,7 @@ public:
     void                  disableInertia();
 
     // Adjust the current position
-    void	          setPosition(vsVector newPosition);
+    void                  setPosition(vsVector newPosition);
     vsVector              getPosition();
     void                  modifyPosition(vsVector deltaPosition);
 
