@@ -1204,6 +1204,26 @@ unsigned int vsGeometry::getIntersectValue()
 }
 
 // ------------------------------------------------------------------------
+// Sets the visibility value for this geometry. During the culling portion
+// of a frame drawing cycle, a bitwise AND of the pane's visibility mask
+// and the node's visibility value is performed; if the result of the AND
+// is zero, the node (and all other nodes under it) are culled, not to be
+// drawn.
+// ------------------------------------------------------------------------
+void vsGeometry::setVisibilityValue(unsigned int newValue)
+{
+    performerGeode->setTravMask(PFTRAV_DRAW, newValue, PFTRAV_SELF, PF_SET);
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the visibility value for this geometry.
+// ------------------------------------------------------------------------
+unsigned int vsGeometry::getVisibilityValue()
+{
+    return (performerGeode->getTravMask(PFTRAV_DRAW));
+}
+
+// ------------------------------------------------------------------------
 // Adds the given attribute to the geometry object's list of child
 // attributes. If successful, also notifies the attribute that it has been
 // added to a list.

@@ -91,6 +91,9 @@ public:
     
     virtual void            setIntersectValue(unsigned int newValue) = 0;
     virtual unsigned int    getIntersectValue() = 0;
+    
+    virtual void            setVisibilityValue(unsigned int newValue) = 0;
+    virtual unsigned int    getVisibilityValue() = 0;
 
     virtual void        addAttribute(vsAttribute *newAttribute);
     virtual void        removeAttribute(vsAttribute *targetAttribute);

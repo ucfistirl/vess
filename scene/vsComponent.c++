@@ -673,6 +673,26 @@ unsigned int vsComponent::getIntersectValue()
 }
 
 // ------------------------------------------------------------------------
+// Sets the visibility value for this component. During the culling portion
+// of a frame drawing cycle, a bitwise AND of the pane's visibility mask
+// and the node's visibility value is performed; if the result of the AND
+// is zero, the node (and all other nodes under it) are culled, not to be
+// drawn.
+// ------------------------------------------------------------------------
+void vsComponent::setVisibilityValue(unsigned int newValue)
+{
+    topGroup->setTravMask(PFTRAV_DRAW, newValue, PFTRAV_SELF, PF_SET);
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the visibility value for this component.
+// ------------------------------------------------------------------------
+unsigned int vsComponent::getVisibilityValue()
+{
+    return (topGroup->getTravMask(PFTRAV_DRAW));
+}
+
+// ------------------------------------------------------------------------
 // Attempts to add the given attribute to the component's list of
 // attributes. If successful, also notifies the attribute that it has been
 // added to a component.

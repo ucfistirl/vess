@@ -124,6 +124,9 @@ public:
     virtual void            setIntersectValue(unsigned int newValue);
     virtual unsigned int    getIntersectValue();
 
+    virtual void            setVisibilityValue(unsigned int newValue);
+    virtual unsigned int    getVisibilityValue();
+
     virtual void        addAttribute(vsAttribute *newAttribute);
 
     pfGeode             *getBaseLibraryObject();
