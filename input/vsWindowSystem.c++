@@ -215,22 +215,6 @@ void vsWindowSystem::update()
     {
         mouseInWindow = VS_FALSE;
     }
-/*
-    Looking for ConfigureNotify events clashes with Performer,  so
-    let's not do that anymore
-    
-    while (XCheckTypedWindowEvent(display, window, ConfigureNotify,
-        &event))
-    {
-        if (mouse)
-        {
-            mouse->getAxis(0)->setRange(0, event.xconfigure.width);
-            mouse->getAxis(0)->setIdlePosition(event.xconfigure.width / 2);
-            mouse->getAxis(1)->setRange(0, event.xconfigure.height);
-            mouse->getAxis(1)->setIdlePosition(event.xconfigure.height / 2);
-        }
-    }
-*/
 
     // Check the size of the X Window and update the mouse's axis extents
     // and idle position
