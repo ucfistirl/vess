@@ -558,6 +558,22 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
 }
 
 // ------------------------------------------------------------------------
+// Enables culling on this node and its children
+// ------------------------------------------------------------------------
+void vsScene::enableCull()
+{
+    osgGroup->setCullingActive(true);
+}
+
+// ------------------------------------------------------------------------
+// Disables culling on this node and its children
+// ------------------------------------------------------------------------
+void vsScene::disableCull()
+{
+    osgGroup->setCullingActive(false);
+}
+
+// ------------------------------------------------------------------------
 // Returns the OSG object associated with this object
 // ------------------------------------------------------------------------
 osg::Group *vsScene::getBaseLibraryObject()

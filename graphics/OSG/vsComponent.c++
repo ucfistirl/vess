@@ -290,7 +290,7 @@ int vsComponent::insertChild(vsNode *newChild, int index)
 
     // Now, we replace the node at index and shove the rest of the nodes
     // over
-    for (loop = index; loop < bottomGroup->getNumChildren(); loop++)
+    for (loop = index; loop < (int)bottomGroup->getNumChildren(); loop++)
     {
         // Keep a pointer to the node we're about to replace
         displacedNode = bottomGroup->getChild(loop);
@@ -676,6 +676,22 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
 
     // If we made it this far, it must be okay to add the attribute in
     vsNode::addAttribute(newAttribute);
+}
+
+// ------------------------------------------------------------------------
+// Enables culling on this node and its children
+// ------------------------------------------------------------------------
+void vsComponent::enableCull()
+{
+    topGroup->setCullingActive(true);
+}
+
+// ------------------------------------------------------------------------
+// Disables culling on this node and its children
+// ------------------------------------------------------------------------
+void vsComponent::disableCull()
+{
+    topGroup->setCullingActive(false);
 }
 
 // ------------------------------------------------------------------------
