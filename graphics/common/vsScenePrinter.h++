@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include "vsNode.h++"
 #include "vsGeometry.h++"
+#include "vsDynamicGeometry.h++"
+#include "vsSkeletonMeshGeometry.h++"
 
 #define VS_PRINTER_ATTRIBUTES        0x00000001
 #define VS_PRINTER_ATTRIBUTE_DETAILS 0x00000002
@@ -43,6 +45,18 @@ private:
 
     void        writeGeometryList(vsGeometry *geometry, int dataList,
                                   int treeDepth, FILE *outputFile);
+    void        writeDynamicGeometryList(vsDynamicGeometry *geometry, 
+                                  int dataList, int treeDepth, 
+                                  FILE *outputFile);
+    void        writeSkeletonMeshGeometryList(vsSkeletonMeshGeometry *geometry,
+                                  int dataList, int treeDepth, 
+                                  FILE *outputFile);
+    void        writeGeometry(vsGeometry *geometry, FILE *outFile,
+                              int treeDepth);
+    void        writeDynamicGeometry(vsDynamicGeometry *geometry, 
+                                     FILE *outFile, int treeDepth);
+    void        writeSkeletonMeshGeometry(vsSkeletonMeshGeometry *geometry,
+                                          FILE *outFile, int treeDepth);
     void        writeBlanks(FILE *outfile, int count);
     void        writeScene(vsNode *targetNode, FILE *outfile,
                            int treeDepth, int *countArray);
