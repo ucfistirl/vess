@@ -38,6 +38,7 @@ SRCS = \
        vsJoystick.c++ \
        vsJoystickBox.c++ \
        vsKeyboard.c++ \
+       vsLinuxJoystickSystem.c++ \
        vsMotionTracker.c++ \
        vsMouse.c++ \
        vsNetworkInterface.c++ \
@@ -71,6 +72,7 @@ OBJS = \
        vsJoystick.o \
        vsJoystickBox.o \
        vsKeyboard.o \
+       vsLinuxJoystickSystem.o \
        vsMotionTracker.o \
        vsMouse.o \
        vsNetworkInterface.o \
@@ -145,8 +147,5 @@ clean:
 dep: depend
 depend:
 	makedepend -f makefile.Linux -- $(CFLAGS) $(INCS) -- $(SRCS)
-
-
-
 
 
