@@ -544,7 +544,7 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
                 for (loop = 0; loop < 4; loop++)
                     for (sloop = 0; sloop < 4; sloop++)
                         xformMat[loop][sloop] = osgMat(sloop, loop);
-                xformAttr->setDynamicTransform(xformMat);
+                xformAttr->setPreTransform(xformMat);
             }
             else if (dynamic_cast<osg::PositionAttitudeTransform *>(node))
             {
