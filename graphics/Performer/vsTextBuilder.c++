@@ -306,7 +306,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
         }
 
         // Delete the geode we used to create the vsGeometry.
-        pfDelete(letterGeode);
+//        pfDelete(letterGeode);
     }
 
 // DAC - Possible memory leak?
