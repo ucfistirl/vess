@@ -129,7 +129,7 @@ void vsSoundManager::removeSoundSource(vsSoundSourceAttribute *attr)
     if (attrIndex < numSoundSources)
     {
         for (i = attrIndex; i < numSoundSources; i++)
-            soundSources[i+1] = soundSources[i];
+            soundSources[i] = soundSources[i+1];
     }
 
     // Decrement the number of sources
