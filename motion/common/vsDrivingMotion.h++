@@ -73,7 +73,8 @@ protected:
      // Throttle parameters
      vsDMThrottleMode    throttleMode;
      double              currentSpeed;
-     double              maxSpeed;
+     double              maxForwardSpeed;
+     double              maxReverseSpeed;
      double              accelerationRate;
      double              lastThrottleVal;
      
@@ -118,8 +119,10 @@ public:
     void                  setThrottleMode(vsDMThrottleMode mode);
     double                getAccelerationRate();
     void                  setAccelerationRate(double rate);
-    double                getMaxSpeed();
-    void                  setMaxSpeed(double max);
+    double                getMaxForwardSpeed();
+    void                  setMaxForwardSpeed(double max);
+    double                getMaxReverseSpeed();
+    void                  setMaxReverseSpeed(double max);
 
     // Steering parameter accessors
     vsDMSteeringMode      getSteeringMode();

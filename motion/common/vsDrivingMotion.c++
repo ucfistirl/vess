@@ -50,7 +50,8 @@ vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis,
     // Set the motion parameters to defaults
     accelerationRate = VS_DM_DEFAULT_ACCEL_RATE;
     steeringRate = VS_DM_DEFAULT_STEER_RATE;
-    maxSpeed = VS_DM_DEFAULT_MAX_SPEED;
+    maxForwardSpeed = VS_DM_DEFAULT_MAX_SPEED;
+    maxReverseSpeed = VS_DM_DEFAULT_MAX_SPEED;
     currentSpeed = 0.0;
     throttleMode = VS_DM_DEFAULT_THROTTLE_MODE;
     steeringMode = VS_DM_DEFAULT_STEERING_MODE;
@@ -84,7 +85,8 @@ vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis,
     // Set the motion parameters to defaults
     accelerationRate = VS_DM_DEFAULT_ACCEL_RATE;
     steeringRate = VS_DM_DEFAULT_STEER_RATE;
-    maxSpeed = VS_DM_DEFAULT_MAX_SPEED;
+    maxForwardSpeed = VS_DM_DEFAULT_MAX_SPEED;
+    maxReverseSpeed = VS_DM_DEFAULT_MAX_SPEED;
     currentSpeed = 0.0;
     throttleMode = VS_DM_DEFAULT_THROTTLE_MODE;
     steeringMode = VS_DM_DEFAULT_STEERING_MODE;
@@ -116,7 +118,8 @@ vsDrivingMotion::vsDrivingMotion(vsMouse *mouse, vsKinematics *kin)
     // Set the motion parameters to defaults
     accelerationRate = VS_DM_DEFAULT_ACCEL_RATE;
     steeringRate = VS_DM_DEFAULT_STEER_RATE;
-    maxSpeed = VS_DM_DEFAULT_MAX_SPEED;
+    maxForwardSpeed = VS_DM_DEFAULT_MAX_SPEED;
+    maxReverseSpeed = VS_DM_DEFAULT_MAX_SPEED;
     currentSpeed = 0.0;
     throttleMode = VS_DM_DEFAULT_THROTTLE_MODE;
     steeringMode = VS_DM_DEFAULT_STEERING_MODE;
@@ -150,7 +153,8 @@ vsDrivingMotion::vsDrivingMotion(vsMouse *mouse, int accelButtonIndex,
     // Set the motion parameters to defaults
     accelerationRate = VS_DM_DEFAULT_ACCEL_RATE;
     steeringRate = VS_DM_DEFAULT_STEER_RATE;
-    maxSpeed = VS_DM_DEFAULT_MAX_SPEED;
+    maxForwardSpeed = VS_DM_DEFAULT_MAX_SPEED;
+    maxReverseSpeed = VS_DM_DEFAULT_MAX_SPEED;
     currentSpeed = 0.0;
     throttleMode = VS_DM_DEFAULT_THROTTLE_MODE;
     steeringMode = VS_DM_DEFAULT_STEERING_MODE;
@@ -206,17 +210,33 @@ void vsDrivingMotion::setAccelerationRate(double rate)
 // ------------------------------------------------------------------------
 // Returns the current maximum velocity
 // ------------------------------------------------------------------------
-double vsDrivingMotion::getMaxSpeed()
+double vsDrivingMotion::getMaxForwardSpeed()
 {
-    return maxSpeed;
+    return maxForwardSpeed;
 }
 
 // ------------------------------------------------------------------------
 // Changes the current maximum velocity
 // ------------------------------------------------------------------------
-void vsDrivingMotion::setMaxSpeed(double max)
+void vsDrivingMotion::setMaxForwardSpeed(double max)
 {
-    maxSpeed = max;
+    maxForwardSpeed = max;
+}
+
+// ------------------------------------------------------------------------
+// Returns the current maximum velocity
+// ------------------------------------------------------------------------
+double vsDrivingMotion::getMaxReverseSpeed()
+{
+    return maxReverseSpeed;
+}
+
+// ------------------------------------------------------------------------
+// Changes the current maximum velocity
+// ------------------------------------------------------------------------
+void vsDrivingMotion::setMaxReverseSpeed(double max)
+{
+    maxReverseSpeed = max;
 }
 
 // ------------------------------------------------------------------------
@@ -308,7 +328,10 @@ void vsDrivingMotion::update()
         {
             // Compute the new speed from the axis position and maximum
             // speed values
-            currentSpeed = throttle->getPosition() * maxSpeed;
+            if (throttle->getPosition() > 0.0)
+                currentSpeed = throttle->getPosition() * maxForwardSpeed;
+            else
+                currentSpeed = throttle->getPosition() * maxReverseSpeed;
         }
     }
 
@@ -335,7 +358,7 @@ void vsDrivingMotion::update()
             {
                 // Only the acceleration button pressed.  In velocity mode
                 // this sets the speed to maximum
-                currentSpeed = maxSpeed;
+                currentSpeed = maxForwardSpeed;
             }
         }
     }
@@ -362,7 +385,7 @@ void vsDrivingMotion::update()
             {
                 // Only the deceleration button pressed.  In velocity mode,
                 // this sets the speed to maximum in reverse.
-                currentSpeed = -maxSpeed;
+                currentSpeed = -maxReverseSpeed;
             }
         }
     }
@@ -374,13 +397,13 @@ void vsDrivingMotion::update()
     }
 
     // Clamp the velocity to the maximum velocity
-    if (currentSpeed > maxSpeed)
+    if (currentSpeed > maxForwardSpeed)
     {
-        currentSpeed = maxSpeed;
+        currentSpeed = maxForwardSpeed;
     }
-    if (currentSpeed < -maxSpeed)
+    if (currentSpeed < -maxReverseSpeed)
     {
-        currentSpeed = -maxSpeed;
+        currentSpeed = -maxReverseSpeed;
     }
 
     // Factor in the adjusted velocity
