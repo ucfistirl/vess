@@ -83,6 +83,7 @@ private:
     // Supporting Open Scene Graph objects
     osg::DisplaySettings    *osgDisplaySettings;
     osgUtil::SceneView      *osgSceneView;
+    osgUtil::RenderStage    *renderStage;
 
     // Buffer mode (mono/stereo and stereo mode)
     vsPaneBufferMode        bufferMode;
@@ -158,6 +159,10 @@ public:
     void                  enableStats();
     void                  disableStats();
     bool                  areStatsEnabled();
+
+    // OpenGL buffer clear mask
+    void                  setGLClearMask(int clearMask);
+    int                   getGLClearMask();
 
     // OSG object accessor
     osgUtil::SceneView    *getBaseLibraryObject();

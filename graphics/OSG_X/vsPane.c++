@@ -52,7 +52,6 @@ vsPane::vsPane(vsWindow *parent)
     osgUtil::UpdateVisitor *updateVisitor;
     osgUtil::CullVisitor *cullVisitor;
     osgUtil::RenderGraph *renderGraph;
-    osgUtil::RenderStage *renderStage;
     int contextID;
 
     // Initialize the viewpoint and scene to NULL
@@ -87,6 +86,7 @@ vsPane::vsPane(vsWindow *parent)
     cullVisitor = new osgUtil::CullVisitor();
     renderGraph = new osgUtil::RenderGraph();
     renderStage = new osgUtil::RenderStage();
+    renderStage->ref();
 
     // Configure the CullVisitor to use the rendering objects we created
     cullVisitor->setRenderGraph(renderGraph);
@@ -212,6 +212,9 @@ vsPane::~vsPane()
 
     // Unreference the display settings object
     osgDisplaySettings->unref();
+
+    // Unreference the RenderStage object
+    renderStage->unref();
 
     // Unreference the VESS scene
     if (sceneRoot != NULL)
@@ -652,6 +655,24 @@ bool vsPane::areStatsEnabled()
 {
     // No support for stats under OSG, so always return false
     return false;
+}
+
+// ------------------------------------------------------------------------
+// Sets the bit mask that OSG uses when it's clearing the pane's buffer
+// before rendering a scene
+// ------------------------------------------------------------------------
+void vsPane::setGLClearMask(int clearMask)
+{
+    renderStage->setClearMask(clearMask);
+}
+
+// ------------------------------------------------------------------------
+// Gets the bit mask that OSG uses when it's clearing the pane's buffer
+// before rendering a scene
+// ------------------------------------------------------------------------
+int vsPane::getGLClearMask()
+{
+    return (renderStage->getClearMask());
 }
 
 // ------------------------------------------------------------------------
