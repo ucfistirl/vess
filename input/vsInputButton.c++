@@ -80,19 +80,25 @@ void vsInputButton::setPressed(void)
 {
     double currentTime;
 
-    pressed = VS_TRUE;
-
-    currentTime = getTime();
-    if ((currentTime - lastPressedTime) <= doubleClickInterval)
+    // Don't count this as a press if the button is already pressed
+    if (!pressed)
     {
-        doubleClicked = VS_TRUE;
-    }
-    else
-    {
-        doubleClicked = VS_FALSE;
-    }
+        pressed = VS_TRUE;
 
-    lastPressedTime = currentTime;
+        // Calculate the time interval between this and the last press,
+        // and flag a double-click if the interval is small enough
+        currentTime = getTime();
+        if ((currentTime - lastPressedTime) <= doubleClickInterval)
+        {
+            doubleClicked = VS_TRUE;
+        }
+        else
+        {
+            doubleClicked = VS_FALSE;
+        }
+    
+        lastPressedTime = currentTime;
+    }
 }
 
 // ------------------------------------------------------------------------
