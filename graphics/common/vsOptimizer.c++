@@ -75,12 +75,23 @@ int vsOptimizer::getOptimizations()
 void vsOptimizer::optimizeNode(vsNode *node)
 {
     int loop;
+    vsGeometry *geometryNode;
     vsComponent *componentNode;
 
-    // We can't do any optimization directly on any nodes other than
-    // components; make sure that we have a vsComponent here before doing
-    // anything.
-    if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
+    // Select optimizations based on node type. We don't do any sort of
+    // optimization on vsScenes or vsDynamicGeometries.
+    if (node->getNodeType() == VS_NODE_TYPE_GEOMETRY)
+    {
+        // Geometry type cast, for convenience
+        geometryNode = (vsGeometry *)node;
+
+        // Data compression optimization (colors and normals)
+        if (passMask & VS_OPTIMIZER_CONDENSE_COLORS)
+            condenseGeoData(geometryNode, VS_GEOMETRY_COLORS);
+        if (passMask & VS_OPTIMIZER_CONDENSE_NORMALS)
+            condenseGeoData(geometryNode, VS_GEOMETRY_NORMALS);
+    }
+    else if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
     {
         // Component type cast, for convenience
         componentNode = (vsComponent *)node;
@@ -841,6 +852,55 @@ void vsOptimizer::addGeometry(vsGeometry *destGeo, vsGeometry *srcGeo)
         }
     }
 
+}
+
+// ------------------------------------------------------------------------
+// Goes through the specified data list (which must be colors or normals)
+// and determines of all of the entries have the same data. If they do,
+// then all but one are removed, and the binding for that data is set
+// to OVERALL.
+// ------------------------------------------------------------------------
+void vsOptimizer::condenseGeoData(vsGeometry *geometry, int whichData)
+{
+    vsVector keyValue;
+    int dataListSize;
+    int allSame;
+    int loop;
+
+    // 'whichData' must be COLORS or NORMALS; vertices (and texture
+    // vertices) should never be condensed in this way.
+    if ((whichData != VS_GEOMETRY_COLORS) && (whichData != VS_GEOMETRY_NORMALS))
+    {
+        printf("vsOptimizer::condenseGeoData: Bad data type\n");
+        return;
+    }
+
+    dataListSize = geometry->getDataListSize(whichData);
+
+    // If there's zero or one entry in the data list, then there's no
+    // work to do on this geometry
+    if (dataListSize < 2)
+        return;
+
+    keyValue = geometry->getData(whichData, 0);
+
+    // Compare every entry in the data list for equality
+    allSame = 1;
+    for (loop = 1; loop < dataListSize; loop++)
+        if (!(keyValue == geometry->getData(whichData, loop)))
+        {
+            allSame = 0;
+            break;
+        }
+
+    // If all of the entries in the list are the same, then we can compress
+    // the list by setting it to OVERALL binding
+    if (allSame)
+    {
+        geometry->setDataListSize(whichData, 1);
+        geometry->setData(whichData, 0, keyValue);
+        geometry->setBinding(whichData, VS_GEOMETRY_BIND_OVERALL);
+    }
 }
 
 // ------------------------------------------------------------------------

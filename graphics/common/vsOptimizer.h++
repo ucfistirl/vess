@@ -33,6 +33,8 @@
 #define VS_OPTIMIZER_CLEAN_TREE         0x08
 #define VS_OPTIMIZER_SORT_CHILDREN      0x10
 #define VS_OPTIMIZER_MERGE_LODS         0x20
+#define VS_OPTIMIZER_CONDENSE_COLORS    0x40
+#define VS_OPTIMIZER_CONDENSE_NORMALS   0x80
 
 #define VS_OPTIMIZER_ALL                0xFFFFFFFF
 
@@ -54,6 +56,8 @@ private:
     void        mergeGeometry(vsComponent *componentNode);
     int         isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo);
     void        addGeometry(vsGeometry *destGeo, vsGeometry *srcGeo);
+
+    void        condenseGeoData(vsGeometry *geometry, int whichData);
 
     void        optimizeAttributes(vsComponent *componentNode,
                                    int attributeType);
