@@ -21,9 +21,10 @@ private:
 
     int         passMask;
 
-    int         optimizeNode(vsNode *node, int level);
+    void        optimizeNode(vsNode *node);
 
-    int         cleanComponent(vsComponent *componentNode);
+    void	cleanChildren(vsComponent *componentNode);
+    void	zapComponent(vsComponent *targetComponent);
 
     void        mergeDecals(vsComponent *componentNode);
 

@@ -26,7 +26,7 @@ vsOptimizer::~vsOptimizer()
 void vsOptimizer::optimize(vsNode *rootNode)
 {
     printf("Beginning optimization run...\n");
-    optimizeNode(rootNode, 0);
+    optimizeNode(rootNode);
     printf("Optimization completed\n");
 }
 
@@ -50,7 +50,7 @@ int vsOptimizer::getOptimizations()
 // Recursive function - runs optimizations on the given node, and calls
 // this function again for each child of the given node
 // ------------------------------------------------------------------------
-int vsOptimizer::optimizeNode(vsNode *node, int level)
+void vsOptimizer::optimizeNode(vsNode *node)
 {
     int loop;
     vsComponent *componentNode;
@@ -60,21 +60,18 @@ int vsOptimizer::optimizeNode(vsNode *node, int level)
         // Component
         componentNode = (vsComponent *)node;
 
+        if (passMask & VS_OPTIMIZER_CLEAN_TREE)
+	    cleanChildren(componentNode);
+
         if (passMask & VS_OPTIMIZER_MERGE_DECALS)
             mergeDecals(componentNode);
 
         // Recurse on the child component
         for (loop = 0; loop < componentNode->getChildCount(); loop++)
-        {
-            if (optimizeNode(componentNode->getChild(loop), level + 1))
-                loop--;
-        }
+            optimizeNode(componentNode->getChild(loop));
 
-        if ((passMask & VS_OPTIMIZER_CLEAN_TREE) && (level > 0))
-        {
-            if (cleanComponent(componentNode))
-                return 1;
-        }
+        if (passMask & VS_OPTIMIZER_CLEAN_TREE)
+	    cleanChildren(componentNode);
 
         if (passMask & VS_OPTIMIZER_PROMOTE_ATTRIBUTES)
         {
@@ -95,11 +92,8 @@ int vsOptimizer::optimizeNode(vsNode *node, int level)
         if (passMask & VS_OPTIMIZER_MERGE_GEOMETRY)
             mergeGeometry(componentNode);
 
-        if ((passMask & VS_OPTIMIZER_CLEAN_TREE) && (level > 0))
-        {
-            if (cleanComponent(componentNode))
-                return 1;
-        }
+        if (passMask & VS_OPTIMIZER_CLEAN_TREE)
+	    cleanChildren(componentNode);
 
         if (passMask & VS_OPTIMIZER_SORT_CHILDREN)
         {
@@ -109,65 +103,64 @@ int vsOptimizer::optimizeNode(vsNode *node, int level)
         }
     }
     
-    return 0;
 }
 
 // ------------------------------------------------------------------------
-// Removes the given component from the scene if it is determined to be
-// unneccessary
+// For each child of this component, check to see if that child is also
+// a component, and if so, if that component only has one child of its
+// own. If so, then that component isn't really needed and is a
+// candidate to be removed.
 // ------------------------------------------------------------------------
-int vsOptimizer::cleanComponent(vsComponent *componentNode)
+void vsOptimizer::cleanChildren(vsComponent *componentNode)
 {
-    vsComponent *parentNode;
+    vsComponent *targetComponent;
     vsNode *childNode;
     int loop;
     
-    // If a component has less than two children, no attributes, and isn't
-    // a _named_ node, it's just wasting space; remove it.
-    if (componentNode->getChildCount() > 1)
-        return VS_FALSE;
-    if (componentNode->getAttributeCount() > 0)
-        return VS_FALSE;
-    if (strlen(componentNode->getName()) > 0)
-        return VS_FALSE;
-
-    // If any parent component of this node has a switch, sequence, LOD,
-    // or decal, removing this node may be hazardous...  don't do it.
-    for (loop = 0; loop < componentNode->getParentCount(); loop++)
+    for (loop = 0; loop < componentNode->getChildCount(); loop++)
     {
-        parentNode = (vsComponent *)(componentNode->getParent(loop));
-        if (parentNode->getCategoryAttribute(VS_ATTRIBUTE_CATEGORY_GROUPING, 0))
-            return VS_FALSE;
-    }
+	childNode = componentNode->getChild(loop);
+	if (childNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
+	{
+	    targetComponent = (vsComponent *)childNode;
 
-    // * Looks clear: remove this component
+	    // If the component has more than one child, has any attributes,
+	    // or has a name, then we don't want to remove it.
+	    if (targetComponent->getChildCount() != 1)
+		continue;
+	    if (targetComponent->getAttributeCount() > 0)
+		continue;
+	    if (strlen(targetComponent->getName()) > 0)
+		continue;
 
-    // If this component has a child, replace this component's parent(s)
-    // connection to this component with a connection to the child instead.
-    // If there's no child, just remove this component.
-    if (componentNode->getChildCount() > 0)
-    {
-        childNode = componentNode->getChild(0);
-        componentNode->removeChild(childNode);
-        while (componentNode->getParentCount() > 0)
-        {
-            parentNode = (vsComponent *)(componentNode->getParent(0));
-            parentNode->replaceChild(componentNode, childNode);
-        }
+	    // If we've made it this far, then it should be okay to remove
+	    // the component
+	    zapComponent(targetComponent);
+	}
     }
-    else
-    {
-        while (componentNode->getParentCount() > 0)
-        {
-            parentNode = (vsComponent *)(componentNode->getParent(0));
-            parentNode->removeChild(componentNode);
-        }
-    }
+}
 
-    // Finally, destroy the node
-    delete componentNode;
+// ------------------------------------------------------------------------
+// Remove this component from the scene, assigning the child of this
+// component to each of the component's parents instead. Assumes that the
+// component to be removed has only one child. Also deletes the component
+// when finished.
+// ------------------------------------------------------------------------
+void vsOptimizer::zapComponent(vsComponent *targetComponent)
+{
+    vsComponent *parentComponent;
+    vsNode *childNode;
     
-    return VS_TRUE;
+    childNode = targetComponent->getChild(0);
+    targetComponent->removeChild(childNode);
+
+    while (targetComponent->getParentCount() > 0)
+    {
+	parentComponent = (vsComponent *)(targetComponent->getParent(0));
+	parentComponent->replaceChild(targetComponent, childNode);
+    }
+    
+    delete targetComponent;
 }
 
 // ------------------------------------------------------------------------
