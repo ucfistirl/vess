@@ -131,6 +131,16 @@ int vsObject::isValidObject()
 
 //------------------------------------------------------------------------
 // Static function
+// Deletes the given object if its reference count is zero
+//------------------------------------------------------------------------
+void vsObject::checkDelete(vsObject *obj)
+{
+    if (obj->getRefCount() == 0)
+        delete obj;
+}
+
+//------------------------------------------------------------------------
+// Static function
 // Unreferences the given object, then deletes the object if its reference
 // count is zero
 //------------------------------------------------------------------------
