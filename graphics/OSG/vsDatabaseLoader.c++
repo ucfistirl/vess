@@ -36,6 +36,7 @@
 #include <osg/Material>
 #include <osg/Texture2D>
 #include <osg/TexEnv>
+#include <osg/TexGen>
 #include <osg/PolygonMode>
 #include <osg/PolygonOffset>
 #include "vsDatabaseLoader.h++"
@@ -49,6 +50,7 @@
 #include "vsFogAttribute.h++"
 #include "vsMaterialAttribute.h++"
 #include "vsTextureAttribute.h++"
+#include "vsTextureCubeAttribute.h++"
 #include "vsBackfaceAttribute.h++"
 #include "vsTransparencyAttribute.h++"
 #include "vsWireframeAttribute.h++"
@@ -902,7 +904,9 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
 
     osg::Texture *osgTexture;
     osg::TexEnv *osgTexEnv;
+    osg::TexGen *osgTexGen;
     vsTextureAttribute *vsTextureAttr;
+    vsTextureCubeAttribute *vsTextureCubeAttr;
 
     vsTransparencyAttribute *vsTransparencyAttr;
 
@@ -988,13 +992,17 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     // Texture
     // Note here that we're dynamic-casting to a Texture2D object, not just
     // any Texture type. If the texture isn't a Texture2D, the cast will
-    // fail and return a NULL, which will make the function think that there's
-    // no texture at all. Since VESS currently only supports 2-dimensional
-    // textures anyway, this is considered acceptable behavior.
+    // fail and return a NULL, which will make the function then test if it
+    // there is a texture cube map.  If that fails then the function will think
+    // that there's no texture at all. Since VESS currently only supports
+    // 2-dimensional textures and texture cube maps anyway, this is considered
+    // acceptable behavior.
     osgTexture = dynamic_cast<osg::Texture2D *>
         (stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE));
     osgTexEnv = dynamic_cast<osg::TexEnv *>
         (stateSet->getTextureAttribute(0, osg::StateAttribute::TEXENV));
+    osgTexGen = dynamic_cast<osg::TexGen *>
+        (stateSet->getTextureAttribute(0, osg::StateAttribute::TEXGEN));
     if (osgTexture)
     {
         // Check for a previous encounter with this texture
@@ -1018,9 +1026,16 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
             else
                 osgTexEnv = new osg::TexEnv(*osgTexEnv);
 
+            // Create a new texture generator object for use by the texture
+            // attribute. (We don't want to use the one that came with the
+            // texture object, because it's possible that the TexGen may have
+            // been used in other places that the Texture wasn't.)
+            if (osgTexGen)
+                osgTexGen = new osg::TexGen(*osgTexGen);
+
             vsTextureAttr = 
                  new vsTextureAttribute((osg::Texture2D *)osgTexture, 
-                     osgTexEnv);
+                     osgTexEnv, osgTexGen);
 
             // Check the status of the override flag
             osgRefAttrPair = stateSet->getTextureAttributePair(0,
@@ -1035,6 +1050,67 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
 
         // Recognized or not, add the texture to this node
         node->addAttribute(vsTextureAttr);
+    }
+    // Else test if there is a TextureCubeMap instead of a Texture2D
+    else
+    {
+        osgTexture = dynamic_cast<osg::TextureCubeMap *>
+            (stateSet->getTextureAttribute(0, osg::StateAttribute::TEXTURE));
+        if (osgTexture)
+        {
+            // Check for a previous encounter with this texture
+            vsTextureCubeAttr = (vsTextureCubeAttribute *)
+                (attrMap->mapSecondToFirst(osgTexture));
+
+            if (!vsTextureCubeAttr)
+            {
+                // Haven't found this one before; create a new VESS texture
+                // attribute around it
+
+                // Create a new texture environment object for use by the
+                // texture attribute. (We don't want to use the one that came
+                // with the texture object, because it's possible that the
+                // TexEnv may have been used in other places that the Texture
+                // wasn't.)
+                if (!osgTexEnv)
+                {
+                    osgTexEnv = new osg::TexEnv();
+                    osgTexEnv->setMode(osg::TexEnv::DECAL);
+                }
+                else
+                    osgTexEnv = new osg::TexEnv(*osgTexEnv);
+
+                // Create a new texture generator object for use by the texture
+                // attribute. (We don't want to use the one that came with the
+                // texture object, because it's possible that the TexGen may
+                // have been used in other places that the Texture wasn't.)
+                if (!osgTexGen)
+                {
+                    osgTexGen = new osg::TexGen();
+                    osgTexGen->setMode(osg::TexGen::REFLECTION_MAP);
+                }
+                else
+                    osgTexGen = new osg::TexGen(*osgTexGen);
+
+                vsTextureCubeAttr =
+                     new vsTextureCubeAttribute((osg::TextureCubeMap *)
+                         osgTexture, osgTexEnv, osgTexGen);
+
+                // Check the status of the override flag
+                osgRefAttrPair = stateSet->getTextureAttributePair(0,
+                    osg::StateAttribute::TEXTURE);
+                overrideFlag = osgRefAttrPair->second;
+                if (overrideFlag & osg::StateAttribute::OVERRIDE)
+                    vsTextureCubeAttr->setOverride(true);
+
+                // Record that we've seen this texture, in case it comes up
+                // again
+                attrMap->registerLink(vsTextureCubeAttr, osgTexture);
+            }
+
+            // Recognized or not, add the texture to this node
+            node->addAttribute(vsTextureCubeAttr);
+        }
     }
 
     // Transparency
