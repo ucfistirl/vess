@@ -39,6 +39,7 @@
 #include "vsViewpointAttribute.h++"
 #include "vsWindowSystem.h++"
 #include "vsTextBuilder.h++"
+#include "vsClusterConfig.h++"
 
 vsSystem *vsSystem::systemObject = NULL;
 
@@ -71,6 +72,10 @@ vsSystem::vsSystem()
     // point to this instance
     validObject = true;
     systemObject = this;
+    cluster = NULL;
+    slaves = NULL;
+//    master = NULL;
+    isSlave = false;
 
     // Initialize the remote interface
 #ifdef VESS_DEBUG
@@ -81,6 +86,82 @@ vsSystem::vsSystem()
 }
 
 // ------------------------------------------------------------------------
+// Constructor - Same as the first constructor, but is enabled for cluster
+// rendering.
+// *Note: Only one of these objects may exist in a program at any one time.
+// Attemps to create more will return in a non-functional vsSystem object.
+// ------------------------------------------------------------------------
+vsSystem::vsSystem(vsClusterConfig *config)
+{
+    int i;
+    char slaveName[128];
+    const unsigned char *slaveAddr;
+    // Start out uninitialized
+    isInitted = 0;
+
+    // Singleton check
+    if (systemObject)
+    {
+        printf("vsSystem::vsSystem: Only one vsSystem object may be in "
+            "existance at any time\n");
+        validObject = 0;
+        return;
+    }
+
+    // Create an OSG FrameStamp (This is required by OSG.  It will be shared 
+    // by all panes and hence, all osgUtil::SceneView objects)
+    osgFrameStamp = new osg::FrameStamp();
+    osgFrameStamp->ref();
+    
+    // Mark this instance as valid and set the static class variable to 
+    // point to this instance
+    validObject = 1;
+    systemObject = this;
+    if(cluster && cluster->isValid())
+    {
+        cluster = config;
+        slaves = (vsTCPNetworkInterface**)calloc(cluster->numSlaves(),
+                sizeof(vsTCPNetworkInterface *));
+        numSlaves = cluster->numSlaves();
+        for(i=0;i < numSlaves;i++)
+        {
+            slaveAddr = cluster->getSlave(i);
+            sprintf(slaveName,"%d.%d.%d.%d",(int)slaveAddr[0],(int)slaveAddr[1],
+                   (int)slaveAddr[2],(int)slaveAddr[3]);
+            slaves[i] = new vsTCPNetworkInterface(slaveName, 
+                    VS_RI_DEFAULT_CONTROL_PORT);
+        }
+        //master = NULL;
+        isSlave = false;
+    }
+    else if(cluster == NULL)
+    {
+        cluster = NULL;
+        slaves = NULL;
+        //master = new vsRemoteInterface(VS_RI_DEFAULT_CONTROL_PORT);
+        isSlave = true;
+    }
+    else
+    {
+        printf("vsSystem::vsSystem: Cluster rendering failure\n");
+        validObject = 0;
+        cluster = NULL;
+        slaves = NULL;
+  //      master = NULL;
+        isSlave = false;
+    }
+    
+    // Initialize the remote interface
+#ifdef VESS_DEBUG
+    remoteInterface = new vsRemoteInterface("vessxml.dtd");
+#else
+    remoteInterface = new vsRemoteInterface();
+#endif
+
+}
+
+
+// ------------------------------------------------------------------------
 // Destructor - Shuts down Open Scene Graph, usually resulting in the 
 // program exiting
 // ------------------------------------------------------------------------
@@ -89,7 +170,8 @@ vsSystem::~vsSystem()
     // Do nothing if this isn't a real system object
     if (!validObject)
         return;
-
+    int i;
+    
     // Unreference the osg::FrameStamp
     osgFrameStamp->unref();
     
@@ -120,6 +202,17 @@ vsSystem::~vsSystem()
         
     // Clear the static class member to NULL
     systemObject = NULL;
+    if(cluster)
+        delete cluster;
+    if(slaves)
+    {
+        for(i=0;i<numSlaves;i++)
+        {
+            if(slaves[i])
+                delete slaves[i];
+        }
+        free(slaves);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -414,13 +507,15 @@ void vsSystem::drawFrame()
 #ifdef WIN32
     MSG message;
 #endif
-
+    int numSlavesReportedIn;
     int screenLoop, windowLoop, paneLoop;
     int windowCount, paneCount;
+    int i;
     vsScreen *targetScreen;
     vsWindow *targetWindow;
     vsPane *targetPane;
     vsScene *scene;
+    char commStr[256];
     int screenCount = vsScreen::getScreenCount();
 
     // Do nothing if this isn't a real system object
@@ -433,7 +528,7 @@ void vsSystem::drawFrame()
         printf("vsSystem::drawFrame: System object is not initialized\n");
         return;
     }
-
+    
     // Have the remote interface process any requests, etc.
     remoteInterface->update();
 
@@ -519,6 +614,66 @@ void vsSystem::drawFrame()
         }
     }
     
+    //Perform cluster rendering
+    if(slaves != NULL && !isSlave)
+    {
+        //Send out relevant info to clients
+        //Block until all clients acknowledge
+        numSlavesReportedIn = 0;
+        while(numSlavesReportedIn < numSlaves)
+        {
+            for(i=0;i<numSlaves;i++)
+            {
+                slaves[i]->read((u_char *)commStr, 256);
+                if(!strcmp(commStr,"<?xml version=\"1.0\"?>\n"
+                        "<vessxml version=\"1.0\">\n"
+                        "<readytosync>\n"
+                        "</readytosync>\n"
+                        "</vessxml>"))
+                {
+                    numSlavesReportedIn++;
+                    commStr[0]='\0';
+                }
+            }
+        }
+        
+        //Send relase signal
+        strcpy(commStr,"<?xml version=\"1.0\"?>\n"
+                "<vessxml version=\"1.0\">\n"
+                "<releasesync>\n"
+                "</releasesync>\n"
+                "</vessxml>");
+        for(i=0;i<numSlaves;i++)
+        {
+            slaves[i]->write((u_char *)commStr, strlen(commStr));
+        }
+    }
+    else if( isSlave)
+    {
+        //Collect info
+        //Do processing on the info
+        //--------------INCOMPLETE--------------
+                
+        //Send an acknowledgement
+        strcpy(commStr,"<?xml version=\"1.0\"?>\n"
+                "<vessxml version=\"1.0\">\n"
+                "<readytosync>\n"
+                "</readytosync>\n"
+                "</vessxml>");
+        remoteInterface->send((u_char *)commStr, strlen(commStr));
+        
+        
+        //Block until released by master
+        readyToSwap = false;
+        while(!readyToSwap)
+        {
+            remoteInterface->update();
+        }
+        
+    }
+        
+
+    
     // Mark the system timer for this frame
     vsTimer::getSystemTimer()->mark();
 
@@ -576,4 +731,12 @@ void vsSystem::drawFrame()
         DispatchMessage(&message);
     }
 #endif
+}
+
+// ------------------------------------------------------------------------
+// Tells a cluster slave to swap now
+// ------------------------------------------------------------------------
+void vsSystem::releaseSync(void)
+{
+    readyToSwap = true;
 }

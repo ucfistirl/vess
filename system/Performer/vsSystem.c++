@@ -76,7 +76,92 @@ vsSystem::vsSystem()
     // Activate multipipe mode if appropriate
     if (screenCount > 1)
         pfMultipipe(screenCount);
+    
+    cluster = NULL;
+    slaves = NULL;
+    isSlave = false;
+    // Initialize the remote interface
+#ifdef VESS_DEBUG
+    remoteInterface = new vsRemoteInterface("vessxml.dtd");
+#else
+    remoteInterface = new vsRemoteInterface();
+#endif
+}
 
+// ------------------------------------------------------------------------
+// Constructor - Pre-initializes the system object and initializes
+// Performer.
+// *Note: Only one of these objects may exist in a program at any one time.
+// Attemps to create more will return in a non-functional vsSystem object.
+// ------------------------------------------------------------------------
+vsSystem::vsSystem(vsClusterConfig *config)
+{
+    pfWSConnection winConnection;
+    int screenCount;
+    char slaveName[128];
+
+    // Start off uninitialized
+    isInitted = 0;
+
+    // Singleton check
+    if (systemObject)
+    {
+        printf("vsSystem::vsSystem: Only one vsSystem object may be in "
+            "existance at any time\n");
+        validObject = false;
+        return;
+    }
+    
+    // Save this system object in the class pointer variable
+    validObject = true;
+    systemObject = this;
+
+    // Initialize Performer
+    pfInit();
+    pfuInit();
+
+    // Configure the system for the available number of graphics pipelines
+    winConnection = pfGetCurWSConnection();
+    screenCount = ScreenCount(winConnection);
+
+    // Activate multipipe mode if appropriate
+    if (screenCount > 1)
+        pfMultipipe(screenCount);
+    
+    if(cluster && cluster->isValid())
+    {
+        cluster = config;
+        slaves = (vsTCPNetworkInterface**)calloc(cluster->numSlaves(),
+                sizeof(vsTCPNetworkInterface *));
+        numSlaves = cluster->numSlaves();
+        for(i=0;i < numSlaves;i++)
+        {
+            slaveAddr = cluster->getSlave(i);
+            sprintf(slaveName,"%d.%d.%d.%d",(int)slaveAddr[0],(int)slaveAddr[1],
+                   (int)slaveAddr[2],(int)slaveAddr[3]);
+            slaves[i] = new vsTCPNetworkInterface(slaveName, 
+                    VS_RI_DEFAULT_CONTROL_PORT);
+        }
+        //master = NULL;
+        isSlave = false;
+    }
+    else if(cluster == NULL)
+    {
+        cluster = NULL;
+        slaves = NULL;
+        //master = new vsRemoteInterface(VS_RI_DEFAULT_CONTROL_PORT);
+        isSlave = true;
+    }
+    else
+    {
+        printf("vsSystem::vsSystem: Cluster rendering failure\n");
+        validObject = 0;
+        cluster = NULL;
+        slaves = NULL;
+  //      master = NULL;
+        isSlave = false;
+    }
+    
     // Initialize the remote interface
 #ifdef VESS_DEBUG
     remoteInterface = new vsRemoteInterface("vessxml.dtd");
@@ -118,7 +203,19 @@ vsSystem::~vsSystem()
 
     vsObject::deleteObjectList();
 #endif
-        
+    
+    if(cluster)
+        delete cluster;
+    if(slaves)
+    {
+        for(i=0;i<numSlaves;i++)
+        {
+            if(slaves[i])
+                delete slaves[i];
+        }
+        free(slaves);
+    }
+    
     // Clear the class pointer and shut down Performer
     systemObject = NULL;
     pfExit();
@@ -343,8 +440,10 @@ void vsSystem::preFrameTraverse(vsNode *node)
 // ------------------------------------------------------------------------
 void vsSystem::drawFrame()
 {
+    int numSlavesReportedIn;
     int screenLoop, windowLoop, paneLoop;
     int windowCount, paneCount;
+    int i;
     vsScreen *targetScreen;
     vsWindow *targetWindow;
     vsPane *targetPane;
@@ -353,6 +452,7 @@ void vsSystem::drawFrame()
     vsTreeMap *binModeList;
     vsGrowableArray binList(1, 1);
     vsGrowableArray modeList(1, 1);
+    char commStr[256];
     int binLoop;
     int binNum, binMode;
 
@@ -474,6 +574,65 @@ void vsSystem::drawFrame()
         }
     }
     
+    //Perform cluster rendering
+    if(slaves != NULL && !isSlave)
+    {
+        //Send out relevant info to clients
+        //Block until all clients acknowledge
+        numSlavesReportedIn = 0;
+        while(numSlavesReportedIn < numSlaves)
+        {
+            for(i=0;i<numSlaves;i++)
+            {
+                slaves[i]->read((u_char *)commStr, 256);
+                if(!strcmp(commStr,"<?xml version=\"1.0\"?>\n"
+                        "<vessxml version=\"1.0\">\n"
+                        "<readytosync>\n"
+                        "</readytosync>\n"
+                        "</vessxml>"))
+                {
+                    numSlavesReportedIn++;
+                    commStr[0]='\0';
+                }
+            }
+        }
+        
+        //Send relase signal
+        strcpy(commStr,"<?xml version=\"1.0\"?>\n"
+                "<vessxml version=\"1.0\">\n"
+                "<releasesync>\n"
+                "</releasesync>\n"
+                "</vessxml>");
+        for(i=0;i<numSlaves;i++)
+        {
+            slaves[i]->write((u_char *)commStr, strlen(commStr));
+        }
+    }
+    else if( isSlave)
+    {
+        //Collect info
+        //Do processing on the info
+        //--------------INCOMPLETE--------------
+                
+        //Send an acknowledgement
+        strcpy(commStr,"<?xml version=\"1.0\"?>\n"
+                "<vessxml version=\"1.0\">\n"
+                "<readytosync>\n"
+                "</readytosync>\n"
+                "</vessxml>");
+        remoteInterface->send((u_char *)commStr, strlen(commStr));
+        
+        
+        //Block until released by master
+        readyToSwap = false;
+        while(!readyToSwap)
+        {
+            remoteInterface->update();
+        }
+        
+    }
+
+    
     // Wait until the next frame boundary
     pfSync();
     
@@ -482,4 +641,12 @@ void vsSystem::drawFrame()
     
     // Start the processing for this frame
     pfFrame();
+}
+
+// ------------------------------------------------------------------------
+// Tells a cluster slave to swap now
+// ------------------------------------------------------------------------
+void vsSystem::releaseSync(void)
+{
+    readyToSwap = true;
 }

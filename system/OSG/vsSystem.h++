@@ -28,7 +28,9 @@
 #include "vsPipe.h++"
 #include "vsScreen.h++"
 #include "vsTimer.h++"
+#include "vsClusterConfig.h++"
 #include "vsRemoteInterface.h++"
+#include "vsTCPNetworkInterface.h++"
 
 enum VS_SYSTEM_DLL vsMultiprocessMode
 {
@@ -59,12 +61,20 @@ private:
     vsRemoteInterface   *remoteInterface;
 
     void                preFrameTraverse(vsNode *node);
-
+    
+    // For cluster rendering
+    vsClusterConfig     *cluster;
+    vsTCPNetworkInterface   **slaves;
+    //    vsTCPNetworkInterface   *master
+    int                 numSlaves;
+    bool                isSlave;
+    bool                readyToSwap;
 public:
 
     static vsSystem     *systemObject;
 
                         vsSystem();
+                        vsSystem(vsClusterConfig *config);
                         ~vsSystem();
 
     void                setMultiprocessMode(int mpMode);
@@ -77,6 +87,7 @@ public:
                                          vsView **viewpoint, vsWindow **window);
 
     void                drawFrame();
+    void                releaseSync();
 };
 
 #endif
