@@ -338,6 +338,24 @@ double vsQuat::getMagnitude() const
 }
 
 // ------------------------------------------------------------------------
+// Returns the 4-D vector dot product of this quaternion and the operand
+// quaternion.
+// ------------------------------------------------------------------------
+double vsQuat::getDotProduct(const vsQuat &operand) const
+{
+    int i;
+    double result = 0.0;
+
+    // Compute the dot product as the sum of the products of the
+    // corresponding elements of each quaternion
+    for (i = 0; i < 4; i++)
+        result += (data[i] * operand.data[i]);
+
+    // Return the product
+    return result;
+}
+
+// ------------------------------------------------------------------------
 // Returns a normalized version of this quaternion.
 // ------------------------------------------------------------------------
 vsQuat vsQuat::getNormalized() const
@@ -673,7 +691,7 @@ void vsQuat::getAxisAngleRotation(double *x, double *y, double *z,
     // then this quaternion represents no rotation.
     axis.set(data[0], data[1], data[2]);
     mag = axis.getMagnitude();
-    if (mag < 1E-6)
+    if (mag < VS_DEFAULT_TOLERANCE)
     {
 	if (x)
 	    *x = 0.0;
@@ -888,9 +906,8 @@ vsVector vsQuat::rotatePoint(const vsVector &targetPoint) const
 // ------------------------------------------------------------------------
 vsQuat vsQuat::slerp(const vsQuat &destination, double parameter) const
 {
-    vsQuat startQuat, endQuat, resultQuat;
-    double theta, q1val, q2val;
-    int i;
+    vsQuat destQuat, startQuat, resultQuat;
+    double dotProd, theta, sinTheta, q1val, q2val;
     
     // Bounds checking
     if ((parameter < 0.0) || (parameter > 1.0))
@@ -898,34 +915,58 @@ vsQuat vsQuat::slerp(const vsQuat &destination, double parameter) const
         printf("vsQuat::slerp: 'parameter' must be in range 0.0 - 1.0\n");
         return resultQuat;
     }
-    
-    // If the two quaternions are identical, there's no work to do.
-    if (isEqual(destination))
-	return (*this);
 
-    // Calculate the angle between the two quaternions as 4-D vectors
+    // Create a duplicate of the destination quat, since we need to modify
+    // it but it's declared to be constant.
+    destQuat = destination;
+
+    // * Calculate the angle between the two quaternions as 4-D vectors
     // by computing the inverse cosine of their dot product
-    theta = 0.0;
-    for (i = 0; i < 4; i++)
-        theta += (data[i] * destination.data[i]);
-    theta = acos(theta);
+    dotProd = getDotProduct(destQuat);
 
-    // Interpolate between the two quaternions by scaling each one based
+    // If the dot product of the two quaternions is negative, then the
+    // angle between the two rotations is greater than 180 degrees. If we
+    // were to do an interpolation with the two quats, the interpolated
+    // path would be the 'long way' around the sphere. Instead, since the
+    // negative of a rotation quaternion specifies the same rotation, we
+    // can negate the destination quat, which will force the interpolation
+    // to take the shortest path without changing the actual destination. 
+    if (dotProd < 0.0)
+    {
+        // Negate the destination quat
+        destQuat.scale(-1.0);
+
+        // Negating one quat also negates their dot product
+        dotProd *= -1.0;
+    }
+
+    // Finish calculating the angle
+    theta = acos(dotProd);
+
+    // * Interpolate between the two quaternions by scaling each one based
     // on the parameter value, and summing the resulting quaternions. The
     // 'spherical' effect is accomplished with the sine functions.
 
+    // Compute the sin of the angle between the two quaternions
+    sinTheta = sin(theta);
+
+    // If the sinTheta value is close to zero, then the two quats represent
+    // the same rotation; with no work to do, the function returns this
+    // quat.
+    if (VS_EQUAL(sinTheta, 0.0))
+        return (*this);
+
     // Scale the starting quaternion
     startQuat.set(data);
-    q1val = sin((1.0 - parameter) * theta) / sin(theta);
+    q1val = sin((1.0 - parameter) * theta) / sinTheta;
     startQuat.scale(q1val);
 
     // Scale the destination quaternion
-    endQuat = destination;
-    q2val = sin(parameter * theta) / sin(theta);
-    endQuat.scale(q2val);
+    q2val = sin(parameter * theta) / sinTheta;
+    destQuat.scale(q2val);
 
     // Combine the two and finish
-    resultQuat = startQuat + endQuat;
+    resultQuat = startQuat + destQuat;
     return resultQuat;
 }
 

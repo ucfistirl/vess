@@ -62,6 +62,7 @@ public:
     vsQuat      getMultipliedQuat(const vsQuat &operand) const;
     
     double      getMagnitude() const;
+    double      getDotProduct(const vsQuat &operand) const;
     vsQuat      getNormalized() const;
     void        normalize();
     void        conjugate();
