@@ -35,7 +35,7 @@ class vsWindow;
 #define VS_WINDOW_DEFAULT_XPOS   0
 #define VS_WINDOW_DEFAULT_YPOS   0
 
-class VS_GRAPHICS_DLL vsWindow
+class VS_GRAPHICS_DLL vsWindow : public vsObject
 {
 private:
 
@@ -88,31 +88,33 @@ VS_INTERNAL:
 
 public:
 
-                      vsWindow(vsScreen *parent, int hideBorder);
-                      vsWindow(vsScreen *parent, int xPosition, int yPosition,
-                               int width, int height, int hideBorder);
-                      vsWindow(vsScreen *parent, int hideBorder, int stereo);
-                      vsWindow(vsScreen *parent, int xPosition, int yPosition,
-                               int width, int height, int hideBorder, 
-                               int stereo);
-                      vsWindow(vsScreen *parent, HWND msWin);
-    virtual           ~vsWindow();
+                       vsWindow(vsScreen *parent, int hideBorder);
+                       vsWindow(vsScreen *parent, int xPosition, int yPosition,
+                                int width, int height, int hideBorder);
+                       vsWindow(vsScreen *parent, int hideBorder, int stereo);
+                       vsWindow(vsScreen *parent, int xPosition, int yPosition,
+                                int width, int height, int hideBorder, 
+                                int stereo);
+                       vsWindow(vsScreen *parent, HWND msWin);
+    virtual            ~vsWindow();
     
-    vsScreen          *getParentScreen();
-    int               getChildPaneCount();
-    vsPane            *getChildPane(int index);
+    virtual const char *getClassName();
 
-    void              setSize(int width, int height);
-    void              getSize(int *width, int *height);
-    void              setPosition(int xPos, int yPos);
-    void              getPosition(int *xPos, int *yPos);
-    void              setFullScreen();
+    vsScreen           *getParentScreen();
+    int                getChildPaneCount();
+    vsPane             *getChildPane(int index);
 
-    void              setName(char *newName);
+    void               setSize(int width, int height);
+    void               getSize(int *width, int *height);
+    void               setPosition(int xPos, int yPos);
+    void               getPosition(int *xPos, int *yPos);
+    void               setFullScreen();
 
-    void              saveImage(char *filename);
+    void               setName(char *newName);
 
-    HWND              getBaseLibraryObject();
+    void               saveImage(char *filename);
+
+    HWND               getBaseLibraryObject();
 };
 
 #endif

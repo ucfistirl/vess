@@ -735,6 +735,14 @@ vsWindow::~vsWindow()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsWindow::getClassName()
+{
+    return "vsWindow";
+}
+
+// ------------------------------------------------------------------------
 // Retrieves the parent screen of this window
 // ------------------------------------------------------------------------
 vsScreen *vsWindow::getParentScreen()
@@ -906,6 +914,9 @@ void vsWindow::addPane(vsPane *newPane)
 {
     // Add pane to window's internal list
     childPaneList[childPaneCount++] = newPane;
+
+    // Reference the pane
+    newPane->ref();
 }
 
 // ------------------------------------------------------------------------
@@ -931,6 +942,9 @@ void vsWindow::removePane(vsPane *targetPane)
 
             // Decrement the pane count
             childPaneCount--;
+
+            // Unreference the pane
+            targetPane->unref();
 
             // We're done
             return;

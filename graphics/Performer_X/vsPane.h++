@@ -64,7 +64,7 @@ enum vsPaneBufferMode
 
 #define VS_PANE_DEFAULT_EYE_SEPARATION 0.068
 
-class vsPane
+class vsPane : public vsObject
 {
 private:
 
@@ -101,6 +101,8 @@ public:
 
                         vsPane(vsWindow *parent);
     virtual             ~vsPane();
+
+    virtual const char  *getClassName();
 
     vsWindow            *getParentWindow();
     void                setView(vsView *view);

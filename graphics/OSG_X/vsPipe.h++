@@ -32,11 +32,12 @@ class vsPipe;
 #include <X11/Xlib.h>
 #undef index
 #include "vsGlobals.h++"
+#include "vsObject.h++"
 #include "vsScreen.h++"
 
 #define VS_MAX_PIPE_COUNT 10
 
-class vsPipe
+class vsPipe : public vsObject
 {
 private:
 
@@ -65,12 +66,14 @@ VS_INTERNAL:
 
 public:
 
-    static vsPipe *getPipe(int index);
-    static int    getPipeCount();
+    virtual const char *getClassName();
 
-    vsScreen      *getScreen(int index);
+    static vsPipe      *getPipe(int index);
+    static int         getPipeCount();
 
-    int           getBaseLibraryObject();
+    vsScreen           *getScreen(int index);
+
+    int                getBaseLibraryObject();
 };
 
 #endif

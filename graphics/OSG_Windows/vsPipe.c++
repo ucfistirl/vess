@@ -30,6 +30,14 @@ vsPipe *vsPipe::pipeList[VS_MAX_PIPE_COUNT];
 int vsPipe::pipeCount = 0;
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsPipe::getClassName()
+{
+    return "vsPipe";
+}
+
+// ------------------------------------------------------------------------
 // Static function
 // Retrieves the specified vsPipe object from the list
 // ------------------------------------------------------------------------
@@ -103,6 +111,7 @@ void vsPipe::init()
     
     // Create the vsPipe in the first list position
     pipeList[0] = new vsPipe(0);
+    (pipeList[0])->ref();
     pipeCount = 1;
 }
 
@@ -114,7 +123,7 @@ void vsPipe::done()
 {
     // Destroy the vsPipe if it exists
     if (pipeList[0] != NULL)
-	    delete ((vsPipe *)(pipeList[0]));
+        vsObject::unrefDelete(pipeList[0]);
 
     // Set the pipe count to 0
     pipeCount = 0;

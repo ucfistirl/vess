@@ -36,7 +36,7 @@ class vsWindow;
 #define VS_WINDOW_DEFAULT_XPOS   0
 #define VS_WINDOW_DEFAULT_YPOS   0
 
-class vsWindow
+class vsWindow : public vsObject
 {
 private:
 
@@ -74,32 +74,34 @@ VS_INTERNAL:
 
 public:
 
-                      vsWindow(vsScreen *parent, int hideBorder);
-                      vsWindow(vsScreen *parent, int xPosition, int yPosition,
-                               int width, int height, int hideBorder);
-                      vsWindow(vsScreen *parent, int hideBorder, int stereo);
-                      vsWindow(vsScreen *parent, int xPosition, int yPosition,
-                               int width, int height, int hideBorder, 
-                               int stereo);
-                      vsWindow(vsScreen *parent, Window xWin);
-    virtual           ~vsWindow();
+                       vsWindow(vsScreen *parent, int hideBorder);
+                       vsWindow(vsScreen *parent, int xPosition, int yPosition,
+                                int width, int height, int hideBorder);
+                       vsWindow(vsScreen *parent, int hideBorder, int stereo);
+                       vsWindow(vsScreen *parent, int xPosition, int yPosition,
+                                int width, int height, int hideBorder, 
+                                int stereo);
+                       vsWindow(vsScreen *parent, Window xWin);
+    virtual            ~vsWindow();
+
+    virtual const char *getClassName();
     
-    vsScreen          *getParentScreen();
-    int               getChildPaneCount();
-    vsPane            *getChildPane(int index);
+    vsScreen           *getParentScreen();
+    int                getChildPaneCount();
+    vsPane             *getChildPane(int index);
 
-    void              setSize(int width, int height);
-    void              getSize(int *width, int *height);
-    void              getDrawableSize(int *width, int *height);
-    void              setPosition(int xPos, int yPos);
-    void              getPosition(int *xPos, int *yPos);
-    void              setFullScreen();
+    void               setSize(int width, int height);
+    void               getSize(int *width, int *height);
+    void               getDrawableSize(int *width, int *height);
+    void               setPosition(int xPos, int yPos);
+    void               getPosition(int *xPos, int *yPos);
+    void               setFullScreen();
 
-    void              setName(char *newName);
+    void               setName(char *newName);
 
-    void              saveImage(char *filename);
+    void               saveImage(char *filename);
 
-    Window            getBaseLibraryObject();
+    Window             getBaseLibraryObject();
 };
 
 #endif

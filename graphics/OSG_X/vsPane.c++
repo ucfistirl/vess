@@ -227,6 +227,14 @@ vsPane::~vsPane()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsPane::getClassName()
+{
+    return "vsPane";
+}
+
+// ------------------------------------------------------------------------
 // Returns the parent vsWindow for this pane
 // ------------------------------------------------------------------------
 vsWindow *vsPane::getParentWindow()

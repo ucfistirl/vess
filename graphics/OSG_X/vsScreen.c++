@@ -30,6 +30,14 @@ vsScreen *vsScreen::screenList[VS_MAX_SCREEN_COUNT];
 int vsScreen::screenCount = 0;
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsScreen::getClassName()
+{
+    return "vsScreen";
+}
+
+// ------------------------------------------------------------------------
 // Static function
 // Retrieves the specified vsPipe object from the list
 // ------------------------------------------------------------------------
@@ -151,7 +159,10 @@ void vsScreen::init()
 
     // Configure the vsScreen's in the screenList
     for (loop = 0; loop < screenCount; loop++)
-	screenList[loop] = new vsScreen(vsPipe::getPipe(loop), loop);
+    {
+        screenList[loop] = new vsScreen(vsPipe::getPipe(loop), loop);
+        (screenList[loop])->ref();
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -165,7 +176,7 @@ void vsScreen::done()
 
     // Destroy each vsScreen
     for (loop = 0; loop < screenCount; loop++)
-	delete ((vsScreen *)(screenList[loop]));
+        vsObject::unrefDelete(screenList[loop]);
 
     // Set the screen count to 0
     screenCount = 0;
@@ -179,6 +190,9 @@ void vsScreen::addWindow(vsWindow *newWindow)
 {
     // Add window to screen's internal list
     childWindowList[childWindowCount++] = newWindow;
+
+    // Reference the window
+    newWindow->ref();
 }
 
 // ------------------------------------------------------------------------
@@ -200,6 +214,9 @@ void vsScreen::removeWindow(vsWindow *targetWindow)
 
             // Decrement the window count
             childWindowCount--;
+
+            // Unreference the window
+            targetWindow->unref();
 
             // We're done, so return now
             return;

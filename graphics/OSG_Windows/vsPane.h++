@@ -66,7 +66,7 @@ enum VS_GRAPHICS_DLL vsPaneBufferMode
 #define VS_PANE_DEFAULT_FOV             45.0
 #define VS_PANE_DEFAULT_ORTHO_PLANE     10.0
 
-class VS_GRAPHICS_DLL vsPane
+class VS_GRAPHICS_DLL vsPane : public vsObject
 {
 private:
 
@@ -121,6 +121,9 @@ public:
 
                           vsPane(vsWindow *parent);
     virtual               ~vsPane();
+
+    // Inherited functions
+    virtual const char    *getClassName();
 
     // Window, view, and scene accessors
     vsWindow              *getParentWindow();

@@ -587,6 +587,14 @@ vsWindow::~vsWindow()
 }
     
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsWindow::getClassName()
+{
+    return "vsWindow";
+}
+
+// ------------------------------------------------------------------------
 // Retrieves the parent screne of this window
 // ------------------------------------------------------------------------
 vsScreen *vsWindow::getParentScreen()
@@ -971,6 +979,9 @@ void vsWindow::addPane(vsPane *newPane)
     // Add pane to window's internal list
     childPaneList[childPaneCount++] = newPane;
     
+    // Reference the pane
+    newPane->ref();
+
     // Add pane (as pfChannel) to pfPipeWindow
     performerPipeWindow->addChan(newPane->getBaseLibraryObject());
 }
@@ -995,6 +1006,9 @@ void vsWindow::removePane(vsPane *targetPane)
 
             // One fewer child
             childPaneCount--;
+
+            // Unreference the pane
+            targetPane->unref();
 
             // Remove the pane's pfChannel object from this window's
 	    // pfPipeWindow object

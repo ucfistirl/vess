@@ -36,7 +36,7 @@ class vsScreen;
 
 #define VS_MAX_SCREEN_COUNT 10
 
-class vsScreen
+class vsScreen : public vsObject
 {
 private:
 
@@ -65,16 +65,18 @@ VS_INTERNAL:
 
 public:
 
-    static vsScreen *getScreen(int index);
-    static int      getScreenCount();
+    virtual const char *getClassName();
 
-    vsPipe          *getParentPipe();
-    int             getChildWindowCount();
-    vsWindow        *getChildWindow(int index);
+    static vsScreen    *getScreen(int index);
+    static int         getScreenCount();
 
-    void            getScreenSize(int *width, int *height);
+    vsPipe             *getParentPipe();
+    int                getChildWindowCount();
+    vsWindow           *getChildWindow(int index);
 
-    Screen          *getBaseLibraryObject();
+    void               getScreenSize(int *width, int *height);
+
+    Screen             *getBaseLibraryObject();
 };
 
 #endif

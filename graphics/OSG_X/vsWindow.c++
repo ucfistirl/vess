@@ -1228,6 +1228,14 @@ vsWindow::~vsWindow()
 }
     
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsWindow::getClassName()
+{
+    return "vsWindow";
+}
+
+// ------------------------------------------------------------------------
 // Local callback function to indicate when the window has been opened
 // ------------------------------------------------------------------------
 Bool vsWindow::waitForMap(Display *display, XEvent *event, char *arg)
@@ -1495,6 +1503,9 @@ void vsWindow::addPane(vsPane *newPane)
 {
     // Add pane to window's internal list
     childPaneList[childPaneCount++] = newPane;
+
+    // Reference the pane
+    newPane->ref();
 }
 
 // ------------------------------------------------------------------------
@@ -1520,6 +1531,9 @@ void vsWindow::removePane(vsPane *targetPane)
 
             // Decrement the pane count
             childPaneCount--;
+
+            // Unreference the pane
+            targetPane->unref();
 
             // We're done
             return;

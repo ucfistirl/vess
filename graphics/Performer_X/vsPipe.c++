@@ -29,6 +29,14 @@ vsPipe *vsPipe::pipeList[VS_MAX_PIPE_COUNT];
 int vsPipe::pipeCount = 0;
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsPipe::getClassName()
+{
+    return "vsPipe";
+}
+
+// ------------------------------------------------------------------------
 // Static function
 // Retrieves the specified vsPipe object from the list
 // ------------------------------------------------------------------------
@@ -102,7 +110,10 @@ void vsPipe::init()
 
     // Create the a vsPipe for each screen
     for (loop = 0; loop < pipeCount; loop++)
-	pipeList[loop] = new vsPipe(loop);
+    {
+        pipeList[loop] = new vsPipe(loop);
+        (pipeList[loop])->ref();
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -115,7 +126,7 @@ void vsPipe::done()
 
     // Destroy each vsPipe
     for (loop = 0; loop < pipeCount; loop++)
-        delete ((vsPipe *)(pipeList[loop]));
+        vsObject::unrefDelete(pipeList[loop]);
 
     pipeCount = 0;
 }
