@@ -32,12 +32,15 @@
 #include "vsPolaris.h++"
 #include "vsPinchGloveBox.h++"
 #include "vsCyberGloveBox.h++"
+#include "vsButtonAxis.h++"
 #include "vs3TrackerArm.h++"
 #include "vsAxisRotation.h++"
 #include "vsCollision.h++"
 #include "vsDrivingMotion.h++"
 #include "vsFlyingMotion.h++"
 #include "vsDifferentialTrackedOrientation.h++"
+#include "vsPathMotion.h++"
+#include "vsSequencer.h++"
 #include "vsTerrainFollow.h++"
 #include "vsTrackballMotion.h++"
 #include "vsTrackedMotion.h++"
@@ -375,6 +378,8 @@ void *vsAvatar::createObject(char *idString)
         return makeViewpoint();
     else if (!strcmp(idString, "inputDevice"))
         return makeIODevice();
+    else if (!strcmp(idString, "vsSequencer"))
+        return makeVsSequencer();
     else if (!strcmp(idString, "vsISTJoystickBox"))
         return makeVsISTJoystickBox();
     else if (!strcmp(idString, "vsUnwinder"))
@@ -399,6 +404,8 @@ void *vsAvatar::createObject(char *idString)
         return makeVsPinchGloveBox();
     else if (!strcmp(idString, "vsCyberGloveBox"))
         return makeVsCyberGloveBox();
+    else if (!strcmp(idString, "vsButtonAxis"))
+        return makeVsButtonAxis();
     else if (!strcmp(idString, "vsKinematics"))
         return makeVsKinematics();
     else if (!strcmp(idString, "vs3TrackerArm"))
@@ -413,6 +420,8 @@ void *vsAvatar::createObject(char *idString)
         return makeVsFlyingMotion();
     else if (!strcmp(idString, "vsDifferentialTrackedOrientation"))
         return makeVsDifferentialTrackedOrientation();
+    else if (!strcmp(idString, "vsPathMotion"))
+        return makeVsPathMotion();
     else if (!strcmp(idString, "vsTerrainFollow"))
         return makeVsTerrainFollow();
     else if (!strcmp(idString, "vsTrackballMotion"))
@@ -911,6 +920,66 @@ void *vsAvatar::makeIODevice()
         printf("vsAvatar::makeIODevice: No vsIOSystem specified\n");
 
     // Return the created input device
+    return result;
+}
+
+// ------------------------------------------------------------------------
+// Protected function
+// Creates a vsSequencer from data in the configuration file, and
+// returns a pointer to it.
+// ------------------------------------------------------------------------
+void *vsAvatar::makeVsSequencer()
+{
+    char cfgLine[256];
+    char token[256];
+    int lineType = 0;
+    char objName[256];
+    vsSequencer *result;
+    vsUpdatable *updatable;
+    double time;
+
+    // Construct the sequencer _first_, so that we can add the updatable
+    // objects directly to it, without having to store them and add them later
+    result = new vsSequencer();
+
+    // Read all the parameters
+    while (lineType != VS_AVT_LINE_END)
+    {
+        // Get the next line from the config file
+        lineType = readCfgLine(cfgLine);
+        if (lineType != VS_AVT_LINE_PARAM)
+            continue;
+
+        // Read the first token on the config line
+        sscanf(cfgLine, "%s", token);
+
+        // Interpret the first token
+        if (!strcmp(token, "add"))
+        {
+            // Read the object name
+            sscanf(cfgLine, "%*s %s", objName);
+
+            // Find the specified object and add it to the sequencer
+            updatable = (vsUpdatable *)(findObject(objName));
+            if (updatable)
+                result->addUpdatable(updatable, objName);
+        }
+        else if (!strcmp(token, "addTimed"))
+        {
+            // Read the object name and update time
+            sscanf(cfgLine, "%*s %s %lf", objName, &time);
+
+            // Find the specified object and add it to the sequencer
+            updatable = (vsUpdatable *)(findObject(objName));
+            if (updatable)
+                result->addUpdatable(updatable, time, objName);
+        }
+        else
+            printf("vsAvatar::makeVsSequencer: Unrecognized token '%s'\n",
+                token);
+    }
+
+    // Return the completed sequencer
     return result;
 }
 
@@ -1982,6 +2051,126 @@ void *vsAvatar::makeVsCyberGloveBox()
 
 // ------------------------------------------------------------------------
 // Protected function
+// Creates a vsButtonAxis from data in the configuration file, and
+// returns a pointer to it.
+// ------------------------------------------------------------------------
+void *vsAvatar::makeVsButtonAxis()
+{
+    char cfgLine[256];
+    char token[256];
+    int lineType = 0;
+    vsInputButton *positiveButton = NULL;
+    vsInputButton *negativeButton = NULL;
+    vsInputButton *centerButton = NULL;
+    double axisMin = 0;
+    double axisMax = 0;
+    double positiveSpeed = -1;
+    double negativeSpeed = -1;
+    double centerSpeed = -1;
+    double idleSpeed = -1;
+    vsButtonAxis *result;
+
+    vsIODevice *inputDev;
+    char objName[256];
+    int objNum;
+
+    // Read all the parameters for this object
+    while (lineType != VS_AVT_LINE_END)
+    {
+        // Get the next line from the config file
+        lineType = readCfgLine(cfgLine);
+        if (lineType != VS_AVT_LINE_PARAM)
+            continue;
+
+        // Read the first token on the config line
+        sscanf(cfgLine, "%s", token);
+        
+        // Interpret the first token
+        if (!strcmp(token, "positiveButton"))
+        {
+            // Set the positive button
+            sscanf(cfgLine, "%*s %s %d", objName, &objNum);
+
+            // Find the specified object and get the specified button from it
+            inputDev = (vsIODevice *)(findObject(objName));
+            if (inputDev)
+                positiveButton = inputDev->getButton(objNum);
+        }
+        else if (!strcmp(token, "negativeButton"))
+        {
+            // Set the negative button
+            sscanf(cfgLine, "%*s %s %d", objName, &objNum);
+
+            // Find the specified object and get the specified button from it
+            inputDev = (vsIODevice *)(findObject(objName));
+            if (inputDev)
+                negativeButton = inputDev->getButton(objNum);
+        }
+        else if (!strcmp(token, "centerButton"))
+        {
+            // Set the center button
+            sscanf(cfgLine, "%*s %s %d", objName, &objNum);
+
+            // Find the specified object and get the specified button from it
+            inputDev = (vsIODevice *)(findObject(objName));
+            if (inputDev)
+                centerButton = inputDev->getButton(objNum);
+        }
+        else if (!strcmp(token, "axisMin"))
+        {
+            // Set the minimum value of the axis
+            sscanf(cfgLine, "%*s %lf", &axisMin);
+        }
+        else if (!strcmp(token, "axisMax"))
+        {
+            // Set the maximum value of the axis
+            sscanf(cfgLine, "%*s %lf", &axisMax);
+        }
+        else if (!strcmp(token, "positiveSpeed"))
+        {
+            // Set the positive button speed
+            sscanf(cfgLine, "%*s %lf", &positiveSpeed);
+        }
+        else if (!strcmp(token, "negativeSpeed"))
+        {
+            // Set the negative button speed
+            sscanf(cfgLine, "%*s %lf", &negativeSpeed);
+        }
+        else if (!strcmp(token, "centerSpeed"))
+        {
+            // Set the center button speed
+            sscanf(cfgLine, "%*s %lf", &centerSpeed);
+        }
+        else if (!strcmp(token, "idleSpeed"))
+        {
+            // Set the idle speed
+            sscanf(cfgLine, "%*s %lf", &idleSpeed);
+        }
+        else
+            printf("vsAvatar::makeVsButtonAxis: Unrecognized token '%s'\n",
+                token);
+    }
+    
+    // Force the axis minimum and maximum values to be valid
+    if (axisMin >= axisMax)
+    {
+        axisMin = VS_AXIS_DEFAULT_MIN;
+        axisMax = VS_AXIS_DEFAULT_MAX;
+    }
+
+    // Create and return the object
+    result = new vsButtonAxis(positiveButton, negativeButton, centerButton,
+        axisMin, axisMax);
+    result->setPositiveButtonSpeed(positiveSpeed);
+    result->setNegativeButtonSpeed(negativeSpeed);
+    result->setCenterButtonSpeed(centerSpeed);
+    result->setIdleSpeed(idleSpeed);
+
+    return result;
+}
+
+// ------------------------------------------------------------------------
+// Protected function
 // Creates a vsKinematics from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
@@ -2320,7 +2509,7 @@ void *vsAvatar::makeVsAxisRotation()
                 pitch, roll);
         }
         else
-            printf("vsAvatar::makeVsDrivingMotion: Unrecognized token '%s'\n",
+            printf("vsAvatar::makeVsAxisRotation: Unrecognized token '%s'\n",
                 token);
     }
     
@@ -3044,6 +3233,71 @@ void *vsAvatar::makeVsDifferentialTrackedOrientation()
     result->setOrientationOffset(oriOffset);
     
     // Return the created vsHeadMotion object
+    return result;
+}
+
+// ------------------------------------------------------------------------
+// Protected function
+// Creates a vsPathMotion from data in the configuration file, and
+// returns a pointer to it.
+// ------------------------------------------------------------------------
+void *vsAvatar::makeVsPathMotion()
+{
+    char cfgLine[256];
+    char token[256];
+    int lineType = 0;
+    char objName[256];
+    vsKinematics *kinematics = NULL;
+    char configFile[256];
+    vsPathMotion *result;
+
+    configFile[0] = 0;
+
+    // Read all of the parameters for the object
+    while (lineType != VS_AVT_LINE_END)
+    {
+        // Get the next line from the config file
+        lineType = readCfgLine(cfgLine);
+        if (lineType != VS_AVT_LINE_PARAM)
+            continue;
+
+        // Read the first token on the config line
+        sscanf(cfgLine, "%s", token);
+        
+        // Interpret the first token
+        if (!strcmp(token, "kinematics"))
+        {
+            // Set the kinematics object
+            sscanf(cfgLine, "%*s %s", objName);
+            kinematics = (vsKinematics *)(findObject(objName));
+        }
+        else if (!strcmp(token, "dataFileName"))
+        {
+            // Set the name of the path configuration file
+            sscanf(cfgLine, "%*s %s", configFile);
+        }
+        else
+            printf("vsAvatar::makeVsPathMotion: Unrecognized token '%s'\n",
+                token);
+    }
+
+    // Make sure we have a kinematics object
+    if (!kinematics)
+    {
+        printf("vsAvatar::makeVsPathMotion: Kinematics object not "
+            "specified\n");
+        return NULL;
+    }
+
+    // Construct the object
+    result = new vsPathMotion(kinematics);
+
+    // Configure the object with the data from the configuration file,
+    // if specified
+    if (configFile[0] != 0)
+        result->configureFromFile(configFile);
+
+    // Return the new vsPathMotion object
     return result;
 }
 

@@ -63,9 +63,12 @@ protected:
 
     // The various functions called by createObject to make objects of
     // the associated type
+
+    // special objects
     void               *makeGeometry();
     void               *makeViewpoint();
     void               *makeIODevice();
+    void               *makeVsSequencer();
 
     // input objects
     void               *makeVsISTJoystickBox();
@@ -85,6 +88,9 @@ protected:
     void               *makeVsLinuxJoystickSystem();
 #endif
 
+    // input adapters
+    void               *makeVsButtonAxis();
+
     // motion model objects
     void               *makeVsKinematics();
     void               *makeVs3TrackerArm();
@@ -93,6 +99,7 @@ protected:
     void               *makeVsDrivingMotion();
     void               *makeVsFlyingMotion();
     void               *makeVsDifferentialTrackedOrientation();
+    void               *makeVsPathMotion();
     void               *makeVsTerrainFollow();
     void               *makeVsTrackballMotion();
     void               *makeVsTrackedMotion();
