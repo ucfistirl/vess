@@ -328,7 +328,7 @@ double vsMatrix::getDeterminant() const
 void vsMatrix::invert()
 {
     // The code for this is pulled from the document "Streaming SIMD
-    // Externsions - Inverse of 4x4 Matrix", Intel Technical Document
+    // Extensions - Inverse of 4x4 Matrix", Intel Technical Document
     // AP-928.
 
     double det;
@@ -404,7 +404,7 @@ void vsMatrix::invert()
     destMat[7] -= temp[5]*sourceMat[0] + temp[8]*sourceMat[1] +
         temp[11]*sourceMat[2];
 
-    // Compute temporary values for the first round of calculations
+    // Compute temporary values for the second round of calculations
     temp[0]  = sourceMat[2] * sourceMat[7];
     temp[1]  = sourceMat[3] * sourceMat[6];
     temp[2]  = sourceMat[1] * sourceMat[7];
