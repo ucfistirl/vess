@@ -36,9 +36,6 @@
 #include "vsTransformAttribute.h++"
 #include "vsDatabaseLoader.h++"
 
-#define VS_DEFAULT_FONT_POINT_SIZE  10
-#define VS_DEFAULT_FONT_RESOLUTION  72
-
 enum vsTextBuilderJustification
 {
     VS_TEXTBUILDER_JUSTIFY_LEFT,
@@ -49,37 +46,27 @@ enum vsTextBuilderJustification
 class vsTextBuilder
 {
 private:
-    // Variables to describe the text this builder creates.
     pfFont                  *font;
     vsDatabaseLoader        *loader;
     vsVector                color;
     vsMatrix                transformMatrix;
-    unsigned int            pointSize;
-    unsigned int            resolution;
     int                     justification;
 
     void                    colorGraph(vsNode *node);
 
 public:
-    // Constructors that accept different setup data.
     vsTextBuilder();
     vsTextBuilder(char *newFont);
-    vsTextBuilder(char *newFont, unsigned int newPointSize,
-                  unsigned int newResolution);
-    vsTextBuilder(char *newFont, unsigned int newPointSize,
-                  unsigned int newResolution, vsVector newColor);
+    vsTextBuilder(char *newFont, vsVector newColor);
+    vsTextBuilder(char *newFont, vsVector newColor, vsMatrix newTransform);
 
     ~vsTextBuilder();
 
-    // Set the font, color, and size.
     void         setFont(char *newFont);
     void         setColor(vsVector newColor);
-    void         setSize(unsigned int newPointSize,
-                         unsigned int newResolution);
     void         setTransformMatrix(vsMatrix newTransform);
     void         setJustification(int newJustification);
 
-    // Return a vsComponent that draws the given text.
     vsComponent  *buildText(char *text);
 };
 
