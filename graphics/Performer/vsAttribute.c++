@@ -82,7 +82,7 @@ vsObjectMap *vsAttribute::getMap()
 {
     // Create the attribute map, if it does not yet exist
     if (!attributeMap)
-	attributeMap = new vsObjectMap();
+        attributeMap = new vsObjectMap();
 
     // Return the attribute map
     return attributeMap;

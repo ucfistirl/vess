@@ -257,7 +257,7 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
     if (!performerGraph)
     {
         printf("vsDatabaseLoader::loadDatabase: Load of '%s' failed\n",
-	    databaseFilename);
+            databaseFilename);
         return NULL;
     }
 
