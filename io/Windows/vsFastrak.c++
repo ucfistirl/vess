@@ -134,6 +134,8 @@ vsFastrak::~vsFastrak()
 {
     int           i;
     unsigned char buf;
+    DWORD exitCode;
+    int timeOut;
 
     // Delete the motion trackers
     for (i = 0; i < VS_FT_MAX_TRACKERS; i++)
@@ -147,6 +149,19 @@ vsFastrak::~vsFastrak()
     {
         printf("vsFastrak::~vsFastrak:  Notifying server thread to quit\n");
         serverDone = VS_TRUE;
+        
+        // Wait (up to 3 seconds) for the thread to quit
+        GetExitCodeThread(serverThread, &exitCode);
+        timeOut = 30;
+        while ((exitCode == STILL_ACTIVE) && (timeOut > 0))
+        {
+            // Get the current exit code of the thread
+            GetExitCodeThread(serverThread, &exitCode);
+            
+            // Wait another tenth of a second
+            usleep(100000);
+            timeOut--;
+        }
     }
 
     // Shut down the FASTRAK if the serial port is valid and we haven't forked
@@ -665,7 +680,7 @@ void vsFastrak::updateSystem()
     {
         // Initialize the counters
         bytesRead = 0;
-        errorRetry = 100;
+        errorRetry = 10;
 
         // Read in (outputSize * numTrackers) bytes
         while ((bytesRead < (outputSize * numTrackers)) && (errorRetry > 0))
@@ -698,6 +713,10 @@ void vsFastrak::updateSystem()
             {
                 // Decrement retry count
                 errorRetry--;
+                
+                // Flush the serial port and try again
+                port->flushPort();
+                bytesRead = 0;
             }
         }
  
@@ -977,6 +996,9 @@ void vsFastrak::forkTracking()
     // Print the thread ID
     printf("vsFastrak::forkTracking:\n");
     printf("    Server Thread ID is %d\n", serverThreadID);
+    
+    // Set the forked flag to indicate we've started running multithreaded
+    forked = VS_TRUE;
 }
 
 // ------------------------------------------------------------------------
