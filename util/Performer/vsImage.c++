@@ -19,10 +19,15 @@
 //
 //------------------------------------------------------------------------
 
-#include "vsImage.h++"
-
+#include <stdio.h>
 #include <string.h>
-#include "jpeglib.h"
+
+extern "C"
+{
+    #include "jpeglib.h"
+}
+
+#include "vsImage.h++"
 
 // ---------------------------------------------------------------------------
 // Constructor:
