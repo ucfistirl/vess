@@ -9,6 +9,7 @@ class vsCgTextureParameter : public vsCgParameter
 {
 protected:
     osgNVCg::TextureParameter *textureParameter;
+    vsTextureAttribute        *textureAttribute;
 
 public:
     vsCgTextureParameter(osgNVCg::Program *newProgram, char *newVariableName);
