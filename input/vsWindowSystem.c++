@@ -151,69 +151,96 @@ void vsWindowSystem::update()
         return;
 
     // Process all the events we're interested in
-
-    while (XCheckTypedWindowEvent(display, window, KeyRelease, &event))
+    while( XCheckWindowEvent( display, window, KeyReleaseMask | KeyPressMask |
+                ButtonPressMask | ButtonReleaseMask | 
+                EnterWindowMask | LeaveWindowMask |
+                PointerMotionMask, &event ) )
     {
-        XLookupString(&(event.xkey), buffer, sizeof(buffer), &keySym, NULL); 
-
-        keyboard->releaseKey(keySym);
-    }
-    while (XCheckTypedWindowEvent(display, window, KeyPress, &event))
-    {
-        XLookupString(&(event.xkey), buffer, sizeof(buffer), &keySym, NULL); 
-
-        keyboard->pressKey(keySym, buffer);
-    }
-    while (XCheckTypedWindowEvent(display, window, ButtonPress, &event))
-    {
-        switch (event.xbutton.button)
+        switch( event.type )
         {
-            case Button1:
-                mouse->getButton(0)->setPressed();
+            case KeyPress:
+
+                // Look up the string representing the key
+                XLookupString(&(event.xkey), buffer, 
+                    sizeof(buffer), &keySym, NULL); 
+
+                // Pass the X KeySym and the string to the keyboard
+                // to press the key
+                keyboard->pressKey(keySym, buffer);
                 break;
-            case Button2:
-                mouse->getButton(1)->setPressed();
+
+            case KeyRelease:
+
+                // Look up the string representing the key
+                XLookupString(&(event.xkey), buffer, 
+                    sizeof(buffer), &keySym, NULL); 
+
+                // Pass the X KeySym and the string to the keyboard
+                // to release the key
+                keyboard->releaseKey(keySym);
                 break;
-            case Button3:
-                mouse->getButton(2)->setPressed();
+
+            case ButtonPress:
+
+                // Press the appropriate vsInputButton on the mouse
+                switch (event.xbutton.button)
+                {
+                    case Button1:
+                        mouse->getButton(0)->setPressed();
+                        break;
+                    case Button2:
+                        mouse->getButton(1)->setPressed();
+                        break;
+                    case Button3:
+                        mouse->getButton(2)->setPressed();
+                        break;
+                }
+                break;
+
+            case ButtonRelease:
+
+                // Release the appropriate vsInputButton on the mouse
+                switch (event.xbutton.button)
+                {
+                    case Button1:
+                        mouse->getButton(0)->setReleased();
+                        break;
+                    case Button2:
+                        mouse->getButton(1)->setReleased();
+                        break;
+                    case Button3:
+                        mouse->getButton(2)->setReleased();
+                        break;
+                }
+                break;
+
+            case MotionNotify:        
+
+                // If we get a MotionNotify event, the mouse is definitely
+                // in the window
+                mouseInWindow = VS_TRUE;
+
+                // Get the position of the mouse pointer
+                if (XQueryPointer(display, window, &rootWin, &childWin, 
+                   &rootX, &rootY, &winX, &winY, &modMask))
+                {
+                    // Set the position of the vsMouse axes
+                    mouse->moveTo(winX, winY);
+                }
+                break;
+
+            case EnterNotify:
+
+                // The mouse pointer has entered the window
+                mouseInWindow = VS_TRUE;
+                break;
+
+            case LeaveNotify:
+
+                // The mouse pointer has left the window
+                mouseInWindow = VS_FALSE;
                 break;
         }
-    }
-    while (XCheckTypedWindowEvent(display, window, ButtonRelease, &event))
-    {
-        switch (event.xbutton.button)
-        {
-            case Button1:
-                mouse->getButton(0)->setReleased();
-                break;
-            case Button2:
-                mouse->getButton(1)->setReleased();
-                break;
-            case Button3:
-                mouse->getButton(2)->setReleased();
-                break;
-        }
-    }
-    while (XCheckTypedWindowEvent(display, window, MotionNotify, 
-        &event))
-    {
-        mouseInWindow = VS_TRUE;
-
-        if (XQueryPointer(display, window, &rootWin, &childWin, 
-            &rootX, &rootY, &winX, &winY, &modMask))
-        {
-            mouse->moveTo(winX, winY);
-        }
-    }
-    while (XCheckTypedWindowEvent(display, window, EnterNotify, 
-        &event))
-    {
-        mouseInWindow = VS_TRUE;
-    }
-    while (XCheckTypedWindowEvent(display, window, LeaveNotify, 
-        &event))
-    {
-        mouseInWindow = VS_FALSE;
     }
 
     // Check the size of the X Window and update the mouse's axis extents
