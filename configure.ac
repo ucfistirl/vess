@@ -24,10 +24,11 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 
-dnl Basic CFLAGS & CXXFLAGS.  Use AM_CFLAGS so the user can specify any
-dnl additional CFLAGS he or she wants.
+dnl Basic CFLAGS, CXXFLAGS and LD_FLAGS.  Use the AM_* versions so the user 
+dnl can specify any additional flags he or she wants.
 AM_CFLAGS="-O"
 AM_CXXFLAGS="-O"
+AM_LDFLAGS=
 
 dnl Additional CFLAGS/CXXFLAGS based on system type
 case "$target" in
@@ -36,7 +37,8 @@ case "$target" in
    AM_CXXFLAGS="$AM_CXXFLAGS -g -ansi -D__linux__ -D_MISC_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE -Wno-deprecated" ;;
    mips-sgi-irix*)
    AM_CFLAGS="$AM_CFLAGS -g -xansi -DIRIX -n32 -mips3 -DSGI"
-   AM_CXXFLAGS="$AM_CXXFLAGS -g -xansi -DIRIX -n32 -mips3 -DSGI" ;;
+   AM_CXXFLAGS="$AM_CXXFLAGS -g -xansi -DIRIX -n32 -mips3 -DSGI"
+   AM_LDFLAGS="-n32 -mips3" ;;
    *)
    AC_MSG_ERROR(
 [  Unsupported target $target.  VESS cannot be installed on this machine.]) ;;
@@ -515,6 +517,7 @@ fi
 dnl Export the AM_C(XX)FLAGS variables
 AC_SUBST(AM_CFLAGS)
 AC_SUBST(AM_CXXFLAGS)
+AC_SUBST(AM_LDFLAGS)
 
 dnl Configure the the makefiles to write out.  Start with the ones that
 dnl will always be used (everything except sound and test).
