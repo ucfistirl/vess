@@ -335,8 +335,7 @@ vsPathMotionManager *vsCal3DAnimationLoader::parseXML(char *filename,
                 bonePathMotion->setPointListSize(keyframeCount);
 
                 // Add the vsPathMotion to the vsPathMotionManager.
-                pathMotionManager->addPathMotion(bonePathMotion, (char *)
-                    boneKinematics->getComponent()->getName());
+                pathMotionManager->addPathMotion(bonePathMotion);
             }
 
             // Initialize to no keyframes processed.
