@@ -17,9 +17,17 @@ protected:
     // Indicates the time at which the button was last pressed
     double       lastPressedTime;      
 
+    // Indicates whether or not the last press of the button was
+    // a double-click
+    int          doubleClicked;
+
     // The maximum time interval at which two consecutive presses 
     // are considered a "double-click"
     double       doubleClickInterval;
+
+    // Returns the current system time in seconds (for the double-click
+    // measurements)
+    double       getTime();
 
 VS_INTERNAL:
 

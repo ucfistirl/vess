@@ -1,4 +1,5 @@
 #include "vsInputButton.h++"
+#include <sys/time.h>
 
 // ------------------------------------------------------------------------
 // Sets up a basic vsInputButton
@@ -7,6 +8,7 @@ vsInputButton::vsInputButton(void)
 {
     pressed = VS_FALSE;
     lastPressedTime = 0.0;
+    doubleClicked = VS_FALSE;
     doubleClickInterval = VS_IB_DBLCLICK_INTERVAL;
 }
 
@@ -15,6 +17,21 @@ vsInputButton::vsInputButton(void)
 // ------------------------------------------------------------------------
 vsInputButton::~vsInputButton(void)
 {
+}
+
+// ------------------------------------------------------------------------
+// Returns the current system time in seconds
+// ------------------------------------------------------------------------
+double vsInputButton::getTime()
+{
+    struct timeval tv;
+    double currentTime;
+
+    gettimeofday(&tv, NULL);
+
+    currentTime = tv.tv_sec + (tv.tv_usec / 1000000.0);
+
+    return currentTime;
 }
 
 // ------------------------------------------------------------------------
@@ -30,7 +47,7 @@ int vsInputButton::isPressed(void)
 // ------------------------------------------------------------------------
 int vsInputButton::wasDoubleClicked(void)
 {
-    return VS_FALSE;
+    return doubleClicked;
 }
 
 // ------------------------------------------------------------------------
@@ -38,7 +55,21 @@ int vsInputButton::wasDoubleClicked(void)
 // ------------------------------------------------------------------------
 void vsInputButton::setPressed(void)
 {
+    double currentTime;
+
     pressed = VS_TRUE;
+
+    currentTime = getTime();
+    if ((currentTime - lastPressedTime) <= doubleClickInterval)
+    {
+        doubleClicked = VS_TRUE;
+    }
+    else
+    {
+        doubleClicked = VS_FALSE;
+    }
+
+    lastPressedTime = currentTime;
 }
 
 // ------------------------------------------------------------------------
