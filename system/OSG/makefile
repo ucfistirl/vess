@@ -149,6 +149,16 @@ vsSystem.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Depth
 vsSystem.o: ../../graphics/OSG/vsStateAttribute.h++
 vsSystem.o: ../../graphics/OSG/vsDatabaseLoader.h++
 vsSystem.o: ../../graphics/OSG/vsViewpointAttribute.h++
+vsSystem.o: ../../io/OSG_X/vsWindowSystem.h++ /usr/include/X11/Xos.h
+vsSystem.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+vsSystem.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+vsSystem.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+vsSystem.o: /usr/include/bits/confname.h /usr/include/X11/Xarch.h
+vsSystem.o: ../../io/common/vsInputSystem.h++
+vsSystem.o: ../../util/common/vsUpdatable.h++ ../../io/common/vsMouse.h++
+vsSystem.o: ../../io/common/vsInputDevice.h++ ../../io/common/vsInputAxis.h++
+vsSystem.o: ../../io/common/vsInputButton.h++ ../../io/common/vsKeyboard.h++
+vsSystem.o: /usr/include/X11/keysym.h /usr/include/X11/keysymdef.h
 vsSystem.o: ../../graphics/OSG/vsTextBuilder.h++ /usr/include/GL/glu.h
 vsSystem.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/src/osgText/FTVectoriser.h
 vsSystem.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/src/osgText/FTGL.h

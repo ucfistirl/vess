@@ -16,7 +16,7 @@ INCDIRS = -I. \
 	  -I../../graphics/$(SG) \
 	  -I../../graphics/$(SG)_$(WS) \
 	  -I../../util/common \
-      -I/usr/include/g++-3 \
+          -I/usr/include/g++-3 \
 	  $(EXTRA_INCDIRS)
     
 LIBOBJS = \
@@ -99,7 +99,9 @@ vsAttribute.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
 vsAttribute.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
 vsAttribute.o: /usr/include/getopt.h ../../util/common/vsTreeMap.h++
 vsAttribute.o: ../../util/common/vsGrowableArray.h++
-vsAttribute.o: ../../util/common/vsObjectMap.h++ /usr/include/string.h
+vsAttribute.o: ../../util/common/vsObjectMap.h++ vsNode.h++
+vsAttribute.o: ../../util/common/vsVector.h++ ../../util/common/vsMatrix.h++
+vsAttribute.o: ../../util/common/vsQuat.h++ /usr/include/string.h
 vsBackfaceAttribute.o: vsBackfaceAttribute.h++
 vsBackfaceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/LightModel
 vsBackfaceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/StateAttribute
@@ -186,8 +188,8 @@ vsBillboardAttribute.o: ../../util/common/vsQuat.h++ vsAttribute.h++
 vsBillboardAttribute.o: ../../util/common/vsObject.h++
 vsBillboardAttribute.o: ../../util/common/vsTreeMap.h++
 vsBillboardAttribute.o: ../../util/common/vsGrowableArray.h++
-vsBillboardAttribute.o: ../../util/common/vsObjectMap.h++
-vsBillboardAttribute.o: vsBillboardCallback.h++ vsComponent.h++ vsNode.h++
+vsBillboardAttribute.o: ../../util/common/vsObjectMap.h++ vsNode.h++
+vsBillboardAttribute.o: vsBillboardCallback.h++ vsComponent.h++
 vsBillboardCallback.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osgUtil/CullVisitor
 vsBillboardCallback.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/NodeVisitor
 vsBillboardCallback.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Node
@@ -271,7 +273,7 @@ vsBillboardCallback.o: ../../util/common/vsQuat.h++ vsAttribute.h++
 vsBillboardCallback.o: ../../util/common/vsObject.h++
 vsBillboardCallback.o: ../../util/common/vsTreeMap.h++
 vsBillboardCallback.o: ../../util/common/vsGrowableArray.h++
-vsBillboardCallback.o: ../../util/common/vsObjectMap.h++
+vsBillboardCallback.o: ../../util/common/vsObjectMap.h++ vsNode.h++
 vsComponent.o: vsComponent.h++ ../../util/common/vsGrowableArray.h++
 vsComponent.o: ../../util/common/vsVector.h++ /usr/include/stdio.h
 vsComponent.o: /usr/include/features.h /usr/include/sys/cdefs.h
@@ -809,7 +811,10 @@ vsGraphicsState.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
 vsGraphicsState.o: /usr/include/bits/stdio_lim.h
 vsGraphicsState.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
 vsGraphicsState.o: ../../util/common/vsTreeMap.h++
-vsGraphicsState.o: ../../util/common/vsObjectMap.h++ vsLightAttribute.h++
+vsGraphicsState.o: ../../util/common/vsObjectMap.h++ vsNode.h++
+vsGraphicsState.o: ../../util/common/vsVector.h++
+vsGraphicsState.o: ../../util/common/vsMatrix.h++
+vsGraphicsState.o: ../../util/common/vsQuat.h++ vsLightAttribute.h++
 vsGraphicsState.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Light
 vsGraphicsState.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Vec3
 vsGraphicsState.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Math
@@ -830,9 +835,7 @@ vsGraphicsState.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Pl
 vsGraphicsState.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/BoundingBox
 vsGraphicsState.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/float.h
 vsGraphicsState.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/fast_back_stack
-vsGraphicsState.o: vsScene.h++ vsNode.h++ ../../util/common/vsVector.h++
-vsGraphicsState.o: ../../util/common/vsMatrix.h++
-vsGraphicsState.o: ../../util/common/vsQuat.h++
+vsGraphicsState.o: vsScene.h++
 vsIntersect.o: /usr/include/stdio.h /usr/include/features.h
 vsIntersect.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 vsIntersect.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
@@ -978,14 +981,14 @@ vsLightAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/P
 vsLightAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/BoundingBox
 vsLightAttribute.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/float.h
 vsLightAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/fast_back_stack
-vsLightAttribute.o: vsScene.h++ vsNode.h++ ../../util/common/vsObject.h++
+vsLightAttribute.o: vsAttribute.h++ ../../util/common/vsGlobals.h++
+vsLightAttribute.o: ../../util/common/vsObject.h++
 vsLightAttribute.o: ../../util/common/vsTreeMap.h++
-vsLightAttribute.o: ../../util/common/vsGrowableArray.h++ vsAttribute.h++
-vsLightAttribute.o: ../../util/common/vsGlobals.h++
-vsLightAttribute.o: ../../util/common/vsObjectMap.h++
+vsLightAttribute.o: ../../util/common/vsGrowableArray.h++
+vsLightAttribute.o: ../../util/common/vsObjectMap.h++ vsNode.h++
 vsLightAttribute.o: ../../util/common/vsVector.h++
 vsLightAttribute.o: ../../util/common/vsMatrix.h++
-vsLightAttribute.o: ../../util/common/vsQuat.h++ vsComponent.h++
+vsLightAttribute.o: ../../util/common/vsQuat.h++ vsScene.h++ vsComponent.h++
 vsLightAttribute.o: vsGraphicsState.h++ vsTransparencyAttribute.h++
 vsLightAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Depth
 vsLightAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Types
@@ -1038,21 +1041,20 @@ vsLocalLightCallback.o: vsLightAttribute.h++
 vsLocalLightCallback.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Light
 vsLocalLightCallback.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/LightSource
 vsLocalLightCallback.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Group
-vsLocalLightCallback.o: vsScene.h++ vsNode.h++ ../../util/common/vsObject.h++
-vsLocalLightCallback.o: /usr/include/stdio.h /usr/include/bits/types.h
-vsLocalLightCallback.o: /usr/include/libio.h /usr/include/_G_config.h
-vsLocalLightCallback.o: /usr/include/wchar.h /usr/include/bits/wchar.h
-vsLocalLightCallback.o: /usr/include/gconv.h
+vsLocalLightCallback.o: vsAttribute.h++ ../../util/common/vsGlobals.h++
+vsLocalLightCallback.o: ../../util/common/vsObject.h++ /usr/include/stdio.h
+vsLocalLightCallback.o: /usr/include/bits/types.h /usr/include/libio.h
+vsLocalLightCallback.o: /usr/include/_G_config.h /usr/include/wchar.h
+vsLocalLightCallback.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 vsLocalLightCallback.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
 vsLocalLightCallback.o: /usr/include/bits/stdio_lim.h
 vsLocalLightCallback.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
 vsLocalLightCallback.o: ../../util/common/vsTreeMap.h++
-vsLocalLightCallback.o: ../../util/common/vsGrowableArray.h++ vsAttribute.h++
-vsLocalLightCallback.o: ../../util/common/vsGlobals.h++
-vsLocalLightCallback.o: ../../util/common/vsObjectMap.h++
+vsLocalLightCallback.o: ../../util/common/vsGrowableArray.h++
+vsLocalLightCallback.o: ../../util/common/vsObjectMap.h++ vsNode.h++
 vsLocalLightCallback.o: ../../util/common/vsVector.h++
 vsLocalLightCallback.o: ../../util/common/vsMatrix.h++
-vsLocalLightCallback.o: ../../util/common/vsQuat.h++
+vsLocalLightCallback.o: ../../util/common/vsQuat.h++ vsScene.h++
 vsLODAttribute.o: /usr/include/stdio.h /usr/include/features.h
 vsLODAttribute.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 vsLODAttribute.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
@@ -1132,7 +1134,10 @@ vsMaterialAttribute.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
 vsMaterialAttribute.o: /usr/include/bits/stdio_lim.h
 vsMaterialAttribute.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
 vsMaterialAttribute.o: ../../util/common/vsTreeMap.h++
-vsMaterialAttribute.o: ../../util/common/vsObjectMap.h++ vsGraphicsState.h++
+vsMaterialAttribute.o: ../../util/common/vsObjectMap.h++ vsNode.h++
+vsMaterialAttribute.o: ../../util/common/vsVector.h++
+vsMaterialAttribute.o: ../../util/common/vsMatrix.h++
+vsMaterialAttribute.o: ../../util/common/vsQuat.h++ vsGraphicsState.h++
 vsMaterialAttribute.o: vsTransparencyAttribute.h++
 vsMaterialAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Depth
 vsMaterialAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Types
@@ -1154,9 +1159,7 @@ vsMaterialAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/os
 vsMaterialAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/BoundingBox
 vsMaterialAttribute.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/float.h
 vsMaterialAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/fast_back_stack
-vsMaterialAttribute.o: vsScene.h++ vsNode.h++ ../../util/common/vsVector.h++
-vsMaterialAttribute.o: ../../util/common/vsMatrix.h++
-vsMaterialAttribute.o: ../../util/common/vsQuat.h++
+vsMaterialAttribute.o: vsScene.h++
 vsNode.o: /usr/include/stdio.h /usr/include/features.h
 vsNode.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 vsNode.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
@@ -1167,7 +1170,12 @@ vsNode.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
 vsNode.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
 vsNode.o: /usr/include/getopt.h vsNode.h++ ../../util/common/vsObject.h++
 vsNode.o: ../../util/common/vsTreeMap.h++
-vsNode.o: ../../util/common/vsGrowableArray.h++ vsAttribute.h++
+vsNode.o: ../../util/common/vsGrowableArray.h++
+vsNode.o: ../../util/common/vsVector.h++ ../../util/common/vsGlobals.h++
+vsNode.o: /usr/include/math.h /usr/include/bits/huge_val.h
+vsNode.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+vsNode.o: ../../util/common/vsMatrix.h++ ../../util/common/vsQuat.h++
+vsNode.o: vsAttribute.h++
 vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/StateSet
 vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Object
 vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Referenced
@@ -1180,11 +1188,7 @@ vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/CopyOp
 vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/ref_ptr
 vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/StateAttribute
 vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/GL
-vsNode.o: ../../util/common/vsGlobals.h++ /usr/include/math.h
-vsNode.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
-vsNode.o: /usr/include/bits/mathcalls.h ../../util/common/vsObjectMap.h++
-vsNode.o: ../../util/common/vsVector.h++ ../../util/common/vsMatrix.h++
-vsNode.o: ../../util/common/vsQuat.h++ vsComponent.h++
+vsNode.o: ../../util/common/vsObjectMap.h++ vsComponent.h++
 vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Group
 vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Node
 vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/BoundingSphere
@@ -1217,6 +1221,16 @@ vsNode.o: vsShadingAttribute.h++
 vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/ShadeModel
 vsNode.o: vsWireframeAttribute.h++
 vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/PolygonMode
+vsNode.o: vsLightAttribute.h++
+vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Light
+vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/LightSource
+vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/State
+vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Polytope
+vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Plane
+vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/BoundingBox
+vsNode.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/float.h
+vsNode.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/fast_back_stack
+vsNode.o: vsScene.h++
 vsScene.o: vsScene.h++
 vsScene.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Group
 vsScene.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Node
@@ -1253,10 +1267,11 @@ vsScene.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 vsScene.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
 vsScene.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
 vsScene.o: /usr/include/getopt.h ../../util/common/vsTreeMap.h++
-vsScene.o: ../../util/common/vsGrowableArray.h++ vsAttribute.h++
-vsScene.o: ../../util/common/vsGlobals.h++ ../../util/common/vsObjectMap.h++
-vsScene.o: ../../util/common/vsVector.h++ ../../util/common/vsMatrix.h++
-vsScene.o: ../../util/common/vsQuat.h++ vsLightAttribute.h++
+vsScene.o: ../../util/common/vsGrowableArray.h++
+vsScene.o: ../../util/common/vsVector.h++ ../../util/common/vsGlobals.h++
+vsScene.o: ../../util/common/vsMatrix.h++ ../../util/common/vsQuat.h++
+vsScene.o: vsAttribute.h++ ../../util/common/vsObjectMap.h++
+vsScene.o: vsLightAttribute.h++
 vsScene.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Light
 vsScene.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/LightSource
 vsScene.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/State
@@ -1388,10 +1403,10 @@ vsStateAttribute.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
 vsStateAttribute.o: /usr/include/bits/stdio_lim.h
 vsStateAttribute.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
 vsStateAttribute.o: ../../util/common/vsTreeMap.h++
-vsStateAttribute.o: ../../util/common/vsObjectMap.h++ vsComponent.h++
-vsStateAttribute.o: ../../util/common/vsVector.h++ vsNode.h++
+vsStateAttribute.o: ../../util/common/vsObjectMap.h++ vsNode.h++
+vsStateAttribute.o: ../../util/common/vsVector.h++
 vsStateAttribute.o: ../../util/common/vsMatrix.h++
-vsStateAttribute.o: ../../util/common/vsQuat.h++
+vsStateAttribute.o: ../../util/common/vsQuat.h++ vsComponent.h++
 vsStateAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Group
 vsStateAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Node
 vsStateAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/BoundingSphere

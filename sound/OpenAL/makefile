@@ -65,81 +65,46 @@ vsSoundListenerAttribute.o: /usr/include/bits/stdio_lim.h
 vsSoundListenerAttribute.o: /usr/include/bits/sys_errlist.h
 vsSoundListenerAttribute.o: /usr/include/getopt.h
 vsSoundListenerAttribute.o: vsSoundListenerAttribute.h++
-vsSoundListenerAttribute.o: ../../graphics/Performer/vsComponent.h++
-vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfGroup.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfNode.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfUpdatable.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pf.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr.h
-vsSoundListenerAttribute.o: /usr/include/sys/types.h /usr/include/endian.h
-vsSoundListenerAttribute.o: /usr/include/bits/endian.h
-vsSoundListenerAttribute.o: /usr/include/sys/sysmacros.h
-vsSoundListenerAttribute.o: /usr/include/ulocks.h /usr/include/malloc.h
-vsSoundListenerAttribute.o: /usr/include/limits.h
-vsSoundListenerAttribute.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/limits.h
-vsSoundListenerAttribute.o: /usr/include/bits/posix1_lim.h
-vsSoundListenerAttribute.o: /usr/include/bits/local_lim.h
-vsSoundListenerAttribute.o: /usr/include/linux/limits.h
-vsSoundListenerAttribute.o: /usr/include/bits/posix2_lim.h
-vsSoundListenerAttribute.o: /usr/include/bits/xopen_lim.h
-vsSoundListenerAttribute.o: /usr/include/unistd.h
-vsSoundListenerAttribute.o: /usr/include/bits/posix_opt.h
-vsSoundListenerAttribute.o: /usr/include/bits/confname.h /usr/include/errno.h
-vsSoundListenerAttribute.o: /usr/include/bits/errno.h
-vsSoundListenerAttribute.o: /usr/include/linux/errno.h
-vsSoundListenerAttribute.o: /usr/include/asm/errno.h /usr/include/X11/X.h
-vsSoundListenerAttribute.o: /usr/include/X11/Xlib.h
-vsSoundListenerAttribute.o: /usr/include/X11/Xfuncproto.h
-vsSoundListenerAttribute.o: /usr/include/X11/Xosdefs.h
-vsSoundListenerAttribute.o: /usr/include/X11/Xutil.h /usr/include/GL/gl.h
-vsSoundListenerAttribute.o: /usr/include/GL/glx.h /usr/include/GL/glxtokens.h
-vsSoundListenerAttribute.o: /usr/include/GL/glu.h
-vsSoundListenerAttribute.o: /usr/include/Performer/opengl.h
-vsSoundListenerAttribute.o: /usr/include/Performer/linuxstubs.h
-vsSoundListenerAttribute.o: /usr/include/Performer/image.h
-vsSoundListenerAttribute.o: /usr/include/stdlib.h
-vsSoundListenerAttribute.o: /usr/include/bits/waitflags.h
-vsSoundListenerAttribute.o: /usr/include/bits/waitstatus.h
-vsSoundListenerAttribute.o: /usr/include/alloca.h /usr/include/string.h
-vsSoundListenerAttribute.o: /usr/include/sys/prctl.h
-vsSoundListenerAttribute.o: /usr/include/linux/prctl.h /usr/include/stdint.h
-vsSoundListenerAttribute.o: /usr/include/bits/wordsize.h
-vsSoundListenerAttribute.o: /usr/include/Performer/prmath.h
-vsSoundListenerAttribute.o: /usr/include/math.h /usr/include/bits/huge_val.h
-vsSoundListenerAttribute.o: /usr/include/bits/mathdef.h
-vsSoundListenerAttribute.o: /usr/include/bits/mathcalls.h
-vsSoundListenerAttribute.o: /usr/include/Performer/prstats.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfLinMath.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfObject.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfMemory.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfType.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfStruct.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pfstats.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfBuffer.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfUpdate.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfLists.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfFrameStats.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfPipe.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfVideoChannel.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfList.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfCalligraphic.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfStats.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfDispList.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfGeoState.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfState.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfByteBank.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfGSetBank.h
-vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfGeoMath.h
+vsSoundListenerAttribute.o: ../../graphics/OSG/vsComponent.h++
 vsSoundListenerAttribute.o: ../../util/common/vsGrowableArray.h++
 vsSoundListenerAttribute.o: ../../util/common/vsVector.h++
 vsSoundListenerAttribute.o: ../../util/common/vsGlobals.h++
-vsSoundListenerAttribute.o: ../../graphics/Performer/vsAttribute.h++
+vsSoundListenerAttribute.o: /usr/include/math.h /usr/include/bits/huge_val.h
+vsSoundListenerAttribute.o: /usr/include/bits/mathdef.h
+vsSoundListenerAttribute.o: /usr/include/bits/mathcalls.h
+vsSoundListenerAttribute.o: ../../graphics/OSG/vsAttribute.h++
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/StateSet
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Object
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Referenced
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Export
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/MemoryManager
+vsSoundListenerAttribute.o: /usr/include/stdlib.h
+vsSoundListenerAttribute.o: /usr/include/bits/waitflags.h
+vsSoundListenerAttribute.o: /usr/include/bits/waitstatus.h
+vsSoundListenerAttribute.o: /usr/include/endian.h /usr/include/bits/endian.h
+vsSoundListenerAttribute.o: /usr/include/alloca.h
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/CopyOp
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/ref_ptr
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/StateAttribute
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/GL
 vsSoundListenerAttribute.o: ../../util/common/vsObject.h++
 vsSoundListenerAttribute.o: ../../util/common/vsTreeMap.h++
 vsSoundListenerAttribute.o: ../../util/common/vsObjectMap.h++
-vsSoundListenerAttribute.o: ../../graphics/Performer/vsNode.h++
+vsSoundListenerAttribute.o: ../../graphics/OSG/vsNode.h++
 vsSoundListenerAttribute.o: ../../util/common/vsMatrix.h++
-vsSoundListenerAttribute.o: ../../util/common/vsQuat.h++ vsSoundBuffer.h++
+vsSoundListenerAttribute.o: ../../util/common/vsQuat.h++
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Group
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Node
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/BoundingSphere
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Vec3
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Math
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/NodeCallback
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/NodeVisitor
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Matrix
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Vec4
+vsSoundListenerAttribute.o: /usr/include/string.h
+vsSoundListenerAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/FrameStamp
+vsSoundListenerAttribute.o: vsSoundBuffer.h++
 vsSoundPipe.o: vsSoundPipe.h++ /ist/projects/nve/tools/openal/include/AL/al.h
 vsSoundPipe.o: /ist/projects/nve/tools/openal/include/AL/altypes.h
 vsSoundPipe.o: /ist/projects/nve/tools/openal/include/AL/alc.h
@@ -194,75 +159,45 @@ vsSoundSourceAttribute.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.
 vsSoundSourceAttribute.o: /usr/include/bits/stdio_lim.h
 vsSoundSourceAttribute.o: /usr/include/bits/sys_errlist.h
 vsSoundSourceAttribute.o: /usr/include/getopt.h vsSoundSourceAttribute.h++
-vsSoundSourceAttribute.o: ../../graphics/Performer/vsComponent.h++
-vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfGroup.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfNode.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfUpdatable.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pf.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr.h
-vsSoundSourceAttribute.o: /usr/include/sys/types.h /usr/include/endian.h
-vsSoundSourceAttribute.o: /usr/include/bits/endian.h
-vsSoundSourceAttribute.o: /usr/include/sys/sysmacros.h /usr/include/ulocks.h
-vsSoundSourceAttribute.o: /usr/include/malloc.h /usr/include/limits.h
-vsSoundSourceAttribute.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/limits.h
-vsSoundSourceAttribute.o: /usr/include/bits/posix1_lim.h
-vsSoundSourceAttribute.o: /usr/include/bits/local_lim.h
-vsSoundSourceAttribute.o: /usr/include/linux/limits.h
-vsSoundSourceAttribute.o: /usr/include/bits/posix2_lim.h
-vsSoundSourceAttribute.o: /usr/include/bits/xopen_lim.h /usr/include/unistd.h
-vsSoundSourceAttribute.o: /usr/include/bits/posix_opt.h
-vsSoundSourceAttribute.o: /usr/include/bits/confname.h /usr/include/errno.h
-vsSoundSourceAttribute.o: /usr/include/bits/errno.h
-vsSoundSourceAttribute.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
-vsSoundSourceAttribute.o: /usr/include/X11/X.h /usr/include/X11/Xlib.h
-vsSoundSourceAttribute.o: /usr/include/X11/Xfuncproto.h
-vsSoundSourceAttribute.o: /usr/include/X11/Xosdefs.h /usr/include/X11/Xutil.h
-vsSoundSourceAttribute.o: /usr/include/GL/gl.h /usr/include/GL/glx.h
-vsSoundSourceAttribute.o: /usr/include/GL/glxtokens.h /usr/include/GL/glu.h
-vsSoundSourceAttribute.o: /usr/include/Performer/opengl.h
-vsSoundSourceAttribute.o: /usr/include/Performer/linuxstubs.h
-vsSoundSourceAttribute.o: /usr/include/Performer/image.h
-vsSoundSourceAttribute.o: /usr/include/stdlib.h /usr/include/bits/waitflags.h
-vsSoundSourceAttribute.o: /usr/include/bits/waitstatus.h
-vsSoundSourceAttribute.o: /usr/include/alloca.h /usr/include/string.h
-vsSoundSourceAttribute.o: /usr/include/sys/prctl.h /usr/include/linux/prctl.h
-vsSoundSourceAttribute.o: /usr/include/stdint.h /usr/include/bits/wordsize.h
-vsSoundSourceAttribute.o: /usr/include/Performer/prmath.h /usr/include/math.h
+vsSoundSourceAttribute.o: ../../graphics/OSG/vsComponent.h++
+vsSoundSourceAttribute.o: ../../util/common/vsGrowableArray.h++
+vsSoundSourceAttribute.o: ../../util/common/vsVector.h++
+vsSoundSourceAttribute.o: ../../util/common/vsGlobals.h++ /usr/include/math.h
 vsSoundSourceAttribute.o: /usr/include/bits/huge_val.h
 vsSoundSourceAttribute.o: /usr/include/bits/mathdef.h
 vsSoundSourceAttribute.o: /usr/include/bits/mathcalls.h
-vsSoundSourceAttribute.o: /usr/include/Performer/prstats.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfLinMath.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfObject.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfMemory.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfType.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfStruct.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pfstats.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfBuffer.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfUpdate.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfLists.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfFrameStats.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfPipe.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfVideoChannel.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfList.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfCalligraphic.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfStats.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfDispList.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfGeoState.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfState.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfByteBank.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfGSetBank.h
-vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfGeoMath.h
-vsSoundSourceAttribute.o: ../../util/common/vsGrowableArray.h++
-vsSoundSourceAttribute.o: ../../util/common/vsVector.h++
-vsSoundSourceAttribute.o: ../../util/common/vsGlobals.h++
-vsSoundSourceAttribute.o: ../../graphics/Performer/vsAttribute.h++
+vsSoundSourceAttribute.o: ../../graphics/OSG/vsAttribute.h++
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/StateSet
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Object
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Referenced
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Export
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/MemoryManager
+vsSoundSourceAttribute.o: /usr/include/stdlib.h /usr/include/bits/waitflags.h
+vsSoundSourceAttribute.o: /usr/include/bits/waitstatus.h
+vsSoundSourceAttribute.o: /usr/include/endian.h /usr/include/bits/endian.h
+vsSoundSourceAttribute.o: /usr/include/alloca.h
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/CopyOp
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/ref_ptr
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/StateAttribute
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/GL
 vsSoundSourceAttribute.o: ../../util/common/vsObject.h++
 vsSoundSourceAttribute.o: ../../util/common/vsTreeMap.h++
 vsSoundSourceAttribute.o: ../../util/common/vsObjectMap.h++
-vsSoundSourceAttribute.o: ../../graphics/Performer/vsNode.h++
+vsSoundSourceAttribute.o: ../../graphics/OSG/vsNode.h++
 vsSoundSourceAttribute.o: ../../util/common/vsMatrix.h++
-vsSoundSourceAttribute.o: ../../util/common/vsQuat.h++ vsSoundSample.h++
+vsSoundSourceAttribute.o: ../../util/common/vsQuat.h++
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Group
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Node
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/BoundingSphere
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Vec3
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Math
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/NodeCallback
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/NodeVisitor
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Matrix
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/Vec4
+vsSoundSourceAttribute.o: /usr/include/string.h
+vsSoundSourceAttribute.o: /ist/projects/nve/usr/jdaly/osg/OpenSceneGraph/include/osg/FrameStamp
+vsSoundSourceAttribute.o: vsSoundSample.h++
 vsSoundSourceAttribute.o: /ist/projects/nve/tools/openal/include/AL/alc.h
 vsSoundSourceAttribute.o: /ist/projects/nve/tools/openal/include/AL/altypes.h
 vsSoundSourceAttribute.o: /ist/projects/nve/tools/openal/include/AL/alctypes.h
