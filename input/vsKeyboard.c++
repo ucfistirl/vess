@@ -351,7 +351,7 @@ void vsKeyboard::releaseKey(KeySym keySym)
     // Map the Keysym to an index in the vsInputButton array
     index = mapToButton(keySym);
 
-    if (index)
+    if (index >= 0)
     {
         if ((button[index])->isPressed())
         {
