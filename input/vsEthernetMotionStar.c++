@@ -22,7 +22,9 @@
 
 #include <stdio.h>
 #include <signal.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 #include "vsEthernetMotionStar.h++"
 
 // Static class variable for instructing the server (child) process to exit

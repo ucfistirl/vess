@@ -22,6 +22,7 @@
 
 #include "vsInputButton.h++"
 #include <sys/time.h>
+#include <stdio.h>
 
 // ------------------------------------------------------------------------
 // Sets up a basic vsInputButton
