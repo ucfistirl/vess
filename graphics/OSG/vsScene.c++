@@ -27,6 +27,7 @@
 #include "vsSkeletonMeshGeometry.h++"
 #include "vsTextureAttribute.h++"
 #include "vsTextureCubeAttribute.h++"
+#include "vsTextureRectangleAttribute.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Set the light list and child pointer to NULL,
@@ -553,7 +554,8 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
     // attribute
     newAttrType = newAttribute->getAttributeType();
     if ((newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE) ||
-        (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE))
+        (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE) ||
+        (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_RECTANGLE))
     {
         // Initialize the texture unit to invalid maximum.
         textureUnit = VS_MAXIMUM_TEXTURE_UNITS;
@@ -572,6 +574,11 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
         else if (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE)
         {
             newTextureUnit = ((vsTextureCubeAttribute *)
+                newAttribute)->getTextureUnit();
+        }
+        else if (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_RECTANGLE)
+        {
+            newTextureUnit = ((vsTextureRectangleAttribute *)
                 newAttribute)->getTextureUnit();
         }
 
@@ -593,6 +600,13 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
                 textureUnit = ((vsTextureCubeAttribute *)
                     attribute)->getTextureUnit();
             }
+            else if (attrType == VS_ATTRIBUTE_TYPE_TEXTURE_RECTANGLE)
+            {
+                textureUnit = ((vsTextureRectangleAttribute *)
+                    attribute)->getTextureUnit();
+            }
+            else
+                textureUnit = -1;
 
             // If the texture units are equal then they both must
             // have been texture type attributes and had the same
@@ -600,7 +614,7 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
             // error and return.
             if (textureUnit == newTextureUnit)
             {
-                printf("vsScene::addAttribute: Geometry node "
+                printf("vsScene::addAttribute: Scene node "
                     "already contains a texture attribute on unit %d\n",
                     textureUnit);
                 return;
@@ -609,7 +623,7 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
     }
     else
         for (loop = 0; loop < getAttributeCount(); loop++)
-            if ((getAttribute(loop))->getAttributeType() == attrType)
+            if ((getAttribute(loop))->getAttributeType() == newAttrType)
             {
                 printf("vsScene::addAttribute: Scene node already "
                     "contains that type of attribute\n");

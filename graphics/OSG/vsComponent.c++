@@ -34,6 +34,7 @@
 #include "vsSkeletonMeshGeometry.h++"
 #include "vsTextureAttribute.h++"
 #include "vsTextureCubeAttribute.h++"
+#include "vsTextureRectangleAttribute.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Sets up the OSG objects associated with
@@ -635,7 +636,8 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
         // another one of the same type already
         case VS_ATTRIBUTE_CATEGORY_STATE:
             if ((newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE) ||
-                (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE))
+                (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE) ||
+                (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_RECTANGLE))
             {
                 // Initialize the texture unit to invalid maximum.
                 textureUnit = VS_MAXIMUM_TEXTURE_UNITS;
@@ -654,6 +656,11 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
                 else if (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE)
                 {
                     newTextureUnit = ((vsTextureCubeAttribute *)
+                        newAttribute)->getTextureUnit();
+                }
+                else if (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_RECTANGLE)
+                {
+                    newTextureUnit = ((vsTextureRectangleAttribute *)
                         newAttribute)->getTextureUnit();
                 }
 
@@ -675,6 +682,13 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
                         textureUnit = ((vsTextureCubeAttribute *)
                             attribute)->getTextureUnit();
                     }
+                    else if (attrType == VS_ATTRIBUTE_TYPE_TEXTURE_RECTANGLE)
+                    {
+                        textureUnit = ((vsTextureRectangleAttribute *)
+                            attribute)->getTextureUnit();
+                    }
+                    else
+                        textureUnit = -1;
 
                     // If the texture units are equal then they both must
                     // have been texture type attributes and had the same
@@ -682,7 +696,7 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
                     // error and return.
                     if (textureUnit == newTextureUnit)
                     {
-                        printf("vsGeometry::addAttribute: Geometry node "
+                        printf("vsComponent::addAttribute: Component node "
                             "already contains a texture attribute on unit %d\n",
                             textureUnit);
                         return;
@@ -691,7 +705,7 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
             }
             else
                 for (loop = 0; loop < getAttributeCount(); loop++)
-                    if ((getAttribute(loop))->getAttributeType() == attrType)
+                    if ((getAttribute(loop))->getAttributeType() == newAttrType)
                     {
                         printf("vsComponent::addAttribute: Component already "
                             "contains that type of attribute\n");
