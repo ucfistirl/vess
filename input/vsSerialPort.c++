@@ -114,6 +114,7 @@ int vsSerialPort::writePacket(unsigned char *packet, int length)
 // ------------------------------------------------------------------------
 int vsSerialPort::readPacket(unsigned char *packet, int length)
 {
+    int result;
     int bytesRead;
     int timeoutCounter;
 
@@ -122,8 +123,12 @@ int vsSerialPort::readPacket(unsigned char *packet, int length)
 
     while ((bytesRead < length) && (timeoutCounter > 0)) 
     {
-        bytesRead += read(portDescriptor, &(packet[bytesRead]), 
+        result = read(portDescriptor, &(packet[bytesRead]), 
             length - bytesRead);
+
+        if (result > 0)
+            bytesRead += result;
+
         timeoutCounter--;
     }
 
@@ -136,13 +141,17 @@ int vsSerialPort::readPacket(unsigned char *packet, int length)
 // ------------------------------------------------------------------------
 int vsSerialPort::readCharacter()
 {
-    int character;
-    int readFlag;
+    char character;
+    int  result;
+    int  readFlag;
 
     readFlag = read(portDescriptor, &character, 1);
 
     if (readFlag == 1)
-        return character;
+    {
+        result = character;
+        return result;
+    }
     else
         return -1;
 }

@@ -1,13 +1,7 @@
 #ifndef VS_UNWINDER_JOYSTICK_HPP
 #define VS_UNWINDER_JOYSTICK_HPP
 
-// Support for the Unwinder joystick box
-//
-// This class supports the Technology Playgroup Unwinder joystick box.
-// It supports up to four axes, four buttons on one or two joysticks.
-//
-// NOTE:  This class does NOT support the Unwinder's MIDI features or
-//        digital joystick mode
+// Support for the Fakespace PINCH glove system
 
 
 #include "vsJoystickBox.h++"
