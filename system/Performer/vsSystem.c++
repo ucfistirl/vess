@@ -454,6 +454,10 @@ void vsSystem::drawFrame()
 		    preFrameTraverse(scene);
 		}
 
+                // See if stats are enabled on the pane, and call
+                // pfChannel::drawStats to draw them if so
+                if (targetPane->areStatsEnabled())
+                    targetPane->getBaseLibraryObject()->drawStats();
             }
         }
     }
