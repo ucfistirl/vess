@@ -331,7 +331,7 @@ void vsIntersect::intersect(vsNode *targetNode)
             
             for (sloop = 0; sloop < 4; sloop++)
                 for (tloop = 0; tloop < 4; tloop++)
-                    sectXform[sloop][tloop] = xformMat[tloop][sloop];
+                    sectXform[loop][sloop][tloop] = xformMat[tloop][sloop];
 
             hitPoint.xformPt(hitPoint, xformMat);
             polyNormal.xformVec(polyNormal, xformMat);
