@@ -602,7 +602,7 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
     // pBuffer configuration: This will create a pBuffer of the requested
     // width and height. Its contents are preserved, meaning images held
     // should survive screen modifications. Also this will not create the
-    // largest available pBuffer if there is not enough memory; It will
+    // largest available pBuffer if there is not enough memory; it will
     // give an invalid context instead.
     int pBufferAttributes[8] =
     {
@@ -848,6 +848,10 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
         widthOffset = 0;
         heightOffset = 0;
     }
+
+    // Store the drawable width and height
+    drawableWidth = winXAttr.width;
+    drawableHeight = winXAttr.height;
 
     // Create a new GLXWindow to use as the drawable for this vsWindow
     drawable = (GLXDrawable)glXCreateWindow(xWindowDisplay, fbConfig, xWindow,
