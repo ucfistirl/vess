@@ -34,7 +34,7 @@ INCLUDES = \
 # Rule to make libvsSound.so
 libvsSound.so: libvsSound.a
 	rm -f $@
-	$(CXX) $(LDFLAGS) -shared -o $@ @SO_LINK@ libvsSound.a @SO_NO_LINK@
+	$(CXX) $(LDFLAGS) $(AM_LDFLAGS) -shared -o $@ @SO_LINK@ libvsSound.a @SO_NO_LINK@
 
 # Override automake's install rule for the libraries.  This is done to
 # keep automake from running ranlib on the shared library (since we're

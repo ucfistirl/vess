@@ -119,7 +119,7 @@ libvsGraphics_a_LIBADD = @EXTRA_GRAPHICS_OBJECTS@
 # Rule to make libvsGraphics.a
 libvsGraphics.so: libvsGraphics.a
 	rm -f $@
-	$(CXX) $(LDFLAGS) -shared -o $@ @SO_LINK@ libvsGraphics.a @SO_NO_LINK@
+	$(CXX) $(LDFLAGS) $(AM_LDFLAGS) -shared -o $@ @SO_LINK@ libvsGraphics.a @SO_NO_LINK@
 
 # Override automake's install rule for the libraries.  This is done to
 # keep automake from running ranlib on the shared library (since we're
