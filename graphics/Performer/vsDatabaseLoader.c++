@@ -46,6 +46,7 @@
 #include "vsFogAttribute.h++"
 #include "vsMaterialAttribute.h++"
 #include "vsTextureAttribute.h++"
+#include "vsTextureCubeAttribute.h++"
 #include "vsBackfaceAttribute.h++"
 #include "vsTransparencyAttribute.h++"
 #include "vsWireframeAttribute.h++"
@@ -929,7 +930,9 @@ void vsDatabaseLoader::convertAttrs(vsGeometry *geometry, pfGeoState *geoState,
     vsMaterialAttribute *materialAttr;
     pfTexture *texture;
     pfTexEnv *texEnv;
+    pfTexGen *texGen;
     vsTextureAttribute *textureAttr;
+    vsTextureCubeAttribute *textureCubeAttr;
     int transpMode;
     bool transpFlag;
     vsTransparencyAttribute *transpAttr;
@@ -1028,35 +1031,83 @@ void vsDatabaseLoader::convertAttrs(vsGeometry *geometry, pfGeoState *geoState,
     // Check for a texture
     texture = (pfTexture *)(geoState->getAttr(PFSTATE_TEXTURE));
     texEnv = (pfTexEnv *)(geoState->getAttr(PFSTATE_TEXENV));
+    texGen = (pfTexGen *)(geoState->getAttr(PFSTATE_TEXGEN));
     if (texture != NULL)
     {
-        // Check the attribute map to see if we've encountered this
-        // texture before
-        textureAttr = (vsTextureAttribute *)
-            (attrMap->mapSecondToFirst(texture));
-
-        // If there is no associated texture attribute, create one now
-        if (textureAttr == NULL)
+        // If it is a texture cube map
+        if (texture->getFormat(PFTEX_CUBE_MAP) == 1)
         {
-            // VESS texture attributes require an associated Performer
-            // texture environment.  If the GeoState doesn't have one,
-            // we need to create one.
-            if (texEnv == NULL)
+            // Check the attribute map to see if we've encountered this
+            // texture before
+            textureCubeAttr = (vsTextureCubeAttribute *)
+                (attrMap->mapSecondToFirst(texture));
+
+            // If there is no associated texture attribute, create one now
+            if (textureCubeAttr == NULL)
             {
-                texEnv = new pfTexEnv();
+                // VESS texture attributes require an associated Performer
+                // texture environment.  If the GeoState doesn't have one,
+                // we need to create one.
+                if (texEnv == NULL)
+                {
+                    texEnv = new pfTexEnv();
+                }
+
+                // VESS texture cube attributes require an associated Performer
+                // texture coordinate generator.  If the GeoState doesn't have
+                // one,  we need to create one.  Set to default "reflection map"
+                // mode.
+                if (texGen == NULL)
+                {
+                    texGen = new pfTexGen();
+                    texGen->setMode(PF_S, PFTG_REFLECTION_MAP);
+                    texGen->setMode(PF_T, PFTG_REFLECTION_MAP);
+                    texGen->setMode(PF_R, PFTG_REFLECTION_MAP);
+                }
+
+                // Create the texture attribute from the Performer texture
+                // objects
+                textureCubeAttr = new vsTextureCubeAttribute(texture, texEnv,
+                    texGen);
+
+                // Link the pfTexture to the new texture attribute in the
+                // attribute map, so we can find it if it's used again
+                attrMap->registerLink(textureCubeAttr, texture);
             }
 
-            // Create the texture attribute from the Performer texture
-            // objects
-            textureAttr = new vsTextureAttribute(texture, texEnv);
-
-            // Link the pfTexture to the new texture attribute in the
-            // attribute map, so we can find it if it's used again
-            attrMap->registerLink(textureAttr, texture);
+            // Add the attribute to the target geometry
+            geometry->addAttribute(textureCubeAttr);
         }
+        else
+        {
+            // Check the attribute map to see if we've encountered this
+            // texture before
+            textureAttr = (vsTextureAttribute *)
+                (attrMap->mapSecondToFirst(texture));
 
-        // Add the attribute to the target geometry
-        geometry->addAttribute(textureAttr);
+            // If there is no associated texture attribute, create one now
+            if (textureAttr == NULL)
+            {
+                // VESS texture attributes require an associated Performer
+                // texture environment.  If the GeoState doesn't have one,
+                // we need to create one.
+                if (texEnv == NULL)
+                {
+                    texEnv = new pfTexEnv();
+                }
+
+                // Create the texture attribute from the Performer texture
+                // objects
+                textureAttr = new vsTextureAttribute(texture, texEnv, texGen);
+
+                // Link the pfTexture to the new texture attribute in the
+                // attribute map, so we can find it if it's used again
+                attrMap->registerLink(textureAttr, texture);
+            }
+
+            // Add the attribute to the target geometry
+            geometry->addAttribute(textureAttr);
+        }
     }
 
     // Check the transparency state at this geometry (transparency, unlike
