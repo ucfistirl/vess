@@ -61,21 +61,30 @@ void vsSequenceCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
     // Get the current frame number
     frameNumber = sequenceAttr->getCurrentChildNum();
 
-    // Don't do anything if the sequence isn't playing
-    if (sequenceAttr->getPlayMode() == VS_SEQUENCE_MODE_START)
+    // In OSG, Sequence is a subclass of Switch, so it can in theory
+    // be set to have all of its children on or off, or to have multiple
+    // children on.  If this is the case, don't bother checking for
+    // a negative frame time
+    if ((frameNumber != osg::Switch::ALL_CHILDREN_ON) &&
+        (frameNumber != osg::Switch::ALL_CHILDREN_OFF) &&
+        (frameNumber != osg::Switch::MULTIPLE_CHILDREN_ON))
     {
-        // Get the current child's frame time
-        frameTime = sequenceAttr->getChildTime(frameNumber);
-
-        // If the current sequence frame is the same as the frame
-        // during the last call to this callback, don't do anything.
-        // This prevents the sequence from re-pausing after a resume.
-        if (lastFrameNumber != frameNumber)
+        // Don't do anything if the sequence isn't playing
+        if (sequenceAttr->getPlayMode() == VS_SEQUENCE_MODE_START)
         {
-            // If the child time is negative, pause the sequence
-            if (frameTime < 0.0)
+            // Get the current child's frame time
+            frameTime = sequenceAttr->getChildTime(frameNumber);
+
+            // If the current sequence frame is the same as the frame
+            // during the last call to this callback, don't do anything.
+            // This prevents the sequence from re-pausing after a resume.
+            if (lastFrameNumber != frameNumber)
             {
-                sequenceAttr->setPlayMode(VS_SEQUENCE_MODE_PAUSE);
+                // If the child time is negative, pause the sequence
+                if (frameTime < 0.0)
+                {
+                    sequenceAttr->setPlayMode(VS_SEQUENCE_MODE_PAUSE);
+                }
             }
         }
     }
