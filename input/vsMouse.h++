@@ -2,7 +2,7 @@
 #define VS_MOUSE_HPP
 
 // Class to handle the state of the mouse.  This class is generally updated
-// by the window system input object (e.g: vsXInput)
+// by the window system input object (e.g: vsWSInput)
 
 #include "vsInputDevice.h++"
 
