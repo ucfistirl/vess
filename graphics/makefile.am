@@ -5,10 +5,10 @@ lib_LIBRARIES = libvsGraphics.a libvsGraphics.so
 libvsGraphics_a_SOURCES = \
                           common/vsOptimizer.c++ \
                           common/vsScenePrinter.c++ \
+                          common/vsClusterManager.c++ \
                           @SG@/vsAttribute.c++ \
                           @SG@/vsBackfaceAttribute.c++ \
                           @SG@/vsBillboardAttribute.c++ \
-                          @SG@/vsClusterManager.c++ \
                           @SG@/vsComponent.c++ \
                           @SG@/vsDatabaseLoader.c++ \
                           @SG@/vsDecalAttribute.c++ \
@@ -59,10 +59,10 @@ EXTRA_libvsGraphics_so_SOURCES = $(EXTRA_libvsGraphics_a_SOURCES)
 include_HEADERS = \
                   common/vsOptimizer.h++ \
                   common/vsScenePrinter.h++ \
+                  common/vsClusterManager.h++ \
                   @SG@/vsAttribute.h++ \
                   @SG@/vsBackfaceAttribute.h++ \
                   @SG@/vsBillboardAttribute.h++ \
-                  @SG@/vsClusterManager.h++ \
                   @SG@/vsComponent.h++ \
                   @SG@/vsDatabaseLoader.h++ \
                   @SG@/vsDecalAttribute.h++ \
