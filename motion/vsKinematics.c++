@@ -306,6 +306,7 @@ vsVector vsKinematics::getCenterOfMass()
     xform = transform->getPostTransform();
     
     result.set(xform[0][3], xform[1][3], xform[2][3]);
+    result.scale(-1.0);
     
     return result;
 }
