@@ -58,6 +58,13 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     performerPipeWindow->setOriginSize(VS_WINDOW_DEFAULT_XPOS,
         VS_WINDOW_DEFAULT_YPOS, VS_WINDOW_DEFAULT_WIDTH,
         VS_WINDOW_DEFAULT_HEIGHT);
+
+    // WORKAROUND:  Performer 2.5.1 seems to have introduced an annoying
+    //              glitch where the program will hang if a pfPipeWindow
+    //              is opened too soon after calling pfInit()  A 1-
+    //              second sleep seems to get around this.
+    sleep(1);
+
     performerPipeWindow->open();
 
     // Force the window open
@@ -139,6 +146,12 @@ vsWindow::vsWindow(vsScreen *parent, pfPipeWindow *pWin) : childPaneList(1, 1)
     
     // Switch the origin to lower-left
     performerPipeWindow->setMode(PFWIN_ORIGIN_LL, 0);
+
+    // WORKAROUND:  Performer 2.5.1 seems to have introduced an annoying
+    //              glitch where the program will hang if a pfPipeWindow
+    //              is opened too soon after calling pfInit()  A 1-
+    //              second sleep seems to get around this.
+    sleep(1);
 
     // Tell the window to open
     if (!performerPipeWindow->isOpen())
@@ -251,6 +264,13 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
     performerPipeWindow->setOriginSize(VS_WINDOW_DEFAULT_XPOS,
         VS_WINDOW_DEFAULT_YPOS, VS_WINDOW_DEFAULT_WIDTH,
         VS_WINDOW_DEFAULT_HEIGHT);
+
+    // WORKAROUND:  Performer 2.5.1 seems to have introduced an annoying
+    //              glitch where the program will hang if a pfPipeWindow
+    //              is opened too soon after calling pfInit()  A 1-
+    //              second sleep seems to get around this.
+    sleep(1);
+
     performerPipeWindow->open();
 
     // Attempt to determine the size of the window manager's border for
