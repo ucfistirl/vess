@@ -31,13 +31,13 @@ class vsView;
 #include "vsMatrix.h++"
 #include "vsViewpointAttribute.h++"
 
-enum vsViewProjectionMode
+enum VS_GRAPHICS_DLL vsViewProjectionMode
 {
     VS_VIEW_PROJMODE_PERSP,
     VS_VIEW_PROJMODE_ORTHO
 };
 
-class vsView : public vsObject
+class VS_GRAPHICS_DLL vsView : public vsObject
 {
 private:
 

@@ -31,7 +31,7 @@ class vsViewpointAttribute;
 #include "vsAttribute.h++"
 #include "vsObjectMap.h++"
 
-class vsViewpointAttribute : public vsAttribute
+class VS_GRAPHICS_DLL vsViewpointAttribute : public vsAttribute
 {
 private:
 

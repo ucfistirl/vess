@@ -32,13 +32,13 @@
 #define VS_DATABASE_MODE_NAME_ALL   0x02
 #define VS_DATABASE_MODE_AUTO_UNLIT 0x04
 
-enum vsDatabaseType
+enum VS_GRAPHICS_DLL vsDatabaseType
 {
     VS_DATABASE_TYPE_DEFAULT,
     VS_DATABASE_TYPE_FLT
 };
 
-enum vsDatabaseUnits
+enum VS_GRAPHICS_DLL vsDatabaseUnits
 {
     VS_DATABASE_UNITS_METERS,
     VS_DATABASE_UNITS_FEET,
@@ -52,7 +52,7 @@ struct vsdbMatrixBlock
     pfMatrix    belowMatrix;
 };
 
-class vsDatabaseLoader : public vsObject
+class VS_GRAPHICS_DLL vsDatabaseLoader : public vsObject
 {
 private:
 

@@ -26,7 +26,7 @@
 #include "vsGrowableArray.h++"
 #include "vsAttribute.h++"
 
-class vsStateAttribute : public vsAttribute
+class VS_GRAPHICS_DLL vsStateAttribute : public vsAttribute
 {
 protected:
 

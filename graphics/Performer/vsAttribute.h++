@@ -36,7 +36,7 @@ class vsNode;
 
 #define VS_ATTRIBUTE_NAME_MAX_LENGTH 80
 
-enum vsAttributeType
+enum VS_GRAPHICS_DLL vsAttributeType
 {
     VS_ATTRIBUTE_TYPE_TRANSFORM,
     VS_ATTRIBUTE_TYPE_SWITCH,
@@ -59,7 +59,7 @@ enum vsAttributeType
     VS_ATTRIBUTE_TYPE_SCENT_DETECTOR
 };
 
-enum vsAttributeCategory
+enum VS_GRAPHICS_DLL vsAttributeCategory
 {
     VS_ATTRIBUTE_CATEGORY_STATE,
     VS_ATTRIBUTE_CATEGORY_GROUPING,
@@ -68,7 +68,7 @@ enum vsAttributeCategory
     VS_ATTRIBUTE_CATEGORY_OTHER
 };
 
-class vsAttribute : public vsObject
+class VS_GRAPHICS_DLL vsAttribute : public vsObject
 {
 private:
 

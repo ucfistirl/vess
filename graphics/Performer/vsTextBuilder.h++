@@ -36,14 +36,14 @@
 #include "vsTransformAttribute.h++"
 #include "vsDatabaseLoader.h++"
 
-enum vsTextBuilderJustification
+enum VS_GRAPHICS_DLL vsTextBuilderJustification
 {
     VS_TEXTBUILDER_JUSTIFY_LEFT,
     VS_TEXTBUILDER_JUSTIFY_RIGHT,
     VS_TEXTBUILDER_JUSTIFY_CENTER
 };
 
-class vsTextBuilder : public vsObject
+class VS_GRAPHICS_DLL vsTextBuilder : public vsObject
 {
 private:
     pfFont                  *font;

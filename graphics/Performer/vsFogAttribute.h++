@@ -25,14 +25,14 @@
 #include <Performer/pr/pfFog.h>
 #include "vsStateAttribute.h++"
 
-enum vsFogEquationType
+enum VS_GRAPHICS_DLL vsFogEquationType
 {
     VS_FOG_EQTYPE_LINEAR,
     VS_FOG_EQTYPE_EXP,
     VS_FOG_EQTYPE_EXP2
 };
 
-class vsFogAttribute : public vsStateAttribute
+class VS_GRAPHICS_DLL vsFogAttribute : public vsStateAttribute
 {
 private:
 

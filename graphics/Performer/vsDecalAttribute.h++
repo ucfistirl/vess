@@ -28,7 +28,7 @@
 #include "vsAttribute.h++"
 #include "vsNode.h++"
 
-class vsDecalAttribute : public vsAttribute
+class VS_GRAPHICS_DLL vsDecalAttribute : public vsAttribute
 {
 private:
 

@@ -28,14 +28,14 @@
 #include "vsMatrix.h++"
 #include "vsAttribute.h++"
 
-enum vsBillboardRotationMode
+enum VS_GRAPHICS_DLL vsBillboardRotationMode
 {
     VS_BILLBOARD_ROT_AXIS,
     VS_BILLBOARD_ROT_POINT_EYE,
     VS_BILLBOARD_ROT_POINT_WORLD
 };
 
-class vsBillboardAttribute : public vsAttribute
+class VS_GRAPHICS_DLL vsBillboardAttribute : public vsAttribute
 {
 private:
 

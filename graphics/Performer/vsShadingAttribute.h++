@@ -25,13 +25,13 @@
 
 #include "vsStateAttribute.h++"
 
-enum vsShadingMode
+enum VS_GRAPHICS_DLL vsShadingMode
 {
     VS_SHADING_GOURAUD,
     VS_SHADING_FLAT
 };
 
-class vsShadingAttribute : public vsStateAttribute
+class VS_GRAPHICS_DLL vsShadingAttribute : public vsStateAttribute
 {
 private:
 

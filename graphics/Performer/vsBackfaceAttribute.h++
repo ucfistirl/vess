@@ -25,7 +25,7 @@
 
 #include "vsStateAttribute.h++"
 
-class vsBackfaceAttribute : public vsStateAttribute
+class VS_GRAPHICS_DLL vsBackfaceAttribute : public vsStateAttribute
 {
 private:
 

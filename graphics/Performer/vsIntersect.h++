@@ -35,35 +35,35 @@
 
 #define VS_INTERSECT_SEGS_MAX 32
 
-enum vsIntersectFacingMode
+enum VS_GRAPHICS_DLL vsIntersectFacingMode
 {
     VS_INTERSECT_IGNORE_NONE,
     VS_INTERSECT_IGNORE_FRONTFACE,
     VS_INTERSECT_IGNORE_BACKFACE
 };
 
-enum vsIntersectSwitchTraversalMode
+enum VS_GRAPHICS_DLL vsIntersectSwitchTraversalMode
 {
     VS_INTERSECT_SWITCH_NONE,
     VS_INTERSECT_SWITCH_CURRENT,
     VS_INTERSECT_SWITCH_ALL
 };
 
-enum vsIntersectSequenceTraversalMode
+enum VS_GRAPHICS_DLL vsIntersectSequenceTraversalMode
 {
     VS_INTERSECT_SEQUENCE_NONE,
     VS_INTERSECT_SEQUENCE_CURRENT,
     VS_INTERSECT_SEQUENCE_ALL
 };
 
-enum vsIntersectLODTraversalMode
+enum VS_GRAPHICS_DLL vsIntersectLODTraversalMode
 {
     VS_INTERSECT_LOD_NONE,
     VS_INTERSECT_LOD_FIRST,
     VS_INTERSECT_LOD_ALL
 };
 
-class vsIntersect : public vsObject
+class VS_GRAPHICS_DLL vsIntersect : public vsObject
 {
 private:
 

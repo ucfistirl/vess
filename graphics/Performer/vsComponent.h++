@@ -29,7 +29,7 @@
 #include "vsAttribute.h++"
 #include "vsNode.h++"
 
-class vsComponent : public vsNode
+class VS_GRAPHICS_DLL vsComponent : public vsNode
 {
 private:
 

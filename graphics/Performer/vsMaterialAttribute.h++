@@ -26,14 +26,14 @@
 #include <Performer/pr/pfMaterial.h>
 #include "vsStateAttribute.h++"
 
-enum vsMaterialSide
+enum VS_GRAPHICS_DLL vsMaterialSide
 {
     VS_MATERIAL_SIDE_FRONT,
     VS_MATERIAL_SIDE_BACK,
     VS_MATERIAL_SIDE_BOTH
 };
 
-enum vsMaterialColor
+enum VS_GRAPHICS_DLL vsMaterialColor
 {
     VS_MATERIAL_COLOR_AMBIENT,
     VS_MATERIAL_COLOR_DIFFUSE,
@@ -41,7 +41,7 @@ enum vsMaterialColor
     VS_MATERIAL_COLOR_EMISSIVE
 };
 
-enum vsMaterialColorMode
+enum VS_GRAPHICS_DLL vsMaterialColorMode
 {
     VS_MATERIAL_CMODE_AMBIENT,
     VS_MATERIAL_CMODE_DIFFUSE,
@@ -51,7 +51,7 @@ enum vsMaterialColorMode
     VS_MATERIAL_CMODE_NONE
 };
 
-class vsMaterialAttribute : public vsStateAttribute
+class VS_GRAPHICS_DLL vsMaterialAttribute : public vsStateAttribute
 {
 private:
 

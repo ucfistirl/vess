@@ -33,7 +33,7 @@
 #include "vsLightAttribute.h++"
 #include "vsGrowableArray.h++"
 
-class vsGraphicsState : public vsObject
+class VS_GRAPHICS_DLL vsGraphicsState : public vsObject
 {
 private:
 

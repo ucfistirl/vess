@@ -30,7 +30,7 @@
 #include "vsAttribute.h++"
 #include "vsNode.h++"
 
-enum vsGeometryPrimType
+enum VS_GRAPHICS_DLL vsGeometryPrimType
 {
     VS_GEOMETRY_TYPE_POINTS,
     VS_GEOMETRY_TYPE_LINES,
@@ -44,7 +44,7 @@ enum vsGeometryPrimType
     VS_GEOMETRY_TYPE_POLYS
 };
 
-enum vsGeometryDataType
+enum VS_GRAPHICS_DLL vsGeometryDataType
 {
     VS_GEOMETRY_VERTEX_COORDS,
     VS_GEOMETRY_NORMALS,
@@ -52,7 +52,7 @@ enum vsGeometryDataType
     VS_GEOMETRY_TEXTURE_COORDS
 };
 
-enum vsGeometryDataBinding
+enum VS_GRAPHICS_DLL vsGeometryDataBinding
 {
     VS_GEOMETRY_BIND_NONE,
     VS_GEOMETRY_BIND_OVERALL,
@@ -60,13 +60,13 @@ enum vsGeometryDataBinding
     VS_GEOMETRY_BIND_PER_VERTEX
 };
 
-enum vsGeometryBinSortMode
+enum VS_GRAPHICS_DLL vsGeometryBinSortMode
 {
     VS_GEOMETRY_SORT_STATE,
     VS_GEOMETRY_SORT_DEPTH
 };
 
-class vsGeometry : public vsNode
+class VS_GRAPHICS_DLL vsGeometry : public vsNode
 {
 private:
 

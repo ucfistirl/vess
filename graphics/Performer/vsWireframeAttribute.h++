@@ -25,7 +25,7 @@
 
 #include "vsStateAttribute.h++"
 
-class vsWireframeAttribute : public vsStateAttribute
+class VS_GRAPHICS_DLL vsWireframeAttribute : public vsStateAttribute
 {
 private:
 
