@@ -32,6 +32,8 @@
 #include "vsGeometry.h++"
 #include "vsDynamicGeometry.h++"
 #include "vsSkeletonMeshGeometry.h++"
+#include "vsTextureAttribute.h++"
+#include "vsTextureCubeAttribute.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Sets up the Performer objects associated with
@@ -609,8 +611,11 @@ unsigned int vsComponent::getIntersectValue()
 // ------------------------------------------------------------------------
 void vsComponent::addAttribute(vsAttribute *newAttribute)
 {
-    int attrType, attrCat;
+    int newAttrType, newAttrCat;
+    int attrType;
     int loop;
+    int textureUnit, newTextureUnit;
+    vsAttribute *attribute;
 
     // Ask the attribute if it's willing to be added; if it returns false,
     // it's probably already attached somewhere else.
@@ -622,21 +627,78 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
     
     // Check for a conflict between the attribute to be added and the
     // ones already on the component
-    attrCat = newAttribute->getAttributeCategory();
-    attrType = newAttribute->getAttributeType();
-    switch (attrCat)
+    newAttrCat = newAttribute->getAttributeCategory();
+    newAttrType = newAttribute->getAttributeType();
+    switch (newAttrCat)
     {
-        // Component may only contain one of each of these; if the new
-	// attribute is one of these categories, make sure there's not
-	// another one of the same type already
+        // Component may only contain one of each of these (with the
+        // exception of texture-type attributes on different texture units);
+        // if the new attribute is one of these categories, make sure there's 
+        // not another one of the same type already
         case VS_ATTRIBUTE_CATEGORY_STATE:
-            for (loop = 0; loop < getAttributeCount(); loop++)
-                if ((getAttribute(loop))->getAttributeType() == attrType)
+            if ((newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE) ||
+                (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE))
+            {
+                // Initialize the texture unit to invalid maximum.
+                textureUnit = VS_MAXIMUM_TEXTURE_UNITS;
+                newTextureUnit = VS_MAXIMUM_TEXTURE_UNITS+1;
+                                                                                
+                // Get the new attribute's type.
+                newAttrType = newAttribute->getAttributeType();
+                                                                                
+                // Get the texture unit of the new attribute, if it is 
+                // a texture attribute.
+                if (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE)
                 {
-                    printf("vsComponent::addAttribute: Component already "
-                        "contains that type of attribute\n");
-                    return;
+                    newTextureUnit =
+                        ((vsTextureAttribute *) newAttribute)->getTextureUnit();
                 }
+                else if (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE)
+                {
+                    newTextureUnit = ((vsTextureCubeAttribute *) 
+                        newAttribute)->getTextureUnit();
+                }
+                                                                                
+                // Check each attribute we have.
+                for (loop = 0; loop < getAttributeCount(); loop++)
+                {
+                    attribute = getAttribute(loop);
+                    attrType = attribute->getAttributeType();
+                                                                                
+                    // Get the texture unit of the current attribute, if it 
+                    // is a texture attribute.
+                    if (attrType == VS_ATTRIBUTE_TYPE_TEXTURE)
+                    {
+                        textureUnit = ((vsTextureAttribute *) 
+                            attribute)->getTextureUnit();
+                    }
+                    else if (attrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE)
+                    {
+                        textureUnit = ((vsTextureCubeAttribute *) 
+                            attribute)->getTextureUnit();
+                    }
+                                                                                
+                    // If the texture units are equal then they both must 
+                    // have been texture type attributes and had the same 
+                    // unit.  We don't want that to be allowed so print 
+                    // error and return.
+                    if (textureUnit == newTextureUnit)
+                    {
+                        printf("vsGeometry::addAttribute: Geometry node "
+                            "already contains a texture attribute on unit %d\n",
+                            textureUnit);
+                        return;
+                    }
+                }
+            }
+            else
+                for (loop = 0; loop < getAttributeCount(); loop++)
+                    if ((getAttribute(loop))->getAttributeType() == newAttrType)
+                    {
+                        printf("vsComponent::addAttribute: Component already "
+                            "contains that type of attribute\n");
+                        return;
+                    }
             break;
 
         // Component may only contain one of any of these; if the new
