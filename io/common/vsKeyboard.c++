@@ -43,10 +43,22 @@ vsKeyboard::vsKeyboard(int kbMode)
 
     // Clear the command string
     sprintf(command, "");
+    commandReady = VS_FALSE;
 
-    // Create a  vsInputButton for each key
+    // Create a  vsInputButton for each key except the lower-case letter
+    // keys.  These are mapped to the same vsInputButton as the upper-case
+    // letter keys below.
     for (i = 0; i < VS_KB_MAX_BUTTONS; i++)
-        button[i] = new vsInputButton();
+    {
+        if ((i < 'a') || (i > 'z'))
+            button[i] = new vsInputButton();
+    }
+    
+    // Map the lower-case letters to the buttons for the upper-case letters
+    for (i = 'a'; i <= 'z'; i++)
+    {
+        button[i] = button[toupper(i)];
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -59,8 +71,12 @@ vsKeyboard::~vsKeyboard()
     // Delete all the buttons
     for (i = 0; i < VS_KB_MAX_BUTTONS; i++)
     {
-        if (button[i])
+        // Don't try to delete the lower-case letter buttons, these will
+        // be deleted when the same upper-case letter's button is deleted
+        if (((i < 'a') || (i > 'z')) && (button[i]))
+        {
             delete button[i];
+        }
     }
 }
 
@@ -450,12 +466,6 @@ vsInputButton *vsKeyboard::getButton(int index)
     // Check to see if the specified button index is valid
     if ((index >= 0) && (index < numButtons))
     {
-        // Letter buttons (A to Z) are indexed by their upper-case
-        // forms.  See if we should convert a lower-case letter index 
-        // to upper case.
-        if ((index >= 'a') && (index <= 'z'))
-            index = toupper((unsigned char)index);
-
         // Return the corresponding button
         return button[index];
     }

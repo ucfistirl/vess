@@ -33,7 +33,7 @@
 #include <X11/Xos.h>
 #include <X11/keysym.h>
 
-#define VS_KB_MAX_BUTTONS    128
+#define VS_KB_MAX_BUTTONS    150
 
 #define VS_KB_COMMAND_LENGTH 80
 
@@ -91,32 +91,36 @@ enum
     VS_KEY_PGUP       = 30,
     VS_KEY_PGDN       = 31,
 
-    // Printable characters will map to KeySyms (ASCII code) directly
+    // Printable characters will map to ASCII codes directly
+    // We'll leave 97-122 free so users can use either lower-case 
+    // letters ('a'=97 - 'z'=122) or upper-case letters 
+    // ('A'=65 - 'Z'=90) in getButton() calls to access the state 
+    // of the letter keys.
 
     // Cursor keys
-    VS_KEY_UP         = 97,
-    VS_KEY_DOWN       = 98,
-    VS_KEY_LEFT       = 99,
-    VS_KEY_RIGHT      = 100,
+    VS_KEY_UP         = 128,
+    VS_KEY_DOWN       = 129,
+    VS_KEY_LEFT       = 130,
+    VS_KEY_RIGHT      = 131,
 
     // Keypad keys
-    VS_KEY_KP0        = 101,
-    VS_KEY_KP1        = 102,
-    VS_KEY_KP2        = 103,
-    VS_KEY_KP3        = 104,
-    VS_KEY_KP4        = 105,
-    VS_KEY_KP5        = 106,
-    VS_KEY_KP6        = 107,
-    VS_KEY_KP7        = 108,
-    VS_KEY_KP8        = 109,
-    VS_KEY_KP9        = 110,
-    VS_KEY_KPDECIMAL  = 111,
-    VS_KEY_KPDIVIDE   = 112,
-    VS_KEY_KPMULTIPLY = 113,
-    VS_KEY_KPSUBTRACT = 114,
-    VS_KEY_KPADD      = 115,
-    VS_KEY_KPENTER    = 116,
-    VS_KEY_NUMLOCK    = 117
+    VS_KEY_KP0        = 132,
+    VS_KEY_KP1        = 133,
+    VS_KEY_KP2        = 134,
+    VS_KEY_KP3        = 135,
+    VS_KEY_KP4        = 136,
+    VS_KEY_KP5        = 137,
+    VS_KEY_KP6        = 138,
+    VS_KEY_KP7        = 139,
+    VS_KEY_KP8        = 140,
+    VS_KEY_KP9        = 141,
+    VS_KEY_KPDECIMAL  = 142,
+    VS_KEY_KPDIVIDE   = 143,
+    VS_KEY_KPMULTIPLY = 144,
+    VS_KEY_KPSUBTRACT = 145,
+    VS_KEY_KPADD      = 146,
+    VS_KEY_KPENTER    = 147,
+    VS_KEY_NUMLOCK    = 148
 };
 
 class vsKeyboard : public vsInputDevice
