@@ -28,6 +28,8 @@
 #include "X11/Xutil.h"
 #include "X11/Xos.h"
 
+class vsWindowSystem;
+
 #include "vsInputSystem.h++"
 #include "vsWindow.h++"
 #include "vsMouse.h++"
@@ -36,6 +38,9 @@
 class vsWindowSystem : public vsInputSystem
 {
 protected:
+
+    // The VESS window
+    vsWindow       *vessWindow;
 
     // The X Display and window
     Display        *display;

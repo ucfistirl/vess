@@ -36,15 +36,26 @@ vsWindowSystem::vsWindowSystem(vsWindow *mainWindow)
     int xSize, ySize;
 
     // Initialize variables
+    vessWindow = mainWindow;
+    display = NULL;
+    window = NULL;
     keyboard = NULL;
     mouse = NULL;
+    
+    // Check window for other window system
+    if (vessWindow->getWSystem())
+    {
+        printf("vsWindowSystem::vsWindowSystem: Specified vsWindow already "
+            "has a vsWindowSystem\n");
+        return;
+    }
 
     // Get the X Display and Window
     display = pfGetCurWSConnection();
     window = mainWindow->getBaseLibraryObject()->getWSWindow();
 
     // Obtain the size of the window
-    mainWindow->getSize(&xSize, &ySize);
+    vessWindow->getSize(&xSize, &ySize);
 
     // Create the keyboard in Button mode, by default.  The user can 
     // change this later
@@ -61,6 +72,9 @@ vsWindowSystem::vsWindowSystem(vsWindow *mainWindow)
     XSelectInput(display, window, PointerMotionHintMask | PointerMotionMask |
         ButtonPressMask | ButtonReleaseMask | KeyPressMask | KeyReleaseMask |
         EnterWindowMask | LeaveWindowMask);
+
+    // Register with the window
+    vessWindow->attachWSystem(this);
 }
 
 // ------------------------------------------------------------------------
@@ -73,6 +87,8 @@ vsWindowSystem::~vsWindowSystem()
 
     if (mouse)
         delete mouse;
+
+    vessWindow->removeWSystem();
 }
 
 // ------------------------------------------------------------------------
@@ -129,6 +145,10 @@ void vsWindowSystem::update()
     Window            childWin;
     int               rootX, rootY, winX, winY;
     unsigned int      modMask;
+    
+    // Check to make sure that we're valid
+    if (!display)
+        return;
 
     // Process all the events we're interested in
 
