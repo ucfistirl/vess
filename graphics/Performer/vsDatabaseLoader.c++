@@ -87,6 +87,14 @@ vsDatabaseLoader::~vsDatabaseLoader()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsDatabaseLoader::getClassName()
+{
+    return "vsDatabaseLoader";
+}
+
+// ------------------------------------------------------------------------
 // Adds the given node name to the loader's list of "important" node names.
 // Nodes with names appearing in the loader's name list are given special
 // attention during the database loading process.

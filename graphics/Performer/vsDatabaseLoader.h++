@@ -52,7 +52,7 @@ struct vsdbMatrixBlock
     pfMatrix    belowMatrix;
 };
 
-class vsDatabaseLoader
+class vsDatabaseLoader : public vsObject
 {
 private:
 
@@ -96,22 +96,24 @@ VS_INTERNAL:
 
 public:
 
-                   vsDatabaseLoader();
-                   ~vsDatabaseLoader();
+                       vsDatabaseLoader();
+    virtual            ~vsDatabaseLoader();
+ 
+    virtual const char *getClassName();
 
-    void           addImportantNodeName(char *newName);
-    void           clearNames();
+    void               addImportantNodeName(char *newName);
+    void               clearNames();
 
-    void           setUnits(int databaseUnit);
+    void               setUnits(int databaseUnit);
 
-    void           addPath(char *filePath);
-    void           clearPath();
-    const char     *getPath();
+    void               addPath(char *filePath);
+    void               clearPath();
+    const char         *getPath();
 
-    void           setLoaderMode(int whichMode, int modeVal);
-    int            getLoaderMode(int whichMode);
+    void               setLoaderMode(int whichMode, int modeVal);
+    int                getLoaderMode(int whichMode);
 
-    vsComponent    *loadDatabase(char *databaseFilename);
+    vsComponent        *loadDatabase(char *databaseFilename);
 };
 
 #endif

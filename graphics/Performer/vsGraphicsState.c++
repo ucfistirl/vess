@@ -32,6 +32,21 @@ vsGraphicsState::vsGraphicsState() : lightAttrList(1, 1)
 }
 
 // ------------------------------------------------------------------------
+// Destructor
+// ------------------------------------------------------------------------
+vsGraphicsState::~vsGraphicsState()
+{
+}
+
+// ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsGraphicsState::getClassName()
+{
+    return "vsGraphicsState";
+}
+
+// ------------------------------------------------------------------------
 // Static function
 // Returns the currently active vsGraphicsState object
 // ------------------------------------------------------------------------

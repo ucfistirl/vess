@@ -37,7 +37,7 @@ enum vsViewProjectionMode
     VS_VIEW_PROJMODE_ORTHO
 };
 
-class vsView
+class vsView : public vsObject
 {
 private:
 

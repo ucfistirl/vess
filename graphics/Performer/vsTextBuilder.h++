@@ -43,7 +43,7 @@ enum vsTextBuilderJustification
     VS_TEXTBUILDER_JUSTIFY_CENTER
 };
 
-class vsTextBuilder
+class vsTextBuilder : public vsObject
 {
 private:
     pfFont                  *font;
@@ -55,19 +55,21 @@ private:
     void                    colorGraph(vsNode *node);
 
 public:
-    vsTextBuilder();
-    vsTextBuilder(char *newFont);
-    vsTextBuilder(char *newFont, vsVector newColor);
-    vsTextBuilder(char *newFont, vsVector newColor, vsMatrix newTransform);
+                       vsTextBuilder();
+                       vsTextBuilder(char *newFont);
+                       vsTextBuilder(char *newFont, vsVector newColor);
+                       vsTextBuilder(char *newFont, vsVector newColor, vsMatrix newTransform);
 
-    ~vsTextBuilder();
+    virtual            ~vsTextBuilder();
 
-    void         setFont(char *newFont);
-    void         setColor(vsVector newColor);
-    void         setTransformMatrix(vsMatrix newTransform);
-    void         setJustification(int newJustification);
+    virtual const char *getClassName();
 
-    vsComponent  *buildText(char *text);
+    void               setFont(char *newFont);
+    void               setColor(vsVector newColor);
+    void               setTransformMatrix(vsMatrix newTransform);
+    void               setJustification(int newJustification);
+ 
+    vsComponent        *buildText(char *text);
 };
 
 #endif

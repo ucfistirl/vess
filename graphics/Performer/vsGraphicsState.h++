@@ -33,7 +33,7 @@
 #include "vsLightAttribute.h++"
 #include "vsGrowableArray.h++"
 
-class vsGraphicsState
+class vsGraphicsState : public vsObject
 {
 private:
 
@@ -62,11 +62,15 @@ private:
 
 VS_INTERNAL:
 
+    virtual        ~vsGraphicsState();
+
     static void    deleteInstance();
 
     void           applyState(pfGeoState *state);
 
 public:
+
+    virtual const char     *getClassName();
 
     static vsGraphicsState *getInstance();
 
