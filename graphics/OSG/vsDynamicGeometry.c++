@@ -15,11 +15,10 @@
 //
 //    Description:  vsNode subclass that is a leaf node in a VESS scene
 //                  graph. Stores geometry data such as vertex and texture
-//                  coordinates, colors, and face normals.  This version
-//                  is a simple subclass of vsDynamicGeometry for Open Scene
-//                  Graph.  Since OSG only operates in a single process,
-//                  this version does not need to do any extra work to
-//                  support dynamic geometry.
+//                  coordinates, colors, and face normals.  Under Open
+//                  Scene Graph, the only real difference between this
+//                  class and vsGeometry is that this class disables the
+//                  use of display lists.
 //
 //    Author(s):    Bryan Kline, Jason Daly, Duvan Cope
 //
@@ -571,7 +570,6 @@ int vsDynamicGeometry::getBinding(int whichData)
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::setData(int whichData, int dataIndex, vsVector data)
 {
-    unsigned int unit;
     int loop;
     int slotNum;
     int dataSize;
@@ -678,7 +676,6 @@ void vsDynamicGeometry::setData(int whichData, int dataIndex, vsVector data)
 vsVector vsDynamicGeometry::getData(int whichData, int dataIndex)
 {
     vsVector result;
-    unsigned int unit;
     int loop;
     int slotNum;
     int dataSize;
@@ -779,7 +776,6 @@ vsVector vsDynamicGeometry::getData(int whichData, int dataIndex)
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::setDataList(int whichData, vsVector *dataBuffer)
 {
-    unsigned int unit;
     int loop, sloop;
     int slotNum;
     int dataSize;
@@ -876,7 +872,6 @@ void vsDynamicGeometry::setDataList(int whichData, vsVector *dataBuffer)
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::getDataList(int whichData, vsVector *dataBuffer)
 {
-    unsigned int unit;
     int loop, sloop;
     int slotNum;
     int dataSize;
@@ -978,7 +973,6 @@ void vsDynamicGeometry::getDataList(int whichData, vsVector *dataBuffer)
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
 {
-    unsigned int unit;
     int slotNum;
     int dataSize;
 
@@ -1101,7 +1095,6 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
 // ------------------------------------------------------------------------
 int vsDynamicGeometry::getDataListSize(int whichData)
 {
-    unsigned int unit;
     int slotNum;
 
     // Bounds checking
@@ -1408,7 +1401,8 @@ void vsDynamicGeometry::rebuildPrimitives()
         osgGeometry->removePrimitiveSet(0, numSets);
     
     // Create one or more new PrimitiveSet objects based on the type,
-    // number, and length data of the primitives stored in this vsDynamicGeometry
+    // number, and length data of the primitives stored in this 
+    // vsDynamicGeometry
     if ((primitiveType == VS_GEOMETRY_TYPE_POINTS) ||
         (primitiveType == VS_GEOMETRY_TYPE_LINES) ||
         (primitiveType == VS_GEOMETRY_TYPE_TRIS) ||

@@ -636,7 +636,6 @@ int vsSkeletonMeshGeometry::getBinding(int whichData)
 void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex, 
                                      vsVector data)
 {
-    unsigned int unit;
     int loop;
     int slotNum;
     int dataSize;
@@ -797,7 +796,6 @@ void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
 vsVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
 {
     vsVector result;
-    unsigned int unit;
     int loop;
     int slotNum;
     int dataSize;
@@ -931,7 +929,6 @@ vsVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
 // ------------------------------------------------------------------------
 void vsSkeletonMeshGeometry::setDataList(int whichData, vsVector *dataBuffer)
 {
-    unsigned int unit;
     int loop, sloop;
     int slotNum;
     int dataSize;
@@ -1086,7 +1083,6 @@ void vsSkeletonMeshGeometry::setDataList(int whichData, vsVector *dataBuffer)
 // ------------------------------------------------------------------------
 void vsSkeletonMeshGeometry::getDataList(int whichData, vsVector *dataBuffer)
 {
-    unsigned int unit;
     int loop, sloop;
     int slotNum;
     int dataSize;
@@ -1231,7 +1227,6 @@ void vsSkeletonMeshGeometry::getDataList(int whichData, vsVector *dataBuffer)
 // ------------------------------------------------------------------------
 void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
 {
-    unsigned int unit;
     int slotNum;
     int dataSize;
 
@@ -1374,7 +1369,6 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
 // ------------------------------------------------------------------------
 int vsSkeletonMeshGeometry::getDataListSize(int whichData)
 {
-    unsigned int unit;
     int slotNum;
 
     // If we request the list size of the original lists, get
