@@ -121,7 +121,7 @@ void vsSoundListenerAttribute::attach(vsNode *theNode)
 
     if (theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
     {
-        printf("vsSoundListenerAttribute::attach: Can't attach sound source "
+        printf("vsSoundListenerAttribute::attach: Can't attach sound listener "
             "attributes to geometry nodes\n");
         return;
     }
