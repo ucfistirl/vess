@@ -308,7 +308,6 @@ void vsWindowSystem::update()
     if( mouseWrapping[0] || mouseWrapping[1] )
     {
         int mousex, mousey;
-        int midWinX, midWinY;
         int newMouseX, newMouseY;
 
         // Wrapping pixel boundaries (when the mouse passes between these
@@ -322,10 +321,6 @@ void vsWindowSystem::update()
 
         // Placeholder to get information from X
         Window child;
-
-        // Calculate the window midpoint
-        midWinX  = winX / 2;
-        midWinY  = winY / 2;
 
         // Get the current mouse positions (in window pixels)
         getMouseLocation( &mousex, &mousey );
@@ -620,7 +615,6 @@ void vsWindowSystem::getMouseLocation( int *x, int *y )
 {
     XWindowAttributes xattr;
     int winSizeX, winSizeY, midWinX, midWinY;
-    int newMouseX, newMouseY;
 
     if( !display || XGetWindowAttributes( display, window, &xattr )==0 )
     {
