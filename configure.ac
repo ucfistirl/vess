@@ -589,6 +589,78 @@ else
     AC_MSG_RESULT(no)
 fi
 
+dnl I/O options************************************************************
+IO_INCLUDE_DIR=""
+IO_LIB_DIR=""
+IO_LIB=""
+
+dnl Provide the option to use libdc1394, the digital video camera interface
+dnl library. Also requires libraw1394, the base 1394 communication library.
+dnl Enables the compilation of the vs1394Camera class. The argument (if
+dnl present) should be the path to the library; assumes /usr/local if no
+dnl argument is given.
+
+AC_ARG_WITH(raw1394,
+[[  --with-raw1394=[prefix]   Use the raw1394 library for 1394 communication
+                              (if necessary, the path to the library may be
+                              specified) [no]]],
+, with_raw1394=no)
+AC_ARG_WITH(dc1394,
+[[  --with-dc1394=[prefix]   Use the dc1394 library for digital video camera
+                             communication (if necessary, the path to the
+                             library may be specified) [no]]],
+, with_dc1394=no)
+
+dnl Default to /usr/local if no argument given
+if test x$with_raw1394 = xyes ; then
+    with_raw1394=/usr/local
+fi
+if test x$with_dc1394 = xyes ; then
+    with_dc1394=/usr/local
+fi
+
+dnl Verify the 1394 path data if present
+if test x$with_raw1394 != xno ; then
+    LIBS=
+    AC_CHECK_LIB(raw1394, raw1394_get_libversion,,RAW1394_ERROR=yes,-L$with_raw1394/lib)
+    if test x$RAW1394_ERROR = xyes ; then
+        AC_MSG_ERROR([
+
+    There is a problem with the raw1394 library. Check to make sure that it
+    is installed correctly and in the specified location. 
+
+    E-mail vess@ist.ucf.edu if you think you've received this message in
+    error.
+
+])
+    fi
+
+    if test x$with_dc1394 != xno ; then
+        LIBS=
+        AC_CHECK_LIB(dc1394_control, dc1394_print_camera_info,,DC1394_ERROR=yes, -L$with_raw1394/lib -lraw1394 -L$with_dc1394/lib)
+        if test x$DC1394_ERROR = xyes ; then
+            AC_MSG_ERROR([
+
+    There is a problem with the dc1394 library. Check to make sure that it
+    is installed correctly and in the specified location. 
+
+    E-mail vess@ist.ucf.edu if you think you've received this message in
+    error.
+
+])
+        fi
+
+        dnl Add the 1394 path information to the variables that will eventually
+        dnl get exported to the graphics makefile.
+        EXTRA_IO_OBJECTS="$EXTRA_IO_OBJECTS vs1394Camera.$OBJEXT"
+        IO_INCLUDE_DIR="$IO_INCLUDE_DIR -I$with_raw1394/include -I$with_dc1394/include"
+        IO_LIB_DIR="$IO_LIB_DIR -L$with_raw1394/lib -L$with_dc1394/lib"
+        IO_LIB="$IO_LIB -lraw1394 -ldc1394_control"
+    fi
+fi
+
+
+
 dnl XML options**************************************************************
 XML_INCLUDE_DIR="-I/usr/include/libxml2"
 XML_LIB_DIR=""
@@ -660,6 +732,9 @@ AC_SUBST(GFX_LIB)
 AC_SUBST(SOUND_INCLUDE_DIR)
 AC_SUBST(SOUND_LIB_DIR)
 AC_SUBST(SOUND_LIB)
+AC_SUBST(IO_INCLUDE_DIR)
+AC_SUBST(IO_LIB_DIR)
+AC_SUBST(IO_LIB)
 AC_SUBST(XML_INCLUDE_DIR)
 AC_SUBST(XML_LIB_DIR)
 AC_SUBST(XML_LIB)
