@@ -44,13 +44,14 @@ VS_INTERNAL:
 
 public:
 
-                          vsMenuLabel(vsTextBuilder *textBuilder, char *text);
+                          vsMenuLabel(vsTextBuilder *newTextBuilder, char *text);
     virtual               ~vsMenuLabel();
 
     virtual const char    *getClassName();
 
     virtual void          update(vsMenuSignal signal, vsMenuFrame *frame);
 
+    void                  setTextBuilder(vsTextBuilder *newTextBuilder);
     vsTextBuilder         *getTextBuilder();
 
     void                  setText(char *text);

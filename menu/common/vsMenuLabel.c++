@@ -35,7 +35,8 @@ vsMenuLabel::vsMenuLabel(vsTextBuilder *newTextBuilder, char *text)
 
     // Store and reference the text builder so it is not prematurely deleted
     textBuilder = newTextBuilder;
-    textBuilder->ref();
+    if (textBuilder)
+        textBuilder->ref();
 
     // Create a blank menu component and a kinematics to manage it
     menuComponent = new vsComponent();
@@ -103,6 +104,24 @@ void vsMenuLabel::update(vsMenuSignal signal, vsMenuFrame *frame)
 }
 
 // ------------------------------------------------------------------------
+// This method sets a new text builder for the menu label
+// ------------------------------------------------------------------------
+void vsMenuLabel::setTextBuilder(vsTextBuilder *newTextBuilder)
+{
+    // Unref the old text builder if it exists
+    if (textBuilder)
+        vsObject::unrefDelete(textBuilder);
+
+    // Store and ref the new text builder if it exists
+    textBuilder = newTextBuilder;
+    if (textBuilder)
+        textBuilder->ref();
+
+    // Rebuild the text object with the new text builder
+    setText(labelText);
+}
+
+// ------------------------------------------------------------------------
 // This method returns a pointer to the current text builder
 // ------------------------------------------------------------------------
 vsTextBuilder *vsMenuLabel::getTextBuilder()
@@ -119,10 +138,6 @@ void vsMenuLabel::setText(char *text)
     vsVector centerOfMass;
     double radius;
 
-    // Free the old label, if it exists
-    if (labelText)
-        free(labelText);
-
     // Remove the old text object from this component
     if (textComponent)
     {
@@ -133,15 +148,26 @@ void vsMenuLabel::setText(char *text)
         vsObject::checkDelete(textComponent);
     }
 
+    // See whether the label currently has a text builder object set
     if (textBuilder)
     {
         // If the text object exists, create a component representation of it
         // Otherwise, do nothing until the text is properly set
         if (text)
         {
-            // Allocate space to hold the label
-            labelText = (char *)malloc((strlen(text) + 1) * sizeof(char));
-            strcpy(labelText, text);
+            // See whether there is any difference between the old data and
+            // the new data
+            if (text != labelText)
+            {
+                // Free the old string if it exists
+                if (labelText)
+                    free(labelText);
+
+                // The new string is different from the old one, so free the
+                // old string and store the new one
+                labelText = (char *)malloc((strlen(text) + 1) * sizeof(char));
+                strcpy(labelText, text);
+            }
 
             // Use the text builder to create the text, storing it as the
             // component (since this is a vsMenuObject)
