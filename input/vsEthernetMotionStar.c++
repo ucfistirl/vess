@@ -75,7 +75,7 @@ vsEthernetMotionStar::vsEthernetMotionStar(char *serverName, int port,
     coordXform = quat2 * quat1;
 
     // Open ethernet link
-    net = new UDPUnicastNetworkInterface(serverName, port, VS_TRUE);
+    net = new vsUDPUnicastNetworkInterface(serverName, port, VS_TRUE);
 
     if (net)
     {
