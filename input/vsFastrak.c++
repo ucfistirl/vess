@@ -241,7 +241,6 @@ void vsFastrak::enumerateTrackers()
 {
     unsigned char buf[VS_FT_SIZE_CMD_PACKET];
     int           result;
-    int           i;
 
     // Clear any garbage that might have sneaked onto the
     // serial port
@@ -1107,7 +1106,7 @@ void vsFastrak::setBaudRate(long baud)
     port->setBaudRate(baud);
 
     // Resume streaming or ping for a new packet
-    if (streaming)
+    if (wasStreaming)
         startStream();
     else
         ping();
