@@ -13,22 +13,32 @@
 //
 //    VESS Module:  vsSkeletonMeshGeometry.c++
 //
-//    Description:  vsNode subclass that is a leaf node in a VESS scene.
-//                  This version of geometry handles all the data for skins.
+//    Description:  vsNode subclass that is a leaf node in a VESS scene
+//                  graph. Stores geometry data such as vertex and texture
+//                  coordinates, colors, and face normals.  This version
+//                  is a simple subclass of vsDynamicGeometry for Open Scene
+//                  Graph.  Since OSG only operates in a single process,
+//                  this version does not need to do any extra work to
+//                  support dynamic geometry.
 //
-//    Author(s):    Bryan Kline, Duvan Cope
+//    Author(s):    Duvan Cope, Bryan Kline, Jason Daly
 //
 //------------------------------------------------------------------------
 
-#include "vsSkeletonMeshGeometry.h++"
-
 #include <stdio.h>
 #include <osg/MatrixTransform>
-#include <osg/Drawable>
-#include "vsGraphicsState.h++"
+#include "vsSkeletonMeshGeometry.h++"
+#include "vsComponent.h++"
+#include "vsBackfaceAttribute.h++"
+#include "vsFogAttribute.h++"
+#include "vsMaterialAttribute.h++"
+#include "vsShadingAttribute.h++"
 #include "vsTextureAttribute.h++"
 #include "vsTextureCubeAttribute.h++"
 #include "vsTextureRectangleAttribute.h++"
+#include "vsTransparencyAttribute.h++"
+#include "vsWireframeAttribute.h++"
+#include "vsGraphicsState.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Creates a Performer geode and geoset and connects
@@ -36,86 +46,56 @@
 // ------------------------------------------------------------------------
 vsSkeletonMeshGeometry::vsSkeletonMeshGeometry() : parentList(5, 5)
 {
-    unsigned int unit;
+    int loop;
 
+    // Initialize the number of parents to zero
     parentCount = 0;
 
-    // Geode
+    // Create an osg::Geode
     osgGeode = new osg::Geode();
     osgGeode->ref();
     
-    // Geometry
+    // Create an osg::Geometry node to contain the Geode
     osgGeometry = new osg::Geometry();
     osgGeometry->ref();
     osgGeode->addDrawable(osgGeometry);
-    
-    // Since this geometry is dynamic (i.e.: it will change every frame), 
-    // disable display listing of the geometry data. 
+
+    // Since this geometry is dynamic (i.e.: it will change every frame),
+    // disable display listing of the geometry data.
     osgGeometry->setUseDisplayList(false);
 
-    // Color array
-    colorList = new osg::Vec4Array();
-    colorList->ref();
-    colorListSize = 0;
-    osgGeometry->setColorArray(colorList);
+    // Create the various data arrays
+    for (loop = 0; loop < VS_GEOMETRY_LIST_COUNT; loop++)
+        allocateDataArray(loop);
 
-    // Normal array
-    normalList = new osg::Vec3Array();
-    normalList->ref();
-    normalListSize = 0;
-    osgGeometry->setNormalArray(normalList);
+    // Set the normal, weight and bone indices bindings to per vertex,
+    // that is the only way it can be skinned.
     osgGeometry->setNormalBinding(osg::Geometry::BIND_PER_VERTEX);
-
-    for (unit = 0; unit < VS_MAXIMUM_TEXTURE_UNITS; unit++)
-    {
-        // Texture coordinate array
-        texCoordList[unit] = new osg::Vec2Array();
-        texCoordList[unit]->ref();
-        texCoordListSize[unit] = 0;
-        osgGeometry->setTexCoordArray(unit, NULL);
-        textureBinding[unit] = VS_GEOMETRY_BIND_NONE;
-    }
-
-    // Vertex array
-    vertexList = new osg::Vec3Array();
-    vertexList->ref();
-    vertexListSize = 0;
-    osgGeometry->setVertexArray(vertexList);
+    osgGeometry->setVertexAttribBinding(VS_GEOMETRY_VERTEX_WEIGHTS,
+        osg::Geometry::BIND_PER_VERTEX);
+    osgGeometry->setVertexAttribBinding(VS_GEOMETRY_BONE_INDICES,
+        osg::Geometry::BIND_PER_VERTEX);
 
     // Vertex array, a copy to keep in its original form unmodified by the
     // skeleton.
     originalVertexList = new osg::Vec3Array();
     originalVertexList->ref();
-
+                                                                                
     // Normal array, a copy to keep in its original form unmodified by the
     // skeleton.
     originalNormalList = new osg::Vec3Array();
     originalNormalList->ref();
 
-    // Bone index array
-    boneList = new osg::Vec4Array();
-    boneList->ref();
-    boneListSize = 0;
-    osgGeometry->setVertexAttribArray(VS_BONE_ATTRIBUTE_INDEX, boneList);
-    osgGeometry->setVertexAttribBinding(VS_BONE_ATTRIBUTE_INDEX,
-        osg::Geometry::BIND_PER_VERTEX);
-
-    // Vertex weight array
-    weightList = new osg::Vec4Array();
-    weightList->ref();
-    weightListSize = 0;
-    osgGeometry->setVertexAttribArray(VS_WEIGHT_ATTRIBUTE_INDEX, weightList);
-    osgGeometry->setVertexAttribBinding(VS_WEIGHT_ATTRIBUTE_INDEX,
-        osg::Geometry::BIND_PER_VERTEX);
-
-    // Other values
+    // Initialize other values
     lengthsList = NULL;
     primitiveCount = 0;
     primitiveType = VS_GEOMETRY_TYPE_POINTS;
+
+    // Enable lighting on this Geometry and set the render bin to default
     enableLighting();
     renderBin = -1;
 
-    // Register the connection
+    // Register this node and osg::Geode in the node map
     getMap()->registerLink(this, osgGeode);
 }
 
@@ -124,7 +104,7 @@ vsSkeletonMeshGeometry::vsSkeletonMeshGeometry() : parentList(5, 5)
 // ------------------------------------------------------------------------
 vsSkeletonMeshGeometry::~vsSkeletonMeshGeometry()
 {
-    unsigned int unit;
+    int loop;
 
     // Remove all parents
     detachFromParents();
@@ -133,20 +113,17 @@ vsSkeletonMeshGeometry::~vsSkeletonMeshGeometry()
     deleteAttributes();
 
     // Unlink and destroy the OSG objects
-    colorList->unref();
-    normalList->unref();
-    for (unit = 0; unit < VS_MAXIMUM_TEXTURE_UNITS; unit++)
-        texCoordList[unit]->unref();
-    vertexList->unref();
+    for (loop = 0; loop < VS_GEOMETRY_LIST_COUNT; loop++)
+        dataList[loop]->unref();
     originalVertexList->unref();
-    boneList->unref();
-    weightList->unref();
+    originalNormalList->unref();
     osgGeometry->unref();
     osgGeode->unref();
     
+    // Remove the link to the osg node from the object map
     getMap()->removeLink(this, VS_OBJMAP_FIRST_LIST);
 
-    // Other cleanup
+    // If we've created a primitive lengths list, free this now
     if (lengthsList)
         free(lengthsList);
 }
@@ -181,12 +158,15 @@ int vsSkeletonMeshGeometry::getParentCount()
 // ------------------------------------------------------------------------
 vsNode *vsSkeletonMeshGeometry::getParent(int index)
 {
+    // Check the index to make sure it refers to a valid parent, complain 
+    // and return NULL if not
     if ((index < 0) || (index >= parentCount))
     {
         printf("vsSkeletonMeshGeometry::getParent: Bad parent index\n");
         return NULL;
     }
     
+    // Return the requested parent
     return (vsNode *)(parentList[index]);
 }
 
@@ -197,7 +177,7 @@ vsNode *vsSkeletonMeshGeometry::getParent(int index)
 void vsSkeletonMeshGeometry::beginNewState()
 {
 }
-
+                                                                                
 // ------------------------------------------------------------------------
 // Finalizes the new dynamic geometry state.  In OSG, this function
 // does nothing.
@@ -211,6 +191,7 @@ void vsSkeletonMeshGeometry::finishNewState()
 // ------------------------------------------------------------------------
 void vsSkeletonMeshGeometry::setPrimitiveType(int newType)
 {
+    // Make sure the type argument is a valid primitive type
     if ((newType < VS_GEOMETRY_TYPE_POINTS) ||
         (newType > VS_GEOMETRY_TYPE_POLYS))
     {
@@ -219,8 +200,10 @@ void vsSkeletonMeshGeometry::setPrimitiveType(int newType)
         return;
     }
 
+    // Set the primitive type
     primitiveType = newType;
     
+    // Reconstruct the primitives with a new type
     rebuildPrimitives();
 }
 
@@ -240,8 +223,8 @@ void vsSkeletonMeshGeometry::setPrimitiveCount(int newCount)
 {
     int loop;
     
-    // Sanity check
-    if ((newCount < 0) || (newCount > 1000000))
+    // Sanity check, primarily to avoid memory corruption
+    if ((newCount < 0) || (newCount > VS_GEOMETRY_MAX_LIST_INDEX))
     {
         printf("vsSkeletonMeshGeometry::setPrimitiveCount: Invalid count value "
             "'%d'\n", newCount);
@@ -251,26 +234,28 @@ void vsSkeletonMeshGeometry::setPrimitiveCount(int newCount)
     // Change the length of the primitive lengths array
     if (newCount && !lengthsList)
     {
-        // Create
+        // Create the lengths array
         lengthsList = (int *)(calloc(newCount, sizeof(int)));
     }
     else if (!newCount && lengthsList)
     {
-        // Delete
+        // Delete the lengths array
         free(lengthsList);
         lengthsList = NULL;
     }
     else
     {
-        // Modify
+        // Modify the size of the lengths array
         lengthsList = (int *)(realloc(lengthsList, sizeof(int) * newCount));
         if (newCount > primitiveCount)
             for (loop = primitiveCount; loop < newCount; loop++)
                 lengthsList[loop] = 0;
     }
     
+    // Set the new primitive count
     primitiveCount = newCount;
     
+    // Reconstruct the osg::PrimitiveSet with the new settings
     rebuildPrimitives();
 }
 
@@ -288,6 +273,7 @@ int vsSkeletonMeshGeometry::getPrimitiveCount()
 // ------------------------------------------------------------------------
 void vsSkeletonMeshGeometry::setPrimitiveLength(int index, int length)
 {
+    // Make sure the index is valid, given the current primitive count
     if ((index < 0) || (index >= getPrimitiveCount()))
     {
         printf("vsSkeletonMeshGeometry::setPrimitiveLength: Index out of "
@@ -295,8 +281,10 @@ void vsSkeletonMeshGeometry::setPrimitiveLength(int index, int length)
         return;
     }
     
+    // Set the new length in the primitive lengths list
     lengthsList[index] = length;
     
+    // Reconstruct the osg::PrimitiveSet with the new setting
     rebuildPrimitives();
 }
 
@@ -306,6 +294,7 @@ void vsSkeletonMeshGeometry::setPrimitiveLength(int index, int length)
 // ------------------------------------------------------------------------
 int vsSkeletonMeshGeometry::getPrimitiveLength(int index)
 {
+    // Make sure the index is valid, given the current primitive count
     if ((index < 0) || (index >= getPrimitiveCount()))
     {
         printf("vsSkeletonMeshGeometry::getPrimitiveLength: Index out of "
@@ -327,6 +316,7 @@ int vsSkeletonMeshGeometry::getPrimitiveLength(int index)
             return 4;
     }
 
+    // Return the desired length value
     return (lengthsList[index]);
 }
 
@@ -339,9 +329,11 @@ void vsSkeletonMeshGeometry::setPrimitiveLengths(int *lengths)
 {
     int loop;
     
+    // Copy the given integer array into the primitive lengths array
     for (loop = 0; loop < getPrimitiveCount(); loop++)
         lengthsList[loop] = lengths[loop];
 
+    // Reconstruct the osg::PrimitiveSet with the new setting
     rebuildPrimitives();
 }
 
@@ -355,6 +347,8 @@ void vsSkeletonMeshGeometry::getPrimitiveLengths(int *lengthsBuffer)
 {
     int loop;
     
+    // Copy primitive length values from this object to the specified
+    // array, assuming that the primitive count is set correctly
     for (loop = 0; loop < getPrimitiveCount(); loop++)
         lengthsBuffer[loop] = lengthsList[loop];
 }
@@ -395,14 +389,19 @@ void vsSkeletonMeshGeometry::setBinding(int whichData, int binding)
     switch (whichData)
     {
         case VS_GEOMETRY_SKIN_VERTEX_COORDS:
+            // Check the binding and make sure it is per-vertex (this is
+            // the only valid setting for skin vertices)
             if (binding != VS_GEOMETRY_BIND_PER_VERTEX)
             {
                 printf("vsSkeletonMeshGeometry::setBinding: Skin vertex "
-                    "binding must always be VS_GEOMETRY_BIND_PER_VERTEX\n");
+                    "coordinate binding must always be "
+                    "VS_GEOMETRY_BIND_PER_VERTEX\n");
                 return;
             }
             break;
         case VS_GEOMETRY_SKIN_NORMALS:
+            // Check the binding and make sure it is per-vertex (this is
+            // the only valid setting for skin normals)
             if (binding != VS_GEOMETRY_BIND_PER_VERTEX)
             {
                 printf("vsSkeletonMeshGeometry::setBinding: Skin normal "
@@ -410,23 +409,9 @@ void vsSkeletonMeshGeometry::setBinding(int whichData, int binding)
                 return;
             }
             break;
-        case VS_GEOMETRY_VERTEX_WEIGHTS:
-            if (binding != VS_GEOMETRY_BIND_PER_VERTEX)
-            {
-                printf("vsSkeletonMeshGeometry::setBinding: Vertex weight "
-                    "binding must always be VS_GEOMETRY_BIND_PER_VERTEX\n");
-                return;
-            }
-            break;
-        case VS_GEOMETRY_BONE_INDICES:
-            if (binding != VS_GEOMETRY_BIND_PER_VERTEX)
-            {
-                printf("vsSkeletonMeshGeometry::setBinding: Bone indices "
-                    "binding must always be VS_GEOMETRY_BIND_PER_VERTEX\n");
-                return;
-            }
-            break;
         case VS_GEOMETRY_VERTEX_COORDS:
+            // Check the binding and make sure it is per-vertex (this is
+            // the only valid setting for vertices)
             if (binding != VS_GEOMETRY_BIND_PER_VERTEX)
             {
                 printf("vsSkeletonMeshGeometry::setBinding: Vertex coordinate "
@@ -434,7 +419,21 @@ void vsSkeletonMeshGeometry::setBinding(int whichData, int binding)
                 return;
             }
             break;
+
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            // Check the binding and make sure it is per-vertex (this is
+            // the only valid setting for vertex weights)
+            if (binding != VS_GEOMETRY_BIND_PER_VERTEX)
+            {
+                printf("vsSkeletonMeshGeometry::setBinding: Vertex weight "
+                    "binding must always be VS_GEOMETRY_BIND_PER_VERTEX\n");
+                return;
+            }
+            break;
+
         case VS_GEOMETRY_NORMALS:
+            // Check the binding and make sure it is per-vertex (this is
+            // the only valid setting for vertex normals)
             if (binding != VS_GEOMETRY_BIND_PER_VERTEX)
             {
                 printf("vsSkeletonMeshGeometry::setBinding: Normal "
@@ -444,7 +443,35 @@ void vsSkeletonMeshGeometry::setBinding(int whichData, int binding)
             break;
 
         case VS_GEOMETRY_COLORS:
+            // Set the color binding to the new value
             osgGeometry->setColorBinding(osgBinding);
+            break;
+
+        case VS_GEOMETRY_ALT_COLORS:
+            // Set the secondary color binding to the new value
+            osgGeometry->setSecondaryColorBinding(osgBinding);
+            break;
+
+        case VS_GEOMETRY_FOG_COORDS:
+            // Set the fog coordinate binding to the new value
+            osgGeometry->setFogCoordBinding(osgBinding);
+            break;
+
+        case VS_GEOMETRY_USER_DATA0:
+            // There is no 'standard' binding for this data; use the
+            // generic attribute binding.
+            osgGeometry->setVertexAttribBinding(whichData, osgBinding);
+            break;
+
+        case VS_GEOMETRY_USER_DATA1:
+            // Check the binding and make sure it is per-vertex (this is
+            // the only valid setting for bone indices)
+            if (binding != VS_GEOMETRY_BIND_PER_VERTEX)
+            {
+                printf("vsSkeletonMeshGeometry::setBinding: Bone indices "
+                    "binding must always be VS_GEOMETRY_BIND_PER_VERTEX\n");
+                return;
+            }
             break;
 
         case VS_GEOMETRY_TEXTURE0_COORDS:
@@ -458,6 +485,8 @@ void vsSkeletonMeshGeometry::setBinding(int whichData, int binding)
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
 
+            // Make sure the binding is a valid value for this list
+            // (only NONE and PER_VERTEX make sense for texture coordinates)
             if ((binding != VS_GEOMETRY_BIND_PER_VERTEX) &&
                 (binding != VS_GEOMETRY_BIND_NONE))
             {
@@ -474,8 +503,31 @@ void vsSkeletonMeshGeometry::setBinding(int whichData, int binding)
             if (binding == VS_GEOMETRY_BIND_NONE)
                 osgGeometry->setTexCoordArray(unit, NULL);
             else
-                osgGeometry->setTexCoordArray(unit, texCoordList[unit]);
+                osgGeometry->setTexCoordArray(unit, dataList[whichData]);
+
+            // Store the binding value in this object
             textureBinding[unit] = binding;
+            break;
+
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            // Set the generic attribute binding to the new value
+            osgGeometry->setVertexAttribBinding(
+                whichData - VS_GEOMETRY_LIST_COUNT, osgBinding);
             break;
 
         default:
@@ -494,17 +546,31 @@ int vsSkeletonMeshGeometry::getBinding(int whichData)
     unsigned int unit;
     int result;
 
+    // Interpret the whichData parameter and fetch the appropriate binding
+    // value.  Note that vertices are always PER_VERTEX, and the
+    // texture coordinate binding is stored locally, since OSG doesn't
+    // use a texture coordinate binding.  The other two data list bindings
+    // are fetched from OSG and translated below.
     switch (whichData)
     {
         case VS_GEOMETRY_SKIN_VERTEX_COORDS:
         case VS_GEOMETRY_SKIN_NORMALS:
         case VS_GEOMETRY_VERTEX_WEIGHTS:
-        case VS_GEOMETRY_BONE_INDICES:
+        case VS_GEOMETRY_USER_DATA1:
         case VS_GEOMETRY_VERTEX_COORDS:
         case VS_GEOMETRY_NORMALS:
             return VS_GEOMETRY_BIND_PER_VERTEX;
         case VS_GEOMETRY_COLORS:
             result = osgGeometry->getColorBinding();
+            break;
+        case VS_GEOMETRY_ALT_COLORS:
+            result = osgGeometry->getSecondaryColorBinding();
+            break;
+        case VS_GEOMETRY_FOG_COORDS:
+            result = osgGeometry->getFogCoordBinding();
+            break;
+        case VS_GEOMETRY_USER_DATA0:
+            result = osgGeometry->getVertexAttribBinding(whichData);
             break;
         case VS_GEOMETRY_TEXTURE0_COORDS:
         case VS_GEOMETRY_TEXTURE1_COORDS:
@@ -516,8 +582,27 @@ int vsSkeletonMeshGeometry::getBinding(int whichData)
         case VS_GEOMETRY_TEXTURE7_COORDS:
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-                                                                                
+
             return textureBinding[unit];
+            break;
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            result = osgGeometry->getVertexAttribBinding(
+                whichData - VS_GEOMETRY_LIST_COUNT);
             break;
         default:
             printf("vsSkeletonMeshGeometry::getBinding: Unrecognized data "
@@ -525,6 +610,7 @@ int vsSkeletonMeshGeometry::getBinding(int whichData)
             return -1;
     }
     
+    // Translate the result to its VESS counterpart
     switch (result)
     {
         case osg::Geometry::BIND_OFF:
@@ -537,6 +623,7 @@ int vsSkeletonMeshGeometry::getBinding(int whichData)
             return VS_GEOMETRY_BIND_PER_VERTEX;
     }
     
+    // Unrecognized binding values return an error result
     return -1;
 }
 
@@ -546,160 +633,159 @@ int vsSkeletonMeshGeometry::getBinding(int whichData)
 // the index specifies which data point is to be altered. The index of
 // the first data point is 0.
 // ------------------------------------------------------------------------
-void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
+void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex, 
                                      vsVector data)
 {
     unsigned int unit;
     int loop;
+    int slotNum;
+    int dataSize;
 
-    if (dataIndex < 0)
+    // If trying to set VS_GEOMETRY_VERTEX_COORDS, print error.  Vertex coords
+    // cannot be set directly.
+    if (whichData == VS_GEOMETRY_VERTEX_COORDS)
+    {
+        printf("vsSkeletonMeshGeometry::setData: Cannot set vertex coords "
+            "they are generated based on bone positions.\n");
+        return;
+    }
+    // If trying to set VS_GEOMETRY_NORMALS, print error.  Normals cannot be
+    // set directly.
+    else if (whichData == VS_GEOMETRY_NORMALS)
+    {
+        printf("vsSkeletonMeshGeometry::setData: Cannot set normals "
+            "they are generated based on bone positions.\n");
+        return;
+    }
+    // If modifying the original vertex or normals data lists, also modify the
+    // corresponding conventional data lists.
+    else if (whichData == VS_GEOMETRY_SKIN_VERTEX_COORDS)
+    {
+        whichData = VS_GEOMETRY_VERTEX_COORDS;
+    }
+    else if (whichData == VS_GEOMETRY_SKIN_NORMALS)
+    {
+        whichData = VS_GEOMETRY_NORMALS;
+    }
+
+    // Determine the minimum required number of entries that should be in the
+    // data parameter. A value of 0 here means that it doesn't matter. This
+    // also doubles as a check to make sure that we recognize the specified
+    // constant.
+    dataSize = getDataElementCount(whichData);
+    if (dataSize == -1)
+    {
+        printf("vsSkeletonMeshGeometry::setData: Unrecognized data type\n");
+        return;
+    }
+
+    // Calculate which entry in the data arrays corresponds to the given
+    // constant
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+        slotNum = whichData;
+    else
+        slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+
+    // Bounds checking; make sure the index is valid, given the list size.
+    if ((dataIndex < 0) || (dataIndex >= dataListSize[slotNum]))
     {
         printf("vsSkeletonMeshGeometry::setData: Index out of bounds\n");
         return;
     }
-    
-    switch (whichData)
+
+    // Make sure that the input vector has enough data
+    if (data.getSize() < dataSize)
     {
-        case VS_GEOMETRY_SKIN_VERTEX_COORDS:
-            if (dataIndex >= vertexListSize)
-            {
-                printf("vsSkeletonMeshGeometry::setData: Index out of"
-                   " bounds\n");
-                return;
-            }
-            if (data.getSize() < 3)
-            {
-                printf("vsSkeletonMeshGeometry::setData: Insufficient data"
-                    " (vertex coordinates require 3 values)\n");
-                return;
-            }
-            for (loop = 0; loop < 3; loop++)
-            {
-                ((*originalVertexList)[dataIndex])[loop] = data[loop];
-                ((*vertexList)[dataIndex])[loop] = data[loop];
-            }
-            break;
-
-        case VS_GEOMETRY_VERTEX_WEIGHTS:
-            if (dataIndex >= weightListSize)
-            {
-                printf("vsSkeletonMeshGeometry::setData: Index out of"
-                   " bounds\n");
-                return;
-            }
-            if (data.getSize() < 4)
-            {
-                printf("vsSkeletonMeshGeometry::setData: Insufficient data"
-                    " (vertex weight require 4 values)\n");
-                return;
-            }
-            for (loop = 0; loop < 4; loop++)
-                ((*weightList)[dataIndex])[loop] = data[loop];
-
-            osgGeometry->setVertexAttribArray(VS_WEIGHT_ATTRIBUTE_INDEX,
-                weightList);
-            break;
-
-        case VS_GEOMETRY_BONE_INDICES:
-            if (dataIndex >= boneListSize)
-            {
-                printf("vsSkeletonMeshGeometry::setData: Index out of"
-                   " bounds\n");
-                return;
-            }
-            if (data.getSize() < 4)
-            {
-                printf("vsSkeletonMeshGeometry::setData: Insufficient data"
-                    " (vertex bone indices require 4 values)\n");
-                return;
-            }
-            for (loop = 0; loop < 4; loop++)
-                ((*boneList)[dataIndex])[loop] = data[loop];
-
-            osgGeometry->setVertexAttribArray(VS_BONE_ATTRIBUTE_INDEX,
-                boneList);
-            break;
-
-        case VS_GEOMETRY_SKIN_NORMALS:
-            if (dataIndex >= normalListSize)
-            {
-                printf("vsSkeletonMeshGeometry::setData: Index out of"
-                   " bounds\n");
-                return;
-            }
-            if (data.getSize() < 3)
-            {
-                printf("vsSkeletonMeshGeometry::setData: Insufficient data"
-                    " (vertex normals require 3 values)\n");
-                return;
-            }
-            for (loop = 0; loop < 3; loop++)
-            {
-                ((*originalNormalList)[dataIndex])[loop] = data[loop];
-                ((*normalList)[dataIndex])[loop] = data[loop];
-            }
-            break;
-
-        case VS_GEOMETRY_VERTEX_COORDS:
-            printf("vsSkeletonMeshGeometry::setData: Cannot set vertex coords "
-                   "they are generated based on bone positions.\n");
-            break;
-
-        case VS_GEOMETRY_NORMALS:
-            printf("vsSkeletonMeshGeometry::setData: Cannot set normals "
-                   "they are generated based on bone positions.\n");
-            break;
-
-        case VS_GEOMETRY_COLORS:
-            if (dataIndex >= colorListSize)
-            {
-                printf("vsSkeletonMeshGeometry::setData: Index out of "
-                    "bounds\n");
-                return;
-            }
-            if (data.getSize() < 4)
-            {
-                printf("vsSkeletonMeshGeometry::setData: Insufficient data "
-                    "(colors require 4 values)\n");
-                return;
-            }
-            for (loop = 0; loop < 4; loop++)
-                ((*colorList)[dataIndex])[loop] = data[loop];
-            osgGeometry->setColorArray(colorList);
-            break;
-
-        case VS_GEOMETRY_TEXTURE0_COORDS:
-        case VS_GEOMETRY_TEXTURE1_COORDS:
-        case VS_GEOMETRY_TEXTURE2_COORDS:
-        case VS_GEOMETRY_TEXTURE3_COORDS:
-        case VS_GEOMETRY_TEXTURE4_COORDS:
-        case VS_GEOMETRY_TEXTURE5_COORDS:
-        case VS_GEOMETRY_TEXTURE6_COORDS:
-        case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-                                                                                
-            if (dataIndex >= texCoordListSize[unit])
-            {
-                printf("vsSkeletonMeshGeometry::setData: Index out of "
-                    "bounds\n");
-                return;
-            }
-            if (data.getSize() < 2)
-            {
-                printf("vsSkeletonMeshGeometry::setData: Insufficient data "
-                    "(texture coordinates require 2 values)\n");
-                return;
-            }
-            for (loop = 0; loop < 2; loop++)
-                ((*texCoordList[unit])[dataIndex])[loop] = data[loop];
-            osgGeometry->setTexCoordArray(unit, texCoordList[unit]);
-            break;
-
-        default:
-            printf("vsSkeletonMeshGeometry::setData: Unrecognized data type\n");
-            return;
+        printf("vsSkeletonMeshGeometry::setData: Insufficient data (data of "
+            "the given type requires at least %d values)\n", dataSize);
+        return;
     }
+
+    // If a conventional attribute is specified, then make sure we're not
+    // already using the generic attribute, and vice versa.
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+    {
+        // Conventional data specified
+        if (dataIsGeneric[slotNum])
+        {
+            printf("vsSkeletonMeshGeometry::setData: Cannot use conventional "
+                "data type when corresponding generic attribute is in use\n");
+            return;
+        }
+    }
+    else
+    {
+        // Generic attribute specified
+        if (!(dataIsGeneric[slotNum]))
+        {
+            printf("vsSkeletonMeshGeometry::setData: Cannot use generic "
+                "attribute type when corresponding conventional data is in "
+                "use\n");
+            return;
+        }
+    }
+    
+    // Copy the data from the vector to the data list at the given index
+    switch (dataSize)
+    {
+        case 1:
+            ((*((osg::FloatArray *)(dataList[slotNum])))[dataIndex]) =
+                data[0];
+            break;
+
+        case 2:
+            for (loop = 0; loop < 2; loop++)
+                ((*((osg::Vec2Array *)(dataList[slotNum])))[dataIndex])[loop]
+                    = data[loop];
+            break;
+
+        case 3:
+            // If setting VERTEX_COORDS, then we must be trying to set the
+            // originalVertexList (as well as the VERTEX_COORDS) so set both.
+            if (whichData == VS_GEOMETRY_VERTEX_COORDS)
+            {
+                for (loop = 0; loop < 3; loop++)
+                {
+                    ((*((osg::Vec3Array *)(dataList[slotNum])))[dataIndex])
+                        [loop] = data[loop];
+                    ((*originalVertexList)[dataIndex])[loop] = data[loop];
+                }
+            }
+            // If setting NORMALS, then we must be trying to set the
+            // originalNormalList (as well as the NORMALS) so set both.
+            else if (whichData == VS_GEOMETRY_NORMALS)
+            {
+                for (loop = 0; loop < 3; loop++)
+                {
+                    ((*((osg::Vec3Array *)(dataList[slotNum])))[dataIndex])
+                        [loop] = data[loop];
+                    ((*originalNormalList)[dataIndex])[loop] = data[loop];
+                }
+            }
+            // Else set the specified list normally.
+            else
+            {
+                for (loop = 0; loop < 3; loop++)
+                    ((*((osg::Vec3Array *)(dataList[slotNum])))[dataIndex])
+                        [loop] = data[loop];
+            }
+            break;
+
+        case 4:
+            for (loop = 0; loop < 4; loop++)
+                ((*((osg::Vec4Array *)(dataList[slotNum])))[dataIndex])[loop]
+                    = data[loop];
+            break;
+
+        case 0:
+            for (loop = 0; loop < data.getSize(); loop++)
+                ((*((osg::Vec4Array *)(dataList[slotNum])))[dataIndex])[loop]
+                    = data[loop];
+            break;
+    }
+
+    // Let the appropriate OSG data array know that it's data has changed
+    notifyOSGDataChanged(whichData);
 }
 
 // ------------------------------------------------------------------------
@@ -713,139 +799,128 @@ vsVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
     vsVector result;
     unsigned int unit;
     int loop;
+    int slotNum;
+    int dataSize;
+    bool originalData;
 
-    if (dataIndex < 0)
+    originalData = false;
+
+    // If the user wants originalVertexList data, mark it.
+    if (whichData == VS_GEOMETRY_SKIN_VERTEX_COORDS)
     {
-        printf("vsSkeletonMeshGeometry::getData: Index out of bounds "
-            "(dataIndex = %d)\n", dataIndex);
+        originalData = true;
+        whichData = VS_GEOMETRY_VERTEX_COORDS;
+    }
+    // If the user wants originalNormalList data, mark it.
+    else if (whichData == VS_GEOMETRY_SKIN_NORMALS)
+    {
+        originalData = true;
+        whichData = VS_GEOMETRY_NORMALS;
+    }
+
+    // Determine the minimum required number of entries that should be in the
+    // data parameter. A value of 0 here means that it doesn't matter. This
+    // also doubles as a check to make sure that we recognize the specified
+    // constant.
+    dataSize = getDataElementCount(whichData);
+    if (dataSize == -1)
+    {
+        printf("vsSkeletonMeshGeometry::getData: Unrecognized data type\n");
         return result;
     }
 
-    // Determine which list we should obtain the data from, and return
-    // the requested item from that list
-    switch (whichData)
+    // Calculate which entry in the data arrays corresponds to the given
+    // constant
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+        slotNum = whichData;
+    else
+        slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+
+    // Bounds checking; make sure the index is valid, given the list size.
+    if ((dataIndex < 0) || (dataIndex >= dataListSize[slotNum]))
     {
-        case VS_GEOMETRY_SKIN_VERTEX_COORDS:
-            if (dataIndex >= vertexListSize)
-            {
-                printf("vsSkeletonMeshGeometry::getData: Index out of bounds "
-                    "(list = SKIN_VERTEX_COORDS, dataIndex = %d,"
-                    " listSize = %d)\n",
-                    dataIndex, vertexListSize);
-                return result;
-            }
-            result.setSize(3);
-            for (loop = 0; loop < 3; loop++)
-                result[loop] = ((*originalVertexList)[dataIndex])[loop];
-            break;
+        printf("vsSkeletonMeshGeometry::getData: Index out of bounds\n");
+        return result;
+    }
 
-        case VS_GEOMETRY_VERTEX_WEIGHTS:
-            if (dataIndex >= weightListSize)
-            {
-                printf("vsSkeletonMeshGeometry::getData: Index out of bounds "
-                    "(list = VERTEX_WEIGHTS, dataIndex = %d, listSize = %d)\n",
-                    dataIndex, weightListSize);
-                return result;
-            }
-            result.setSize(4);
-            for (loop = 0; loop < 4; loop++)
-                result[loop] = ((*weightList)[dataIndex])[loop];
-            break;
-
-        case VS_GEOMETRY_BONE_INDICES:
-            if (dataIndex >= boneListSize)
-            {
-                printf("vsSkeletonMeshGeometry::getData: Index out of bounds "
-                    "(list = BONE_INDICES, dataIndex = %d, listSize = %d)\n",
-                    dataIndex, boneListSize);
-                return result;
-            }
-            result.setSize(4);
-            for (loop = 0; loop < 4; loop++)
-                result[loop] = ((*boneList)[dataIndex])[loop];
-            break;
-
-        case VS_GEOMETRY_VERTEX_COORDS:
-            if (dataIndex >= vertexListSize)
-            {
-                printf("vsSkeletonMeshGeometry::getData: Index out of bounds "
-                    "(list = VERTEX_COORDS, dataIndex = %d, listSize = %d)\n",
-                    dataIndex, vertexListSize);
-                return result;
-            }
-            result.setSize(3);
-            for (loop = 0; loop < 3; loop++)
-                result[loop] = ((*vertexList)[dataIndex])[loop];
-            break;
-
-        case VS_GEOMETRY_SKIN_NORMALS:
-            if (dataIndex >= normalListSize)
-            {
-                printf("vsSkeletonMeshGeometry::getData: Index out of bounds "
-                    "(list = SKIN_NORMALS, dataIndex = %d, listSize = %d)\n",
-                    dataIndex, normalListSize);
-                return result;
-            }
-            result.setSize(3);
-            for (loop = 0; loop < 3; loop++)
-                result[loop] = ((*originalNormalList)[dataIndex])[loop];
-            break;
-
-        case VS_GEOMETRY_NORMALS:
-            if (dataIndex >= normalListSize)
-            {
-                printf("vsSkeletonMeshGeometry::getData: Index out of bounds "
-                    "(list = NORMALS, dataIndex = %d, listSize = %d)\n",
-                    dataIndex, normalListSize);
-                return result;
-            }
-            result.setSize(3);
-            for (loop = 0; loop < 3; loop++)
-                result[loop] = ((*normalList)[dataIndex])[loop];
-            break;
-
-        case VS_GEOMETRY_COLORS:
-            if (dataIndex >= colorListSize)
-            {
-                printf("vsSkeletonMeshGeometry::getData: Index out of bounds "
-                    "(list = COLORS, dataIndex = %d, listSize = %d)\n",
-                    dataIndex, colorListSize);
-                return result;
-            }
-            result.setSize(4);
-            for (loop = 0; loop < 4; loop++)
-                result[loop] = ((*colorList)[dataIndex])[loop];
-            break;
-
-        case VS_GEOMETRY_TEXTURE0_COORDS:
-        case VS_GEOMETRY_TEXTURE1_COORDS:
-        case VS_GEOMETRY_TEXTURE2_COORDS:
-        case VS_GEOMETRY_TEXTURE3_COORDS:
-        case VS_GEOMETRY_TEXTURE4_COORDS:
-        case VS_GEOMETRY_TEXTURE5_COORDS:
-        case VS_GEOMETRY_TEXTURE6_COORDS:
-        case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-                                                                                
-            if (dataIndex >= texCoordListSize[unit])
-            {
-                printf("vsSkeletonMeshGeometry::getData: Index out of bounds "
-                    "(list = TEXTURE%d_COORDS, dataIndex = %d, "
-                    "listSize = %d)\n", unit, dataIndex,
-                    texCoordListSize[unit]);
-                return result;
-            }
-            result.setSize(2);
-            for (loop = 0; loop < 2; loop++)
-                result[loop] = ((*texCoordList[unit])[dataIndex])[loop];
-            break;
-
-        default:
-            printf("vsSkeletonMeshGeometry::getData: Unrecognized data type\n");
+    // If a conventional attribute is specified, then make sure we're not
+    // already using the generic attribute, and vice versa.
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+    {
+        // Conventional data specified
+        if (dataIsGeneric[slotNum])
+        {
+            printf("vsSkeletonMeshGeometry::getData: Cannot use conventional "
+                "data type when corresponding generic attribute is in use\n");
             return result;
+        }
+    }
+    else
+    {
+        // Generic attribute specified
+        if (!(dataIsGeneric[slotNum]))
+        {
+            printf("vsSkeletonMeshGeometry::getData: Cannot use generic "
+                "attribute type when corresponding conventional data is in "
+                "use\n");
+            return result;
+        }
+    }
+
+    // Set the result vector to the appropriate size, and copy
+    // the requested data
+    if (dataSize == 0)
+        result.setSize(4);
+    else
+        result.setSize(dataSize);
+
+    switch (dataSize)
+    {
+        case 1:
+            result[0] =
+                ((*((osg::FloatArray *)(dataList[slotNum])))[dataIndex]);
+            break;
+
+        case 2:
+            for (loop = 0; loop < 2; loop++)
+                result[loop] =
+                    (( *((osg::Vec2Array *)(dataList[slotNum])) )
+                        [dataIndex])[loop];
+            break;
+
+        case 3:
+            // If the user wants the originalVertexList data, get it.
+            if ((whichData == VS_GEOMETRY_VERTEX_COORDS) && (originalData))
+            {
+                for (loop = 0; loop < 3; loop++)
+                    result[loop] = ((*originalVertexList)[dataIndex])[loop];
+            }
+            // If the user wants the originalNormalList data, get it.
+            else if ((whichData == VS_GEOMETRY_NORMALS) && (originalData))
+            {
+                for (loop = 0; loop < 3; loop++)
+                    result[loop] = ((*originalNormalList)[dataIndex])[loop];
+            }
+            // Else get the specified list data.
+            else
+            {
+                for (loop = 0; loop < 3; loop++)
+                    result[loop] =
+                        (( *((osg::Vec3Array *)(dataList[slotNum])) )
+                            [dataIndex])[loop];
+            }
+            break;
+
+        case 0:
+        case 4:
+            for (loop = 0; loop < 4; loop++)
+                result[loop] =
+                    (( *((osg::Vec4Array *)(dataList[slotNum])) )
+                        [dataIndex])[loop];
+            break;
     }
     
+    // Return the result vector
     return result;
 }
 
@@ -854,86 +929,153 @@ vsVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
 // to the values in dataList. The dataList array must be at least as large
 // as the size of particular list in question.
 // ------------------------------------------------------------------------
-void vsSkeletonMeshGeometry::setDataList(int whichData, vsVector *dataList)
+void vsSkeletonMeshGeometry::setDataList(int whichData, vsVector *dataBuffer)
 {
     unsigned int unit;
     int loop, sloop;
-    
-    switch (whichData)
+    int slotNum;
+    int dataSize;
+
+    // If trying to set VS_GEOMETRY_VERTEX_COORDS, print error.  Vertex coords
+    // cannot be set directly.
+    if (whichData == VS_GEOMETRY_VERTEX_COORDS)
     {
-        case VS_GEOMETRY_SKIN_VERTEX_COORDS:
-            for (loop = 0; loop < vertexListSize; loop++)
-                for (sloop = 0; sloop < 3; sloop++)
-                {
-                    (*originalVertexList)[loop][sloop] = dataList[loop][sloop];
-                    (*vertexList)[loop][sloop] = dataList[loop][sloop];
-                }
-            break;
-
-        case VS_GEOMETRY_VERTEX_WEIGHTS:
-            for (loop = 0; loop < weightListSize; loop++)
-                for (sloop = 0; sloop < 4; sloop++)
-                    (*weightList)[loop][sloop] = dataList[loop][sloop];
-            osgGeometry->setVertexAttribArray(VS_WEIGHT_ATTRIBUTE_INDEX,
-                weightList);
-            break;
-
-        case VS_GEOMETRY_BONE_INDICES:
-            for (loop = 0; loop < boneListSize; loop++)
-                for (sloop = 0; sloop < 4; sloop++)
-                    (*boneList)[loop][sloop] = dataList[loop][sloop];
-            osgGeometry->setVertexAttribArray(VS_BONE_ATTRIBUTE_INDEX,
-                boneList);
-            break;
-
-        case VS_GEOMETRY_SKIN_NORMALS:
-            for (loop = 0; loop < normalListSize; loop++)
-                for (sloop = 0; sloop < 3; sloop++)
-                {
-                    (*originalNormalList)[loop][sloop] = dataList[loop][sloop];
-                    (*normalList)[loop][sloop] = dataList[loop][sloop];
-                }
-            break;
-
-        case VS_GEOMETRY_VERTEX_COORDS:
-            printf("vsSkeletonMeshGeometry::setData: Cannot set vertex coords, "
-                   "they are generated based on bone positions.\n");
-            break;
-
-        case VS_GEOMETRY_NORMALS:
-            printf("vsSkeletonMeshGeometry::setData: Cannot set normals, "
-                   "they are generated based on bone positions.\n");
-            break;
-
-        case VS_GEOMETRY_COLORS:
-            for (loop = 0; loop < colorListSize; loop++)
-                for (sloop = 0; sloop < 4; sloop++)
-                    (*colorList)[loop][sloop] = dataList[loop][sloop];
-            osgGeometry->setColorArray(colorList);
-            break;
-
-        case VS_GEOMETRY_TEXTURE0_COORDS:
-        case VS_GEOMETRY_TEXTURE1_COORDS:
-        case VS_GEOMETRY_TEXTURE2_COORDS:
-        case VS_GEOMETRY_TEXTURE3_COORDS:
-        case VS_GEOMETRY_TEXTURE4_COORDS:
-        case VS_GEOMETRY_TEXTURE5_COORDS:
-        case VS_GEOMETRY_TEXTURE6_COORDS:
-        case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-                                                                                
-            for (loop = 0; loop < texCoordListSize[unit]; loop++)
-                for (sloop = 0; sloop < 2; sloop++)
-                    (*texCoordList[unit])[loop][sloop] = dataList[loop][sloop];
-            osgGeometry->setTexCoordArray(unit, texCoordList[unit]);
-            break;
-
-        default:
-            printf("vsSkeletonMeshGeometry::setDataList: Unrecognized data "
-                "type\n");
-            return;
+        printf("vsSkeletonMeshGeometry::setDataList: Cannot set vertex coords "
+            "they are generated based on bone positions.\n");
+        return;
     }
+    // If trying to set VS_GEOMETRY_NORMALS, print error.  Normals cannot be
+    // set directly.
+    else if (whichData == VS_GEOMETRY_NORMALS)
+    {
+        printf("vsSkeletonMeshGeometry::setDataList: Cannot set normals "
+            "they are generated based on bone positions.\n");
+        return;
+    }
+    // If modifying the original vertex or normals data lists, also modify the
+    // corresponding conventional data lists 
+    else if (whichData == VS_GEOMETRY_SKIN_VERTEX_COORDS)
+    {
+        whichData = VS_GEOMETRY_VERTEX_COORDS;
+    }
+    else if (whichData == VS_GEOMETRY_SKIN_NORMALS)
+    {
+        whichData = VS_GEOMETRY_NORMALS;
+    }
+
+    // Determine the minimum required number of entries that should be in the
+    // data parameters. A value of 0 here means that it doesn't matter. This
+    // also doubles as a check to make sure that we recognize the specified
+    // constant.
+    dataSize = getDataElementCount(whichData);
+    if (dataSize == -1)
+    {
+        printf("vsSkeletonMeshGeometry::setDataList: Unrecognized data type\n");
+        return;
+    }
+
+    // Calculate which entry in the data arrays corresponds to the given
+    // constant
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+        slotNum = whichData;
+    else
+        slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+
+    // If a conventional attribute is specified, then make sure we're not
+    // already using the generic attribute, and vice versa.
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+    {
+        // Conventional data specified
+        if (dataIsGeneric[slotNum])
+        {
+            printf("vsSkeletonMeshGeometry::setDataList: Cannot use "
+                "conventional data type when corresponding generic attribute "
+                "is in use\n");
+            return;
+        }
+    }
+    else
+    {
+        // Generic attribute specified
+        if (!(dataIsGeneric[slotNum]))
+        {
+            printf("vsSkeletonMeshGeometry::setDataList: Cannot use generic "
+                "attribute type when corresponding conventional data is in "
+                "use\n");
+            return;
+        }
+    }
+    
+    // Copy the data from the vector to the data list at the given index
+    switch (dataSize)
+    {
+        case 1:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
+                ((*((osg::FloatArray *)(dataList[slotNum])))[loop])
+                    = dataBuffer[loop][0];
+            break;
+
+        case 2:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
+                for (sloop = 0; sloop < 2; sloop++)
+                    ((*((osg::Vec2Array *)(dataList[slotNum])))[loop])[sloop]
+                        = dataBuffer[loop][sloop];
+            break;
+
+        case 3:
+            // If setting VERTEX_COORDS, then we must be trying to set the
+            // originalVertexList (as well as the VERTEX_COORDS) so set both.
+            if (whichData == VS_GEOMETRY_VERTEX_COORDS)
+            {
+                for (loop = 0; loop < dataListSize[slotNum]; loop++)
+                    for (sloop = 0; sloop < 3; sloop++)
+                    {
+                        ((*((osg::Vec3Array *)(dataList[slotNum])))[loop])
+                            [sloop] = dataBuffer[loop][sloop];
+                        (*originalVertexList)[loop][sloop] =
+                            dataBuffer[loop][sloop];
+                    }
+            }
+            // If setting NORMALS, then we must be trying to set the
+            // originalNormalList (as well as the NORMALS) so set both.
+            else if (whichData == VS_GEOMETRY_NORMALS)
+            {
+                for (loop = 0; loop < dataListSize[slotNum]; loop++)
+                    for (sloop = 0; sloop < 3; sloop++)
+                    {
+                        ((*((osg::Vec3Array *)(dataList[slotNum])))[loop])
+                            [sloop] = dataBuffer[loop][sloop];
+                        (*originalNormalList)[loop][sloop] =
+                            dataBuffer[loop][sloop];
+                    }
+            }
+            // Else set the specified list normally.
+            else
+            {
+                for (loop = 0; loop < dataListSize[slotNum]; loop++)
+                    for (sloop = 0; sloop < 3; sloop++)
+                        ((*((osg::Vec3Array *)(dataList[slotNum])))[loop])
+                            [sloop] = dataBuffer[loop][sloop];
+            }
+            break;
+
+        case 4:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
+                for (sloop = 0; sloop < 4; sloop++)
+                    ((*((osg::Vec4Array *)(dataList[slotNum])))[loop])[sloop]
+                        = dataBuffer[loop][sloop];
+            break;
+
+        case 0:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
+                for (sloop = 0; sloop < dataBuffer[loop].getSize(); sloop++)
+                    ((*((osg::Vec4Array *)(dataList[slotNum])))[loop])[sloop]
+                        = dataBuffer[loop][sloop];
+            break;
+    }
+
+    // Let the appropriate OSG data array know that it's data has changed
+    notifyOSGDataChanged(whichData);
 }
 
 // ------------------------------------------------------------------------
@@ -946,98 +1088,139 @@ void vsSkeletonMeshGeometry::getDataList(int whichData, vsVector *dataBuffer)
 {
     unsigned int unit;
     int loop, sloop;
-    
-    switch (whichData)
-    {
-        case VS_GEOMETRY_SKIN_VERTEX_COORDS:
-            for (loop = 0; loop < vertexListSize; loop++)
-            {
-                dataBuffer[loop].setSize(3);
-                for (sloop = 0; sloop < 3; sloop++)
-                    dataBuffer[loop][sloop] =
-                        (*originalVertexList)[loop][sloop];
-            }
-            break;
-
-        case VS_GEOMETRY_VERTEX_WEIGHTS:
-            for (loop = 0; loop < weightListSize; loop++)
-            {
-                dataBuffer[loop].setSize(4);
-                for (sloop = 0; sloop < 4; sloop++)
-                    dataBuffer[loop][sloop] = (*weightList)[loop][sloop];
-            }
-            break;
-
-        case VS_GEOMETRY_BONE_INDICES:
-            for (loop = 0; loop < boneListSize; loop++)
-            {
-                dataBuffer[loop].setSize(4);
-                for (sloop = 0; sloop < 4; sloop++)
-                    dataBuffer[loop][sloop] = (*boneList)[loop][sloop];
-            }
-            break;
-
-        case VS_GEOMETRY_VERTEX_COORDS:
-            for (loop = 0; loop < vertexListSize; loop++)
-            {
-                dataBuffer[loop].setSize(3);
-                for (sloop = 0; sloop < 3; sloop++)
-                    dataBuffer[loop][sloop] = (*vertexList)[loop][sloop];
-            }
-            break;
-
-        case VS_GEOMETRY_SKIN_NORMALS:
-            for (loop = 0; loop < normalListSize; loop++)
-            {
-                dataBuffer[loop].setSize(3);
-                for (sloop = 0; sloop < 3; sloop++)
-                    dataBuffer[loop][sloop] =
-                        (*originalNormalList)[loop][sloop];
-            }
-            break;
-
-        case VS_GEOMETRY_NORMALS:
-            for (loop = 0; loop < normalListSize; loop++)
-            {
-                dataBuffer[loop].setSize(3);
-                for (sloop = 0; sloop < 3; sloop++)
-                    dataBuffer[loop][sloop] = (*normalList)[loop][sloop];
-            }
-            break;
-
-        case VS_GEOMETRY_COLORS:
-            for (loop = 0; loop < colorListSize; loop++)
-            {
-                dataBuffer[loop].setSize(4);
-                for (sloop = 0; sloop < 4; sloop++)
-                    dataBuffer[loop][sloop] = (*colorList)[loop][sloop];
-            }
-            break;
-
-        case VS_GEOMETRY_TEXTURE0_COORDS:
-        case VS_GEOMETRY_TEXTURE1_COORDS:
-        case VS_GEOMETRY_TEXTURE2_COORDS:
-        case VS_GEOMETRY_TEXTURE3_COORDS:
-        case VS_GEOMETRY_TEXTURE4_COORDS:
-        case VS_GEOMETRY_TEXTURE5_COORDS:
-        case VS_GEOMETRY_TEXTURE6_COORDS:
-        case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+    int slotNum;
+    int dataSize;
+    bool originalData;
                                                                                 
-            for (loop = 0; loop < texCoordListSize[unit]; loop++)
+    originalData = false;
+                                                                                
+    // If the user wants the originalVertexList, mark it.
+    if (whichData == VS_GEOMETRY_SKIN_VERTEX_COORDS)
+    {
+        originalData = true;
+        whichData = VS_GEOMETRY_VERTEX_COORDS;
+    }
+    // If the user wants the originalNormalList, mark it.
+    else if (whichData == VS_GEOMETRY_SKIN_NORMALS)
+    {
+        originalData = true;
+        whichData = VS_GEOMETRY_NORMALS;
+    }
+
+    // Determine the minimum required number of entries that should be in the
+    // data parameter. A value of 0 here means that it doesn't matter. This
+    // also doubles as a check to make sure that we recognize the specified
+    // constant.
+    dataSize = getDataElementCount(whichData);
+    if (dataSize == -1)
+    {
+        printf("vsSkeletonMeshGeometry::getDataList: Unrecognized data type\n");
+        return;
+    }
+
+    // Calculate which entry in the data arrays corresponds to the given
+    // constant
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+        slotNum = whichData;
+    else
+        slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+
+    // If a conventional attribute is specified, then make sure we're not
+    // already using the generic attribute, and vice versa.
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+    {
+        // Conventional data specified
+        if (dataIsGeneric[slotNum])
+        {
+            printf("vsSkeletonMeshGeometry::getDataList: Cannot use "
+                "conventional data type when corresponding generic attribute "
+                "is in use\n");
+            return;
+        }
+    }
+    else
+    {
+        // Generic attribute specified
+        if (!(dataIsGeneric[slotNum]))
+        {
+            printf("vsSkeletonMeshGeometry::getDataList: Cannot use generic "
+                "attribute type when corresponding conventional data is in "
+                "use\n");
+            return;
+        }
+    }
+
+    // Copy the requested data to the output buffer
+    switch (dataSize)
+    {
+        case 1:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
+            {
+                dataBuffer[loop].setSize(1);
+                dataBuffer[loop][0] =
+                    ((*((osg::FloatArray *)(dataList[slotNum])))[loop]);
+            }
+            break;
+
+        case 2:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
             {
                 dataBuffer[loop].setSize(2);
                 for (sloop = 0; sloop < 2; sloop++)
                     dataBuffer[loop][sloop] =
-                        (*texCoordList[unit])[loop][sloop];
+                        (( *((osg::Vec2Array *)(dataList[slotNum])) )
+                            [loop])[sloop];
             }
             break;
 
-        default:
-            printf("vsSkeletonMeshGeometry::getDataList: Unrecognized data "
-                "type\n");
-            return;
+        case 3:
+            // If the user wants the originalVertexList, get it.
+            if ((whichData == VS_GEOMETRY_VERTEX_COORDS) && (originalData))
+            {
+                for (loop = 0; loop < dataListSize[slotNum]; loop++)
+                {
+                    dataBuffer[loop].setSize(3);
+                    for (sloop = 0; sloop < 3; sloop++)
+                        dataBuffer[loop][sloop] =
+                            ((*originalVertexList)[loop])[sloop];
+                }
+            }
+            // If the user wants the originalNormalList, get it.
+            else if ((whichData == VS_GEOMETRY_NORMALS) && (originalData))
+            {
+                for (loop = 0; loop < dataListSize[slotNum]; loop++)
+                {
+                    dataBuffer[loop].setSize(3);
+                    for (sloop = 0; sloop < 3; sloop++)
+                        dataBuffer[loop][sloop] =
+                            ((*originalNormalList)[loop])[sloop];
+                }
+            }
+            // Else get the specified list.
+            else
+            {
+                for (loop = 0; loop < dataListSize[slotNum]; loop++)
+                {
+                    dataBuffer[loop].setSize(3);
+                    for (sloop = 0; sloop < 3; sloop++)
+                        dataBuffer[loop][sloop] =
+                            (( *((osg::Vec3Array *)(dataList[slotNum])) )
+                                [loop])[sloop];
+                }
+            }
+            break;
+
+        case 0:
+        case 4:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
+            {
+                dataBuffer[loop].setSize(4);
+                for (sloop = 0; sloop < 4; sloop++)
+                    dataBuffer[loop][sloop] =
+                        (( *((osg::Vec4Array *)(dataList[slotNum])) )
+                            [loop])[sloop];
+            }
+            break;
     }
 }
 
@@ -1049,82 +1232,141 @@ void vsSkeletonMeshGeometry::getDataList(int whichData, vsVector *dataBuffer)
 void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
 {
     unsigned int unit;
+    int slotNum;
+    int dataSize;
 
-    // Sanity check
-    if ((newSize < 0) || (newSize > 1000000))
+    // If modifying the original vertex or normals data lists, also modify the
+    // corresponding conventional data lists.
+    if (whichData == VS_GEOMETRY_SKIN_VERTEX_COORDS)
+    {
+        whichData = VS_GEOMETRY_VERTEX_COORDS;
+    }
+    else if (whichData == VS_GEOMETRY_SKIN_NORMALS)
+    {
+        whichData = VS_GEOMETRY_NORMALS;
+    }
+
+    // Determine the type of the data array associated with the specified
+    // data parameter. A value of 0 here means that we are using Vec4s. This
+    // also doubles as a check to make sure that we recognize the specified
+    // constant.
+    dataSize = getDataElementCount(whichData);
+    if (dataSize == -1)
+    {
+        printf("vsSkeletonMeshGeometry::setDataListSize: Unrecognized data "
+            "type\n");
+        return;
+    }
+
+    // Sanity check, primarily to avoid memory corruption
+    if ((newSize < 0) || (newSize > VS_GEOMETRY_MAX_LIST_INDEX))
     {
         printf("vsSkeletonMeshGeometry::setDataListSize: Invalid list size "
             "'%d'\n", newSize);
         return;
     }
 
-    switch (whichData)
+    // Calculate which entry in the data arrays corresponds to the given
+    // constant
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+        slotNum = whichData;
+    else
+        slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+
+    // If a conventional attribute is specified, then make sure we're not
+    // already using the generic attribute, and vice versa. The only exception
+    // to this rule is if the existing list size is zero; that's the only way
+    // to switch from one type to the other.
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
     {
-        case VS_GEOMETRY_SKIN_VERTEX_COORDS:
-        case VS_GEOMETRY_VERTEX_COORDS:
-            originalVertexList->resize(newSize);
-            vertexList->resize(newSize);
-            osgGeometry->setVertexArray(vertexList);
-            vertexListSize = newSize;
-            rebuildPrimitives();
-            break;
-
-        case VS_GEOMETRY_VERTEX_WEIGHTS:
-            weightList->resize(newSize);
-            osgGeometry->setVertexAttribArray(VS_WEIGHT_ATTRIBUTE_INDEX,
-                weightList);
-            weightListSize = newSize;
-            break;
-
-        case VS_GEOMETRY_BONE_INDICES:
-            boneList->resize(newSize);
-            osgGeometry->setVertexAttribArray(VS_BONE_ATTRIBUTE_INDEX,
-                boneList);
-            boneListSize = newSize;
-            break;
-
-        case VS_GEOMETRY_SKIN_NORMALS:
-        case VS_GEOMETRY_NORMALS:
-            originalNormalList->resize(newSize);
-            normalList->resize(newSize);
-            osgGeometry->setNormalArray(normalList);
-            normalListSize = newSize;
-            break;
-
-        case VS_GEOMETRY_COLORS:
-            colorList->resize(newSize);
-            osgGeometry->setColorArray(colorList);
-            colorListSize = newSize;
-            break;
-
-        case VS_GEOMETRY_TEXTURE0_COORDS:
-        case VS_GEOMETRY_TEXTURE1_COORDS:
-        case VS_GEOMETRY_TEXTURE2_COORDS:
-        case VS_GEOMETRY_TEXTURE3_COORDS:
-        case VS_GEOMETRY_TEXTURE4_COORDS:
-        case VS_GEOMETRY_TEXTURE5_COORDS:
-        case VS_GEOMETRY_TEXTURE6_COORDS:
-        case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-                                                                                
-            texCoordList[unit]->resize(newSize);
-            texCoordListSize[unit] = newSize;
-        
-            // If the texture coordinate binding is OFF, then the pointer
-            // to the coordinate list should be NULL so that OSG knows not
-            // to use texture coordinates at all.
-            if (textureBinding[unit] == VS_GEOMETRY_BIND_NONE)
-                osgGeometry->setTexCoordArray(unit, NULL);
-            else
-                osgGeometry->setTexCoordArray(unit, texCoordList[unit]);
-            break;
-
-        default:
-            printf("vsSkeletonMeshGeometry::setDataListSize: Unrecognized data "
-                "value\n");
+        // Conventional data specified
+        if (dataIsGeneric[slotNum] && (dataListSize[slotNum] > 0))
+        {
+            printf("vsSkeletonMeshGeometry::setDataListSize: Cannot use "
+                "conventional data type when corresponding generic attribute "
+                "is in use\n");
             return;
+        }
     }
+    else
+    {
+        // Generic attribute specified
+        if ((!dataIsGeneric[slotNum]) && (dataListSize[slotNum] > 0))
+        {
+            printf("vsSkeletonMeshGeometry::setDataListSize: Cannot use "
+                "generic attribute type when corresponding conventional data "
+                "is in use\n");
+            return;
+        }
+    }
+
+    // If we are changing from one attribute type to the other, then we'll
+    // need to reallocate the data array, as it's type could change.
+    if ((whichData < VS_GEOMETRY_LIST_COUNT) && (dataIsGeneric[slotNum]))
+    {
+        // Switching from generic to conventional
+
+        // Delete the old list
+        dataList[slotNum]->unref();
+
+        // Create the new list; we have a helper function to do this for us
+        allocateDataArray(whichData);
+
+        // Note that we're now using a conventional attribute
+        dataIsGeneric[slotNum] = false;
+    }
+    else if ((whichData >= VS_GEOMETRY_LIST_COUNT) &&
+        (!dataIsGeneric[slotNum]))
+    {
+        // Switching from conventional to generic
+
+        // Delete the old list
+        dataList[slotNum]->unref();
+
+        // Create the new list; we have a helper function to do this for us
+        allocateDataArray(whichData);
+
+        // Note that we're now using a generic attribute
+        dataIsGeneric[slotNum] = true;
+    }
+
+    // Resize the data list
+    switch (dataSize)
+    {
+        case 1:
+            ((osg::FloatArray *)(dataList[slotNum]))->resize(newSize);
+            break;
+        case 2:
+            ((osg::Vec2Array *)(dataList[slotNum]))->resize(newSize);
+            break;
+        case 3:
+            // If setting VERTEX_COORDS, then we must also set the
+            // originalVertexList (as well as the VERTEX_COORDS) so set both.
+            if (whichData == VS_GEOMETRY_VERTEX_COORDS)
+                originalVertexList->resize(newSize);
+            // If setting NORMALS, then we must also set the
+            // originalNormalList (as well as the NORMALS) so set both.
+            else if (whichData == VS_GEOMETRY_NORMALS)
+                originalNormalList->resize(newSize); 
+            ((osg::Vec3Array *)(dataList[slotNum]))->resize(newSize);
+            break;
+        case 0:
+        case 4:
+            ((osg::Vec4Array *)(dataList[slotNum]))->resize(newSize);
+            break;
+    }
+    dataListSize[slotNum] = newSize;
+
+    // Let the appropriate OSG data array know that it's data has changed
+    notifyOSGDataChanged(whichData);
+
+    // If we're dealing with vertex coordinates, then we have to reconstruct
+    // OSG's primitive set as well. (We do this with generic attribute #0 as
+    // well because generic 0 is always considered to contain vertex
+    // coordinates.)
+    if ((whichData == VS_GEOMETRY_VERTEX_COORDS) ||
+        (whichData == VS_GEOMETRY_GENERIC_0))
+        rebuildPrimitives();
 }
 
 // ------------------------------------------------------------------------
@@ -1133,39 +1375,43 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
 int vsSkeletonMeshGeometry::getDataListSize(int whichData)
 {
     unsigned int unit;
+    int slotNum;
 
-    switch (whichData)
+    // If we request the list size of the original lists, get
+    // the list size of their conventional lists (they are always equal).
+    if (whichData == VS_GEOMETRY_SKIN_VERTEX_COORDS)
     {
-        case VS_GEOMETRY_VERTEX_WEIGHTS:
-            return weightListSize;
-        case VS_GEOMETRY_BONE_INDICES:
-            return boneListSize;
-        case VS_GEOMETRY_SKIN_VERTEX_COORDS:
-        case VS_GEOMETRY_VERTEX_COORDS:
-            return vertexListSize;
-        case VS_GEOMETRY_SKIN_NORMALS:
-        case VS_GEOMETRY_NORMALS:
-            return normalListSize;
-        case VS_GEOMETRY_COLORS:
-            return colorListSize;
-        case VS_GEOMETRY_TEXTURE0_COORDS:
-        case VS_GEOMETRY_TEXTURE1_COORDS:
-        case VS_GEOMETRY_TEXTURE2_COORDS:
-        case VS_GEOMETRY_TEXTURE3_COORDS:
-        case VS_GEOMETRY_TEXTURE4_COORDS:
-        case VS_GEOMETRY_TEXTURE5_COORDS:
-        case VS_GEOMETRY_TEXTURE6_COORDS:
-        case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-                                                                                
-            return texCoordListSize[unit];
-        default:
-            printf("vsSkeletonMeshGeometry::getDataListSize: Unrecognized data "
-                "value\n");
+        whichData = VS_GEOMETRY_VERTEX_COORDS;
     }
-    
-    return -1;
+    else if (whichData == VS_GEOMETRY_SKIN_NORMALS)
+    {
+        whichData = VS_GEOMETRY_NORMALS;
+    }
+
+    // Bounds checking
+    if ((whichData < 0) || (whichData > (VS_GEOMETRY_LIST_COUNT * 2)))
+    {
+        printf("vsSkeletonMeshGeometry::getDataListSize: Unrecognized data "
+            "value\n");
+        return -1;
+    }
+
+    // Calculate which entry in the data arrays corresponds to the given
+    // constant
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+        slotNum = whichData;
+    else
+        slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+
+    // Determine if the type of the data (conventional or generic) is the same
+    // as what is currently in the specified array. If the types don't match,
+    // then the user is asking for an array which (virtually) doesn't exist;
+    // return a zero size in this case.
+    if (dataIsGeneric[slotNum] != (whichData >= VS_GEOMETRY_LIST_COUNT))
+        return 0;
+
+    // Return the size of the specified list
+    return dataListSize[slotNum];
 }
 
 // ------------------------------------------------------------------------
@@ -1179,6 +1425,7 @@ void vsSkeletonMeshGeometry::enableLighting()
     osgStateSet = osgGeode->getOrCreateStateSet();
     osgStateSet->setMode(GL_LIGHTING, osg::StateAttribute::ON);
     
+    // Mark lighting as enabled
     lightingEnable = true;
 }
 
@@ -1193,6 +1440,7 @@ void vsSkeletonMeshGeometry::disableLighting()
     osgStateSet = osgGeode->getOrCreateStateSet();
     osgStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
     
+    // Mark lighting as disabled
     lightingEnable = false;
 }
 
@@ -1231,10 +1479,12 @@ void vsSkeletonMeshGeometry::getBoundSphere(vsVector *centerPoint,
     
     boundSphere = osgGeode->getBound();
 
+    // Copy the sphere center to the result point, if there is one
     if (centerPoint)
         centerPoint->set(boundSphere._center[0], boundSphere._center[1],
             boundSphere._center[2]);
 
+    // Copy the sphere radius to the result value, if there is one
     if (radius)
         *radius = boundSphere._radius;
 }
@@ -1251,13 +1501,16 @@ vsMatrix vsSkeletonMeshGeometry::getGlobalXform()
     vsMatrix result;
     int loop, sloop;
 
-    // Start at the geometry's Geode, and work our way up the OSG tree
-
+    // Start with an identity matrix
     xform.makeIdentity();
+
+    // Start at the geometry's osg::Geode, and work our way up the OSG tree
     nodePtr = osgGeode;
     
+    // Check the parent count to determine if we're at the top of the tree
     while (nodePtr->getNumParents() > 0)
     {
+        // Check to see if the current node is a transform
         if (dynamic_cast<osg::MatrixTransform *>(nodePtr))
         {
             // Multiply this Transform's matrix into the accumulated
@@ -1266,6 +1519,7 @@ vsMatrix vsSkeletonMeshGeometry::getGlobalXform()
             xform.postMult(osgXformMat);
         }
         
+        // Move to the node's (first) parent
         nodePtr = nodePtr->getParent(0);
     }
     
@@ -1274,6 +1528,7 @@ vsMatrix vsSkeletonMeshGeometry::getGlobalXform()
         for (sloop = 0; sloop < 4; sloop++)
             result[loop][sloop] = xform(sloop, loop);
 
+    // Return the resulting vsMatrix
     return result;
 }
 
@@ -1315,7 +1570,7 @@ void vsSkeletonMeshGeometry::addAttribute(vsAttribute *newAttribute)
             "use\n");
         return;
     }
-
+    
     // vsGeometries can only contain state attributes for now
     newAttrCat = newAttribute->getAttributeCategory();
     if (newAttrCat != VS_ATTRIBUTE_CATEGORY_STATE)
@@ -1356,7 +1611,7 @@ void vsSkeletonMeshGeometry::addAttribute(vsAttribute *newAttribute)
     {
         attribute = getAttribute(loop);
         attrType = attribute->getAttributeType();
-
+                                                                                
         // Get the texture unit of the current attribute, if it is a texture
         // attribute.
         if (attrType == VS_ATTRIBUTE_TYPE_TEXTURE)
@@ -1381,7 +1636,7 @@ void vsSkeletonMeshGeometry::addAttribute(vsAttribute *newAttribute)
                 "already contains that type of attribute\n");
             return;
         }
-
+                                                                                
         // If the texture units are equal then they both must have been texture
         // type attributes and had the same unit.  We don't want that to be
         // allowed so print error and return.
@@ -1451,26 +1706,28 @@ void vsSkeletonMeshGeometry::rebuildPrimitives()
         // of the geometry.
         osgDrawArrays = NULL;
         
+        // Select the appropriate primitive type
         switch (primitiveType)
         {
             case VS_GEOMETRY_TYPE_POINTS:
                 osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::POINTS, 0, vertexListSize);
+                    osg::PrimitiveSet::POINTS, 0, dataListSize[0]);
                 break;
             case VS_GEOMETRY_TYPE_LINES:
                 osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::LINES, 0, vertexListSize);
+                    osg::PrimitiveSet::LINES, 0, dataListSize[0]);
                 break;
             case VS_GEOMETRY_TYPE_TRIS:
                 osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::TRIANGLES, 0, vertexListSize);
+                    osg::PrimitiveSet::TRIANGLES, 0, dataListSize[0]);
                 break;
             case VS_GEOMETRY_TYPE_QUADS:
                 osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::QUADS, 0, vertexListSize);
+                    osg::PrimitiveSet::QUADS, 0, dataListSize[0]);
                 break;
         }
         
+        // Make sure the DrawArrays is valid, then add it to the Geometry
         if (osgDrawArrays)
             osgGeometry->addPrimitiveSet(osgDrawArrays);
     }
@@ -1482,6 +1739,7 @@ void vsSkeletonMeshGeometry::rebuildPrimitives()
         // are interpreted by OSG as different primitives.
         osgDrawArrayLengths = NULL;
         
+        // Select the appropriate primitive type
         switch (primitiveType)
         {
             case VS_GEOMETRY_TYPE_LINE_STRIPS:
@@ -1516,8 +1774,266 @@ void vsSkeletonMeshGeometry::rebuildPrimitives()
                 break;
         }
         
+        // Make sure the DrawArrayLengths is valid, then add it to the 
+        // Geometry
         if (osgDrawArrayLengths)
             osgGeometry->addPrimitiveSet(osgDrawArrayLengths);
+    }
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Gets the number of elements in the vectors for the specified data type.
+// A return value of 0 is a 'don't care' value; although these types
+// typically have 4-element vectors allocated to them, it is not required
+// to complete fill all 4 values. A return value of -1 indicates an error.
+// ------------------------------------------------------------------------
+int vsSkeletonMeshGeometry::getDataElementCount(int whichData)
+{
+    // Simple switch on the data type
+    switch (whichData)
+    {
+        case VS_GEOMETRY_FOG_COORDS:
+            return 1;
+
+        case VS_GEOMETRY_TEXTURE0_COORDS:
+        case VS_GEOMETRY_TEXTURE1_COORDS:
+        case VS_GEOMETRY_TEXTURE2_COORDS:
+        case VS_GEOMETRY_TEXTURE3_COORDS:
+        case VS_GEOMETRY_TEXTURE4_COORDS:
+        case VS_GEOMETRY_TEXTURE5_COORDS:
+        case VS_GEOMETRY_TEXTURE6_COORDS:
+        case VS_GEOMETRY_TEXTURE7_COORDS:
+            return 2;
+
+        case VS_GEOMETRY_VERTEX_COORDS:
+        case VS_GEOMETRY_NORMALS:
+            return 3;
+
+        case VS_GEOMETRY_COLORS:
+        case VS_GEOMETRY_ALT_COLORS:
+            return 4;
+
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            return 0;
+    }
+
+    // Unrecognized constant
+    return -1;
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Allocates the correct OSG array associated with the specified data type,
+// and places it in the proper slot in the data list array.
+// ------------------------------------------------------------------------
+void vsSkeletonMeshGeometry::allocateDataArray(int whichData)
+{
+    int slotNum;
+    int unit;
+
+    // The type of array to create is based on which attribute of the
+    // geometry will be stored in it
+    slotNum = whichData;
+    switch (whichData)
+    {
+        case VS_GEOMETRY_VERTEX_COORDS:
+            // Vertex coordinates are always 3 elements
+            dataList[slotNum] = new osg::Vec3Array();
+            osgGeometry->setVertexArray(dataList[slotNum]);
+            break;
+
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            // Vertex weights aren't generally used directly by the system;
+            // they are there for a shader program to use. Hand them off as a
+            // generic attribute.
+            dataList[slotNum] = new osg::Vec4Array();
+            osgGeometry->setVertexAttribArray(whichData, dataList[slotNum]);
+            break;
+
+        case VS_GEOMETRY_NORMALS:
+            // Normals are always 3 elements
+            dataList[slotNum] = new osg::Vec3Array();
+            osgGeometry->
+                setNormalArray((osg::Vec3Array *)(dataList[slotNum]));
+            break;
+
+        case VS_GEOMETRY_COLORS:
+            // Colors are always 4 elements
+            dataList[slotNum] = new osg::Vec4Array();
+            osgGeometry->setColorArray(dataList[slotNum]);
+            break;
+
+        case VS_GEOMETRY_ALT_COLORS:
+            // Secondary colors are always 4 elements
+            dataList[slotNum] = new osg::Vec4Array();
+            osgGeometry->setSecondaryColorArray(dataList[slotNum]);
+            break;
+
+        case VS_GEOMETRY_FOG_COORDS:
+            // Fog coordinates are single elements
+            dataList[slotNum] = new osg::FloatArray();
+            osgGeometry->setFogCoordArray(dataList[slotNum]);
+            break;
+
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+            // These attributes are never used directly by the system; they
+            // only exist for use in shader programs. Always pass them through
+            // as generic attributes.
+            dataList[slotNum] = new osg::Vec4Array();
+            osgGeometry->setVertexAttribArray(whichData, dataList[slotNum]);
+            break;
+
+        case VS_GEOMETRY_TEXTURE0_COORDS:
+        case VS_GEOMETRY_TEXTURE1_COORDS:
+        case VS_GEOMETRY_TEXTURE2_COORDS:
+        case VS_GEOMETRY_TEXTURE3_COORDS:
+        case VS_GEOMETRY_TEXTURE4_COORDS:
+        case VS_GEOMETRY_TEXTURE5_COORDS:
+        case VS_GEOMETRY_TEXTURE6_COORDS:
+        case VS_GEOMETRY_TEXTURE7_COORDS:
+            // Texture coordinates are always 2 elements
+            dataList[slotNum] = new osg::Vec2Array();
+            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+            osgGeometry->setTexCoordArray(unit, NULL);
+            textureBinding[unit] = VS_GEOMETRY_BIND_NONE;
+            break;
+
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            // Since we can't know what sort of data is going into these
+            // attributes, we always assume 4 elements. These always get
+            // passed through the generic attribute mechanism.
+            slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+            dataList[slotNum] = new osg::Vec4Array();
+            osgGeometry->setVertexAttribArray(slotNum, dataList[slotNum]);
+    }
+
+    // * Perform other initialization that is common to all of the lists
+
+    // Make sure than OSG won't delete the array on us
+    dataList[slotNum]->ref();
+
+    // Mark that the list is currently empty
+    dataListSize[slotNum] = 0;
+
+    // Mark if the attribute is a conventional one or a generic one
+    if (whichData == slotNum)
+        dataIsGeneric[slotNum] = false;
+    else
+        dataIsGeneric[slotNum] = true;
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Notifies OSG that the data in one of its data arrays has been changed;
+// this allows OSG to preform housekeeping chores such as rebuilding GL
+// display lists.
+// ------------------------------------------------------------------------
+void vsSkeletonMeshGeometry::notifyOSGDataChanged(int whichData)
+{
+    int slotNum;
+    int unit;
+
+    // Calculate which entry in the data arrays corresponds to the given
+    // constant
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+        slotNum = whichData;
+    else
+        slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+
+    // Let the appropriate OSG data array know that it's data has changed
+    switch (whichData)
+    {
+        case VS_GEOMETRY_VERTEX_COORDS:
+            osgGeometry->setVertexArray(dataList[slotNum]);
+            break;
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            osgGeometry->setVertexAttribArray(slotNum, dataList[slotNum]);
+            break;
+        case VS_GEOMETRY_NORMALS:
+            osgGeometry->setNormalArray((osg::Vec3Array *)(dataList[slotNum]));
+            break;
+        case VS_GEOMETRY_COLORS:
+            osgGeometry->setColorArray(dataList[slotNum]);
+            break;
+        case VS_GEOMETRY_ALT_COLORS:
+            osgGeometry->setSecondaryColorArray(dataList[slotNum]);
+            break;
+        case VS_GEOMETRY_FOG_COORDS:
+            osgGeometry->setFogCoordArray(dataList[slotNum]);
+            break;
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+            osgGeometry->setVertexAttribArray(slotNum, dataList[slotNum]);
+            break;
+        case VS_GEOMETRY_TEXTURE0_COORDS:
+        case VS_GEOMETRY_TEXTURE1_COORDS:
+        case VS_GEOMETRY_TEXTURE2_COORDS:
+        case VS_GEOMETRY_TEXTURE3_COORDS:
+        case VS_GEOMETRY_TEXTURE4_COORDS:
+        case VS_GEOMETRY_TEXTURE5_COORDS:
+        case VS_GEOMETRY_TEXTURE6_COORDS:
+        case VS_GEOMETRY_TEXTURE7_COORDS:
+            // Calculate the texture unit we are working with.
+            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+
+            // Set the OSG texture coordinate array with the new data
+            if (textureBinding[unit] == VS_GEOMETRY_BIND_PER_VERTEX)
+                osgGeometry->setTexCoordArray(unit, dataList[slotNum]);
+
+            break;
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            osgGeometry->setVertexAttribArray(slotNum, dataList[slotNum]);
+            break;
     }
 }
 
@@ -1527,8 +2043,10 @@ void vsSkeletonMeshGeometry::rebuildPrimitives()
 // ------------------------------------------------------------------------
 bool vsSkeletonMeshGeometry::addParent(vsNode *newParent)
 {
+    // Add the parent to our parent list and reference it
     parentList[parentCount++] = newParent;
     
+    // Return success
     return true;
 }
 
@@ -1540,15 +2058,25 @@ bool vsSkeletonMeshGeometry::removeParent(vsNode *targetParent)
 {
     int loop, sloop;
 
+    // Look for the given "parent" in the parent list
     for (loop = 0; loop < parentCount; loop++)
+    {
+        // See if this is the parent we're looking for
         if (targetParent == parentList[loop])
         {
+            // 'Slide' the parents down to cover up the removed one
             for (sloop = loop; sloop < parentCount-1; sloop++)
                 parentList[sloop] = parentList[sloop+1];
+
+            // Remove the given parent
             parentCount--;
+
+            // Return that the remove succeeded
             return true;
         }
+    }
 
+    // Return failure if the specified parent isn't found
     return false;
 }
 
@@ -1564,8 +2092,11 @@ void vsSkeletonMeshGeometry::applyAttributes()
     osg::StateSet *osgStateSet;
     int sortMode;
 
+    // Call the inherited applyAttributes function
     vsNode::applyAttributes();
-    
+
+    // Instruct the current active attributes to apply themselves to this
+    // node's osg StateSet
     osgStateSet = osgGeometry->getOrCreateStateSet();
     (vsGraphicsState::getInstance())->applyState(osgStateSet);
     
@@ -1574,7 +2105,10 @@ void vsSkeletonMeshGeometry::applyAttributes()
     // attributes.
     if (renderBin >= 0)
     {
+        // Get the bin's sort mode
         sortMode = vsGeometry::getBinSortMode(renderBin);
+
+        // Set the sort order on the corresponding osg::RenderBin
         if (sortMode == VS_GEOMETRY_SORT_DEPTH)
             osgStateSet->setRenderBinDetails(renderBin, "DepthSortedBin");
         else
@@ -1603,9 +2137,31 @@ void vsSkeletonMeshGeometry::applySkin(vsGrowableArray *boneMatrices,
     vsMatrix *boneMatrix, *itBoneMatrix;
     vsMatrix finalVertexMatrix;
     vsMatrix finalNormalMatrix;
+    osg::Vec3Array *vertexList;
+    osg::Vec3Array *normalList;
+    osg::Vec4Array *weightList;
+    osg::Vec4Array *boneList;
+    int vertexListSize;
+    int normalListSize;
+    int weightListSize;
+    int boneListSize;
+
+    // Get references and cast the needed arrays, better to do once than
+    // several hundred times per frame.  Makes it easier to read as well.
+    vertexList = (osg::Vec3Array *) dataList[VS_GEOMETRY_VERTEX_COORDS];
+    normalList = (osg::Vec3Array *) dataList[VS_GEOMETRY_NORMALS];
+    weightList = (osg::Vec4Array *) dataList[VS_GEOMETRY_VERTEX_WEIGHTS];
+    boneList = (osg::Vec4Array *) dataList[VS_GEOMETRY_BONE_INDICES];
+
+    vertexListSize = dataListSize[VS_GEOMETRY_VERTEX_COORDS];
+    normalListSize = dataListSize[VS_GEOMETRY_NORMALS];
+    weightListSize = dataListSize[VS_GEOMETRY_VERTEX_WEIGHTS];
+    boneListSize = dataListSize[VS_GEOMETRY_BONE_INDICES];
 
     // If all the relevant lists are equal in size, continue to apply.
-    if ((vertexListSize == boneListSize) && (boneListSize == weightListSize))
+    if ((vertexListSize == normalListSize) &&
+        (normalListSize == weightListSize) &&
+        (weightListSize ==  boneListSize))
     {
         // For each vertex.
         for (vertexIndex = 0; vertexIndex < vertexListSize; vertexIndex++)
@@ -1633,7 +2189,7 @@ void vsSkeletonMeshGeometry::applySkin(vsGrowableArray *boneMatrices,
                 // Get the bone index
                 bone = (int)((*boneList)[vertexIndex][dataIndex]);
 
-                // Get the bone matrix and the inverse transpose for this 
+                // Get the bone matrix and the inverse transpose for this
                 // data index
                 boneMatrix = ((vsMatrix *)boneMatrices->getData(bone));
                 itBoneMatrix = ((vsMatrix *)ITBoneMatrices->getData(bone));

@@ -13,8 +13,16 @@
 //
 //    VESS Module:  vsSkeletonMeshGeometry.h++
 //
-//    Description:  vsNode subclass that is a leaf node in a VESS scene.
-//                  This version of geometry handles all the data for skins.
+//    Description:  vsNode subclass that is a leaf node in a VESS scene
+//                  graph. Stores geometry data such as vertex and texture
+//                  coordinates, colors, and face normals.  This version
+//                  is a simple subclass of vsGeometry for Open Scene
+//                  Graph.  Since OSG only operates in a single process,
+//                  this version does not need to do any extra work to
+//                  support dynamic geometry.  This specialized form of
+//                  vsDynamicGeometry handles all the data for skins, and
+//                  applying them using the main processor (instead of
+//                  the graphics hardware).
 //
 //    Author(s):    Duvan Cope, Bryan Kline, Jason Daly
 //
@@ -30,8 +38,10 @@
 #include "vsNode.h++"
 #include "vsGeometry.h++"
 
-#define VS_WEIGHT_ATTRIBUTE_INDEX    1
-#define VS_BONE_ATTRIBUTE_INDEX      7
+#define VS_GEOMETRY_SKIN_VERTEX_COORDS 1000
+#define VS_GEOMETRY_SKIN_NORMALS       1001
+
+#define VS_GEOMETRY_BONE_INDICES       VS_GEOMETRY_USER_DATA1
 
 class VS_GRAPHICS_DLL vsSkeletonMeshGeometry : public vsNode
 {
@@ -43,23 +53,14 @@ private:
     osg::Geode          *osgGeode;
     osg::Geometry       *osgGeometry;
 
-    osg::Vec4Array      *colorList;
-    int                 colorListSize;
-    osg::Vec3Array      *originalNormalList;
-    osg::Vec3Array      *normalList;
-    int                 normalListSize;
-    osg::Vec2Array      *texCoordList[VS_MAXIMUM_TEXTURE_UNITS];
-    int                 texCoordListSize[VS_MAXIMUM_TEXTURE_UNITS];
-    osg::Vec3Array      *originalVertexList;
-    osg::Vec3Array      *vertexList;
-    int                 vertexListSize;
-
-    osg::Vec4Array      *boneList;
-    int                 boneListSize;
-    osg::Vec4Array      *weightList;
-    int                 weightListSize;
+    osg::Array          *dataList[VS_GEOMETRY_LIST_COUNT];
+    int                 dataListSize[VS_GEOMETRY_LIST_COUNT];
+    bool                dataIsGeneric[VS_GEOMETRY_LIST_COUNT];
 
     int                 textureBinding[VS_MAXIMUM_TEXTURE_UNITS];
+
+    osg::Vec3Array      *originalVertexList;
+    osg::Vec3Array      *originalNormalList;
 
     int                 *lengthsList;
     int                 primitiveCount;
@@ -70,6 +71,10 @@ private:
     int                 renderBin;
 
     void                rebuildPrimitives();
+
+    int                 getDataElementCount(int whichData);
+    void                allocateDataArray(int whichData);
+    void                notifyOSGDataChanged(int whichData);
 
 VS_INTERNAL:
 
@@ -109,7 +114,7 @@ public:
 
     void                  setData(int whichData, int dataIndex, vsVector data);
     vsVector              getData(int whichData, int dataIndex);
-    void                  setDataList(int whichData, vsVector *dataList);
+    void                  setDataList(int whichData, vsVector *dataBuffer);
     void                  getDataList(int whichData, vsVector *dataBuffer);
     void                  setDataListSize(int whichData, int newSize);
     int                   getDataListSize(int whichData);
@@ -121,8 +126,7 @@ public:
     void                  setRenderBin(int binNum);
     int                   getRenderBin();
     
-    virtual void          getBoundSphere(vsVector *centerPoint, 
-                                         double *radius);
+    virtual void          getBoundSphere(vsVector *centerPoint, double *radius);
     virtual vsMatrix      getGlobalXform();
 
     virtual void            setIntersectValue(unsigned int newValue);

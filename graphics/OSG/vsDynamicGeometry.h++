@@ -45,14 +45,9 @@ private:
     osg::Geode          *osgGeode;
     osg::Geometry       *osgGeometry;
 
-    osg::Vec4Array      *colorList;
-    int                 colorListSize;
-    osg::Vec3Array      *normalList;
-    int                 normalListSize;
-    osg::Vec2Array      *texCoordList[VS_MAXIMUM_TEXTURE_UNITS];
-    int                 texCoordListSize[VS_MAXIMUM_TEXTURE_UNITS];
-    osg::Vec3Array      *vertexList;
-    int                 vertexListSize;
+    osg::Array          *dataList[VS_GEOMETRY_LIST_COUNT];
+    int                 dataListSize[VS_GEOMETRY_LIST_COUNT];
+    bool                dataIsGeneric[VS_GEOMETRY_LIST_COUNT];
 
     int                 textureBinding[VS_MAXIMUM_TEXTURE_UNITS];
 
@@ -65,6 +60,10 @@ private:
     int                 renderBin;
 
     void                rebuildPrimitives();
+
+    int                 getDataElementCount(int whichData);
+    void                allocateDataArray(int whichData);
+    void                notifyOSGDataChanged(int whichData);
 
 VS_INTERNAL:
 
@@ -104,7 +103,7 @@ public:
 
     void                  setData(int whichData, int dataIndex, vsVector data);
     vsVector              getData(int whichData, int dataIndex);
-    void                  setDataList(int whichData, vsVector *dataList);
+    void                  setDataList(int whichData, vsVector *dataBuffer);
     void                  getDataList(int whichData, vsVector *dataBuffer);
     void                  setDataListSize(int whichData, int newSize);
     int                   getDataListSize(int whichData);
@@ -116,8 +115,7 @@ public:
     void                  setRenderBin(int binNum);
     int                   getRenderBin();
     
-    virtual void          getBoundSphere(vsVector *centerPoint, 
-                                         double *radius);
+    virtual void          getBoundSphere(vsVector *centerPoint, double *radius);
     virtual vsMatrix      getGlobalXform();
 
     virtual void            setIntersectValue(unsigned int newValue);
