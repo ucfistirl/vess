@@ -441,7 +441,7 @@ case "$SG" in
             fi
 
             dnl Modify the GFX variables to use osgNV.
-            GFX_INC_DIR="$GFX_INC_DIR -I$with_osgnv/include"
+            GFX_INCLUDE_DIR="$GFX_INCLUDE_DIR -I$with_osgnv/include"
             GFX_LIB_DIR="$GFX_LIB_DIR -L$with_osgnv/lib/Linux32/ -L$with_osgnv/lib"
             GFX_LIB="$GFX_LIB -losgNVCg -losgNV"
 
