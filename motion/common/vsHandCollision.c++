@@ -698,9 +698,6 @@ void vsHandCollision::update()
         center = globalTransform.getPointXform(center);
 
         // Put the sensor's new settings in the intersection object
-        printf("Sensor %d:  center = ", i); 
-        center.print();
-        printf("  radius = %0.4lf\n", sensorRadius[i]);
         sphIsect->setSphere(i, center, sensorRadius[i]);
     }
 
