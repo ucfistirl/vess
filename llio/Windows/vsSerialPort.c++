@@ -475,6 +475,24 @@ void vsSerialPort::setDTR(bool enable)
 }
 
 // ------------------------------------------------------------------------
+// Sends a serial break signal on the serial port
+// ------------------------------------------------------------------------
+void vsSerialPort::sendBreakSignal()
+{
+    // The UNIX version of this command only promises a break signal between
+    // 0.25 and 0.5 seconds.  We'll split the difference and use a 0.375-
+    // second break signal.  First, we place the serial line in a break 
+    // state...
+    SetCommBreak(portDescriptor);
+    
+    // Wait for 375 ms
+    Sleep(375);
+    
+    // Clear the break state
+    ClearCommBreak(portDescriptor);
+}
+
+// ------------------------------------------------------------------------
 // Flush the remaining data in the serial port
 // ------------------------------------------------------------------------
 void vsSerialPort::flushPort()

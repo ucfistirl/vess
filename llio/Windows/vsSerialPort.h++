@@ -63,6 +63,8 @@ public:
     void         setStopBits(int stopBits);
     void         setRTS(bool enable);
     void         setDTR(bool enable);
+    
+    void         sendBreakSignal();
 
     void         flushPort(void);
 };
