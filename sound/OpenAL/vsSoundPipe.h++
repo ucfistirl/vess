@@ -27,10 +27,11 @@
 // This implementation uses OpenAL
 
 #include "vsGlobals.h++"
+#include "vsObject.h++"
 #include <AL/al.h>
 #include <AL/alc.h>
 
-class VS_SOUND_DLL vsSoundPipe
+class VS_SOUND_DLL vsSoundPipe : public vsObject
 {
 protected:
 
@@ -44,7 +45,9 @@ public:
 
                 vsSoundPipe(int freq);
                 vsSoundPipe();
-                ~vsSoundPipe();
+    virtual     ~vsSoundPipe();
+
+    virtual const char    *getClassName();
 
     // Global Doppler effect parameters
     double      getDopplerScale();

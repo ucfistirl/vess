@@ -81,6 +81,14 @@ vsSoundPipe::~vsSoundPipe()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsSoundPipe::getClassName()
+{
+    return "vsSoundPipe";
+}
+
+// ------------------------------------------------------------------------
 // Returns the current scaling factor for Doppler effects (default = 1.0)
 // ------------------------------------------------------------------------
 double vsSoundPipe::getDopplerScale()
