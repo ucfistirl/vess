@@ -25,14 +25,16 @@ SRCS = \
        vsSoundListenerAttribute.c++ \
        vsSoundPipe.c++ \
        vsSoundSample.c++ \
-       vsSoundSourceAttribute.c++
+       vsSoundSourceAttribute.c++ \
+       vsSoundStream.c++
 
 OBJS = \
        vsSoundBuffer.o \
        vsSoundListenerAttribute.o \
        vsSoundPipe.o \
        vsSoundSample.o \
-       vsSoundSourceAttribute.o
+       vsSoundSourceAttribute.o \
+       vsSoundStream.o
 
 #----------------------------------------------------------------------
 #			Misc. settings
