@@ -45,11 +45,14 @@ private:
 
 public:
 
-                    vsGhostFlyAvatar(vsPane *targetPane, 
-			vsComponent *targetScene);
-    virtual         ~vsGhostFlyAvatar();
+                      vsGhostFlyAvatar(vsPane *targetPane, 
+                          vsComponent *targetScene);
+    virtual           ~vsGhostFlyAvatar();
 
-    virtual void    update();
+    virtual void      update();
+
+    vsKinematics      *getKinematics();
+    vsFlyingMotion    *getFlyingMotion();
 };
 
 #endif

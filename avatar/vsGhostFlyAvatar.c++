@@ -64,6 +64,24 @@ void vsGhostFlyAvatar::update()
 }
 
 // ------------------------------------------------------------------------
+// Gets the vsKinematics object for this avatar. Note that this object is
+// not created until init() is called on the avatar.
+// ------------------------------------------------------------------------
+vsKinematics *vsGhostFlyAvatar::getKinematics()
+{
+    return ghostKin;
+}
+
+// ------------------------------------------------------------------------
+// Gets the vsFlyingMotion object for this avatar. Note that this object is
+// not created until init() is called on the avatar.
+// ------------------------------------------------------------------------
+vsFlyingMotion *vsGhostFlyAvatar::getFlyingMotion()
+{
+    return flyMotion;
+}
+
+// ------------------------------------------------------------------------
 // Sets up this avatar by creating the viewpoint, component, and motion
 // model needed by this avatar.
 // ------------------------------------------------------------------------
