@@ -15,6 +15,7 @@ LIBSRCS = vsAttribute.c++ \
 	  vsBillboardAttribute.c++ \
 	  vsComponent.c++ \
 	  vsDecalAttribute.c++ \
+	  vsDynamicGeometry.c++ \
 	  vsFogAttribute.c++ \
 	  vsGeometry.c++ \
 	  vsIntersect.c++ \
@@ -37,6 +38,7 @@ LIBOBJS = vsAttribute.o \
 	  vsBillboardAttribute.o \
 	  vsComponent.o \
 	  vsDecalAttribute.o \
+	  vsDynamicGeometry.o \
 	  vsFogAttribute.o \
 	  vsGeometry.o \
 	  vsIntersect.o \
