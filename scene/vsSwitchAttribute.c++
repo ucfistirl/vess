@@ -2,6 +2,8 @@
 
 #include "vsSwitchAttribute.h++"
 
+#include "vsComponent.h++"
+
 // ------------------------------------------------------------------------
 // Default constructor
 // ------------------------------------------------------------------------
@@ -18,6 +20,7 @@ vsSwitchAttribute::vsSwitchAttribute()
 vsSwitchAttribute::vsSwitchAttribute(pfSwitch *switchGroup)
 {
     performerSwitch = switchGroup;
+    performerSwitch->ref();
     
     attachedFlag = 1;
 }
@@ -35,6 +38,14 @@ vsSwitchAttribute::~vsSwitchAttribute()
 int vsSwitchAttribute::getAttributeType()
 {
     return VS_ATTRIBUTE_TYPE_SWITCH;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the category of this attribute
+// ------------------------------------------------------------------------
+int vsSwitchAttribute::getAttributeCategory()
+{
+    return VS_ATTRIBUTE_CATEGORY_GROUPING;
 }
 
 // ------------------------------------------------------------------------
@@ -135,6 +146,18 @@ int vsSwitchAttribute::isEnabled(int index)
         return VS_TRUE;
     else
         return VS_FALSE;
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Returns if this attribute is available to be attached to a node
+// ------------------------------------------------------------------------
+int vsSwitchAttribute::canAttach()
+{
+    if (attachedFlag)
+        return VS_FALSE;
+
+    return VS_TRUE;
 }
 
 // ------------------------------------------------------------------------

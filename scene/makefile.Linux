@@ -12,6 +12,7 @@ LIBSRCS = vsAttribute.c++ \
 	  vsBackfaceAttribute.c++ \
 	  vsBillboardAttribute.c++ \
 	  vsComponent.c++ \
+	  vsDecalAttribute.c++ \
 	  vsFogAttribute.c++ \
 	  vsGeometry.c++ \
 	  vsIntersect.c++ \
@@ -19,7 +20,9 @@ LIBSRCS = vsAttribute.c++ \
 	  vsLODAttribute.c++ \
 	  vsMaterialAttribute.c++ \
 	  vsNode.c++ \
+	  vsOptimizer.c++ \
 	  vsSequenceAttribute.c++ \
+	  vsShadingAttribute.c++ \
 	  vsSwitchAttribute.c++ \
 	  vsTextureAttribute.c++ \
 	  vsTransformAttribute.c++ \
@@ -31,6 +34,7 @@ LIBOBJS = vsAttribute.o \
 	  vsBackfaceAttribute.o \
 	  vsBillboardAttribute.o \
 	  vsComponent.o \
+	  vsDecalAttribute.o \
 	  vsFogAttribute.o \
 	  vsGeometry.o \
 	  vsIntersect.o \
@@ -38,7 +42,9 @@ LIBOBJS = vsAttribute.o \
 	  vsLODAttribute.o \
 	  vsMaterialAttribute.o \
 	  vsNode.o \
+	  vsOptimizer.c++ \
 	  vsSequenceAttribute.o \
+	  vsShadingAttribute.c++ \
 	  vsSwitchAttribute.o \
 	  vsTextureAttribute.o \
 	  vsTransformAttribute.o \

@@ -2,6 +2,8 @@
 
 #include "vsAttributeList.h++"
 
+#include <Performer/pr/pfMemory.h>
+
 // ------------------------------------------------------------------------
 // Allocator - Creates memory for the object in Performer's shared memory
 // space
@@ -22,7 +24,7 @@ void vsAttributeList::operator delete(void *deadObj)
 // ------------------------------------------------------------------------
 // Constructor - Initializes the attribute list
 // ------------------------------------------------------------------------
-vsAttributeList::vsAttributeList()
+vsAttributeList::vsAttributeList() : attributeList(10, 5, 1)
 {
     attributeCount = 0;
 }
@@ -35,7 +37,7 @@ vsAttributeList::~vsAttributeList()
     int loop;
     
     for (loop = 0; loop < attributeCount; loop++)
-        delete attributeList[loop];
+        delete (vsAttribute *)(attributeList[loop]);
 }
 
 // ------------------------------------------------------------------------
@@ -43,12 +45,6 @@ vsAttributeList::~vsAttributeList()
 // ------------------------------------------------------------------------
 void vsAttributeList::addAttribute(vsAttribute *newAttribute)
 {
-    if (attributeCount >= VS_ATTRIBUTE_LIST_SIZE)
-    {
-        printf("vsAttributeList::addAttribute: Attribute list is full\n");
-        return;
-    }
-
     attributeList[attributeCount] = newAttribute;
     attributeCount++;
 }
@@ -90,7 +86,7 @@ vsAttribute *vsAttributeList::getAttribute(int index)
         return NULL;
     }
     
-    return attributeList[index];
+    return (vsAttribute *)(attributeList[index]);
 }
 
 // ------------------------------------------------------------------------
@@ -104,10 +100,35 @@ vsAttribute *vsAttributeList::getTypedAttribute(int attribType, int index)
     
     count = 0;
     for (loop = 0; loop < attributeCount; loop++)
-        if (attribType == (attributeList[loop])->getAttributeType())
+        if (attribType ==
+            ((vsAttribute *)(attributeList[loop]))->getAttributeType())
         {
             if (index == count)
-                return attributeList[loop];
+                return (vsAttribute *)(attributeList[loop]);
+            else
+                count++;
+        }
+
+    return NULL;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the attribute specified by the attribute category
+// attribCategory and index from the list. The index of the first attribute
+// of the given category in the list is 0.
+// ------------------------------------------------------------------------
+vsAttribute *vsAttributeList::getCategoryAttribute(int attribCategory,
+    int index)
+{
+    int loop, count;
+    
+    count = 0;
+    for (loop = 0; loop < attributeCount; loop++)
+        if (attribCategory ==
+            ((vsAttribute *)(attributeList[loop]))->getAttributeCategory())
+        {
+            if (index == count)
+                return (vsAttribute *)(attributeList[loop]);
             else
                 count++;
         }
@@ -123,8 +144,9 @@ vsAttribute *vsAttributeList::getNamedAttribute(char *attribName)
     int loop;
     
     for (loop = 0; loop < attributeCount; loop++)
-        if (!strcmp(attribName, attributeList[loop]->getName()))
-            return attributeList[loop];
+        if (!strcmp(attribName,
+            ((vsAttribute *)(attributeList[loop]))->getName()))
+            return (vsAttribute *)(attributeList[loop]);
     
     return NULL;
 }

@@ -2,6 +2,8 @@
 
 #include "vsLightAttribute.h++"
 
+#include "vsComponent.h++"
+
 // ------------------------------------------------------------------------
 // Constructor - Creates the corresponding Performer objects and
 // initializes the light settings
@@ -10,7 +12,9 @@ vsLightAttribute::vsLightAttribute()
 {
     lightHookGroup = NULL;
     lightNode = new pfLightSource();
+    lightNode->ref();
     lightObject = new pfLight();
+    lightObject->ref();
     
     setAmbientColor(0.0, 0.0, 0.0);
     setDiffuseColor(0.0, 0.0, 0.0);
@@ -22,6 +26,8 @@ vsLightAttribute::vsLightAttribute()
     lightObject->off();
     
     setScope(VS_LIGHT_MODE_GLOBAL);
+    
+    attachedFlag = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -29,7 +35,9 @@ vsLightAttribute::vsLightAttribute()
 // ------------------------------------------------------------------------
 vsLightAttribute::~vsLightAttribute()
 {
+    lightNode->unref();
     pfDelete(lightNode);
+    lightObject->unref();
     pfDelete(lightObject);
 }
 
@@ -39,6 +47,14 @@ vsLightAttribute::~vsLightAttribute()
 int vsLightAttribute::getAttributeType()
 {
     return VS_ATTRIBUTE_TYPE_LIGHT;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the category of this attribute
+// ------------------------------------------------------------------------
+int vsLightAttribute::getAttributeCategory()
+{
+    return VS_ATTRIBUTE_CATEGORY_OTHER;
 }
 
 // ------------------------------------------------------------------------
@@ -299,6 +315,18 @@ int vsLightAttribute::isOn()
 
 // ------------------------------------------------------------------------
 // VESS internal function
+// Returns if this attribute is available to be attached to a node
+// ------------------------------------------------------------------------
+int vsLightAttribute::canAttach()
+{
+    if (attachedFlag)
+        return VS_FALSE;
+
+    return VS_TRUE;
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
 // Notifies the attribute that it is being added to the given node's
 // attribute list
 // ------------------------------------------------------------------------
@@ -319,7 +347,8 @@ void vsLightAttribute::attach(vsNode *theNode)
 
     lightHookGroup = ((vsComponent *)theNode)->getLightHook();
     lightHookGroup->addChild(lightNode);
-    attachedFlag = VS_TRUE;
+
+    attachedFlag = 1;
 }
 
 // ------------------------------------------------------------------------
@@ -337,12 +366,13 @@ void vsLightAttribute::detach(vsNode *theNode)
 
     lightHookGroup->removeChild(lightNode);
     lightHookGroup = NULL;
-    attachedFlag = VS_FALSE;
+
+    attachedFlag = 0;
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
-// Applies the settings in this attribute to the graphics library
+// Turns this light on if it is a local light source
 // ------------------------------------------------------------------------
 void vsLightAttribute::apply()
 {
@@ -352,7 +382,7 @@ void vsLightAttribute::apply()
 
 // ------------------------------------------------------------------------
 // VESS internal function
-// Restores the graphics library settings to the saved values
+// Turns this light off if it is a local light source
 // ------------------------------------------------------------------------
 void vsLightAttribute::restoreSaved()
 {

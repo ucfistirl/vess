@@ -6,7 +6,7 @@
 #include <Performer/pr/pfLight.h>
 #include <Performer/pf/pfLightSource.h>
 #include "vsAttribute.h++"
-#include "vsComponent.h++"
+#include "vsNode.h++"
 
 enum vsLightAttributeMode
 {
@@ -27,11 +27,12 @@ private:
 
 VS_INTERNAL:
 
-    virtual void    attach(vsNode *theNode);
-    virtual void    detach(vsNode *theNode);
+    int         canAttach();
+    void        attach(vsNode *theNode);
+    void        detach(vsNode *theNode);
 
-    virtual void    apply();
-    virtual void    restoreSaved();
+    void        apply();
+    void        restoreSaved();
 
 public:
 
@@ -39,6 +40,7 @@ public:
     virtual        ~vsLightAttribute();
 
     virtual int    getAttributeType();
+    virtual int    getAttributeCategory();
     
     void           setAmbientColor(double r, double g, double b);
     void           getAmbientColor(double *r, double *g, double *b);

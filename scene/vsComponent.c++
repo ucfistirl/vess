@@ -2,21 +2,33 @@
 
 #include "vsComponent.h++"
 
+#include "vsTransformAttribute.h++"
+#include "vsSwitchAttribute.h++"
+#include "vsSequenceAttribute.h++"
+#include "vsLODAttribute.h++"
+#include "vsDecalAttribute.h++"
+#include "vsBillboardAttribute.h++"
+#include "vsGeometry.h++"
+#include "vsSystem.h++"
+
 // ------------------------------------------------------------------------
 // Default Constructor - Sets up the Performer objects associated with
 // this component
 // ------------------------------------------------------------------------
-vsComponent::vsComponent()
+vsComponent::vsComponent() : childList(32, 32, 1)
 {
     childCount = 0;
     topGroup = new pfGroup();
+    topGroup->ref();
     lightHook = new pfGroup();
+    lightHook->ref();
     bottomGroup = new pfGroup();
+    bottomGroup->ref();
     topGroup->addChild(lightHook);
     lightHook->addChild(bottomGroup);
-    
+
     ((vsSystem::systemObject)->getNodeMap())->registerLink(this, topGroup);
-    
+
     lightHook->setTravFuncs(PFTRAV_DRAW, preDrawCallback, postDrawCallback);
     lightHook->setTravData(PFTRAV_DRAW, this);
 }
@@ -27,6 +39,7 @@ vsComponent::vsComponent()
 // contained in the given Performer scene graph
 // ------------------------------------------------------------------------
 vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
+    : childList(32, 32, 1)
 {
     pfNode *currentNode;
     pfGroup *parentGroup, *previousGroup;
@@ -37,8 +50,9 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
     vsSwitchAttribute *switchAttrib;
     vsSequenceAttribute *seqAttrib;
     vsLODAttribute *detailAttrib;
+    vsDecalAttribute *decalAttrib;
     vsBillboardAttribute *billAttrib;
-    
+
     handleName(targetGraph, nameDirectory);
 
     // Set the 'topGroup' group. If the group at the top of the targetGraph
@@ -102,7 +116,7 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
     // sequences, and LODs are permitted here. Multiple children are also
     // permitted. Unrecognized pfGroup sub-types also get assigned to the
     // bottom group but might get trampled on if the user subsequently sets
-    // a switch, sequence, or LOD. pfNodes, nodes with multiple parents,
+    // a switch, sequence, LOD, or decal. pfNodes, nodes with multiple parents,
     // stray transforms, and important named groups get swept forward into
     // the next component.
     if ( (!(currentNode->isOfType(pfGroup::getClassType()))) ||
@@ -137,6 +151,13 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
             // LOD attribute
             detailAttrib = new vsLODAttribute((pfLOD *)currentNode);
             vsAttributeList::addAttribute(detailAttrib);
+            bottomGroup = (pfGroup *)currentNode;
+        }
+        else if (currentNode->isOfType(pfLayer::getClassType()))
+        {
+            // Decal attribute
+            decalAttrib = new vsDecalAttribute((pfLayer *)currentNode);
+            vsAttributeList::addAttribute(decalAttrib);
             bottomGroup = (pfGroup *)currentNode;
         }
         else
@@ -205,17 +226,61 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
         myNode->addParent(this);
     }
 
+    topGroup->ref();
+    lightHook->ref();
+    bottomGroup->ref();
+
     lightHook->setTravFuncs(PFTRAV_DRAW, preDrawCallback, postDrawCallback);
     lightHook->setTravData(PFTRAV_DRAW, this);
 }
 
 // ------------------------------------------------------------------------
-// Destructor - Disconnects this component from its Performer counterpart
+// Destructor - Disconnects this component from its Performer counterpart.
+// Also removes all attributes, destroying those that aren't in use
+// somewhere else. Additionally, removes all remaining children, though
+// it does not delete any of them.
 // ------------------------------------------------------------------------
 vsComponent::~vsComponent()
 {
+    vsAttribute *attr;
+    vsNode *child;
+    vsComponent *parent;
+
+    // Remove all attached attributes; destroy those that aren't being
+    // used by other nodes.
+    while (getAttributeCount() > 0)
+    {
+        attr = getAttribute(0);
+        removeAttribute(attr);
+        if (!(attr->isAttached()))
+            delete attr;
+    }
+    
+    // Remove this node from its parents
+    while (getParentCount() > 0)
+    {
+        parent = (vsComponent *)(getParent(0));
+        parent->removeChild(this);
+    }
+
+    // Detach all remaining children; don't delete any.
+    while (getChildCount() > 0)
+    {
+        child = getChild(0);
+        removeChild(child);
+    }
+
     ((vsSystem::systemObject)->getNodeMap())->removeLink(this,
-	VS_OBJMAP_FIRST_LIST);
+        VS_OBJMAP_FIRST_LIST);
+
+    topGroup->removeChild(lightHook);
+    lightHook->removeChild(bottomGroup);
+    topGroup->unref();
+    pfDelete(topGroup);
+    lightHook->unref();
+    pfDelete(lightHook);
+    bottomGroup->unref();
+    pfDelete(bottomGroup);
 }
 
 // ------------------------------------------------------------------------
@@ -239,7 +304,7 @@ vsNode *vsComponent::findNodeByName(const char *targetName)
         return this;
 
     for (loop = 0; loop < childCount; loop++)
-        if (result = (childList[loop])->findNodeByName(targetName))
+        if (result = ((vsNode *)(childList[loop]))->findNodeByName(targetName))
             return result;
 
     return NULL;
@@ -253,12 +318,6 @@ void vsComponent::addChild(vsNode *newChild)
     vsComponent *childComponent;
     vsGeometry *childGeometry;
 
-    if (childCount >= VS_COMPONENT_MAX_CHILDREN)
-    {
-        printf("vsComponent::addChild: Child list id full\n");
-        return;
-    }
-    
     // First connect the Performer nodes together
     if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
     {
@@ -272,7 +331,51 @@ void vsComponent::addChild(vsNode *newChild)
     }
 
     // Then make the connection in the VESS nodes
-    childList[childCount] = newChild;
+    childList[childCount++] = newChild;
+    
+    newChild->addParent(this);
+}
+
+// ------------------------------------------------------------------------
+// Adds the given node as a child of this component, at the given index in
+// the component's child list. All children currently in the list at that
+// index or greater are moved over by one.
+// ------------------------------------------------------------------------
+void vsComponent::insertChild(vsNode *newChild, int index)
+{
+    vsComponent *childComponent;
+    vsGeometry *childGeometry;
+    int loop;
+    
+    if (index < 0)
+    {
+        printf("vsComponent::insertChild: Index out of bounds\n");
+        return;
+    }
+    // If the index is greater than the current number of children on this
+    // component, simply add the new child on the end normally
+    if (index >= childCount)
+    {
+        addChild(newChild);
+        return;
+    }
+
+    // First connect the Performer nodes together
+    if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
+    {
+        childComponent = (vsComponent *)newChild;
+        bottomGroup->insertChild(index, childComponent->getBaseLibraryObject());
+    }
+    else
+    {
+        childGeometry = (vsGeometry *)newChild;
+        bottomGroup->insertChild(index, childGeometry->getBaseLibraryObject());
+    }
+
+    // Then make the connection in the VESS nodes
+    for (loop = childCount; loop > index; loop--)
+        childList[loop] = childList[loop-1];
+    childList[index] = newChild;
     childCount++;
     
     newChild->addParent(this);
@@ -307,6 +410,54 @@ void vsComponent::removeChild(vsNode *targetChild)
                 childList[sloop] = childList[sloop+1];
         
             childCount--;
+            targetChild->removeParent(this);
+            return;
+        }
+}
+
+// ------------------------------------------------------------------------
+// Replaces the target node with the new node in the list of children for
+// this component. The new node occupies the same idex that the previous
+// node did.
+// ------------------------------------------------------------------------
+void vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
+{
+    int loop;
+    vsComponent *childComponent;
+    vsGeometry *childGeometry;
+    pfNode *oldNode, *newNode;
+    
+    for (loop = 0; loop < childCount; loop++)
+        if (targetChild == childList[loop])
+        {
+            if (targetChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
+            {
+                childComponent = (vsComponent *)targetChild;
+                oldNode = childComponent->getBaseLibraryObject();
+            }
+            else
+            {
+                childGeometry = (vsGeometry *)targetChild;
+                oldNode = childGeometry->getBaseLibraryObject();
+            }
+
+            if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
+            {
+                childComponent = (vsComponent *)newChild;
+                newNode = childComponent->getBaseLibraryObject();
+            }
+            else
+            {
+                childGeometry = (vsGeometry *)newChild;
+                newNode = childGeometry->getBaseLibraryObject();
+            }
+            
+            bottomGroup->replaceChild(oldNode, newNode);
+            
+            childList[loop] = newChild;
+
+            targetChild->removeParent(this);
+            newChild->addParent(this);
             return;
         }
 }
@@ -331,7 +482,7 @@ vsNode *vsComponent::getChild(int index)
         return NULL;
     }
     
-    return childList[index];
+    return (vsNode *)(childList[index]);
 }
 
 // ------------------------------------------------------------------------
@@ -345,11 +496,11 @@ void vsComponent::getBoundSphere(vsVector *centerPoint, double *radius)
     topGroup->getBound(&boundSphere);
     
     if (centerPoint)
-	centerPoint->set(boundSphere.center[PF_X], boundSphere.center[PF_Y],
-	    boundSphere.center[PF_Z]);
+        centerPoint->set(boundSphere.center[PF_X], boundSphere.center[PF_Y],
+            boundSphere.center[PF_Z]);
 
     if (radius)
-	*radius = boundSphere.radius;
+        *radius = boundSphere.radius;
 }
 
 // ------------------------------------------------------------------------
@@ -359,57 +510,37 @@ void vsComponent::getBoundSphere(vsVector *centerPoint, double *radius)
 // ------------------------------------------------------------------------
 void vsComponent::addAttribute(vsAttribute *newAttribute)
 {
-    int attributeType;
+    int attrType, attrCat;
     int loop;
 
-    if (newAttribute->isAttached())
+    if (!(newAttribute->canAttach()))
     {
         printf("vsComponent::addAttribute: Attribute is already in use\n");
         return;
     }
     
-    attributeType = newAttribute->getAttributeType();
-    switch (attributeType)
+    attrCat = newAttribute->getAttributeCategory();
+    attrType = newAttribute->getAttributeType();
+    switch (attrCat)
     {
-        // Component may contain many lights
-        case VS_ATTRIBUTE_TYPE_LIGHT:
-            break;
         // Component may only contain one of each of these
-        case VS_ATTRIBUTE_TYPE_TRANSFORM:
-        case VS_ATTRIBUTE_TYPE_FOG:
-        case VS_ATTRIBUTE_TYPE_MATERIAL:
-        case VS_ATTRIBUTE_TYPE_TEXTURE:
-        case VS_ATTRIBUTE_TYPE_TRANSPARENCY:
-        case VS_ATTRIBUTE_TYPE_BILLBOARD:
-        case VS_ATTRIBUTE_TYPE_BACKFACE:
+        case VS_ATTRIBUTE_CATEGORY_STATE:
+        case VS_ATTRIBUTE_CATEGORY_XFORM:
             for (loop = 0; loop < getAttributeCount(); loop++)
-                if ((getAttribute(loop))->getAttributeType() == attributeType)
+                if ((getAttribute(loop))->getAttributeType() == attrType)
                 {
-                    printf("vsComponent::addAttribute: Component may only "
-                        "contain one attribute of the type of the given "
-                        "attribute\n");
+                    printf("vsComponent::addAttribute: Component already "
+                        "contains that type of attribute\n");
                     return;
                 }
             break;
-        // Component may only contain one of any of these
-        case VS_ATTRIBUTE_TYPE_SWITCH:
-        case VS_ATTRIBUTE_TYPE_SEQUENCE:
-        case VS_ATTRIBUTE_TYPE_LOD:
-            for (loop = 0; loop < getAttributeCount(); loop++)
+        case VS_ATTRIBUTE_CATEGORY_GROUPING:
+            if (getCategoryAttribute(VS_ATTRIBUTE_CATEGORY_GROUPING, 0))
             {
-                attributeType = (getAttribute(loop))->getAttributeType();
-                if ((attributeType == VS_ATTRIBUTE_TYPE_SWITCH) ||
-                    (attributeType == VS_ATTRIBUTE_TYPE_SEQUENCE) ||
-                    (attributeType == VS_ATTRIBUTE_TYPE_LOD))
-                {
-                    printf("vsComponent::addAttribute: Component may only "
-                        "contain one of vsSwitchAttribute, "
-                        "vsSequenceAttribute, or vsLODAttribute at any one "
-                        "time\n");
-                    return;
-                }
+                printf("vsComponent::addAttribute: Component may only "
+                    "contain one grouping category attribute at a time\n");
+                return;
             }
-            break;
     }
 
     // If we made it this far, it must be okay to add the attribute in
@@ -517,6 +648,8 @@ void vsComponent::replaceBottomGroup(pfGroup *newGroup)
     parentGroup = bottomGroup->getParent(0);
     parentGroup->replaceChild(bottomGroup, newGroup);
     
+    bottomGroup->unref();
     pfDelete(bottomGroup);
     bottomGroup = newGroup;
+    bottomGroup->ref();
 }

@@ -2,22 +2,29 @@
 
 #include "vsFogAttribute.h++"
 
+#include "vsSystem.h++"
+
 // ------------------------------------------------------------------------
 // Default Constructor - Initializes the attribute to default values
 // ------------------------------------------------------------------------
-vsFogAttribute::vsFogAttribute()
+vsFogAttribute::vsFogAttribute() : savedFog(1, 1, 1)
 {
     performerFog = new pfFog();
     performerFog->setFogType(PFFOG_PIX_LIN);
     performerFog->setRange(0.0, 10000.0);
+    
+    performerFog->ref();
+    
+    attachedFlag = 0;
+    saveCount = 0;
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
-// Constructor - Initialized the attribute from data contained in the
+// Constructor - Initializes the attribute from data contained in the
 // given Performer fog object
 // ------------------------------------------------------------------------
-vsFogAttribute::vsFogAttribute(pfFog *fogObject)
+vsFogAttribute::vsFogAttribute(pfFog *fogObject) : savedFog(1, 1, 1)
 {
     performerFog = fogObject;
     
@@ -26,8 +33,11 @@ vsFogAttribute::vsFogAttribute(pfFog *fogObject)
         performerFog->setFogType(PFFOG_PIX_LIN);
         performerFog->setRange(0.0, 10000.0);
     }
+    
+    performerFog->ref();
 
     attachedFlag = 1;
+    saveCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -35,6 +45,8 @@ vsFogAttribute::vsFogAttribute(pfFog *fogObject)
 // ------------------------------------------------------------------------
 vsFogAttribute::~vsFogAttribute()
 {
+    performerFog->unref();
+    pfDelete(performerFog);
 }
 
 // ------------------------------------------------------------------------
@@ -43,6 +55,14 @@ vsFogAttribute::~vsFogAttribute()
 int vsFogAttribute::getAttributeType()
 {
     return VS_ATTRIBUTE_TYPE_FOG;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the category of this attribute
+// ------------------------------------------------------------------------
+int vsFogAttribute::getAttributeCategory()
+{
+    return VS_ATTRIBUTE_CATEGORY_STATE;
 }
 
 // ------------------------------------------------------------------------
@@ -127,9 +147,9 @@ void vsFogAttribute::setRanges(double near, double far)
 void vsFogAttribute::getRanges(double *near, double *far)
 {
     float onset, opaque;
-    
+
     performerFog->getRange(&onset, &opaque);
-    
+
     if (near)
         *near = onset;
     if (far)
@@ -138,36 +158,42 @@ void vsFogAttribute::getRanges(double *near, double *far)
 
 // ------------------------------------------------------------------------
 // VESS internal function
-// Saves the current graphics library settings
+// Saves the current attribute
 // ------------------------------------------------------------------------
 void vsFogAttribute::saveCurrent()
 {
-    if (pfGetEnable(PFEN_FOG))
-        savedFog = pfGetCurFog();
-    else
-        savedFog = NULL;
+    vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
+
+    savedFog[saveCount++] = gState->getFog();
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Sets the current attribute to this one
+// ------------------------------------------------------------------------
+void vsFogAttribute::apply()
+{
+    vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
+
+    gState->setFog(this);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Restores the current attribute to the last saved one
+// ------------------------------------------------------------------------
+void vsFogAttribute::restoreSaved()
+{
+    vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
+
+    gState->setFog((vsFogAttribute *)(savedFog[--saveCount]));
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
 // Applies the settings in this attribute to the graphics library
 // ------------------------------------------------------------------------
-void vsFogAttribute::apply()
+void vsFogAttribute::setState()
 {
-    if (!savedFog)
-        pfEnable(PFEN_FOG);
-
     performerFog->apply();
-}
-
-// ------------------------------------------------------------------------
-// VESS internal function
-// Restores the graphics library settings to the saved values
-// ------------------------------------------------------------------------
-void vsFogAttribute::restoreSaved()
-{
-    if (savedFog)
-        savedFog->apply();
-    else
-        pfDisable(PFEN_FOG);
 }

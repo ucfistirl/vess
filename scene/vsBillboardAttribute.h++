@@ -5,10 +5,7 @@
 
 #include <Performer/pf/pfBillboard.h>
 #include <Performer/pf/pfDCS.h>
-#include "vsSystem.h++"
 #include "vsMatrix.h++"
-#include "vsQuat.h++"
-#include "vsComponent.h++"
 #include "vsAttribute.h++"
 
 enum vsBillboardRotationMode
@@ -36,6 +33,7 @@ VS_INTERNAL:
 
                   vsBillboardAttribute(pfBillboard *billboard);
 
+    int           canAttach();
     void          attach(vsNode *theNode);
     void          detach(vsNode *theNode);
     
@@ -48,6 +46,7 @@ public:
     virtual        ~vsBillboardAttribute();
 
     virtual int    getAttributeType();
+    virtual int    getAttributeCategory();
 
     void           setMode(int mode);
     int            getMode();

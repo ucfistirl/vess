@@ -3,17 +3,17 @@
 #ifndef VS_BACKFACE_ATTRIBUTE_HPP
 #define VS_BACKFACE_ATTRIBUTE_HPP
 
-#include <Performer/pr/pfLight.h>
-#include <Performer/pr.h>
+#include "vsGrowableArray.h++"
 #include "vsAttribute.h++"
 
 class vsBackfaceAttribute : public vsAttribute
 {
 private:
 
-    int         backfaceVal;
+    int                backfaceVal;
     
-    int         backCullSave, backLightSave;
+    vsGrowableArray    backAttrSave;
+    int                saveCount;
 
 VS_INTERNAL:
 
@@ -22,6 +22,9 @@ VS_INTERNAL:
     virtual void    saveCurrent();
     virtual void    apply();
     virtual void    restoreSaved();
+    virtual void    setState();
+
+    static void     setDefault();
 
 public:
 
@@ -29,6 +32,7 @@ public:
                    ~vsBackfaceAttribute();
 
     virtual int    getAttributeType();
+    virtual int    getAttributeCategory();
 
     void           enable();
     void           disable();

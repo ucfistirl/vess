@@ -2,6 +2,9 @@
 
 #include "vsBillboardAttribute.h++"
 
+#include "vsQuat.h++"
+#include "vsComponent.h++"
+
 // ------------------------------------------------------------------------
 // Default Constructor - Initializes the billboard settings
 // ------------------------------------------------------------------------
@@ -62,6 +65,8 @@ vsBillboardAttribute::vsBillboardAttribute(pfBillboard *billboard)
 // ------------------------------------------------------------------------
 vsBillboardAttribute::~vsBillboardAttribute()
 {
+    if (isAttached())
+	detach(NULL);
 }
 
 // ------------------------------------------------------------------------
@@ -70,6 +75,14 @@ vsBillboardAttribute::~vsBillboardAttribute()
 int vsBillboardAttribute::getAttributeType()
 {
     return VS_ATTRIBUTE_TYPE_BILLBOARD;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the category of this attribute
+// ------------------------------------------------------------------------
+int vsBillboardAttribute::getAttributeCategory()
+{
+    return VS_ATTRIBUTE_CATEGORY_XFORM;
 }
 
 // ------------------------------------------------------------------------
@@ -149,6 +162,18 @@ vsVector vsBillboardAttribute::getAxis()
 
 // ------------------------------------------------------------------------
 // VESS internal function
+// Returns if this attribute is available to be attached to a node
+// ------------------------------------------------------------------------
+int vsBillboardAttribute::canAttach()
+{
+    if (attachedFlag)
+        return VS_FALSE;
+
+    return VS_TRUE;
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
 // Notifies the attribute that it is being added to the given node's
 // attribute list
 // ------------------------------------------------------------------------
@@ -171,6 +196,7 @@ void vsBillboardAttribute::attach(vsNode *theNode)
     
     lightHook = ((vsComponent *)theNode)->getLightHook();
     billboardTransform = new pfDCS();
+    billboardTransform->ref();
     childGroup = (pfGroup *)(lightHook->getChild(0));
     lightHook->replaceChild(childGroup, billboardTransform);
     billboardTransform->addChild(childGroup);
@@ -201,6 +227,7 @@ void vsBillboardAttribute::detach(vsNode *theNode)
     lightHook->replaceChild(billboardTransform, childGroup);
     lightHook->setTravFuncs(PFTRAV_APP, NULL, NULL);
     lightHook->setTravData(PFTRAV_APP, NULL);
+    billboardTransform->unref();
     pfDelete(billboardTransform);
     
     attachedFlag = 0;

@@ -2,6 +2,9 @@
 
 #include "vsAttribute.h++"
 
+#include <string.h>
+#include <Performer/pr/pfMemory.h>
+
 // ------------------------------------------------------------------------
 // Allocator - Creates memory for the object in Performer's shared memory
 // space
@@ -36,6 +39,14 @@ vsAttribute::~vsAttribute()
 }
 
 // ------------------------------------------------------------------------
+// Retrieves the value of the 'attached' flag for this attribute
+// ------------------------------------------------------------------------
+int vsAttribute::isAttached()
+{
+    return attachedFlag;
+}
+
+// ------------------------------------------------------------------------
 // Sets the name of this attribute
 // ------------------------------------------------------------------------
 void vsAttribute::setName(char *newName)
@@ -45,7 +56,7 @@ void vsAttribute::setName(char *newName)
 }
 
 // ------------------------------------------------------------------------
-// Retrieves the naem of this attribute
+// Retrieves the name of this attribute
 // ------------------------------------------------------------------------
 const char *vsAttribute::getName()
 {
@@ -54,27 +65,28 @@ const char *vsAttribute::getName()
 
 // ------------------------------------------------------------------------
 // VESS internal function
-// Rerieves the value of the 'attached' flag for this attribute
 // ------------------------------------------------------------------------
-int vsAttribute::isAttached()
+int vsAttribute::canAttach()
 {
-    return attachedFlag;
+    return VS_TRUE;
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
-// Empty virtual base function
+// Marks this attribute as attached
 // ------------------------------------------------------------------------
 void vsAttribute::attach(vsNode *theNode)
 {
+    attachedFlag++;
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
-// Empty virtual base function
+// Removes an attachment mark from this attribute
 // ------------------------------------------------------------------------
 void vsAttribute::detach(vsNode *theNode)
 {
+    attachedFlag--;
 }
 
 // ------------------------------------------------------------------------
@@ -98,5 +110,13 @@ void vsAttribute::apply()
 // Empty virtual base function
 // ------------------------------------------------------------------------
 void vsAttribute::restoreSaved()
+{
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Empty virtual base function
+// ------------------------------------------------------------------------
+void vsAttribute::setState()
 {
 }

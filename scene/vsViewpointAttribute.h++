@@ -5,7 +5,7 @@
 
 class vsViewpointAttribute;
 
-#include <Performer/pf/pfSCS.h>
+#include <Performer/pf/pfGroup.h>
 #include "vsNode.h++"
 #include "vsView.h++"
 #include "vsAttribute.h++"
@@ -21,6 +21,7 @@ private:
 
 VS_INTERNAL:
 
+    int         canAttach();
     void        attach(vsNode *theNode);
     void        detach(vsNode *theNode);
     
@@ -32,6 +33,7 @@ public:
                 ~vsViewpointAttribute();
 
     int         getAttributeType();
+    int         getAttributeCategory();
 
     void        setOffsetMatrix(vsMatrix newMatrix);
     vsMatrix    getOffsetMatrix();

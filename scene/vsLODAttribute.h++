@@ -5,7 +5,7 @@
 
 #include <Performer/pf/pfLOD.h>
 #include "vsAttribute.h++"
-#include "vsComponent.h++"
+#include "vsNode.h++"
 
 class vsLODAttribute : public vsAttribute
 {
@@ -15,10 +15,11 @@ private:
 
 VS_INTERNAL:
 
-                    vsLODAttribute(pfLOD *lodGroup);
+                vsLODAttribute(pfLOD *lodGroup);
 
-    virtual void    attach(vsNode *theNode);
-    virtual void    detach(vsNode *theNode);
+    int         canAttach();    
+    void        attach(vsNode *theNode);
+    void        detach(vsNode *theNode);
 
 public:
 
@@ -26,6 +27,7 @@ public:
                    ~vsLODAttribute();
 
     virtual int    getAttributeType();
+    virtual int    getAttributeCategory();
     
     void           setRangeEnd(int childNum, double rangeLimit);
     double         getRangeEnd(int childNum);

@@ -2,11 +2,13 @@
 
 #include "vsTextureAttribute.h++"
 
+#include "vsSystem.h++"
+
 // ------------------------------------------------------------------------
 // Default Constructor - Creates the Performer texture objects and
 // initializes default settings
 // ------------------------------------------------------------------------
-vsTextureAttribute::vsTextureAttribute()
+vsTextureAttribute::vsTextureAttribute() : savedAttr(1, 1, 1)
 {
     performerTexture = new pfTexture();
     performerTexture->ref();
@@ -22,13 +24,14 @@ vsTextureAttribute::vsTextureAttribute()
 // Constructor - Sets the texture attribute up as already attached
 // ------------------------------------------------------------------------
 vsTextureAttribute::vsTextureAttribute(pfTexture *texObject,
-                                       pfTexEnv *texEnvObject)
+    pfTexEnv *texEnvObject) : savedAttr(1, 1, 1)
 {
     performerTexture = texObject;
     performerTexture->ref();
     performerTexEnv = texEnvObject;
     performerTexEnv->ref();
 
+    attachedFlag = 1;
     saveCount = 0;
 }
 
@@ -37,8 +40,16 @@ vsTextureAttribute::vsTextureAttribute(pfTexture *texObject,
 // ------------------------------------------------------------------------
 vsTextureAttribute::~vsTextureAttribute()
 {
-    performerTexture->unrefDelete();
-    performerTexEnv->unrefDelete();
+    performerTexture->unref();
+    pfDelete(performerTexture);
+    performerTexEnv->unref();
+    pfDelete(performerTexEnv);
+
+    // Try removing a link between this attribute and one of the Performer
+    // textures, in the case that the vsGeometry constructor put one in
+    // in the first place.
+    ((vsSystem::systemObject)->getNodeMap())->removeLink(this,
+        VS_OBJMAP_FIRST_LIST);
 }
 
 // ------------------------------------------------------------------------
@@ -50,10 +61,18 @@ int vsTextureAttribute::getAttributeType()
 }
 
 // ------------------------------------------------------------------------
+// Retrieves the category of the attribute
+// ------------------------------------------------------------------------
+int vsTextureAttribute::getAttributeCategory()
+{
+    return VS_ATTRIBUTE_CATEGORY_STATE;
+}
+
+// ------------------------------------------------------------------------
 // Sets the image data that this texture will display
 // ------------------------------------------------------------------------
 void vsTextureAttribute::setImage(unsigned char *imageData, int xSize,
-                                  int ySize, int dataFormat)
+    int ySize, int dataFormat)
 {
     int format, comp;
 
@@ -169,10 +188,17 @@ void vsTextureAttribute::setBoundaryMode(int whichDirection, int boundaryMode)
 // ------------------------------------------------------------------------
 int vsTextureAttribute::getBoundaryMode(int whichDirection)
 {
+    int wrapType;
+
     if (whichDirection == VS_TEXTURE_DIRECTION_T)
-        return (performerTexture->getRepeat(PFTEX_WRAP_T));
+        wrapType = performerTexture->getRepeat(PFTEX_WRAP_T);
     else
-        return (performerTexture->getRepeat(PFTEX_WRAP_S));
+        wrapType = performerTexture->getRepeat(PFTEX_WRAP_S);
+
+    if (wrapType == PFTEX_REPEAT)
+        return VS_TEXTURE_BOUNDARY_REPEAT;
+    else
+        return VS_TEXTURE_BOUNDARY_CLAMP;
 }
 
 // ------------------------------------------------------------------------
@@ -297,63 +323,43 @@ int vsTextureAttribute::getMinFilter()
 
 // ------------------------------------------------------------------------
 // VESS internal function
-// Saves the current graphics library settings
+// Saves the current attribute
 // ------------------------------------------------------------------------
 void vsTextureAttribute::saveCurrent()
 {
-    if (saveCount >= VS_TEXTURE_MAX_SAVES)
-    {
-	printf("vsTextureAttribute::saveCurrent: Save list full\n");
-	saveCount++;
-	return;
-    }
+    vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
-    if (pfGetEnable(PFEN_TEXTURE))
-    {
-        savedTexture[saveCount] = pfGetCurTex();
-        savedTexEnv[saveCount] = pfGetCurTEnv();
-    }
-    else
-    {
-        savedTexture[saveCount] = NULL;
-        savedTexEnv[saveCount] = NULL;
-    }
-    
-    saveCount++;
+    savedAttr[saveCount++] = gState->getTexture();
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Sets the current attribute to this one
+// ------------------------------------------------------------------------
+void vsTextureAttribute::apply()
+{
+    vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
+
+    gState->setTexture(this);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Restores the current attribute to the last saved one
+// ------------------------------------------------------------------------
+void vsTextureAttribute::restoreSaved()
+{
+    vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
+
+    gState->setTexture((vsTextureAttribute *)(savedAttr[--saveCount]));
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
 // Applies the settings in this attribute to the graphics library
 // ------------------------------------------------------------------------
-void vsTextureAttribute::apply()
+void vsTextureAttribute::setState()
 {
-    if (saveCount > VS_TEXTURE_MAX_SAVES)
-	return;
-
-    if (!(savedTexture[saveCount-1]))
-        pfEnable(PFEN_TEXTURE);
-
     performerTexture->apply();
     performerTexEnv->apply();
-}
-
-// ------------------------------------------------------------------------
-// VESS internal function
-// Restores the graphics library settings to the saved values
-// ------------------------------------------------------------------------
-void vsTextureAttribute::restoreSaved()
-{
-    saveCount--;
-
-    if ((saveCount+1) > VS_TEXTURE_MAX_SAVES)
-	return;
-
-    if (savedTexture[saveCount])
-    {
-        (savedTexture[saveCount])->apply();
-        (savedTexEnv[saveCount])->apply();
-    }
-    else
-        pfDisable(PFEN_TEXTURE);
 }

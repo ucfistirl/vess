@@ -30,8 +30,9 @@ VS_INTERNAL:
                                      vsComponent *targetComponent,
                                      vsDatabaseLoader *nameDirectory);
 
-    virtual void    attach(vsNode *theNode);
-    virtual void    detach(vsNode *theNode);
+    int         canAttach();
+    void        attach(vsNode *theNode);
+    void        detach(vsNode *theNode);
 
 public:
 
@@ -39,6 +40,7 @@ public:
     virtual        ~vsTransformAttribute();
 
     virtual int    getAttributeType();
+    virtual int    getAttributeCategory();
 
     void           setPreTransform(vsMatrix newTransform);
     vsMatrix       getPreTransform();

@@ -4,13 +4,8 @@
 #define VS_GEOMETRY_HPP
 
 #include <Performer/pf/pfGeode.h>
-#include "vsSystem.h++"
-#include "vsFogAttribute.h++"
-#include "vsMaterialAttribute.h++"
-#include "vsTextureAttribute.h++"
-#include "vsTransparencyAttribute.h++"
-#include "vsBackfaceAttribute.h++"
 #include "vsVector.h++"
+#include "vsAttribute.h++"
 #include "vsNode.h++"
 
 enum vsGeometryPrimType
@@ -60,11 +55,15 @@ private:
     int         vertexListSize;
     int         *lengthsList;
 
+    void        inflateFlatGeometry();
+
 VS_INTERNAL:
 
-                  vsGeometry(pfGeode *targetGeode);
+                    vsGeometry(pfGeode *targetGeode);
 
-    static int    geoDrawCallback(pfTraverser *_trav, void *_userData);
+    static int      geoDrawCallback(pfTraverser *_trav, void *_userData);
+    
+    virtual void    applyAttributes();
 
 public:
 

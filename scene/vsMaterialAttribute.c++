@@ -2,16 +2,24 @@
 
 #include "vsMaterialAttribute.h++"
 
+#include "vsSystem.h++"
+
 // ------------------------------------------------------------------------
 // Default Constructor - Creates new Performer material objects and
 // initializes them
 // ------------------------------------------------------------------------
-vsMaterialAttribute::vsMaterialAttribute()
+vsMaterialAttribute::vsMaterialAttribute() : savedAttr(1, 1, 1)
 {
     frontMaterial = new pfMaterial();
     frontMaterial->setSide(PFMTL_FRONT);
+    frontMaterial->ref();
+
     backMaterial = new pfMaterial();
     backMaterial->setSide(PFMTL_BACK);
+    backMaterial->ref();
+    
+    attachedFlag = 0;
+    saveCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -20,14 +28,18 @@ vsMaterialAttribute::vsMaterialAttribute()
 // initializes them
 // ------------------------------------------------------------------------
 vsMaterialAttribute::vsMaterialAttribute(pfMaterial *front, pfMaterial *back)
+    : savedAttr(1, 1, 1)
 {
     frontMaterial = front;
     frontMaterial->setSide(PFMTL_FRONT);
+    frontMaterial->ref();
 
     backMaterial = back;
     backMaterial->setSide(PFMTL_BACK);
+    backMaterial->ref();
 
     attachedFlag = 1;
+    saveCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -35,6 +47,16 @@ vsMaterialAttribute::vsMaterialAttribute(pfMaterial *front, pfMaterial *back)
 // ------------------------------------------------------------------------
 vsMaterialAttribute::~vsMaterialAttribute()
 {
+    frontMaterial->unref();
+    pfDelete(frontMaterial);
+    backMaterial->unref();
+    pfDelete(backMaterial);
+
+    // Try removing a link between this attribute and one of the Performer
+    // materials, in the case that the vsGeometry constructor put one in
+    // in the first place.
+    ((vsSystem::systemObject)->getNodeMap())->removeLink(this,
+        VS_OBJMAP_FIRST_LIST);
 }
 
 // ------------------------------------------------------------------------
@@ -43,6 +65,14 @@ vsMaterialAttribute::~vsMaterialAttribute()
 int vsMaterialAttribute::getAttributeType()
 {
     return VS_ATTRIBUTE_TYPE_MATERIAL;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the category of this attribute
+// ------------------------------------------------------------------------
+int vsMaterialAttribute::getAttributeCategory()
+{
+    return VS_ATTRIBUTE_CATEGORY_STATE;
 }
 
 // ------------------------------------------------------------------------
@@ -99,8 +129,6 @@ void vsMaterialAttribute::getColor(int side, int whichColor, double *r,
 {
     float red, green, blue;
     
-    red = green = blue = 0.0;
-
     if (side == VS_MATERIAL_SIDE_BACK)
     {
         switch (whichColor)
@@ -137,7 +165,7 @@ void vsMaterialAttribute::getColor(int side, int whichColor, double *r,
                 break;
         }
     }
-    
+
     if (r)
         *r = red;
     if (g)
@@ -292,38 +320,49 @@ int vsMaterialAttribute::getColorMode(int side)
                 return VS_MATERIAL_CMODE_NONE;
         }
     }
-    
+
     return 0;
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
-// Saves the current graphics library settings
+// Saves the current attribute
 // ------------------------------------------------------------------------
 void vsMaterialAttribute::saveCurrent()
 {
-    savedFront = pfGetCurMtl(PFMTL_FRONT);
-    savedBack = pfGetCurMtl(PFMTL_BACK);
+    vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
+
+    savedAttr[saveCount++] = gState->getMaterial();
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Sets the current attribute to this one
+// ------------------------------------------------------------------------
+void vsMaterialAttribute::apply()
+{
+    vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
+
+    gState->setMaterial(this);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Restores the current attribute to the last saved one
+// ------------------------------------------------------------------------
+void vsMaterialAttribute::restoreSaved()
+{
+    vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
+
+    gState->setMaterial((vsMaterialAttribute *)(savedAttr[--saveCount]));
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
 // Applies the settings in this attribute to the graphics library
 // ------------------------------------------------------------------------
-void vsMaterialAttribute::apply()
+void vsMaterialAttribute::setState()
 {
     frontMaterial->apply();
     backMaterial->apply();
-}
-
-// ------------------------------------------------------------------------
-// VESS internal function
-// Restores the graphics library settings to the saved values
-// ------------------------------------------------------------------------
-void vsMaterialAttribute::restoreSaved()
-{
-    if (savedFront)
-        savedFront->apply();
-    if (savedBack)
-        savedBack->apply();
 }

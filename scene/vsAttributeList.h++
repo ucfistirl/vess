@@ -3,23 +3,15 @@
 #ifndef VS_ATTRIBUTE_LIST_HPP
 #define VS_ATTRIBUTE_LIST_HPP
 
-class vsAttributeList;
-
-#include <Performer/pr/pfMemory.h>
-#include <Performer/pr/pfState.h>
-#include <Performer/pr/pfGeoState.h>
-
-#include "vsGlobals.h++"
+#include "vsGrowableArray.h++"
 #include "vsAttribute.h++"
-
-#define VS_ATTRIBUTE_LIST_SIZE    50
 
 class vsAttributeList
 {
 protected:
 
-    int            attributeCount;
-    vsAttribute    *attributeList[VS_ATTRIBUTE_LIST_SIZE];
+    int                attributeCount;
+    vsGrowableArray    attributeList;
 
 public:
 
@@ -35,6 +27,7 @@ public:
     int             getAttributeCount();
     vsAttribute     *getAttribute(int index);
     vsAttribute     *getTypedAttribute(int attribType, int index);
+    vsAttribute     *getCategoryAttribute(int attribCategory, int index);
     vsAttribute     *getNamedAttribute(char *attribName);
 };
 

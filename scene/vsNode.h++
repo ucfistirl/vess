@@ -3,13 +3,11 @@
 #ifndef VS_NODE_HPP
 #define VS_NODE_HPP
 
-class vsNode;
-
 #include <Performer/pf/pfNode.h>
+#include "vsGrowableArray.h++"
 #include "vsAttributeList.h++"
 #include "vsVector.h++"
 
-#define VS_NODE_MAX_PARENTS     32
 #define VS_NODE_NAME_MAX_LENGTH 80
 
 enum vsNodeType
@@ -22,22 +20,22 @@ class vsNode : public vsAttributeList
 {
 protected:
 
-    int         parentCount;
-    vsNode      *parentList[VS_NODE_MAX_PARENTS];
+    vsGrowableArray    parentList;
+    int                parentCount;
 
-    char        nodeName[VS_NODE_NAME_MAX_LENGTH];
+    char               nodeName[VS_NODE_NAME_MAX_LENGTH];
 
 VS_INTERNAL:
 
-    void          addParent(vsNode *newParent);
-    void          removeParent(vsNode *targetParent);
+    void            addParent(vsNode *newParent);
+    void            removeParent(vsNode *targetParent);
 
-    void          saveCurrentAttributes();
-    void          applyAttributes();
-    void          restoreSavedAttributes();
+    virtual void    saveCurrentAttributes();
+    virtual void    applyAttributes();
+    virtual void    restoreSavedAttributes();
 
-    static int    preDrawCallback(pfTraverser *_trav, void *_userData);
-    static int    postDrawCallback(pfTraverser *_trav, void *_userData);
+    static int      preDrawCallback(pfTraverser *_trav, void *_userData);
+    static int      postDrawCallback(pfTraverser *_trav, void *_userData);
 
 public:
 
@@ -46,6 +44,7 @@ public:
 
     virtual int       getNodeType() = 0;
 
+    int               getParentCount();
     vsNode            *getParent(int index);
     
     void              setName(const char *newName);

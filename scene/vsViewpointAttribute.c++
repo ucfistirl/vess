@@ -2,6 +2,9 @@
 
 #include "vsViewpointAttribute.h++"
 
+#include <Performer/pf/pfSCS.h>
+#include "vsComponent.h++"
+
 // ------------------------------------------------------------------------
 // Constructor - Registers this attribute with the specified view object,
 // and initializes the adjustment matrix.
@@ -34,6 +37,14 @@ int vsViewpointAttribute::getAttributeType()
 }
 
 // ------------------------------------------------------------------------
+// Retrieves the category of this attribute
+// ------------------------------------------------------------------------
+int vsViewpointAttribute::getAttributeCategory()
+{
+    return VS_ATTRIBUTE_CATEGORY_CONTAINER;
+}
+
+// ------------------------------------------------------------------------
 // Sets the offset matrix for this attribute. The offset matrix is
 // multiplied into the view matrix before it is assigned to the view
 // object.
@@ -49,6 +60,18 @@ void vsViewpointAttribute::setOffsetMatrix(vsMatrix newMatrix)
 vsMatrix vsViewpointAttribute::getOffsetMatrix()
 {
     return offsetMatrix;
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Returns if this attribute is available to be attached to a node
+// ------------------------------------------------------------------------
+int vsViewpointAttribute::canAttach()
+{
+    if (attachedFlag)
+        return VS_FALSE;
+
+    return VS_TRUE;
 }
 
 // ------------------------------------------------------------------------
@@ -109,6 +132,8 @@ void vsViewpointAttribute::update()
     int loop, sloop;
 
     if (!attachedFlag)
+        return;
+    if (!viewObject)
         return;
 
     xform.makeIdent();

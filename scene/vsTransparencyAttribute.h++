@@ -3,15 +3,17 @@
 #ifndef VS_TRANSPARENCY_ATTRIBUTE_HPP
 #define VS_TRANSPARENCY_ATTRIBUTE_HPP
 
-#include <Performer/pr.h>
 #include "vsAttribute.h++"
+#include "vsGrowableArray.h++"
 
 class vsTransparencyAttribute : public vsAttribute
 {
 private:
 
-    int         transpValue;
-    int         savedValue;
+    int                transpValue;
+
+    vsGrowableArray    savedAttr;
+    int                saveCount;
 
 VS_INTERNAL:
 
@@ -20,6 +22,9 @@ VS_INTERNAL:
     virtual void    saveCurrent();
     virtual void    apply();
     virtual void    restoreSaved();
+    virtual void    setState();
+
+    static void     setDefault();
 
 public:
 
@@ -27,6 +32,7 @@ public:
                    ~vsTransparencyAttribute();
 
     virtual int    getAttributeType();
+    virtual int    getAttributeCategory();
 
     void           enable();
     void           disable();

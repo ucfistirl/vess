@@ -5,7 +5,7 @@
 
 #include <Performer/pf/pfSwitch.h>
 #include "vsAttribute.h++"
-#include "vsComponent.h++"
+#include "vsNode.h++"
 
 class vsSwitchAttribute : public vsAttribute
 {
@@ -15,10 +15,11 @@ private:
 
 VS_INTERNAL:
 
-                    vsSwitchAttribute(pfSwitch *switchGroup);
+                vsSwitchAttribute(pfSwitch *switchGroup);
 
-    virtual void    attach(vsNode *theNode);
-    virtual void    detach(vsNode *theNode);
+    int         canAttach();
+    void        attach(vsNode *theNode);
+    void        detach(vsNode *theNode);
 
 public:
 
@@ -26,6 +27,7 @@ public:
                    ~vsSwitchAttribute();
 
     virtual int    getAttributeType();
+    virtual int    getAttributeCategory();
 
     void           enableOne(int index);
     void           disableOne(int index);

@@ -2,12 +2,16 @@
 
 #include "vsLODAttribute.h++"
 
+#include "vsComponent.h++"
+
 // ------------------------------------------------------------------------
 // Default Constructor
 // ------------------------------------------------------------------------
 vsLODAttribute::vsLODAttribute()
 {
     performerLOD = NULL;
+    
+    attachedFlag = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -18,6 +22,7 @@ vsLODAttribute::vsLODAttribute()
 vsLODAttribute::vsLODAttribute(pfLOD *lodGroup)
 {
     performerLOD = lodGroup;
+    performerLOD->ref();
     
     performerLOD->setRange(0, 0.0);
 
@@ -37,6 +42,14 @@ vsLODAttribute::~vsLODAttribute()
 int vsLODAttribute::getAttributeType()
 {
     return VS_ATTRIBUTE_TYPE_LOD;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the category of this attribute
+// ------------------------------------------------------------------------
+int vsLODAttribute::getAttributeCategory()
+{
+    return VS_ATTRIBUTE_CATEGORY_GROUPING;
 }
 
 // ------------------------------------------------------------------------
@@ -83,6 +96,18 @@ double vsLODAttribute::getRangeEnd(int childNum)
     }
 
     return performerLOD->getRange(childNum+1);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Returns if this attribute is available to be attached to a node
+// ------------------------------------------------------------------------
+int vsLODAttribute::canAttach()
+{
+    if (attachedFlag)
+        return VS_FALSE;
+
+    return VS_TRUE;
 }
 
 // ------------------------------------------------------------------------

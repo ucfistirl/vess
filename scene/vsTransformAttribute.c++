@@ -146,6 +146,14 @@ int vsTransformAttribute::getAttributeType()
 }
 
 // ------------------------------------------------------------------------
+// Retrieves the category of this attribute
+// ------------------------------------------------------------------------
+int vsTransformAttribute::getAttributeCategory()
+{
+    return VS_ATTRIBUTE_CATEGORY_XFORM;
+}
+
+// ------------------------------------------------------------------------
 // Sets the pre-transform matrix
 // ------------------------------------------------------------------------
 void vsTransformAttribute::setPreTransform(vsMatrix newTransform)
@@ -386,6 +394,18 @@ void vsTransformAttribute::pushBottom(pfGroup *splitGroup)
     }
     
     splitGroup->addChild(newGroup);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Returns if this attribute is available to be attached to a node
+// ------------------------------------------------------------------------
+int vsTransformAttribute::canAttach()
+{
+    if (attachedFlag)
+        return VS_FALSE;
+
+    return VS_TRUE;
 }
 
 // ------------------------------------------------------------------------

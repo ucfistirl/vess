@@ -5,7 +5,7 @@
 
 #include <Performer/pf/pfSequence.h>
 #include "vsAttribute.h++"
-#include "vsComponent.h++"
+#include "vsNode.h++"
 
 #define VS_SEQUENCE_ALL_CHILDREN -1
 #define VS_SEQUENCE_TIME_PAUSE   -1.0
@@ -32,10 +32,11 @@ private:
 
 VS_INTERNAL:
 
-                    vsSequenceAttribute(pfSequence *sequenceGroup);
+                vsSequenceAttribute(pfSequence *sequenceGroup);
 
-    virtual void    attach(vsNode *theNode);
-    virtual void    detach(vsNode *theNode);
+    int         canAttach();
+    void        attach(vsNode *theNode);
+    void        detach(vsNode *theNode);
 
 public:
 
@@ -43,6 +44,7 @@ public:
                    ~vsSequenceAttribute();
 
     virtual int    getAttributeType();
+    virtual int    getAttributeCategory();
 
     void           setChildTime(int childNum, double seconds);
     double         getChildTime(int childNum);

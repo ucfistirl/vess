@@ -2,6 +2,8 @@
 
 #include "vsSequenceAttribute.h++"
 
+#include "vsComponent.h++"
+
 // ------------------------------------------------------------------------
 // Default Constructor
 // ------------------------------------------------------------------------
@@ -17,6 +19,7 @@ vsSequenceAttribute::vsSequenceAttribute()
 vsSequenceAttribute::vsSequenceAttribute(pfSequence *sequenceGroup)
 {
     performerSequence = sequenceGroup;
+    performerSequence->ref();
     
     attachedFlag = 1;
 }
@@ -34,6 +37,14 @@ vsSequenceAttribute::~vsSequenceAttribute()
 int vsSequenceAttribute::getAttributeType()
 {
     return VS_ATTRIBUTE_TYPE_SEQUENCE;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the category of this attribute
+// ------------------------------------------------------------------------
+int vsSequenceAttribute::getAttributeCategory()
+{
+    return VS_ATTRIBUTE_CATEGORY_GROUPING;
 }
 
 // ------------------------------------------------------------------------
@@ -254,6 +265,18 @@ int vsSequenceAttribute::getCurrentChildNum()
 
 // ------------------------------------------------------------------------
 // VESS internal function
+// Returns if this attribute is available to be attached to a node
+// ------------------------------------------------------------------------
+int vsSequenceAttribute::canAttach()
+{
+    if (attachedFlag)
+        return VS_FALSE;
+
+    return VS_TRUE;
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
 // Notifies the attribute that it is being added to the given node's
 // attribute list
 // ------------------------------------------------------------------------
@@ -261,7 +284,7 @@ void vsSequenceAttribute::attach(vsNode *theNode)
 {
     if (attachedFlag)
     {
-        printf("vsSequence::attach: Attribute is already attached\n");
+        printf("vsSequenceAttribute::attach: Attribute is already attached\n");
         return;
     }
 
@@ -272,7 +295,7 @@ void vsSequenceAttribute::attach(vsNode *theNode)
         return;
     }
     
-    // Replace the bottom group with a switch group
+    // Replace the bottom group with a sequence group
     performerSequence = new pfSequence();
     ((vsComponent *)theNode)->replaceBottomGroup(performerSequence);
 
@@ -296,7 +319,7 @@ void vsSequenceAttribute::detach(vsNode *theNode)
 
     if (!attachedFlag)
     {
-        printf("vsSequence::attach: Attribute is not attached\n");
+        printf("vsSequenceAttribute::attach: Attribute is not attached\n");
         return;
     }
     

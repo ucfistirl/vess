@@ -3,36 +3,23 @@
 #ifndef VS_COMPONENT_HPP
 #define VS_COMPONENT_HPP
 
-class vsComponent;
-
 #include <Performer/pf/pfGroup.h>
-#include <Performer/pf/pfSwitch.h>
-#include <Performer/pf/pfSequence.h>
-#include <Performer/pf/pfLOD.h>
-#include <Performer/pf/pfGeode.h>
-
-#include "vsSystem.h++"
-#include "vsTransformAttribute.h++"
-#include "vsSwitchAttribute.h++"
-#include "vsSequenceAttribute.h++"
-#include "vsLODAttribute.h++"
-#include "vsBillboardAttribute.h++"
-#include "vsGeometry.h++"
-#include "vsDatabaseLoader.h++"
+#include "vsGrowableArray.h++"
+#include "vsVector.h++"
+#include "vsAttribute.h++"
 #include "vsNode.h++"
-
-#define VS_COMPONENT_MAX_CHILDREN 100
+#include "vsDatabaseLoader.h++"
 
 class vsComponent : public vsNode
 {
 private:
 
-    int         childCount;
-    vsNode      *childList[VS_COMPONENT_MAX_CHILDREN];
+    int                childCount;
+    vsGrowableArray    childList;
 
-    pfGroup     *topGroup;
-    pfGroup     *lightHook;
-    pfGroup     *bottomGroup;
+    pfGroup            *topGroup;
+    pfGroup            *lightHook;
+    pfGroup            *bottomGroup;
 
 
 VS_INTERNAL:
@@ -58,7 +45,9 @@ public:
     virtual vsNode    *findNodeByName(const char *targetName);
 
     void              addChild(vsNode *newChild);
+    void              insertChild(vsNode *newChild, int index);
     void              removeChild(vsNode *targetChild);
+    void              replaceChild(vsNode *targetChild, vsNode *newChild);
 
     int               getChildCount();
     vsNode            *getChild(int index);
@@ -72,4 +61,3 @@ public:
 };
 
 #endif
-

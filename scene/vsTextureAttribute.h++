@@ -5,8 +5,7 @@
 
 #include <Performer/pr/pfTexture.h>
 #include "vsAttribute.h++"
-
-#define VS_TEXTURE_MAX_SAVES	8
+#include "vsGrowableArray.h++"
 
 enum vsTextureDirection
 {
@@ -54,12 +53,11 @@ class vsTextureAttribute : public vsAttribute
 {
 private:
 
-    pfTexture    *performerTexture;
-    pfTexEnv     *performerTexEnv;
+    pfTexture          *performerTexture;
+    pfTexEnv           *performerTexEnv;
     
-    pfTexture    *savedTexture[VS_TEXTURE_MAX_SAVES];
-    pfTexEnv     *savedTexEnv[VS_TEXTURE_MAX_SAVES];
-    int          saveCount;
+    vsGrowableArray    savedAttr;
+    int                saveCount;
 
 VS_INTERNAL:
 
@@ -69,6 +67,7 @@ VS_INTERNAL:
     virtual void    saveCurrent();
     virtual void    apply();
     virtual void    restoreSaved();
+    virtual void    setState();
 
 public:
 
@@ -76,6 +75,7 @@ public:
                    ~vsTextureAttribute();
 
     virtual int    getAttributeType();
+    virtual int    getAttributeCategory();
     
     void           setImage(unsigned char *imageData, int xSize, int ySize,
                             int dataFormat);

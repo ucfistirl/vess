@@ -5,7 +5,7 @@
 // ------------------------------------------------------------------------
 // Constructor - Clears the node's name
 // ------------------------------------------------------------------------
-vsNode::vsNode()
+vsNode::vsNode() : parentList(1, 5, 1)
 {
     nodeName[0] = 0;
     parentCount = 0;
@@ -16,6 +16,25 @@ vsNode::vsNode()
 // ------------------------------------------------------------------------
 vsNode::~vsNode()
 {
+    vsAttribute *attr;
+
+    // Remove all attached attributes; destroy those that aren't being
+    // used by other nodes.
+    while (getAttributeCount() > 0)
+    {
+        attr = getAttribute(0);
+        removeAttribute(attr);
+        if (!(attr->isAttached()))
+            delete attr;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the number of parent components for this node
+// ------------------------------------------------------------------------
+int vsNode::getParentCount()
+{
+    return parentCount;
 }
 
 // ------------------------------------------------------------------------
@@ -30,7 +49,7 @@ vsNode *vsNode::getParent(int index)
         return NULL;
     }
     
-    return parentList[index];
+    return (vsNode *)(parentList[index]);
 }
 
 // ------------------------------------------------------------------------
@@ -86,7 +105,7 @@ void vsNode::saveCurrentAttributes()
     int loop;
     
     for (loop = 0; loop < attributeCount; loop++)
-        (attributeList[loop])->saveCurrent();
+        ((vsAttribute *)(attributeList[loop]))->saveCurrent();
 }
 
 // ------------------------------------------------------------------------
@@ -98,7 +117,7 @@ void vsNode::applyAttributes()
     int loop;
     
     for (loop = 0; loop < attributeCount; loop++)
-        (attributeList[loop])->apply();
+        ((vsAttribute *)(attributeList[loop]))->apply();
 }
 
 // ------------------------------------------------------------------------
@@ -110,7 +129,7 @@ void vsNode::restoreSavedAttributes()
     int loop;
     
     for (loop = 0; loop < attributeCount; loop++)
-        (attributeList[loop])->restoreSaved();
+        ((vsAttribute *)(attributeList[loop]))->restoreSaved();
 }
 
 // ------------------------------------------------------------------------

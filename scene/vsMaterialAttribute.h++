@@ -5,6 +5,7 @@
 
 #include <Performer/pr/pfMaterial.h>
 #include "vsAttribute.h++"
+#include "vsGrowableArray.h++"
 
 enum vsMaterialSide
 {
@@ -35,11 +36,11 @@ class vsMaterialAttribute : public vsAttribute
 {
 private:
 
-    pfMaterial    *frontMaterial;
-    pfMaterial    *backMaterial;
+    pfMaterial         *frontMaterial;
+    pfMaterial         *backMaterial;
     
-    pfMaterial    *savedFront;
-    pfMaterial    *savedBack;
+    vsGrowableArray    savedAttr;
+    int                saveCount;
 
 VS_INTERNAL:
 
@@ -48,6 +49,7 @@ VS_INTERNAL:
     virtual void    saveCurrent();
     virtual void    apply();
     virtual void    restoreSaved();
+    virtual void    setState();
 
 public:
 
@@ -55,6 +57,7 @@ public:
                    ~vsMaterialAttribute();
 
     virtual int    getAttributeType();
+    virtual int    getAttributeCategory();
     
     void           setColor(int side, int whichColor, double r, double g,
                             double b);

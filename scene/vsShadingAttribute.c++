@@ -1,28 +1,31 @@
-// File vsBackfaceAttribute.c++
+// File vsShadingAttribute.c++
 
-#include "vsBackfaceAttribute.h++"
+#include "vsShadingAttribute.h++"
 
-#include <Performer/pr/pfLight.h>
 #include <Performer/pr.h>
 #include "vsSystem.h++"
 
 // ------------------------------------------------------------------------
-// Default Constructor - Initializes backfacing to false
+// Default Constructor - Initializes shading to Gouraud
 // ------------------------------------------------------------------------
-vsBackfaceAttribute::vsBackfaceAttribute() : backAttrSave(1, 1, 1)
+vsShadingAttribute::vsShadingAttribute() : shadeAttrSave(1, 1, 1)
 {
-    backfaceVal = 0;
-    
+    shadeVal = VS_SHADING_GOURAUD;
+
     saveCount = 0;
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
-// Constructor - Initializes backfacing to the given value
+// Constructor - Initializes shading to the given value
 // ------------------------------------------------------------------------
-vsBackfaceAttribute::vsBackfaceAttribute(int initVal) : backAttrSave(1, 1, 1)
+vsShadingAttribute::vsShadingAttribute(int performerShading)
+    : shadeAttrSave(1, 1, 1)
 {
-    backfaceVal = initVal;
+    if (performerShading == PFSM_FLAT)
+        shadeVal = VS_SHADING_FLAT;
+    else
+        shadeVal = VS_SHADING_GOURAUD;
 
     attachedFlag = 1;
     saveCount = 0;
@@ -31,107 +34,92 @@ vsBackfaceAttribute::vsBackfaceAttribute(int initVal) : backAttrSave(1, 1, 1)
 // ------------------------------------------------------------------------
 // Destructor
 // ------------------------------------------------------------------------
-vsBackfaceAttribute::~vsBackfaceAttribute()
+vsShadingAttribute::~vsShadingAttribute()
 {
 }
 
 // ------------------------------------------------------------------------
 // Retrieves the type of this attribute
 // ------------------------------------------------------------------------
-int vsBackfaceAttribute::getAttributeType()
+int vsShadingAttribute::getAttributeType()
 {
-    return VS_ATTRIBUTE_TYPE_BACKFACE;
+    return VS_ATTRIBUTE_TYPE_SHADING;
 }
 
 // ------------------------------------------------------------------------
 // Retrieves the category of this attribute
 // ------------------------------------------------------------------------
-int vsBackfaceAttribute::getAttributeCategory()
+int vsShadingAttribute::getAttributeCategory()
 {
     return VS_ATTRIBUTE_CATEGORY_STATE;
 }
 
 // ------------------------------------------------------------------------
-// Enables backfacing
+// Sets the shading mode
 // ------------------------------------------------------------------------
-void vsBackfaceAttribute::enable()
+void vsShadingAttribute::setShading(int shadingMode)
 {
-    backfaceVal = 1;
+    shadeVal = shadingMode;
 }
 
 // ------------------------------------------------------------------------
-// Disables backfacing
+// Retrieves the shading mode
 // ------------------------------------------------------------------------
-void vsBackfaceAttribute::disable()
+int vsShadingAttribute::getShading()
 {
-    backfaceVal = 0;
-}
-
-// ------------------------------------------------------------------------
-// Retrieves a flag stating if backfacing is enabled
-// ------------------------------------------------------------------------
-int vsBackfaceAttribute::isEnabled()
-{
-    return backfaceVal;
+    return shadeVal;
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
 // Saves the current attribute
 // ------------------------------------------------------------------------
-void vsBackfaceAttribute::saveCurrent()
+void vsShadingAttribute::saveCurrent()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
-    backAttrSave[saveCount++] = gState->getBackface();
+    shadeAttrSave[saveCount++] = gState->getShading();
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
 // Sets the current attribute to this one
 // ------------------------------------------------------------------------
-void vsBackfaceAttribute::apply()
+void vsShadingAttribute::apply()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
-    gState->setBackface(this);
+    gState->setShading(this);
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
 // Restores the current attribute to the last saved one
 // ------------------------------------------------------------------------
-void vsBackfaceAttribute::restoreSaved()
+void vsShadingAttribute::restoreSaved()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
-    gState->setBackface((vsBackfaceAttribute *)(backAttrSave[--saveCount]));
+    gState->setShading((vsShadingAttribute *)(shadeAttrSave[--saveCount]));
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
 // Applies the settings in this attribute to the graphics library
 // ------------------------------------------------------------------------
-void vsBackfaceAttribute::setState()
+void vsShadingAttribute::setState()
 {
-    if (backfaceVal)
-    {
-        pfCullFace(PFCF_OFF);
-        (pfGetCurLModel())->setTwoSide(PF_ON);
-    }
+    if (shadeVal == VS_SHADING_FLAT)
+        pfShadeModel(PFSM_FLAT);
     else
-    {
-        pfCullFace(PFCF_BACK);
-        (pfGetCurLModel())->setTwoSide(PF_OFF);
-    }
+        pfShadeModel(PFSM_GOURAUD);
 }
 
 // ------------------------------------------------------------------------
 // static VESS internal function
-// Applies default backface settings to the graphics library
+// Applies default shading settings to the graphics library
 // ------------------------------------------------------------------------
-void vsBackfaceAttribute::setDefault()
+void vsShadingAttribute::setDefault()
 {
-    pfCullFace(PFCF_BACK);
-    (pfGetCurLModel())->setTwoSide(PF_OFF);
+    pfShadeModel(PFSM_GOURAUD);
 }

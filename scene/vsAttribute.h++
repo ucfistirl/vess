@@ -3,14 +3,11 @@
 #ifndef VS_ATTRIBUTE_HPP
 #define VS_ATTRIBUTE_HPP
 
-class vsAttribute;
-class vsNode;
-
 #include <stdlib.h>
-#include <string.h>
-#include <Performer/pr.h>
-#include <Performer/pr/pfMemory.h>
-#include "vsAttributeList.h++"
+#include "vsGlobals.h++"
+
+//#include "vsNode.h++"
+class vsNode;
 
 #define VS_ATTRIBUTE_NAME_MAX_LENGTH    80
 
@@ -27,7 +24,18 @@ enum vsAttributeType
     VS_ATTRIBUTE_TYPE_TRANSPARENCY,
     VS_ATTRIBUTE_TYPE_BILLBOARD,
     VS_ATTRIBUTE_TYPE_VIEWPOINT,
-    VS_ATTRIBUTE_TYPE_BACKFACE
+    VS_ATTRIBUTE_TYPE_BACKFACE,
+    VS_ATTRIBUTE_TYPE_DECAL,
+    VS_ATTRIBUTE_TYPE_SHADING
+};
+
+enum vsAttributeCategory
+{
+    VS_ATTRIBUTE_CATEGORY_STATE,
+    VS_ATTRIBUTE_CATEGORY_GROUPING,
+    VS_ATTRIBUTE_CATEGORY_XFORM,
+    VS_ATTRIBUTE_CATEGORY_CONTAINER,
+    VS_ATTRIBUTE_CATEGORY_OTHER
 };
 
 class vsAttribute
@@ -40,13 +48,14 @@ protected:
 
 VS_INTERNAL:
 
-    int             isAttached();
+    virtual int     canAttach();
     virtual void    attach(vsNode *theNode);
     virtual void    detach(vsNode *theNode);
 
     virtual void    saveCurrent();
     virtual void    apply();
     virtual void    restoreSaved();
+    virtual void    setState();
 
 public:
 
@@ -57,6 +66,9 @@ public:
     virtual        ~vsAttribute();
 
     virtual int    getAttributeType() = 0;
+    virtual int    getAttributeCategory() = 0;
+
+    int            isAttached();
 
     void           setName(char *newName);
     const char     *getName();

@@ -4,8 +4,8 @@
 #define VS_FOG_ATTRIBUTE_HPP
 
 #include <Performer/pr/pfFog.h>
-#include "vsSystem.h++"
 #include "vsAttribute.h++"
+#include "vsGrowableArray.h++"
 
 enum vsFogEquationType
 {
@@ -18,8 +18,10 @@ class vsFogAttribute : public vsAttribute
 {
 private:
 
-    pfFog       *performerFog;
-    pfFog       *savedFog;
+    pfFog              *performerFog;
+
+    vsGrowableArray    savedFog;
+    int                saveCount;
 
 VS_INTERNAL:
 
@@ -28,6 +30,7 @@ VS_INTERNAL:
     virtual void    saveCurrent();
     virtual void    apply();
     virtual void    restoreSaved();
+    virtual void    setState();
 
 public:
 
@@ -35,7 +38,8 @@ public:
                    ~vsFogAttribute();
 
     virtual int    getAttributeType();
-    
+    virtual int    getAttributeCategory();
+
     void           setEquationType(int equType);
     int            getEquationType();
     
