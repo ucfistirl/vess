@@ -4,23 +4,28 @@
 // Motion model for walking action.  The user walks in place to move the
 // viewpoint and/or avatar forward.  Takes three motion trackers, one mounted
 // on the back to determine heading, and one mounted on each foot or ankle.
+// Intended to be used with a vsKinematics object with inertia disabled.
 
 #include "vsMotionModel.h++"
 #include "vsMotionTracker.h++"
 #include "vsKinematics.h++"
 
 // Threshold values (in tracker units)
-#define VS_WIP_DEFAULT_FWD_THRESH 6.0
-#define VS_WIP_DEFAULT_BCK_THRESH 12.0
-#define VS_WIP_DEFAULT_SS_THRESH  2.0
+#define VS_WIP_DEFAULT_FWD_THRESH  6.0
+#define VS_WIP_DEFAULT_BCK_THRESH  12.0
+#define VS_WIP_DEFAULT_SS_THRESH   -1.0
 
 // Movement speeds (in database units)
-#define VS_WIP_DEFAULT_FWD_SPD    1.95
-#define VS_WIP_DEFAULT_BCK_SPD    1.95
-#define VS_WIP_DEFAULT_SS_SPD     1.95
+#define VS_WIP_DEFAULT_FWD_SPD     1.95
+#define VS_WIP_DEFAULT_BCK_SPD     1.95
+#define VS_WIP_DEFAULT_SS_SPD      1.95
 
 // Maximum movement distance (in database units)
-#define VS_WIP_DEFAULT_ALLOWANCE  2.0
+#define VS_WIP_DEFAULT_ALLOWANCE   2.0
+
+// Default state of the movementLimited flag (VS_TRUE means movement is 
+// limited by the distance in maxAllowance)
+#define VS_WIP_DEFAULT_LIMIT_STATE VS_TRUE
 
 class vsWalkInPlace : public vsMotionModel
 {
@@ -58,15 +63,21 @@ protected:
     // Remaining distance allowed for this step
     double             moveAllowance;
 
+    // Flag to indicate whether movement allowance is enabled or not
+    int                movementLimited;
+
 public: 
 
+    // Constructor
                     vsWalkInPlace(vsMotionTracker *back, 
                                   vsMotionTracker *left, 
                                   vsMotionTracker *right,
                                   vsKinematics *kin);
 
+    // Destructor
                     ~vsWalkInPlace();
 
+    // Methods to enable/disable the various forms of motion
     void            enableForward();
     void            enableBackward();
     void            enableSideStep();
@@ -74,22 +85,29 @@ public:
     void            disableBackward();
     void            disableSideStep();
 
+    // Speed accessors
     double          getForwardSpeed();
     double          getBackwardSpeed();
     double          getSideStepSpeed();
-
     void            setForwardSpeed(double unitsPerSec);
     void            setBackwardSpeed(double unitsPerSec);
     void            setSideStepSpeed(double unitsPerSec);
 
+    // Threshold accessors
     double          getForwardThreshold();
     double          getBackwardThreshold();
     double          getSideStepThreshold();
-
     void            setForwardThreshold(double distance);
     void            setBackwardThreshold(double distance);
     void            setSideStepThreshold(double distance);
 
+    // Movement limit accessors
+    double          getMovementAllowance();
+    void            setMovementAllowance(double distance);
+    void            enableMovementLimit();
+    void            disableMovementLimit();
+
+    // Update method
     virtual void    update();
 };
 

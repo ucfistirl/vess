@@ -17,9 +17,6 @@ vsHeadMotion::vsHeadMotion(vsMotionTracker *back, vsMotionTracker *head,
             "tracker(s) specified!\n");
     }
 
-    positionEnabled = VS_TRUE;
-    orientationEnabled = VS_TRUE;
-    
     orientationOffset.set(0.0, 0.0, 0.0, 1.0);
 
     resetBack.set(0.0, 0.0, 0.0, 1.0);

@@ -1,6 +1,7 @@
 #include "vsDrivingMotion.h++"
 #include <stdio.h>
 #include "vsMatrix.h++"
+#include "vsSystem.h++"
 
 // ------------------------------------------------------------------------
 // Constructs a driving motion model using the given input axes
@@ -25,7 +26,8 @@ vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis,
 
     accelerationRate = VS_DM_DEFAULT_ACCEL_RATE;
     steeringRate = VS_DM_DEFAULT_STEER_RATE;
-    maxVelocity = VS_DM_DEFAULT_MAX_VELOCITY;
+    maxSpeed = VS_DM_DEFAULT_MAX_SPEED;
+    currentSpeed = 0.0;
     
     throttleMode = VS_DM_DEFAULT_THROTTLE_MODE;
     steeringMode = VS_DM_DEFAULT_STEERING_MODE;
@@ -59,7 +61,8 @@ vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis,
 
     accelerationRate = VS_DM_DEFAULT_ACCEL_RATE;
     steeringRate = VS_DM_DEFAULT_STEER_RATE;
-    maxVelocity = VS_DM_DEFAULT_MAX_VELOCITY;
+    maxSpeed = VS_DM_DEFAULT_MAX_SPEED;
+    currentSpeed = 0.0;
     
     throttleMode = VS_DM_DEFAULT_THROTTLE_MODE;
     steeringMode = VS_DM_DEFAULT_STEERING_MODE;
@@ -86,7 +89,8 @@ vsDrivingMotion::vsDrivingMotion(vsMouse *mouse, vsKinematics *kin)
 
     accelerationRate = VS_DM_DEFAULT_ACCEL_RATE;
     steeringRate = VS_DM_DEFAULT_STEER_RATE;
-    maxVelocity = VS_DM_DEFAULT_MAX_VELOCITY;
+    maxSpeed = VS_DM_DEFAULT_MAX_SPEED;
+    currentSpeed = 0.0;
     
     throttleMode = VS_DM_DEFAULT_THROTTLE_MODE;
     steeringMode = VS_DM_DEFAULT_STEERING_MODE;
@@ -115,7 +119,8 @@ vsDrivingMotion::vsDrivingMotion(vsMouse *mouse, int accelButtonIndex,
 
     accelerationRate = VS_DM_DEFAULT_ACCEL_RATE;
     steeringRate = VS_DM_DEFAULT_STEER_RATE;
-    maxVelocity = VS_DM_DEFAULT_MAX_VELOCITY;
+    maxSpeed = VS_DM_DEFAULT_MAX_SPEED;
+    currentSpeed = 0.0;
     
     throttleMode = VS_DM_DEFAULT_THROTTLE_MODE;
     steeringMode = VS_DM_DEFAULT_STEERING_MODE;
@@ -163,17 +168,17 @@ void vsDrivingMotion::setAccelerationRate(double rate)
 // ------------------------------------------------------------------------
 // Returns the current maximum velocity
 // ------------------------------------------------------------------------
-double vsDrivingMotion::getMaxVelocity()
+double vsDrivingMotion::getMaxSpeed()
 {
-    return maxVelocity;
+    return maxSpeed;
 }
 
 // ------------------------------------------------------------------------
 // Changes the current maximum velocity
 // ------------------------------------------------------------------------
-void vsDrivingMotion::setMaxVelocity(double max)
+void vsDrivingMotion::setMaxSpeed(double max)
 {
-    maxVelocity = max;
+    maxSpeed = max;
 }
 
 // ------------------------------------------------------------------------
@@ -218,51 +223,33 @@ void vsDrivingMotion::update()
     vsVector            steeringAxis;
     vsVector            v;
     vsVector            tempV;
-    double              fwdVelocity;
     vsQuat              orn;
     vsQuat              inverseOrn;
     vsVector            dPos;
-    vsQuat              dOrn;
     vsMatrix            transMat, rotMat;
     vsMatrix            movement;
 
     // Get elapsed time
-    interval = getTimeInterval();
-
-    // Get the current rotation
-    orn = kinematics->getOrientation();
-
-    // Determine the steering axis
-    steeringAxis.set(0.0, 0.0, 1.0);
-    steeringAxis = orn.rotatePoint(steeringAxis);
-
-    // Determine the forward velocity component
-    v = kinematics->getVelocity();
-    inverseOrn = orn;
-    inverseOrn.conjugate();
-    tempV = inverseOrn.rotatePoint(v);
-    fwdVelocity = tempV[VS_Y];
+    interval = vsSystem::systemObject->getFrameTime();
 
     // Adjust heading according to the current axis mode
     if (steering != NULL)
     {
         if (steeringMode == VS_DM_STEER_RELATIVE)
         {
-            dHeading = -(steering->getPosition()) * 45.0 * interval * 
-                fwdVelocity;
+            dHeading = -(steering->getPosition()) * 45.0 * currentSpeed;
         }
         else
         {
-            dHeading = -(steering->getPosition()) * steeringRate * interval;
+            dHeading = -(steering->getPosition()) * steeringRate;
         }
     }
 
-    // Update the orientation
-    dOrn.setAxisAngleRotation(steeringAxis[VS_X], steeringAxis[VS_Y],
-        steeringAxis[VS_Z], dHeading);
-    kinematics->preModifyOrientation(dOrn);
+    // Update the angular velocity
+    steeringAxis.set(0, 0, 1);
+    kinematics->modifyAngularVelocity(steeringAxis, dHeading);
 
-    // Get the new orientation
+    // Get the current orientation
     orn = kinematics->getOrientation();
 
     // Handle the throttle axis
@@ -270,12 +257,12 @@ void vsDrivingMotion::update()
     {
         if (throttleMode == VS_DM_THROTTLE_ACCELERATION)
         {
-            fwdVelocity += throttle->getPosition() * accelerationRate *
+            currentSpeed += throttle->getPosition() * accelerationRate *
                 interval;
         }
         else
         {
-            fwdVelocity = throttle->getPosition() * maxVelocity;
+            currentSpeed = throttle->getPosition() * maxSpeed;
         }
     }
 
@@ -284,17 +271,17 @@ void vsDrivingMotion::update()
     {
         if (throttleMode == VS_DM_THROTTLE_ACCELERATION)
         {
-            fwdVelocity += accelerationRate * interval;
+            currentSpeed += accelerationRate * interval;
         }
         else
         {
             if ((decelButton != NULL) && (decelButton->isPressed()))
             {
-                fwdVelocity = 0;
+                currentSpeed = 0;
             }
             else
             {
-                fwdVelocity = maxVelocity;
+                currentSpeed = maxSpeed;
             }
         }
     }
@@ -303,39 +290,39 @@ void vsDrivingMotion::update()
     {
         if (throttleMode == VS_DM_THROTTLE_ACCELERATION)
         {
-            fwdVelocity -= accelerationRate * interval;
+            currentSpeed -= accelerationRate * interval;
         }
         else
         {
             if ((accelButton != NULL) && (accelButton->isPressed()))
             {
-                fwdVelocity = 0;
+                currentSpeed = 0;
             }
             else
             {
-                fwdVelocity = -maxVelocity;
+                currentSpeed = -maxSpeed;
             }
         }
     }
 
     if ((stopButton != NULL) && (stopButton->isPressed()))
     {
-        fwdVelocity = 0;
+        currentSpeed = 0;
     }
 
     // Clamp the velocity to the maximum velocity
-    if (fwdVelocity > maxVelocity)
+    if (currentSpeed > maxSpeed)
     {
-        fwdVelocity = maxVelocity;
+        currentSpeed = maxSpeed;
     }
 
-    if (fwdVelocity < -maxVelocity)
+    if (currentSpeed < -maxSpeed)
     {
-        fwdVelocity = -maxVelocity;
+        currentSpeed = -maxSpeed;
     }
 
     // Factor in the adjusted velocity
-    tempV[VS_Y] = fwdVelocity;
+    tempV[VS_Y] = currentSpeed;
     v = orn.rotatePoint(tempV);
 
     // Modify the kinematics velocity

@@ -12,48 +12,64 @@ class vsKinematics
 {
 private:
 
+    // Associated component and transform attribute
     vsComponent             *component;
     vsTransformAttribute    *transform;
 
+    // Current physical state
     vsVector		    position;
     vsQuat		    orientation;
 
     vsVector                velocity;
     vsVector	            angularVelocity;
-    
-    double		    lastTime;
 
+    // Inertia on or off
+    int                     inertia;
+    
 public:
 
+    // Constructor/destructor
 		   vsKinematics(vsComponent *theComponent);
 		   ~vsKinematics();
 
+    // Turns inertia on or off.  When inertia is on, the velocities
+    // are preserved between frames.  When off, the velocities are
+    // set to zero at the beginning of each frame.
+    void           enableInertia();
+    void           disableInertia();
+
+    // Adjust the current position
     void	   setPosition(vsVector newPosition);
     vsVector       getPosition();
     void	   modifyPosition(vsVector deltaPosition);
 
+    // Adjust the current orientation
     void	   setOrientation(vsQuat newOrientation);
     vsQuat	   getOrientation();
     void	   preModifyOrientation(vsQuat deltaOrientation);
     void	   postModifyOrientation(vsQuat deltaOrientation);
 
+    // Adjust the current linear velocity
     void	   setVelocity(vsVector newVelocity);
     vsVector       getVelocity();
     void	   modifyVelocity(vsVector deltaVelocity);
 
+    // Adjust the current angular velocity
     void	   setAngularVelocity(vsVector rotAxis, double degreesPerSec);
     vsVector	   getAngularVelocity();
-    void	   modifyAngularVelocity(vsVector rotAxis, double degreesPerSec);
+    void	   modifyAngularVelocity(vsVector rotAxis, 
+                                         double degreesPerSec);
 
+    // Adjust the center of mass for rotational purposes
     void	   setCenterOfMass(vsVector newCenter);
     vsVector	   getCenterOfMass();
 
+    // Return the associated vsComponent object
     vsComponent    *getComponent();
 
+    // Compute new position/orientation based on current velocities and
+    // elapsed time
     void	   update();
-
-    void	   reset();
-    void	   resetTimer();
 };
 
 #endif

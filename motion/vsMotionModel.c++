@@ -6,8 +6,6 @@
 // ------------------------------------------------------------------------
 vsMotionModel::vsMotionModel()
 {
-    lastTime = 0.0;
-    getTimeInterval();
 }
 
 // ------------------------------------------------------------------------
@@ -22,24 +20,4 @@ vsMotionModel::~vsMotionModel()
 // ------------------------------------------------------------------------
 void vsMotionModel::reset()
 {
-    getTimeInterval();
-}
-
-// ------------------------------------------------------------------------
-// Returns the amount of time (in seconds) between now and the last time
-// this function was called
-// ------------------------------------------------------------------------
-double vsMotionModel::getTimeInterval()
-{
-    struct timeval tv;
-    double currentTime;
-    double deltaTime;
-
-    gettimeofday(&tv, NULL);
-
-    currentTime = tv.tv_sec + (tv.tv_usec / 1000000.0);
-    deltaTime = currentTime - lastTime;
-    lastTime = currentTime;
-
-    return deltaTime;
 }

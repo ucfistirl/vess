@@ -1,6 +1,7 @@
 #include "vsFlyingMotion.h++"
 #include <stdio.h>
 #include "vsMatrix.h++"
+#include "vsSystem.h++"
 
 // ------------------------------------------------------------------------
 // Constructs a flying motion model using a mouse and the default button
@@ -27,7 +28,7 @@ vsFlyingMotion::vsFlyingMotion(vsMouse *mouse, vsKinematics *kin)
 
     accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
-    maxVelocity = VS_FM_DEFAULT_MAX_VELOCITY;
+    maxSpeed = VS_FM_DEFAULT_MAX_SPEED;
 
     headingMode = VS_FM_DEFAULT_HEADING_MODE;
     pitchMode  = VS_FM_DEFAULT_PITCH_MODE;
@@ -60,7 +61,7 @@ vsFlyingMotion::vsFlyingMotion(vsMouse *mouse, int accelButtonIndex,
 
     accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
-    maxVelocity = VS_FM_DEFAULT_MAX_VELOCITY;
+    maxSpeed = VS_FM_DEFAULT_MAX_SPEED;
 
     headingMode = VS_FM_DEFAULT_HEADING_MODE;
     pitchMode  = VS_FM_DEFAULT_PITCH_MODE;
@@ -92,7 +93,7 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
 
     accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
-    maxVelocity = VS_FM_DEFAULT_MAX_VELOCITY;
+    maxSpeed = VS_FM_DEFAULT_MAX_SPEED;
 
     headingMode = VS_FM_DEFAULT_HEADING_MODE;
     pitchMode  = VS_FM_DEFAULT_PITCH_MODE;
@@ -125,7 +126,7 @@ vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
 
     accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
     turningRate = VS_FM_DEFAULT_TURNING_RATE;
-    maxVelocity = VS_FM_DEFAULT_MAX_VELOCITY;
+    maxSpeed = VS_FM_DEFAULT_MAX_SPEED;
 
     headingMode = VS_FM_DEFAULT_HEADING_MODE;
     pitchMode  = VS_FM_DEFAULT_PITCH_MODE;
@@ -202,19 +203,19 @@ void vsFlyingMotion::setTurningRate(double newRate)
 }
 
 // ------------------------------------------------------------------------
-// Returns the current maximum velocity
+// Returns the current maximum forward velocity
 // ------------------------------------------------------------------------
-double vsFlyingMotion::getMaxVelocity()
+double vsFlyingMotion::getMaxSpeed()
 {
-    return maxVelocity;
+    return maxSpeed;
 }
 
 // ------------------------------------------------------------------------
-// Adjusts the maximum velocity
+// Adjusts the maximum forward velocity
 // ------------------------------------------------------------------------
-void vsFlyingMotion::setMaxVelocity(double newMax)
+void vsFlyingMotion::setMaxSpeed(double newMax)
 {
-    maxVelocity = newMax;
+    maxSpeed = newMax;
 }
 
 // ------------------------------------------------------------------------
@@ -223,31 +224,19 @@ void vsFlyingMotion::setMaxVelocity(double newMax)
 void vsFlyingMotion::update()
 {
     double              interval;
-    double              dHeading;
-    double              dPitch;
-    double              dSpeed;
-    vsVector            dPos;
+    double              dHeading, dPitch, dSpeed;
     vsQuat              orn, quat1, quat2;
     vsQuat              currentRot;
     double              h, p, r;
-    vsVector            v, dv;
-    double              newH, newP, newSpd;
-    vsMatrix            transMat, rotMat;
-    vsMatrix            movement;
+    vsVector            v;
+    double              newH, newP;
 
-    interval = getTimeInterval();
+    // Get the frame time from the vsSystem object
+    interval = vsSystem::systemObject->getFrameTime();
 
     // Get the current rotation
     currentRot = kinematics->getOrientation();   
     currentRot.getEulerRotation(VS_EULER_ANGLES_ZXY_R, &h, &p, &r);
-
-    // Get the current velocity
-    v = kinematics->getVelocity();
-
-    // "Unrotate" the current velocity by the current orientation
-    orn = currentRot;
-    orn.conjugate();
-    v = orn.rotatePoint(v);
 
     // Maintain the same heading and pitch, unless a control dictates
     // otherwise
@@ -295,35 +284,20 @@ void vsFlyingMotion::update()
     orn = quat1 * quat2;
     kinematics->setOrientation(orn);
 
-    // Now, "rerotate" the velocity to the new orientation.
-    // This will redirect the velocity by the same amount as the
-    // change in orientation.
-    v = orn.rotatePoint(v);
-
     // Get the new speed from the throttle axis
     if (throttleAxis != NULL)
     {
         if (throttleMode == VS_FM_MODE_INCREMENTAL)
         {
-            // Calculate a scalar speed adjustment
+            // Calculate a scalar speed adjustment and add it to the current
+            // speed
             dSpeed = throttleAxis->getPosition() * accelerationRate * interval;
-
-            // Compute a velocity adjustment vector from the speed 
-            // adjustment
-            dv.set(0.0, dSpeed, 0.0);
-            dv = orn.rotatePoint(dv);
-
-            // Add the velocity adjustment vector to the current velocity
-            // vector
-            v += dv;
+            currentSpeed += dSpeed;
         }
         else
         {
-            // Compute a new velocity vector directly from the axis value
-            // and current rotation
-            newSpd = throttleAxis->getPosition() * maxVelocity;
-            v.set(0.0, newSpd, 0.0);
-            v = orn.rotatePoint(v);
+            // Compute a new forward speed directly from the axis value
+            currentSpeed = throttleAxis->getPosition() * maxSpeed;
         }
     }
 
@@ -332,30 +306,22 @@ void vsFlyingMotion::update()
     {
         if (throttleMode == VS_FM_MODE_INCREMENTAL)
         {
-            // Calculate a scalar speed adjustment
+            // Calculate a scalar speed adjustment add add it to the current
+            // speed
             dSpeed = accelerationRate * interval;
-
-            // Compute a velocity adjustment vector from the speed 
-            // adjustment
-            dv.set(0.0, dSpeed, 0.0);
-            dv = orn.rotatePoint(dv);
-
-            // Add the velocity adjustment vector to the current velocity
-            // vector
-            v += dv;
+            currentSpeed += dSpeed;
         }
         else
         {
             if ((decelButton != NULL) && (decelButton->isPressed()))
             {
                 // If both buttons are pressed, treat as a stop
-                v.clear();
+                currentSpeed = 0.0;
             }
             else
             {
-                // Set velocity to max
-                v.set(0.0, maxVelocity, 0.0);
-                v = orn.rotatePoint(v);
+                // Set speed to max
+                currentSpeed = maxSpeed;
             }
         }
     }
@@ -364,51 +330,47 @@ void vsFlyingMotion::update()
     {
         if (throttleMode == VS_FM_MODE_INCREMENTAL)
         {
-            // Calculate a scalar speed adjustment
+            // Calculate a scalar speed adjustment and add it to the current
+            // speed
             dSpeed = -accelerationRate * interval;
-
-            // Compute a velocity adjustment vector from the speed 
-            // adjustment
-            dv.set(0.0, dSpeed, 0.0);
-            dv = orn.rotatePoint(dv);
-
-            // Add the velocity adjustment vector to the current velocity
-            // vector
-            v += dv;
+            currentSpeed += dSpeed;
         }
         else
         {
             if ((accelButton != NULL) && (accelButton->isPressed()))
             {
                 // If both buttons are pressed, treat as a stop
-                v.clear();
+                currentSpeed = 0.0;
             }
             else
             {
-                // Set velocity to negative max
-                v.set(0.0, maxVelocity, 0.0);
-                v = orn.rotatePoint(v);
+                // Set speed to negative max
+                currentSpeed = -maxSpeed;
             }
         }
     }
 
     if ((stopButton != NULL) && (stopButton->isPressed()))
     {
-        // Set velocity to zero
-        v.clear();
+        // Set speed to zero
+        currentSpeed = 0.0;
     }
 
-    // Clamp the velocity to maximum
-    if (v.getMagnitude() > maxVelocity)
+    // Clamp the velocity to maximum (or negative max)
+    if (currentSpeed > maxSpeed)
     {
-        v.normalize();
-        v.scale(maxVelocity);
+        currentSpeed = maxSpeed;
     }
+    if (currentSpeed < -maxSpeed)
+    {
+        currentSpeed = -maxSpeed;
+    }
+
+    // Calculate the current velocity vector from the current speed and
+    // orientation
+    v.set(0.0, currentSpeed, 0.0);
+    v = orn.rotatePoint(v);
 
     // Update the linear velocity
-    kinematics->setVelocity(v);
-
-    // Clear the angular velocity
-    v.clear();
-    kinematics->setAngularVelocity(v, 0.0);
+    kinematics->modifyVelocity(v);
 }

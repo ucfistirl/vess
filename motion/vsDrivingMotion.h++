@@ -8,6 +8,10 @@
 // velocity (controlled by the throttle, as in a regular car), or to change 
 // heading directly (as in a tracked vehicle such as a tank).  Throttle and
 // steering have separate scaling factors to scale the input values received.
+//
+// The vsKinematics object provided should have inertia disabled.  Should work 
+// well with other motion models on the same vsKinematics, provided the other
+// motion models don't require inertia.
 
 #include "vsMotionModel.h++"
 #include "vsKinematics.h++"
@@ -27,7 +31,7 @@ enum vsDMSteeringMode
 
 #define VS_DM_DEFAULT_ACCEL_RATE    20.0
 #define VS_DM_DEFAULT_STEER_RATE    50.0
-#define VS_DM_DEFAULT_MAX_VELOCITY  150.0
+#define VS_DM_DEFAULT_MAX_SPEED     150.0
 #define VS_DM_DEFAULT_THROTTLE_MODE VS_DM_THROTTLE_ACCELERATION
 #define VS_DM_DEFAULT_STEERING_MODE VS_DM_STEER_ABSOLUTE
 
@@ -47,7 +51,8 @@ protected:
 
      // Throttle parameters
      vsDMThrottleMode    throttleMode;
-     double              maxVelocity;
+     double              currentSpeed;
+     double              maxSpeed;
      double              accelerationRate;
      double              lastThrottleVal;
      
@@ -61,6 +66,8 @@ protected:
 
 public:
 
+    // Constructors (see the source file or documentation for and explanation
+    // of each form)
                         vsDrivingMotion(vsInputAxis *steeringAxis,
                                         vsInputAxis *throttleAxis,
                                         vsKinematics *kin);
@@ -79,20 +86,24 @@ public:
                                         int stopButtonIndex,
                                         vsKinematics *kin);
 
+    // Destructor
                         ~vsDrivingMotion();
 
+    // Throttle parameter accessors
     vsDMThrottleMode    getThrottleMode();
     void                setThrottleMode(vsDMThrottleMode mode);
     double              getAccelerationRate();
     void                setAccelerationRate(double rate);
-    double              getMaxVelocity();
-    void                setMaxVelocity(double max);
+    double              getMaxSpeed();
+    void                setMaxSpeed(double max);
 
+    // Steering parameter accessors
     vsDMSteeringMode    getSteeringMode();
     void                setSteeringMode(vsDMSteeringMode mode);
     double              getSteeringRate();
     void                setSteeringRate(double rate);
 
+    // Updates the motion model
     virtual void    update();
 };
 

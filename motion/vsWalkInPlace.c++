@@ -1,6 +1,7 @@
 #include "vsWalkInPlace.h++"
 #include <stdio.h>
 #include <math.h>
+#include "vsSystem.h++"
 
 // ------------------------------------------------------------------------
 // Constructor for vsWalkInPlace
@@ -35,6 +36,7 @@ vsWalkInPlace::vsWalkInPlace(vsMotionTracker *back, vsMotionTracker *left,
 
     maxAllowance = VS_WIP_DEFAULT_ALLOWANCE;
     moveAllowance = maxAllowance;
+    movementLimited = VS_WIP_DEFAULT_LIMIT_STATE;
     lastTrackerHeading = 0.0;
 }
 
@@ -190,6 +192,38 @@ void vsWalkInPlace::setSideStepThreshold(double threshold)
 }
 
 // ------------------------------------------------------------------------
+// Returns the movement allowance (the maximum allowed distance per step)
+// ------------------------------------------------------------------------
+double vsWalkInPlace::getMovementAllowance()
+{
+    return maxAllowance;
+}
+
+// ------------------------------------------------------------------------
+// Set the movement allowance
+// ------------------------------------------------------------------------
+void vsWalkInPlace::setMovementAllowance(double distance)
+{
+    maxAllowance = distance;
+}
+
+// ------------------------------------------------------------------------
+// Enables the movement allowance check
+// ------------------------------------------------------------------------
+void vsWalkInPlace::enableMovementLimit()
+{
+    movementLimited = VS_TRUE;
+}
+
+// ------------------------------------------------------------------------
+// Disables the movement allowance check
+// ------------------------------------------------------------------------
+void vsWalkInPlace::disableMovementLimit()
+{
+    movementLimited = VS_FALSE;
+}
+
+// ------------------------------------------------------------------------
 // Updates the motion model
 // ------------------------------------------------------------------------
 void vsWalkInPlace::update()
@@ -202,9 +236,9 @@ void vsWalkInPlace::update()
     vsVector             separationVec;
     double               deltaX, deltaY, deltaZ;
     double               deltaTime;
-    vsVector             transVec;
+    vsVector             v;
     int                  motionFlag;
-    double               moveDistance;
+    double               moveSpeed;
     vsQuat               currentOrientation;
 
     // Grab tracker data
@@ -231,29 +265,29 @@ void vsWalkInPlace::update()
     headingQuat.setAxisAngleRotation(0, 0, 1, deltaHeading);
 
     // Get the difference in time from last frame to this one
-    deltaTime = getTimeInterval();
+    deltaTime = vsSystem::systemObject->getFrameTime();
 
-    moveDistance = 0.0;
+    moveSpeed = 0.0;
     motionFlag = VS_FALSE;
-    transVec.setSize(3);
-    transVec.clear();
+    v.setSize(3);
+    v.clear();
 
     // Figure out what kind of motion we want
     if ((deltaX < sideStepThresh) && (sideStepAllowed))
     {
         // Feet are crossed, therefore sidestep motion
-        moveDistance = deltaTime * sideStepSpeed;
+        moveSpeed = sideStepSpeed;
 
         // Figure direction.  The the Y separation indicates the direction 
         // to travel, i.e if the right foot is in front of the left, we 
         // should sidestep left)
         if (deltaY < 0)
         {
-            transVec.set(moveDistance, 0.0, 0.0);
+            v.set(moveSpeed, 0.0, 0.0);
         }
         else
         {
-            transVec.set(-moveDistance, 0.0, 0.0);
+            v.set(-moveSpeed, 0.0, 0.0);
         }
 
         motionFlag = VS_TRUE;
@@ -261,40 +295,42 @@ void vsWalkInPlace::update()
     else if ((fabs(deltaY) > backwardThresh) && (backwardAllowed))
     {
         // Backward motion
-        moveDistance = deltaTime * backwardSpeed;
+        moveSpeed = backwardSpeed;
 
-        transVec.set(0.0, -moveDistance, 0.0);
+        v.set(0.0, -moveSpeed, 0.0);
 
         motionFlag = VS_TRUE;
     }
     else if ((fabs(deltaZ) > forwardThresh) && (forwardAllowed))
     {
         // Forward motion
-        moveDistance = deltaTime * forwardSpeed;
+        moveSpeed = forwardSpeed;
 
-        transVec.set(0.0, moveDistance, 0.0);
+        v.set(0.0, moveSpeed, 0.0);
 
         motionFlag = VS_TRUE;
     }
 
-    // Clamp the distance to travel to the movement allowance
-    if ((moveDistance > 0.0) && (moveDistance > moveAllowance))
+    if ((motionFlag) && (movementLimited))
     {
-        transVec.normalize();
-        transVec.scale(moveAllowance);
+        // Clamp the distance to travel to the movement allowance
+        if ((moveSpeed > 0.0) && ((moveSpeed * deltaTime) > moveAllowance))
+        {
+            v.normalize();
+            v.scale(moveAllowance);
 
-        moveAllowance = 0.0;
-    }
-
-    // Reset the movement allowance if we stop moving
-    if (!motionFlag)
-    {
-        moveAllowance = maxAllowance;
+            moveAllowance = 0.0;
+        }
+        else
+        {
+            if (moveAllowance > 0.0)
+                moveAllowance -= moveSpeed * deltaTime;
+        }
     }
     else
     {
-        if (moveAllowance > 0.0)
-            moveAllowance -= moveDistance;
+        // Reset the movement allowance if we stop moving
+        moveAllowance = maxAllowance;
     }
 
     // Modify the orientation
@@ -303,9 +339,9 @@ void vsWalkInPlace::update()
     // Extract the current orientation from the kinematics object
     currentOrientation = kinematics->getOrientation();
 
-    // Rotate the position adjustment to match the orientation
-    transVec = currentOrientation.rotatePoint(transVec);
+    // Rotate the velocity vector to match the orientation
+    v = currentOrientation.rotatePoint(v);
 
-    // Modify the position
-    kinematics->modifyPosition(transVec);
+    // Modify the velocity
+    kinematics->modifyVelocity(v);
 }

@@ -1,6 +1,7 @@
 #include "vsTrackballMotion.h++"
 #include <stdio.h>
 #include "vsMatrix.h++"
+#include "vsSystem.h++"
 
 // ------------------------------------------------------------------------
 // Constructs a trackball motion model using a mouse and the default button
@@ -91,11 +92,29 @@ vsTrackballMotion::~vsTrackballMotion()
 // ------------------------------------------------------------------------
 void vsTrackballMotion::update()
 {
+    double    interval;
+    vsVector  zero;
     vsVector  origin;
     vsVector  currentPos;
+    vsQuat    currentRot, invRot;
+    vsQuat    coordQuat;
     double    dHoriz, dVert;
-    vsQuat    rot1, rot2;
+    vsQuat    rot1, rot2, totalRot;
+    vsVector  rotAxis;
+    double    rotAngle;
     vsVector  dPos;
+
+    // Get the interval of elapsed time
+    interval = vsSystem::systemObject->getFrameTime();
+
+    // Make sure interval is valid
+    if (interval <= 0.0)
+        return;
+
+    // Get current values
+    currentRot = kinematics->getOrientation();
+    invRot = currentRot;
+    invRot.conjugate();
 
     // Next, get the amount of axis movement
     dHoriz = 0.0;
@@ -112,6 +131,16 @@ void vsTrackballMotion::update()
         lastVertical = vertical->getPosition();
     }
 
+    // If any button is pressed, set all velocities to zero
+    if (((transXZButton != NULL) && (transXZButton->isPressed())) ||
+        ((transYButton != NULL) && (transYButton->isPressed())) ||
+        ((rotButton != NULL) && (rotButton->isPressed())))
+    {
+        zero.set(0.0, 0.0, 0.0);
+        kinematics->setVelocity(zero);
+        kinematics->setAngularVelocity(zero, 0.0);
+    }
+
     // Next, calculate the amount of motion based on which button(s) 
     // is/are pressed
     if ((transXZButton != NULL) && (transXZButton->isPressed()))
@@ -120,7 +149,7 @@ void vsTrackballMotion::update()
         dPos.set(dHoriz * VS_TBM_TRANSLATE_CONST, 0.0, 
             -dVert * VS_TBM_TRANSLATE_CONST);
         
-        kinematics->modifyPosition(dPos);
+        kinematics->setVelocity(dPos.getScaled(1/interval));
     }
     else if ((rotButton != NULL) && (rotButton->isPressed()))
     {
@@ -132,7 +161,18 @@ void vsTrackballMotion::update()
             rot2.setAxisAngleRotation(0, 1, 0,
                 -dVert * VS_TBM_ROTATE_CONST);
 
-            kinematics->preModifyOrientation(rot2 * rot1);
+            // The total rotation
+            totalRot = rot2 * rot1;
+
+            // Transform the scene's local coordinate system to the viewpoint
+            // coordinate system
+            coordQuat = invRot * totalRot * currentRot;
+
+            coordQuat.getAxisAngleRotation(&rotAxis[VS_X], &rotAxis[VS_Y],
+                &rotAxis[VS_Z], &rotAngle);
+
+            // Divide the angle measurement by time to get a velocity
+            kinematics->setAngularVelocity(rotAxis, rotAngle / interval);
         }
         else
         {
@@ -142,7 +182,18 @@ void vsTrackballMotion::update()
             rot2.setAxisAngleRotation(1, 0, 0, 
                 dVert * VS_TBM_ROTATE_CONST);
 
-            kinematics->preModifyOrientation(rot2 * rot1);
+            // The total rotation
+            totalRot = rot2 * rot1;
+
+            // Transform the scene's local coordinate system to the viewpoint
+            // coordinate system
+            coordQuat = invRot * totalRot * currentRot;
+
+            coordQuat.getAxisAngleRotation(&rotAxis[VS_X], &rotAxis[VS_Y],
+                &rotAxis[VS_Z], &rotAngle);
+
+            // Divide the angle measurement by time to get a velocity
+            kinematics->setAngularVelocity(rotAxis, rotAngle / interval);
         }
     }
     else if ((transYButton != NULL) && (transYButton->isPressed()))
@@ -150,6 +201,6 @@ void vsTrackballMotion::update()
         // Translate in the Y direction
         dPos.set(0.0, -dVert * VS_TBM_TRANSLATE_CONST, 0.0);
 
-        kinematics->modifyPosition(dPos);
+        kinematics->setVelocity(dPos.getScaled(1/interval));
     }
 }

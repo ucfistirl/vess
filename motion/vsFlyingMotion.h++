@@ -4,10 +4,18 @@
 // Motion model for simple flying action (not true aerodynamic flying).  Takes 
 // either three axes (heading, pitch, and throttle), or two axes (heading 
 // and pitch) and up to three buttons (accelerate, decelerate, and stop)
+// Intended to provide a simple way to explore a scene with either mouse 
+// controls or a joystick.
 //
 // Note that the motion model expects the vsInputAxes it's given to be
 // normalized.  A warning message will be printed if they are not, and 
 // performace will not likely be what is expected.
+//
+// Also note that this motion model is exclusive.  It most likely will not
+// work well with other motion models on the same vsKinematics object, since it
+// eliminates any roll component incurred, and can possibly set the heading and
+// pitch absolutely.  The vsKinematics object provided should have inertia 
+// disabled.
 
 #include "vsMotionModel.h++"
 #include "vsMouse.h++"
@@ -15,6 +23,7 @@
 #include "vsInputButton.h++"
 #include "vsKinematics.h++"
 
+// Axis indices
 enum vsFlyingAxis
 {
     VS_FM_AXIS_HEADING  = 0,
@@ -22,6 +31,7 @@ enum vsFlyingAxis
     VS_FM_AXIS_THROTTLE = 2
 };
 
+// Axis modes
 enum vsFlyingAxisMode
 {
     VS_FM_MODE_INCREMENTAL = 0,
@@ -29,9 +39,10 @@ enum vsFlyingAxisMode
     VS_FM_MODE_NO_CHANGE   = -1
 };
 
+// Parameter defaults
 #define VS_FM_DEFAULT_ACCEL_RATE   20.0
 #define VS_FM_DEFAULT_TURNING_RATE 50.0
-#define VS_FM_DEFAULT_MAX_VELOCITY 50.0
+#define VS_FM_DEFAULT_MAX_SPEED    50.0
 
 #define VS_FM_DEFAULT_HEADING_MODE    VS_FM_MODE_INCREMENTAL
 #define VS_FM_DEFAULT_PITCH_MODE      VS_FM_MODE_ABSOLUTE
@@ -63,9 +74,13 @@ protected:
     // maximum or minimum position
     double              turningRate;
 
+    // Current forward velocity
+    double              currentSpeed;
+
     // Maximum forward velocity 
-    // (NOTE: overrides all other motion model input)
-    double              maxVelocity;
+    // (NOTE: overrides all other motion model input applied previous to
+    //        this one)
+    double              maxSpeed;
 
     // Mode settings for each axis
     vsFlyingAxisMode    headingMode, pitchMode, throttleMode;
@@ -73,6 +88,8 @@ protected:
 
 public:
 
+    // Constructors (see the source file or documentation for a description
+    // of each form)
                         vsFlyingMotion(vsMouse *mouse, vsKinematics *kin);
 
                         vsFlyingMotion(vsMouse *mouse, int accelButtonIndex,
@@ -92,8 +109,10 @@ public:
                                        vsInputButton *stopBtn,
                                        vsKinematics *kin);
 
+    // Destructor
                         ~vsFlyingMotion();
 
+    // Axis mode parameter accessors
     void                getAxisModes(vsFlyingAxisMode *heading,
                                      vsFlyingAxisMode *pitch,
                                      vsFlyingAxisMode *throttle);
@@ -101,13 +120,15 @@ public:
                                      vsFlyingAxisMode newPitchMode,
                                      vsFlyingAxisMode newThrottleMode);
 
+    // Motion parameter accessors
     double              getAccelerationRate();
     void                setAccelerationRate(double newRate);
     double              getTurningRate();
     void                setTurningRate(double newRate);
-    double              getMaxVelocity();
-    void                setMaxVelocity(double newMax);
+    double              getMaxSpeed();
+    void                setMaxSpeed(double newMax);
 
+    // Update function
     virtual void        update();
 };
 

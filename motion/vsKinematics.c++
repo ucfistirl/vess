@@ -1,8 +1,8 @@
 // File vsKinematics.c++
 
+#include "vsSystem.h++"
 #include "vsKinematics.h++"
 
-#include <sys/time.h>
 
 // ------------------------------------------------------------------------
 // Constructor - Verfies that there is a transform attribute on the
@@ -27,11 +27,18 @@ vsKinematics::vsKinematics(vsComponent *theComponent)
         component->addAttribute(transform);
     }
     
-    reset();
-    
+    // Initialize position/orientation from the vsTransformAttribute
     xform = transform->getDynamicTransform();
     position.set(xform[0][3], xform[1][3], xform[2][3]);
     orientation.setMatrixRotation(xform);
+
+    // Initialize velocities to zero
+    velocity.setSize(3);
+    velocity.clear();
+    angularVelocity.setSize(4);
+    angularVelocity.clear();
+
+    inertia = VS_FALSE;
 }
 
 // ------------------------------------------------------------------------
@@ -39,6 +46,22 @@ vsKinematics::vsKinematics(vsComponent *theComponent)
 // ------------------------------------------------------------------------
 vsKinematics::~vsKinematics()
 {
+}
+
+// ------------------------------------------------------------------------
+// Turns inertia on.  Velocities will be preserved between frames.
+// ------------------------------------------------------------------------
+void vsKinematics::enableInertia()
+{
+    inertia = VS_TRUE;
+}
+
+// ------------------------------------------------------------------------
+// Turns inertia off.  Velocities will zeroed before each frame.
+// ------------------------------------------------------------------------
+void vsKinematics::disableInertia()
+{
+    inertia = VS_FALSE;
 }
 
 // ------------------------------------------------------------------------
@@ -302,17 +325,20 @@ vsComponent *vsKinematics::getComponent()
 // ------------------------------------------------------------------------
 void vsKinematics::update()
 {
-    struct timeval tv;
-    double currentTime, deltaTime;
+    double deltaTime;
     vsQuat deltaOrient;
     double degrees;
 
+    vsVector ornVec;
+
     // Get the time elapsed since the last call
-    gettimeofday(&tv, NULL);
-    currentTime = (double)(tv.tv_sec) + ((double)(tv.tv_usec) / 1000000.0);
-    deltaTime = currentTime - lastTime;
-    lastTime = currentTime;
+    deltaTime = vsSystem::systemObject->getFrameTime();
+
+    // Make sure we have a valid deltaTime
+    if (deltaTime <= 0.0)
+        return;
     
+    // Maximum frame time of one second for motion purposes
     if (deltaTime > 1.0)
         deltaTime = 1.0;
 
@@ -324,28 +350,15 @@ void vsKinematics::update()
     deltaOrient.setAxisAngleRotation(angularVelocity[0], angularVelocity[1],
         angularVelocity[2], degrees);
     postModifyOrientation(deltaOrient);
-}
 
-// ------------------------------------------------------------------------
-// Resets the kinematics by setting all velocities to zero and resetting
-// the function timer
-// ------------------------------------------------------------------------
-void vsKinematics::reset()
-{
-    velocity.set(0.0, 0.0, 0.0);
-    angularVelocity.set(0.0, 0.0, 0.0, 0.0);
-    
-    resetTimer();
-}
+    orientation.getEulerRotation(VS_EULER_ANGLES_ZXY_R, &ornVec[VS_H],
+        &ornVec[VS_P], &ornVec[VS_R]);
 
-// ------------------------------------------------------------------------
-// Resets the function timer
-// ------------------------------------------------------------------------
-void vsKinematics::resetTimer()
-{
-    struct timeval tv;
+    // Clear velocities if in inertialess mode
+    if (!inertia)
+    {
+        velocity.clear();
+        angularVelocity.clear();
+    }
 
-    gettimeofday(&tv, NULL);
-    
-    lastTime = (double)(tv.tv_sec) + ((double)(tv.tv_usec) / 1000000.0);
 }

@@ -5,21 +5,16 @@
 
 class vsMotionModel
 {
-private:
-
-    // Time of day when this motion model was last updated
-    double      lastTime;
-
-protected:
-
-    // Returns time in seconds between calls to this function
-    double      getTimeInterval();
-
 public:
+
+    // Constructor/destructor
                         vsMotionModel();
     virtual             ~vsMotionModel();
 
+    // Update function.  Must be overridden by any concrete descendant.
     virtual void        update() = 0;
+
+    // Reset (calibration) function.  May be overridden, not required.
     virtual void        reset();
 };
 
