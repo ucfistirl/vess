@@ -635,6 +635,32 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
 }
 
 // ------------------------------------------------------------------------
+// Enables lighting on the scene. This is a recursive call, and will
+// pass through all geometry and components in the scene graph.
+// ------------------------------------------------------------------------
+void vsScene::enableLighting()
+{
+    // If the child is valid, enable lighting.
+    if(child != NULL)
+    {
+        child->enableLighting();
+    }
+}
+
+// ------------------------------------------------------------------------
+// Disables lighting on the scene. This is a recursive call, and will
+// pass through all geometry and components in the scene graph.
+// ------------------------------------------------------------------------
+void vsScene::disableLighting()
+{
+    // If the child is valid, disable lighting.
+    if(child != NULL)
+    {
+        child->disableLighting();
+    } 
+}
+
+// ------------------------------------------------------------------------
 // Enables culling on this node and its children
 // ------------------------------------------------------------------------
 void vsScene::enableCull()
