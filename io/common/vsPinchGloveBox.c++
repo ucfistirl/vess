@@ -113,7 +113,7 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
         usleep(1000);
         size = readPacket(buf, 100, VS_PG_RESPONSE_PACKET);
         buf[size] = 0;
-        printf("%s\n", &(char)buf[1]);
+        printf("%s\n", (char *)&(buf[1]));
         usleep(1000);
 
         // Left glove
@@ -126,7 +126,7 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
         usleep(1000);
         size = readPacket(buf, 100, VS_PG_RESPONSE_PACKET);
         buf[size] = 0;
-        printf("%s\n", &(char)buf[1]);
+        printf("%s\n", (char *)&(buf[1]));
         usleep(1000);
 
         // Right glove
@@ -139,7 +139,7 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
         usleep(1000);
         size = readPacket(buf, 100, VS_PG_RESPONSE_PACKET);
         buf[size] = 0;
-        printf("%s\n", &(char)buf[1]);
+        printf("%s\n", (char *)&(buf[1]));
         usleep(1000);
 
         // Create the gloves object and initialize it
