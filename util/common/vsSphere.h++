@@ -71,6 +71,7 @@ public:
     bool        isSphereInside(const vsSphere &sphere) const;
     bool        isSegIsect(const vsVector &segStart,
                            const vsVector &segEnd) const;
+    bool        isSphereIsect(const vsSphere &sphere) const;
 
     void        print() const;
     void        print(FILE *fp) const;

@@ -481,6 +481,31 @@ bool vsSphere::isSegIsect(const vsVector &segStart, const vsVector &segEnd)
 }
 
 //------------------------------------------------------------------------
+// Determines if the given sphere intersects this sphere. If this sphere
+// is empty, this function always returns false.
+//------------------------------------------------------------------------
+bool vsSphere::isSphereIsect(const vsSphere &sphere) const
+{
+    double dist;
+
+    // If this sphere is empty, return false
+    if (radius < 0.0)
+        return false;
+
+    // If the target sphere is empty, return false
+    if (sphere.getRadius() < 0.0)
+        return false;
+
+    // The target sphere intersects this sphere if the distance between the
+    // two spheres' centers is less than the sum of the two spheres' radii
+    dist = (center - sphere.getCenterPoint()).getMagnitude();
+    if (dist > (radius + sphere.getRadius()))
+        return false;
+
+    return true;
+}
+
+//------------------------------------------------------------------------
 // Prints a textual representation of this sphere to stdout
 //------------------------------------------------------------------------
 void vsSphere::print() const
@@ -773,10 +798,6 @@ vsSphere vsSphere::calcSphereAround(vsSphere *spheres, int sphereCount)
             b += (mvec[loop] * vvec[sloop] * dotMatrix[loop][sloop]);
             c += (vvec[loop] * vvec[sloop] * dotMatrix[loop][sloop]);
         }
-
-//    a = a - 1.0;
-//    b = -2.0 * (b - spheres[0].getRadius());
-//    c = c - VS_SQR(spheres[0].getRadius());
     a = 1.0 - a;
     b = -2.0 * (spheres[0].getRadius() - b);
     c = VS_SQR(spheres[0].getRadius()) - c;
