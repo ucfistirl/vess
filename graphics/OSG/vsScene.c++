@@ -61,23 +61,23 @@ vsScene::vsScene()
 vsScene::~vsScene()
 {
     int loop;
-
-    // Remove all children
-    deleteTree();
-
-    // Remove all attributes
-    deleteAttributes();
-
+ 
     // Remove any lights we may have in the lightList.
     for (loop = 0; loop < VS_LIGHT_MAX; loop++)
-    {       
+    {
         if (lightList[loop] != NULL)
         {
             lightList[loop]->setScene(NULL);
             lightList[loop] = NULL;
         }
     }
-    
+
+    // Remove all attributes
+    deleteAttributes();
+
+    // Remove all children
+    deleteTree();
+
     // Unreference the OSG Group we created
     osgGroup->unref();
 }
