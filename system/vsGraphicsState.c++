@@ -51,6 +51,13 @@ void vsGraphicsState::clearState()
     textureAttr = NULL;
     transparencyAttr = NULL;
     lightAttrCount = 0;
+
+    backfaceLock = NULL;
+    fogLock = NULL;
+    materialLock = NULL;
+    shadingLock = NULL;
+    textureLock = NULL;
+    transparencyLock = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -97,7 +104,8 @@ void vsGraphicsState::applyState(pfGeoState *state)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setBackface(vsBackfaceAttribute *newAttrib)
 {
-    backfaceAttr = newAttrib;
+    if (!backfaceLock)
+        backfaceAttr = newAttrib;
 }
 
 // ------------------------------------------------------------------------
@@ -105,7 +113,8 @@ void vsGraphicsState::setBackface(vsBackfaceAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setFog(vsFogAttribute *newAttrib)
 {
-    fogAttr = newAttrib;
+    if (!fogLock)
+        fogAttr = newAttrib;
 }
 
 // ------------------------------------------------------------------------
@@ -113,7 +122,8 @@ void vsGraphicsState::setFog(vsFogAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setMaterial(vsMaterialAttribute *newAttrib)
 {
-    materialAttr = newAttrib;
+    if (!materialLock)
+        materialAttr = newAttrib;
 }
 
 // ------------------------------------------------------------------------
@@ -121,7 +131,8 @@ void vsGraphicsState::setMaterial(vsMaterialAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setShading(vsShadingAttribute *newAttrib)
 {
-    shadingAttr = newAttrib;
+    if (!shadingLock)
+        shadingAttr = newAttrib;
 }
 
 // ------------------------------------------------------------------------
@@ -129,7 +140,8 @@ void vsGraphicsState::setShading(vsShadingAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setTexture(vsTextureAttribute *newAttrib)
 {
-    textureAttr = newAttrib;
+    if (!textureLock)
+        textureAttr = newAttrib;
 }
 
 // ------------------------------------------------------------------------
@@ -137,7 +149,8 @@ void vsGraphicsState::setTexture(vsTextureAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setTransparency(vsTransparencyAttribute *newAttrib)
 {
-    transparencyAttr = newAttrib;
+    if (!transparencyLock)
+        transparencyAttr = newAttrib;
 }
 
 // ------------------------------------------------------------------------
@@ -228,6 +241,138 @@ vsLightAttribute *vsGraphicsState::getLight(int index)
 int vsGraphicsState::getLightCount()
 {
     return lightAttrCount;
+}
+
+// ------------------------------------------------------------------------
+// Locks the current backface attribute, using the given address as a
+// 'key'. The backface attribute cannot be changed again until it is
+// unlocked with this key address.
+// ------------------------------------------------------------------------
+void vsGraphicsState::lockBackface(void *lockAddr)
+{
+    if (!backfaceLock)
+        backfaceLock = lockAddr;
+}
+
+// ------------------------------------------------------------------------
+// Locks the current fog attribute, using the given address as a
+// 'key'. The fog attribute cannot be changed again until it is
+// unlocked with this key address.
+// ------------------------------------------------------------------------
+void vsGraphicsState::lockFog(void *lockAddr)
+{
+    if (!fogLock)
+        fogLock = lockAddr;
+}
+
+// ------------------------------------------------------------------------
+// Locks the current material attribute, using the given address as a
+// 'key'. The material attribute cannot be changed again until it is
+// unlocked with this key address.
+// ------------------------------------------------------------------------
+void vsGraphicsState::lockMaterial(void *lockAddr)
+{
+    if (!materialLock)
+        materialLock = lockAddr;
+}
+
+// ------------------------------------------------------------------------
+// Locks the current shading attribute, using the given address as a
+// 'key'. The shading attribute cannot be changed again until it is
+// unlocked with this key address.
+// ------------------------------------------------------------------------
+void vsGraphicsState::lockShading(void *lockAddr)
+{
+    if (!shadingLock)
+        shadingLock = lockAddr;
+}
+
+// ------------------------------------------------------------------------
+// Locks the current texture attribute, using the given address as a
+// 'key'. The texture attribute cannot be changed again until it is
+// unlocked with this key address.
+// ------------------------------------------------------------------------
+void vsGraphicsState::lockTexture(void *lockAddr)
+{
+    if (!textureLock)
+        textureLock = lockAddr;
+}
+
+// ------------------------------------------------------------------------
+// Locks the current transparency attribute, using the given address as a
+// 'key'. The transparency attribute cannot be changed again until it is
+// unlocked with this key address.
+// ------------------------------------------------------------------------
+void vsGraphicsState::lockTransparency(void *lockAddr)
+{
+    if (!transparencyLock)
+        transparencyLock = lockAddr;
+}
+
+// ------------------------------------------------------------------------
+// Unlocks the current backface attribute, using the given address as a
+// 'key'; this key must match the key that the attribute was locked with or
+// the function will not work.
+// ------------------------------------------------------------------------
+void vsGraphicsState::unlockBackface(void *lockAddr)
+{
+    if (backfaceLock == lockAddr)
+        backfaceLock = NULL;
+}
+
+// ------------------------------------------------------------------------
+// Unlocks the current fog attribute, using the given address as a
+// 'key'; this key must match the key that the attribute was locked with or
+// the function will not work.
+// ------------------------------------------------------------------------
+void vsGraphicsState::unlockFog(void *lockAddr)
+{
+    if (fogLock == lockAddr)
+        fogLock = NULL;
+}
+
+// ------------------------------------------------------------------------
+// Unlocks the current material attribute, using the given address as a
+// 'key'; this key must match the key that the attribute was locked with or
+// the function will not work.
+// ------------------------------------------------------------------------
+void vsGraphicsState::unlockMaterial(void *lockAddr)
+{
+    if (materialLock == lockAddr)
+        materialLock = NULL;
+}
+
+// ------------------------------------------------------------------------
+// Unlocks the current shading attribute, using the given address as a
+// 'key'; this key must match the key that the attribute was locked with or
+// the function will not work.
+// ------------------------------------------------------------------------
+void vsGraphicsState::unlockShading(void *lockAddr)
+{
+    if (shadingLock == lockAddr)
+        shadingLock = NULL;
+}
+
+// ------------------------------------------------------------------------
+// Unlocks the current texture attribute, using the given address as a
+// 'key'; this key must match the key that the attribute was locked with or
+// the function will not work.
+// ------------------------------------------------------------------------
+void vsGraphicsState::unlockTexture(void *lockAddr)
+{
+    if (textureLock == lockAddr)
+        textureLock = NULL;
+}
+
+// ------------------------------------------------------------------------
+// Unlocks the current transparency attribute, using the given address as a
+// 'key'; this key must match the key that the attribute was locked with or
+// the function will not work.
+// ------------------------------------------------------------------------
+void vsGraphicsState::unlockTransparency(void *lockAddr)
+{
+    if (transparencyLock == lockAddr)
+        transparencyLock = NULL;
 }
 
 // ------------------------------------------------------------------------

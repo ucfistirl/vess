@@ -45,6 +45,13 @@ private:
     
     vsGrowableArray            lightAttrList;
     int                        lightAttrCount;
+    
+    void                       *backfaceLock;
+    void                       *fogLock;
+    void                       *materialLock;
+    void                       *shadingLock;
+    void                       *textureLock;
+    void                       *transparencyLock;
 
 VS_INTERNAL:
 
@@ -76,6 +83,20 @@ public:
     
     vsLightAttribute           *getLight(int index);
     int                        getLightCount();
+    
+    void          lockBackface(void *lockAddr);
+    void          lockFog(void *lockAddr);
+    void          lockMaterial(void *lockAddr);
+    void          lockShading(void *lockAddr);
+    void          lockTexture(void *lockAddr);
+    void          lockTransparency(void *lockAddr);
+
+    void          unlockBackface(void *lockAddr);
+    void          unlockFog(void *lockAddr);
+    void          unlockMaterial(void *lockAddr);
+    void          unlockShading(void *lockAddr);
+    void          unlockTexture(void *lockAddr);
+    void          unlockTransparency(void *lockAddr);
 
     static int    isSameBackface(vsAttribute *firstAttr,
                                  vsAttribute *secondAttr);
