@@ -60,7 +60,6 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
     xmlValidCtxt              context;
     xmlDocPtr                 document;
     xmlNodePtr                current;
-    xmlNodePtr                currentMaterialChild;
     xmlAttrPtr                attribute;
     bool                      validVersion;
     bool                      validMagic;
@@ -368,7 +367,6 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
     vsSkinVertexData       *vertexData;
     vsSkinMaterialData     *materialData;
     char                   *tempString;
-    double                 x, y, z, w;
     int                    tx, ty, tz;
     int                    index;
     vsSkeletonMeshGeometry *resultMesh;
