@@ -46,6 +46,8 @@ public:
                       vsSoundSample(char *filename);
     virtual           ~vsSoundSample();
 
+    const char *      getClassName();
+
     ALuint            getBaseLibraryObject();
 };
 

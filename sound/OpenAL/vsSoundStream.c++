@@ -38,6 +38,14 @@ vsSoundStream::~vsSoundStream()
 }
 
 // ------------------------------------------------------------------------
+// Return this class' name
+// ------------------------------------------------------------------------
+const char * vsSoundStream::getClassName()
+{
+    return "vsSoundStream";
+}
+
+// ------------------------------------------------------------------------
 // VESS internal function -- Return the OpenAL id for the front buffer
 // ------------------------------------------------------------------------
 ALuint vsSoundStream::getFrontBufferID()

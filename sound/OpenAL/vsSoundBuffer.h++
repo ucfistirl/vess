@@ -23,12 +23,13 @@
 #define VS_SOUND_BUFFER_HPP
 
 #include "vsGlobals.h++"
+#include "vsObject.h++"
 
 // vsSoundSample and vsSoundStream are descendants of this class.
 // Does nothing but define the interface for use by vsSoundSourceAttribute
 // and other classes that might use sound buffers.
 
-class VS_SOUND_DLL vsSoundBuffer
+class VS_SOUND_DLL vsSoundBuffer : public vsObject
 {
 public:
 

@@ -76,6 +76,14 @@ vsSoundSample::~vsSoundSample()
 }
 
 // ------------------------------------------------------------------------
+// Return the name of this class
+// ------------------------------------------------------------------------
+const char * vsSoundSample::getClassName()
+{
+    return "vsSoundSample";
+}
+
+// ------------------------------------------------------------------------
 // VESS internal function -- Return the OpenAL id for this buffer
 // ------------------------------------------------------------------------
 ALuint vsSoundSample::getBufferID()
