@@ -42,6 +42,7 @@ vsShaderAttribute::vsShaderAttribute()
 }
 
 // ------------------------------------------------------------------------
+// Destructor, clear the parameter array and unreference created objects.
 // ------------------------------------------------------------------------
 vsShaderAttribute::~vsShaderAttribute()
 {
@@ -158,6 +159,8 @@ void vsShaderAttribute::detach(vsNode *node)
 }
 
 // ------------------------------------------------------------------------
+// Internal function
+// Attaches a duplicate of this attribute to the given node
 // ------------------------------------------------------------------------
 void vsShaderAttribute::attachDuplicate(vsNode *theNode)
 {
@@ -421,6 +424,8 @@ char *vsShaderAttribute::getFragmentSource()
 }
 
 // ------------------------------------------------------------------------
+// Set the local vertex parameter vector at the indicated index to given
+// values.  Unspecified values are set to 0.0.
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setVertexLocalParameter(int index, float x)
 {
@@ -452,6 +457,8 @@ void vsShaderAttribute::setVertexLocalParameter(int index, float x)
 }
 
 // ------------------------------------------------------------------------
+// Set the local vertex parameter vector at the indicated index to given
+// values.  Unspecified values are set to 0.0.
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y)
 {
@@ -483,6 +490,8 @@ void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y)
 }
 
 // ------------------------------------------------------------------------
+// Set the local vertex parameter vector at the indicated index to given
+// values.  Unspecified values are set to 0.0.
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y,
                                                 float z)
@@ -515,6 +524,8 @@ void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y,
 }
 
 // ------------------------------------------------------------------------
+// Set the local vertex parameter vector at the indicated index to given
+// values.  Unspecified values are set to 0.0.
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y,
                                                 float z, float w)
@@ -547,6 +558,8 @@ void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y,
 }
 
 // ------------------------------------------------------------------------
+// Set the local vertex parameter vector at the indicated index to given
+// values.  Unspecified values are set to 0.0.
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setVertexLocalParameter(int index,
                                                 const vsVector &value)
@@ -591,6 +604,8 @@ void vsShaderAttribute::setVertexLocalParameter(int index,
 }
 
 // ------------------------------------------------------------------------
+// Return a vsVector with the values currently set as the local vertex
+// parameter at the specified index.
 // ------------------------------------------------------------------------
 vsVector vsShaderAttribute::getVertexLocalParameter(int index)
 {
@@ -616,6 +631,8 @@ vsVector vsShaderAttribute::getVertexLocalParameter(int index)
 }
 
 // ------------------------------------------------------------------------
+// Set the local fragment parameter vector at the indicated index to given
+// values.  Unspecified values are set to 0.0.
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setFragmentLocalParameter(int index, float x)
 {
@@ -647,6 +664,8 @@ void vsShaderAttribute::setFragmentLocalParameter(int index, float x)
 }
 
 // ------------------------------------------------------------------------
+// Set the local fragment parameter vector at the indicated index to given
+// values.  Unspecified values are set to 0.0.
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y)
 {
@@ -678,6 +697,8 @@ void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y)
 }
 
 // ------------------------------------------------------------------------
+// Set the local fragment parameter vector at the indicated index to given
+// values.  Unspecified values are set to 0.0.
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y,
                                                   float z)
@@ -710,6 +731,8 @@ void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y,
 }
 
 // ------------------------------------------------------------------------
+// Set the local fragment parameter vector at the indicated index to given
+// values.  Unspecified values are set to 0.0.
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y,
                                                   float z, float w)
@@ -742,6 +765,8 @@ void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y,
 }
 
 // ------------------------------------------------------------------------
+// Set the local fragment parameter vector at the indicated index to given
+// values.  Unspecified values are set to 0.0.
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setFragmentLocalParameter(int index,
                                                   const vsVector &value)
@@ -786,6 +811,8 @@ void vsShaderAttribute::setFragmentLocalParameter(int index,
 }
 
 // ------------------------------------------------------------------------
+// Return a vsVector with the values currently set as the local fragment
+// parameter at the specified index.
 // ------------------------------------------------------------------------
 vsVector vsShaderAttribute::getFragmentLocalParameter(int index)
 {
