@@ -125,7 +125,7 @@ vsSystem::vsSystem(vsClusterConfig *config)
     systemObject = this;
     
     // Prepare the cluster master if appropriate
-    if(config && config->isValid())
+    if (config && config->isValid())
     {
         cluster = config;
         
@@ -135,7 +135,7 @@ vsSystem::vsSystem(vsClusterConfig *config)
         numSlaves = cluster->numSlaves();
         
         // Connect to each slave
-        for(i=0;i < numSlaves;i++)
+        for (i=0;i < numSlaves;i++)
         {   
             // Locate the slave
             slaveAddr = cluster->getSlave(i);
@@ -145,7 +145,7 @@ vsSystem::vsSystem(vsClusterConfig *config)
             // Now try to connect
             slaves[i] = new vsTCPNetworkInterface(slaveName, 
                     VS_RI_DEFAULT_CONTROL_PORT);
-            while(slaves[i]->makeConnection() < 0);
+            while (slaves[i]->makeConnection() < 0);
             slaves[i]->disableBlocking();
         }
 
@@ -153,7 +153,7 @@ vsSystem::vsSystem(vsClusterConfig *config)
         isSlave = false;
     }
     // Prepare a cluster slave if appropriate
-    else if(config == NULL)
+    else if (config == NULL)
     {
         cluster = NULL;
         slaves = NULL;

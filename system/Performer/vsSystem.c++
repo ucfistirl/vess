@@ -148,7 +148,7 @@ vsSystem::vsSystem(vsClusterConfig *config)
         numSlaves = cluster->numSlaves();
 
         // Connect to each slave
-        for(i=0;i < numSlaves;i++)
+        for (i=0;i < numSlaves;i++)
         {
             //Locate the slave
             slaveAddr = cluster->getSlave(i);
@@ -166,7 +166,7 @@ vsSystem::vsSystem(vsClusterConfig *config)
         isSlave = false;
     }
     // Prepare a cluster slave if appropriate
-    else if(config == NULL)
+    else if (config == NULL)
     {
         cluster = NULL;
         slaves = NULL;
@@ -238,13 +238,13 @@ vsSystem::~vsSystem()
 #endif
     
     // Delete objects associated with cluster rendering
-    if(cluster)
+    if (cluster)
         delete cluster;
-    if(slaves)
+    if (slaves)
     {
-        for(i=0;i<numSlaves;i++)
+        for (i=0;i<numSlaves;i++)
         {
-            if(slaves[i])
+            if (slaves[i])
                 delete slaves[i];
         }
         free(slaves);
