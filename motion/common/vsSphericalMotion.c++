@@ -202,7 +202,7 @@ vsVector vsSphericalMotion::getTargetPoint()
 void vsSphericalMotion::setTargetComponent(vsComponent *targetCmp)
 {
     // Make sure the component exists
-    if (targetComp != NULL)
+    if (targetCmp != NULL)
     {
         // Set the target component and mode
         targetComp = targetCmp;
