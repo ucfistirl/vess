@@ -16,7 +16,7 @@
 //    Description:  Class that represents a portion of a window that has
 //                  a 3D image drawn into it by the rendering engine
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Casey Thurston
 //
 //------------------------------------------------------------------------
 
@@ -28,6 +28,7 @@
 
 class vsPane;
 
+#include "vsCallbackList.h++"
 #include "vsWindow.h++"
 #include "vsView.h++"
 #include "vsNode.h++"
@@ -77,6 +78,9 @@ private:
     pfChannel           *performerChannel;
     pfChannel           *stereoChannel;
 
+    vsCallbackList      *performerCallbackList;
+    vsCallbackList      *stereoCallbackList;
+
     double              eyeSeparation;
 
     pfEarthSky          *earthSky;
@@ -88,6 +92,8 @@ private:
     double              curProjHval, curProjVval;
 
     bool                statsEnabled;
+
+    int                 *glClearMask;
 
 VS_INTERNAL:
 
@@ -110,6 +116,9 @@ public:
     void                setScene(vsScene *newScene);
     vsScene             *getScene();
 
+    vsCallbackList      *getPerformerCallbackList();
+    vsCallbackList      *getStereoCallbackList();
+
     void                setSize(int width, int height);
     void                getSize(int *width, int *height);
     void                setPosition(int xPos, int yPos);
@@ -118,10 +127,7 @@ public:
 
     void                setBufferMode(vsPaneBufferMode newMode);
     vsPaneBufferMode    getBufferMode();
-    
-    void                setVisibilityMask(unsigned int newMask);
-    unsigned int        getVisibilityMask();
-
+ 
     void                showPane();
     void                hidePane();
 
