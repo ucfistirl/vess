@@ -22,10 +22,8 @@ LIBNAME = libvsInput.a
 #----------------------------------------------------------------------
 SRCS = \
        vs6DInputDevice.c++ \
-       vsArticulationGlove.c++ \
        vsAscensionSerialTrackingSystem.c++ \
        vsChordGloves.c++ \
-       vsCyberGloveBox.c++ \
        vsEthernetMotionStar.c++ \
        vsFastrak.c++ \
        vsFlockOfBirds.c++ \
@@ -55,10 +53,8 @@ SRCS = \
 
 OBJS = \
        vs6DInputDevice.o \
-       vsArticulationGlove.o \
        vsAscensionSerialTrackingSystem.o \
        vsChordGloves.o \
-       vsCyberGloveBox.o \
        vsEthernetMotionStar.o \
        vsFastrak.o \
        vsFlockOfBirds.o \
