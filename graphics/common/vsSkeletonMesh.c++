@@ -89,14 +89,14 @@ vsSkeletonMesh::~vsSkeletonMesh()
     // Unreference the skeleton object.
     skeleton->unref();
 
-    // Unreference and attempt to delete the root bone.
-    vsObject::unrefDelete(rootComponent);
-
     // Unreference all the mesh geometry nodes.
     for (index = 0; index < subMeshCount; index++)
     {
         ((vsSkeletonMeshGeometry *) meshList->getData(index))->unref();
     }
+
+    // Unreference and attempt to delete the root bone.
+    vsObject::unrefDelete(rootComponent);
 
     // Belete the vsGrowableArray.
     delete meshList;
