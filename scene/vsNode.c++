@@ -137,6 +137,7 @@ void vsNode::addAttribute(vsAttribute *newAttribute)
 {
     attributeList[attributeCount] = newAttribute;
     attributeCount++;
+    newAttribute->ref();
 
     newAttribute->attach(this);
 }
@@ -149,16 +150,21 @@ void vsNode::removeAttribute(vsAttribute *targetAttribute)
 {
     int loop, sloop;
 
-    targetAttribute->detach(this);
-
     for (loop = 0; loop < attributeCount; loop++)
         if (attributeList[loop] == targetAttribute)
         {
+            targetAttribute->detach(this);
+            
             for (sloop = loop; sloop < attributeCount-1; sloop++)
                 attributeList[sloop] = attributeList[sloop+1];
             attributeCount--;
+            targetAttribute->unref();
+            
             return;
         }
+
+    printf("vsNode::removeAttribute: Specified attribute isn't part of "
+        "this node\n");
 }
 
 // ------------------------------------------------------------------------

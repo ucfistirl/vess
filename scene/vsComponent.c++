@@ -105,6 +105,7 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
             this, nameDirectory);
 
         attributeList[attributeCount++] = xformAttrib;
+        xformAttrib->ref();
         
         while (currentNode->isOfType(pfSCS::getClassType()))
         {
@@ -158,6 +159,7 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
             // Switch attribute
             switchAttrib = new vsSwitchAttribute((pfSwitch *)currentNode);
             attributeList[attributeCount++] = switchAttrib;
+            switchAttrib->ref();
             bottomGroup = (pfGroup *)currentNode;
         }
         else if (currentNode->isOfType(pfSequence::getClassType()))
@@ -165,6 +167,7 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
             // Sequence attribute
             seqAttrib = new vsSequenceAttribute((pfSequence *)currentNode);
             attributeList[attributeCount++] = seqAttrib;
+            seqAttrib->ref();
             bottomGroup = (pfGroup *)currentNode;
         }
         else if (currentNode->isOfType(pfLOD::getClassType()))
@@ -172,6 +175,7 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
             // LOD attribute
             detailAttrib = new vsLODAttribute((pfLOD *)currentNode);
             attributeList[attributeCount++] = detailAttrib;
+            detailAttrib->ref();
             bottomGroup = (pfGroup *)currentNode;
         }
         else if (currentNode->isOfType(pfLayer::getClassType()))
@@ -179,6 +183,7 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
             // Decal attribute
             decalAttrib = new vsDecalAttribute((pfLayer *)currentNode);
             attributeList[attributeCount++] = decalAttrib;
+            decalAttrib->ref();
             bottomGroup = (pfGroup *)currentNode;
         }
         else
