@@ -5,8 +5,8 @@ INCDIRS = -I../system \
           -I../math \
           -I../input \
           -I../motion \
-          -I/usr/include/g++-2 \
           -I/usr/include/g++-3 \
+          -I/usr/include/g++-2 \
           $(EXTRA_INCS)
 
 FLAGS = -g -O -ansi -D__linux__ -D_XOPEN_SOURCE -D_BSD_SOURCE -D_MISC_SOURCE -DPF_CPLUSPLUS_API=1 $(INCDIRS)

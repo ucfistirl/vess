@@ -109,8 +109,8 @@ INCS = \
        -I../scene \
        -I../system \
        -I/usr/X11R6/include \
-       -I/usr/include/g++-2 \
        -I/usr/include/g++-3 \
+       -I/usr/include/g++-2 \
        -I/ist/projects/vr2/tools/services/abstractService2.2.5 \
        $(EXTRA_INCS)
 
