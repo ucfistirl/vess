@@ -44,8 +44,15 @@ vsSkeleton::vsSkeleton(vsGrowableArray *componentList,
     boneCount = listLength;
 
     // Keep a reference to the root node of the bone subgraph.
-    skeletonRoot = root;
+    skeletonRootBone = root;
+
+    // Make a root node to hold the skeleton and a transform to modify the
+    // skeleton with the offsetMatrix.
+    skeletonRoot = new vsComponent();
     skeletonRoot->ref();
+    skeletonRoot->addChild(skeletonRootBone);
+    skeletonTransform = new vsTransformAttribute();
+    skeletonRoot->addAttribute(skeletonTransform);
 
     // Initialize the last found index to 0, the beginning.
     // This variable is just used to slightly attempt to speed up lookups.
@@ -60,6 +67,9 @@ vsSkeleton::vsSkeleton(vsGrowableArray *componentList,
 
     // Set the offset to identity (nothing).
     offsetMatrix.setIdentity();
+
+    // Set the offset matrix to the skeletonTransform.
+    skeletonTransform->setDynamicTransform(offsetMatrix);
 
     // Generate the list of bone matrices to be used for skinning.
     update();
@@ -382,7 +392,7 @@ int vsSkeleton::getBoneID(char *boneName)
 // to the scenegraph if trying to visualize bone lines.  To perform normal
 // skinning however, it can be ignored.
 //------------------------------------------------------------------------
-vsComponent *vsSkeleton::getRootBone()
+vsComponent *vsSkeleton::getRoot()
 {
     return skeletonRoot;
 }
@@ -485,6 +495,9 @@ void vsSkeleton::makeBoneGeometry()
 void vsSkeleton::setOffsetMatrix(vsMatrix newOffsetMatrix)
 {
     offsetMatrix = newOffsetMatrix;
+
+    // Set the offset matrix to the skeletonTransform.
+    skeletonTransform->setDynamicTransform(offsetMatrix);
 }
 
 //------------------------------------------------------------------------
@@ -505,5 +518,5 @@ void vsSkeleton::update()
     // Forward to the recursive update call.  The stack can make the update
     // more efficient by storing previously calculated matrices instead
     // of recalculating them for each bone.
-    updateMatrices(skeletonRoot, offsetMatrix);
+    updateMatrices(skeletonRootBone, skeletonTransform->getCombinedTransform());
 }

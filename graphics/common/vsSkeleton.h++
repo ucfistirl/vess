@@ -29,19 +29,22 @@
 #include "vsGeometry.h++"
 #include "vsGrowableArray.h++"
 #include "vsUpdatable.h++"
+#include "vsTransformAttribute.h++"
 
 class vsSkeleton : public vsUpdatable
 {
 private:
 
-    vsGrowableArray   *skeletonComponentMap;
-    vsGrowableArray   *skeletonMatrices;
-    vsGrowableArray   *skeletonITMatrices;
-    vsGrowableArray   *skeletonBoneSpaceMatrices;
-    vsComponent       *skeletonRoot;
-    int               boneCount;
-    int               lastFoundIndex;
-    vsMatrix          offsetMatrix;
+    vsGrowableArray       *skeletonComponentMap;
+    vsGrowableArray       *skeletonMatrices;
+    vsGrowableArray       *skeletonITMatrices;
+    vsGrowableArray       *skeletonBoneSpaceMatrices;
+    vsComponent           *skeletonRoot;
+    vsComponent           *skeletonRootBone;
+    vsTransformAttribute  *skeletonTransform;
+    int                   boneCount;
+    int                   lastFoundIndex;
+    vsMatrix              offsetMatrix;
 
 VS_INTERNAL:
 
@@ -74,7 +77,7 @@ public:
     int                   getBoneID(vsComponent *component);
     int                   getBoneID(char *boneName);
 
-    vsComponent           *getRootBone();
+    vsComponent           *getRoot();
 
     int                   getBoneCount();
 
