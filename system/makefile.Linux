@@ -16,7 +16,7 @@ LIBDIRS = -L../math \
 	  -L/usr/lib/libpfdb \
           -L/usr/X11R6/lib
 
-LIBNAME = libvsCore.a
+LIBNAME = libvsSystem.a
 
 FLAGS = -g -O -ansi -D__linux__ -D_XOPEN_SOURCE -D_BSD_SOURCE -D_MISC_SOURCE -DPF_CPLUSPLUS_API=1 $(INCDIRS)
 LINKFLAGS = -ignore_unresolved

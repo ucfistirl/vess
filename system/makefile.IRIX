@@ -7,7 +7,7 @@ INCDIRS = -I. \
 	  -I../motion \
 	  -I/usr/include/X11
 
-LIBNAME = libvsCore.a
+LIBNAME = libvsSystem.a
 
 TYPE = -n32 -mips3
 FLAGS = $(TYPE) -g -xansi -DSGI -DPF_CPLUSPLUS_API=1 -woff 1681 $(INCDIRS)
