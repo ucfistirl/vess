@@ -402,11 +402,16 @@ void vsTextureAttribute::attachDuplicate(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsTextureAttribute::saveCurrent()
 {
+    vsStateAttribute *tempPointer;
+
     // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
     // Save the current texture state in our save list
-    attrSaveList[attrSaveCount++] = gState->getTexture();
+    tempPointer = gState->getTexture();
+    if (tempPointer == NULL)
+        tempPointer = gState->getTextureCube();
+    attrSaveList[attrSaveCount++] = tempPointer;
 }
 
 // ------------------------------------------------------------------------
@@ -432,15 +437,23 @@ void vsTextureAttribute::apply()
 // ------------------------------------------------------------------------
 void vsTextureAttribute::restoreSaved()
 {
+    vsStateAttribute *tempPointer;
+
     // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
-    // Unlock the wireframe state if overriding was enabled
+    // Unlock the texture if overriding was enabled
     if (overrideFlag)
         gState->unlockTexture(this);
 
-    // Reset the current wireframe state to its previous value
-    gState->setTexture((vsTextureAttribute *)(attrSaveList[--attrSaveCount]));
+    // Reset the current texture to its previous value
+    tempPointer = (vsStateAttribute *)(attrSaveList[--attrSaveCount]);
+    if (tempPointer == NULL)
+        gState->setTexture(NULL);
+    else if (tempPointer->getAttributeType() == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE)
+        gState->setTextureCube((vsTextureCubeAttribute *) tempPointer);
+    else if (tempPointer->getAttributeType() == VS_ATTRIBUTE_TYPE_TEXTURE)
+        gState->setTexture((vsTextureAttribute *) tempPointer);
 }
 
 // ------------------------------------------------------------------------
