@@ -106,7 +106,7 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
+			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
 				RelativePath="..\..\util\common\vsGrowableArray.c++">
 			</File>
@@ -137,7 +137,7 @@
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc">
+			Filter="h++;h;hpp;hxx;hm;inl;inc">
 			<File
 				RelativePath="..\..\util\common\vsGlobals.h++">
 			</File>
