@@ -292,7 +292,6 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
     Window *childPointer;
     unsigned int childCount;
     Window parentID, rootID;
-    XWindowAttributes xattr;
     Colormap colorMap;
     PropMotifWmHints motifHints;
     Atom property, propertyType;
@@ -471,7 +470,6 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
     Window *childPointer;
     unsigned int childCount;
     Window parentID, rootID;
-    XWindowAttributes xattr;
     Colormap colorMap;
     PropMotifWmHints motifHints;
     Atom property, propertyType;
@@ -646,7 +644,6 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
     Window *childPointer;
     unsigned int childCount;
     Window parentID, rootID;
-    XWindowAttributes xattr;
     Colormap colorMap;
     PropMotifWmHints motifHints;
     Atom property, propertyType;
@@ -801,6 +798,104 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
     // to make sure it happens.
     setPosition(xPosition, yPosition);
     XFlush(xWindowDisplay);
+}
+
+// ------------------------------------------------------------------------
+// Constructor - Initializes the window by making use of the existing X
+// Window passed in.
+// ------------------------------------------------------------------------
+vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
+{
+    vsPipe *parentPipe;
+    Display *xWindowDisplay;
+    XVisualInfo *visual;
+    Window xWindowID;
+    Window *childPointer;
+    unsigned int childCount;
+    Window parentID, rootID;
+    XWindowAttributes winXAttr, topXAttr;
+    int result;
+
+    // Initialize the pane count
+    childPaneCount = 0;
+
+    // Assign this window an index and increment the window count.
+    // Note: this procedure may need to be protected for thread-safeness 
+    // if OSG becomes multi-threaded.
+    windowNumber = windowCount++;
+    
+    // Get the parent vsScreen and vsPipe
+    parentScreen = parent;
+    parentPipe = parentScreen->getParentPipe();
+    
+    // Add the window to its parent screen
+    parentScreen->addWindow(this);
+
+    // After mapping the window, the window manager may reparent the
+    // window to add its own stuff (decorations, etc.).  Query the X
+    // Windows tree attached to this window to find the topmost window
+    // in the tree.  This should let us measure the size of the window
+    // manager decorations.
+
+    // Start from the window passed in
+    xWindowID = xWin;
+
+    // Keep trying until we reach the top window
+    do
+    {
+        // Query the tree from the current window
+        result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
+            &childPointer, &childCount);
+
+        // Free the child list that's returned (we don't need it for anything)
+        XFree(childPointer);
+
+        // See if the query succeeded
+        if (result == 0)
+        {
+            // Failed, flush the display and try again
+            XFlush(xWindowDisplay);
+        }
+        else 
+        {
+            // Query succeeded, if we're not yet at the top, move the
+            // current window id to the parent and query again.  Note that
+            // we don't want the root window, because this is the entire
+            // desktop.  We want the window one level down from the root.
+            if (parentID != rootID)
+                xWindowID = parentID;
+        }
+    }
+    while (rootID != parentID);
+
+    // Keep track of the topmost window
+    topWindowID = xWindowID;
+
+    // Flush the display to ensure every event has been processed before
+    // we take our measurements
+    XFlush(xWindowDisplay);
+
+    // See if the window was reparented
+    if (xWin != topWindowID)
+    {
+        // Attempt to determine the size of the window manager's border for
+        // this window by checking the position of the main window relative
+        // to its parent, and finding the difference in width and height.
+        XGetWindowAttributes(xWindowDisplay, xWindow, &winXAttr);
+        XGetWindowAttributes(xWindowDisplay, topWindowID, &topXAttr);
+        xPositionOffset = winXAttr.x;
+        yPositionOffset = winXAttr.y;
+        widthOffset = topXAttr.width - winXAttr.width;
+        heightOffset = topXAttr.height - winXAttr.height;
+    }
+    else
+    {
+        // Window was not reparented, initialize the offsets to zero
+        xPositionOffset = 0;
+        yPositionOffset = 0;
+        widthOffset = 0;
+        heightOffset = 0;
+    }
 }
 
 // ------------------------------------------------------------------------

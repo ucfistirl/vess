@@ -80,6 +80,7 @@ public:
                       vsWindow(vsScreen *parent, int xPosition, int yPosition,
                                int width, int height, int hideBorder, 
                                int stereo);
+                      vsWindow(vsScreen *parent, Window xWin);
     virtual           ~vsWindow();
     
     vsScreen          *getParentScreen();
