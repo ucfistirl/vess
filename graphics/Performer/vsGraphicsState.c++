@@ -95,6 +95,7 @@ void vsGraphicsState::clearState()
     {
         textureAttr[unit] = NULL;
         textureCubeAttr[unit] = NULL;
+        textureRectAttr[unit] = NULL;
     }
     transparencyAttr = NULL;
     wireframeAttr = NULL;
@@ -157,6 +158,10 @@ void vsGraphicsState::applyState(pfGeoState *state)
         // Call the texture cube attribute (if any) to make its state changes
         if (textureCubeAttr[loop])
             textureCubeAttr[loop]->setState(state);
+
+        // Call the texture rectangle attribute to make its state changes
+        if (textureRectAttr[loop])
+            textureRectAttr[loop]->setState(state);
     }
 
     // Call the transparency attribute (if any) to make its state changes
@@ -237,6 +242,7 @@ void vsGraphicsState::setTexture(unsigned int unit,
     {
         textureAttr[unit] = newAttrib;
         textureCubeAttr[unit] = NULL;
+        textureRectAttr[unit] = NULL;
     }
 }
 
@@ -250,8 +256,25 @@ void vsGraphicsState::setTextureCube(unsigned int unit,
     // Set the current attribute, if it's not locked
     if (!textureLock[unit])
     {
-        textureCubeAttr[unit] = newAttrib;
         textureAttr[unit] = NULL;
+        textureCubeAttr[unit] = newAttrib;
+        textureRectAttr[unit] = NULL;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Sets the attribute that contains the desired  texture unit's texture
+// rectangle state
+// ------------------------------------------------------------------------
+void vsGraphicsState::setTextureRect(unsigned int unit,
+                                     vsTextureRectangleAttribute *newAttrib)
+{
+    // Set the current attribute, if it's not locked
+    if (!textureLock[unit])
+    {
+        textureAttr[unit] = NULL;
+        textureCubeAttr[unit] = NULL;
+        textureRectAttr[unit] = newAttrib;
     }
 }
 
@@ -360,6 +383,15 @@ vsTextureAttribute *vsGraphicsState::getTexture(unsigned int unit)
 vsTextureCubeAttribute *vsGraphicsState::getTextureCube(unsigned int unit)
 {
     return textureCubeAttr[unit];
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the attribute that contains the current texture cube state
+// for the given texture unit
+// ------------------------------------------------------------------------
+vsTextureRectangleAttribute *vsGraphicsState::getTextureRect(unsigned int unit)
+{
+    return textureRectAttr[unit];
 }
 
 // ------------------------------------------------------------------------

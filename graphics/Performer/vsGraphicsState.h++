@@ -30,6 +30,7 @@
 #include "vsShadingAttribute.h++"
 #include "vsTextureAttribute.h++"
 #include "vsTextureCubeAttribute.h++"
+#include "vsTextureRectangleAttribute.h++"
 #include "vsTransparencyAttribute.h++"
 #include "vsWireframeAttribute.h++"
 #include "vsLightAttribute.h++"
@@ -40,17 +41,18 @@ class VS_GRAPHICS_DLL vsGraphicsState : public vsObject
 {
 private:
 
-    static vsGraphicsState     *classInstance;
+    static vsGraphicsState         *classInstance;
 
-    vsBackfaceAttribute        *backfaceAttr;
-    vsFogAttribute             *fogAttr;
-    vsMaterialAttribute        *materialAttr;
-    vsShaderAttribute          *shaderAttr;
-    vsShadingAttribute         *shadingAttr;
-    vsTextureAttribute         *textureAttr[VS_MAXIMUM_TEXTURE_UNITS];
-    vsTextureCubeAttribute     *textureCubeAttr[VS_MAXIMUM_TEXTURE_UNITS];
-    vsTransparencyAttribute    *transparencyAttr;
-    vsWireframeAttribute       *wireframeAttr;
+    vsBackfaceAttribute            *backfaceAttr;
+    vsFogAttribute                 *fogAttr;
+    vsMaterialAttribute            *materialAttr;
+    vsShaderAttribute              *shaderAttr;
+    vsShadingAttribute             *shadingAttr;
+    vsTextureAttribute             *textureAttr[VS_MAXIMUM_TEXTURE_UNITS];
+    vsTextureCubeAttribute         *textureCubeAttr[VS_MAXIMUM_TEXTURE_UNITS];
+    vsTextureRectangleAttribute    *textureRectAttr[VS_MAXIMUM_TEXTURE_UNITS];
+    vsTransparencyAttribute        *transparencyAttr;
+    vsWireframeAttribute           *wireframeAttr;
     
     vsGrowableArray            lightAttrList;
     int                        lightAttrCount;
@@ -90,21 +92,24 @@ public:
     void          setTexture(unsigned int unit, vsTextureAttribute *newAttrib);
     void          setTextureCube(unsigned int unit,
                                  vsTextureCubeAttribute *newAttrib);
+    void          setTextureRect(unsigned int unit,
+                                 vsTextureRectangleAttribute *newAttrib);
     void          setTransparency(vsTransparencyAttribute *newAttrib);
     void          setWireframe(vsWireframeAttribute *newAttrib);
  
     void          addLight(vsLightAttribute *lightAttrib);
     void          removeLight(vsLightAttribute *lightAttrib);
 
-    vsBackfaceAttribute        *getBackface();
-    vsFogAttribute             *getFog();
-    vsMaterialAttribute        *getMaterial();
-    vsShaderAttribute          *getShader();
-    vsShadingAttribute         *getShading();
-    vsTextureAttribute         *getTexture(unsigned int unit);
-    vsTextureCubeAttribute     *getTextureCube(unsigned int unit);
-    vsTransparencyAttribute    *getTransparency();
-    vsWireframeAttribute       *getWireframe();
+    vsBackfaceAttribute            *getBackface();
+    vsFogAttribute                 *getFog();
+    vsMaterialAttribute            *getMaterial();
+    vsShaderAttribute              *getShader();
+    vsShadingAttribute             *getShading();
+    vsTextureAttribute             *getTexture(unsigned int unit);
+    vsTextureCubeAttribute         *getTextureCube(unsigned int unit);
+    vsTextureRectangleAttribute    *getTextureRect(unsigned int unit);
+    vsTransparencyAttribute        *getTransparency();
+    vsWireframeAttribute           *getWireframe();
 
     vsLightAttribute           *getLight(int index);
     int                        getLightCount();
