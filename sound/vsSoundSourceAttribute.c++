@@ -330,6 +330,10 @@ void vsSoundSourceAttribute::update()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::play()
 {
+    // Stop the source in case it's already playing
+    alSourceStop(sourceID);
+
+    // Start playing the source
     alSourcePlay(sourceID);
 }
 
