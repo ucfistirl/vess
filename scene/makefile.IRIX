@@ -22,6 +22,7 @@ LIBSRCS = vsAttribute.c++ \
 	  vsOptimizer.c++ \
 	  vsSequenceAttribute.c++ \
 	  vsShadingAttribute.c++ \
+          vsStateAttribute.c++ \
 	  vsSwitchAttribute.c++ \
 	  vsTextureAttribute.c++ \
 	  vsTransformAttribute.c++ \
@@ -44,6 +45,7 @@ LIBOBJS = vsAttribute.o \
 	  vsOptimizer.o \
 	  vsSequenceAttribute.o \
 	  vsShadingAttribute.o \
+          vsStateAttribute.o \
 	  vsSwitchAttribute.o \
 	  vsTextureAttribute.o \
 	  vsTransformAttribute.o \
