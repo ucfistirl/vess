@@ -550,7 +550,7 @@ void vsIntersect::intersect(vsNode *targetNode)
         if (!(flags & PFHIT_POINT))
         {
             // Set the intersection result values to failed or default values
-            validFlag[loop] = 0;
+            validFlag[loop] = false;
             sectPoint[loop].set(0, 0, 0);
             sectNorm[loop].set(0, 0, 0);
             sectGeom[loop] = NULL;
@@ -566,7 +566,7 @@ void vsIntersect::intersect(vsNode *targetNode)
         }
         
         // Mark the intersection as valid
-        validFlag[loop] = 1;
+        validFlag[loop] = true;
 
 	// Retrieve the point of intersection and intersection normal
         (hits[loop][0])->query(PFQHIT_POINT, &hitPoint);
@@ -807,13 +807,13 @@ void vsIntersect::intersect(vsNode *targetNode)
 // Returns if the last intersection traversal found an intersection for
 // the specified segment. The number of the first segment is 0.
 // ------------------------------------------------------------------------
-int vsIntersect::getIsectValid(int segNum)
+bool vsIntersect::getIsectValid(int segNum)
 {
     // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectValid: Segment number out of bounds\n");
-        return 0;
+        return false;
     }
 
     // Return the desired value

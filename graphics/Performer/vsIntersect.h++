@@ -77,7 +77,7 @@ private:
     int                lodMode;
 
     // Intersection results
-    int                validFlag[VS_INTERSECT_SEGS_MAX];
+    bool               validFlag[VS_INTERSECT_SEGS_MAX];
     vsVector           sectPoint[VS_INTERSECT_SEGS_MAX];
     vsVector           sectNorm[VS_INTERSECT_SEGS_MAX];
     vsMatrix           sectXform[VS_INTERSECT_SEGS_MAX];
@@ -125,7 +125,7 @@ public:
 
     void               intersect(vsNode *targetNode);
 
-    int                getIsectValid(int segNum);
+    bool               getIsectValid(int segNum);
     vsVector           getIsectPoint(int segNum);
     vsVector           getIsectNorm(int segNum);
     vsMatrix           getIsectXform(int segNum);
