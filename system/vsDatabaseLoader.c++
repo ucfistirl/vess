@@ -55,7 +55,7 @@ vsDatabaseLoader::~vsDatabaseLoader()
 }
 
 // ------------------------------------------------------------------------
-// Initializes the internal database laoder corresponding to the given
+// Initializes the internal database loader corresponding to the given
 // filename extension. Can only be called before the vsSystem object is
 // initialized.
 // ------------------------------------------------------------------------
@@ -132,19 +132,46 @@ void vsDatabaseLoader::setUnits(int databaseUnit)
 void vsDatabaseLoader::addPath(char *filePath)
 {
     const char *performerPath;
-    char fullPath[1000];
+    char *fullPath;
     
     performerPath = pfGetFilePath();
     if (!performerPath)
+    {
+	fullPath = (char *)(malloc(strlen(filePath) + 5));
+	if (!fullPath)
+	{
+	    printf("vsDatabaseLoader::addPath: Memory allocation error\n");
+	    return;
+	}
         strcpy(fullPath, ".");
+    }
     else
+    {
+	fullPath = (char *)
+	    (malloc(strlen(filePath) + strlen(pfGetFilePath()) + 5));
+	if (!fullPath)
+	{
+	    printf("vsDatabaseLoader::addPath: Memory allocation error\n");
+	    return;
+	}
         strcpy(fullPath, pfGetFilePath());
+    }
 
     strcat(fullPath, ":");
     strcat(fullPath, filePath);
     
     pfFilePath(fullPath);
     printf("Path is: %s\n", fullPath);
+    
+    free(fullPath);
+}
+
+// ------------------------------------------------------------------------
+// Clears the directory path
+// ------------------------------------------------------------------------
+void vsDatabaseLoader::clearPath()
+{
+    pfFilePath(".");
 }
 
 // ------------------------------------------------------------------------

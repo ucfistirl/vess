@@ -90,6 +90,7 @@ public:
     void           setUnits(int databaseUnit);
 
     void           addPath(char *filePath);
+    void           clearPath();
 
     void           setLoaderMode(int whichMode, int modeVal);
     int            getLoaderMode(int whichMode);
