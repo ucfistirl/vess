@@ -1,0 +1,608 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsCal3DBoneLoader.c++
+//
+//    Description:  Object for loading Cal3D skeleton files.
+//
+//    Author(s):    Duvan Cope
+//
+//------------------------------------------------------------------------
+
+#include "vsCal3DBoneLoader.h++"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <libxml/xmlmemory.h>
+#include <libxml/parser.h>
+#include "vsTransformAttribute.h++"
+#include "vsGrowableArray.h++"
+
+// ------------------------------------------------------------------------
+// Constructor
+// ------------------------------------------------------------------------
+vsCal3DBoneLoader::vsCal3DBoneLoader()
+{
+}
+
+// ------------------------------------------------------------------------
+// Destructor
+// ------------------------------------------------------------------------
+vsCal3DBoneLoader::~vsCal3DBoneLoader()
+{
+}
+
+// ------------------------------------------------------------------------
+// Recursively traverse up the tree to find the root node/bone.
+// ------------------------------------------------------------------------
+vsComponent *vsCal3DBoneLoader::getRootBone(vsComponent *current)
+{
+    if (current->getParentCount() > 0)
+    {
+        return getRootBone((vsComponent *)current->getParent(0));
+    }
+    else
+        return current;
+}
+
+// ------------------------------------------------------------------------
+// This function performs the actual XML parsing of the skeleton file.
+// It builds up the skeleton information and returns a vsSkeleton with
+// all the needed information.
+// ------------------------------------------------------------------------
+vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
+{
+    FILE                    *filePointer;
+    char                    *fileBuffer;
+    long                    fileSize;
+    xmlValidCtxt            context;
+    xmlDocPtr               document;
+    xmlNodePtr              current;
+    xmlNodePtr              currentBoneChild;
+    xmlAttrPtr              attribute;
+    bool                    validVersion;
+    bool                    validMagic;
+    bool                    validRotation;
+    bool                    validTranslation;
+    bool                    validLocalRotation;
+    bool                    validLocalTranslation;
+    int                     boneCount;
+    int                     bonesProcessed;
+    int                     boneID;
+    int                     boneChildrenCount;
+    int                     boneChildrenProcessed;
+    int                     boneChildID;
+    char                    *boneName;
+    char                    *tempString;
+    double                  translationX;
+    double                  translationY;
+    double                  translationZ;
+    double                  localTranslationX;
+    double                  localTranslationY;
+    double                  localTranslationZ;
+    double                  x, y, z, w;
+    vsQuat                  rotationQuat;
+    vsMatrix                transformMatrix;
+    vsMatrix                rotationMatrix;
+    vsMatrix                translationMatrix;
+    vsQuat                  localRotationQuat;
+    vsMatrix                localTransformMatrix;
+    vsMatrix                localRotationMatrix;
+    vsMatrix                localTranslationMatrix;
+    vsComponent             *rootComponent;
+    vsComponent             *currentComponent;
+    vsComponent             *childComponent;
+    vsGrowableArray         *boneList;
+    vsTransformAttribute    *boneTransform;
+    vsGrowableArray         *boneSpaceMatrixList;
+    vsMatrix                *currentBoneSpaceMatrix;
+
+    boneCount = 0;
+    boneChildrenCount = 0;
+    bonesProcessed = 0;
+    boneChildrenProcessed = 0;
+    validVersion = false;
+    validMagic = false;
+    rootComponent = NULL;
+
+    // Attempt to open the file for reading.
+    if ((filePointer = fopen(filename, "r")) == NULL)
+    {
+        fprintf(stderr, "vsCal3DBoneLoader::parseXML: Error opening file!\n");
+        return NULL;
+    }
+
+    // Seek to the end of the file so we can determine its size, and reset
+    // to the beginning of the file.
+    fseek(filePointer, 0L, SEEK_END);
+    fileSize = ftell(filePointer);
+    fseek(filePointer, 0L, SEEK_SET);
+
+    // Allocate a buffer to hold the entire file content as well as our
+    // begin and end tags to allow the xml library to parse the file
+    // properly.
+    fileBuffer = new char[fileSize +
+        strlen(VS_CAL3D_XML_SKELETON_BEGIN_TAG) +
+        strlen(VS_CAL3D_XML_SKELETON_END_TAG) + 1];
+
+    // Fill in the buffer with the initial begin tag, then read the file
+    // content and then concatenate the end tag.
+    strcpy(fileBuffer, VS_CAL3D_XML_SKELETON_BEGIN_TAG);
+    fread(&(fileBuffer[strlen(VS_CAL3D_XML_SKELETON_BEGIN_TAG)]), 1, fileSize,
+        filePointer);
+    // Need to insert a null because fread() does not.
+    fileBuffer[strlen(VS_CAL3D_XML_SKELETON_BEGIN_TAG)+fileSize] = 0;
+    strcat(fileBuffer, VS_CAL3D_XML_SKELETON_END_TAG);
+
+    // Close the file, we don't need it anymore.
+    fclose(filePointer);
+
+    // Setup the xml context.
+    context.userData = stderr;
+    context.error = (xmlValidityErrorFunc ) fprintf;
+    context.warning = (xmlValidityWarningFunc ) fprintf;
+
+    // Create an xml document by parsing the buffer.
+    document = xmlParseMemory(fileBuffer, strlen(fileBuffer));
+
+    // If our document is NULL, then we could not parse it properly.
+    if (document == NULL)
+    {
+        fprintf(stderr, "vsCal3DBoneLoader::parseXML: Document not parsed "
+            "successfully.\n");
+        xmlFreeDoc(document);
+        delete [] fileBuffer;
+        return NULL;
+    }
+
+    // Get the root element of the file.
+    current = xmlDocGetRootElement(document);
+
+    // If the root element is NULL, then the file is empty.
+    if (current == NULL)
+    {
+        fprintf(stderr, "vsCal3DBoneLoader::parseXML: Empty document.\n");
+        xmlFreeDoc(document);
+        delete [] fileBuffer;
+        return NULL;
+    }
+
+    // Go to the child because we created the parent and don't
+    // need to parse him (VS_CAL3D_XML_SKELETON_BEGIN_TAG).
+    current = current->children;
+
+    // If the HEADER field is encountered, process its properties.
+    if (xmlStrcmp(current->name, (const xmlChar *) "HEADER") == 0)
+    {
+        // Traverse the properties of this tag.
+        attribute = current->properties;
+        while (attribute != NULL)
+        {
+            // If the property is named MAGIC, check to see if it is the
+            // proper value "XSF".
+            if (xmlStrcmp(attribute->name, (const xmlChar *) "MAGIC") == 0)
+            {
+                if (xmlStrcmp(XML_GET_CONTENT(attribute->children),
+                    (const xmlChar *) "XSF") == 0)
+                {
+                    validMagic = true;
+                }
+                else
+                {
+                    fprintf(stderr, "vsCal3DBoneLoader::parseXML: File not of "
+                        "XSF type!\n");
+                }
+            }
+            // Else if the property is named VERSION, check to see if it is the
+            // proper value "900".
+            else if (xmlStrcmp(attribute->name,
+                     (const xmlChar *) "VERSION") == 0)
+            {
+                if (atoi((const char *)XML_GET_CONTENT(attribute->children))
+                    >= 900)
+                {
+                    validVersion = true;
+                }
+                else
+                {
+                    fprintf(stderr, "vsCal3DBoneLoader::parseXML: File older "
+                        "than version 900!\n");
+                }
+            }
+
+            // Move to the next property.
+            attribute = attribute->next;
+        }
+    }
+
+    // If either the magic and version properties were invalid or not found,
+    // print error, free resources and return.
+    if (!validMagic || !validVersion)
+    {
+        fprintf(stderr, "vsCal3DBoneLoader::parseXML: Document of wrong "
+            "type.\n");
+        xmlFreeDoc(document);
+        delete [] fileBuffer;
+        return NULL;
+    }
+
+    // Traverse the children till we reach one named SKELETON or didn't find it.
+    while ((xmlStrcmp(current->name, (const xmlChar *) "SKELETON") != 0) &&
+         (current))
+    {
+        current = current->next;
+    }
+
+    // If we found something and it has a property, named NUMBONES read it.
+    if ((current) && (current->properties) &&
+        ((xmlStrcmp(current->properties->name, (const xmlChar *) "NUMBONES"))
+         == 0))
+    {
+        boneCount = atoi((const char *)
+            XML_GET_CONTENT(current->properties->children));
+    }
+
+    // If we have no bones, then it is an error.
+    if (boneCount == 0)
+    {
+        fprintf(stderr, "vsCal3DBoneLoader::parseXML: No bones found!\n");
+        xmlFreeDoc(document);
+        delete [] fileBuffer;
+        return NULL;
+    }
+
+    // Create the array and fill it with vsComponents to be used for each bone.
+    // Done so in advance so when establishing the hierarchy all the expected
+    // bones should be vsComponents already.
+    boneList = new vsGrowableArray(boneCount, 1);
+    boneSpaceMatrixList = new vsGrowableArray(boneCount, 1);
+    for (boneID = 0; boneID < boneCount; boneID++)
+    {
+        currentComponent = new vsComponent();
+        currentComponent->ref();
+        boneList->setData(boneID, currentComponent);
+
+        currentBoneSpaceMatrix = new vsMatrix();
+        boneSpaceMatrixList->setData(boneID, currentBoneSpaceMatrix);
+    }
+
+    // Move to the children of SKELETON, and process them all.  These
+    // are the actual bones we need.
+    current = current->children;
+    while (current)
+    {
+        // Insure the child is a BONE to perform further processing.
+        if (xmlStrcmp(current->name, (const xmlChar *) "BONE") == 0)
+        {
+            // Process all if the BONE's properties.
+            attribute = current->properties;
+            while (attribute)
+            {
+                // If it is the bone id, store it.
+                if (xmlStrcmp(attribute->name, (const xmlChar *) "ID") == 0)
+                {
+                    boneID = atoi((const char *)
+                        XML_GET_CONTENT(attribute->children));
+                }
+                // Else if it is the bone name, keep a reference to it.
+                else if (xmlStrcmp(attribute->name, (const xmlChar *) "NAME")
+                         == 0)
+                {
+                    boneName = (char*) XML_GET_CONTENT(attribute->children);
+                }
+                // Else if it is the number of children, store the value.
+                else if (xmlStrcmp(attribute->name,
+                         (const xmlChar *) "NUMCHILDS") == 0)
+                {
+                    boneChildrenCount = atoi((const char *)
+                        XML_GET_CONTENT(attribute->children));
+                }
+
+                // Move to the next property.
+                attribute = attribute->next;
+            }
+
+            // Get the component that should correspond to the current bone.
+            // If it does not exist, create it.
+            currentComponent = (vsComponent *) boneList->getData(boneID);
+            if (!currentComponent)
+            {
+                currentComponent = new vsComponent();
+                boneList->setData(boneID, currentComponent);
+            }
+
+            // Get the Bone Space matrix pointer for this bone.
+            currentBoneSpaceMatrix = (vsMatrix *)
+                boneSpaceMatrixList->getData(boneID);
+            if (!currentBoneSpaceMatrix)
+            {
+                currentBoneSpaceMatrix = new vsMatrix();
+                boneSpaceMatrixList->setData(boneID, currentBoneSpaceMatrix);
+            }
+
+            // Set the assumed root to be the first bone we encounter.
+            if (!rootComponent)
+                rootComponent = currentComponent;
+
+            // Set the component/bone's name to what we read.
+            currentComponent->setName(boneName);
+
+            // Reset the variables per BONE.
+            boneChildrenProcessed = 0;
+            validRotation = false;
+            validTranslation = false;
+            translationX = 0;
+            translationY = 0;
+            translationZ = 0;
+            rotationQuat.clear();
+            transformMatrix.setIdentity();
+            rotationMatrix.setIdentity();
+            translationMatrix.setIdentity();
+
+            validLocalRotation = false;
+            validLocalTranslation = false;
+            localTranslationX = 0;
+            localTranslationY = 0;
+            localTranslationZ = 0;
+            localRotationQuat.clear();
+            localTransformMatrix.setIdentity();
+            localRotationMatrix.setIdentity();
+            localTranslationMatrix.setIdentity();
+
+            // Process all of the BONE's children now.
+            currentBoneChild = current->children;
+            while (currentBoneChild)
+            {
+                // If this is a CHILDID node, process it and add the child to
+                // the vsComponent for this bone.
+                if (xmlStrcmp(currentBoneChild->name,
+                    (const xmlChar *) "CHILDID") == 0)
+                {
+                    boneChildID = atoi((const char *)
+                        XML_GET_CONTENT(currentBoneChild->children));
+
+                    // Get the component that corresponds to the child bone.
+                    // Create it if necessary.
+                    childComponent = (vsComponent *)
+                        boneList->getData(boneChildID);
+                    if (!childComponent)
+                    {
+                        childComponent = new vsComponent();
+                        childComponent->ref();
+                        boneList->setData(boneChildID, childComponent);
+                    }
+
+                    // Make that a child of the current bone component.
+                    currentComponent->addChild(childComponent);
+
+                    // Increment the counf of children processed to test
+                    // if we match the specified number when finished.
+                    boneChildrenProcessed++;
+                }
+                // Else if it is a TRANSLATION node, read in the
+                // translation information.
+                else if (xmlStrcmp(currentBoneChild->name,
+                         (const xmlChar *) "TRANSLATION") == 0)
+                {
+                    // Get the string for the TRANSLATION key and parse
+                    // the 3 floating point numbers from it.
+                    tempString = (char *) xmlNodeGetContent(currentBoneChild);
+                    sscanf(tempString, "%lf %lf %lf", &translationX,
+                        &translationY, &translationZ);
+                    xmlFree(tempString);
+
+                    // Mark the fact that we processed a translation.
+                    validTranslation = true;
+                }
+                // Else if it is a ROTATION node, read in the quaternion
+                // rotation information.
+                else if (xmlStrcmp(currentBoneChild->name,
+                         (const xmlChar *) "ROTATION") == 0)
+                {
+                    // Get the string for the ROTATION key and parse the
+                    // 4 floating point numbers from it.
+                    tempString = (char *) xmlNodeGetContent(currentBoneChild);
+                    sscanf(tempString, "%lf %lf %lf %lf", &x, &y, &z, &w);
+
+                    // Create a quaternion from the values.
+                    rotationQuat.set(x, y, z, w);
+                    rotationQuat.invert();
+
+                    // Set a matrix to represent the quaternion rotation.
+                    rotationMatrix.setQuatRotation(rotationQuat);
+                    xmlFree(tempString);
+
+                    // Mark the fact that we processed a rotation.
+                    validRotation = true;
+                }
+                // Else if it is a LOCALTRANSLATION node, read in the
+                // translation information.
+                else if (xmlStrcmp(currentBoneChild->name,
+                         (const xmlChar *) "LOCALTRANSLATION") == 0)
+                {
+                    // Get the string for the LOCALTRANSLATION key and parse
+                    // the 3 floating point numbers from it.
+                    tempString = (char *) xmlNodeGetContent(currentBoneChild);
+                    sscanf(tempString, "%lf %lf %lf", &localTranslationX,
+                        &localTranslationY, &localTranslationZ);
+                    xmlFree(tempString);
+
+                    // Mark the fact that we processed a translation.
+                    validLocalTranslation = true;
+                }
+                // Else if it is a LOCALROTATION node, read in the quaternion
+                // rotation information.
+                else if (xmlStrcmp(currentBoneChild->name,
+                         (const xmlChar *) "LOCALROTATION") == 0)
+                {
+                    // Get the string for the LOCALROTATION key and parse the
+                    // 4 floating point numbers from it.
+                    tempString = (char *) xmlNodeGetContent(currentBoneChild);
+                    sscanf(tempString, "%lf %lf %lf %lf", &x, &y, &z, &w);
+
+                    // Create a quaternion from the values.
+                    localRotationQuat.set(x, y, z, w);
+                    localRotationQuat.invert();
+
+                    // Set a matrix to represent the quaternion rotation.
+                    localRotationMatrix.setQuatRotation(localRotationQuat);
+                    xmlFree(tempString);
+
+                    // Mark the fact that we processed a rotation.
+                    validLocalRotation = true;
+                }
+
+                // Move to the next child of the BONE tree.
+                currentBoneChild = currentBoneChild->next;
+            }
+
+            // Report if we did not find the rotation or translation.
+            if (!validTranslation)
+            {
+                fprintf(stderr, "vsCal3DBoneLoader::parseXML: Could not find "
+                    "translation information!\n");
+            }
+            if (!validRotation)
+            {
+                fprintf(stderr, "vsCal3DBoneLoader::parseXML: Could not find "
+                    "rotation information!\n");
+            }
+            // Report if we did not find the rotation or translation.
+            if (!validLocalTranslation)
+            {
+                fprintf(stderr,
+                    "vsCal3DBoneLoader::parseXML: Could not find local "
+                    "translation information!\n");
+            }
+            if (!validLocalRotation)
+            {
+                fprintf(stderr, "vsCal3DBoneLoader::parseXML: Could not find "
+                    "local rotation information!\n");
+            }
+
+            // Check the children count and see if we found the right number.
+            if (boneChildrenCount != boneChildrenProcessed)
+            {
+                fprintf(stderr, "vsCal3DBoneLoader::parseXML: Possible error "
+                    "in children specification.\n\tExpected: %d \tFound:%d\n",
+                    boneChildrenCount, boneChildrenProcessed);
+            }
+
+            // Combine the translation and rotation.
+            translationMatrix.setTranslation(translationX, translationY,
+                translationZ);
+            transformMatrix = translationMatrix * rotationMatrix;
+
+            // Combine the local translation and rotation.
+            localTranslationMatrix.setTranslation(localTranslationX,
+                localTranslationY, localTranslationZ);
+            localTransformMatrix = localTranslationMatrix * localRotationMatrix;
+            *currentBoneSpaceMatrix = localTransformMatrix;
+
+            // Create, set, and attach the transform attribute for the bone.
+            boneTransform = new vsTransformAttribute();
+            boneTransform->setPreTransform(transformMatrix);
+            currentComponent->addAttribute(boneTransform);
+
+            // Increment the number of bones we have processed to account
+            // for the current one.
+            bonesProcessed++;
+        }
+
+        // Move to the next possible BONE.
+        current = current->next;
+    }
+
+    // If we did not process the same number of bones as specified in the
+    // SKELETON property, then assume an error.
+    if (bonesProcessed != boneCount)
+    {
+        fprintf(stderr, "vsCal3DBoneLoader::parseXML: Possible error "
+            "in bone specification.\n\tExpected: %d \tFound:%d\n", boneCount,
+            bonesProcessed);
+
+        xmlFreeDoc(document);
+        delete [] fileBuffer;
+        return NULL;
+    }
+
+    // Free the document and the buffer.
+    xmlFreeDoc(document);
+    delete [] fileBuffer;
+
+    // Insure our assumed root component is the actual root.
+    rootComponent = getRootBone(rootComponent);
+
+    // Return a new vsSkeleton pointer with the bone data just read.
+    // We do not free the boneList or the components in it because that will
+    // be the responsability of the vsSkeleton object now.
+    return (new vsSkeleton(boneList, boneSpaceMatrixList, boneList->getSize(),
+        rootComponent));
+}
+
+// ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsCal3DBoneLoader::getClassName()
+{
+    return "vsCal3DBoneLoader";
+}
+
+// ------------------------------------------------------------------------
+// Call to attempt to load a Cal3D bone file.  Returns the vsSkeleton
+// created from it.
+// ------------------------------------------------------------------------
+vsSkeleton *vsCal3DBoneLoader::loadSkeleton(char *filename)
+{
+    int    nameLength;
+    char   fileEnding[5];
+
+    nameLength = strlen(filename);
+
+    // If the name is only a file ending, return NULL.
+    if (nameLength < 5)
+    {
+        fprintf(stderr,
+            "vsCal3DBoneLoader::loadDatabase: Load of '%s' failed\n", filename);
+        return NULL;
+    }
+
+    // Convert the file ending to upper case, for the sake of checking.
+    fileEnding[0] = filename[nameLength - 4];
+    fileEnding[1] = toupper(filename[nameLength - 3]);
+    fileEnding[2] = toupper(filename[nameLength - 2]);
+    fileEnding[3] = toupper(filename[nameLength - 1]);
+    fileEnding[4] = 0; 
+
+    // If it is an XML bone definition file, process it.
+    if (strcmp(fileEnding, ".XSF") == 0)
+    {
+        return parseXML(filename);
+    }
+    // If it is the binary version, print an error.
+    else if (strcmp(fileEnding, ".CSF") == 0)
+    {
+        fprintf(stderr, "vsCal3DBoneLoader::loadSkeleton: Load of '%s' failed\n"
+            "\tCan only load the .xsf variants.\n", filename);
+    }
+    // If it is an unknown type, print an error.
+    else
+    {
+        fprintf(stderr,
+            "vsCal3DBoneLoader::loadSkeleton: Load of '%s' failed\n", filename);
+    }
+
+    return NULL;
+}
