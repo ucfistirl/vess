@@ -305,9 +305,9 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
                 materialData->texture[currentTexture]->setBoundaryMode(
                     VS_TEXTURE_DIRECTION_ALL, VS_TEXTURE_BOUNDARY_CLAMP);
                 materialData->texture[currentTexture]->setMagFilter(
-                    VS_TEXTURE_MAGFILTER_NEAREST);
+                    VS_TEXTURE_MAGFILTER_LINEAR);
                 materialData->texture[currentTexture]->setMinFilter(
-                    VS_TEXTURE_MINFILTER_NEAREST);
+                    VS_TEXTURE_MINFILTER_MIPMAP_LINEAR);
                 if (currentTexture > 0)
                 {
                     materialData->texture[currentTexture]->setApplyMode(
@@ -817,6 +817,7 @@ totalVertices += meshVertices;
             // Create the mesh geometry object, setup to take in however
             // many faces (triangles) have been defined in the file.
             resultMesh = new vsSkeletonMeshGeometry();
+            resultMesh->beginNewState();
             resultMesh->setPrimitiveType(VS_GEOMETRY_TYPE_TRIS);
             resultMesh->setPrimitiveCount(meshFaces);
             resultMesh->enableLighting();
@@ -851,26 +852,38 @@ totalVertices += meshVertices;
 
             // Number of vertices are 3 times the faces, 3 vertices per face.
             // Many vertices are shared but this is the fast easy way for now.
+            // Set the list sizes and bindings.
             resultMesh->setDataListSize(VS_GEOMETRY_SKIN_VERTEX_COORDS,
                 (meshFaces * 3));
+            resultMesh->setBinding(VS_GEOMETRY_SKIN_VERTEX_COORDS,
+                VS_GEOMETRY_BIND_PER_VERTEX);
+
             resultMesh->setDataListSize(VS_GEOMETRY_SKIN_NORMALS,
                 (meshFaces * 3));
+            resultMesh->setBinding(VS_GEOMETRY_SKIN_NORMALS,
+                VS_GEOMETRY_BIND_PER_VERTEX);
+
             resultMesh->setDataListSize(VS_GEOMETRY_VERTEX_WEIGHTS,
                 (meshFaces * 3));
+            resultMesh->setBinding(VS_GEOMETRY_VERTEX_WEIGHTS,
+                VS_GEOMETRY_BIND_PER_VERTEX);
+
             resultMesh->setDataListSize(VS_GEOMETRY_BONE_INDICES,
                 (meshFaces * 3));
+            resultMesh->setBinding(VS_GEOMETRY_BONE_INDICES,
+                VS_GEOMETRY_BIND_PER_VERTEX);
+
+            // Set color data binding and data information.
 /*
 // For coloring vertices according to influences.
-            resultMesh->setBinding(VS_GEOMETRY_COLORS,
-                VS_GEOMETRY_BIND_PER_VERTEX);
-            resultMesh->setDataListSize(VS_GEOMETRY_COLORS, (meshFaces * 3));
+resultMesh->setDataListSize(VS_GEOMETRY_COLORS, (meshFaces * 3));
+resultMesh->setBinding(VS_GEOMETRY_COLORS, VS_GEOMETRY_BIND_PER_VERTEX);
 */
-            // Set color data binding
+            resultMesh->setDataListSize(VS_GEOMETRY_COLORS, 1);
             resultMesh->setBinding(VS_GEOMETRY_COLORS,
                 VS_GEOMETRY_BIND_OVERALL);
 
-            // Setup color data information.
-            resultMesh->setDataListSize(VS_GEOMETRY_COLORS, 1);
+            // Set the mesh color to white.
             resultMesh->setData(VS_GEOMETRY_COLORS, 0,
                 vsVector(1.0, 1.0, 1.0, 1.0));
 
@@ -881,9 +894,12 @@ totalVertices += meshVertices;
             {
                 for (index = 0; index < materialData->textureCount; index++)
                 {
-                    // Set the size of current texture coordinate list.
+                    // Set the size and binding of current texture coordinate
+                    // list.
                     resultMesh->setDataListSize(
                         VS_GEOMETRY_TEXTURE0_COORDS+index, (meshFaces * 3));
+                    resultMesh->setBinding(VS_GEOMETRY_TEXTURE0_COORDS+index,
+                        VS_GEOMETRY_BIND_PER_VERTEX);
 
                     // Hand the mesh the prepared vsTextureAttribute.
                     resultMesh->addAttribute(materialData->texture[index]);
@@ -1155,6 +1171,9 @@ switch (count)
                 // Move to next node.
                 currentSubMeshChild = currentSubMeshChild->next;
             }
+
+            // Finalize the changes to the mesh geometry.
+            resultMesh->finishNewState();
 
             // Increment the number of submeshes we have processed to account
             // for the current one.
