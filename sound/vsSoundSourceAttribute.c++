@@ -2,29 +2,32 @@
 #include <AL/alkludge.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <Performer/pf/pfSCS.h>
 
 #include "vsSoundSourceAttribute.h++"
 #include "vsNode.h++"
 #include "vsComponent.h++"
 
 // ------------------------------------------------------------------------
-// Constructor - Registers this attribute with the specified view object,
-// and initializes the adjustment matrix.
+// Constructor -  creates a static sound source.  If the loop parameter
+// is set, the sound will start playing immediately.  Otherwise, the 
+// play() method can be called to "trigger" the sound.
 // ------------------------------------------------------------------------
-vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundBuffer *buffer, int loop)
+vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundSample *buffer, int loop)
 {
     ALfloat zero[3];
 
-    // Keep a handle to the vsSoundBuffer
+    // Keep a handle to the vsSoundSample
     soundBuffer = buffer;
 
     // Remember whether we are looping or not
     loopSource = loop;
 
+    // Remember whether we are streaming or not
+    streamingSource = VS_FALSE;
+
     // Do some initialization
     offsetMatrix.setIdentity();
-    componentMiddle = NULL;
+    parentComponent = NULL;
 
     zero[0] = 0.0;
     zero[1] = 0.0;
@@ -51,18 +54,75 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundBuffer *buffer, int loop)
     alSourcefv(sourceID, AL_POSITION, zero);
     alSourcefv(sourceID, AL_DIRECTION, zero);
     alSourcefv(sourceID, AL_VELOCITY, zero);
-    alSourcei(sourceID, AL_BUFFER, soundBuffer->getBufferID());
+    alSourcei(sourceID, AL_BUFFER, 
+        ((vsSoundSample *)soundBuffer)->getBufferID());
     alSourcei(sourceID, AL_LOOPING, loopSource);
 
-    // Start playing
-    alSourcePlay(sourceID);
+    // Start playing if this is a looping sound
+    if (loopSource)
+        alSourcePlay(sourceID);
 }
 
+/*  
+   Not available yet.  The details of streaming sounds are still 
+   being worked out in the OpenAL world
+
 // ------------------------------------------------------------------------
-// Destructor - Detatched this attribute from its associated view object
+// Constructor -  creates a streaming sound source.  The play() method
+// must be explicitly called to start playing because we cannot assume
+// that the buffer contains valid data at the end of this constructor.
+// ------------------------------------------------------------------------
+vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundStream *buffer)
+{
+    ALfloat zero[3];
+
+    // Keep a handle to the vsSoundStream
+    soundBuffer = buffer;
+
+    // Remember whether we are streaming or not
+    streamingSource = VS_TRUE;
+
+    // Do some initialization
+    offsetMatrix.setIdentity();
+    parentComponent = NULL;
+
+    zero[0] = 0.0;
+    zero[1] = 0.0;
+    zero[2] = 0.0;
+
+    lastPos.clear();
+    lastOrn.clear();
+
+    // Call getTimeInterval to initialize the lastTime variable
+    getTimeInterval();
+
+    // Initialize the base direction vector
+    baseDirection.set(0.0, 0.0, 0.0);
+
+    // Set up a coordinate conversion quaternion
+    coordXform.setAxisAngleRotation(1, 0, 0, -90.0);
+    coordXformInv = coordXform;
+    coordXformInv.conjugate();
+
+    // Create the OpenAL source
+    alGenSources(1, &sourceID);
+    ((vsSoundStream *)soundBuffer)->setSourceID(sourceID);
+
+    // Configure
+    alSourcefv(sourceID, AL_POSITION, zero);
+    alSourcefv(sourceID, AL_DIRECTION, zero);
+    alSourcefv(sourceID, AL_VELOCITY, zero);
+    alSourcei(sourceID, AL_BUFFER, 0);
+}
+
+*/
+
+// ------------------------------------------------------------------------
+// Destructor
 // ------------------------------------------------------------------------
 vsSoundSourceAttribute::~vsSoundSourceAttribute()
 {
+    alDeleteSources(1, &sourceID);
 }
 
 // ------------------------------------------------------------------------
@@ -105,7 +165,7 @@ void vsSoundSourceAttribute::attach(vsNode *theNode)
         return;
     }
 
-    componentMiddle = ((vsComponent *)theNode)->getLightHook();
+    parentComponent = ((vsComponent *)theNode);
     
     attachedFlag = 1;
 }
@@ -123,83 +183,9 @@ void vsSoundSourceAttribute::detach(vsNode *theNode)
         return;
     }
 
-    componentMiddle = NULL;
+    parentComponent = NULL;
     
     attachedFlag = 0;
-}
-
-// ------------------------------------------------------------------------
-// VESS internal function
-// Causes the attribute to calculate the total transform to its parent
-// node, and assign that data to its associated view object.
-// ------------------------------------------------------------------------
-void vsSoundSourceAttribute::update()
-{
-    pfGroup        *groupPtr;
-    pfMatrix       xform;
-    const pfMatrix *scsMatPtr;
-    vsMatrix       result;
-    vsQuat         tempQuat;
-    vsVector       tempVec;
-    vsVector       deltaVec;
-    double         interval;
-    int            loop, sloop;
-
-    if (!attachedFlag)
-        return;
-
-    xform.makeIdent();
-    groupPtr = componentMiddle;
-    
-    // Trace up the (Performer) scene graph and apply all transformations
-    // to get the current world coordinate position.
-    // Hopefully, vsNode will be able to do this for us soon (see 
-    // docs/vsWishlist.txt).
-    while (groupPtr->getNumParents() > 0)
-    {
-        if (groupPtr->isOfType(pfSCS::getClassType()))
-        {
-            scsMatPtr = ((pfSCS *)groupPtr)->getMatPtr();
-            xform.postMult(*scsMatPtr);
-        }
-        
-        groupPtr = groupPtr->getParent(0);
-    }
-    
-    for (loop = 0; loop < 4; loop++)
-        for (sloop = 0; sloop < 4; sloop++)
-            result[loop][sloop] = xform[sloop][loop];
-
-    result = offsetMatrix * result;
-    
-    // Update the position
-    tempVec[VS_X] = result[0][3];
-    tempVec[VS_Y] = result[1][3];
-    tempVec[VS_Z] = result[2][3];
-    tempVec = coordXform.rotatePoint(tempVec);
-
-    // Update the OpenAL source's position
-    alSource3f(sourceID, AL_POSITION, (float)tempVec[VS_X],
-        (float)tempVec[VS_Y], (float)tempVec[VS_Z]); 
-
-    // Update the velocity (based on the last frame's position)
-    deltaVec = tempVec - lastPos;
-    interval = getTimeInterval();
-    deltaVec.scale(1/interval);
-    alSource3f(sourceID, AL_VELOCITY, (float)deltaVec[VS_X],
-        (float)deltaVec[VS_Y], (float)deltaVec[VS_Z]);
-
-    lastPos = tempVec;
-
-    // Update the orientation
-    if (baseDirection.getMagnitude() > 0.0)
-    {
-        tempQuat.setMatrixRotation(result);
-        tempQuat = coordXformInv * tempQuat * coordXform;
-        tempVec = tempQuat.rotatePoint(baseDirection);
-        alSource3f(sourceID, AL_DIRECTION, tempVec[VS_X], tempVec[VS_Y], 
-            tempVec[VS_Z]);
-    }
 }
 
 // ------------------------------------------------------------------------
@@ -237,6 +223,79 @@ vsMatrix vsSoundSourceAttribute::getOffsetMatrix()
 }
 
 // ------------------------------------------------------------------------
+// Causes the attribute to calculate the total transform to its parent
+// node, and assign that data to the associated alSource object
+// ------------------------------------------------------------------------
+void vsSoundSourceAttribute::update()
+{
+    pfMatrix       xform;
+    vsMatrix       result;
+    vsQuat         tempQuat;
+    vsVector       tempVec;
+    vsVector       deltaVec;
+    double         interval;
+/*
+    int            buffersProcessed;
+    ALuint         bufferID;
+*/
+
+    if (!attachedFlag)
+        return;
+
+    xform.makeIdent();
+    
+    result = parentComponent->getGlobalXform();
+
+    result = result * offsetMatrix;
+    
+    // Update the position
+    tempVec[VS_X] = result[0][3];
+    tempVec[VS_Y] = result[1][3];
+    tempVec[VS_Z] = result[2][3];
+    tempVec = coordXform.rotatePoint(tempVec);
+
+    // Update the OpenAL source's position
+    alSource3f(sourceID, AL_POSITION, (float)tempVec[VS_X],
+        (float)tempVec[VS_Y], (float)tempVec[VS_Z]); 
+
+    // Update the velocity (based on the last frame's position)
+    deltaVec = tempVec - lastPos;
+    interval = getTimeInterval();
+    deltaVec.scale(1/interval);
+    alSource3f(sourceID, AL_VELOCITY, (float)deltaVec[VS_X],
+        (float)deltaVec[VS_Y], (float)deltaVec[VS_Z]);
+
+    lastPos = tempVec;
+
+    // Update the orientation
+    if (baseDirection.getMagnitude() > 0.0)
+    {
+        tempQuat.setMatrixRotation(result);
+        tempQuat = coordXformInv * tempQuat * coordXform;
+        tempVec = tempQuat.rotatePoint(baseDirection);
+        alSource3f(sourceID, AL_DIRECTION, tempVec[VS_X], tempVec[VS_Y], 
+            tempVec[VS_Z]);
+    }
+
+/*
+    // For streaming sources, check to see if we need to swap buffers
+    // to allow the old buffer to be refilled
+    if (streamingSource)
+    {
+        alGetSourcei(sourceID, AL_BUFFERS_PROCESSED, &buffersProcessed);
+
+        if (buffersProcessed > 0)
+        {
+            // The current buffer is done, swap buffers
+            bufferID = ((vsSoundStream *)soundBuffer)->getFrontBufferID();
+            alUnqueue(sourceID, 1, &bufferID);
+            ((vsSoundStream *)soundBuffer)->swapBuffers();
+        }
+    }
+*/
+}
+
+// ------------------------------------------------------------------------
 // Begins playback of the source
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::play()
@@ -245,11 +304,24 @@ void vsSoundSourceAttribute::play()
 }
 
 // ------------------------------------------------------------------------
-// Halts playback of the source
+// Halts playback of the source.  If a streaming source, also unqueues all
+// queued buffers.
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::stop()
 {
+/*
+    int buffersProcessed;
+*/
+
     alSourceStop(sourceID);
+
+/*
+    if (streamingSource)
+    {
+        ((vsSoundStream *)soundBuffer)->flushBuffers();
+        alSourcei(sourceID, AL_BUFFER, 0);
+    }
+*/
 }
 
 // ------------------------------------------------------------------------

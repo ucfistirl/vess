@@ -1,11 +1,9 @@
 #include <AL/al.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <Performer/pf/pfSCS.h>
 
 #include "vsSoundListenerAttribute.h++"
 #include "vsNode.h++"
-#include "vsComponent.h++"
 
 // ------------------------------------------------------------------------
 // Constructor - Registers this attribute with the specified view object,
@@ -17,7 +15,7 @@ vsSoundListenerAttribute::vsSoundListenerAttribute()
 
     // Do some initialization
     offsetMatrix.setIdentity();
-    componentMiddle = NULL;
+    parentComponent = NULL;
 
     zero[0] = 0.0;
     zero[1] = 0.0;
@@ -106,7 +104,7 @@ void vsSoundListenerAttribute::attach(vsNode *theNode)
         return;
     }
 
-    componentMiddle = ((vsComponent *)theNode)->getLightHook();
+    parentComponent = ((vsComponent *)theNode);
     
     attachedFlag = 1;
 }
@@ -124,56 +122,50 @@ void vsSoundListenerAttribute::detach(vsNode *theNode)
         return;
     }
 
-    componentMiddle = NULL;
+    parentComponent = NULL;
     
     attachedFlag = 0;
 }
 
 // ------------------------------------------------------------------------
-// VESS internal function
-// Causes the attribute to calculate the total transform to its parent
-// node, and assign that data to its associated view object.
+// Sets the offset matrix for this attribute. The offset matrix is
+// multiplied into the overall transform matrix before it is sent to the 
+// OpenAL sound source.
 // ------------------------------------------------------------------------
+void vsSoundListenerAttribute::setOffsetMatrix(vsMatrix newMatrix)
+{
+    offsetMatrix = newMatrix;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the offset matrix for this attribute
+// ------------------------------------------------------------------------
+vsMatrix vsSoundListenerAttribute::getOffsetMatrix()
+{
+    return offsetMatrix;
+}
+
+// ------------------------------------------------------------------------
+// Causes the attribute to calculate the total transform to its parent
+// node, and assign that data to its associated alListener object.
+// -----------------------------------------------------------------------
 void vsSoundListenerAttribute::update()
 {
-    pfGroup        *groupPtr;
-    pfMatrix       xform;
-    const pfMatrix *scsMatPtr;
     vsMatrix       result;
     vsQuat         tempQuat;
     vsVector       tempVec;
     vsVector       deltaVec;
     double         interval;
-    int            loop, sloop;
     vsVector       atVec, upVec;
     ALfloat        orientation[6];
 
     if (!attachedFlag)
         return;
 
-    xform.makeIdent();
-    groupPtr = componentMiddle;
-    
-    // Trace up the (Performer) scene graph and apply all transformations
-    // to get the current world coordinate position.
-    // Hopefully, vsNode will be able to do this for us soon (see 
-    // docs/vsWishlist.txt).
-    while (groupPtr->getNumParents() > 0)
-    {
-        if (groupPtr->isOfType(pfSCS::getClassType()))
-        {
-            scsMatPtr = ((pfSCS *)groupPtr)->getMatPtr();
-            xform.postMult(*scsMatPtr);
-        }
-        
-        groupPtr = groupPtr->getParent(0);
-    }
-    
-    for (loop = 0; loop < 4; loop++)
-        for (sloop = 0; sloop < 4; sloop++)
-            result[loop][sloop] = xform[sloop][loop];
+    // Get the component's global transform
+    result = parentComponent->getGlobalXform();
 
-    result = offsetMatrix * result;
+    result = result * offsetMatrix;
     
     // Update the position
     tempVec[VS_X] = result[0][3];
@@ -219,24 +211,6 @@ void vsSoundListenerAttribute::update()
     orientation[4] = (ALfloat)(upVec[VS_Y]);
     orientation[5] = (ALfloat)(upVec[VS_Z]);
     alListenerfv(AL_ORIENTATION, orientation);
-}
-
-// ------------------------------------------------------------------------
-// Sets the offset matrix for this attribute. The offset matrix is
-// multiplied into the overall transform matrix before it is sent to the 
-// OpenAL sound source.
-// ------------------------------------------------------------------------
-void vsSoundListenerAttribute::setOffsetMatrix(vsMatrix newMatrix)
-{
-    offsetMatrix = newMatrix;
-}
-
-// ------------------------------------------------------------------------
-// Retrieves the offset matrix for this attribute
-// ------------------------------------------------------------------------
-vsMatrix vsSoundListenerAttribute::getOffsetMatrix()
-{
-    return offsetMatrix;
 }
 
 // ------------------------------------------------------------------------

@@ -5,16 +5,12 @@
 // Does nothing but define the interface for use by vsSoundSourceAttribute
 // and other classes that might use sound buffers.
 
-#include <AL/al.h>
-
 class vsSoundBuffer
 {
 public:
 
                       vsSoundBuffer();
     virtual           ~vsSoundBuffer();
-
-    virtual ALuint    getBufferID() = 0;
 };
 
 #endif

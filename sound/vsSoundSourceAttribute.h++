@@ -4,9 +4,10 @@
 // Attribute to maintain the location/orientation of a source of sound
 // in the VESS scene graph
 
-#include <Performer/pf/pfGroup.h>
+#include "vsComponent.h++"
 #include "vsAttribute.h++"
-#include "vsSoundBuffer.h++"
+#include "vsSoundSample.h++"
+#include "vsSoundStream.h++"
 #include "vsVector.h++"
 #include "vsMatrix.h++"
 #include "vsQuat.h++"
@@ -18,6 +19,7 @@ protected:
     // The sound data
     vsSoundBuffer    *soundBuffer;
     int              loopSource;
+    int              streamingSource;
 
     // Our alSource ID number
     ALuint           sourceID;
@@ -28,7 +30,8 @@ protected:
     // Base direction of radiation (prior to transforms)
     vsVector         baseDirection;
 
-    pfGroup          *componentMiddle;
+    // The vsComponent we're attached to
+    vsComponent      *parentComponent;
 
     // Previous location/orientation
     vsVector         lastPos;
@@ -50,19 +53,29 @@ VS_INTERNAL:
     void        attach(vsNode *theNode);
     void        detach(vsNode *theNode);
 
-    void        update();
-
 public:
 
-                   vsSoundSourceAttribute(vsSoundBuffer *buffer, int loop);
+    // Constructor for a static sound source (either a looping or triggered
+    // sound)
+                   vsSoundSourceAttribute(vsSoundSample *buffer, int loop);
+
+    // Constructor for a streaming sound source
+                   vsSoundSourceAttribute(vsSoundStream *buffer);
+
+    // Destructor
     virtual        ~vsSoundSourceAttribute();
 
+    // Inherited methods
     virtual int    getAttributeType();
     virtual int    getAttributeCategory();
 
     // Offset from the component's global transform
     void           setOffsetMatrix(vsMatrix newMatrix);
     vsMatrix       getOffsetMatrix();
+
+    // Update function.  Sets the new source position, velocity, and direction
+    // based on the attached component's global transform
+    void        update();
 
     // Source control
     void           play();
