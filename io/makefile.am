@@ -43,6 +43,7 @@ libvsIO_so_SOURCES = $(libvsIO_a_SOURCES)
 # Extra sources for libvsIO.a.  These are compiled only if certain
 # configuration conditions are met.
 EXTRA_libvsIO_a_SOURCES = \
+                          Linux/vs1394Camera.c++ \
                           Linux/vsLinuxJoystickSystem.c++ \
                           Linux/vsScentAirSystem.c++
 
@@ -109,6 +110,7 @@ INCLUDES = \
            -I../io/@WS@ \
            -I../io/@SG@_@WS@ \
            -I../io/@OS@ \
+           @IO_INCLUDE_DIR@ \
            -I../graphics/common \
            -I../graphics/@SG@ \
            -I../graphics/@SG@_@WS@ \
