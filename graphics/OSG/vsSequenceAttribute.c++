@@ -381,7 +381,7 @@ void vsSequenceAttribute::attach(vsNode *theNode)
         osgSequence->setTime(loop, 0.016);
 
     // Set the app callback for the OSG sequence node we're using
-    osgSequence->setAppCallback(seqCallback);
+    osgSequence->setUpdateCallback(seqCallback);
     
     // Flag the attribute as attached
     attachedCount = 1;
@@ -404,7 +404,7 @@ void vsSequenceAttribute::detach(vsNode *theNode)
     }
     
     // Remove the app callback from the OSG sequence node
-    osgSequence->setAppCallback(NULL);
+    osgSequence->setUpdateCallback(NULL);
     
     // Replace the sequence with an ordinary group
     newGroup = new osg::Group();
