@@ -316,8 +316,10 @@ vsNode *vsComponent::cloneTree()
     // Create a new component
     result = new vsComponent();
     
-    // Copy the name (all other data members are handled in the process)
+    // Copy the name and intersection value (all other data members should
+    // be taken care of automatically)
     result->setName(getName());
+    result->setIntersectValue(getIntersectValue());
    
     // Clone the children of this component and add them to the new
     // component
