@@ -189,7 +189,7 @@ protected:
     int                  formatNum;
 
      // Indicates whether or not this machine is big-endian
-    int                  bigEndian;
+    bool                 bigEndian;
 
     // Size of the output record (for each tracker)
     int                  outputSize;
@@ -206,7 +206,7 @@ protected:
     // Utility functions
     void                 enumerateTrackers();
     void                 initOutputFormat();
-    int                  isBigEndian();
+    bool                 isBigEndian();
     void                 endianSwap(float *inFloat, float *outFloat);
     void                 setBinaryOutput();
 

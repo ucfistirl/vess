@@ -381,7 +381,7 @@ void vsIS600::initOutputFormat()
 // From Harbinson&Steele.  Determines whether this machine is big- or
 // little-endian.
 // ------------------------------------------------------------------------
-int vsIS600::isBigEndian()
+bool vsIS600::isBigEndian()
 {
     // Union of a long and four bytes used to perform the test
     union

@@ -39,7 +39,7 @@ bool vsEthernetMotionStar::serverDone;
 // responsible for controlling the MotionStar.
 // ------------------------------------------------------------------------
 vsEthernetMotionStar::vsEthernetMotionStar(char *serverName, int port, 
-    int nTrackers, int masterFlag, int dFormat)
+    int nTrackers, bool masterFlag, int dFormat)
     : vsTrackingSystem()
 {
     int      i;
@@ -1249,7 +1249,7 @@ void vsEthernetMotionStar::updateSystem()
     int             dataBytes;
     int             currentByte;
     int             birdDataFormat;
-    int             birdButtonFlag;
+    bool            birdButtonFlag;
     int             birdDataSize;
     short           birdData[30];
     short           tempWord;

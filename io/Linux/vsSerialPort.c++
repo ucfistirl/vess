@@ -249,14 +249,14 @@ int vsSerialPort::readCharacter()
 {
     char character;
     int  result;
-    int  readFlag;
+    bool  readFlag;
 
     // Read a single byte from the port
     readFlag = read(portDescriptor, &character, 1);
 
     // Return the character read if we successfully read a byte
     // otherwise, return -1
-    if (readFlag == 1)
+    if (readFlag == true)
     {
         result = character;
         return result;

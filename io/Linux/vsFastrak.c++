@@ -432,7 +432,7 @@ void vsFastrak::initOutputFormat()
 // From Harbinson&Steele.  Determines whether this machine is big- or
 // little-endian.
 // ------------------------------------------------------------------------
-int vsFastrak::isBigEndian()
+bool vsFastrak::isBigEndian()
 {
     // Union of a long and four bytes used to perform the test
     union

@@ -356,7 +356,7 @@ protected:
     // MotionStar parameters
     int                     numChassis;
     int                     addressMode;
-    int                     master;
+    bool                    master;
     int                     xmtrAddress;
     bool                    streaming;
     bool                    configured;
@@ -402,7 +402,7 @@ public:
 
                                vsEthernetMotionStar(char *serverName, int port,
                                                     int nTrackers, 
-                                                    int masterFlag, 
+                                                    bool masterFlag, 
                                                     int dataFormat);
     virtual                    ~vsEthernetMotionStar();
 
