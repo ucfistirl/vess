@@ -34,6 +34,7 @@
 #include "vsOptimizer.h++"
 #include "vsGraphicsState.h++"
 #include "vsDatabaseLoader.h++"
+#include "vsWindowSystem.h++"
 
 vsSystem *vsSystem::systemObject = NULL;
 
@@ -48,8 +49,10 @@ vsSystem::vsSystem()
     pfWSConnection winConnection;
     int screenCount;
 
+    // Start off uninitialized
     isInitted = 0;
 
+    // Singleton check
     if (systemObject)
     {
         printf("vsSystem::vsSystem: Only one vsSystem object may be in "
@@ -58,15 +61,19 @@ vsSystem::vsSystem()
         return;
     }
     
+    // Save this system object in the class pointer variable
     validObject = 1;
     systemObject = this;
 
+    // Initialize Performer
     pfInit();
     pfuInit();
 
     // Configure the system for the available number of graphics pipelines
     winConnection = pfGetCurWSConnection();
     screenCount = ScreenCount(winConnection);
+
+    // Activate multipipe mode if appropriate
     if (screenCount > 1)
         pfMultipipe(screenCount);
 }
@@ -77,11 +84,32 @@ vsSystem::vsSystem()
 // ------------------------------------------------------------------------
 vsSystem::~vsSystem()
 {
+    // Do nothing if this isn't a real system object
     if (!validObject)
         return;
-        
-    delete frameTimer;
 
+    // Delete statically-created objects in the various VESS classes
+    vsGeometry::clearBinSortModes();
+    vsGraphicsState::deleteInstance();
+    vsViewpointAttribute::deleteMap();
+    vsNode::deleteMap();
+    vsTimer::deleteSystemTimer();
+    vsWindowSystem::deleteMap();
+    vsScreen::done();
+    vsPipe::done();
+
+#ifdef VESS_DEBUG
+    FILE *outfile = fopen("vess_objects.log", "w");
+    if (outfile)
+    {
+        vsObject::printCurrentObjects(outfile);
+        fclose(outfile);
+    }
+
+    vsObject::deleteObjectList();
+#endif
+        
+    // Clear the class pointer and shut down Performer
     systemObject = NULL;
     pfExit();
 }
@@ -92,6 +120,7 @@ vsSystem::~vsSystem()
 // ------------------------------------------------------------------------
 void vsSystem::setMultiprocessMode(int mpMode)
 {
+    // Interpret the multiprocess constant
     switch (mpMode)
     {
 	case VS_MPROC_DEFAULT:
@@ -141,9 +170,11 @@ void vsSystem::addExtension(char *fileExtension)
 // ------------------------------------------------------------------------
 void vsSystem::init()
 {
+    // Do nothing if this isn't a real system object
     if (!validObject)
 	return;
 
+    // Do nothing if this object has already been initialized
     if (isInitted)
     {
 	printf("vsSystem::init: vsSystem object is already initialized\n");
@@ -158,9 +189,7 @@ void vsSystem::init()
     vsPipe::init();
     vsScreen::init();
     
-    // Initialize the current time
-    frameTimer = new vsTimer();
-    
+    // Mark the object as initialized
     isInitted = 1;
 }
 
@@ -189,15 +218,18 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
     vsOptimizer *optimizer;
     vsDatabaseLoader *dbLoader;
 
+    // Do nothing if this isn't a real system object
     if (!validObject)
 	return;
 
+    // Do nothing if this object has already been initialized
     if (isInitted)
     {
 	printf("vsSystem::init: vsSystem object is already initialized\n");
 	return;
     }
 
+    // Configure the system for the type of database being loaded
     addExtension(databaseFilename);
 
     // * This call can potentially fork new processes, so every object
@@ -212,6 +244,7 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
     vsPipe::init();
     vsScreen::init();
     
+    // Mark the object as initialized
     isInitted = 1;
 
     // Quick start: Set up the default window, pane, and view objects
@@ -222,7 +255,6 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
         defaultWindow->setName(windowName);
     else
         defaultWindow->setName(databaseFilename);
-
     defaultPane = new vsPane(defaultWindow);
     defaultPane->autoConfigure(VS_PANE_PLACEMENT_FULL_WINDOW);
 
@@ -253,9 +285,6 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
     globalLight->on();
     scene->addAttribute(globalLight);
 
-    // Initialize the current time
-    frameTimer = new vsTimer();
-
     // Return the requested values and finish
     if (sceneGraph)
         *sceneGraph = scene;
@@ -264,6 +293,7 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
     if (window)
         *window = defaultWindow;
 
+    // Clean up the loader and optimizer
     delete optimizer;
     delete dbLoader;
 }
@@ -279,11 +309,14 @@ void vsSystem::preFrameTraverse(vsNode *node)
     vsNode *childNode;
     int loop;
     
+    // Mark this node as clean
     node->clean();
 
+    // Activate all of the attributes on the node
     node->saveCurrentAttributes();
     node->applyAttributes();
     
+    // Recurse on the node's children (if any)
     for (loop = 0; loop < node->getChildCount(); loop++)
     {
         childNode = node->getChild(loop);
@@ -291,6 +324,7 @@ void vsSystem::preFrameTraverse(vsNode *node)
             preFrameTraverse(childNode);
     }
     
+    // On the way back out, deactivate the attributes on the node
     node->restoreSavedAttributes();
 }
 
@@ -300,9 +334,11 @@ void vsSystem::preFrameTraverse(vsNode *node)
 // ------------------------------------------------------------------------
 void vsSystem::drawFrame()
 {
+    // Do nothing if this isn't a real system object
     if (!validObject)
         return;
         
+    // Do nothing if the object hasn't been initialized
     if (!isInitted)
     {
 	printf("vsSystem::drawFrame: System object is not initialized\n");
@@ -316,21 +352,55 @@ void vsSystem::drawFrame()
     vsPane *targetPane;
     vsNode *scene;
     int screenCount = vsScreen::getScreenCount();
+
+    // If any of the vsGeometry's render bin modes changed last frame,
+    // then we need to mark every geometry object in existance as dirty so
+    // that the bin mode change gets applied to all geometry objects.
+    if (vsGeometry::binModesChanged)
+    {
+        for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
+        {
+            targetScreen = vsScreen::getScreen(screenLoop);
+            windowCount = targetScreen->getChildWindowCount();
+            for (windowLoop = 0; windowLoop < windowCount; windowLoop++)
+            {
+                targetWindow = targetScreen->getChildWindow(windowLoop);
+                paneCount = targetWindow->getChildPaneCount();
+                for (paneLoop = 0; paneLoop < paneCount; paneLoop++)
+                {
+                    targetPane = targetWindow->getChildPane(paneLoop);
+                    scene = targetPane->getScene();
+                    
+                    scene->dirty();
+                }
+            }
+        }
+        
+        // Now that we've done our job, don't do it again next frame
+        vsGeometry::binModesChanged = VS_FALSE;
+    }
     
     // Update the viewpoint of each pane by its vsView object
     for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
     {
         targetScreen = vsScreen::getScreen(screenLoop);
         windowCount = targetScreen->getChildWindowCount();
+
+        // Loop over all windows
         for (windowLoop = 0; windowLoop < windowCount; windowLoop++)
         {
+            // Find the number of panes on the window
             targetWindow = targetScreen->getChildWindow(windowLoop);
             paneCount = targetWindow->getChildPaneCount();
+
+            // Loop over all panes
             for (paneLoop = 0; paneLoop < paneCount; paneLoop++)
             {
+                // Update the viewpoint of the pane
                 targetPane = targetWindow->getChildPane(paneLoop);
                 targetPane->updateView();
 
+                // Run a VESS traversal over the pane's scene
                 scene = targetPane->getScene();
 		if (scene)
 		{
@@ -344,28 +414,9 @@ void vsSystem::drawFrame()
     // Wait until the next frame boundary
     pfSync();
     
-    // Check how much time has elapsed since the last time we were here
-    lastFrameDuration = frameTimer->getElapsed();
-    frameTimer->mark();
+    // Mark the system timer for this frame
+    vsTimer::getSystemTimer()->mark();
     
     // Start the processing for this frame
     pfFrame();
-}
-
-// ------------------------------------------------------------------------
-// Returns the amount of elapsed time between the last two calls to
-// drawFrame.
-// ------------------------------------------------------------------------
-double vsSystem::getFrameTime()
-{
-    if (!validObject)
-        return 0.0;
-        
-    if (!isInitted)
-    {
-	printf("vsSystem::drawFrame: System object is not initialized\n");
-	return 0.0;
-    }
-
-    return lastFrameDuration;
 }

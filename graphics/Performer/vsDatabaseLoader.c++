@@ -405,10 +405,7 @@ vsNode *vsDatabaseLoader::convertNode(pfNode *node, vsObjectMap *nodeMap,
     // Next, see if we've already converted this node before
     result = (vsNode *)(nodeMap->mapSecondToFirst(node));
     if (result)
-{
-printf("    already converted this node!\n");
         return result;
-}
 
     // Haven't seen this node before, so we need to convert.  First,
     // determine the type of Performer node we're converting
@@ -440,7 +437,6 @@ printf("    already converted this node!\n");
         // add the appropriate attribute(s).
         if (node->isOfType(pfLOD::getClassType()))
         {
-printf("Configuring LOD %s\n", node->getName());
             pfLOD *lodGroup = (pfLOD *)node;
             vsLODAttribute *lodAttr = new vsLODAttribute();
 
@@ -452,7 +448,6 @@ printf("Configuring LOD %s\n", node->getName());
             // Copy the pfLOD ranges to the LOD attribute
             for (loop = 0; loop < lodGroup->getNumChildren(); loop++)
             {
-printf("  range %d is %0.2f\n", loop, lodGroup->getRange(loop));
                 lodAttr->setRangeEnd(loop, lodGroup->getRange(loop+1));
             }
         }
@@ -652,7 +647,6 @@ vsNode *vsDatabaseLoader::convertGeode(pfGeode *geode, vsObjectMap *attrMap)
     // Create the component that will represent the pfGeode;
     geodeComponent = new vsComponent();
 
-printf("converting geode\n");
     // Add a billboard attribute if the geode is actually a billboard
     // node
     if (geode->isOfType(pfBillboard::getClassType()))
@@ -692,7 +686,6 @@ printf("converting geode\n");
         geodeComponent->addAttribute(billboardAttr);
     }
 
-printf("  geode has %d GeoSets\n", geode->getNumGSets());
     // Finally, start converting GeoSets
     for (loop = 0; loop < geode->getNumGSets(); loop++)
     {
@@ -702,7 +695,6 @@ printf("  geode has %d GeoSets\n", geode->getNumGSets());
         // Make sure it's valid
         if (geoSet)
         {
-printf("  converting GeoSet %d\n", loop);
             // Create a new vsGeometry for this GeoSet
             geometry = new vsGeometry();
 
@@ -715,7 +707,6 @@ printf("  converting GeoSet %d\n", loop);
             performerState = geoSet->getGState();
             if (performerState)
             {
-printf("    converting attributes\n", loop);
                 // Convert the attributes on the GeoSet's GeoState
                 convertAttrs(geometry, performerState, attrMap);
             }
@@ -725,47 +716,36 @@ printf("    converting attributes\n", loop);
             switch (primType)
             {
                 case PFGS_POINTS:
-printf("    primitive type is points ", loop);
                     geometry->setPrimitiveType(VS_GEOMETRY_TYPE_POINTS);
                     break;
                 case PFGS_LINES:
-printf("    primitive type is lines ", loop);
                     geometry->setPrimitiveType(VS_GEOMETRY_TYPE_LINES);
                     break;
                 case PFGS_LINESTRIPS:
-printf("    primitive type is line strips ", loop);
                     geometry->setPrimitiveType(VS_GEOMETRY_TYPE_LINE_STRIPS);
                     break;
                 case PFGS_FLAT_LINESTRIPS:
-printf("    primitive type is flat line strips ", loop);
                     geometry->setPrimitiveType(VS_GEOMETRY_TYPE_LINE_STRIPS);
                     break;
                 case PFGS_TRIS:
-printf("    primitive type is tris ", loop);
                     geometry->setPrimitiveType(VS_GEOMETRY_TYPE_TRIS);
                     break;
                 case PFGS_QUADS:
-printf("    primitive type is quads ", loop);
                     geometry->setPrimitiveType(VS_GEOMETRY_TYPE_QUADS);
                     break;
                 case PFGS_TRISTRIPS:
-printf("    primitive type is tri strips ", loop);
                     geometry->setPrimitiveType(VS_GEOMETRY_TYPE_TRI_STRIPS);
                     break;
                 case PFGS_FLAT_TRISTRIPS:
-printf("    primitive type is flat tri strips ", loop);
                     geometry->setPrimitiveType(VS_GEOMETRY_TYPE_TRI_STRIPS);
                     break;
                 case PFGS_TRIFANS:
-printf("    primitive type is tri fans ", loop);
                     geometry->setPrimitiveType(VS_GEOMETRY_TYPE_TRI_FANS);
                     break;
                 case PFGS_FLAT_TRIFANS:
-printf("    primitive type is flat tri fans ", loop);
                     geometry->setPrimitiveType(VS_GEOMETRY_TYPE_TRI_FANS);
                     break;
                 case PFGS_POLYS:
-printf("    primitive type is polys ", loop);
                     geometry->setPrimitiveType(VS_GEOMETRY_TYPE_POLYS);
                     break;
                 default:
@@ -775,7 +755,6 @@ printf("    primitive type is polys ", loop);
 
             // Set the primitive count
             primCount = geoSet->getNumPrims();
-printf("(%d)\n", primCount);
             geometry->setPrimitiveCount(primCount);
 
             // If the primitive type is variable-length, copy the lengths
@@ -799,7 +778,6 @@ printf("(%d)\n", primCount);
                 flatFlag = VS_TRUE;
 
                 // Preprocess the GeoSet to remove the "flat" features
-printf("      inflating flat geometry\n");
                 sourceGeoSet = inflateFlatGeometry(geoSet);
             }
             else
@@ -808,7 +786,6 @@ printf("      inflating flat geometry\n");
             }
 
             // Copy Vertex data
-printf("      copying data\n");
             sourceGeoSet->getAttrLists(PFGS_COORD3, &attrList, &indexList);
             copyData(geometry, VS_GEOMETRY_VERTEX_COORDS, 
                 sourceGeoSet, sourceGeoSet->getAttrBind(PFGS_COORD3), attrList, 
@@ -836,7 +813,6 @@ printf("      copying data\n");
             // it is set
             if (flatFlag)
             {
-printf("      adding flat shading\n");
                 flatShadeAttr = new vsShadingAttribute();
                 flatShadeAttr->setShading(VS_SHADING_FLAT);
                 geometry->addAttribute(flatShadeAttr);
@@ -847,12 +823,10 @@ printf("      adding flat shading\n");
             }
 
             // Add the new geometry to the top component
-printf("      adding geometry child to geode component\n");
             geodeComponent->addChild(geometry);
         }
     }
 
-printf("      returning geode component\n");
     return geodeComponent;
 }
 
@@ -1229,7 +1203,6 @@ pfGeoSet *vsDatabaseLoader::inflateFlatGeometry(pfGeoSet *geoSet)
     // First, copy the primitive lengths list
     lengthsList = geoSet->getPrimLengths();
     listSize = (pfMemory::getSize(lengthsList) / sizeof(int));
-printf("        copying primitive lengths (%d)\n", listSize);
     newLengths = (int *)(pfMemory::malloc(listSize * sizeof(int)));
     for (loop = 0; loop < listSize; loop++)
         newLengths[loop] = lengthsList[loop];
@@ -1249,7 +1222,6 @@ printf("        copying primitive lengths (%d)\n", listSize);
         // Determine if vertices are indexed
         if (indexList != NULL)
         {
-printf("        de-indexing vertices\n");
             // Convert from indexed to non-indexed values by selectively
             // copying from the data list to a new list based on the
             // index list indices
@@ -1263,7 +1235,6 @@ printf("        de-indexing vertices\n");
         {
             // Duplicate the non-indexed vertex list
             listSize = (pfMemory::getSize(vertexList) / sizeof(pfVec3));
-printf("        copying vertices (%d)\n", listSize);
             newVertices = (pfVec3 *)
                 (pfMemory::malloc(listSize * sizeof(pfVec3)));
             pfMemory::copy(newVertices, vertexList);
@@ -1276,8 +1247,6 @@ printf("        copying vertices (%d)\n", listSize);
     else
     {
         // No vertex list, this should not happen with a working pfGeoSet
-        printf("vsDatabaseLoader::inflateFlatGeometry():  Source GeoSet has "
-            "no vertices!\n");
         return geoSet;
     }
 
@@ -1290,7 +1259,6 @@ printf("        copying vertices (%d)\n", listSize);
         // Determine if colors are indexed
         if (indexList != NULL)
         {
-printf("        de-indexing colors\n");
             // Convert from indexed to non-indexed values by selectively
             // copying from the data list to a new list based on the
             // index list indices
@@ -1304,7 +1272,6 @@ printf("        de-indexing colors\n");
         {
             // Duplicate the non-indexed color list
             listSize = (pfMemory::getSize(colorList) / sizeof(pfVec4));
-printf("        copying colors (%d)\n", listSize);
             newColors = (pfVec4 *)
                 (pfMemory::malloc(listSize * sizeof(pfVec4)));
             pfMemory::copy(newColors, colorList);
@@ -1330,7 +1297,6 @@ printf("        copying colors (%d)\n", listSize);
         // Determine if the normals are indexed
         if (indexList != NULL)
         {
-printf("        de-indexing normals\n");
             // Convert from indexed to non-indexed values by selectively
             // copying from the data list to a new list based on the
             // index list indices
@@ -1344,7 +1310,6 @@ printf("        de-indexing normals\n");
         {
             // Duplicate the non-indexed normal list
             listSize = (pfMemory::getSize(normalList) / sizeof(pfVec3));
-printf("        copying normals (%d)\n", listSize);
             newNormals = (pfVec3 *)
                 (pfMemory::malloc(listSize * sizeof(pfVec3)));
             pfMemory::copy(newNormals, normalList);
@@ -1371,7 +1336,6 @@ printf("        copying normals (%d)\n", listSize);
         // Determine if the texture coordinates are indexed
         if (indexList)
         {
-printf("        de-indexing texture coords\n");
             // Convert from indexed to non-indexed values by selectively
             // copying from the data list to a new list based on the
             // index list indices
@@ -1385,7 +1349,6 @@ printf("        de-indexing texture coords\n");
         {
             // Duplicate the non-indexed texture coord list
             listSize = (pfMemory::getSize(texCoordList) / sizeof(pfVec2));
-printf("        copying texture coords (%d)\n", listSize);
             newTexCoords = (pfVec2 *)
                 (pfMemory::malloc(listSize * sizeof(pfVec2)));
             pfMemory::copy(newTexCoords, texCoordList);
@@ -1429,15 +1392,11 @@ printf("        copying texture coords (%d)\n", listSize);
     for (loop = 0; loop < tempGeoSet->getNumPrims(); loop++)
         listSum += lengthsList[loop];
 
-printf("        listSum is %d\n", listSum);
-
     // Inflate the color data, if present and bound per-vertex
     binding = tempGeoSet->getAttrBind(PFGS_COLOR4);
     tempGeoSet->getAttrLists(PFGS_COLOR4, (void **)(&colorList), &indexList);
-printf("        colorList is %p\n", colorList);
     if (binding == PFGS_PER_VERTEX)
     {
-printf("        inflating colors\n", listSize);
         // Run through the list of colors, adding extra values in to
         // compensate for what the flat primitive type leaves out; this
         // is done once per primitive.
@@ -1470,10 +1429,8 @@ printf("        inflating colors\n", listSize);
     // Inflate the normal data, if present and bound per-vertex
     binding = tempGeoSet->getAttrBind(PFGS_NORMAL3);
     tempGeoSet->getAttrLists(PFGS_NORMAL3, (void **)(&normalList), &indexList);
-printf("        normalList is %p\n", normalList);
     if (binding == PFGS_PER_VERTEX)
     {
-printf("        inflating normals\n", listSize);
         // Run through the list of normals, adding extra values in to
         // compensate for what the flat primitive type leaves out; this
         // is done once per primitive.
@@ -1546,7 +1503,6 @@ void vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
     // Figure out what type of data we're dealing with (if any)
     if (sourceArray == NULL)
     {
-printf("         no data, bailing\n");
         // No data to copy from; unbind the data type, empty the 
         // corresponding list and return
         targetGeometry->setBinding(targetDataType, VS_GEOMETRY_BIND_NONE);
@@ -1555,25 +1511,21 @@ printf("         no data, bailing\n");
     }
     else if (targetDataType == VS_GEOMETRY_VERTEX_COORDS)
     {
-printf("         copying vertex data ");
         pfVec3Array = (pfVec3 *)sourceArray;
         arraySize = 3;
     }
     else if (targetDataType == VS_GEOMETRY_NORMALS)
     {
-printf("         copying normal data ");
         pfVec3Array = (pfVec3 *)sourceArray;
         arraySize = 3;
     }
     else if (targetDataType == VS_GEOMETRY_COLORS)
     {
-printf("         copying color data ");
         pfVec4Array = (pfVec4 *)sourceArray;
         arraySize = 4;
     }
     else if (targetDataType == VS_GEOMETRY_TEXTURE_COORDS)
     {
-printf("         copying texture coord data ");
         pfVec2Array = (pfVec2 *)sourceArray;
         arraySize = 2;
     }
@@ -1616,8 +1568,6 @@ printf("         copying texture coord data ");
             copySize = vertCount;
             break;
     }
-
-printf("(%d)\n", copySize);
 
     // Set the geometry data list for the given data to the proper size
     targetGeometry->setDataListSize(targetDataType, copySize);

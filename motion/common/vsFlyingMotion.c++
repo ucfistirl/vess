@@ -23,7 +23,7 @@
 #include "vsFlyingMotion.h++"
 #include <stdio.h>
 #include "vsMatrix.h++"
-#include "vsSystem.h++"
+#include "vsTimer.h++"
 
 // ------------------------------------------------------------------------
 // Constructs a flying motion model using a mouse and the default button
@@ -286,8 +286,8 @@ void vsFlyingMotion::update()
     vsVector            v;
     double              newH, newP;
 
-    // Get the frame time from the vsSystem object
-    interval = vsSystem::systemObject->getFrameTime();
+    // Get the frame time from the system timer
+    interval = vsTimer::getSystemTimer()->getInterval();
 
     // Get the current rotation
     currentRot = kinematics->getOrientation();   

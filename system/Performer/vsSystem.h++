@@ -44,8 +44,6 @@ private:
 
     double              lastFrameDuration;
     
-    vsTimer		*frameTimer;
-    
     void                preFrameTraverse(vsNode *node);
 
 public:
@@ -65,8 +63,6 @@ public:
 				   vsView **viewpoint, vsWindow **window);
 
     void                drawFrame();
-    
-    double              getFrameTime();
 };
 
 #endif

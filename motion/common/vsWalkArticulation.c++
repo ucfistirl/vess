@@ -22,7 +22,7 @@
 //------------------------------------------------------------------------
 
 #include <stdio.h>
-#include "vsSystem.h++"
+#include "vsTimer.h++"
 #include "vsWalkArticulation.h++"
 
 // ------------------------------------------------------------------------
@@ -270,7 +270,7 @@ void vsWalkArticulation::update()
 
 	// Calculate the distance travelled, and use that to determine if
 	// we should switch to the next key frame in the sequence
-        travelDist += (vsSystem::systemObject)->getFrameTime() * speed;
+        travelDist += (vsTimer::getSystemTimer()->getInterval()) * speed;
         while (travelDist > toKeyframe->distance)
         {
             // Subtract the distance that the destination keyframe
@@ -309,7 +309,7 @@ void vsWalkArticulation::update()
         
 	// Add the amount of time that has just passed to the stop timer;
 	// if this timer expires, then we've stopped completely
-        waitTime += (vsSystem::systemObject)->getFrameTime();
+        waitTime += vsTimer::getSystemTimer()->getInterval();
         travelDist = waitTime;
         
         // Check if we are stopping, and if we have been stopping long

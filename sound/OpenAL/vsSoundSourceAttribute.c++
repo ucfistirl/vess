@@ -285,7 +285,6 @@ vsMatrix vsSoundSourceAttribute::getOffsetMatrix()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::update()
 {
-    pfMatrix       xform;
     vsMatrix       result;
     vsQuat         tempQuat;
     vsVector       tempVec;
@@ -298,9 +297,6 @@ void vsSoundSourceAttribute::update()
     if (!attachedFlag)
         return;
 
-    // Make an identity matrix
-    xform.makeIdent();
-    
     // Get the global transform for this attribute's component and
     // apply the source's offset matrix.  This lets us know where in
     // global space the sound source is.

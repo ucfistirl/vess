@@ -22,18 +22,30 @@
 #ifndef VS_TIMER_HPP
 #define VS_TIMER_HPP
 
+#include "vsGlobals.h++"
+
 class vsTimer
 {
 private:
 
-    double	markTime;
+    static vsTimer    *systemTimer;
+
+    double	      markTime;
+    double	      markInterval;
+
+VS_INTERNAL:
+
+    static void       deleteSystemTimer();
 
 public:
 
-                vsTimer();
-		~vsTimer();
+                      vsTimer();
+		      ~vsTimer();
 
-    void	mark();
+    static vsTimer    *getSystemTimer();
+
+    void	      mark();
+    double	getInterval();
     double	getElapsed();
 };
 

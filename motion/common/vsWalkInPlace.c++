@@ -22,7 +22,7 @@
 #include "vsWalkInPlace.h++"
 #include <stdio.h>
 #include <math.h>
-#include "vsSystem.h++"
+#include "vsTimer.h++"
 
 // ------------------------------------------------------------------------
 // Constructor for vsWalkInPlace
@@ -312,7 +312,7 @@ void vsWalkInPlace::update()
     headingQuat.setAxisAngleRotation(0, 0, 1, deltaHeading);
 
     // Get the difference in time from last frame to this one
-    deltaTime = vsSystem::systemObject->getFrameTime();
+    deltaTime = vsTimer::getSystemTimer()->getInterval();
 
     // Initialize speed, velocity, and the motion flag
     moveSpeed = 0.0;

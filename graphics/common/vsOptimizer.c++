@@ -31,6 +31,7 @@
 // ------------------------------------------------------------------------
 vsOptimizer::vsOptimizer()
 {
+    // Default optimizations to perform are all of them
     passMask = VS_OPTIMIZER_ALL;
 }
 
@@ -46,6 +47,8 @@ vsOptimizer::~vsOptimizer()
 // ------------------------------------------------------------------------
 void vsOptimizer::optimize(vsNode *rootNode)
 {
+    // Call the recursive optimization function, starting at the
+    // given scene root node
     printf("Beginning optimization run...\n");
     optimizeNode(rootNode);
     printf("Optimization completed\n");
@@ -81,11 +84,14 @@ void vsOptimizer::optimizeNode(vsNode *node)
     // anything.
     if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
     {
+        // Component type cast, for convenience
         componentNode = (vsComponent *)node;
 
+        // Clean tree optimization
         if (passMask & VS_OPTIMIZER_CLEAN_TREE)
             cleanChildren(componentNode);
 
+        // Merge decals optimization
         if (passMask & VS_OPTIMIZER_MERGE_DECALS)
             mergeDecals(componentNode);
 
@@ -96,9 +102,12 @@ void vsOptimizer::optimizeNode(vsNode *node)
         for (loop = 0; loop < componentNode->getChildCount(); loop++)
             optimizeNode(componentNode->getChild(loop));
 
+        // Clean tree optimization (again, in case merging decals
+	// or the child traversal consolidated some nodes)
         if (passMask & VS_OPTIMIZER_CLEAN_TREE)
             cleanChildren(componentNode);
 
+        // State attribute promotion optimization
         if (passMask & VS_OPTIMIZER_PROMOTE_ATTRIBUTES)
         {
             optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_BACKFACE);
@@ -107,14 +116,21 @@ void vsOptimizer::optimizeNode(vsNode *node)
             optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_SHADING);
             optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_TEXTURE);
             optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_TRANSPARENCY);
+            optimizeAttributes(componentNode, VS_ATTRIBUTE_TYPE_WIREFRAME);
         }
 
+        // Geometry merging optimization
         if (passMask & VS_OPTIMIZER_MERGE_GEOMETRY)
             mergeGeometry(componentNode);
 
+        // Clean tree optimization (yet again, in case merging geometry
+	// made some components have only one child)
         if (passMask & VS_OPTIMIZER_CLEAN_TREE)
             cleanChildren(componentNode);
 
+	// Priority of attributes is (texutre, material, shading).
+	// Sort in reverse order so that the highest priority sort
+	// (texture) gets performed last and so has the most effect.
         if (passMask & VS_OPTIMIZER_SORT_CHILDREN)
         {
             sortByAttribute(componentNode, VS_ATTRIBUTE_TYPE_SHADING);
@@ -137,11 +153,16 @@ void vsOptimizer::cleanChildren(vsComponent *componentNode)
     vsNode *childNode;
     int loop;
     
+    // Loop through all the node's children
     for (loop = 0; loop < componentNode->getChildCount(); loop++)
     {
+        // Get the node's loop'th child
         childNode = componentNode->getChild(loop);
+
+        // Check if this child is a vsComponent
         if (childNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
         {
+            // Type cast
             targetComponent = (vsComponent *)childNode;
 
             // If the component has more than one child, has any attributes,
@@ -180,8 +201,10 @@ void vsOptimizer::zapComponent(vsComponent *targetComponent)
     vsNode *parentNode;
     vsNode *childNode;
     
+    // Check how many children the component has
     if (targetComponent->getChildCount() == 0)
     {
+	// No children; simply remove this component from each parent
         while (targetComponent->getParentCount() > 0)
         {
             parentNode = targetComponent->getParent(0);
@@ -190,9 +213,13 @@ void vsOptimizer::zapComponent(vsComponent *targetComponent)
     }
     else
     {
+	// One child; assign the child of this component to each of the
+	// component's parents, and then delete the component
         childNode = targetComponent->getChild(0);
         targetComponent->removeChild(childNode);
 
+        // For each parent of the component, replace this component with
+	// this component's child
         while (targetComponent->getParentCount() > 0)
         {
             parentNode = targetComponent->getParent(0);
@@ -200,6 +227,7 @@ void vsOptimizer::zapComponent(vsComponent *targetComponent)
         }
     }
     
+    // With all links to this component gone, it should be safe to delete it
     delete targetComponent;
 }
 
@@ -214,19 +242,31 @@ void vsOptimizer::mergeDecals(vsComponent *componentNode)
     vsNode *childNode, *decalChild;
     vsComponent *decalNode, *childComponent;
     
+    // If there's a grouping category attribute on this component, then it's
+    // not safe to rearrange the component's children, as would be needed
+    // for a decal merge. Abort.
     if (componentNode->getCategoryAttribute(VS_ATTRIBUTE_CATEGORY_GROUPING, 0))
         return;
     
+    // Count the number of children that have decal attributes; if there are
+    // two or more, then this operation is worth the effort.
     count = 0;
     for (loop = 0; loop < componentNode->getChildCount(); loop++)
     {
+        // Get the loop'th child of this component
         childNode = componentNode->getChild(loop);
+
+        // If the child has a vsDecalAttribute, that attribute is its
+	// only attribute, and the child only parent is this component,
+	// then the child is a candidate for merging
         if ((childNode->getTypedAttribute(VS_ATTRIBUTE_TYPE_DECAL, 0)) &&
             (childNode->getAttributeCount() == 1) &&
             (childNode->getParentCount() == 1))
             count++;
     }
     
+    // If there aren't enough decalled children to warrant a merge,
+    // then abort.
     if (count < 2)
         return;
 
@@ -238,7 +278,11 @@ void vsOptimizer::mergeDecals(vsComponent *componentNode)
     // component instead
     for (loop = 0; loop < componentNode->getChildCount(); loop++)
     {
+        // Get the loop'th child of the component
         childNode = componentNode->getChild(loop);
+
+        // Check if the child has a vsDecalAttribute, that attribute is its
+	// only attribute, and the child only parent is the component
         if ((childNode->getTypedAttribute(VS_ATTRIBUTE_TYPE_DECAL, 0)) &&
             (childNode->getAttributeCount() == 1) &&
             (childNode->getParentCount() == 1))
@@ -247,18 +291,26 @@ void vsOptimizer::mergeDecals(vsComponent *componentNode)
             // component into the new component.
             childComponent = (vsComponent *)childNode;
 
-            // First, make sure there are enough groups in the new component
+            // First, make sure there are at least as many children of
+	    // the new component as there are of the target component
             while (decalNode->getChildCount() < childComponent->getChildCount())
                 decalNode->addChild(new vsComponent);
 
-            // Then, start moving the child nodes over
+            // Then, start moving the children of the target component over
+	    // to the new component
             count = 0;
             while (childComponent->getChildCount() > 0)
             {
+                // Get the first child of the target component
                 decalChild = childComponent->getChild(0);
+
+                // Move that child from the target component to the
+		// corresponding group on the new component
                 childComponent->removeChild(decalChild);
                 ((vsComponent *)(decalNode->getChild(count)))->
                     addChild(decalChild);
+
+                // Move to the next group
                 count++;
             }
 
@@ -266,6 +318,8 @@ void vsOptimizer::mergeDecals(vsComponent *componentNode)
             // component and reset the loop counter
             componentNode->removeChild(childNode);
             loop--;
+
+            // The target node is now unneeded; delete it.
             delete childNode;
         }
     }
@@ -454,29 +508,49 @@ void vsOptimizer::mergeGeometry(vsComponent *componentNode)
     vsGeometry *firstGeo, *secondGeo;
     vsNode *parent;
 
+    // If there's a grouping category attribute on this component, then it's
+    // not safe to rearrange the component's children, as would be needed
+    // for a geometry merge. Abort.
     if (componentNode->getCategoryAttribute(VS_ATTRIBUTE_CATEGORY_GROUPING, 0))
         return;
 
+    // Compare each pair of children for merge compatability
     for (loop = 0; loop < componentNode->getChildCount(); loop++)
         for (sloop = loop+1; sloop < componentNode->getChildCount(); sloop++)
         {
+            // Pick two children of the component
             firstNode = componentNode->getChild(loop);
             secondNode = componentNode->getChild(sloop);
 
+	    // Two children are compatable if they are both geometry
+	    // nodes and they contain the same type of geometry
             if ((firstNode->getNodeType() == VS_NODE_TYPE_GEOMETRY) &&
                 (secondNode->getNodeType() == VS_NODE_TYPE_GEOMETRY))
             {
+                // Type cast
                 firstGeo = (vsGeometry *)firstNode;
                 secondGeo = (vsGeometry *)secondNode;
+
+                // Determine if the two vsGeometry objects are compatible,
+		// and merge them if they are
                 if (isSimilarGeometry(firstGeo, secondGeo))
                 {
+		    // Remove the second geometry object from its parents,
+		    // and add its geometry to the first geometry object
                     while (secondGeo->getParentCount() > 0)
                     {
                         parent = secondGeo->getParent(0);
                         parent->removeChild(secondGeo);
                     }
                     addGeometry(firstGeo, secondGeo);
+
+                    // The second geometry object is now unneeded; get rid
+		    // of it.
                     delete secondGeo;
+
+                    // Back up one child, so that we don't skip over the
+		    // child that was just moved into the spot that
+		    // the second geometry object vacated.
                     sloop--;
                 }
             }
@@ -526,21 +600,28 @@ int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
         return VS_FALSE;
     for (loop = 0; loop < firstGeo->getParentCount(); loop++)
     {
+        // Start with no match
         matchFlag = 0;
+
+        // Search the second parent list for a component with the same
+	// address as the parent from the first parent list
         for (sloop = 0; sloop < secondGeo->getParentCount(); sloop++)
             if (firstGeo->getParent(loop) == secondGeo->getParent(sloop))
             {
+                // Mark that we've found a match
                 matchFlag = 1;
                 break;
             }
         
+        // If there wasn't a match, then the geometeries aren't compatible
         if (!matchFlag)
             return VS_FALSE;
     }
 
-    // Compare attributes
+    // Compare the two geometries' attributes
     for (loop = 0; loop < firstVal; loop++)
     {
+        // Get the loop'th attribute from the first geometry
         firstAttr = firstGeo->getAttribute(loop);
 
         // Only graphics state attributes can be merged in this way
@@ -548,7 +629,7 @@ int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
             return VS_FALSE;
 
         // For each attribute in the first geometry, the second geometry
-        // must have a corresponding attribute
+        // must have a corresponding attribute of the same type
         firstType = firstAttr->getAttributeType();
         secondAttr = secondGeo->getTypedAttribute(firstType, 0);
         if (!secondAttr)
@@ -561,36 +642,48 @@ int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
             return VS_FALSE;
     }
 
-    // Compare attribute bindings
+    // * Compare geometric data bindings
+    // Normal binding
     firstVal = firstGeo->getBinding(VS_GEOMETRY_NORMALS);
     secondVal = secondGeo->getBinding(VS_GEOMETRY_NORMALS);
     if (firstVal != secondVal)
         return VS_FALSE;
     if (firstVal == VS_GEOMETRY_BIND_OVERALL)
     {
+        // If normals have overall binding, then we need to verify that
+	// the actual normal data matches up
         firstVec = firstGeo->getData(VS_GEOMETRY_NORMALS, 0);
         secondVec = secondGeo->getData(VS_GEOMETRY_NORMALS, 0);
+
+        // Compare for equality
         if (!(firstVec == secondVec))
             return VS_FALSE;
     }
 
+    // Color binding
     firstVal = firstGeo->getBinding(VS_GEOMETRY_COLORS);
     secondVal = secondGeo->getBinding(VS_GEOMETRY_COLORS);
     if (firstVal != secondVal)
         return VS_FALSE;
     if (firstVal == VS_GEOMETRY_BIND_OVERALL)
     {
+        // If colors have overall binding, then we need to verify that
+	// the actual color data matches up
         firstVec = firstGeo->getData(VS_GEOMETRY_COLORS, 0);
         secondVec = secondGeo->getData(VS_GEOMETRY_COLORS, 0);
+
+        // Compare for equality
         if (!(firstVec == secondVec))
             return VS_FALSE;
     }
 
+    // Texture coordinate binding
     firstVal = firstGeo->getBinding(VS_GEOMETRY_TEXTURE_COORDS);
     secondVal = secondGeo->getBinding(VS_GEOMETRY_TEXTURE_COORDS);
     if (firstVal != secondVal)
         return VS_FALSE;
 
+    // If we've gotten this far, then the geometries should be compatible
     return VS_TRUE;
 }
 
@@ -606,7 +699,9 @@ void vsOptimizer::addGeometry(vsGeometry *destGeo, vsGeometry *srcGeo)
     vsVector tempData;
     int tempLength;
     
-    // Compute the vertex counts
+    // Don't trust the vertex data list size values; determine the actual
+    // (used) vertex counts by summing together the lengths of the primitives
+    // of each geometry.
     srcPrimCount = srcGeo->getPrimitiveCount();
     destPrimCount = destGeo->getPrimitiveCount();
     srcVertCount = 0;
@@ -616,9 +711,13 @@ void vsOptimizer::addGeometry(vsGeometry *destGeo, vsGeometry *srcGeo)
     for (loop = 0; loop < destPrimCount; loop++)
         destVertCount += destGeo->getPrimitiveLength(loop);
 
-    // Vertex coordinates (always per-vertex)
+    // * Copy vertex coordinates
+    // Set the vertex list size to the sum of both geometry's
+    // vertex counts
     destGeo->setDataListSize(VS_GEOMETRY_VERTEX_COORDS,
         srcVertCount + destVertCount);
+
+    // Copy the vertex coordinates
     for (loop = 0; loop < srcVertCount; loop++)
     {
         tempData = srcGeo->getData(VS_GEOMETRY_VERTEX_COORDS, loop);
@@ -626,12 +725,19 @@ void vsOptimizer::addGeometry(vsGeometry *destGeo, vsGeometry *srcGeo)
             tempData);
     }
     
-    // Normals
+    // * Copy normals
+    // Check the binding value
     if (destGeo->getBinding(VS_GEOMETRY_NORMALS) ==
         VS_GEOMETRY_BIND_PER_PRIMITIVE)
     {
+        // Per-primitive normal binding
+	
+	// Set the normal list size to the sum of both geometry's
+	// primitive counts
         destGeo->setDataListSize(VS_GEOMETRY_NORMALS,
             srcPrimCount + destPrimCount);
+
+        // Copy the primitive normals
         for (loop = 0; loop < srcPrimCount; loop++)
         {
             tempData = srcGeo->getData(VS_GEOMETRY_NORMALS, loop);
@@ -642,8 +748,14 @@ void vsOptimizer::addGeometry(vsGeometry *destGeo, vsGeometry *srcGeo)
     else if (destGeo->getBinding(VS_GEOMETRY_NORMALS) ==
         VS_GEOMETRY_BIND_PER_VERTEX)
     {
+        // Per-vertex normal binding
+	
+	// Set the normal list size to the sum of both geometry's
+	// vertex counts
         destGeo->setDataListSize(VS_GEOMETRY_NORMALS,
             srcVertCount + destVertCount);
+
+        // Copy the vertex normals
         for (loop = 0; loop < srcVertCount; loop++)
         {
             tempData = srcGeo->getData(VS_GEOMETRY_NORMALS, loop);
@@ -652,12 +764,19 @@ void vsOptimizer::addGeometry(vsGeometry *destGeo, vsGeometry *srcGeo)
         }
     }
     
-    // Colors
+    // * Copy colors
+    // Check the binding value
     if (destGeo->getBinding(VS_GEOMETRY_COLORS) ==
         VS_GEOMETRY_BIND_PER_PRIMITIVE)
     {
+        // Per-primitive color binding
+	
+	// Set the color list size to the sum of both geometry's
+	// primitive counts
         destGeo->setDataListSize(VS_GEOMETRY_COLORS,
             srcPrimCount + destPrimCount);
+
+        // Copy the primitive colors
         for (loop = 0; loop < srcPrimCount; loop++)
         {
             tempData = srcGeo->getData(VS_GEOMETRY_COLORS, loop);
@@ -668,8 +787,14 @@ void vsOptimizer::addGeometry(vsGeometry *destGeo, vsGeometry *srcGeo)
     else if (destGeo->getBinding(VS_GEOMETRY_COLORS) ==
         VS_GEOMETRY_BIND_PER_VERTEX)
     {
+        // Per-vertex color binding
+	
+	// Set the color list size to the sum of both geometry's
+	// vertex counts
         destGeo->setDataListSize(VS_GEOMETRY_COLORS,
             srcVertCount + destVertCount);
+
+        // Copy the vertex colors
         for (loop = 0; loop < srcVertCount; loop++)
         {
             tempData = srcGeo->getData(VS_GEOMETRY_COLORS, loop);
@@ -678,12 +803,19 @@ void vsOptimizer::addGeometry(vsGeometry *destGeo, vsGeometry *srcGeo)
         }
     }
     
-    // Texture coordinates
+    // * Copy texture coordinates
+    // Check the binding value (can only be per-vertex or off)
     if (destGeo->getBinding(VS_GEOMETRY_TEXTURE_COORDS) ==
         VS_GEOMETRY_BIND_PER_VERTEX)
     {
+        // Per-vertex texture coordinate binding
+	
+	// Set the texture coordinate list size to the sum of both geometry's
+	// vertex counts
         destGeo->setDataListSize(VS_GEOMETRY_TEXTURE_COORDS,
             srcVertCount + destVertCount);
+
+        // Copy the vertex texture coordinates
         for (loop = 0; loop < srcVertCount; loop++)
         {
             tempData = srcGeo->getData(VS_GEOMETRY_TEXTURE_COORDS, loop);
@@ -692,13 +824,18 @@ void vsOptimizer::addGeometry(vsGeometry *destGeo, vsGeometry *srcGeo)
         }
     }
     
-    // Primitive Counts/lengths
+    // * Copy primitive counts/lengths
+    // Set the primitive list size to the sum of both geometry's
+    // primitive counts
     destGeo->setPrimitiveCount(destPrimCount + srcPrimCount);
+    // Only need to copy the actual primitive length data if the type is
+    // not one of the fixed-length types
     if ((destGeo->getPrimitiveType() != VS_GEOMETRY_TYPE_POINTS) &&
         (destGeo->getPrimitiveType() != VS_GEOMETRY_TYPE_LINES) &&
         (destGeo->getPrimitiveType() != VS_GEOMETRY_TYPE_TRIS) &&
         (destGeo->getPrimitiveType() != VS_GEOMETRY_TYPE_QUADS))
     {
+        // Copy the primitive lengths
         for (loop = 0; loop < srcPrimCount; loop++)
         {
             tempLength = srcGeo->getPrimitiveLength(loop);
@@ -733,34 +870,56 @@ void vsOptimizer::optimizeAttributes(vsComponent *componentNode,
     // nodes' attributes.
     if (!(componentNode->getTypedAttribute(attributeType, 0)))
     {
+	// * Create a list of the frequencies of the various attributes
+	// of the specified type. Two attributes that are similar are
+	// considered to be the same attribute with a frequency of two
+	// (or more if more are similar). The attribute that is the
+	// most frequent is the one to get promoted.
+    
+        // Initialize attributes found and NULLs found to zero
         attrCount = 0;
         emptyFlag = 0;
 
         // Check each child for an attribute of the given type
         for (loop = 0; loop < componentNode->getChildCount(); loop++)
         {
+	    // Examine the loop'th child
             childNode = componentNode->getChild(loop);
             childAttr = (vsStateAttribute *)
                 (childNode->getTypedAttribute(attributeType, 0));
+
+	    // If _any_ child doesn't have an attribute of the specified
+	    // type, then we can't promote this type of attribute. (An
+	    // attribute on the parent node would incorrectly affect
+	    // this node.)  Mark that we've failed and abort.
             if (!childAttr)
             {
                 emptyFlag = 1;
                 break;
             }
             
-            // Determine if we've seen a similar attribute before; either
-            // mark the similar one if we have or add this one in as new if
-            // we haven't. The attributes of instanced nodes don't count.
-            if (childNode->getParentCount() < 2)
+            // Determine if we've seen a similar attribute before; either mark
+            // the similar one if we have or add this one in as new if we
+            // haven't. The attributes of instanced nodes aren't considered.
+            if (childNode->getParentCount() == 1)
             {
                 matchFlag = 0;
+
+                // Search the distinct-attributes list to see if one
+		// of them is similar to the attribute we're currently
+		// examining
                 for (sloop = 0; sloop < attrCount; sloop++)
                     if (childAttr->isEquivalent(attrArray[sloop]))
                     {
+			// Mark that this attribute is a lot like
+			// a previously-seen one
                         attrHitCounts[sloop]++;
                         matchFlag = 1;
                         break;
                     }
+
+                // If the current attribute is completely unlike anything
+		// in our list, then add it to the list
                 if (!matchFlag)
                 {
                     attrArray[attrCount] = childAttr;
@@ -770,6 +929,8 @@ void vsOptimizer::optimizeAttributes(vsComponent *componentNode,
             }
         }
         
+	// Sort the attributes by frequency, and then add the most common
+	// attribute to the parent component
         if (attrCount && !emptyFlag)
         {
             sortLists(attrHitCounts, attrArray, attrCount);
@@ -784,37 +945,51 @@ void vsOptimizer::optimizeAttributes(vsComponent *componentNode,
     {
         for (loop = 0; loop < componentNode->getChildCount(); loop++)
         {
+            // Get the loop'th child and it's attribute
             childNode = componentNode->getChild(loop);
             childAttr = (vsStateAttribute *)
                 (childNode->getTypedAttribute(attributeType, 0));
 
+            // Compare the parents' attributes to the child's one, if
+	    // it has one
             if (childAttr)
             {
+		// Check each parent of the child to see if it has an
+		// equivalent attribute
                 matchFlag = 1;
                 for (sloop = 0; sloop < childNode->getParentCount(); sloop++)
                 {
+                    // Get the sloop'th parent and its attribute
                     parentNode = childNode->getParent(sloop);
-                    parentAttr = parentNode->getTypedAttribute(attributeType,
-                        0);
+                    parentAttr = parentNode->getTypedAttribute(attributeType, 0);
+
+                    // Compare the child's attribute and the parent's one,
+		    // if the parent has one
                     if (!parentAttr || !(childAttr->isEquivalent(parentAttr)))
                     {
+                        // Mismatch; can't promote
                         matchFlag = 0;
                         break;
                     }
                 }
             }
             else
+            {
+                // No child attribute; can't promote
                 matchFlag = 0;
+            }
             
+            // If promotion is indicated
             if (matchFlag)
             {
+		// The parent(s) of the child have the same attribute;
+		// the one on the child is unnecessary, so remove it.
                 childNode->removeAttribute(childAttr);
                 if (!(childAttr->isAttached()))
                     delete childAttr;
             }
         }
     }
-
 }
 
 // ------------------------------------------------------------------------
@@ -830,34 +1005,45 @@ void vsOptimizer::sortLists(int *countArray, vsAttribute **attrArray,
     int tempCount;
     vsAttribute *tempAttr;
     
+    // A list of size zero or one is already sorted
     if (listSize < 2)
         return;
     
+    // Perform a bubble-sort on the parallel arrays, sorting by
+    // the values in the count array
     flag = 1;
     while (flag)
     {
+	// No activity yet
         flag = 0;
         
+        // Sort pass
         for (loop = 0; loop < listSize-1; loop++)
+        {
+            // Compare
             if (countArray[loop] < countArray[loop+1])
             {
+                // Swap
                 tempCount = countArray[loop];
                 countArray[loop] = countArray[loop+1];
                 countArray[loop+1] = tempCount;
                 tempAttr = attrArray[loop];
                 attrArray[loop] = attrArray[loop+1];
                 attrArray[loop+1] = tempAttr;
+
+                // Keep sorting as long as there's activity
                 flag = 1;
             }
+        }
     }
 }
 
 // ------------------------------------------------------------------------
 // Attempts to sort the children of the given component by what attributes
-// they posess. This is done in a manner as to attempt to reduce the number
-// of state changes between adjacent drawn objects. Components with
-// attributes that require children to be in a specific order (such as
-// vsSwitchAttributes) are not altered.
+// they posess. This is done in order to try to reduce the number of state
+// changes between adjacent drawn objects. Components with attributes that
+// require children to be in a specific order (such as vsSwitchAttributes)
+// are not altered.
 // ------------------------------------------------------------------------
 void vsOptimizer::sortByAttribute(vsComponent *componentNode, int attributeType)
 {
@@ -865,23 +1051,39 @@ void vsOptimizer::sortByAttribute(vsComponent *componentNode, int attributeType)
     vsAttribute *firstAttr, *secondAttr;
     int loop, flag;
 
+    // Components with grouping category attributes can't have their
+    // children moved
     if (componentNode->getCategoryAttribute(VS_ATTRIBUTE_CATEGORY_GROUPING, 0))
         return;
 
+    // Bubble-sort the children of the component
     flag = 1;
     while (flag)
     {
+        // No activity yet
         flag = 0;
+
+        // Sort pass
         for (loop = 0; loop < (componentNode->getChildCount() - 1); loop++)
         {
+            // Get two adjacent children, and their attributes
             firstNode = componentNode->getChild(loop);
             firstAttr = firstNode->getTypedAttribute(attributeType, 0);
             secondNode = componentNode->getChild(loop+1);
             secondAttr = secondNode->getTypedAttribute(attributeType, 0);
+
+	    // Plain old pointer comparison; equivalency tests would be
+	    // too slow, and there's no sort order for them anyway. This
+	    // also means that components without the specified attribute
+	    // get moved to the front. (Because their pointer values are
+	    // NULL.)
             if (firstAttr > secondAttr)
             {
+                // Swap the two children
                 componentNode->removeChild(secondNode);
                 componentNode->insertChild(secondNode, loop);
+
+                // Keep sorting as long as there's activity
                 flag = 1;
             }
         }

@@ -21,7 +21,7 @@
 //------------------------------------------------------------------------
 
 #include <stdio.h>
-#include "vsSystem.h++"
+#include "vsTimer.h++"
 #include "vsKinematics.h++"
 
 // ------------------------------------------------------------------------
@@ -416,8 +416,8 @@ void vsKinematics::update()
 {
     double deltaTime;
 
-    // Get the time elapsed since the last call
-    deltaTime = vsSystem::systemObject->getFrameTime();
+    // Get the time elapsed between system frames
+    deltaTime = vsTimer::getSystemTimer()->getInterval();
 
     // Constrain the time to a maximum of one second to try to maintain
     // interactivity when the frame rate drops very low

@@ -50,9 +50,10 @@ private:
 
 VS_INTERNAL:
 
-    static void init();
+    static void    init();
+    static void    done();
 
-    void        setScreen(vsScreen *newScreen);
+    void           setScreen(vsScreen *newScreen);
 
 public:
 

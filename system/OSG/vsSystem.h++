@@ -45,9 +45,6 @@ private:
 
     double              lastFrameDuration;
     
-    // Timer for the amount of time between each frame
-    vsTimer	            *frameTimer;
-
     // OSG's FrameStamp class, used to enumerate frames and keep
     // time between SceneView objects
     osg::FrameStamp     *osgFrameStamp;
@@ -77,8 +74,6 @@ public:
 				            vsView **viewpoint, vsWindow **window);
 
     void                drawFrame();
-    
-    double              getFrameTime();
 };
 
 #endif

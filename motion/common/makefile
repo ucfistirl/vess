@@ -339,6 +339,7 @@ vsCollision.o: ../../graphics/Performer/vsScene.h++
 vsCollision.o: ../../graphics/Performer/vsLightAttribute.h++
 vsCollision.o: /usr/include/Performer/pr/pfLight.h
 vsCollision.o: /usr/include/Performer/pf/pfLightSource.h
+vsCollision.o: ../../util/common/vsTimer.h++
 vsDifferentialTrackedOrientation.o: vsDifferentialTrackedOrientation.h++
 vsDifferentialTrackedOrientation.o: vsMotionModel.h++
 vsDifferentialTrackedOrientation.o: ../../util/common/vsUpdatable.h++
@@ -560,23 +561,6 @@ vsDrivingMotion.o: ../../io/common/vsMouse.h++
 vsDrivingMotion.o: ../../io/common/vsInputDevice.h++
 vsDrivingMotion.o: ../../io/common/vsInputAxis.h++
 vsDrivingMotion.o: ../../io/common/vsInputButton.h++
-vsDrivingMotion.o: ../../system/Performer/vsSystem.h++
-vsDrivingMotion.o: ../../graphics/Performer_X/vsPipe.h++
-vsDrivingMotion.o: ../../graphics/Performer_X/vsScreen.h++
-vsDrivingMotion.o: ../../graphics/Performer_X/vsWindow.h++
-vsDrivingMotion.o: /usr/include/Performer/pf/pfPipeWindow.h
-vsDrivingMotion.o: ../../graphics/Performer_X/vsPane.h++
-vsDrivingMotion.o: /usr/include/Performer/pf/pfChannel.h
-vsDrivingMotion.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
-vsDrivingMotion.o: /usr/include/Performer/pf/pfEarthSky.h
-vsDrivingMotion.o: /usr/include/Performer/pf/pfLODState.h
-vsDrivingMotion.o: /usr/include/Performer/pf/pfScene.h
-vsDrivingMotion.o: ../../graphics/Performer/vsView.h++
-vsDrivingMotion.o: ../../graphics/Performer/vsViewpointAttribute.h++
-vsDrivingMotion.o: ../../graphics/Performer/vsScene.h++
-vsDrivingMotion.o: ../../graphics/Performer/vsLightAttribute.h++
-vsDrivingMotion.o: /usr/include/Performer/pr/pfLight.h
-vsDrivingMotion.o: /usr/include/Performer/pf/pfLightSource.h
 vsDrivingMotion.o: ../../util/common/vsTimer.h++
 vsFlyingMotion.o: vsFlyingMotion.h++ vsMotionModel.h++
 vsFlyingMotion.o: ../../util/common/vsUpdatable.h++
@@ -672,23 +656,6 @@ vsFlyingMotion.o: /usr/include/Performer/pr/pfCycleBuffer.h
 vsFlyingMotion.o: /usr/include/Performer/pr/pfPassList.h
 vsFlyingMotion.o: /usr/include/Performer/pr/pfFBState.h
 vsFlyingMotion.o: /usr/include/Performer/pr/pfWindow.h
-vsFlyingMotion.o: ../../system/Performer/vsSystem.h++
-vsFlyingMotion.o: ../../graphics/Performer_X/vsPipe.h++
-vsFlyingMotion.o: ../../graphics/Performer_X/vsScreen.h++
-vsFlyingMotion.o: ../../graphics/Performer_X/vsWindow.h++
-vsFlyingMotion.o: /usr/include/Performer/pf/pfPipeWindow.h
-vsFlyingMotion.o: ../../graphics/Performer_X/vsPane.h++
-vsFlyingMotion.o: /usr/include/Performer/pf/pfChannel.h
-vsFlyingMotion.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
-vsFlyingMotion.o: /usr/include/Performer/pf/pfEarthSky.h
-vsFlyingMotion.o: /usr/include/Performer/pf/pfLODState.h
-vsFlyingMotion.o: /usr/include/Performer/pf/pfScene.h
-vsFlyingMotion.o: ../../graphics/Performer/vsView.h++
-vsFlyingMotion.o: ../../graphics/Performer/vsViewpointAttribute.h++
-vsFlyingMotion.o: ../../graphics/Performer/vsScene.h++
-vsFlyingMotion.o: ../../graphics/Performer/vsLightAttribute.h++
-vsFlyingMotion.o: /usr/include/Performer/pr/pfLight.h
-vsFlyingMotion.o: /usr/include/Performer/pf/pfLightSource.h
 vsFlyingMotion.o: ../../util/common/vsTimer.h++
 vsKinematics.o: /usr/include/stdio.h /usr/include/features.h
 vsKinematics.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
@@ -698,9 +665,17 @@ vsKinematics.o: /usr/include/_G_config.h /usr/include/wchar.h
 vsKinematics.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 vsKinematics.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
 vsKinematics.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
-vsKinematics.o: /usr/include/getopt.h ../../system/Performer/vsSystem.h++
-vsKinematics.o: ../../graphics/Performer_X/vsPipe.h++
-vsKinematics.o: /usr/include/Performer/pf/pfPipe.h
+vsKinematics.o: /usr/include/getopt.h ../../util/common/vsTimer.h++
+vsKinematics.o: ../../util/common/vsGlobals.h++ /usr/include/math.h
+vsKinematics.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsKinematics.o: /usr/include/bits/mathcalls.h vsKinematics.h++
+vsKinematics.o: ../../util/common/vsUpdatable.h++
+vsKinematics.o: ../../util/common/vsObject.h++
+vsKinematics.o: ../../util/common/vsTreeMap.h++
+vsKinematics.o: ../../util/common/vsGrowableArray.h++
+vsKinematics.o: ../../graphics/Performer/vsComponent.h++
+vsKinematics.o: /usr/include/Performer/pf/pfGroup.h
+vsKinematics.o: /usr/include/Performer/pf/pfNode.h
 vsKinematics.o: /usr/include/Performer/pf/pfUpdatable.h
 vsKinematics.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
 vsKinematics.o: /usr/include/sys/types.h /usr/include/time.h
@@ -727,9 +702,7 @@ vsKinematics.o: /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h
 vsKinematics.o: /usr/include/alloca.h /usr/include/string.h
 vsKinematics.o: /usr/include/sys/prctl.h /usr/include/linux/prctl.h
 vsKinematics.o: /usr/include/stdint.h /usr/include/bits/wordsize.h
-vsKinematics.o: /usr/include/Performer/prmath.h /usr/include/math.h
-vsKinematics.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
-vsKinematics.o: /usr/include/bits/mathcalls.h
+vsKinematics.o: /usr/include/Performer/prmath.h
 vsKinematics.o: /usr/include/Performer/prstats.h
 vsKinematics.o: /usr/include/Performer/pr/pfLinMath.h
 vsKinematics.o: /usr/include/Performer/pr/pfObject.h
@@ -740,6 +713,8 @@ vsKinematics.o: /usr/include/Performer/pfstats.h
 vsKinematics.o: /usr/include/Performer/pf/pfBuffer.h
 vsKinematics.o: /usr/include/Performer/pf/pfUpdate.h
 vsKinematics.o: /usr/include/Performer/pf/pfLists.h
+vsKinematics.o: /usr/include/Performer/pf/pfFrameStats.h
+vsKinematics.o: /usr/include/Performer/pf/pfPipe.h
 vsKinematics.o: /usr/include/Performer/pr/pfVideoChannel.h
 vsKinematics.o: /usr/include/Performer/pr/pfList.h
 vsKinematics.o: /usr/include/Performer/pr/pfCalligraphic.h
@@ -749,44 +724,12 @@ vsKinematics.o: /usr/include/Performer/pr/pfGeoState.h
 vsKinematics.o: /usr/include/Performer/pr/pfState.h
 vsKinematics.o: /usr/include/Performer/pr/pfByteBank.h
 vsKinematics.o: /usr/include/Performer/pr/pfGSetBank.h
-vsKinematics.o: ../../util/common/vsGlobals.h++
-vsKinematics.o: ../../graphics/Performer_X/vsScreen.h++
-vsKinematics.o: ../../graphics/Performer_X/vsWindow.h++
-vsKinematics.o: /usr/include/Performer/pf/pfPipeWindow.h
-vsKinematics.o: /usr/include/Performer/pr/pfWindow.h
-vsKinematics.o: ../../graphics/Performer_X/vsPane.h++
-vsKinematics.o: /usr/include/Performer/pf/pfChannel.h
-vsKinematics.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
-vsKinematics.o: /usr/include/Performer/pf/pfEarthSky.h
-vsKinematics.o: /usr/include/Performer/pf/pfLODState.h
-vsKinematics.o: /usr/include/Performer/pf/pfFrameStats.h
-vsKinematics.o: /usr/include/Performer/pf/pfScene.h
-vsKinematics.o: /usr/include/Performer/pf/pfGroup.h
-vsKinematics.o: /usr/include/Performer/pf/pfNode.h
 vsKinematics.o: /usr/include/Performer/pr/pfGeoMath.h
-vsKinematics.o: /usr/include/Performer/pr/pfGeoSet.h
-vsKinematics.o: /usr/include/Performer/pr/pfFlux.h
-vsKinematics.o: /usr/include/Performer/pr/pfEngine.h
-vsKinematics.o: /usr/include/Performer/pr/pfCycleBuffer.h
-vsKinematics.o: /usr/include/Performer/pr/pfPassList.h
-vsKinematics.o: /usr/include/Performer/pr/pfFBState.h
-vsKinematics.o: ../../graphics/Performer/vsView.h++
-vsKinematics.o: ../../util/common/vsVector.h++ ../../util/common/vsMatrix.h++
-vsKinematics.o: ../../util/common/vsQuat.h++
-vsKinematics.o: ../../graphics/Performer/vsViewpointAttribute.h++
-vsKinematics.o: ../../graphics/Performer/vsComponent.h++
-vsKinematics.o: ../../util/common/vsGrowableArray.h++
+vsKinematics.o: ../../util/common/vsVector.h++
 vsKinematics.o: ../../graphics/Performer/vsAttribute.h++
-vsKinematics.o: ../../util/common/vsObject.h++
-vsKinematics.o: ../../util/common/vsTreeMap.h++
 vsKinematics.o: ../../util/common/vsObjectMap.h++
 vsKinematics.o: ../../graphics/Performer/vsNode.h++
-vsKinematics.o: ../../graphics/Performer/vsScene.h++
-vsKinematics.o: ../../graphics/Performer/vsLightAttribute.h++
-vsKinematics.o: /usr/include/Performer/pr/pfLight.h
-vsKinematics.o: /usr/include/Performer/pf/pfLightSource.h
-vsKinematics.o: ../../util/common/vsTimer.h++ vsKinematics.h++
-vsKinematics.o: ../../util/common/vsUpdatable.h++
+vsKinematics.o: ../../util/common/vsMatrix.h++ ../../util/common/vsQuat.h++
 vsKinematics.o: ../../graphics/Performer/vsTransformAttribute.h++
 vsKinematics.o: /usr/include/Performer/pf/pfDCS.h
 vsKinematics.o: /usr/include/Performer/pf/pfSCS.h
@@ -794,6 +737,13 @@ vsKinematics.o: ../../graphics/Performer/vsDatabaseLoader.h++
 vsKinematics.o: /usr/include/Performer/pfdb/pfflt.h
 vsKinematics.o: ../../graphics/Performer/vsGeometry.h++
 vsKinematics.o: /usr/include/Performer/pf/pfGeode.h
+vsKinematics.o: /usr/include/Performer/pr/pfFlux.h
+vsKinematics.o: /usr/include/Performer/pr/pfEngine.h
+vsKinematics.o: /usr/include/Performer/pr/pfGeoSet.h
+vsKinematics.o: /usr/include/Performer/pr/pfCycleBuffer.h
+vsKinematics.o: /usr/include/Performer/pr/pfPassList.h
+vsKinematics.o: /usr/include/Performer/pr/pfFBState.h
+vsKinematics.o: /usr/include/Performer/pr/pfWindow.h
 vsMotionModel.o: vsMotionModel.h++ ../../util/common/vsUpdatable.h++
 vsMotionModel.o: ../../util/common/vsObject.h++ /usr/include/stdio.h
 vsMotionModel.o: /usr/include/features.h /usr/include/sys/cdefs.h
@@ -907,23 +857,6 @@ vsSphericalMotion.o: /usr/include/Performer/pr/pfCycleBuffer.h
 vsSphericalMotion.o: /usr/include/Performer/pr/pfPassList.h
 vsSphericalMotion.o: /usr/include/Performer/pr/pfFBState.h
 vsSphericalMotion.o: /usr/include/Performer/pr/pfWindow.h
-vsSphericalMotion.o: ../../system/Performer/vsSystem.h++
-vsSphericalMotion.o: ../../graphics/Performer_X/vsPipe.h++
-vsSphericalMotion.o: ../../graphics/Performer_X/vsScreen.h++
-vsSphericalMotion.o: ../../graphics/Performer_X/vsWindow.h++
-vsSphericalMotion.o: /usr/include/Performer/pf/pfPipeWindow.h
-vsSphericalMotion.o: ../../graphics/Performer_X/vsPane.h++
-vsSphericalMotion.o: /usr/include/Performer/pf/pfChannel.h
-vsSphericalMotion.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
-vsSphericalMotion.o: /usr/include/Performer/pf/pfEarthSky.h
-vsSphericalMotion.o: /usr/include/Performer/pf/pfLODState.h
-vsSphericalMotion.o: /usr/include/Performer/pf/pfScene.h
-vsSphericalMotion.o: ../../graphics/Performer/vsView.h++
-vsSphericalMotion.o: ../../graphics/Performer/vsViewpointAttribute.h++
-vsSphericalMotion.o: ../../graphics/Performer/vsScene.h++
-vsSphericalMotion.o: ../../graphics/Performer/vsLightAttribute.h++
-vsSphericalMotion.o: /usr/include/Performer/pr/pfLight.h
-vsSphericalMotion.o: /usr/include/Performer/pf/pfLightSource.h
 vsSphericalMotion.o: ../../util/common/vsTimer.h++
 vsTerrainFollow.o: vsTerrainFollow.h++ vsMotionModel.h++
 vsTerrainFollow.o: ../../util/common/vsUpdatable.h++
@@ -1130,23 +1063,6 @@ vsTrackballMotion.o: /usr/include/Performer/pr/pfCycleBuffer.h
 vsTrackballMotion.o: /usr/include/Performer/pr/pfPassList.h
 vsTrackballMotion.o: /usr/include/Performer/pr/pfFBState.h
 vsTrackballMotion.o: /usr/include/Performer/pr/pfWindow.h
-vsTrackballMotion.o: ../../system/Performer/vsSystem.h++
-vsTrackballMotion.o: ../../graphics/Performer_X/vsPipe.h++
-vsTrackballMotion.o: ../../graphics/Performer_X/vsScreen.h++
-vsTrackballMotion.o: ../../graphics/Performer_X/vsWindow.h++
-vsTrackballMotion.o: /usr/include/Performer/pf/pfPipeWindow.h
-vsTrackballMotion.o: ../../graphics/Performer_X/vsPane.h++
-vsTrackballMotion.o: /usr/include/Performer/pf/pfChannel.h
-vsTrackballMotion.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
-vsTrackballMotion.o: /usr/include/Performer/pf/pfEarthSky.h
-vsTrackballMotion.o: /usr/include/Performer/pf/pfLODState.h
-vsTrackballMotion.o: /usr/include/Performer/pf/pfScene.h
-vsTrackballMotion.o: ../../graphics/Performer/vsView.h++
-vsTrackballMotion.o: ../../graphics/Performer/vsViewpointAttribute.h++
-vsTrackballMotion.o: ../../graphics/Performer/vsScene.h++
-vsTrackballMotion.o: ../../graphics/Performer/vsLightAttribute.h++
-vsTrackballMotion.o: /usr/include/Performer/pr/pfLight.h
-vsTrackballMotion.o: /usr/include/Performer/pf/pfLightSource.h
 vsTrackballMotion.o: ../../util/common/vsTimer.h++
 vsTrackedMotion.o: /usr/include/stdio.h /usr/include/features.h
 vsTrackedMotion.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
@@ -1253,9 +1169,18 @@ vsWalkArticulation.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 vsWalkArticulation.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stdarg.h
 vsWalkArticulation.o: /usr/include/bits/stdio_lim.h
 vsWalkArticulation.o: /usr/include/bits/sys_errlist.h /usr/include/getopt.h
-vsWalkArticulation.o: ../../system/Performer/vsSystem.h++
-vsWalkArticulation.o: ../../graphics/Performer_X/vsPipe.h++
-vsWalkArticulation.o: /usr/include/Performer/pf/pfPipe.h
+vsWalkArticulation.o: ../../util/common/vsTimer.h++
+vsWalkArticulation.o: ../../util/common/vsGlobals.h++ /usr/include/math.h
+vsWalkArticulation.o: /usr/include/bits/huge_val.h
+vsWalkArticulation.o: /usr/include/bits/mathdef.h
+vsWalkArticulation.o: /usr/include/bits/mathcalls.h vsWalkArticulation.h++
+vsWalkArticulation.o: vsMotionModel.h++ ../../util/common/vsUpdatable.h++
+vsWalkArticulation.o: ../../util/common/vsObject.h++
+vsWalkArticulation.o: ../../util/common/vsTreeMap.h++
+vsWalkArticulation.o: ../../util/common/vsGrowableArray.h++ vsKinematics.h++
+vsWalkArticulation.o: ../../graphics/Performer/vsComponent.h++
+vsWalkArticulation.o: /usr/include/Performer/pf/pfGroup.h
+vsWalkArticulation.o: /usr/include/Performer/pf/pfNode.h
 vsWalkArticulation.o: /usr/include/Performer/pf/pfUpdatable.h
 vsWalkArticulation.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
 vsWalkArticulation.o: /usr/include/sys/types.h /usr/include/time.h
@@ -1286,10 +1211,7 @@ vsWalkArticulation.o: /usr/include/bits/waitstatus.h /usr/include/alloca.h
 vsWalkArticulation.o: /usr/include/string.h /usr/include/sys/prctl.h
 vsWalkArticulation.o: /usr/include/linux/prctl.h /usr/include/stdint.h
 vsWalkArticulation.o: /usr/include/bits/wordsize.h
-vsWalkArticulation.o: /usr/include/Performer/prmath.h /usr/include/math.h
-vsWalkArticulation.o: /usr/include/bits/huge_val.h
-vsWalkArticulation.o: /usr/include/bits/mathdef.h
-vsWalkArticulation.o: /usr/include/bits/mathcalls.h
+vsWalkArticulation.o: /usr/include/Performer/prmath.h
 vsWalkArticulation.o: /usr/include/Performer/prstats.h
 vsWalkArticulation.o: /usr/include/Performer/pr/pfLinMath.h
 vsWalkArticulation.o: /usr/include/Performer/pr/pfObject.h
@@ -1300,6 +1222,8 @@ vsWalkArticulation.o: /usr/include/Performer/pfstats.h
 vsWalkArticulation.o: /usr/include/Performer/pf/pfBuffer.h
 vsWalkArticulation.o: /usr/include/Performer/pf/pfUpdate.h
 vsWalkArticulation.o: /usr/include/Performer/pf/pfLists.h
+vsWalkArticulation.o: /usr/include/Performer/pf/pfFrameStats.h
+vsWalkArticulation.o: /usr/include/Performer/pf/pfPipe.h
 vsWalkArticulation.o: /usr/include/Performer/pr/pfVideoChannel.h
 vsWalkArticulation.o: /usr/include/Performer/pr/pfList.h
 vsWalkArticulation.o: /usr/include/Performer/pr/pfCalligraphic.h
@@ -1309,46 +1233,13 @@ vsWalkArticulation.o: /usr/include/Performer/pr/pfGeoState.h
 vsWalkArticulation.o: /usr/include/Performer/pr/pfState.h
 vsWalkArticulation.o: /usr/include/Performer/pr/pfByteBank.h
 vsWalkArticulation.o: /usr/include/Performer/pr/pfGSetBank.h
-vsWalkArticulation.o: ../../util/common/vsGlobals.h++
-vsWalkArticulation.o: ../../graphics/Performer_X/vsScreen.h++
-vsWalkArticulation.o: ../../graphics/Performer_X/vsWindow.h++
-vsWalkArticulation.o: /usr/include/Performer/pf/pfPipeWindow.h
-vsWalkArticulation.o: /usr/include/Performer/pr/pfWindow.h
-vsWalkArticulation.o: ../../graphics/Performer_X/vsPane.h++
-vsWalkArticulation.o: /usr/include/Performer/pf/pfChannel.h
-vsWalkArticulation.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
-vsWalkArticulation.o: /usr/include/Performer/pf/pfEarthSky.h
-vsWalkArticulation.o: /usr/include/Performer/pf/pfLODState.h
-vsWalkArticulation.o: /usr/include/Performer/pf/pfFrameStats.h
-vsWalkArticulation.o: /usr/include/Performer/pf/pfScene.h
-vsWalkArticulation.o: /usr/include/Performer/pf/pfGroup.h
-vsWalkArticulation.o: /usr/include/Performer/pf/pfNode.h
 vsWalkArticulation.o: /usr/include/Performer/pr/pfGeoMath.h
-vsWalkArticulation.o: /usr/include/Performer/pr/pfGeoSet.h
-vsWalkArticulation.o: /usr/include/Performer/pr/pfFlux.h
-vsWalkArticulation.o: /usr/include/Performer/pr/pfEngine.h
-vsWalkArticulation.o: /usr/include/Performer/pr/pfCycleBuffer.h
-vsWalkArticulation.o: /usr/include/Performer/pr/pfPassList.h
-vsWalkArticulation.o: /usr/include/Performer/pr/pfFBState.h
-vsWalkArticulation.o: ../../graphics/Performer/vsView.h++
 vsWalkArticulation.o: ../../util/common/vsVector.h++
-vsWalkArticulation.o: ../../util/common/vsMatrix.h++
-vsWalkArticulation.o: ../../util/common/vsQuat.h++
-vsWalkArticulation.o: ../../graphics/Performer/vsViewpointAttribute.h++
-vsWalkArticulation.o: ../../graphics/Performer/vsComponent.h++
-vsWalkArticulation.o: ../../util/common/vsGrowableArray.h++
 vsWalkArticulation.o: ../../graphics/Performer/vsAttribute.h++
-vsWalkArticulation.o: ../../util/common/vsObject.h++
-vsWalkArticulation.o: ../../util/common/vsTreeMap.h++
 vsWalkArticulation.o: ../../util/common/vsObjectMap.h++
 vsWalkArticulation.o: ../../graphics/Performer/vsNode.h++
-vsWalkArticulation.o: ../../graphics/Performer/vsScene.h++
-vsWalkArticulation.o: ../../graphics/Performer/vsLightAttribute.h++
-vsWalkArticulation.o: /usr/include/Performer/pr/pfLight.h
-vsWalkArticulation.o: /usr/include/Performer/pf/pfLightSource.h
-vsWalkArticulation.o: ../../util/common/vsTimer.h++ vsWalkArticulation.h++
-vsWalkArticulation.o: vsMotionModel.h++ ../../util/common/vsUpdatable.h++
-vsWalkArticulation.o: vsKinematics.h++
+vsWalkArticulation.o: ../../util/common/vsMatrix.h++
+vsWalkArticulation.o: ../../util/common/vsQuat.h++
 vsWalkArticulation.o: ../../graphics/Performer/vsTransformAttribute.h++
 vsWalkArticulation.o: /usr/include/Performer/pf/pfDCS.h
 vsWalkArticulation.o: /usr/include/Performer/pf/pfSCS.h
@@ -1356,6 +1247,13 @@ vsWalkArticulation.o: ../../graphics/Performer/vsDatabaseLoader.h++
 vsWalkArticulation.o: /usr/include/Performer/pfdb/pfflt.h
 vsWalkArticulation.o: ../../graphics/Performer/vsGeometry.h++
 vsWalkArticulation.o: /usr/include/Performer/pf/pfGeode.h
+vsWalkArticulation.o: /usr/include/Performer/pr/pfFlux.h
+vsWalkArticulation.o: /usr/include/Performer/pr/pfEngine.h
+vsWalkArticulation.o: /usr/include/Performer/pr/pfGeoSet.h
+vsWalkArticulation.o: /usr/include/Performer/pr/pfCycleBuffer.h
+vsWalkArticulation.o: /usr/include/Performer/pr/pfPassList.h
+vsWalkArticulation.o: /usr/include/Performer/pr/pfFBState.h
+vsWalkArticulation.o: /usr/include/Performer/pr/pfWindow.h
 vsWalkInPlace.o: vsWalkInPlace.h++ vsMotionModel.h++
 vsWalkInPlace.o: ../../util/common/vsUpdatable.h++
 vsWalkInPlace.o: ../../util/common/vsObject.h++ /usr/include/stdio.h
@@ -1449,21 +1347,4 @@ vsWalkInPlace.o: /usr/include/Performer/pr/pfCycleBuffer.h
 vsWalkInPlace.o: /usr/include/Performer/pr/pfPassList.h
 vsWalkInPlace.o: /usr/include/Performer/pr/pfFBState.h
 vsWalkInPlace.o: /usr/include/Performer/pr/pfWindow.h
-vsWalkInPlace.o: ../../system/Performer/vsSystem.h++
-vsWalkInPlace.o: ../../graphics/Performer_X/vsPipe.h++
-vsWalkInPlace.o: ../../graphics/Performer_X/vsScreen.h++
-vsWalkInPlace.o: ../../graphics/Performer_X/vsWindow.h++
-vsWalkInPlace.o: /usr/include/Performer/pf/pfPipeWindow.h
-vsWalkInPlace.o: ../../graphics/Performer_X/vsPane.h++
-vsWalkInPlace.o: /usr/include/Performer/pf/pfChannel.h
-vsWalkInPlace.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
-vsWalkInPlace.o: /usr/include/Performer/pf/pfEarthSky.h
-vsWalkInPlace.o: /usr/include/Performer/pf/pfLODState.h
-vsWalkInPlace.o: /usr/include/Performer/pf/pfScene.h
-vsWalkInPlace.o: ../../graphics/Performer/vsView.h++
-vsWalkInPlace.o: ../../graphics/Performer/vsViewpointAttribute.h++
-vsWalkInPlace.o: ../../graphics/Performer/vsScene.h++
-vsWalkInPlace.o: ../../graphics/Performer/vsLightAttribute.h++
-vsWalkInPlace.o: /usr/include/Performer/pr/pfLight.h
-vsWalkInPlace.o: /usr/include/Performer/pf/pfLightSource.h
 vsWalkInPlace.o: ../../util/common/vsTimer.h++

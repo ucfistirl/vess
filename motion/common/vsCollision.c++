@@ -24,6 +24,7 @@
 
 #include <stdio.h>
 #include "vsCollision.h++"
+#include "vsTimer.h++"
 
 // ------------------------------------------------------------------------
 // Constructor - Sets up the collsion's variables and allocates a 
@@ -227,7 +228,7 @@ void vsCollision::update()
 
     // Compute actual distance travelled by factoring in the amount
     // of time passed
-    distLeft = (currentSpeed * (vsSystem::systemObject->getFrameTime()));
+    distLeft = (currentSpeed * (vsTimer::getSystemTimer()->getInterval()));
     positionDelta.set(0.0, 0.0, 0.0);
 
     // Attempt to perform the desired movement
@@ -302,7 +303,7 @@ void vsCollision::update()
         // location _after_ the current velocity is applied. If there was
         // no collision this frame, then these two calls should cancel out.
         kinematics->modifyPosition(positionDelta);
-        temp2 = tempVec.getScaled(-(vsSystem::systemObject->getFrameTime()));
+        temp2 = tempVec.getScaled(-(vsTimer::getSystemTimer()->getInterval()));
         kinematics->modifyPosition(temp2);
     }
     else

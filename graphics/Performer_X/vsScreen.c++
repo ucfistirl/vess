@@ -138,6 +138,22 @@ void vsScreen::init()
 }
 
 // ------------------------------------------------------------------------
+// Static internal function
+// Destroys each vsScreen in the static class list. The vsPipe::done()
+// function should be called after this one.
+// ------------------------------------------------------------------------
+void vsScreen::done()
+{
+    int loop;
+
+    // Destroy each vsScreen
+    for (loop = 0; loop < screenCount; loop++)
+        delete ((vsScreen *)(screenList[loop]));
+
+    screenCount = 0;
+}
+
+// ------------------------------------------------------------------------
 // VESS internal function
 // Adds the specified window to this screen's list of child windows
 // ------------------------------------------------------------------------

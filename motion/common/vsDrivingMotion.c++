@@ -22,7 +22,7 @@
 #include "vsDrivingMotion.h++"
 #include <stdio.h>
 #include "vsMatrix.h++"
-#include "vsSystem.h++"
+#include "vsTimer.h++"
 
 // ------------------------------------------------------------------------
 // Constructs a driving motion model using the given input axes
@@ -268,7 +268,7 @@ void vsDrivingMotion::update()
     vsMatrix            movement;
 
     // Get elapsed time
-    interval = vsSystem::systemObject->getFrameTime();
+    interval = vsTimer::getSystemTimer()->getInterval();
 
     // If we have a valid steering axis
     if (steering != NULL)

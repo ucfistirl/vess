@@ -102,6 +102,21 @@ void vsPipe::init()
 }
 
 // ------------------------------------------------------------------------
+// Static internal function
+// Destroys all vsPipe objects in the static class list
+// ------------------------------------------------------------------------
+void vsPipe::done()
+{
+    int loop;
+
+    // Destroy each vsPipe
+    for (loop = 0; loop < pipeCount; loop++)
+        delete ((vsPipe *)(pipeList[loop]));
+
+    pipeCount = 0;
+}
+
+// ------------------------------------------------------------------------
 // Internal function
 // Sets the screen object for this pipe object
 // ------------------------------------------------------------------------

@@ -6,9 +6,9 @@
 INCDIRS = -I. \
 	  -I../../avatar/common \
 	  -I../../motion/common \
-	  -I../../input/common \
-	  -I../../input/$(WS) \
-	  -I../../input/$(SG)_$(WS) \
+	  -I../../io/common \
+	  -I../../io/$(WS) \
+	  -I../../io/$(SG)_$(WS) \
 	  -I../../sound/$(AL) \
 	  -I../../graphics/common \
 	  -I../../graphics/$(SG) \
@@ -155,3 +155,11 @@ vsSystem.o: ../../graphics/Performer/vsTransparencyAttribute.h++
 vsSystem.o: ../../graphics/Performer/vsWireframeAttribute.h++
 vsSystem.o: ../../graphics/Performer/vsDatabaseLoader.h++
 vsSystem.o: /usr/include/Performer/pfdb/pfflt.h
+vsSystem.o: ../../io/Performer_X/vsWindowSystem.h++ /usr/include/X11/Xos.h
+vsSystem.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+vsSystem.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+vsSystem.o: /usr/include/X11/Xarch.h ../../io/common/vsInputSystem.h++
+vsSystem.o: ../../util/common/vsUpdatable.h++ ../../io/common/vsMouse.h++
+vsSystem.o: ../../io/common/vsInputDevice.h++ ../../io/common/vsInputAxis.h++
+vsSystem.o: ../../io/common/vsInputButton.h++ ../../io/common/vsKeyboard.h++
+vsSystem.o: /usr/include/X11/keysym.h /usr/include/X11/keysymdef.h

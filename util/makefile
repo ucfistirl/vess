@@ -3,13 +3,6 @@
 
 LIBNAME = libvsUtil.a
 
-SG=OSG
-WS=X
-AL=OpenAL
-CC=g++
-CC_FLAGS=-g -O -ansi -D__linux__ -D_XOPEN_SOURCE -D_BSD_SOURCE -D_MISC_SOURCE -DPF_CPLUSPLUS_API=1
-AR_FLAGS=rulc
-
 all: $(LIBNAME)
 $(LIBNAME):
 	@cd common; $(MAKE) \

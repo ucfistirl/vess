@@ -103,8 +103,11 @@ vsQuat.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
 vsQuat.o: /usr/include/getopt.h vsGlobals.h++ /usr/include/math.h
 vsQuat.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
 vsQuat.o: /usr/include/bits/mathcalls.h vsVector.h++
-vsTimer.o: vsTimer.h++ /usr/include/stdio.h /usr/include/features.h
-vsTimer.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsTimer.o: vsTimer.h++ vsGlobals.h++ /usr/include/math.h
+vsTimer.o: /usr/include/features.h /usr/include/sys/cdefs.h
+vsTimer.o: /usr/include/gnu/stubs.h /usr/include/bits/huge_val.h
+vsTimer.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+vsTimer.o: /usr/include/stdio.h
 vsTimer.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2/include/stddef.h
 vsTimer.o: /usr/include/bits/types.h /usr/include/libio.h
 vsTimer.o: /usr/include/_G_config.h /usr/include/wchar.h

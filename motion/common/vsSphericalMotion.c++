@@ -28,7 +28,7 @@
 #include "vsSphericalMotion.h++"
 #include <stdio.h>
 #include "vsMatrix.h++"
-#include "vsSystem.h++"
+#include "vsTimer.h++"
 
 // ------------------------------------------------------------------------
 // Constructs a trackball motion model using a mouse and the default button
@@ -319,7 +319,7 @@ void vsSphericalMotion::update()
     double    dRadius;
 
     // Get the interval of elapsed time
-    interval = vsSystem::systemObject->getFrameTime();
+    interval = vsTimer::getSystemTimer()->getInterval();
 
     // Make sure interval is valid
     if (interval <= 0.0)

@@ -53,8 +53,10 @@ vsSystem *vsSystem::systemObject = NULL;
 // ------------------------------------------------------------------------
 vsSystem::vsSystem()
 {
+    // Start out uninitialized
     isInitted = 0;
 
+    // Singleton check
     if (systemObject)
     {
         printf("vsSystem::vsSystem: Only one vsSystem object may be in "
@@ -63,9 +65,13 @@ vsSystem::vsSystem()
         return;
     }
 
+    // Create an OSG FrameStamp (This is required by OSG.  It will be shared 
+    // by all panes and hence, all osgUtil::SceneView objects)
     osgFrameStamp = new osg::FrameStamp();
     osgFrameStamp->ref();
     
+    // Mark this instance as valid and set the static class variable to 
+    // point to this instance
     validObject = 1;
     systemObject = this;
 }
@@ -76,10 +82,11 @@ vsSystem::vsSystem()
 // ------------------------------------------------------------------------
 vsSystem::~vsSystem()
 {
+    // Do nothing if this isn't a real system object
     if (!validObject)
         return;
 
-    delete frameTimer;
+    // Unreference the osg::FrameStamp
     osgFrameStamp->unref();
     
     // Delete statically-created objects in the various VESS classes
@@ -88,6 +95,7 @@ vsSystem::~vsSystem()
     vsGraphicsState::deleteInstance();
     vsViewpointAttribute::deleteMap();
     vsNode::deleteMap();
+    vsTimer::deleteSystemTimer();
     vsWindowSystem::deleteMap();
     vsScreen::done();
     vsPipe::done();
@@ -103,6 +111,7 @@ vsSystem::~vsSystem()
     vsObject::deleteObjectList();
 #endif
         
+    // Clear the static class member to NULL
     systemObject = NULL;
 }
 
@@ -140,9 +149,12 @@ void vsSystem::addExtension(char *fileExtension)
 // ------------------------------------------------------------------------
 void vsSystem::init()
 {
+    // Do nothing if this isn't a real system object
     if (!validObject)
         return;
 
+    // Print an error message and bail out if the object is already
+    // initialized
     if (isInitted)
     {
         printf("vsSystem::init: vsSystem object is already initialized\n");
@@ -153,15 +165,13 @@ void vsSystem::init()
     vsPipe::init();
     vsScreen::init();
     
-    // Initialize the current time
-    frameTimer = new vsTimer();
-
     // Initialize the osg FrameStamp object
     frameNumber = 0;
     simTime = 0.0;
     osgFrameStamp->setFrameNumber(frameNumber);
     osgFrameStamp->setReferenceTime(simTime);
     
+    // Mark this vsSystem instance as initialized
     isInitted = 1;
 }
 
@@ -190,15 +200,18 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
     vsOptimizer *optimizer;
     vsDatabaseLoader *dbLoader;
 
+    // Do nothing if this isn't a real system object
     if (!validObject)
         return;
 
+    // Do nothing if this object has already been initialized
     if (isInitted)
     {
         printf("vsSystem::init: vsSystem object is already initialized\n");
         return;
     }
 
+    // Configure the system for the type of database being loaded
     addExtension(databaseFilename);
     
     // Initialize the datbase loader object
@@ -209,6 +222,7 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
     vsPipe::init();
     vsScreen::init();
     
+    // Mark the object as initialized
     isInitted = 1;
 
     // Quick start: Set up the default window, pane, and view objects
@@ -219,7 +233,6 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
         defaultWindow->setName(windowName);
     else
         defaultWindow->setName(databaseFilename);
-
     defaultPane = new vsPane(defaultWindow);
     defaultPane->autoConfigure(VS_PANE_PLACEMENT_FULL_WINDOW);
 
@@ -250,9 +263,6 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
     globalLight->on();
     scene->addAttribute(globalLight);
 
-    // Initialize the current time
-    frameTimer = new vsTimer();
-
     // Initialize the osg FrameStamp object
     frameNumber = 0;
     simTime = 0.0;
@@ -267,6 +277,7 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
     if (window)
         *window = defaultWindow;
 
+    // Clean up the loader and optimizer
     delete optimizer;
     delete dbLoader;
 }
@@ -291,8 +302,10 @@ void vsSystem::preFrameTraverse(vsNode *node)
     int index;
     int loop;
     
+    // Mark this node as clean
     node->clean();
 
+    // Activate all of the attributes on the node
     node->saveCurrentAttributes();
     node->applyAttributes();
 
@@ -392,9 +405,11 @@ void vsSystem::preFrameTraverse(vsNode *node)
 // ------------------------------------------------------------------------
 void vsSystem::drawFrame()
 {
+    // Do nothing if this isn't a real system object
     if (!validObject)
         return;
         
+    // Do nothing if the object hasn't been initialized
     if (!isInitted)
     {
         printf("vsSystem::drawFrame: System object is not initialized\n");
@@ -444,8 +459,11 @@ void vsSystem::drawFrame()
     {
         targetScreen = vsScreen::getScreen(screenLoop);
         windowCount = targetScreen->getChildWindowCount();
+
+        // Loop over all windows
         for (windowLoop = 0; windowLoop < windowCount; windowLoop++)
         {
+            // Find the number of panes on the window
             targetWindow = targetScreen->getChildWindow(windowLoop);
 
             // Make the window's OpenGL context current
@@ -488,13 +506,12 @@ void vsSystem::drawFrame()
         }
     }
     
-    // Check how much time has elapsed since the last time we were here
-    lastFrameDuration = frameTimer->getElapsed();
-    frameTimer->mark();
+    // Mark the system timer for this frame
+    vsTimer::getSystemTimer()->mark();
 
     // Update the OSG FrameStamp object
     frameNumber++;
-    simTime += lastFrameDuration;
+    simTime += vsTimer::getSystemTimer()->getInterval();
     osgFrameStamp->setFrameNumber(frameNumber);
     osgFrameStamp->setReferenceTime(simTime);
     
@@ -539,22 +556,4 @@ void vsSystem::drawFrame()
                            targetWindow->getBaseLibraryObject());
         }
     }
-}
-
-// ------------------------------------------------------------------------
-// Returns the amount of elapsed time between the last two calls to
-// drawFrame.
-// ------------------------------------------------------------------------
-double vsSystem::getFrameTime()
-{
-    if (!validObject)
-        return 0.0;
-        
-    if (!isInitted)
-    {
-        printf("vsSystem::drawFrame: System object is not initialized\n");
-        return 0.0;
-    }
-
-    return lastFrameDuration;
 }

@@ -158,6 +158,18 @@ vsObjectMap *vsViewpointAttribute::getMap()
 }
 
 // ------------------------------------------------------------------------
+// Static Internal function
+// Deletes the viewpoint attributes' view object map
+// ------------------------------------------------------------------------
+void vsViewpointAttribute::deleteMap()
+{
+    if (viewObjectMap)
+	delete viewObjectMap;
+
+    viewObjectMap = NULL;
+}
+
+// ------------------------------------------------------------------------
 // Internal function
 // Returns if this attribute is available to be attached to a node
 // ------------------------------------------------------------------------

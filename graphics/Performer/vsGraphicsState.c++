@@ -44,6 +44,18 @@ vsGraphicsState *vsGraphicsState::getInstance()
 }
 
 // ------------------------------------------------------------------------
+// Static function
+// Deletes the currently active vsGraphicsState object
+// ------------------------------------------------------------------------
+void vsGraphicsState::deleteInstance()
+{
+    if (classInstance)
+	delete classInstance;
+
+    classInstance = NULL;
+}
+
+// ------------------------------------------------------------------------
 // Clears the internal graphics state and sets the graphics library state
 // to default values
 // ------------------------------------------------------------------------

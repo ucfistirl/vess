@@ -50,10 +50,11 @@ private:
 
 VS_INTERNAL:
 
-    static void init();
+    static void    init();
+    static void    done();
 
-    void        addWindow(vsWindow *newWindow);
-    void        removeWindow(vsWindow *targetWindow);
+    void           addWindow(vsWindow *newWindow);
+    void           removeWindow(vsWindow *targetWindow);
 
 public:
 

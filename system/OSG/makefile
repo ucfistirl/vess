@@ -7,9 +7,9 @@ INCDIRS = -I. \
 	  -I../../avatar/common \
 	  -I../../motion/common \
 	  -I../../io/common \
-	  -I../../io/$(WS) \
-	  -I../../io/$(WS)_$(SG) \
 	  -I../../io/$(OS) \
+	  -I../../io/$(WS) \
+	  -I../../io/$(SG)_$(WS) \
 	  -I../../sound/$(AL) \
 	  -I../../graphics/common \
 	  -I../../graphics/$(SG) \

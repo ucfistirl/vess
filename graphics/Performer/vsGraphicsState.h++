@@ -62,7 +62,9 @@ private:
 
 VS_INTERNAL:
 
-    void        applyState(pfGeoState *state);
+    static void    deleteInstance();
+
+    void           applyState(pfGeoState *state);
 
 public:
 

@@ -54,6 +54,7 @@ void vsScenePrinter::printScene(vsNode *targetNode, char *outputFileName)
     FILE *outfile;
     int counts[256];
     
+    // Open the output file
     outfile = fopen(outputFileName, "w");
     if (!outfile)
     {
@@ -62,10 +63,11 @@ void vsScenePrinter::printScene(vsNode *targetNode, char *outputFileName)
         return;
     }
 
+    // Print the scene to our new file
     writeScene(targetNode, outfile,  0, counts);
 
-    // Make sure we've written everything to disk
-    fflush(outfile);
+    // Close the file now that we're done
+    fclose(outfile);
 }
 
 // ------------------------------------------------------------------------
@@ -76,6 +78,7 @@ void vsScenePrinter::printScene(vsNode *targetNode, FILE *outputFile)
 {
     int counts[256];
     
+    // Print the scene to the file
     writeScene(targetNode, outputFile,  0, counts);
 
     // Make sure we've written everything to disk
@@ -279,6 +282,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
             switch (loop)
             {
                 case 0:
+                    // Print normal data
                     size = geometry->getDataListSize(VS_GEOMETRY_NORMALS);
                     if (size > 0)
                     {
@@ -298,6 +302,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                     break;
 
                 case 1:
+                    // Print color data
                     size = geometry->getDataListSize(VS_GEOMETRY_COLORS);
                     if (size > 0)
                     {
@@ -317,6 +322,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                     break;
 
                 case 2:
+                    // Print texture coordinate data
                     size = geometry->
                         getDataListSize(VS_GEOMETRY_TEXTURE_COORDS);
                     if (size > 0)
@@ -350,6 +356,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
         switch (attribute->getAttributeType())
         {
             case VS_ATTRIBUTE_TYPE_TRANSFORM:
+                // Print out the data in the transform attribute's three matrices
                 fprintf(outfile, "TRANSFORM\n");
                 writeBlanks(outfile, (treeDepth * 2) + 3);
                 mat = ((vsTransformAttribute *)attribute)->getPreTransform();
@@ -420,6 +427,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                 break;
 
             case VS_ATTRIBUTE_TYPE_MATERIAL:
+                // Print out the material data
                 fprintf(outfile, "MATERIAL\n");
                 writeBlanks(outfile, (treeDepth * 2) + 3);
                 fprintf(outfile, "Ambient:\n");
@@ -532,6 +540,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                 break;
 
             case VS_ATTRIBUTE_TYPE_TEXTURE:
+                // Print out the texture data
                 fprintf(outfile, "TEXTURE\n");
                 writeBlanks(outfile, (treeDepth * 2) + 3);
                 fprintf(outfile, "Apply Mode: ");
@@ -644,15 +653,13 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
     if ((targetNode->getNodeType() == VS_NODE_TYPE_COMPONENT) ||
         (targetNode->getNodeType() == VS_NODE_TYPE_SCENE))
     {
-//        component = (vsComponent *)targetNode;
         writeBlanks(outfile, treeDepth * 2);
-//        fprintf(outfile, "%d children:\n", component->getChildCount());
         fprintf(outfile, "%d children:\n", targetNode->getChildCount());
         
         // For each child, call this function again
-//        for (loop = 0; loop < component->getChildCount(); loop++)
         for (loop = 0; loop < targetNode->getChildCount(); loop++)
         {
+            // Print out the node tree location specifier
             countArray[treeDepth] = loop+1;
             writeBlanks(outfile, (treeDepth + 1) * 2);
             for (sloop = 0; sloop <= treeDepth; sloop++)
@@ -662,8 +669,8 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                 fprintf(outfile, "%d", countArray[sloop]);
             }
             fprintf(outfile, ") ");
-//            writeScene(component->getChild(loop), outfile, treeDepth+1,
-//                countArray);
+
+            // Recurse on the child node
             writeScene(targetNode->getChild(loop), outfile, treeDepth+1,
                 countArray);
         }
