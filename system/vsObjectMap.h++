@@ -23,7 +23,7 @@
 #ifndef VS_OBJECT_MAP_HPP
 #define VS_OBJECT_MAP_HPP
 
-#include "vsGrowableArray.h++"
+#include "vsTreeMap.h++"
 
 enum vsObjectMapList
 {
@@ -36,10 +36,8 @@ class vsObjectMap
 {
 private:
 
-    vsGrowableArray     firstList;
-    vsGrowableArray     secondList;
-
-    int                 objectEntryCount;
+    vsTreeMap    *firstList;
+    vsTreeMap    *secondList;
 
 public:
 

@@ -26,25 +26,21 @@
 #include "vsGlobals.h++"
 
 // ------------------------------------------------------------------------
-// Constructor - Initializes the object map's internal arrays
+// Constructor - Initializes the object map's internal tree map objects
 // ------------------------------------------------------------------------
-vsObjectMap::vsObjectMap() : firstList(200, 200), secondList(200, 200)
+vsObjectMap::vsObjectMap()
 {
-    objectEntryCount = 0;
-    
-    // Stretch the maximum size of each vsGrowableArray (and thus the size
-    // of the object map) to some ridiculously large amount. (If the map
-    // size goes over this amount, then there must be a problem somewhere
-    // else in the program anyway.)
-    firstList.setMaxSize(10000000);
-    secondList.setMaxSize(10000000);
+    firstList = new vsTreeMap();
+    secondList = new vsTreeMap();
 }
 
 // ------------------------------------------------------------------------
-// Destructor - Deletes the object map's internal array
+// Destructor - Deletes the object map's internal tree map objects
 // ------------------------------------------------------------------------
 vsObjectMap::~vsObjectMap()
 {
+    delete firstList;
+    delete secondList;
 }
 
 // ------------------------------------------------------------------------
@@ -53,10 +49,22 @@ vsObjectMap::~vsObjectMap()
 // ------------------------------------------------------------------------
 void vsObjectMap::registerLink(void *firstObject, void *secondObject)
 {
-    firstList[objectEntryCount] = firstObject;
-    secondList[objectEntryCount] = secondObject;
-
-    objectEntryCount++;
+    if (firstList->containsKey(firstObject))
+    {
+        printf("vsObjectMap::registerLink: firstObject already appears in "
+            "first object list\n");
+        return;
+    }
+    
+    if (secondList->containsKey(secondObject))
+    {
+        printf("vsObjectMap::registerLink: secondObject already appears in "
+            "second object list\n");
+        return;
+    }
+    
+    firstList->addEntry(firstObject, secondObject);
+    secondList->addEntry(secondObject, firstObject);
 }
 
 // ------------------------------------------------------------------------
@@ -66,43 +74,47 @@ void vsObjectMap::registerLink(void *firstObject, void *secondObject)
 // ------------------------------------------------------------------------
 int vsObjectMap::removeLink(void *theObject, int whichList)
 {
-    int loop;
-    
-    for (loop = 0; loop < objectEntryCount; loop++)
-        switch (whichList)
-        {
-            case VS_OBJMAP_FIRST_LIST:
-                if (theObject == firstList[loop])
-                {
-                    firstList[loop] = firstList[objectEntryCount - 1];
-                    secondList[loop] = secondList[objectEntryCount - 1];
-                    objectEntryCount--;
-                    return VS_TRUE;
-                }
-                break;
-            case VS_OBJMAP_SECOND_LIST:
-                if (theObject == secondList[loop])
-                {
-                    firstList[loop] = firstList[objectEntryCount - 1];
-                    secondList[loop] = secondList[objectEntryCount - 1];
-                    objectEntryCount--;
-                    return VS_TRUE;
-                }
-                break;
-            case VS_OBJMAP_EITHER_LIST:
-                if ((theObject == firstList[loop]) ||
-                    (theObject == secondList[loop]))
-                {
-                    firstList[loop] = firstList[objectEntryCount - 1];
-                    secondList[loop] = secondList[objectEntryCount - 1];
-                    objectEntryCount--;
-                    return VS_TRUE;
-                }
-                break;
-            default:
-                printf("vsObjectMap::removeList: Bad list specifier\n");
-                return VS_FALSE;
-        }
+    void *otherListObjPtr;
+
+    switch (whichList)
+    {
+        case VS_OBJMAP_FIRST_LIST:
+            if (firstList->containsKey(theObject))
+            {
+                otherListObjPtr = firstList->getValue(theObject);
+                firstList->deleteEntry(theObject);
+                secondList->deleteEntry(otherListObjPtr);
+                return VS_TRUE;
+            }
+            break;
+
+        case VS_OBJMAP_SECOND_LIST:
+            if (secondList->containsKey(theObject))
+            {
+                otherListObjPtr = secondList->getValue(theObject);
+                secondList->deleteEntry(theObject);
+                firstList->deleteEntry(otherListObjPtr);
+                return VS_TRUE;
+            }
+            break;
+
+        case VS_OBJMAP_EITHER_LIST:
+            if (firstList->containsKey(theObject))
+            {
+                otherListObjPtr = firstList->getValue(theObject);
+                firstList->deleteEntry(theObject);
+                secondList->deleteEntry(otherListObjPtr);
+                return VS_TRUE;
+            }
+            if (secondList->containsKey(theObject))
+            {
+                otherListObjPtr = secondList->getValue(theObject);
+                secondList->deleteEntry(theObject);
+                firstList->deleteEntry(otherListObjPtr);
+                return VS_TRUE;
+            }
+            break;
+    }
 
     return VS_FALSE;
 }
@@ -112,9 +124,8 @@ int vsObjectMap::removeLink(void *theObject, int whichList)
 // ------------------------------------------------------------------------
 void vsObjectMap::removeAllLinks()
 {
-    objectEntryCount = 0;
-    firstList.setSize(100);
-    secondList.setSize(100);
+    firstList->clear();
+    secondList->clear();
 }
 
 // ------------------------------------------------------------------------
@@ -123,13 +134,7 @@ void vsObjectMap::removeAllLinks()
 // ------------------------------------------------------------------------
 void *vsObjectMap::mapFirstToSecond(void *firstObject)
 {
-    int loop;
-    
-    for (loop = 0; loop < objectEntryCount; loop++)
-        if (firstObject == firstList[loop])
-            return (secondList[loop]);
-
-    return NULL;
+    return (firstList->getValue(firstObject));
 }
 
 // ------------------------------------------------------------------------
@@ -138,11 +143,5 @@ void *vsObjectMap::mapFirstToSecond(void *firstObject)
 // ------------------------------------------------------------------------
 void *vsObjectMap::mapSecondToFirst(void *secondObject)
 {
-    int loop;
-    
-    for (loop = 0; loop < objectEntryCount; loop++)
-        if (secondObject == secondList[loop])
-            return (firstList[loop]);
-
-    return NULL;
+    return (secondList->getValue(secondObject));
 }
