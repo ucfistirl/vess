@@ -224,9 +224,9 @@ void vsTextBuilder::setJustification(int newJustification)
 // ------------------------------------------------------------------------
 // Return the current font justification
 // ------------------------------------------------------------------------
-void vsTextBuilder::getJustification()
+int vsTextBuilder::getJustification()
 {
-    return fontJustification;
+    return justification;
 }
 
 // ------------------------------------------------------------------------
