@@ -625,6 +625,22 @@ double &vsVector::operator[](int index)
 }
 
 // ------------------------------------------------------------------------
+// Retrieves one value from the vector as a reference to a double.
+// ------------------------------------------------------------------------
+const double &vsVector::operator[](int index) const
+{
+    // Bounds checking
+    if ((index < 0) || (index >= getSize()))
+    {
+        printf("vsVector::operator[]: Invalid index\n");
+        return data[0];
+    }
+    
+    // Return a reference to the desired data value
+    return data[index];
+}
+
+// ------------------------------------------------------------------------
 // Adds the addend vector to this one, returning the result. The two
 // vectors must be the same size.
 // Equivalent to getSum(addend)
