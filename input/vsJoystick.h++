@@ -25,8 +25,8 @@
 
 #include "vsInputDevice.h++"
 
-#define VS_JS_MAX_AXES    4
-#define VS_JS_MAX_BUTTONS 4
+#define VS_JS_MAX_AXES    20
+#define VS_JS_MAX_BUTTONS 30
 
 enum
 {
