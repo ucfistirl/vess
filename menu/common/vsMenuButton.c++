@@ -83,6 +83,10 @@ vsMenuButton::vsMenuButton(vsComponent *component, vsKinematics *kinematics)
 // ------------------------------------------------------------------------
 vsMenuButton::~vsMenuButton()
 {
+    if (menuComponent)
+        vsObject::unrefDelete(menuComponent);
+    if (menuKinematics)
+        vsObject::unrefDelete(menuKinematics);
 }
 
 // ------------------------------------------------------------------------
