@@ -7,6 +7,7 @@
 #include "vsGrowableArray.h++"
 #include "vsAttributeList.h++"
 #include "vsVector.h++"
+#include "vsMatrix.h++"
 
 #define VS_NODE_NAME_MAX_LENGTH 80
 
@@ -45,19 +46,24 @@ VS_INTERNAL:
 
 public:
 
-                      vsNode();
-                      ~vsNode();
+                        vsNode();
+    virtual             ~vsNode();
 
-    virtual int       getNodeType() = 0;
+    virtual int         getNodeType() = 0;
 
-    int               getParentCount();
-    vsNode            *getParent(int index);
+    int                 getParentCount();
+    vsNode              *getParent(int index);
     
-    void              setName(const char *newName);
-    const char        *getName();
-    virtual vsNode    *findNodeByName(const char *targetName) = 0;
+    void                setName(const char *newName);
+    const char          *getName();
+    virtual vsNode      *findNodeByName(const char *targetName) = 0;
     
-    virtual void      getBoundSphere(vsVector *centerPoint, double *radius) = 0;
+    virtual void        getBoundSphere(vsVector *centerPoint,
+                                       double *radius) = 0;
+    virtual vsMatrix    getGlobalXform() = 0;
+    
+    virtual void            setIntersectMask(unsigned int newMask) = 0;
+    virtual unsigned int    getIntersectMask() = 0;
 };
 
 #endif

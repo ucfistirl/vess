@@ -2,6 +2,7 @@
 
 #include "vsGeometry.h++"
 
+#include <Performer/pf/pfSCS.h>
 #include "vsBackfaceAttribute.h++"
 #include "vsFogAttribute.h++"
 #include "vsMaterialAttribute.h++"
@@ -1156,6 +1157,58 @@ void vsGeometry::getBoundSphere(vsVector *centerPoint, double *radius)
 }
 
 // ------------------------------------------------------------------------
+// Computes the global coordinate transform at this geometry by multiplying
+// together all of the transforms at nodes above this one.
+// ------------------------------------------------------------------------
+vsMatrix vsGeometry::getGlobalXform()
+{
+    pfNode *nodePtr;
+    pfMatrix xform;
+    const pfMatrix *scsMatPtr;
+    vsMatrix result;
+    int loop, sloop;
+
+    xform.makeIdent();
+    nodePtr = performerGeode;
+    
+    while (nodePtr->getNumParents() > 0)
+    {
+        if (nodePtr->isOfType(pfSCS::getClassType()))
+        {
+            scsMatPtr = ((pfSCS *)nodePtr)->getMatPtr();
+            xform.postMult(*scsMatPtr);
+        }
+        
+        nodePtr = nodePtr->getParent(0);
+    }
+    
+    for (loop = 0; loop < 4; loop++)
+        for (sloop = 0; sloop < 4; sloop++)
+            result[loop][sloop] = xform[sloop][loop];
+
+    return result;
+}
+
+// ------------------------------------------------------------------------
+// Sets the intersection mask for this geometry. During an intersection
+// run, at each geometry object a bitwise AND of the intersection's mask
+// and the geometry's mask is performed; if the result of the AND is zero,
+// the intersection ignores the geometry.
+// ------------------------------------------------------------------------
+void vsGeometry::setIntersectMask(unsigned int newMask)
+{
+    performerGeode->setTravMask(PFTRAV_ISECT, newMask, PFTRAV_SELF, PF_SET);
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the intersection mask for this geometry.
+// ------------------------------------------------------------------------
+unsigned int vsGeometry::getIntersectMask()
+{
+    return (performerGeode->getTravMask(PFTRAV_ISECT));
+}
+
+// ------------------------------------------------------------------------
 // Adds the given attribute to the geometry object's list of child
 // attributes. If successful, also notifies the attribute that it has been
 // added to a list.
@@ -1314,10 +1367,26 @@ void vsGeometry::inflateFlatGeometry()
 // ------------------------------------------------------------------------
 void vsGeometry::applyAttributes()
 {
+    vsTransparencyAttribute *transpAttrib;
+
     vsNode::applyAttributes();
     
     (vsSystem::systemObject)->getGraphicsState()->applyState(
 	performerGeostate);
+
+    // *** Fix: force bin sorting to work correctly
+    transpAttrib = (vsTransparencyAttribute *)
+	getTypedAttribute(VS_ATTRIBUTE_TYPE_TRANSPARENCY, 0);
+    if (transpAttrib && (transpAttrib->isEnabled()))
+    {
+	// Transparent bin
+	performerGeoset->setDrawBin(PFSORT_TRANSP_BIN);
+    }
+    else
+    {
+	// Opaque bin
+	performerGeoset->setDrawBin(PFSORT_OPAQUE_BIN);
+    }
 }
 
 // ------------------------------------------------------------------------

@@ -70,39 +70,43 @@ VS_INTERNAL:
 
 public:
 
-                      vsGeometry();
-                      ~vsGeometry();
+                        vsGeometry();
+    virtual             ~vsGeometry();
 
-    virtual int       getNodeType();
-    virtual vsNode    *findNodeByName(const char *targetName);
+    virtual int         getNodeType();
+    virtual vsNode      *findNodeByName(const char *targetName);
 
-    void              setPrimitiveType(int newType);
-    int               getPrimitiveType();
-    
-    void              setPrimitiveCount(int newCount);
-    int               getPrimitiveCount();
-    
-    void              setPrimitiveLength(int index, int length);
-    int               getPrimitiveLength(int index);
-    void              setPrimitiveLengths(int *lengths);
-    void              getPrimitiveLengths(int *lengthsBuffer);
-    
-    void              setBinding(int whichData, int binding);
-    int               getBinding(int whichData);
-    
-    void              setData(int whichData, int dataIndex, vsVector data);
-    vsVector          getData(int whichData, int dataIndex);
-    void              setDataList(int whichData, vsVector *dataList);
-    void              getDataList(int whichData, vsVector *dataBuffer);
-    void              setDataListSize(int whichData, int newSize);
-    int               getDataListSize(int whichData);
-    
-    void              getBoundSphere(vsVector *centerPoint, double *radius);
+    void                setPrimitiveType(int newType);
+    int                 getPrimitiveType();
 
-    virtual void      addAttribute(vsAttribute *newAttribute);
-    virtual void      removeAttribute(vsAttribute *targetAttribute);
+    void                setPrimitiveCount(int newCount);
+    int                 getPrimitiveCount();
 
-    pfGeode           *getBaseLibraryObject();
+    void                setPrimitiveLength(int index, int length);
+    int                 getPrimitiveLength(int index);
+    void                setPrimitiveLengths(int *lengths);
+    void                getPrimitiveLengths(int *lengthsBuffer);
+
+    void                setBinding(int whichData, int binding);
+    int                 getBinding(int whichData);
+
+    void                setData(int whichData, int dataIndex, vsVector data);
+    vsVector            getData(int whichData, int dataIndex);
+    void                setDataList(int whichData, vsVector *dataList);
+    void                getDataList(int whichData, vsVector *dataBuffer);
+    void                setDataListSize(int whichData, int newSize);
+    int                 getDataListSize(int whichData);
+    
+    virtual void        getBoundSphere(vsVector *centerPoint, double *radius);
+    virtual vsMatrix    getGlobalXform();
+
+    virtual void            setIntersectMask(unsigned int newMask);
+    virtual unsigned int    getIntersectMask();
+
+    virtual void        addAttribute(vsAttribute *newAttribute);
+    virtual void        removeAttribute(vsAttribute *targetAttribute);
+
+    pfGeode             *getBaseLibraryObject();
 };
 
 #endif

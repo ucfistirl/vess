@@ -39,26 +39,30 @@ VS_INTERNAL:
 
 public:
 
-                      vsComponent();
-    virtual           ~vsComponent();
+                        vsComponent();
+    virtual             ~vsComponent();
 
-    virtual int       getNodeType();
-    virtual vsNode    *findNodeByName(const char *targetName);
+    virtual int         getNodeType();
+    virtual vsNode      *findNodeByName(const char *targetName);
 
-    void              addChild(vsNode *newChild);
-    void              insertChild(vsNode *newChild, int index);
-    void              removeChild(vsNode *targetChild);
-    void              replaceChild(vsNode *targetChild, vsNode *newChild);
+    void                addChild(vsNode *newChild);
+    void                insertChild(vsNode *newChild, int index);
+    void                removeChild(vsNode *targetChild);
+    void                replaceChild(vsNode *targetChild, vsNode *newChild);
 
-    int               getChildCount();
-    vsNode            *getChild(int index);
+    int                 getChildCount();
+    vsNode              *getChild(int index);
 
-    void              getBoundSphere(vsVector *centerPoint, double *radius);
+    virtual void        getBoundSphere(vsVector *centerPoint, double *radius);
+    virtual vsMatrix    getGlobalXform();
 
-    virtual void      addAttribute(vsAttribute *newAttribute);
-    virtual void      removeAttribute(vsAttribute *targetAttribute);
+    virtual void            setIntersectMask(unsigned int newMask);
+    virtual unsigned int    getIntersectMask();
 
-    pfGroup           *getBaseLibraryObject();
+    virtual void        addAttribute(vsAttribute *newAttribute);
+    virtual void        removeAttribute(vsAttribute *targetAttribute);
+
+    pfGroup             *getBaseLibraryObject();
 };
 
 #endif

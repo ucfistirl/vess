@@ -16,7 +16,7 @@ vsViewpointAttribute::vsViewpointAttribute(vsView *theView)
         viewObject = NULL;
 
     offsetMatrix.setIdentity();
-    componentMiddle = NULL;
+    parentComponent = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -94,7 +94,7 @@ void vsViewpointAttribute::attach(vsNode *theNode)
         return;
     }
     
-    componentMiddle = ((vsComponent *)theNode)->getLightHook();
+    parentComponent = (vsComponent *)theNode;
     
     attachedFlag = 1;
 }
@@ -112,7 +112,7 @@ void vsViewpointAttribute::detach(vsNode *theNode)
         return;
     }
 
-    componentMiddle = NULL;
+    parentComponent = NULL;
     
     attachedFlag = 0;
 }
@@ -124,35 +124,15 @@ void vsViewpointAttribute::detach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsViewpointAttribute::update()
 {
-    pfGroup *groupPtr;
     pfMatrix xform;
-    const pfMatrix *scsMatPtr;
     vsMatrix result;
-    vsQuat tempQuat;
-    int loop, sloop;
 
     if (!attachedFlag)
         return;
     if (!viewObject)
         return;
 
-    xform.makeIdent();
-    groupPtr = componentMiddle;
-    
-    while (groupPtr->getNumParents() > 0)
-    {
-        if (groupPtr->isOfType(pfSCS::getClassType()))
-        {
-            scsMatPtr = ((pfSCS *)groupPtr)->getMatPtr();
-            xform.postMult(*scsMatPtr);
-        }
-        
-        groupPtr = groupPtr->getParent(0);
-    }
-    
-    for (loop = 0; loop < 4; loop++)
-        for (sloop = 0; sloop < 4; sloop++)
-            result[loop][sloop] = xform[sloop][loop];
+    result = parentComponent->getGlobalXform();
 
     result = result * offsetMatrix;
     

@@ -531,6 +531,59 @@ void vsComponent::getBoundSphere(vsVector *centerPoint, double *radius)
 }
 
 // ------------------------------------------------------------------------
+// Computes the global coordinate transform at this component by
+// multiplying together all of the transforms at nodes at and above this
+// one.
+// ------------------------------------------------------------------------
+vsMatrix vsComponent::getGlobalXform()
+{
+    pfNode *nodePtr;
+    pfMatrix xform;
+    const pfMatrix *scsMatPtr;
+    vsMatrix result;
+    int loop, sloop;
+
+    xform.makeIdent();
+    nodePtr = bottomGroup;
+    
+    while (nodePtr->getNumParents() > 0)
+    {
+        if (nodePtr->isOfType(pfSCS::getClassType()))
+        {
+            scsMatPtr = ((pfSCS *)nodePtr)->getMatPtr();
+            xform.postMult(*scsMatPtr);
+        }
+        
+        nodePtr = nodePtr->getParent(0);
+    }
+    
+    for (loop = 0; loop < 4; loop++)
+        for (sloop = 0; sloop < 4; sloop++)
+            result[loop][sloop] = xform[sloop][loop];
+
+    return result;
+}
+
+// ------------------------------------------------------------------------
+// Sets the intersection mask for this component. During an intersection
+// run, at each component a bitwise AND of the intersection's mask and the
+// component's mask is performed; if the result of the AND is zero, the
+// intersection ignores this component and all of its children.
+// ------------------------------------------------------------------------
+void vsComponent::setIntersectMask(unsigned int newMask)
+{
+    topGroup->setTravMask(PFTRAV_ISECT, newMask, PFTRAV_SELF, PF_SET);
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the intersection mask for this component.
+// ------------------------------------------------------------------------
+unsigned int vsComponent::getIntersectMask()
+{
+    return (topGroup->getTravMask(PFTRAV_ISECT));
+}
+
+// ------------------------------------------------------------------------
 // Attempts to add the given attribute to the component's list of
 // attributes. If successful, also notifies the attribute that it has been
 // added to a component.

@@ -5,8 +5,7 @@
 
 class vsViewpointAttribute;
 
-#include <Performer/pf/pfGroup.h>
-#include "vsNode.h++"
+#include "vsComponent.h++"
 #include "vsView.h++"
 #include "vsAttribute.h++"
 
@@ -14,10 +13,10 @@ class vsViewpointAttribute : public vsAttribute
 {
 private:
 
-    vsView      *viewObject;
-    vsMatrix    offsetMatrix;
+    vsView         *viewObject;
+    vsMatrix       offsetMatrix;
     
-    pfGroup     *componentMiddle;
+    vsComponent    *parentComponent;
 
 VS_INTERNAL:
 
