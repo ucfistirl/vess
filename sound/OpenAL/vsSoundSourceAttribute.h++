@@ -87,6 +87,9 @@ public:
     virtual int           getAttributeType();
     virtual int           getAttributeCategory();
 
+    // Accessor for the sound buffer
+    vsSoundBuffer         *getSoundBuffer();
+
     // Offset from the component's global transform
     void                  setOffsetMatrix(vsMatrix newMatrix);
     vsMatrix              getOffsetMatrix();

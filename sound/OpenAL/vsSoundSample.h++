@@ -35,7 +35,13 @@ class VS_SOUND_DLL vsSoundSample : public vsSoundBuffer
 protected:
 
     // Handle of the buffer (for OpenAL)
-    ALuint      bufferID;
+    ALuint           bufferID;
+
+    // Sample parameters
+    unsigned long    dataSize;
+    unsigned long    frequency;
+    int              numChannels;
+    int              bytesPerSample;
 
 VS_INTERNAL:
 
@@ -43,12 +49,14 @@ VS_INTERNAL:
 
 public:
 
-                      vsSoundSample(char *filename);
-    virtual           ~vsSoundSample();
+                     vsSoundSample(char *filename);
+    virtual          ~vsSoundSample();
 
-    const char *      getClassName();
+    const char *     getClassName();
 
-    ALuint            getBaseLibraryObject();
+    virtual int      getBufferType();
+
+    ALuint           getBaseLibraryObject();
 };
 
 #endif

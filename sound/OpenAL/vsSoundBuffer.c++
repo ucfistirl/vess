@@ -34,3 +34,85 @@ vsSoundBuffer::vsSoundBuffer()
 vsSoundBuffer::~vsSoundBuffer()
 {
 }
+
+// ------------------------------------------------------------------------
+// Return the sound data format
+// ------------------------------------------------------------------------
+int vsSoundBuffer::getFormat()
+{
+    return bufferFormat;
+}
+
+// ------------------------------------------------------------------------
+// Return the sound data format
+// ------------------------------------------------------------------------
+int vsSoundBuffer::getFrequency()
+{
+    return bufferFrequency;
+}
+
+// ------------------------------------------------------------------------
+// Return the buffer size
+// ------------------------------------------------------------------------
+int vsSoundBuffer::getBufferSize()
+{
+    return bufferSize;
+}
+
+// ------------------------------------------------------------------------
+// Return the length of the buffer (in seconds)
+// ------------------------------------------------------------------------
+double vsSoundBuffer::getLength()
+{
+    int numSamples;
+                                                                                
+    if ((getChannelCount() < 1) || (getBytesPerSample() < 1))
+    {
+        // We don't know this audio format, so we can't compute the
+        // buffer length
+        return 0;
+    }
+                                                                                
+    // Compute the number of audio samples in the data
+    numSamples = bufferSize / getBytesPerSample() / getChannelCount();
+                                                                                
+    // Divide the number of samples by the frequency (samples per second)
+    // to get the number of seconds
+    return ((double)numSamples / (double)bufferFrequency);
+}
+
+// ------------------------------------------------------------------------
+// Return the number of channels in the audio data
+// ------------------------------------------------------------------------
+int vsSoundBuffer::getChannelCount()
+{
+    if ((bufferFormat == VS_SBUF_FORMAT_MONO8) || 
+        (bufferFormat == VS_SBUF_FORMAT_MONO16))
+        return 1;
+    
+    if ((bufferFormat == VS_SBUF_FORMAT_STEREO8) || 
+        (bufferFormat == VS_SBUF_FORMAT_STEREO16))
+        return 2;
+
+    // We don't know this audio format, so we can't know how many channels
+    // it contains
+    return 0;
+}
+
+// ------------------------------------------------------------------------
+// Return the number of bytes per audio sample
+// ------------------------------------------------------------------------
+int vsSoundBuffer::getBytesPerSample()
+{
+    if ((bufferFormat == VS_SBUF_FORMAT_MONO8) || 
+        (bufferFormat == VS_SBUF_FORMAT_STEREO8))
+        return 1;
+    
+    if ((bufferFormat == VS_SBUF_FORMAT_MONO16) || 
+        (bufferFormat == VS_SBUF_FORMAT_STEREO16))
+        return 2;
+
+    // We don't know this audio format, so we can't know how many bytes
+    // there are per audio sample
+    return 0;
+}

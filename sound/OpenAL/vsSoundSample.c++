@@ -54,9 +54,19 @@ vsSoundSample::vsSoundSample(char *fileName)
         // Load failed, print an error
         printf("vsSoundSample::vsSoundSample:  Unable to load file: %s\n", 
             fileName);
+
+        // Set all parameters to appropriate values
+        bufferSize = 0;
+        bufferFrequency = 0;
+        bufferFormat = 0;
     }
     else
     {
+        // Store the sound parameters for later retrieval
+        bufferSize = size;
+        bufferFrequency = freq;
+        bufferFormat = format;
+        
         // Pass the WAV file data and parameters to the buffer
         alBufferData(bufferID, format, soundData, size, freq);
 
@@ -76,6 +86,14 @@ vsSoundSample::~vsSoundSample()
 }
 
 // ------------------------------------------------------------------------
+// VESS internal function -- Return the OpenAL id for this buffer
+// ------------------------------------------------------------------------
+ALuint vsSoundSample::getBufferID()
+{
+    return bufferID;
+}
+
+// ------------------------------------------------------------------------
 // Return the name of this class
 // ------------------------------------------------------------------------
 const char * vsSoundSample::getClassName()
@@ -84,11 +102,11 @@ const char * vsSoundSample::getClassName()
 }
 
 // ------------------------------------------------------------------------
-// VESS internal function -- Return the OpenAL id for this buffer
+// Return the type of buffer
 // ------------------------------------------------------------------------
-ALuint vsSoundSample::getBufferID()
+int vsSoundSample::getBufferType()
 {
-    return bufferID;
+    return VS_SOUND_BUFFER_SAMPLE;
 }
 
 // ------------------------------------------------------------------------

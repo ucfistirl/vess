@@ -129,20 +129,19 @@ bool vsSoundStream::swapBuffers()
 }
 
 // ------------------------------------------------------------------------
+// Return the sound buffer type (a stream)
+// ------------------------------------------------------------------------
+int vsSoundStream::getBufferType()
+{
+    return VS_SOUND_BUFFER_STREAM;
+}
+
+// ------------------------------------------------------------------------
 // Returns whether or not either buffer is ready for new data
 // ------------------------------------------------------------------------
 bool vsSoundStream::isBufferReady()
 {
     return (frontBufferEmpty || backBufferEmpty); 
-}
-
-// ------------------------------------------------------------------------
-// Returns the size of each of the buffers.  This indicates how many
-// bytes are expected for each call to queueBuffer()
-// ------------------------------------------------------------------------
-int vsSoundStream::getBufferSize()
-{
-    return bufferSize;
 }
 
 // ------------------------------------------------------------------------

@@ -244,6 +244,14 @@ int vsSoundSourceAttribute::getAttributeCategory()
 }
 
 // ------------------------------------------------------------------------
+// Returns the sound buffer passed into the constructor
+// ------------------------------------------------------------------------
+vsSoundBuffer *vsSoundSourceAttribute::getSoundBuffer()
+{
+    return soundBuffer;
+}
+
+// ------------------------------------------------------------------------
 // Sets the offset matrix for this attribute. The offset matrix is
 // multiplied into the overall transform matrix before it is sent to the 
 // OpenAL sound source.

@@ -10,11 +10,12 @@
 #include <AL/alc.h>
 #include "vsSoundBuffer.h++"
 
-// Buffer data format (simple mapping to the OpenAL format constants)
-#define VS_SS_FORMAT_MONO8    AL_FORMAT_MONO8
-#define VS_SS_FORMAT_MONO16   AL_FORMAT_MONO16
-#define VS_SS_FORMAT_STEREO8  AL_FORMAT_STEREO8
-#define VS_SS_FORMAT_STEREO16 AL_FORMAT_STEREO16
+// Buffer data format.  The actual definitions have been moved into the
+// vsSoundBuffer class.  These definitions remain for backward compatibility
+#define VS_SS_FORMAT_MONO8    VS_SBUF_FORMAT_MONO8
+#define VS_SS_FORMAT_MONO16   VS_SBUF_FORMAT_MONO16
+#define VS_SS_FORMAT_STEREO8  VS_SBUF_FORMAT_STEREO8
+#define VS_SS_FORMAT_STEREO16 VS_SBUF_FORMAT_STEREO16
 
 class VS_SOUND_DLL vsSoundStream : public vsSoundBuffer
 {
@@ -28,11 +29,6 @@ protected:
 
     // Handle of our associated source object (for OpenAL)
     ALuint    sourceID;
-
-    // Size and format (for both buffers)
-    int       bufferSize;
-    int       bufferFormat;
-    int       bufferFrequency;
 
     // Maintains whether each buffer is empty and ready for data or not.
     bool      frontBufferEmpty;
@@ -59,23 +55,22 @@ public:
 
     // Constructor.  The parameters specify the size and format of the chunks
     // of audio data that will be supplied
-                vsSoundStream(int bufSize, int bufFormat, int bufFreq);
+                          vsSoundStream(int bufSize, int bufFormat, 
+                                        int bufFreq);
 
     // Destructor.  Frees the buffers.
-    virtual     ~vsSoundStream();
+    virtual               ~vsSoundStream();
 
     virtual const char    *getClassName();
 
-    // Returns true if the back buffer is empty and ready for queuing
-    bool        isBufferReady();
+    virtual int           getBufferType();
 
-    // Returns the current buffer size in bytes.  This his how many
-    // bytes of audio data are expected in the call to queueData
-    int         getBufferSize();
+    // Returns true if the back buffer is empty and ready for queuing
+    bool                  isBufferReady();
 
     // Fills the back buffer with the given audio data and queues it for
     // playing.  Return value indicates success or failure.
-    bool        queueBuffer(void *audioData);
+    bool                  queueBuffer(void *audioData);
 };
 
 #endif
