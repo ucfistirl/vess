@@ -37,6 +37,10 @@
                                                                                 
 #define VS_GEOMETRY_BONE_INDICES       VS_GEOMETRY_USER_DATA1
 
+#define VS_GEOMETRY_SKIN_VERTEX_COORDS 1000
+#define VS_GEOMETRY_SKIN_NORMALS       1001
+#define VS_GEOMETRY_BONE_INDICES       1002
+
 class VS_GRAPHICS_DLL vsSkeletonMeshGeometry : public vsNode
 {
 private:
