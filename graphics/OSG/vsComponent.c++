@@ -364,10 +364,6 @@ bool vsComponent::removeChild(vsNode *targetChild)
             for (sloop = loop; sloop < childCount-1; sloop++)
                 childList[sloop] = childList[sloop+1];
         
-            // Finish the VESS detachment
-            childCount--;
-            targetChild->unref();
-   
             // Check for errors as we remove this component from the
             // child's parent list
             if (targetChild->removeParent(this) == false)
@@ -375,17 +371,21 @@ bool vsComponent::removeChild(vsNode *targetChild)
                     "child to be removed does not have this component as "
                     "a parent\n");
 
+            // Finish the VESS detachment
+            childCount--;
+            targetChild->unref();
+            
+            // Special case:  If there is a switch attribute attached to this 
+            // component, then we need to check the switch masks after we remove
+            // the child, and delete any masks that are now empty.  This emulates
+            // Performer's pfSwitch behavior.
+            switchAttr = (vsSwitchAttribute *)
+               getTypedAttribute(VS_ATTRIBUTE_TYPE_SWITCH, 0);
+            if (switchAttr != NULL)
+               switchAttr->pruneMasks(this);
+        
             return true;
         }
-
-    // Special case:  If there is a switch attribute attached to this 
-    // component, then we need to check the switch masks after we remove
-    // the child, and delete any masks that are now empty.  This emulates
-    // Performer's pfSwitch behavior.
-    switchAttr = (vsSwitchAttribute *)
-        getTypedAttribute(VS_ATTRIBUTE_TYPE_SWITCH, 0);
-    if (switchAttr != NULL)
-        switchAttr->pruneMasks(this);
 
     return false;
 }
