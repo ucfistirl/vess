@@ -59,20 +59,21 @@ include_HEADERS = \
 # Include directives for the compiler.
 INCLUDES = \
            -I. \
-	   -I../io/common \
-	   -I../io/@WS@ \
-	   -I../io/@SG@_@WS@ \
+           -I../io/common \
+           -I../io/@WS@ \
+           -I../io/@SG@_@WS@ \
            -I../io/@OS@ \
-	   -I../sound/@AL@ \
+           @IO_INCLUDE_DIR@ \
+           -I../sound/@AL@ \
            @SOUND_INCLUDE_DIR@ \
-	   -I../graphics/common \
-	   -I../graphics/@SG@ \
-	   -I../graphics/@SG@_@WS@ \
+           -I../graphics/common \
+           -I../graphics/@SG@ \
+           -I../graphics/@SG@_@WS@ \
            @GFX_INCLUDE_DIR@ \
            -I../llio/@OS@ \
-	   -I../util/common \
-	   -I../util/@OS@ \
-	   -I../util/@SG@
+           -I../util/common \
+           -I../util/@OS@ \
+           -I../util/@SG@
 
 # Rule to make libvsMotion.so
 libvsMotion.so: libvsMotion.a

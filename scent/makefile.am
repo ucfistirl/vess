@@ -28,12 +28,13 @@ INCLUDES = \
            -I../graphics/common \
            -I../graphics/@SG@ \
            -I../graphics/@SG@_@WS@ \
+           @GFX_INCLUDE_DIR@ \
            -I../io/common \
            -I../io/@OS@ \
            -I../io/@WS@ \
            -I../io/@SG@_@WS@ \
+           @IO_INCLUDE_DIR@ \
            -I../llio/@OS@ \
-           @GFX_INCLUDE_DIR@ \
            @SOUND_INCLUDE_DIR@
 
 # Rule to make libvsScent.so
