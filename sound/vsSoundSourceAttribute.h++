@@ -97,7 +97,7 @@ public:
 
     // Update function.  Sets the new source position, velocity, and direction
     // based on the attached component's global transform
-    void        update();
+    void           update();
 
     // Source control
     void           play();
@@ -138,6 +138,7 @@ public:
     double         getOuterConeGain();
     void           setOuterConeGain(double gain);
     
+    ALuint         getBaseLibraryObject();
 };
 
 #endif
