@@ -162,9 +162,9 @@ bool vsComponent::addChild(vsNode *newChild)
     // fail, as the child node is permitted to object to getting a parent.
     if (newChild->addParent(this) == false)
     {
-	printf("vsComponent::addChild: 'newChild' node may not have any "
-	    "more parent nodes\n");
-	return false;
+        printf("vsComponent::addChild: 'newChild' node may not have any "
+            "more parent nodes\n");
+        return false;
     }
 
     // Connect the Performer nodes together. The type can't be a vsScene,
@@ -231,9 +231,9 @@ bool vsComponent::insertChild(vsNode *newChild, int index)
     // fail, as the child node is permitted to object to getting a parent.
     if (newChild->addParent(this) == false)
     {
-	printf("vsComponent::insertChild: 'newChild' node may not have any "
-	    "more parent nodes\n");
-	return false;
+        printf("vsComponent::insertChild: 'newChild' node may not have any "
+            "more parent nodes\n");
+        return false;
     }
     
     // First connect the Performer nodes together
@@ -299,7 +299,7 @@ bool vsComponent::removeChild(vsNode *targetChild)
             // Detach the Performer nodes; check for the type of the
             // component because the getBaseLibraryObject call is
             // not virtual. The type can't be a vsScene, because
-	    // a scene node would never have a parent.
+            // a scene node would never have a parent.
             if (targetChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
             {
                 childComponent = (vsComponent *)targetChild;
@@ -335,13 +335,13 @@ bool vsComponent::removeChild(vsNode *targetChild)
             // Finish the VESS detachment
             childCount--;
             targetChild->unref();
-	    
-	    // Check for errors as we remove this component from the
-	    // child's parent list
-	    if (targetChild->removeParent(this) == false)
-		printf("vsComponent::removeChild: Scene graph inconsistency: "
-		    "child to be removed does not have this component as "
-		    "a parent\n");
+            
+            // Check for errors as we remove this component from the
+            // child's parent list
+            if (targetChild->removeParent(this) == false)
+                printf("vsComponent::removeChild: Scene graph inconsistency: "
+                    "child to be removed does not have this component as "
+                    "a parent\n");
 
             // Return success
             return true;
@@ -369,15 +369,15 @@ bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
     for (loop = 0; loop < childCount; loop++)
         if (targetChild == childList[loop])
         {
-	    // Notify the newChild node that it is getting a new parent.
-	    // This might fail, as the child node is permitted to object to
-	    // getting a parent.
-	    if (newChild->addParent(this) == false)
-	    {
-		printf("vsComponent::replaceChild: 'newChild' node may not "
-		    "have any more parent nodes\n");
-		return false;
-	    }
+            // Notify the newChild node that it is getting a new parent.
+            // This might fail, as the child node is permitted to object to
+            // getting a parent.
+            if (newChild->addParent(this) == false)
+            {
+                printf("vsComponent::replaceChild: 'newChild' node may not "
+                    "have any more parent nodes\n");
+                return false;
+            }
 
             // Mark the entire portion of the tree that has any connection
             // to the old node as needing of an update
@@ -386,7 +386,7 @@ bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
             // Replace the Performer nodes; checks for the type of the
             // component because the getBaseLibraryObject call is
             // not virtual. The type can't be a vsScene, because
-	    // a scene node would never consent to getting a parent.
+            // a scene node would never consent to getting a parent.
             if (targetChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
             {
                 childComponent = (vsComponent *)targetChild;
@@ -411,9 +411,9 @@ bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
                 oldNode = childSkeletonMeshGeometry->getBaseLibraryObject();
             }
 
-	    // Get the Performer node corresponding to the child to be
-	    // added; we need to check the node type because the
-	    // getBaseLibraryObject call is not virtual
+            // Get the Performer node corresponding to the child to be
+            // added; we need to check the node type because the
+            // getBaseLibraryObject call is not virtual
             if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
             {
                 childComponent = (vsComponent *)newChild;
@@ -437,7 +437,7 @@ bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
             }
             
             // Replace the old child with the new one on this component's
-	    // bottom group
+            // bottom group
             bottomGroup->replaceChild(oldNode, newNode);
             
             // Change the connection in the VESS nodes
@@ -445,12 +445,12 @@ bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
             targetChild->unref();
             newChild->ref();
 
-	    // Check for errors as we remove this component from the
-	    // child's parent list
-	    if (targetChild->removeParent(this) == false)
-		printf("vsComponent::replaceChild: Scene graph inconsistency: "
-		    "child to be removed does not have this component as "
-		    "a parent\n");
+            // Check for errors as we remove this component from the
+            // child's parent list
+            if (targetChild->removeParent(this) == false)
+                printf("vsComponent::replaceChild: Scene graph inconsistency: "
+                    "child to be removed does not have this component as "
+                    "a parent\n");
             
             // Mark the entire portion of the tree that has any connection
             // to the new node as needing of an update
@@ -471,7 +471,7 @@ int vsComponent::getParentCount()
 {
     // Return 1 if the parent is valid
     if (parentNode)
-	return 1;
+        return 1;
 
     // Otherwise, return 0
     return 0;
@@ -485,7 +485,7 @@ vsNode *vsComponent::getParent(int index)
 {
     // Only an index of 0 is valid, return NULL if something else is given
     if (index != 0)
-	return NULL;
+        return NULL;
 
     // Return the parentNode pointer (even if it is NULL)
     return parentNode;
@@ -723,7 +723,7 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
                     "contain one grouping category attribute at a time\n");
                 return;
             }
-	    break;
+            break;
 
         // Component may only contain one of any of these
         case VS_ATTRIBUTE_CATEGORY_XFORM:
@@ -733,7 +733,7 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
                     "contain one transform category attribute at a time\n");
                 return;
             }
-	    break;
+            break;
     }
 
     // If we made it this far, it must be okay to add the attribute in
@@ -831,7 +831,7 @@ bool vsComponent::addParent(vsNode *newParent)
 {
     // If we already have a parent, fail
     if (parentNode)
-	return false;
+        return false;
 
     // Otherwise, set the new parent and return success
     parentNode = newParent;
@@ -846,7 +846,7 @@ bool vsComponent::removeParent(vsNode *targetParent)
 {
     // If the current parent doesn't match the target, return failure
     if (parentNode != targetParent)
-	return false;
+        return false;
 
     // Otherwise, clear the parentNode pointer and return success
     parentNode = NULL;
