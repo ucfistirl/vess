@@ -48,7 +48,8 @@ vsLocalLightCallback::vsLocalLightCallback(vsGrowableArray *lightArray,
     // Create the growable array, with initial size of 8 and increment of 1.
     localLightList = new vsGrowableArray(8, 1);
 
-    // Go through the array and add every light in it.
+    // Go through the given light array and add every light in it to our
+    // local list
     for (localLightCount = 0; localLightCount < length; localLightCount++)
     {
         localLightList->setData(localLightCount,
@@ -70,13 +71,15 @@ vsLocalLightCallback::~vsLocalLightCallback()
 int vsLocalLightCallback::setLocalLights(vsGrowableArray *lightArray,
                                          int length)
 {
-    // Go through the array and set every light in it.
+    // Go through the given light array and add every light in it to our
+    // local list.
     for (localLightCount = 0; localLightCount < length; localLightCount++)
     {
         localLightList->setData(localLightCount,
             lightArray->getData(localLightCount));
     }
 
+    // Return the new light count
     return (localLightCount);
 }
 
@@ -95,6 +98,7 @@ int vsLocalLightCallback::addLocalLights(vsGrowableArray *lightArray,
             lightArray->getData(loop));
     }
 
+    // Return the new local light count
     return (localLightCount);
 }
 
@@ -107,7 +111,7 @@ int vsLocalLightCallback::addLocalLight(vsLightAttribute *la)
     // handled by the light attribute when turning the light on.
     localLightList->setData(localLightCount++, la);
 
-    // Return the new localLightCount.
+    // Return the new local light count.
     return(localLightCount);
 }
 
@@ -120,13 +124,15 @@ int vsLocalLightCallback::removeLocalLights(vsGrowableArray *lightArray,
 {
     int loop;
 
-    // Go through the array and add every light in it.
+    // Go through the given light array and remove every light in it from
+    // our local light list
     for (loop = 0; loop < length; loop++)
     {
         removeLocalLight((vsLightAttribute *)
             lightArray->getData(loop));
     }
 
+    // Return the number of lights remaining in our light list
     return (localLightCount);
 }
 
@@ -141,9 +147,10 @@ int vsLocalLightCallback::removeLocalLight(vsLightAttribute *la)
     // Initialize the index to 0.
     index = 0;
 
-    // If we are on the matching light, set it to NULL.
+    // Search our local list for the given light attribute
     for (index = 0; index < localLightCount; index++)
     {
+        // If we are on the matching light, set it to NULL.
         if (localLightList->getData(index) == la)
         {
             // Decrement the count to reflect the removed light.
@@ -151,12 +158,12 @@ int vsLocalLightCallback::removeLocalLight(vsLightAttribute *la)
             localLightList->setData(index,
                 localLightList->getData(--localLightCount));
 
-            // Return the new count.
+            // Return the number of lights remaining in our light list
             return (localLightCount);
         }
     }
 
-    // Return the count.
+    // Return the number of lights in our light list
     return (localLightCount);
 }
 
@@ -185,7 +192,7 @@ void vsLocalLightCallback::drawImplementation(osg::State &state, const
         // Get the next light attribute from the array.  We have to cast
         // the array because it is being made const by the callback method
         // declaration.  It's safe to do this since we're not modifying
-        // the array.  (See Stroustrup, pg. 149)
+        // the array.  (See Stroustrup (2nd ed.), pg. 149)
         lightAttr = (vsLightAttribute *)
             ((vsGrowableArray *)localLightList)->getData(loop);
 

@@ -39,6 +39,8 @@ vsLightAttribute::vsLightAttribute()
     // This specifies if the light has been placed in a lightList.
     active = false;
 
+    // Initialize the lightHookGroup (the node to which this attribute
+    // is attached) to NULL
     lightHookGroup = NULL;
 
     // Create and reference the OSG objects used by this light.
@@ -64,6 +66,7 @@ vsLightAttribute::vsLightAttribute()
     // Initialize the light as a global light.
     lightScope = VS_LIGHT_MODE_GLOBAL;
     
+    // Begin as unattached
     attachedFlag = 0;
     parentNode = NULL;
 }
@@ -73,6 +76,7 @@ vsLightAttribute::vsLightAttribute()
 // ------------------------------------------------------------------------
 vsLightAttribute::~vsLightAttribute()
 {
+    // Unreference the OSG light node and light object
     lightNode->unref();
     lightObject->unref();
 }
@@ -108,7 +112,7 @@ void vsLightAttribute::setAmbientColor(double r, double g, double b)
 {
     osg::Vec4 colorVector;
 
-    // Set the temporary vector value and pass it to OSG.
+    // Place the color values in an OSG vector and pass it to OSG.
     colorVector.set(r, g, b, 1.0f);
     lightObject->setAmbient(colorVector);
 }
@@ -121,8 +125,11 @@ void vsLightAttribute::getAmbientColor(double *r, double *g, double *b)
 {
     osg::Vec4 colorVector;
     
+    // Get the ambient colors from the light object
     colorVector = lightObject->getAmbient();
     
+    // Return each color component if we were given a valid pointer 
+    // for it
     if (r)
         *r = colorVector.x();
     if (g)
@@ -138,7 +145,7 @@ void vsLightAttribute::setDiffuseColor(double r, double g, double b)
 {
     osg::Vec4 colorVector;
 
-    // Set the temporary vector value and pass it to OSG.
+    // Place the color values in an OSG vector and pass it to OSG.
     colorVector.set(r, g, b, 1.0f);
     lightObject->setDiffuse(colorVector);
 }
@@ -151,8 +158,11 @@ void vsLightAttribute::getDiffuseColor(double *r, double *g, double *b)
 {
     osg::Vec4 colorVector;
     
+    // Get the diffuse colors from the light object
     colorVector = lightObject->getDiffuse();
     
+    // Return each color component if we were given a valid pointer 
+    // for it
     if (r)
         *r = colorVector.x();
     if (g)
@@ -168,7 +178,7 @@ void vsLightAttribute::setSpecularColor(double r, double g, double b)
 {
     osg::Vec4 colorVector;
 
-    // Set the temporary vector value and pass it to OSG.
+    // Place the color values in an OSG vector and pass it to OSG.
     colorVector.set(r, g, b, 1.0f);
     lightObject->setSpecular(colorVector);
 }
@@ -181,8 +191,11 @@ void vsLightAttribute::getSpecularColor(double *r, double *g, double *b)
 {
     osg::Vec4 colorVector;
     
+    // Get the specular colors from the light object
     colorVector = lightObject->getSpecular();
     
+    // Return each color component if we were given a valid pointer 
+    // for it
     if (r)
         *r = colorVector.x();
     if (g)
@@ -197,6 +210,7 @@ void vsLightAttribute::getSpecularColor(double *r, double *g, double *b)
 void vsLightAttribute::setAttenuationVals(double quadratic, double linear, 
                                           double constant)
 {
+    // Pass the light coefficients to their respective OSG counterparts
     lightObject->setConstantAttenuation(constant);
     lightObject->setLinearAttenuation(linear);
     lightObject->setQuadraticAttenuation(quadratic);
@@ -209,6 +223,8 @@ void vsLightAttribute::setAttenuationVals(double quadratic, double linear,
 void vsLightAttribute::getAttenuationVals(double *quadratic, double *linear,
                                           double *constant)
 {
+    // Make sure we were given a valid pointer for each component, then
+    // retrieve its corresponding value from the OSG light object
     if (quadratic)
         *quadratic = lightObject->getQuadraticAttenuation();
     if (linear)
@@ -226,7 +242,7 @@ void vsLightAttribute::setPosition(double x, double y, double z, double w)
 {
     osg::Vec4 positionVector;
 
-    // Set the temporary vector value and pass it to OSG.
+    // Store the location in an OSG vector and pass it to the Light object
     positionVector.set(x, y, z, w);
     lightObject->setPosition(positionVector);
 }
@@ -239,8 +255,11 @@ void vsLightAttribute::getPosition(double *x, double *y, double *z, double *w)
 {
     osg::Vec4 positionVector;
     
+    // Retrieve the position from the OSG Light object
     positionVector = lightObject->getPosition();
     
+    // Return each coordinate if we were given a valid pointer 
+    // for it
     if (x)
         *x = positionVector.x();
     if (y)
@@ -258,7 +277,8 @@ void vsLightAttribute::setSpotlightDirection(double dx, double dy, double dz)
 {
     osg::Vec3 directionVector;
 
-    // Set the temporary vector value and pass it to OSG.
+    // Store the direction coordinates in an OSG vector and pass it to
+    // the Light object
     directionVector.set(dx, dy, dz);
     lightObject->setDirection(directionVector);
 }
@@ -271,8 +291,11 @@ void vsLightAttribute::getSpotlightDirection(double *dx, double *dy, double *dz)
 {
     osg::Vec3 directionVector;
     
+    // Retrieve the direction from the OSG Light object
     directionVector = lightObject->getDirection();
     
+    // Return each coordinate if we were given a valid pointer 
+    // for it
     if (dx)
         *dx = directionVector.x();
     if (dy)
@@ -286,6 +309,7 @@ void vsLightAttribute::getSpotlightDirection(double *dx, double *dy, double *dz)
 // ------------------------------------------------------------------------
 void vsLightAttribute::setSpotlightValues(double exponent, double cutoffDegrees)
 {
+    // Pass the values to the OSG Light object
     lightObject->setSpotExponent(exponent);
     lightObject->setSpotCutoff(VS_DEG2RAD(cutoffDegrees));
 }
@@ -297,6 +321,8 @@ void vsLightAttribute::setSpotlightValues(double exponent, double cutoffDegrees)
 void vsLightAttribute::getSpotlightValues(double *exponent,
                                           double *cutoffDegrees)
 {
+    // Make sure we were given a valid pointer for each value, then
+    // retrieve its corresponding value from the OSG Light object
     if (exponent)
         *exponent = lightObject->getSpotExponent();
     if (cutoffDegrees)
@@ -310,28 +336,33 @@ void vsLightAttribute::getSpotlightValues(double *exponent,
 // ------------------------------------------------------------------------
 void vsLightAttribute::setScope(int scope)
 {
+    // If the scope parameter matches the light attribute's current scope
+    // setting, do nothing
     if (lightScope == scope)
         return;
 
+    // Interpret the scope parameter
     switch (scope)
     {
         case VS_LIGHT_MODE_GLOBAL:
-            // Add the light to the scene if it is on.
+            // Only add the light to the scene if it is on.
             if (lightOn)
             {
                 addToScene();
+
+                // Turn lighting on on the light node's StateSet
                 lightNode->setLocalStateSetModes(osg::StateAttribute::ON);
             }
             else
             {
+                // Turn lighting off on the light node's StateSet
                 lightNode->setLocalStateSetModes(osg::StateAttribute::OFF);
             }
             break;
 
         case VS_LIGHT_MODE_LOCAL:
-            // Remove the light from the scene's list, turn it off.
+            // Remove the light from the scene's list and turn it off.
             removeFromScene();
-
             lightNode->setLocalStateSetModes(osg::StateAttribute::OFF);
             break;
 
@@ -340,7 +371,11 @@ void vsLightAttribute::setScope(int scope)
             return;
     }
 
+    // Remember the scope setting
     lightScope = scope;
+
+    // If we're attached to a node, mark it and its ancestors and descendants
+    // dirty
     if (parentNode)
         parentNode->dirty();
 }
@@ -358,12 +393,15 @@ int vsLightAttribute::getScope()
 // ------------------------------------------------------------------------
 void vsLightAttribute::on()
 {
+    // Flag the light as turned on
     lightOn = VS_TRUE;
 
     // If it is a global light, attempt to add it to the scene now.
     if (lightScope == VS_LIGHT_MODE_GLOBAL)
     {
         addToScene();
+
+        // Turn lighting on on the light node's StateSet
         lightNode->setLocalStateSetModes(osg::StateAttribute::ON);
     }
 }
@@ -373,12 +411,15 @@ void vsLightAttribute::on()
 // ------------------------------------------------------------------------
 void vsLightAttribute::off()
 {
+    // Flag the light as turned off
     lightOn = VS_FALSE;
 
     // If it is a global light, attempt to remove it to the scene now.
     if (lightScope == VS_LIGHT_MODE_GLOBAL)
     {
         removeFromScene();
+
+        // Turn lighting off on the light node's StateSet
         lightNode->setLocalStateSetModes(osg::StateAttribute::OFF);
     }
 }
@@ -413,10 +454,13 @@ void vsLightAttribute::apply()
             if (lightOn)
             {
                 addToScene();
+
+                // Turn lighting on on the light node's StateSet
                 lightNode->setLocalStateSetModes(osg::StateAttribute::ON);
             }
             else
             {
+                // Turn lighting off on the light node's StateSet
                 lightNode->setLocalStateSetModes(osg::StateAttribute::OFF);
             }
         }
@@ -459,6 +503,7 @@ void vsLightAttribute::setScene(vsScene *newScene)
         // Remove it from the old scene's light list.
         removeFromScene();
 
+        // Remove the attribute's reference from the scene node
         scene->unref();
     }
 
@@ -466,6 +511,7 @@ void vsLightAttribute::setScene(vsScene *newScene)
     scene = newScene;
     if (scene != NULL)
     {
+        // Reference the new scene node
         scene->ref();
     }
 }
@@ -526,9 +572,12 @@ void vsLightAttribute::disableLocalLight(osg::State *state)
 // ------------------------------------------------------------------------
 int vsLightAttribute::canAttach()
 {
+    // If we're already attached to a node, don't allow any further 
+    // attachments
     if (attachedFlag)
         return VS_FALSE;
 
+    // Otherwise, we can be attached
     return VS_TRUE;
 }
 
@@ -541,6 +590,7 @@ void vsLightAttribute::attach(vsNode *theNode)
 {
     vsNode  *searchNode;
 
+    // If we're already attached to a node, bail out
     if (attachedFlag)
     {
         printf("vsLightAttribute::attach: Attribute is already attached\n");
@@ -556,8 +606,6 @@ void vsLightAttribute::attach(vsNode *theNode)
     // If it is a scene, add it to the scene.
     else if (theNode->getNodeType() == VS_NODE_TYPE_SCENE)
     {
-// JPD: Do vsScene's need three OSG::Group's (like Components),
-// or is one OK???
         lightHookGroup = ((vsScene *)theNode)->getBaseLibraryObject();
         lightHookGroup->addChild(lightNode);
     }
@@ -593,10 +641,13 @@ void vsLightAttribute::attach(vsNode *theNode)
             if (lightOn)
             {
                 addToScene();
+
+                // Turn lighting on on the light node's StateSet
                 lightNode->setLocalStateSetModes(osg::StateAttribute::ON);
             }
             else
             {
+                // Turn lighting off on the light node's StateSet
                 lightNode->setLocalStateSetModes(osg::StateAttribute::OFF);
             }
         }
@@ -612,6 +663,7 @@ void vsLightAttribute::attach(vsNode *theNode)
         theNode->dirty();
     }
 
+    // Mark the attribute as attached and remember the node we're attached to
     attachedFlag = 1;
     parentNode = theNode;
 }
@@ -623,6 +675,7 @@ void vsLightAttribute::attach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsLightAttribute::detach(vsNode *theNode)
 {
+    // If we're not attached, we don't need to do anything
     if (!attachedFlag)
     {
         printf("vsLightAttribute::detach: Attribute is not attached\n");
@@ -643,6 +696,7 @@ void vsLightAttribute::detach(vsNode *theNode)
         parentNode->dirty();
     }
 
+    // Mark the node as unattached, and forget the node we were attached to
     attachedFlag = 0;
     parentNode = NULL;
 }
@@ -656,8 +710,10 @@ void vsLightAttribute::attachDuplicate(vsNode *theNode)
     vsLightAttribute *newAttrib;
     double p1, p2, p3, p4;
  
+    // Create another light attribute
     newAttrib = new vsLightAttribute();
 
+    // Copy all parameters to the new attribute
     getAmbientColor(&p1, &p2, &p3);
     newAttrib->setAmbientColor(p1, p2, p3);
     getDiffuseColor(&p1, &p2, &p3);
@@ -674,11 +730,13 @@ void vsLightAttribute::attachDuplicate(vsNode *theNode)
     newAttrib->setSpotlightValues(p1, p2);
     newAttrib->setScope(getScope());
 
+    // Turn the new light attribute on or off, as appropriate
     if (isOn())
         newAttrib->on();
     else
         newAttrib->off();
 
+    // Add the new attribute to the given node
     theNode->addAttribute(newAttrib);
 }
 

@@ -31,15 +31,20 @@
 // ------------------------------------------------------------------------
 vsTextureAttribute::vsTextureAttribute()
 {
+    // Create and reference new OSG Texture2D and TexEnv objects
     osgTexture = new osg::Texture2D();
     osgTexture->ref();
     osgTexEnv = new osg::TexEnv();
     osgTexEnv->ref();
+
+    // Start with no image data
     osgTexImage = NULL;
     
+    //Initialize the osg::Texture2D
     osgTexture->setBorderColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
     osgTexture->setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
-    
+
+    // Initialize the texture attribute
     setBoundaryMode(VS_TEXTURE_DIRECTION_ALL, VS_TEXTURE_BOUNDARY_CLAMP);
     setApplyMode(VS_TEXTURE_APPLY_DECAL);
     setMagFilter(VS_TEXTURE_MAGFILTER_LINEAR);
@@ -53,6 +58,7 @@ vsTextureAttribute::vsTextureAttribute()
 vsTextureAttribute::vsTextureAttribute(osg::Texture2D *texObject,
     osg::TexEnv *texEnvObject)
 {
+    // Save and reference the Texture2D and TexEnv objects
     osgTexture = texObject;
     osgTexture->ref();
     osgTexEnv = texEnvObject;
@@ -60,8 +66,8 @@ vsTextureAttribute::vsTextureAttribute(osg::Texture2D *texObject,
     osgTexImage = osgTexture->getImage();
     osgTexImage->ref();
     
+    // Set the texture border color to black
     osgTexture->setBorderColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
-//    osgTexture->setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
 }
 
 // ------------------------------------------------------------------------
@@ -69,9 +75,13 @@ vsTextureAttribute::vsTextureAttribute(osg::Texture2D *texObject,
 // ------------------------------------------------------------------------
 vsTextureAttribute::~vsTextureAttribute()
 {
+    // Unreference the Texture2D and TexEnv objects
     osgTexture->unref();
     osgTexEnv->unref();
-    osgTexImage->unref();
+
+    // Unreference the texture image data if it exists
+    if (osgTexImage != NULL)
+        osgTexImage->unref();
 }
 
 // ------------------------------------------------------------------------
@@ -96,6 +106,9 @@ int vsTextureAttribute::getAttributeType()
 void vsTextureAttribute::setImage(unsigned char *imageData, int xSize,
     int ySize, int dataFormat)
 {
+    int format;
+
+    // Create and reference an osg::Image if none exists
     if (!osgTexImage)
     {
         osgTexImage = new osg::Image();
@@ -103,7 +116,7 @@ void vsTextureAttribute::setImage(unsigned char *imageData, int xSize,
         osgTexture->setImage(osgTexImage);
     }
 
-    int format;
+    // Translate the image format into an OSG-friendly value
     switch (dataFormat)
     {
         case VS_TEXTURE_DFORMAT_INTENSITY:
@@ -123,6 +136,7 @@ void vsTextureAttribute::setImage(unsigned char *imageData, int xSize,
             return;
     }
 
+    // Pass the image data and settings to the osg::Image
     osgTexImage->setImage(xSize, ySize, 1, GL_RGBA, format,
         GL_UNSIGNED_BYTE, imageData);
 }
@@ -135,8 +149,13 @@ void vsTextureAttribute::setImage(unsigned char *imageData, int xSize,
 void vsTextureAttribute::getImage(unsigned char **imageData, int *xSize,
     int *ySize, int *dataFormat)
 {
+    int format;
+
+    // If no image exists, return NULL image data, zero sizes, and -1 for 
+    // format
     if (!osgTexImage)
     {
+        // Only set values for pointers that are valid
         if (imageData)
             *imageData = NULL;
         if (xSize)
@@ -148,7 +167,7 @@ void vsTextureAttribute::getImage(unsigned char **imageData, int *xSize,
         return;
     }
 
-    int format;
+    // Translate the image format into a VESS value
     switch (osgTexImage->getPixelFormat())
     {
         case GL_LUMINANCE:
@@ -168,6 +187,8 @@ void vsTextureAttribute::getImage(unsigned char **imageData, int *xSize,
             break;
     }
 
+    // Fetch and return image data values for all parameters that have valid 
+    // pointers
     if (imageData)
         *imageData = osgTexImage->data();
     if (xSize)
@@ -183,10 +204,15 @@ void vsTextureAttribute::getImage(unsigned char **imageData, int *xSize,
 // ------------------------------------------------------------------------
 void vsTextureAttribute::loadImageFromFile(char *filename)
 {
+    // Unreference the current texture image (if any)
     if (osgTexImage)
         osgTexImage->unref();
 
+    // Read the image file into a new osg::Image object
     osgTexImage = osgDB::readImageFile(filename);
+
+    // If successful, set the Texture2D to use the new image and 
+    // referenc the image locally
     if (osgTexImage)
     {
         osgTexture->setImage(osgTexImage);
@@ -205,11 +231,13 @@ void vsTextureAttribute::setBoundaryMode(int whichDirection, int boundaryMode)
 {
     osg::Texture::WrapMode wrapType;
     
+    // Translate the new boundary mode value into its OSG counterpart
     if (boundaryMode == VS_TEXTURE_BOUNDARY_REPEAT)
         wrapType = osg::Texture::REPEAT;
     else
         wrapType = osg::Texture::CLAMP;
 
+    // Apply the new boundary mode to the given direction(s)
     switch (whichDirection)
     {
         case VS_TEXTURE_DIRECTION_S:
@@ -234,11 +262,13 @@ int vsTextureAttribute::getBoundaryMode(int whichDirection)
 {
     int wrapType;
 
+    // Fetch the OSG WrapType for the given direction
     if (whichDirection == VS_TEXTURE_DIRECTION_T)
         wrapType = osgTexture->getWrap(osg::Texture::WRAP_T);
     else
         wrapType = osgTexture->getWrap(osg::Texture::WRAP_S);
 
+    // Translate the WrapType into a VESS value
     if (wrapType == osg::Texture::REPEAT)
         return VS_TEXTURE_BOUNDARY_REPEAT;
     else
@@ -250,6 +280,7 @@ int vsTextureAttribute::getBoundaryMode(int whichDirection)
 // ------------------------------------------------------------------------
 void vsTextureAttribute::setApplyMode(int applyMode)
 {
+    // Translate the applyMode to an OSG value and set it on the TexEnv
     switch (applyMode)
     {
         case VS_TEXTURE_APPLY_DECAL:
@@ -272,6 +303,8 @@ void vsTextureAttribute::setApplyMode(int applyMode)
 // ------------------------------------------------------------------------
 int vsTextureAttribute::getApplyMode()
 {
+    // Fetch and translate the osg::TexEnv's apply mode.  Return the
+    // translated value.
     switch (osgTexEnv->getMode())
     {
         case osg::TexEnv::DECAL:
@@ -282,6 +315,7 @@ int vsTextureAttribute::getApplyMode()
             return VS_TEXTURE_APPLY_REPLACE;
     }
 
+    // Return -1 if we don't recognize the TexEnv's mode
     return -1;
 }
 
@@ -290,6 +324,8 @@ int vsTextureAttribute::getApplyMode()
 // ------------------------------------------------------------------------
 void vsTextureAttribute::setMagFilter(int newFilter)
 {
+    // Translate the new filter mode to its OSG counterpart and apply it
+    // to the Texture2D object
     switch (newFilter)
     {
         case VS_TEXTURE_MAGFILTER_NEAREST:
@@ -311,6 +347,8 @@ void vsTextureAttribute::setMagFilter(int newFilter)
 // ------------------------------------------------------------------------
 int vsTextureAttribute::getMagFilter()
 {
+    // Translate the current MagFilter mode on the osg::Texture2D into
+    // a VESS value and return it
     switch (osgTexture->getFilter(osg::Texture::MAG_FILTER))
     {
         case osg::Texture::NEAREST:
@@ -327,7 +365,8 @@ int vsTextureAttribute::getMagFilter()
 // ------------------------------------------------------------------------
 void vsTextureAttribute::setMinFilter(int newFilter)
 {
-    printf("Changing min filter of texture %p!!\n", this);
+    // Translate the new filter mode to its OSG counterpart and apply it
+    // to the Texture2D object
     switch (newFilter)
     {
         case VS_TEXTURE_MINFILTER_NEAREST:
@@ -357,6 +396,8 @@ void vsTextureAttribute::setMinFilter(int newFilter)
 // ------------------------------------------------------------------------
 int vsTextureAttribute::getMinFilter()
 {
+    // Translate the current MinFilter mode on the osg::Texture2D into
+    // a VESS value and return it
     switch (osgTexture->getFilter(osg::Texture::MIN_FILTER))
     {
         case osg::Texture::NEAREST:
@@ -382,13 +423,19 @@ void vsTextureAttribute::setOSGAttrModes(vsNode *node)
     unsigned int attrMode;
     osg::StateSet *osgStateSet;
     
+    // Start with the osg::StateAttribute mode set to ON
     attrMode = osg::StateAttribute::ON;
 
+    // If the vsTextureAttribute's override flag is set, change the
+    // osg::StateAttribute's mode to OVERRIDE
     if (overrideFlag)
         attrMode |= osg::StateAttribute::OVERRIDE;
 
+    // Get the StateSet for the given node
     osgStateSet = getOSGStateSet(node);
 
+    // Set the Texture and TexEnv attributes and the StateAttribute mode
+    // on the node's StateSet
     osgStateSet->setTextureAttributeAndModes(0, osgTexture, attrMode);
     osgStateSet->setTextureAttributeAndModes(0, osgTexEnv, attrMode);
 }
@@ -400,8 +447,10 @@ void vsTextureAttribute::setOSGAttrModes(vsNode *node)
 // ------------------------------------------------------------------------
 void vsTextureAttribute::attach(vsNode *node)
 {
+    // Do standard vsStateAttribute attaching
     vsStateAttribute::attach(node);
 
+    // Handle the texture attributes for this node
     setOSGAttrModes(node);
 }
 
@@ -413,13 +462,17 @@ void vsTextureAttribute::attach(vsNode *node)
 void vsTextureAttribute::detach(vsNode *node)
 {
     osg::StateSet *osgStateSet;
+
+    // Get the osg::StateSet for this node
     osgStateSet = getOSGStateSet(node);
 
+    // Reset the Texture and TexEnv states to INHERIT
     osgStateSet->setTextureAttributeAndModes(0, osgTexture,
         osg::StateAttribute::INHERIT);
     osgStateSet->setTextureAttributeAndModes(0, osgTexEnv,
         osg::StateAttribute::INHERIT);
 
+    // Finish with standard StateAttribute detaching
     vsStateAttribute::detach(node);
 }
 
@@ -433,11 +486,14 @@ void vsTextureAttribute::attachDuplicate(vsNode *theNode)
     osg::Texture2D *newTex;
     osg::TexEnv *newTexEnv;
     
+    // Duplicate this attributes Texture2D and TexEnv objects
     newTex = new osg::Texture2D(*osgTexture);
     newTexEnv = new osg::TexEnv(*osgTexEnv);
 
+    // Create a new vsTextureAttribute using the duplicated OSG objects
     newAttrib = new vsTextureAttribute(newTex, newTexEnv);
 
+    // Attach the new attribute to the given node
     theNode->addAttribute(newAttrib);
 }
 
@@ -452,47 +508,59 @@ int vsTextureAttribute::isEquivalent(vsAttribute *attribute)
     unsigned char *image1, *image2;
     int xval1, yval1, xval2, yval2, val1, val2;
     
+    // Make sure the given attribute is valid
     if (!attribute)
         return VS_FALSE;
 
+    // Check to see if we're comparing this attribute to itself
     if (this == attribute)
         return VS_TRUE;
     
+    // Make sure the given attribute is a texture attribute
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_TEXTURE)
         return VS_FALSE;
 
+    // Cast the given attribute to a texture attribute
     attr = (vsTextureAttribute *)attribute;
 
+    // Compare image data and settings (note that both attributes must
+    // point to the _same_ image data for them to be considered equivalent.
     getImage(&image1, &xval1, &yval1, &val1);
     attr->getImage(&image2, &xval2, &yval2, &val2);
     if ((image1 != image2) || (xval1 != xval2) || (yval1 != val2) ||
         (val1 != val2))
         return VS_FALSE;
 
+    // Compare S boundary modes
     val1 = getBoundaryMode(VS_TEXTURE_DIRECTION_S);
     val2 = attr->getBoundaryMode(VS_TEXTURE_DIRECTION_S);
     if (val1 != val2)
         return VS_FALSE;
 
+    // Compare T boundary modes
     val1 = getBoundaryMode(VS_TEXTURE_DIRECTION_T);
     val2 = attr->getBoundaryMode(VS_TEXTURE_DIRECTION_T);
     if (val1 != val2)
         return VS_FALSE;
 
+    // Compare apply modes
     val1 = getApplyMode();
     val2 = attr->getApplyMode();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Compare magnification filter modes
     val1 = getMagFilter();
     val2 = attr->getMagFilter();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Compare minification filter modes
     val1 = getMinFilter();
     val2 = attr->getMinFilter();
     if (val1 != val2)
         return VS_FALSE;
 
+    // If all pass, the attribute is equivalent
     return VS_TRUE;
 }

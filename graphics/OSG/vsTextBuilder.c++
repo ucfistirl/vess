@@ -449,7 +449,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
 // ------------------------------------------------------------------------
 void CALLBACK vsTextBuilder::tesselateError(GLenum type)
 {
-    fprintf(stderr, "tesselateError: %d\n", type);
+    fprintf(stderr, "vsTextComponent::tesselateError: %d\n", type);
     fflush(stderr);
 }
 
@@ -484,7 +484,7 @@ void CALLBACK vsTextBuilder::tesselateBegin(GLenum type)
     // Re-initialize the primitive length to 0.
     primitiveLength = 0;
 
-    // According to which OpenGL primitive we get set up the vsGeometry.
+    // According to which OpenGL primitive we get, set up the vsGeometry.
     switch(type)
     {
         case GL_POINTS:
@@ -571,9 +571,6 @@ void CALLBACK vsTextBuilder::tesselateCombine(GLdouble coords[3],
     void *vertex_data[4], GLfloat weight[4], void **outData)
 {
     double *vertex;
-
-    fprintf(stderr, "tesselateCombine()\n");
-    fflush(stderr);
 
     // Allocate the new vertex.
     vertex = (double *) malloc(sizeof(double)*3);

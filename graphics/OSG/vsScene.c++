@@ -33,10 +33,11 @@ vsScene::vsScene()
 {
     int loop;
     
+    // Create a new OSG Group node and reference it
     osgGroup = new osg::Group();
     osgGroup->ref();
 
-    // Initialize the light list to empty.
+    // Initialize the list of global lights to empty.
     for (loop = 0; loop < VS_LIGHT_MAX; loop++)
     {       
         lightList[loop] = NULL;
@@ -75,6 +76,7 @@ vsScene::~vsScene()
         }
     }
     
+    // Unreference the OSG Group we created
     osgGroup->unref();
 }
 
@@ -132,6 +134,7 @@ void vsScene::deleteTree()
 {
     vsNode *node;
  
+    // Iterate until we have no more children
     while (getChildCount() > 0)
     {
         // We can always get the first child, because removing a child
@@ -145,7 +148,6 @@ void vsScene::deleteTree()
         // Remove the child from the scene, and delete it if
         // it no longer being used
         removeChild(node);
-
         if (node->getParentCount() == 0)
             delete node;
     }
@@ -176,8 +178,10 @@ int vsScene::addChild(vsNode *newChild)
         return VS_FALSE;
     }
 
-    // Connect the OSG nodes together. The type can't be a vsScene, because
-    // a scene node would never consent to getting a parent.
+    // Connect the OSG nodes together. This differs by type because the
+    // getBaseLibaryObject() method is not virtual.  The type can't be 
+    // a vsScene, because a scene node would never consent to getting 
+    // a parent.
     if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
     {
         childComponent = (vsComponent *)newChild;
@@ -201,6 +205,7 @@ int vsScene::addChild(vsNode *newChild)
     // Mark the entire tree above and below this node as needing an update
     newChild->dirty();
     
+    // Return success
     return VS_TRUE;
 }
 
@@ -220,6 +225,7 @@ int vsScene::insertChild(vsNode *newChild, int index)
         return VS_FALSE;
     }
     
+    // Make sure the index is valid (only 0 is allowed for vsScenes)
     if (index != 0)
     {
         printf("vsScene::insertChild: Invalid index\n");
@@ -235,8 +241,10 @@ int vsScene::insertChild(vsNode *newChild, int index)
         return VS_FALSE;
     }
 
-    // Connect the OSG nodes together. The type can't be a vsScene, because
-    // a scene node would never consent to getting a parent.
+    // Connect the OSG nodes together. This differs by type because the
+    // getBaseLibaryObject() method is not virtual.  The type can't be 
+    // a vsScene, because a scene node would never consent to getting 
+    // a parent.
     if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
     {
         childComponent = (vsComponent *)newChild;
@@ -272,6 +280,7 @@ int vsScene::removeChild(vsNode *targetChild)
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
 
+    // Make sure the target child is actually our child
     if (child != targetChild)
     {
         printf("vsScene::removeChild: 'targetChild' is not a child of "
@@ -314,6 +323,7 @@ int vsScene::removeChild(vsNode *targetChild)
             "child to be removed does not have this component as "
             "a parent\n");
 
+    // Return success
     return VS_TRUE;
 }
 
@@ -327,6 +337,7 @@ int vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
     vsDynamicGeometry *childDynamicGeometry;
     osg::Node *oldNode, *newNode;
 
+    // Make sure the target child is actually our child
     if (child != targetChild)
     {
         printf("vsScene::replaceChild: 'targetChild' is not a child of "
@@ -351,6 +362,7 @@ int vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
     // Replace the OSG nodes; checks for the type of the component because
     // the getBaseLibraryObject call is not virtual. The type can't be a
     // vsScene, because a scene node would never have a parent.
+    // First, get the old child node.
     if (targetChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
     {
         childComponent = (vsComponent *)targetChild;
@@ -367,6 +379,7 @@ int vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
         oldNode = childDynamicGeometry->getBaseLibraryObject();
     }
 
+    // Next, get the new child node.
     if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
     {
         childComponent = (vsComponent *)newChild;
@@ -383,11 +396,13 @@ int vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
         newNode = childDynamicGeometry->getBaseLibraryObject();
     }
 
+    // Finally, replace the child on the osg::Group node
     osgGroup->replaceChild(oldNode, newNode);
 
     // Change the connection in the VESS nodes
     child = newChild;
             
+    // Update reference counts
     targetChild->unref();
     newChild->ref();
 
@@ -402,6 +417,7 @@ int vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
     // to the new node as needing of an update
     newChild->dirty();
 
+    // Return success
     return VS_TRUE;
 }
 
@@ -410,9 +426,11 @@ int vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
 // ------------------------------------------------------------------------
 int vsScene::getChildCount()
 {
+    // Return 1 if we have a child
     if (child)
         return 1;
 
+    // Otherwise, return 0
     return 0;
 }
 
@@ -422,9 +440,12 @@ int vsScene::getChildCount()
 // ------------------------------------------------------------------------
 vsNode *vsScene::getChild(int index)
 {
+    // If the index is not zero, it can't be valid.  Just return NULL if
+    // this is the case
     if (index != 0)
         return NULL;
 
+    // Return the child pointer (NULL or otherwise)
     return child;
 }
 
@@ -449,13 +470,15 @@ void vsScene::getBoundSphere(vsVector *centerPoint, double *radius)
     // Get the bounding sphere from OSG
     boundSphere = osgGroup->getBound();
 
-    // Convert the center to a vsVector
+    // Convert the center to a vsVector if the centerPoint pointer is
+    // valid
     if (centerPoint)
     {
         center = boundSphere.center();
         centerPoint->set(center[0], center[1], center[2]);
     }
 
+    // Fetch and return the radius if the pointer is valid
     if (radius)
         *radius = boundSphere.radius();
 }
@@ -467,6 +490,8 @@ vsMatrix vsScene::getGlobalXform()
 {
     vsMatrix mat;
 
+    // A scene's transform will always be identity, since it is the
+    // root node of the scene graph
     mat.setIdentity();
     return mat;
 }
@@ -499,12 +524,15 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
     int attrCat, attrType;
     int loop;
 
+    // See if the attribute will let us attach it
     if (!(newAttribute->canAttach()))
     {
         printf("vsScene::addAttribute: Attribute is already in use\n");
         return;
     }
 
+    // Scenes may not receive grouping, transform, or container attributes
+    // (primarily because these don't make sense at the root of a scene)
     attrCat = newAttribute->getAttributeCategory();
     if ((attrCat != VS_ATTRIBUTE_CATEGORY_STATE) &&
         (attrCat != VS_ATTRIBUTE_CATEGORY_OTHER))
@@ -514,6 +542,8 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
         return;
     }
 
+    // Make sure we're not attaching more than one of the same type of 
+    // attribute
     attrType = newAttribute->getAttributeType();
     for (loop = 0; loop < getAttributeCount(); loop++)
         if ((getAttribute(loop))->getAttributeType() == attrType)
@@ -560,8 +590,11 @@ int vsScene::addLight(vsLightAttribute *light)
     // Else set the light to that open slot.
     else
     {
+        // Set the light at the index we found to the given light
         lightList[index] = light;
 
+        // At the current node's StateSet, turn the corresponding OpenGL
+        // light on
         tempStateSet = osgGroup->getOrCreateStateSet();
         tempStateSet->setMode(GL_LIGHT0+index, osg::StateAttribute::ON);
     }
@@ -579,7 +612,7 @@ void vsScene::removeLight(vsLightAttribute *light)
     osg::StateSet *tempStateSet;
     int index;
 
-    // Search for the given light.
+    // Search for the given light, keep track of the list index
     index = 0;
     while ((lightList[index] != light) && (index < VS_LIGHT_MAX))
     {
@@ -589,8 +622,11 @@ void vsScene::removeLight(vsLightAttribute *light)
     // If it found it, set its slot to NULL.
     if (index < VS_LIGHT_MAX)
     {
+        // Set the light at the index we found to NULL
         lightList[index] = NULL;
 
+        // On the current node's StateSet, turn the OpenGL light at the 
+        // index we found to OFF
         tempStateSet = osgGroup->getOrCreateStateSet();
         tempStateSet->setMode(GL_LIGHT0+index, osg::StateAttribute::OFF);
     }

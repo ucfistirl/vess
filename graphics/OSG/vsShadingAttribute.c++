@@ -29,9 +29,11 @@
 // ------------------------------------------------------------------------
 vsShadingAttribute::vsShadingAttribute()
 {
+    // Create a new osg::ShadeModel attribute and reference it
     shadeModel = new osg::ShadeModel();
     shadeModel->ref();
     
+    // Initialize the shade model to SMOOTH
     shadeModel->setMode(osg::ShadeModel::SMOOTH);
 }
 
@@ -40,6 +42,7 @@ vsShadingAttribute::vsShadingAttribute()
 // ------------------------------------------------------------------------
 vsShadingAttribute::~vsShadingAttribute()
 {
+    // Unreference the OSG ShadeModel
     shadeModel->unref();
 }
 
@@ -64,6 +67,8 @@ int vsShadingAttribute::getAttributeType()
 // ------------------------------------------------------------------------
 void vsShadingAttribute::setShading(int shadingMode)
 {
+    // Translate the requested shading mode to the OSG counterpart and
+    // set the ShadeModel to use it
     switch (shadingMode)
     {
         case VS_SHADING_GOURAUD:
@@ -84,6 +89,7 @@ void vsShadingAttribute::setShading(int shadingMode)
 // ------------------------------------------------------------------------
 int vsShadingAttribute::getShading()
 {
+    // Fetch and translate the osg::ShadeModel's mode to its VESS version
     switch (shadeModel->getMode())
     {
         case osg::ShadeModel::SMOOTH:
@@ -92,6 +98,7 @@ int vsShadingAttribute::getShading()
             return VS_SHADING_FLAT;
     }
 
+    // Return -1 if we don't recognize the osg::ShadeModel's mode
     return -1;
 }
 
@@ -105,13 +112,18 @@ void vsShadingAttribute::setOSGAttrModes(vsNode *node)
     unsigned int attrMode;
     osg::StateSet *osgStateSet;
     
+    // Start with the osg::StateAttribute mode set to ON
     attrMode = osg::StateAttribute::ON;
 
+    // If the vsShadingAttribute's override flag is set, change the
+    // osg::StateAttribute's mode to OVERRIDE
     if (overrideFlag)
         attrMode |= osg::StateAttribute::OVERRIDE;
 
+    // Get the StateSet on the given node
     osgStateSet = getOSGStateSet(node);
 
+    // Apply the osg::ShadeModel on the StateSet
     osgStateSet->setAttributeAndModes(shadeModel, attrMode);
 }
 
@@ -122,8 +134,11 @@ void vsShadingAttribute::setOSGAttrModes(vsNode *node)
 // ------------------------------------------------------------------------
 void vsShadingAttribute::attach(vsNode *node)
 {
+    // Do standard vsStateAttribute attaching
     vsStateAttribute::attach(node);
 
+    // Set up the osg::StateSet on this node to use the osg::ShadeModel
+    // we've created
     setOSGAttrModes(node);
 }
 
@@ -135,11 +150,13 @@ void vsShadingAttribute::attach(vsNode *node)
 void vsShadingAttribute::detach(vsNode *node)
 {
     osg::StateSet *osgStateSet;
-    osgStateSet = getOSGStateSet(node);
 
+    // Get the node's StateSet and reset the ShadeModel mode to inherit
+    osgStateSet = getOSGStateSet(node);
     osgStateSet->setAttributeAndModes(shadeModel,
         osg::StateAttribute::INHERIT);
 
+    // Do standard vsStateAttribute detaching
     vsStateAttribute::detach(node);
 }
 
@@ -151,9 +168,12 @@ void vsShadingAttribute::attachDuplicate(vsNode *theNode)
 {
     vsShadingAttribute *newAttrib;
     
+    // Create a new vsShadingAttribute and copy the shading mode from this
+    // attribute to the new one
     newAttrib = new vsShadingAttribute();
     newAttrib->setShading(getShading());
 
+    // Add the new attribute to the given node
     theNode->addAttribute(newAttrib);
 }
 
@@ -167,21 +187,27 @@ int vsShadingAttribute::isEquivalent(vsAttribute *attribute)
     vsShadingAttribute *attr;
     int val1, val2;
     
+    // Make sure the given attribute is valid, return FALSE if not
     if (!attribute)
         return VS_FALSE;
 
+    // Check if we're comparing the attribute to itself
     if (this == attribute)
         return VS_TRUE;
     
+    // Make sure the given attribute is a shading attribute
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_SHADING)
         return VS_FALSE;
 
+    // Cast the given attribute to a shading attribute
     attr = (vsShadingAttribute *)attribute;
 
+    // Compare the two shading settings
     val1 = getShading();
     val2 = attr->getShading();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Return true if we get this far (they are equivalent)
     return VS_TRUE;
 }

@@ -177,6 +177,7 @@ vsObjectMap *vsViewpointAttribute::getMap()
 // ------------------------------------------------------------------------
 void vsViewpointAttribute::deleteMap()
 {
+    // Delete the view object map, if it exists
     if (viewObjectMap)
     {
         delete viewObjectMap;
@@ -212,8 +213,8 @@ void vsViewpointAttribute::attach(vsNode *theNode)
         return;
     }
 
-    // This attribute cannot be attached to geometry nodes, so fail if
-    // the specified node is a geometry node
+    // This attribute can only be attached to component nodes, so fail if
+    // the specified node is not a component
     if (theNode->getNodeType() != VS_NODE_TYPE_COMPONENT)
     {
         printf("vsViewpointAttribute::attach: Can only attach viewpoint "

@@ -30,9 +30,11 @@ vsGraphicsState *vsGraphicsState::classInstance = NULL;
 // ------------------------------------------------------------------------
 vsGraphicsState::vsGraphicsState()
 {
+    // Create the array of active locally-scoped lights
     localLights = new vsGrowableArray(8, 1);
     localLightsCount = 0;
 
+    // Initialize the scene pointer to NULL
     scene = NULL;
 }
 
@@ -41,6 +43,7 @@ vsGraphicsState::vsGraphicsState()
 // ------------------------------------------------------------------------
 vsGraphicsState::~vsGraphicsState()
 {
+    // Clean up the lights array
     delete localLights;
 }
 
@@ -50,9 +53,11 @@ vsGraphicsState::~vsGraphicsState()
 // ------------------------------------------------------------------------
 vsGraphicsState *vsGraphicsState::getInstance()
 {
+    // Create the singleton instance if necessary
     if (!classInstance)
         classInstance = new vsGraphicsState();
 
+    // Return the vsGraphicsState instance
     return classInstance;
 }
 
@@ -62,6 +67,8 @@ vsGraphicsState *vsGraphicsState::getInstance()
 // ------------------------------------------------------------------------
 void vsGraphicsState::deleteInstance()
 {
+    // If the singleton instance exists, destroy it and set the instance
+    // pointer to NULL
     if (classInstance)
     {
         delete classInstance;
@@ -75,12 +82,14 @@ void vsGraphicsState::deleteInstance()
 // ------------------------------------------------------------------------
 void vsGraphicsState::clearState()
 {
+    // Clear the current transparency attribute and override flag
     transparencyAttr = NULL;
-
     transparencyLock = NULL;
 
+    // Clear the current scene pointer
     scene = NULL;
 
+    // Reset the active local light source count to 0
     localLightsCount = 0;
 }
 
@@ -90,8 +99,11 @@ void vsGraphicsState::clearState()
 // ------------------------------------------------------------------------
 void vsGraphicsState::applyState(osg::StateSet *stateSet)
 {
+    // Set the given OSG StateSet to inherit all of its state attributes
+    // from it's node's parents
     stateSet->setAllToInherit();
 
+    // Apply transparency if one exists in the current graphics state
     if (transparencyAttr)
         transparencyAttr->setState(stateSet);
 }
@@ -102,6 +114,8 @@ void vsGraphicsState::applyState(osg::StateSet *stateSet)
 // ------------------------------------------------------------------------
 void vsGraphicsState::addLocalLight(vsLightAttribute *lightAttrib)
 {
+    // Add the given light attribute to the end of the local light array
+    // and increment the local light count
     (*localLights)[localLightsCount++] = lightAttrib;
 }
 
@@ -116,9 +130,10 @@ void vsGraphicsState::removeLocalLight(vsLightAttribute *lightAttrib)
     // Initialize the index to 0.
     index = 0;
 
-    // If we are on the matching light, set it to NULL.
+    // Check all lights in the local light array
     for (index = 0; index < localLightsCount; index++)
     {
+        // If we've found the matching light, set it to NULL.
         if ((*localLights)[index] == lightAttrib)
         {
             // Decrement the count to reflect the removed light.
@@ -171,6 +186,8 @@ vsScene *vsGraphicsState::getCurrentScene()
 // ------------------------------------------------------------------------
 void vsGraphicsState::setTransparency(vsTransparencyAttribute *newAttrib)
 {
+    // Only allow the transparency attribute to be set if the override
+    // flag is not set
     if (!transparencyLock)
         transparencyAttr = newAttrib;
 }
@@ -191,6 +208,8 @@ vsTransparencyAttribute *vsGraphicsState::getTransparency()
 // ------------------------------------------------------------------------
 void vsGraphicsState::lockTransparency(void *lockAddr)
 {
+    // Only allow the transparency override flag to be set if it is
+    // currently not set
     if (!transparencyLock)
         transparencyLock = lockAddr;
 }

@@ -31,6 +31,7 @@
 // ------------------------------------------------------------------------
 vsSequenceAttribute::vsSequenceAttribute()
 {
+    // Start with a NULL osg::Sequence
     osgSequence = NULL;
 }
 
@@ -71,6 +72,7 @@ int vsSequenceAttribute::getAttributeCategory()
 // ------------------------------------------------------------------------
 void vsSequenceAttribute::setChildTime(int childNum, double seconds)
 {
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::setChildTime: Attribute must be attached "
@@ -78,13 +80,14 @@ void vsSequenceAttribute::setChildTime(int childNum, double seconds)
         return;
     }
 
-    if (childNum >= osgSequence->getNumChildren())
+    // Make sure the child number is valid
+    if ((childNum < 0) || (childNum >= osgSequence->getNumChildren()))
     {
         printf("vsSequenceAttribute::setChildTime: Index out of bounds\n");
         return;
     }
 
-//DAC Double to floats!!??
+    // Set the given frame time on the given child
     osgSequence->setTime(childNum, (float) seconds);
 }
 
@@ -94,6 +97,7 @@ void vsSequenceAttribute::setChildTime(int childNum, double seconds)
 // ------------------------------------------------------------------------
 double vsSequenceAttribute::getChildTime(int childNum)
 {
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::getChildTime: Attribute must be attached "
@@ -101,13 +105,14 @@ double vsSequenceAttribute::getChildTime(int childNum)
         return 0.0;
     }
 
+    // Make sure the child number is valid
     if ((childNum < 0) || (childNum >= osgSequence->getNumChildren()))
     {
         printf("vsSequenceAttribute::getChildTime: Index out of bounds\n");
         return 0.0;
     }
 
-//DAC float to double!!??
+    // Fetch and return the given child's frame time
     return (double (osgSequence->getTime(childNum)));
 }
 
@@ -121,6 +126,7 @@ void vsSequenceAttribute::setRepetitionCount(int numReps)
     float speed;
     int temp;
 
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::setRepetitionCount: Attribute must be "
@@ -128,7 +134,10 @@ void vsSequenceAttribute::setRepetitionCount(int numReps)
         return;
     }
     
+    // Get the current duration settings (so we know the speed value)
     osgSequence->getDuration(speed, temp);
+
+    // Set the duration values back, with the new repetition count
     osgSequence->setDuration(speed, numReps);
 }
 
@@ -140,6 +149,7 @@ int vsSequenceAttribute::getRepetitionCount()
     int result;
     float temp;
 
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::getRepetitionCount: Attribute must be "
@@ -147,8 +157,10 @@ int vsSequenceAttribute::getRepetitionCount()
         return 0;
     }
     
+    // Fetch the current repetition count from the osg::Sequence
     osgSequence->getDuration(temp, result);
 
+    // Return the repetition count
     return result;
 }
 
@@ -160,6 +172,7 @@ void vsSequenceAttribute::setCycleMode(int seqCycle)
     osg::Sequence::LoopMode mode;
     int begin, end;
 
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::setCycleMode: Attribute must be "
@@ -167,8 +180,11 @@ void vsSequenceAttribute::setCycleMode(int seqCycle)
         return;
     }
     
+    // Get the current sequence interval settings from OSG
     osgSequence->getInterval(mode, begin, end);
     
+    // Translate the given cycle mode to its OSG counterpart and set
+    // the new mode on the osg::Sequence
     switch (seqCycle)
     {
         case VS_SEQUENCE_CYCLE_FORWARD:
@@ -192,6 +208,7 @@ int vsSequenceAttribute::getCycleMode()
     osg::Sequence::LoopMode mode;
     int begin, end;
 
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::getCycleMode: Attribute must be "
@@ -199,8 +216,10 @@ int vsSequenceAttribute::getCycleMode()
         return 0;
     }
     
+    // Get the current interval settings from the osg::Sequence
     osgSequence->getInterval(mode, begin, end);
     
+    // Translate the cycle mode to its VESS counterpart
     if (mode == osg::Sequence::SWING)
         return VS_SEQUENCE_CYCLE_SWING;
     else
@@ -212,6 +231,7 @@ int vsSequenceAttribute::getCycleMode()
 // ------------------------------------------------------------------------
 void vsSequenceAttribute::setPlayMode(int playMode)
 {
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::setPlayMode: Attribute must be "
@@ -219,6 +239,8 @@ void vsSequenceAttribute::setPlayMode(int playMode)
         return;
     }
     
+    // Translate the requested play mode to its OSG counterpart and
+    // set the osg::Sequence's mode
     switch (playMode)
     {
         case VS_SEQUENCE_MODE_START:
@@ -245,6 +267,7 @@ void vsSequenceAttribute::setPlayMode(int playMode)
 // ------------------------------------------------------------------------
 int vsSequenceAttribute::getPlayMode()
 {
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::getPlayMode: Attribute must be "
@@ -252,6 +275,8 @@ int vsSequenceAttribute::getPlayMode()
         return 0;
     }
     
+    // Fetch the play mode from the osg::Sequence and translate it to
+    // its VESS counterpart
     switch (osgSequence->getMode())
     {
         case osg::Sequence::START:
@@ -264,6 +289,7 @@ int vsSequenceAttribute::getPlayMode()
             return VS_SEQUENCE_MODE_RESUME;
     }
     
+    // Return 0 if we don't recognize the osg::Sequence's play mode
     return 0;
 }
 
@@ -273,6 +299,7 @@ int vsSequenceAttribute::getPlayMode()
 // ------------------------------------------------------------------------
 int vsSequenceAttribute::getCurrentChildNum()
 {
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::getCurrentChildNum: Attribute must be "
@@ -280,6 +307,7 @@ int vsSequenceAttribute::getCurrentChildNum()
         return 0;
     }
     
+    // Return the current switch value of the osg::Sequence
     return (osgSequence->getValue());
 }
 
@@ -289,9 +317,11 @@ int vsSequenceAttribute::getCurrentChildNum()
 // ------------------------------------------------------------------------
 int vsSequenceAttribute::canAttach()
 {
+    // If a node is already attached, we can't attach another one
     if (attachedFlag)
         return VS_FALSE;
 
+    // Otherwise, return TRUE
     return VS_TRUE;
 }
 
@@ -304,12 +334,15 @@ void vsSequenceAttribute::attach(vsNode *theNode)
 {
     int childCount, loop;
 
+    // Make sure we're not attached to a node, bail out if we are
     if (attachedFlag)
     {
         printf("vsSequenceAttribute::attach: Attribute is already attached\n");
         return;
     }
 
+    // Make sure the attaching node is a component (no other node can
+    // receive this attribute)
     if (theNode->getNodeType() != VS_NODE_TYPE_COMPONENT)
     {
         printf("vsSequenceAttribute::attach: Can only attach sequence "
@@ -320,10 +353,12 @@ void vsSequenceAttribute::attach(vsNode *theNode)
     // Get the number of children
     childCount = ((vsComponent *)theNode)->getChildCount();
     
-    // Replace the bottom group with a sequence group
+    // Replace the component's bottom group with a new osg::Sequence group
     osgSequence = new osg::Sequence();
     ((vsComponent *)theNode)->replaceBottomGroup(osgSequence);
 
+    // Set up reasonable defaults for the sequence.  These can be manipulated
+    // later
     osgSequence->setMode(osg::Sequence::STOP);
     osgSequence->setInterval(osg::Sequence::SWING, 0, -1);
     osgSequence->setDuration(1.0, -1);
@@ -333,6 +368,7 @@ void vsSequenceAttribute::attach(vsNode *theNode)
     for (loop = 0; loop < childCount; loop++)
         osgSequence->setTime(loop, 1.0);
     
+    // Flag the attribute as attached
     attachedFlag = 1;
 }
 
@@ -345,6 +381,7 @@ void vsSequenceAttribute::detach(vsNode *theNode)
 {
     osg::Group *newGroup;
 
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSequenceAttribute::attach: Attribute is not attached\n");
@@ -356,6 +393,7 @@ void vsSequenceAttribute::detach(vsNode *theNode)
     ((vsComponent *)theNode)->replaceBottomGroup(newGroup);
     osgSequence = NULL;
     
+    // Flag the attribute as not attached
     attachedFlag = 0;
 }
 
@@ -369,15 +407,18 @@ void vsSequenceAttribute::attachDuplicate(vsNode *theNode)
     int loop;
     vsComponent *theComponent;
     
+    // Make sure the given node is a component (no other node can
+    // receive a sequence attribute)
     if (theNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
         theComponent = (vsComponent *)theNode;
     else
         return;
     
+    // Create a new sequence attribute and add it to the node
     newAttrib = new vsSequenceAttribute();
-
     theNode->addAttribute(newAttrib);
 
+    // Copy all parameters from this sequence to the new one
     for (loop = 0; loop < theComponent->getChildCount(); loop++)    
         newAttrib->setChildTime(loop, getChildTime(loop));
     newAttrib->setRepetitionCount(getRepetitionCount());

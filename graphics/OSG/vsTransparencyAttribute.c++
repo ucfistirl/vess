@@ -31,11 +31,15 @@
 // ------------------------------------------------------------------------
 vsTransparencyAttribute::vsTransparencyAttribute()
 {
+    // Start with occlusion enabled and high quality transparency
     occlusion = VS_TRUE;
     quality = VS_TRANSP_QUALITY_DEFAULT;
 
+    // Start with transparency enabled
     transpValue = VS_TRUE;
     
+    // Create an osg::Depth object to handle occlusion settings, start
+    // with occlusion on
     osgDepth = new osg::Depth();
     osgDepth->ref();
     osgDepth->setWriteMask(VS_TRUE);
@@ -46,6 +50,7 @@ vsTransparencyAttribute::vsTransparencyAttribute()
 // ------------------------------------------------------------------------
 vsTransparencyAttribute::~vsTransparencyAttribute()
 {
+    // Unreference the Depth object
     osgDepth->unref();
 }
 
@@ -70,8 +75,10 @@ int vsTransparencyAttribute::getAttributeType()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::enable()
 {
+    // Enable transparency
     transpValue = VS_TRUE;
     
+    // Mark all attached nodes dirty
     markOwnersDirty();
 }
 
@@ -80,8 +87,10 @@ void vsTransparencyAttribute::enable()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::disable()
 {
+    // Disable transparency
     transpValue = VS_FALSE;
     
+    // Mark all attached nodes dirty
     markOwnersDirty();
 }
 
@@ -98,6 +107,7 @@ int vsTransparencyAttribute::isEnabled()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::setQuality(int newQuality)
 {
+    // Make sure the quality setting is one we recognize
     if ((newQuality != VS_TRANSP_QUALITY_DEFAULT) &&
         (newQuality != VS_TRANSP_QUALITY_FAST) &&
         (newQuality != VS_TRANSP_QUALITY_HIGH))
@@ -107,10 +117,8 @@ void vsTransparencyAttribute::setQuality(int newQuality)
         return;
     }
 
+    // Remember the new quality setting
     quality = newQuality;
-
-//    if (isEnabled())
-//        enable();
 }
 
 // ------------------------------------------------------------------------
@@ -126,8 +134,10 @@ int vsTransparencyAttribute::getQuality()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::enableOcclusion()
 {
+    // Mark occlusion as on
     occlusion = VS_TRUE;
 
+    // Enable z-buffer writes
     osgDepth->setWriteMask(VS_TRUE);
 }
 
@@ -136,8 +146,10 @@ void vsTransparencyAttribute::enableOcclusion()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::disableOcclusion()
 {
+    // Mark occlusion as off
     occlusion = VS_FALSE;
 
+    // Disable z-buffer writes
     osgDepth->setWriteMask(VS_FALSE);
 }
 
@@ -159,13 +171,18 @@ void vsTransparencyAttribute::setOSGAttrModes(vsNode *node)
     unsigned int attrMode;
     osg::StateSet *osgStateSet;
     
+    // Start with the osg::StateAttribute mode set to ON
     attrMode = osg::StateAttribute::ON;
 
+    // If this attribute's override flag is set, change the StateAttribute
+    // mode to OVERRIDE
     if (overrideFlag)
         attrMode |= osg::StateAttribute::OVERRIDE;
 
+    // Get the node's StateSet
     osgStateSet = getOSGStateSet(node);
 
+    // Set the osg::Depth attribute and mode on the StateSet
     osgStateSet->setAttributeAndModes(osgDepth, attrMode);
 }
 
@@ -176,8 +193,10 @@ void vsTransparencyAttribute::setOSGAttrModes(vsNode *node)
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::attach(vsNode *node)
 {
+    // Do standard vsStateAttribute attaching
     vsStateAttribute::attach(node);
 
+    // Set the OSG modes this attribute is in charge of on the node
     setOSGAttrModes(node);
 }
 
@@ -191,10 +210,11 @@ void vsTransparencyAttribute::detach(vsNode *node)
     osg::StateSet *osgStateSet;
     osgStateSet = getOSGStateSet(node);
 
-    // Setting the modes to INHERIT should remove these attributes from
+    // Setting the modes to INHERIT removes these attributes from
     // the StateSet entirely
     osgStateSet->setAttributeAndModes(osgDepth, osg::StateAttribute::INHERIT);
 
+    // Detach from the node
     vsStateAttribute::detach(node);
 }
 
@@ -206,20 +226,26 @@ void vsTransparencyAttribute::attachDuplicate(vsNode *theNode)
 {
     vsTransparencyAttribute *newAttrib;
     
+    // Create a new vsTransparencyAttribute
     newAttrib = new vsTransparencyAttribute();
     
+    // Copy this attribute's settings to the new attribute
+    // Enable flag
     if (isEnabled())
         newAttrib->enable();
     else
         newAttrib->disable();
 
+    // Quality
     newAttrib->setQuality(getQuality());
 
+    // Occlusion
     if (isOcclusionEnabled())
         newAttrib->enableOcclusion();
     else
         newAttrib->disableOcclusion();
 
+    // Add the new attribute to the given node
     theNode->addAttribute(newAttrib);
 }
 
@@ -229,8 +255,10 @@ void vsTransparencyAttribute::attachDuplicate(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::saveCurrent()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
+    // Save the current transparency settings
     attrSaveList[attrSaveCount++] = gState->getTransparency();
 }
 
@@ -240,8 +268,10 @@ void vsTransparencyAttribute::saveCurrent()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::apply()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
+    // Set this attributes setting's on the vsGraphicsState
     gState->setTransparency(this);
     if (overrideFlag)
         gState->lockTransparency(this);
@@ -253,8 +283,10 @@ void vsTransparencyAttribute::apply()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::restoreSaved()
 {
+    // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
+    // Restore the previous transparency settings to the vsGraphicsState
     if (overrideFlag)
         gState->unlockTransparency(this);
     gState->setTransparency(
@@ -267,16 +299,27 @@ void vsTransparencyAttribute::restoreSaved()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::setState(osg::StateSet *stateSet)
 {
+    // Check if transparency is enabled
     if (transpValue)
     {
+        // Tell OSG to put descendant geometry in the transparent RenderBin
         stateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+        // Tell OSG to sort the transparent bin by depth
         stateSet->setRenderBinDetails(1, "DepthSortedBin");
+
+        // Enable alpha blending
         stateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
     }
     else
     {
+        // Tell OSG to put descendant geometry in the regular opaque RenderBin
         stateSet->setRenderingHint(osg::StateSet::OPAQUE_BIN);
+
+        // Tell OSG to sort the opaque bin by state
         stateSet->setRenderBinDetails(0, "RenderBin");
+
+        // Disable alpha blending
         stateSet->setMode(GL_BLEND, osg::StateAttribute::OFF);
     }
 }
@@ -291,31 +334,39 @@ int vsTransparencyAttribute::isEquivalent(vsAttribute *attribute)
     vsTransparencyAttribute *attr;
     int val1, val2;
     
+    // Make sure the given attribute is valid
     if (!attribute)
         return VS_FALSE;
 
+    // Check to see if we're comparing this attribute to itself
     if (this == attribute)
         return VS_TRUE;
     
+    // Make sure the given attribute is a transparency attribute
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_TRANSPARENCY)
         return VS_FALSE;
 
+    // Cast the given attribute to a transparency attribute
     attr = (vsTransparencyAttribute *)attribute;
 
+    // Compare enable flags
     val1 = isEnabled();
     val2 = attr->isEnabled();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Compare quality settings
     val1 = getQuality();
     val2 = attr->getQuality();
     if (val1 != val2)
         return VS_FALSE;
 
+    // Compare occlusion settings
     val1 = isOcclusionEnabled();
     val2 = attr->isOcclusionEnabled();
     if (val1 != val2)
         return VS_FALSE;
 
+    // If we get this far, the attributes are equivalent
     return VS_TRUE;
 }

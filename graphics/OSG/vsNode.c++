@@ -39,8 +39,13 @@ vsObjectMap *vsNode::nodeMap = NULL;
 // ------------------------------------------------------------------------
 vsNode::vsNode() : attributeList(10, 5)
 {
+    // Initialize node name to empty
     nodeName[0] = 0;
+
+    // Start with no attributes
     attributeCount = 0;
+
+    // Start dirty (require a preFrameTraversal from the beginning)
     dirtyFlag = VS_TRUE;
 }
 
@@ -157,6 +162,8 @@ vsNode *vsNode::getChild(int index)
 // ------------------------------------------------------------------------
 void vsNode::setName(const char *newName)
 {
+    // Deep copy the given node name and make sure we don't overrun the
+    // name buffer
     strncpy(nodeName, newName, VS_NODE_NAME_MAX_LENGTH);
     nodeName[VS_NODE_NAME_MAX_LENGTH - 1] = 0;
 }
@@ -178,6 +185,7 @@ vsNode *vsNode::findNodeByName(const char *targetName)
 {
     int idx = 0;
 
+    // Search for the first occurrence of the given name
     return nodeSearch(targetName, &idx);
 }
 
@@ -190,6 +198,7 @@ vsNode *vsNode::findNodeByName(const char *targetName, int index)
 {
     int idx = index;
 
+    // Search for the index'th occurrence of the given name
     return nodeSearch(targetName, &idx);
 }
 
@@ -199,10 +208,16 @@ vsNode *vsNode::findNodeByName(const char *targetName, int index)
 // ------------------------------------------------------------------------
 void vsNode::addAttribute(vsAttribute *newAttribute)
 {
+    // Add the attribute to this node's attributeList
     attributeList[attributeCount] = newAttribute;
+
+    // Increment the attribute count
     attributeCount++;
+
+    // Reference the attribute
     newAttribute->ref();
 
+    // Call the attribute's attach() method with this node
     newAttribute->attach(this);
 }
 
@@ -214,19 +229,31 @@ void vsNode::removeAttribute(vsAttribute *targetAttribute)
 {
     int loop, sloop;
 
+    // Search for the attribute in our attributeList
     for (loop = 0; loop < attributeCount; loop++)
+    {
+        // Check the current attribute to see if it's the one we're removing
         if (attributeList[loop] == targetAttribute)
         {
+            // Detach the attribute
             targetAttribute->detach(this);
             
+            // Slide the remaining attributes in the list down by one
             for (sloop = loop; sloop < attributeCount-1; sloop++)
                 attributeList[sloop] = attributeList[sloop+1];
+
+            // Decrement the node's attribute count
             attributeCount--;
+
+            // Unreference the removed attribute
             targetAttribute->unref();
             
+            // Nothing more to do, return immediately
             return;
         }
+    }
 
+    // Print an error if we don't find it
     printf("vsNode::removeAttribute: Specified attribute isn't part of "
         "this node\n");
 }
@@ -245,12 +272,14 @@ int vsNode::getAttributeCount()
 // ------------------------------------------------------------------------
 vsAttribute *vsNode::getAttribute(int index)
 {
+    // Make sure the given index is valid
     if ((index < 0) || (index >= attributeCount))
     {
         printf("vsNode::getAttribute: Index out of bounds\n");
         return NULL;
     }
 
+    // Return the attribute at the given index in the attribute list
     return (vsAttribute *)(attributeList[index]);
 }
 
@@ -263,17 +292,28 @@ vsAttribute *vsNode::getTypedAttribute(int attribType, int index)
 {
     int loop, count;
 
+    // Initialize the count to 0, this will keep track of the number
+    // of the given type of attribute we've found in the list so far
     count = 0;
+
+    // Iterate through the attribute list
     for (loop = 0; loop < attributeCount; loop++)
+    {
+        // Check the current attribute's type
         if (attribType ==
             ((vsAttribute *)(attributeList[loop]))->getAttributeType())
         {
+            // Match, check the count to see if this is the attribute we
+            // want.  If so, return it, otherwise, just increment the count
+            // and keep looking.
             if (index == count)
                 return (vsAttribute *)(attributeList[loop]);
             else
                 count++;
         }
+    }
 
+    // If we didn't find the one we want, return NULL
     return NULL;
 }
 
@@ -286,17 +326,28 @@ vsAttribute *vsNode::getCategoryAttribute(int attribCategory, int index)
 {
     int loop, count;
 
+    // Initialize the count to 0, this will keep track of the number
+    // of the given type of attribute we've found in the list so far
     count = 0;
+
+    // Iterate through the attribute list
     for (loop = 0; loop < attributeCount; loop++)
+    {
+        // Check the current attribute's category
         if (attribCategory ==
             ((vsAttribute *)(attributeList[loop]))->getAttributeCategory())
         {
+            // Match, check the count to see if this is the attribute we
+            // want.  If so, return it, otherwise, just increment the count
+            // and keep looking.
             if (index == count)
                 return (vsAttribute *)(attributeList[loop]);
             else
                 count++;
         }
+    }
 
+    // If we didn't find the one we want, return NULL
     return NULL;
 }
 
@@ -307,10 +358,15 @@ vsAttribute *vsNode::getNamedAttribute(char *attribName)
 {
     int loop;
 
+    // Iterate through the attribute list
     for (loop = 0; loop < attributeCount; loop++)
+    {
+        // Check the current attribute's name against the target name.
+        // Return the attribute if they match.
         if (!strcmp(attribName,
             ((vsAttribute *)(attributeList[loop]))->getName()))
             return (vsAttribute *)(attributeList[loop]);
+    }
 
     return NULL;
 }
@@ -343,6 +399,7 @@ vsNode *vsNode::nodeSearch(const char *name, int *idx)
         if (result = getChild(loop)->nodeSearch(name, idx))
             return result;
 
+    // Return NULL if we make it this far without finding what we want
     return NULL;
 }
 
@@ -352,9 +409,11 @@ vsNode *vsNode::nodeSearch(const char *name, int *idx)
 // ------------------------------------------------------------------------
 vsObjectMap *vsNode::getMap()
 {
+    // If no nodeMap has been created, create it now
     if (!nodeMap)
         nodeMap = new vsObjectMap();
 
+    // Return the node map
     return nodeMap;
 }
 
@@ -364,8 +423,10 @@ vsObjectMap *vsNode::getMap()
 // ------------------------------------------------------------------------
 void vsNode::deleteMap()
 {
+    // Check to see if the node map exists
     if (nodeMap)
     {
+        // Delete the node map
         delete nodeMap;
         nodeMap = NULL;
     }
@@ -397,6 +458,8 @@ void vsNode::saveCurrentAttributes()
 {
     int loop;
 
+    // Iterate through the attribute list, and tell each attribute to
+    // save its current state
     for (loop = 0; loop < attributeCount; loop++)
         ((vsAttribute *)(attributeList[loop]))->saveCurrent();
 }
@@ -409,6 +472,8 @@ void vsNode::applyAttributes()
 {
     int loop;
 
+    // Iterate through the attribute list, and instruct each attribute
+    // to apply its settings to the current graphics state
     for (loop = 0; loop < attributeCount; loop++)
         ((vsAttribute *)(attributeList[loop]))->apply();
 }
@@ -421,6 +486,8 @@ void vsNode::restoreSavedAttributes()
 {
     int loop;
 
+    // Iterate through the attribute list, and tell each attribute to
+    // restore its previous state
     for (loop = 0; loop < attributeCount; loop++)
         ((vsAttribute *)(attributeList[loop]))->restoreSaved();
 }
@@ -434,7 +501,10 @@ void vsNode::restoreSavedAttributes()
 // ------------------------------------------------------------------------
 void vsNode::dirty()
 {
+    // Traverse parents and mark them all dirty
     dirtyUp();
+
+    // Traverse children and mark them all dirty
     dirtyDown();
 }
 
@@ -446,11 +516,16 @@ void vsNode::clean()
 {
     int loop, flag;
 
+    // Assume clean to begin with
     flag = 1;
+
+    // Check the dirty flag on all parents, if any are dirty, we can't
+    // clean this node
     for (loop = 0; loop < getParentCount(); loop++)
         if (getParent(loop)->isDirty())
             flag = 0;
 
+    // If all parents are clean, this node can be marked clean
     if (flag)
         dirtyFlag = VS_FALSE;
 }
@@ -472,8 +547,10 @@ void vsNode::dirtyUp()
 {
     int loop;
 
+    // Mark this node dirty
     dirtyFlag = VS_TRUE;
 
+    // Traverse all parents of this node, and mark them dirty as well
     for (loop = 0; loop < getParentCount(); loop++)
         getParent(loop)->dirtyUp();
 }
@@ -486,8 +563,13 @@ void vsNode::dirtyDown()
 {
     int loop;
 
+    // Mark this node dirty
     dirtyFlag = VS_TRUE;
 
+    // Check the attribute list for light attributes.  If we find any,
+    // clear their vsScene pointer, so it can be reset on the 
+    // next preFrameTraversal.   This is necessary in case a node with a 
+    // light attribute is being moved to a different scene graph.
     for (loop = 0; loop < attributeCount; loop++)
     {
         if (((vsAttribute *)attributeList[loop])->getAttributeType() ==
@@ -497,6 +579,7 @@ void vsNode::dirtyDown()
         }
     }
 
+    // Traverse all children and mark them dirty as well
     for (loop = 0; loop < getChildCount(); loop++)
         getChild(loop)->dirtyDown();
 }

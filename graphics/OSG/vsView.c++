@@ -214,6 +214,7 @@ void vsView::setDirectionFromRotation(vsMatrix rotMatrix)
 // ------------------------------------------------------------------------
 void vsView::setClipDistances(double nearPlane, double farPlane)
 {
+    // Pass the new near and far values to the osg::Camera
     osgCamera->setNearFar((float)nearPlane, (float)farPlane);
 }
 
@@ -331,6 +332,7 @@ vsMatrix vsView::getRotationMat()
 // ------------------------------------------------------------------------
 osg::Camera *vsView::getBaseLibraryObject()
 {
+    // Return the osg::Camera we created
     return osgCamera;
 }
 
@@ -340,6 +342,7 @@ osg::Camera *vsView::getBaseLibraryObject()
 // ------------------------------------------------------------------------
 void vsView::getProjectionData(int *mode, double *horizVal, double *vertiVal)
 {
+    // Return the projection values
     *mode = projMode;
     *horizVal = projHval;
     *vertiVal = projVval;

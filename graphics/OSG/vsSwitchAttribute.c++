@@ -29,6 +29,8 @@
 // ------------------------------------------------------------------------
 vsSwitchAttribute::vsSwitchAttribute()
 {
+    // Start with a NULL osg::Switch (this will be created in the attach()
+    // method)
     osgSwitch = NULL;
 }
 
@@ -69,6 +71,7 @@ int vsSwitchAttribute::getAttributeCategory()
 // ------------------------------------------------------------------------
 void vsSwitchAttribute::enableOne(int index)
 {
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSwitchAttribute::enableOne: Attribute must be attached "
@@ -76,13 +79,14 @@ void vsSwitchAttribute::enableOne(int index)
         return;
     }
 
-    // Insure the given index is valid.
+    // Ensure the given index is valid.
     if ((index < 0) || (index >= osgSwitch->getNumChildren()))
     {
         printf("vsSwitchAttribute::enableOne: Index out of bounds\n");
         return;
     }
 
+    // Turn the requested child on on the osg::Switch
     osgSwitch->setValue(index, VS_TRUE);
 }
 
@@ -92,6 +96,7 @@ void vsSwitchAttribute::enableOne(int index)
 // ------------------------------------------------------------------------
 void vsSwitchAttribute::disableOne(int index)
 {
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSwitchAttribute::disableOne: Attribute must be attached "
@@ -99,13 +104,14 @@ void vsSwitchAttribute::disableOne(int index)
         return;
     }
 
-    // Insure the given index is valid.
+    // Ensure the given index is valid.
     if ((index < 0) || (index >= osgSwitch->getNumChildren()))
     {
         printf("vsSwitchAttribute::disableOne: Index out of bounds\n");
         return;
     }
 
+    // Turn the requested child off on the osg::Switch
     osgSwitch->setValue(index, VS_FALSE);
 }
 
@@ -114,6 +120,7 @@ void vsSwitchAttribute::disableOne(int index)
 // ------------------------------------------------------------------------
 void vsSwitchAttribute::enableAll()
 {
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSwitchAttribute::enableAll: Attribute must be attached "
@@ -121,6 +128,7 @@ void vsSwitchAttribute::enableAll()
         return;
     }
 
+    // Turn all children on on the osg::Switch
     osgSwitch->setValue(osg::Switch::ALL_CHILDREN_ON);
 }
 
@@ -129,6 +137,7 @@ void vsSwitchAttribute::enableAll()
 // ------------------------------------------------------------------------
 void vsSwitchAttribute::disableAll()
 {
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSwitchAttribute::disableAll: Attribute must be attached "
@@ -136,6 +145,7 @@ void vsSwitchAttribute::disableAll()
         return;
     }
 
+    // Turn all children off on the osg::Switch
     osgSwitch->setValue(osg::Switch::ALL_CHILDREN_OFF);
 }
 
@@ -145,6 +155,7 @@ void vsSwitchAttribute::disableAll()
 // ------------------------------------------------------------------------
 int vsSwitchAttribute::isEnabled(int index)
 {
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSwitchAttribute::isEnabled: Attribute must be attached "
@@ -152,13 +163,14 @@ int vsSwitchAttribute::isEnabled(int index)
         return VS_FALSE;
     }
 
-    // Insure the given index is valid.
+    // Ensure the given index is valid.
     if ((index < 0) || (index >= osgSwitch->getNumChildren()))
     {
         printf("vsSwitchAttribute::isEnabled: Index out of bounds\n");
         return VS_FALSE;
     }
 
+    // Fetch and return the value (ON/OFF) of the given child
     return osgSwitch->getValue(index);
 }
 
@@ -168,9 +180,12 @@ int vsSwitchAttribute::isEnabled(int index)
 // ------------------------------------------------------------------------
 int vsSwitchAttribute::canAttach()
 {
+    // Make sure we're not already attached to a node, if we are, we can't
+    // be attached to another
     if (attachedFlag)
         return VS_FALSE;
 
+    // Otherwise, we can be attached
     return VS_TRUE;
 }
 
@@ -181,12 +196,15 @@ int vsSwitchAttribute::canAttach()
 // ------------------------------------------------------------------------
 void vsSwitchAttribute::attach(vsNode *theNode)
 {
+    // Make sure we're not already attached to a node, bail out if we are
     if (attachedFlag)
     {
         printf("vsSwitchAttribute::attach: Attribute is already attached\n");
         return;
     }
 
+    // Only components can receive switch attributes (no other node makes
+    // sense)
     if (theNode->getNodeType() != VS_NODE_TYPE_COMPONENT)
     {
         printf("vsSwitchAttribute::attach: Can only attach switch "
@@ -194,11 +212,12 @@ void vsSwitchAttribute::attach(vsNode *theNode)
         return;
     }
     
-    // Replace the bottom group with a switch group
+    // Replace the component's bottom group with an osg::Switch group
     osgSwitch = new osg::Switch();
     osgSwitch->setValue(osg::Switch::ALL_CHILDREN_OFF);
     ((vsComponent *)theNode)->replaceBottomGroup(osgSwitch);
 
+    // Flag the attribute as attached
     attachedFlag = 1;
 }
 
@@ -211,17 +230,19 @@ void vsSwitchAttribute::detach(vsNode *theNode)
 {
     osg::Group *newGroup;
 
+    // Make sure we're attached to a node, bail out if not
     if (!attachedFlag)
     {
         printf("vsSwitchAttribute::detach: Attribute is not attached\n");
         return;
     }
     
-    // Replace the switch group with an ordinary group
+    // Replace the component's switch group with an ordinary group
     newGroup = new osg::Group();
     ((vsComponent *)theNode)->replaceBottomGroup(newGroup);
     osgSwitch = NULL;
     
+    // Flag the attribute as not attached
     attachedFlag = 0;
 }
 
@@ -235,12 +256,12 @@ void vsSwitchAttribute::attachDuplicate(vsNode *theNode)
     int switchVal, loop;
     int sourceChildCount, targetChildCount, childCount;
 
-    // Can only add switches to components
+    // Can only add switches to components (no other node makes sense)
     if (theNode->getNodeType() != VS_NODE_TYPE_COMPONENT)
         return;
 
+    // Create a new switch attribute and attach it to the given node
     newAttrib = new vsSwitchAttribute();
-
     theNode->addAttribute(newAttrib);
     
     // Figure out which of the source or the target has the fewest

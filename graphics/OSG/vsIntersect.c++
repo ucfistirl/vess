@@ -55,10 +55,12 @@ vsIntersect::~vsIntersect()
 {
     int loop;
 
+    // Clean up any intersect node paths that have been created
     for (loop = 0; loop < VS_INTERSECT_SEGS_MAX; loop++)
         if (sectPath[loop] != NULL)
             delete (sectPath[loop]);
 
+    // Unreference the OSG IntersectVisitor
     osgIntersect->unref();
 }
 
@@ -70,22 +72,26 @@ void vsIntersect::setSegListSize(int newSize)
     int loop;
     unsigned int result;
 
+    // Make sure we don't exceed the maximum list size
     if (newSize > VS_INTERSECT_SEGS_MAX)
     {
         printf("vsIntersect::setSegListSize: Segment list is limited to a "
             "size of %d segments\n", VS_INTERSECT_SEGS_MAX);
        return;
     }
+
+    // Make sure the list size is valid (non-negative)
     if (newSize < 0)
     {
         printf("vsIntersect::setSegListSize: Invalid segment list size\n");
         return;
     }
 
-    // If we're shrinking the list, unreference any LineSegments 
-    // we've created in the slots that are going away.
+    // Check to see if we're shrinking the list
     if (newSize < segListSize)
     {
+        // Unreference any LineSegments we've created in the list slots 
+        // that are going away.
         for (loop = newSize; loop < segListSize; loop++)
         {
             ((osg::LineSegment *)(segList[loop]))->unref();
@@ -116,6 +122,7 @@ void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector endPt)
     vsVector start, end;
     osg::Vec3 pstart, pend;
 
+    // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::setSeg: Segment number out of bounds\n");
@@ -155,6 +162,7 @@ void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector directionVec,
     vsVector start, dir;
     osg::Vec3 pstart, pdir;
 
+    // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::setSeg: Segment number out of bounds\n");
@@ -197,6 +205,7 @@ vsVector vsIntersect::getSegStartPt(int segNum)
     osg::Vec3 segStart;
     vsVector result;
     
+    // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getSegStartPt: Segment number out of bounds\n");
@@ -209,6 +218,7 @@ vsVector vsIntersect::getSegStartPt(int segNum)
     // Convert to a vsVector
     result.set(segStart.x(), segStart.y(), segStart.z());
 
+    // Return the result
     return result;
 }
 
@@ -222,6 +232,7 @@ vsVector vsIntersect::getSegEndPt(int segNum)
     osg::Vec3 segEnd;
     vsVector result;
     
+    // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getSegEndPt: Segment number out of bounds\n");
@@ -234,6 +245,7 @@ vsVector vsIntersect::getSegEndPt(int segNum)
     // Convert to a vsVector
     result.set(segEnd.x(), segEnd.y(), segEnd.z());
 
+    // Return the result
     return result;
 }
 
@@ -249,6 +261,7 @@ vsVector vsIntersect::getSegDirection(int segNum)
     vsVector startPt, endPt;
     vsVector dir;
     
+    // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getSegDirection: Segment number out of bounds\n");
@@ -267,6 +280,7 @@ vsVector vsIntersect::getSegDirection(int segNum)
     dir = endPt - startPt;
     dir.normalize();
     
+    // Return the resulting direction
     return dir;
 }
 
@@ -280,6 +294,7 @@ double vsIntersect::getSegLength(int segNum)
     vsVector startPt, endPt;
     vsVector dir;
 
+    // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getSegLength: Segment number out of bounds\n");
@@ -319,6 +334,7 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
     int winX, winY;
     osg::Vec3 near, far;
 
+    // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::setPickSeg: Segment number out of bounds\n");
@@ -478,13 +494,13 @@ void vsIntersect::intersect(vsNode *targetNode)
     // Reset the IntersectVisitor for the new traversal
     osgIntersect->reset();
 
-    // Add all the segments from the segment list
+    // Add all the segments from the segment list to the IntersectVisitor
     for (loop = 0; loop < segListSize; loop++)
     {
         osgIntersect->addLineSegment((osg::LineSegment *)(segList[loop]));
     }
 
-    // Run the intersection traversal
+    // Call the Visitor's accept() method to run the intersection traversal
     osgNode->accept(*osgIntersect);
     
     // Interpret and store the results
@@ -493,8 +509,8 @@ void vsIntersect::intersect(vsNode *targetNode)
         // Get the list of hits for this segment
         hitList = osgIntersect->getHitList((osg::LineSegment *)(segList[loop]));
         
-        // Check for intersections, skip to the next segment if there aren't
-        // any
+        // Check for intersections, set this segment's results to zero 
+        // values and skip to the next segment if there aren't any
         if (hitList.empty())
         {
             validFlag[loop] = 0;
@@ -604,12 +620,15 @@ void vsIntersect::intersect(vsNode *targetNode)
 // ------------------------------------------------------------------------
 int vsIntersect::getIsectValid(int segNum)
 {
+    // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectValid: Segment number out of bounds\n");
         return 0;
     }
 
+    // Return the valid flag value of the corresponding segment.  This will
+    // be VS_TRUE if there was a valid intersection with this segment.
     return validFlag[segNum];
 }
 
@@ -622,12 +641,14 @@ vsVector vsIntersect::getIsectPoint(int segNum)
 {
     vsVector errResult(3);
 
+    // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectPoint: Segment number out of bounds\n");
         return errResult;
     }
 
+    // Return the point of intersection for this segment
     return sectPoint[segNum];
 }
 
@@ -640,12 +661,14 @@ vsVector vsIntersect::getIsectNorm(int segNum)
 {
     vsVector errResult(3);
 
+    // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectNorm: Segment number out of bounds\n");
         return errResult;
     }
 
+    // Return the normal vector at this segment's intersection point
     return sectNorm[segNum];
 }
 
@@ -660,6 +683,7 @@ vsMatrix vsIntersect::getIsectXform(int segNum)
 {
     vsMatrix errResult;
 
+    // Make sure this segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectXform: Segment number out of bounds\n");
@@ -667,6 +691,7 @@ vsMatrix vsIntersect::getIsectXform(int segNum)
         return errResult;
     }
 
+    // Return the global transform of this intersection
     return sectXform[segNum];
 }
 
@@ -677,12 +702,14 @@ vsMatrix vsIntersect::getIsectXform(int segNum)
 // ------------------------------------------------------------------------
 vsGeometry *vsIntersect::getIsectGeometry(int segNum)
 {
+    // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectGeometry: Segment number out of bounds\n");
         return NULL;
     }
 
+    // Return the vsGeometry intersected by this segment
     return sectGeom[segNum];
 }
 
@@ -693,12 +720,14 @@ vsGeometry *vsIntersect::getIsectGeometry(int segNum)
 // ------------------------------------------------------------------------
 int vsIntersect::getIsectPrimNum(int segNum)
 {
+    // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectPrimNum: Segment number out of bounds\n");
         return 0;
     }
 
+    // Return the primitive index within the intersected vsGeometry
     return sectPrim[segNum];
 }
 
@@ -712,11 +741,13 @@ int vsIntersect::getIsectPrimNum(int segNum)
 // ------------------------------------------------------------------------
 vsGrowableArray *vsIntersect::getIsectPath(int segNum)
 {
+    // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getIsectPath: Segment number out of bounds\n");
         return 0;
     }
 
+    // Return the intersection node path for this segment.
     return sectPath[segNum];
 }

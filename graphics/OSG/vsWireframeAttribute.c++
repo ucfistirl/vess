@@ -29,9 +29,12 @@
 // ------------------------------------------------------------------------
 vsWireframeAttribute::vsWireframeAttribute()
 {
+    // Create an osg::PolygonMode object and reference it
     osgPolyMode = new osg::PolygonMode();
     osgPolyMode->ref();
     
+    // Set the PolygonMode object to LINE mode for front and back faces
+    // (this is what creates the wireframe effect)
     osgPolyMode->setMode(osg::PolygonMode::FRONT_AND_BACK,
         osg::PolygonMode::LINE);
 }
@@ -41,6 +44,7 @@ vsWireframeAttribute::vsWireframeAttribute()
 // ------------------------------------------------------------------------
 vsWireframeAttribute::~vsWireframeAttribute()
 {
+    // Unreference the PolygonMode object
     osgPolyMode->unref();
 }
 
@@ -65,6 +69,7 @@ int vsWireframeAttribute::getAttributeType()
 // ------------------------------------------------------------------------
 void vsWireframeAttribute::enable()
 {
+    // Set the PolygonMode object to LINE mode (wireframe)
     osgPolyMode->setMode(osg::PolygonMode::FRONT_AND_BACK,
         osg::PolygonMode::LINE);
 }
@@ -74,6 +79,7 @@ void vsWireframeAttribute::enable()
 // ------------------------------------------------------------------------
 void vsWireframeAttribute::disable()
 {
+    // Set the PolygonMode object to FILL mode (normal rendering)
     osgPolyMode->setMode(osg::PolygonMode::FRONT_AND_BACK,
         osg::PolygonMode::FILL);
 }
@@ -83,6 +89,8 @@ void vsWireframeAttribute::disable()
 // ------------------------------------------------------------------------
 int vsWireframeAttribute::isEnabled()
 {
+    // Fetch the current polygon mode from OSG and return TRUE if the
+    // mode is set to LINE.  Otherwise, return FALSE
     if (osgPolyMode->getMode(osg::PolygonMode::FRONT_AND_BACK) ==
         osg::PolygonMode::LINE)
         return VS_TRUE;
@@ -100,13 +108,19 @@ void vsWireframeAttribute::setOSGAttrModes(vsNode *node)
     unsigned int attrMode;
     osg::StateSet *osgStateSet;
     
+    // Set the StateAttribute mode to ON initially
     attrMode = osg::StateAttribute::ON;
 
+    // If the WireframeAttribute's overrideFlag is set, change the
+    // StateAttribute mode to OVERRIDE
     if (overrideFlag)
         attrMode |= osg::StateAttribute::OVERRIDE;
 
+    // Get the StateSet for this node
     osgStateSet = getOSGStateSet(node);
 
+    // Set the PolygonMode on the StateSet using the StateAttribute
+    // mode we came up with
     osgStateSet->setAttributeAndModes(osgPolyMode, attrMode);
 }
 
@@ -117,8 +131,10 @@ void vsWireframeAttribute::setOSGAttrModes(vsNode *node)
 // ------------------------------------------------------------------------
 void vsWireframeAttribute::attach(vsNode *node)
 {
+    // Do normal vsStateAttribute attaching
     vsStateAttribute::attach(node);
 
+    // Set the attributes we're responsible for on the node's StateSet
     setOSGAttrModes(node);
 }
 
@@ -130,11 +146,16 @@ void vsWireframeAttribute::attach(vsNode *node)
 void vsWireframeAttribute::detach(vsNode *node)
 {
     osg::StateSet *osgStateSet;
+
+    // Get the node's StateSet
     osgStateSet = getOSGStateSet(node);
 
+    // Change the PolygonMode settings on the StateSet to INHERIT,
+    // effectively removing the PolygonMode from the StateSet
     osgStateSet->setAttributeAndModes(osgPolyMode,
         osg::StateAttribute::INHERIT);
 
+    // Finish detaching the attribute
     vsStateAttribute::detach(node);
 }
 
@@ -146,13 +167,16 @@ void vsWireframeAttribute::attachDuplicate(vsNode *theNode)
 {
     vsWireframeAttribute *newAttrib;
     
+    // Create a new vsWireframeAttribute
     newAttrib = new vsWireframeAttribute();
     
+    // Set the enable state of the new attribute to match the current one
     if (isEnabled())
         newAttrib->enable();
     else
         newAttrib->disable();
 
+    // Add the new attribute to the given node
     theNode->addAttribute(newAttrib);
 }
 
@@ -166,21 +190,27 @@ int vsWireframeAttribute::isEquivalent(vsAttribute *attribute)
     vsWireframeAttribute *attr;
     int val1, val2;
     
+    // Make sure the given attribute is valid
     if (!attribute)
         return VS_FALSE;
 
+    // See if we're comparing this attribute to itself
     if (this == attribute)
         return VS_TRUE;
     
+    // Make sure the given attribute is a wireframe attribute
     if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_WIREFRAME)
         return VS_FALSE;
 
+    // Cast the attribute to a wireframe attribute
     attr = (vsWireframeAttribute *)attribute;
 
+    // Compare the enable states of both attributes
     val1 = isEnabled();
     val2 = attr->isEnabled();
     if (val1 != val2)
         return VS_FALSE;
 
+    // If we get this far, the attributes are equivalent
     return VS_TRUE;
 }

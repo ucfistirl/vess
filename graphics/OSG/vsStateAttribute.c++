@@ -30,6 +30,7 @@
 // ------------------------------------------------------------------------
 vsStateAttribute::vsStateAttribute() : attrSaveList(1, 1), ownerList(10, 50)
 {
+    // Initialize class members
     attrSaveCount = 0;
     ownerCount = 0;
     overrideFlag = VS_FALSE;
@@ -55,7 +56,11 @@ int vsStateAttribute::getAttributeCategory()
 // ------------------------------------------------------------------------
 void vsStateAttribute::setOverride(int override)
 {
+    // Set the attribute's override flag to the given value
     overrideFlag = override;
+
+    // Set the osg::StateAttribute modes on all attached nodes to
+    // use the new override setting
     setAllOwnersOSGAttrModes();
 }
 
@@ -76,6 +81,7 @@ void vsStateAttribute::markOwnersDirty()
 {
     int loop;
     
+    // Iterate through the list of attached nodes, marking each one dirty
     for (loop = 0; loop < ownerCount; loop++)
         ((vsNode *)(ownerList[loop]))->dirty();
 }
@@ -88,6 +94,9 @@ osg::StateSet *vsStateAttribute::getOSGStateSet(vsNode *node)
 {
     osg::Node *osgNode;
 
+    // Get the osg::Node associated with the given node, the type
+    // checking is done because the getBaseLibraryObject() method is
+    // not virtual
     switch (node->getNodeType())
     {
         case VS_NODE_TYPE_COMPONENT:
@@ -104,6 +113,8 @@ osg::StateSet *vsStateAttribute::getOSGStateSet(vsNode *node)
             break;
     }
 
+    // Get the StateSet attached to the osg::Node, creating it if
+    // necessary
     return (osgNode->getOrCreateStateSet());
 }
 
@@ -116,6 +127,8 @@ void vsStateAttribute::setAllOwnersOSGAttrModes()
 {
     int loop;
     
+    // Iterate through the list of nodes attached to this attribute,
+    // calling the setOSGAttrModes() method on each node
     for (loop = 0; loop < ownerCount; loop++)
         setOSGAttrModes((vsNode *)(ownerList[loop]));
 }
@@ -127,11 +140,15 @@ void vsStateAttribute::setAllOwnersOSGAttrModes()
 // ------------------------------------------------------------------------
 void vsStateAttribute::attach(vsNode *theNode)
 {
+    // Add the node to our owner list and increment the owner count
     ownerList[ownerCount] = theNode;
     ownerCount++;
+
+    // Reference the given node, and mark it dirty
     theNode->ref();
     theNode->dirty();
     
+    // Do standard vsAttribute attaching
     vsAttribute::attach(theNode);
 }
 
@@ -144,15 +161,24 @@ void vsStateAttribute::detach(vsNode *theNode)
 {
     int loop;
     
+    // Find the given node in our owner list
     for (loop = 0; loop < ownerCount; loop++)
     {
+        // Check if the current node is the node we're looking for
         if (theNode == ownerList[loop])
         {
+            // Remove the node from the owner list, replacing it with
+            // the node at the end of the list
             ownerList[loop] = ownerList[ownerCount-1];
+
+            // Decrement the owner count
             ownerCount--;
+
+            // Unreference the node, and mark it dirty
             theNode->unref();
             theNode->dirty();
 
+            // Finish the vsAttribute detaching
             vsAttribute::detach(theNode);
             return;
         }

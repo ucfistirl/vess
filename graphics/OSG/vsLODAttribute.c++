@@ -33,8 +33,8 @@
 // ------------------------------------------------------------------------
 vsLODAttribute::vsLODAttribute()
 {
+    // Start unattached with no OSG LOD node
     osgLOD = NULL;
-    
     attachedFlag = 0;
 }
 
@@ -79,6 +79,7 @@ void vsLODAttribute::setRangeEnd(int childNum, double rangeLimit)
 {
     double minRange, maxRange;
 
+    // If we're not yet attached, print a warning and bail out
     if (!attachedFlag)
     {
         printf("vsLODAttribute::setRangeEnd: Attribute must be attached "
@@ -86,6 +87,7 @@ void vsLODAttribute::setRangeEnd(int childNum, double rangeLimit)
         return;
     }
 
+    // Make sure the child index is valid
     if ((childNum < 0) || (childNum >= osgLOD->getNumChildren()))
     {
         printf("vsLODAttribute::setRangeEnd: Index out of bounds\n");
@@ -123,6 +125,7 @@ void vsLODAttribute::setRangeEnd(int childNum, double rangeLimit)
 // ------------------------------------------------------------------------
 double vsLODAttribute::getRangeEnd(int childNum)
 {
+    // If we're not yet attached, print a warning and bail out
     if (!attachedFlag)
     {
         printf("vsLODAttribute::getRangeEnd: Attribute must be attached "
@@ -130,12 +133,14 @@ double vsLODAttribute::getRangeEnd(int childNum)
         return 0.0;
     }
 
+    // Make sure the child index is valid
     if ((childNum < 0) || (childNum >= osgLOD->getNumChildren()))
     {
         printf("vsLODAttribute::getRangeEnd: Index out of bounds\n");
         return 0.0;
     }
 
+    // Return the maximum range for the given child
     return osgLOD->getMaxRange(childNum);
 }
 
@@ -145,9 +150,11 @@ double vsLODAttribute::getRangeEnd(int childNum)
 // ------------------------------------------------------------------------
 int vsLODAttribute::canAttach()
 {
+    // Only one node attachment allowed, return false if we're attached
     if (attachedFlag)
         return VS_FALSE;
 
+    // Otherwise, return true
     return VS_TRUE;
 }
 
@@ -160,12 +167,15 @@ void vsLODAttribute::attach(vsNode *theNode)
 {
     int loop, childCount;
 
+    // If we're already attached, bail out
     if (attachedFlag)
     {
         printf("vsLODAttribute::attach: Attribute is already attached\n");
         return;
     }
 
+    // Make sure the attaching node is a component (no other node makes
+    // sense for an LOD attribute
     if (theNode->getNodeType() != VS_NODE_TYPE_COMPONENT)
     {
         printf("vsLODAttribute::attach: Can only attach LOD "
@@ -197,6 +207,7 @@ void vsLODAttribute::detach(vsNode *theNode)
 {
     osg::Group *newGroup;
 
+    // If we're not attached to a node, we don't need to detach
     if (!attachedFlag)
     {
         printf("vsLODAttribute::detach: Attribute is not attached\n");
@@ -222,15 +233,20 @@ void vsLODAttribute::attachDuplicate(vsNode *theNode)
     int loop;
     vsComponent *theComponent;
     
+    // Make sure the node we're given is a component (no other node
+    // makes sense for an LOD attribute)
     if (theNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
         theComponent = (vsComponent *)theNode;
     else
         return;
 
+    // Create a new LOD attribute
     newAttrib = new vsLODAttribute();
 
+    // Add the attribute to the given node
     theNode->addAttribute(newAttrib);
 
+    // Copy the LOD ranges from this attribute to the new one
     for (loop = 0; loop < theComponent->getChildCount(); loop++)
         newAttrib->setRangeEnd(loop, getRangeEnd(loop));
 }
@@ -245,16 +261,24 @@ void vsLODAttribute::apply()
     int loop;
     float near, far;
     
+    // Iterate over all LOD ranges on the osg::LOD node
     for (loop = 0; loop < osgLOD->getNumRanges(); loop++)
     {
+        // Get the maximum range on the previous child (use 0.0 if this
+        // is the first child)
         if (loop == 0)
             near = 0.0;
         else
             near = osgLOD->getMaxRange(loop - 1);
+
+        // Get the maximum range on this child
         far = osgLOD->getMaxRange(loop);
         
+        // Set the near and far ranges on this child to the values we've
+        // found
         osgLOD->setRange(loop, near, far);
         
+        // Print a warning to the user if the ranges don't make sense
         if (near > far)
             printf("vsLODAttribute::apply: Minimum range > maximum range "
                 "for child %d\n", loop);
