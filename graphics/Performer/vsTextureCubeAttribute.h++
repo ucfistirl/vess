@@ -43,13 +43,16 @@ class VS_GRAPHICS_DLL vsTextureCubeAttribute : public vsStateAttribute
 {
 private:
 
-    pfTexture    *performerTexture;
-    pfTexEnv     *performerTexEnv;
-    pfTexGen     *performerTexGen;
+    pfTexture     *performerTexture;
+    pfTexEnv      *performerTexEnv;
+    pfTexGen      *performerTexGen;
+
+    unsigned int  textureUnit;
 
 VS_INTERNAL:
 
-                    vsTextureCubeAttribute(pfTexture *texObject,
+                    vsTextureCubeAttribute(unsigned int unit,
+                                           pfTexture *texObject,
                                            pfTexEnv *texEnvObject,
                                            pfTexGen *texGenObject);
 
@@ -65,6 +68,7 @@ VS_INTERNAL:
 public:
 
                           vsTextureCubeAttribute();
+                          vsTextureCubeAttribute(unsigned int unit);
     virtual               ~vsTextureCubeAttribute();
 
     virtual const char    *getClassName();
@@ -93,6 +97,8 @@ public:
 
     void                  setGenMode(int genMode);
     int                   getGenMode();
+
+    unsigned int          getTextureUnit();
 };
 
 #endif

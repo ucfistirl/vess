@@ -83,14 +83,19 @@ void vsGraphicsState::deleteInstance()
 // ------------------------------------------------------------------------
 void vsGraphicsState::clearState()
 {
+    int unit;
+
     // Clear the 'current attribute' values
     backfaceAttr = NULL;
     fogAttr = NULL;
     materialAttr = NULL;
     shaderAttr = NULL;
     shadingAttr = NULL;
-    textureAttr = NULL;
-    textureCubeAttr = NULL;
+    for (unit = 0; unit < VS_MAXIMUM_TEXTURE_UNITS; unit++)
+    {
+        textureAttr[unit] = NULL;
+        textureCubeAttr[unit] = NULL;
+    }
     transparencyAttr = NULL;
     wireframeAttr = NULL;
     lightAttrCount = 0;
@@ -101,7 +106,10 @@ void vsGraphicsState::clearState()
     materialLock = NULL;
     shaderLock = NULL;
     shadingLock = NULL;
-    textureLock = NULL;
+    for (unit = 0; unit < VS_MAXIMUM_TEXTURE_UNITS; unit++)
+    {
+        textureLock[unit] = NULL;
+    }
     transparencyLock = NULL;
     wireframeLock = NULL;
 }
@@ -140,13 +148,16 @@ void vsGraphicsState::applyState(pfGeoState *state)
     if (shadingAttr)
         shadingAttr->setState(state);
 
-    // Call the texture attribute (if any) to make its state changes
-    if (textureAttr)
-        textureAttr->setState(state);
+    for (loop = 0; loop < VS_MAXIMUM_TEXTURE_UNITS; loop++)
+    {
+        // Call the texture attribute (if any) to make its state changes
+        if (textureAttr[loop])
+            textureAttr[loop]->setState(state);
 
-    // Call the texture cube attribute (if any) to make its state changes
-    if (textureCubeAttr)
-        textureCubeAttr->setState(state);
+        // Call the texture cube attribute (if any) to make its state changes
+        if (textureCubeAttr[loop])
+            textureCubeAttr[loop]->setState(state);
+    }
 
     // Call the transparency attribute (if any) to make its state changes
     if (transparencyAttr)
@@ -216,28 +227,31 @@ void vsGraphicsState::setShading(vsShadingAttribute *newAttrib)
 }
 
 // ------------------------------------------------------------------------
-// Sets the attribute that contains the desired texture state
+// Sets the attribute that contains the desired texture unit's texture state
 // ------------------------------------------------------------------------
-void vsGraphicsState::setTexture(vsTextureAttribute *newAttrib)
+void vsGraphicsState::setTexture(unsigned int unit,
+                                 vsTextureAttribute *newAttrib)
 {
     // Set the current attribute, if it's not locked
-    if (!textureLock)
+    if (!textureLock[unit])
     {
-        textureAttr = newAttrib;
-        textureCubeAttr = NULL;
+        textureAttr[unit] = newAttrib;
+        textureCubeAttr[unit] = NULL;
     }
 }
 
 // ------------------------------------------------------------------------
-// Sets the attribute that contains the desired texture cube state
+// Sets the attribute that contains the desired  texture unit's texture
+// cube state
 // ------------------------------------------------------------------------
-void vsGraphicsState::setTextureCube(vsTextureCubeAttribute *newAttrib)
+void vsGraphicsState::setTextureCube(unsigned int unit,
+                                     vsTextureCubeAttribute *newAttrib)
 {
     // Set the current attribute, if it's not locked
-    if (!textureLock)
+    if (!textureLock[unit])
     {
-        textureCubeAttr = newAttrib;
-        textureAttr = NULL;
+        textureCubeAttr[unit] = newAttrib;
+        textureAttr[unit] = NULL;
     }
 }
 
@@ -332,18 +346,20 @@ vsShadingAttribute *vsGraphicsState::getShading()
 
 // ------------------------------------------------------------------------
 // Retrieves the attribute that contains the current texture state
+// for the given texture unit
 // ------------------------------------------------------------------------
-vsTextureAttribute *vsGraphicsState::getTexture()
+vsTextureAttribute *vsGraphicsState::getTexture(unsigned int unit)
 {
-    return textureAttr;
+    return textureAttr[unit];
 }
 
 // ------------------------------------------------------------------------
 // Retrieves the attribute that contains the current texture cube state
+// for the given texture unit
 // ------------------------------------------------------------------------
-vsTextureCubeAttribute *vsGraphicsState::getTextureCube()
+vsTextureCubeAttribute *vsGraphicsState::getTextureCube(unsigned int unit)
 {
-    return textureCubeAttr;
+    return textureCubeAttr[unit];
 }
 
 // ------------------------------------------------------------------------
@@ -444,15 +460,15 @@ void vsGraphicsState::lockShading(void *lockAddr)
 }
 
 // ------------------------------------------------------------------------
-// Locks the current texture attribute, using the given address as a
-// 'key'. The texture attribute cannot be changed again until it is
-// unlocked with this key address.
+// Locks the texture attribute for the given texture unit,  using the
+// given address as a 'key'. The texture attribute cannot be changed again
+// until it is unlocked with this key address.
 // ------------------------------------------------------------------------
-void vsGraphicsState::lockTexture(void *lockAddr)
+void vsGraphicsState::lockTexture(unsigned int unit, void *lockAddr)
 {
     // If there's no existing lock, set the lock value
-    if (!textureLock)
-        textureLock = lockAddr;
+    if (!textureLock[unit])
+        textureLock[unit] = lockAddr;
 }
 
 // ------------------------------------------------------------------------
@@ -544,11 +560,11 @@ void vsGraphicsState::unlockShading(void *lockAddr)
 // 'key'; this key must match the key that the attribute was locked with or
 // the function will not work.
 // ------------------------------------------------------------------------
-void vsGraphicsState::unlockTexture(void *lockAddr)
+void vsGraphicsState::unlockTexture(unsigned int unit, void *lockAddr)
 {
     // If the unlock value matches the lock value, clear the lock
-    if (textureLock == lockAddr)
-        textureLock = NULL;
+    if (textureLock[unit] == lockAddr)
+        textureLock[unit] = NULL;
 }
 
 // ------------------------------------------------------------------------

@@ -82,13 +82,15 @@ class VS_GRAPHICS_DLL vsTextureAttribute : public vsStateAttribute
 {
 private:
 
-    pfTexture    *performerTexture;
-    pfTexEnv     *performerTexEnv;
-    pfTexGen     *performerTexGen;
+    pfTexture     *performerTexture;
+    pfTexEnv      *performerTexEnv;
+    pfTexGen      *performerTexGen;
+    unsigned int  textureUnit;
 
 VS_INTERNAL:
 
-                    vsTextureAttribute(pfTexture *texObject,
+                    vsTextureAttribute(unsigned int unit,
+                                       pfTexture *texObject,
                                        pfTexEnv *texEnvObject, 
                                        pfTexGen *texGenObject);
 
@@ -104,6 +106,7 @@ VS_INTERNAL:
 public:
 
                           vsTextureAttribute();
+                          vsTextureAttribute(unsigned int unit);
     virtual               ~vsTextureAttribute();
 
     virtual const char    *getClassName();
@@ -132,6 +135,8 @@ public:
 
     void                  setGenMode(int genMode);
     int                   getGenMode();
+
+    unsigned int          getTextureUnit();
 
 };
 

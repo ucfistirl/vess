@@ -46,8 +46,8 @@ private:
     vsMaterialAttribute        *materialAttr;
     vsShaderAttribute          *shaderAttr;
     vsShadingAttribute         *shadingAttr;
-    vsTextureAttribute         *textureAttr;
-    vsTextureCubeAttribute     *textureCubeAttr;
+    vsTextureAttribute         *textureAttr[VS_MAXIMUM_TEXTURE_UNITS];
+    vsTextureCubeAttribute     *textureCubeAttr[VS_MAXIMUM_TEXTURE_UNITS];
     vsTransparencyAttribute    *transparencyAttr;
     vsWireframeAttribute       *wireframeAttr;
     
@@ -59,7 +59,7 @@ private:
     void                       *materialLock;
     void                       *shaderLock;
     void                       *shadingLock;
-    void                       *textureLock;
+    void                       *textureLock[VS_MAXIMUM_TEXTURE_UNITS];
     void                       *transparencyLock;
     void                       *wireframeLock;
 
@@ -86,8 +86,9 @@ public:
     void          setMaterial(vsMaterialAttribute *newAttrib);
     void          setShader(vsShaderAttribute *newAttrib);
     void          setShading(vsShadingAttribute *newAttrib);
-    void          setTexture(vsTextureAttribute *newAttrib);
-    void          setTextureCube(vsTextureCubeAttribute *newAttrib);
+    void          setTexture(unsigned int unit, vsTextureAttribute *newAttrib);
+    void          setTextureCube(unsigned int unit,
+                                 vsTextureCubeAttribute *newAttrib);
     void          setTransparency(vsTransparencyAttribute *newAttrib);
     void          setWireframe(vsWireframeAttribute *newAttrib);
  
@@ -99,8 +100,8 @@ public:
     vsMaterialAttribute        *getMaterial();
     vsShaderAttribute          *getShader();
     vsShadingAttribute         *getShading();
-    vsTextureAttribute         *getTexture();
-    vsTextureCubeAttribute     *getTextureCube();
+    vsTextureAttribute         *getTexture(unsigned int unit);
+    vsTextureCubeAttribute     *getTextureCube(unsigned int unit);
     vsTransparencyAttribute    *getTransparency();
     vsWireframeAttribute       *getWireframe();
 
@@ -112,7 +113,7 @@ public:
     void          lockMaterial(void *lockAddr);
     void          lockShader(void *lockAddr);
     void          lockShading(void *lockAddr);
-    void          lockTexture(void *lockAddr);
+    void          lockTexture(unsigned int unit, void *lockAddr);
     void          lockTransparency(void *lockAddr);
     void          lockWireframe(void *lockAddr);
 
@@ -121,7 +122,7 @@ public:
     void          unlockMaterial(void *lockAddr);
     void          unlockShader(void *lockAddr);
     void          unlockShading(void *lockAddr);
-    void          unlockTexture(void *lockAddr);
+    void          unlockTexture(unsigned int unit, void *lockAddr);
     void          unlockTransparency(void *lockAddr);
     void          unlockWireframe(void *lockAddr);
 };

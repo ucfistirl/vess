@@ -25,8 +25,8 @@
 #include "vsGraphicsState.h++"
 
 // ------------------------------------------------------------------------
-// Default Constructor - Creates the Performer texture objects and
-// initializes default settings
+// Default Constructor - Creates the Performer texture objects for the
+// default texture unit (0) and initializes default settings
 // ------------------------------------------------------------------------
 vsTextureCubeAttribute::vsTextureCubeAttribute()
 {
@@ -44,14 +44,49 @@ vsTextureCubeAttribute::vsTextureCubeAttribute()
 
     // Set the default texture generation to reflection map.
     setGenMode(VS_TEXTURE_GEN_REFLECTION_MAP);
+
+    // Set to the default texture unit.
+    textureUnit = 0;
+}
+
+// ------------------------------------------------------------------------
+// Constructor - Creates the Performer texture objects for the specified
+// texture unit and initializes default settings
+// ------------------------------------------------------------------------
+vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit)
+{
+    // Create the Performer texture and texture environment objects
+    performerTexture = new pfTexture();
+    performerTexture->ref();
+    performerTexEnv = new pfTexEnv();
+    performerTexEnv->ref();
+    performerTexEnv->setMode(PFTE_DECAL);
+    performerTexGen = new pfTexGen();
+    performerTexGen->ref();
+
+    // Specify it is a cube map
+    performerTexture->setFormat(PFTEX_CUBE_MAP, 1);
+
+    // Set the default texture generation to reflection map.
+    setGenMode(VS_TEXTURE_GEN_REFLECTION_MAP);
+
+    // Set to the specified texture unit.
+    if ((unit >= 0) && (unit < VS_MAXIMUM_TEXTURE_UNITS))
+        textureUnit = unit;
+    else
+    {
+        printf("vsTextureAttribute::vsTextureAttribute: Invalid texture unit, "
+            "using default of 0\n");
+        textureUnit = 0;
+    }
 }
 
 // ------------------------------------------------------------------------
 // Internal function
 // Constructor - Sets the texture attribute up as already attached
 // ------------------------------------------------------------------------
-vsTextureCubeAttribute::vsTextureCubeAttribute(pfTexture *texObject,
-    pfTexEnv *texEnvObject, pfTexGen *texGenObject)
+vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit,
+    pfTexture *texObject, pfTexEnv *texEnvObject, pfTexGen *texGenObject)
 {
     // Store pointers to the specified Performer texture and texture
     // environment objects
@@ -64,6 +99,16 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(pfTexture *texObject,
 
     // Specify it is a cube map
     performerTexture->setFormat(PFTEX_CUBE_MAP, 1);
+
+    // Set to the specified texture unit.
+    if ((unit >= 0) && (unit < VS_MAXIMUM_TEXTURE_UNITS))
+        textureUnit = unit;
+    else
+    {
+        printf("vsTextureAttribute::vsTextureAttribute: Invalid texture unit, "
+            "using default of 0\n");
+        textureUnit = 0;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -489,6 +534,14 @@ int vsTextureCubeAttribute::getGenMode()
 }
 
 // ------------------------------------------------------------------------
+// Return the set texture unit for this textureAttribute.
+// ------------------------------------------------------------------------
+unsigned int vsTextureCubeAttribute::getTextureUnit()
+{
+    return textureUnit;
+}
+
+// ------------------------------------------------------------------------
 // Internal function
 // Attaches a duplicate of this attribute to the given node
 // ------------------------------------------------------------------------
@@ -512,9 +565,9 @@ void vsTextureCubeAttribute::saveCurrent()
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
     // Save the current texture state in our save list
-    tempPointer = gState->getTexture();
+    tempPointer = gState->getTexture(textureUnit);
     if (tempPointer == NULL)
-        tempPointer = gState->getTextureCube();
+        tempPointer = gState->getTextureCube(textureUnit);
     attrSaveList[attrSaveCount++] = tempPointer;
 }
 
@@ -528,11 +581,11 @@ void vsTextureCubeAttribute::apply()
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
     // Set the current texture state to this object
-    gState->setTextureCube(this);
+    gState->setTextureCube(textureUnit, this);
 
     // Lock the texture state if overriding is enabled
     if (overrideFlag)
-        gState->lockTexture(this);
+        gState->lockTexture(textureUnit, this);
 }
 
 // ------------------------------------------------------------------------
@@ -548,16 +601,17 @@ void vsTextureCubeAttribute::restoreSaved()
 
     // Unlock the texture if overriding was enabled
     if (overrideFlag)
-        gState->unlockTexture(this);
+        gState->unlockTexture(textureUnit, this);
 
     // Reset the current texture to its previous value
     tempPointer = (vsStateAttribute *)(attrSaveList[--attrSaveCount]);
     if (tempPointer == NULL)
-        gState->setTexture(NULL);
+        gState->setTexture(textureUnit, NULL);
     else if (tempPointer->getAttributeType() == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE)
-        gState->setTextureCube((vsTextureCubeAttribute *) tempPointer);
+        gState->setTextureCube(textureUnit,
+            (vsTextureCubeAttribute *) tempPointer);
     else if (tempPointer->getAttributeType() == VS_ATTRIBUTE_TYPE_TEXTURE)
-        gState->setTexture((vsTextureAttribute *) tempPointer);
+        gState->setTexture(textureUnit, (vsTextureAttribute *) tempPointer);
 }
 
 // ------------------------------------------------------------------------
@@ -568,13 +622,13 @@ void vsTextureCubeAttribute::setState(pfGeoState *state)
 {
     // Set textures as enabled and set our Performer texture objects
     // on the geostate
-    state->setMode(PFSTATE_ENTEXTURE, PF_ON);
-    state->setAttr(PFSTATE_TEXENV, performerTexEnv);
-    state->setAttr(PFSTATE_TEXTURE, performerTexture);
+    state->setMultiMode(PFSTATE_ENTEXTURE, textureUnit, PF_ON);
+    state->setMultiAttr(PFSTATE_TEXENV, textureUnit, performerTexEnv);
+    state->setMultiAttr(PFSTATE_TEXTURE, textureUnit, performerTexture);
 
     // Enable the texture generator, and set it.
-    state->setMode(PFSTATE_ENTEXGEN, PF_ON);
-    state->setAttr(PFSTATE_TEXGEN, performerTexGen);
+    state->setMultiMode(PFSTATE_ENTEXGEN, textureUnit, PF_ON);
+    state->setMultiAttr(PFSTATE_TEXGEN, textureUnit, performerTexGen);
 }
 
 // ------------------------------------------------------------------------
@@ -646,6 +700,12 @@ bool vsTextureCubeAttribute::isEquivalent(vsAttribute *attribute)
     // Minification filter check
     val1 = getMinFilter();
     val2 = attr->getMinFilter();
+    if (val1 != val2)
+        return false;
+
+    // Minification filter check
+    val1 = getTextureUnit();
+    val2 = attr->getTextureUnit();
     if (val1 != val2)
         return false;
 
