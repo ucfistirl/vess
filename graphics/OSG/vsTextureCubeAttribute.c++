@@ -24,6 +24,7 @@
 #include <osgDB/ReadFile>
 #include "vsTextureCubeAttribute.h++"
 #include "vsNode.h++"
+#include "vsGeometry.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Creates the OSG texture objects and
