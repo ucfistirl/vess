@@ -598,7 +598,7 @@ void vsTreeMap::deleteNode(vsTreeMapNode *node)
         child = getInorderSuccessor(node);
         
         // Move the 'next' node's data to the one that would have been
-	// deleted
+        // deleted
         node->nodeKey = child->nodeKey;
         node->nodeValue = child->nodeValue;
         

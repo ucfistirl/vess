@@ -91,7 +91,7 @@ void vsGrowableArray::setSize(int newSize)
     if (newSize > 0)
     {
         // Check the current size to figure out if we need to make a new
-	// storage area or just resize the current one
+        // storage area or just resize the current one
         if (currentSize > 0)
         {
             // Modify
