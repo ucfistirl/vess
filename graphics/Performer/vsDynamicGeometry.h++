@@ -48,8 +48,8 @@ private:
     int                colorListSize;
     pfVec3             *normalList;
     int                normalListSize;
-    pfVec2             *texCoordList;
-    int                texCoordListSize;
+    pfVec2             *texCoordList[VS_MAXIMUM_TEXTURE_UNITS];
+    int                texCoordListSize[VS_MAXIMUM_TEXTURE_UNITS];
     pfVec3             *vertexList;
     int                vertexListSize;
     int                *lengthsList;
@@ -60,7 +60,7 @@ private:
     int                primitiveCount;
     int                colorBinding;
     int                normalBinding;
-    int                texCoordBinding;
+    int                texCoordBinding[VS_MAXIMUM_TEXTURE_UNITS];
     int                vertexBinding;
 
     pfLight            **lightsList;

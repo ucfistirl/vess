@@ -49,7 +49,15 @@ enum VS_GRAPHICS_DLL vsGeometryDataType
     VS_GEOMETRY_VERTEX_COORDS,
     VS_GEOMETRY_NORMALS,
     VS_GEOMETRY_COLORS,
-    VS_GEOMETRY_TEXTURE_COORDS
+    VS_GEOMETRY_TEXTURE0_COORDS,
+    VS_GEOMETRY_TEXTURE1_COORDS,
+    VS_GEOMETRY_TEXTURE2_COORDS,
+    VS_GEOMETRY_TEXTURE3_COORDS,
+    VS_GEOMETRY_TEXTURE4_COORDS,
+    VS_GEOMETRY_TEXTURE5_COORDS,
+    VS_GEOMETRY_TEXTURE6_COORDS,
+    VS_GEOMETRY_TEXTURE7_COORDS,
+    VS_GEOMETRY_TEXTURE_COORDS = VS_GEOMETRY_TEXTURE0_COORDS
 };
 
 enum VS_GRAPHICS_DLL vsGeometryDataBinding
@@ -81,8 +89,8 @@ private:
     int                 colorListSize;
     pfVec3              *normalList;
     int                 normalListSize;
-    pfVec2              *texCoordList;
-    int                 texCoordListSize;
+    pfVec2              *texCoordList[VS_MAXIMUM_TEXTURE_UNITS];
+    int                 texCoordListSize[VS_MAXIMUM_TEXTURE_UNITS];
     pfVec3              *vertexList;
     int                 vertexListSize;
     int                 *lengthsList;
