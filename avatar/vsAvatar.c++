@@ -24,6 +24,7 @@
 #include <string.h>
 #include "vsISTJoystickBox.h++"
 #include "vsUnwinder.h++"
+#include "vsLinuxJoystickSystem.h++"
 #include "vsFlockOfBirds.h++"
 #include "vsSerialMotionStar.h++"
 #include "vsFastrak.h++"
@@ -309,6 +310,8 @@ void *vsAvatar::createObject(char *idString)
         return makeVsISTJoystickBox();
     else if (!strcmp(idString, "vsUnwinder"))
         return makeVsUnwinder();
+    else if (!strcmp(idString, "vsLinuxJoystickSystem"))
+        return makeVsLinuxJoystickSystem();
     else if (!strcmp(idString, "vsFlockOfBirds"))
         return makeVsFlockOfBirds();
     else if (!strcmp(idString, "vsSerialMotionStar"))
@@ -587,6 +590,7 @@ void *vsAvatar::makeInputDevice()
     char objName[256];
     int objNum;
     vsJoystickBox *joyBox;
+    vsLinuxJoystickSystem *joySys;
     vsTrackingSystem *trackSys;
     vsPinchGloveBox *pinchBox;
     vsScreen *screen;
@@ -610,6 +614,13 @@ void *vsAvatar::makeInputDevice()
             joyBox = (vsJoystickBox *)(findObject(objName));
             if (joyBox)
                 result = joyBox->getJoystick(objNum);
+        }
+        else if (!strcmp(token, "linuxJoystickSystem"))
+        {
+            sscanf(cfgLine, "%*s %s", objName);
+            joySys = (vsLinuxJoystickSystem *)(findObject(objName));
+            if (joySys)
+                result = joySys->getJoystick();
         }
         else if (!strcmp(token, "trackingSystem"))
         {
@@ -753,6 +764,43 @@ void *vsAvatar::makeVsUnwinder()
     }
 
     return (new vsUnwinder(portNumber, joy1, joy2));
+}
+
+// ------------------------------------------------------------------------
+// Protected function
+// Creates a vsLinuxJoystickSystem from data in the configuration file, and
+// returns a pointer to it.
+// ------------------------------------------------------------------------
+void *vsAvatar::makeVsLinuxJoystickSystem()
+{
+    char cfgLine[256];
+    char token[256];
+    int lineType = 0;
+    char portName[256];
+
+    while (lineType != -1)
+    {
+        lineType = readCfgLine(cfgLine);
+        if (lineType != 0)
+            continue;
+
+        sscanf(cfgLine, "%s", token);
+
+        if (!strcmp(token, "port"))
+            sscanf(cfgLine, "%*s %s", portName);
+        else
+            printf("vsAvatar::makeVsLinuxJoystickSystem: "
+                "Unrecognized token '%s'\n", token);
+    }
+
+    if (strlen(portName) == 0)
+    {
+        printf("vsAvatar::makeVsLinuxJoystickSystem: "
+            "No port number specified\n");
+        return NULL;
+    }
+
+    return (new vsLinuxJoystickSystem(portName));
 }
 
 // ------------------------------------------------------------------------

@@ -68,6 +68,7 @@ protected:
     // input objects
     void               *makeVsISTJoystickBox();
     void               *makeVsUnwinder();
+    void               *makeVsLinuxJoystickSystem();
     void               *makeVsFlockOfBirds();
     void               *makeVsSerialMotionStar();
     void               *makeVsFastrak();
