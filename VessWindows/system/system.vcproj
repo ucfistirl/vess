@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="n:\usr\jdaly\OSG\0.9.2\OpenSceneGraph\src\osgText;n:\usr\jdaly\OSG\0.9.2\OpenSceneGraph\include;../../system/OSG;../../system/common;../../avatar/common;../../motion/common;../../sound/OpenAL;../../io/OSG_Windows;../../io/Windows;../../io/common;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../util/Windows;../../util/common"
+				AdditionalIncludeDirectories="&quot;C:\Documents and Settings\Glenn Martin\Desktop\Haptics\winosg\src\osgText&quot;;&quot;C:\Documents and Settings\Glenn Martin\Desktop\Haptics\winosg\include&quot;;../../system/OSG;../../system/common;../../avatar/common;../../motion/common;../../sound/OpenAL;../../io/OSG_Windows;../../io/Windows;../../io/common;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../util/Windows;../../util/common"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_SYSTEM_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -36,7 +36,7 @@
 				AdditionalDependencies="osgd.lib osgDBd.lib osgUtild.lib"
 				OutputFile="$(OutDir)/vsSystem.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="n:\usr\jdaly\osg\0.9.2\OpenSceneGraph\lib\osgPlugins;n:\usr\jdaly\osg\0.9.2\OpenSceneGraph\lib"
+				AdditionalLibraryDirectories="&quot;C:\Documents and Settings\Glenn Martin\Desktop\Haptics\winosg\lib\osgPlugins&quot;;&quot;C:\Documents and Settings\Glenn Martin\Desktop\Haptics\winosg\lib&quot;"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/system.pdb"
 				SubSystem="2"
@@ -107,14 +107,14 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
+			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
 				RelativePath="..\..\system\OSG\vsSystem.c++">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc">
+			Filter="h++;h;hpp;hxx;hm;inl;inc">
 			<File
 				RelativePath="..\..\system\OSG\vsSystem.h++">
 			</File>
