@@ -36,6 +36,8 @@ protected:
     vsGrowableArray    ownerList;
     int                ownerCount;
     
+    int                overrideFlag;
+    
     void               markOwnersDirty();
 
 VS_INTERNAL:
@@ -49,6 +51,9 @@ public:
                    ~vsStateAttribute();
 
     virtual int    getAttributeCategory();
+    
+    void           setOverride(int override);
+    int            getOverride();
 };
 
 #endif

@@ -368,6 +368,8 @@ void vsMaterialAttribute::apply()
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
     gState->setMaterial(this);
+    if (overrideFlag)
+        gState->lockMaterial(this);
 }
 
 // ------------------------------------------------------------------------
@@ -378,6 +380,8 @@ void vsMaterialAttribute::restoreSaved()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
+    if (overrideFlag)
+        gState->unlockMaterial(this);
     gState->setMaterial((vsMaterialAttribute *)(attrSaveList[--attrSaveCount]));
 }
 

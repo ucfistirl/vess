@@ -118,6 +118,8 @@ void vsTransparencyAttribute::apply()
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
     gState->setTransparency(this);
+    if (overrideFlag)
+	gState->lockTransparency(this);
 }
 
 // ------------------------------------------------------------------------
@@ -128,6 +130,8 @@ void vsTransparencyAttribute::restoreSaved()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
+    if (overrideFlag)
+	gState->unlockTransparency(this);
     gState->setTransparency(
         (vsTransparencyAttribute *)(attrSaveList[--attrSaveCount]));
 }

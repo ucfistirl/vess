@@ -100,6 +100,8 @@ void vsShadingAttribute::apply()
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
     gState->setShading(this);
+    if (overrideFlag)
+        gState->lockShading(this);
 }
 
 // ------------------------------------------------------------------------
@@ -110,6 +112,8 @@ void vsShadingAttribute::restoreSaved()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
+    if (overrideFlag)
+        gState->unlockShading(this);
     gState->setShading((vsShadingAttribute *)(attrSaveList[--attrSaveCount]));
 }
 

@@ -129,6 +129,8 @@ void vsBackfaceAttribute::apply()
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
     gState->setBackface(this);
+    if (overrideFlag)
+        gState->lockBackface(this);
 }
 
 // ------------------------------------------------------------------------
@@ -139,6 +141,8 @@ void vsBackfaceAttribute::restoreSaved()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
+    if (overrideFlag)
+        gState->unlockBackface(this);
     gState->setBackface((vsBackfaceAttribute *)(attrSaveList[--attrSaveCount]));
 }
 

@@ -198,6 +198,8 @@ void vsFogAttribute::apply()
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
     gState->setFog(this);
+    if (overrideFlag)
+        gState->lockFog(this);
 }
 
 // ------------------------------------------------------------------------
@@ -208,6 +210,8 @@ void vsFogAttribute::restoreSaved()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
+    if (overrideFlag)
+        gState->unlockFog(this);
     gState->setFog((vsFogAttribute *)(attrSaveList[--attrSaveCount]));
 }
 

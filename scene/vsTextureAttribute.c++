@@ -368,6 +368,8 @@ void vsTextureAttribute::apply()
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
     gState->setTexture(this);
+    if (overrideFlag)
+	gState->lockTexture(this);
 }
 
 // ------------------------------------------------------------------------
@@ -378,6 +380,8 @@ void vsTextureAttribute::restoreSaved()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
+    if (overrideFlag)
+	gState->unlockTexture(this);
     gState->setTexture((vsTextureAttribute *)(attrSaveList[--attrSaveCount]));
 }
 
