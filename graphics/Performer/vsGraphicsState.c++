@@ -87,6 +87,7 @@ void vsGraphicsState::clearState()
     backfaceAttr = NULL;
     fogAttr = NULL;
     materialAttr = NULL;
+    shaderAttr = NULL;
     shadingAttr = NULL;
     textureAttr = NULL;
     textureCubeAttr = NULL;
@@ -98,6 +99,7 @@ void vsGraphicsState::clearState()
     backfaceLock = NULL;
     fogLock = NULL;
     materialLock = NULL;
+    shaderLock = NULL;
     shadingLock = NULL;
     textureLock = NULL;
     transparencyLock = NULL;
@@ -129,6 +131,10 @@ void vsGraphicsState::applyState(pfGeoState *state)
     // Call the material attribute (if any) to make its state changes
     if (materialAttr)
         materialAttr->setState(state);
+
+    // Call the shader attribute (if any) to make its state changes
+    if (shaderAttr)
+        shaderAttr->setState(state);
 
     // Call the shading attribute (if any) to make its state changes
     if (shadingAttr)
@@ -187,6 +193,16 @@ void vsGraphicsState::setMaterial(vsMaterialAttribute *newAttrib)
     // Set the current attribute, if it's not locked
     if (!materialLock)
         materialAttr = newAttrib;
+}
+
+// ------------------------------------------------------------------------
+// Sets the attribute that contains the desired shader state
+// ------------------------------------------------------------------------
+void vsGraphicsState::setShader(vsShaderAttribute *newAttrib)
+{
+    // Set the current attribute, if it's not locked
+    if (!shaderLock)
+        shaderAttr = newAttrib;
 }
 
 // ------------------------------------------------------------------------
@@ -299,6 +315,14 @@ vsMaterialAttribute *vsGraphicsState::getMaterial()
 }
 
 // ------------------------------------------------------------------------
+// Retrieves the attribute that contains the current shader state
+// ------------------------------------------------------------------------
+vsShaderAttribute *vsGraphicsState::getShader()
+{
+    return shaderAttr;
+}
+
+// ------------------------------------------------------------------------
 // Retrieves the attribute that contains the current shading state
 // ------------------------------------------------------------------------
 vsShadingAttribute *vsGraphicsState::getShading()
@@ -396,6 +420,18 @@ void vsGraphicsState::lockMaterial(void *lockAddr)
 }
 
 // ------------------------------------------------------------------------
+// Locks the current shader attribute, using the given address as a
+// 'key'. The shader attribute cannot be changed again until it is
+// unlocked with this key address.
+// ------------------------------------------------------------------------
+void vsGraphicsState::lockShader(void *lockAddr)
+{
+    // If there's no existing lock, set the lock value
+    if (!shaderLock)
+        shaderLock = lockAddr;
+}
+
+// ------------------------------------------------------------------------
 // Locks the current shading attribute, using the given address as a
 // 'key'. The shading attribute cannot be changed again until it is
 // unlocked with this key address.
@@ -477,6 +513,18 @@ void vsGraphicsState::unlockMaterial(void *lockAddr)
     // If the unlock value matches the lock value, clear the lock
     if (materialLock == lockAddr)
         materialLock = NULL;
+}
+
+// ------------------------------------------------------------------------
+// Unlocks the current shader attribute, using the given address as a
+// 'key'; this key must match the key that the attribute was locked with or
+// the function will not work.
+// ------------------------------------------------------------------------
+void vsGraphicsState::unlockShader(void *lockAddr)
+{
+    // If the unlock value matches the lock value, clear the lock
+    if (shaderLock == lockAddr)
+        shaderLock = NULL;
 }
 
 // ------------------------------------------------------------------------

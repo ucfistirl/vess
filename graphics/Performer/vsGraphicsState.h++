@@ -26,6 +26,7 @@
 #include "vsBackfaceAttribute.h++"
 #include "vsFogAttribute.h++"
 #include "vsMaterialAttribute.h++"
+#include "vsShaderAttribute.h++"
 #include "vsShadingAttribute.h++"
 #include "vsTextureAttribute.h++"
 #include "vsTextureCubeAttribute.h++"
@@ -43,6 +44,7 @@ private:
     vsBackfaceAttribute        *backfaceAttr;
     vsFogAttribute             *fogAttr;
     vsMaterialAttribute        *materialAttr;
+    vsShaderAttribute          *shaderAttr;
     vsShadingAttribute         *shadingAttr;
     vsTextureAttribute         *textureAttr;
     vsTextureCubeAttribute     *textureCubeAttr;
@@ -55,6 +57,7 @@ private:
     void                       *backfaceLock;
     void                       *fogLock;
     void                       *materialLock;
+    void                       *shaderLock;
     void                       *shadingLock;
     void                       *textureLock;
     void                       *transparencyLock;
@@ -81,30 +84,33 @@ public:
     void          setBackface(vsBackfaceAttribute *newAttrib);
     void          setFog(vsFogAttribute *newAttrib);
     void          setMaterial(vsMaterialAttribute *newAttrib);
+    void          setShader(vsShaderAttribute *newAttrib);
     void          setShading(vsShadingAttribute *newAttrib);
     void          setTexture(vsTextureAttribute *newAttrib);
     void          setTextureCube(vsTextureCubeAttribute *newAttrib);
     void          setTransparency(vsTransparencyAttribute *newAttrib);
     void          setWireframe(vsWireframeAttribute *newAttrib);
-    
+ 
     void          addLight(vsLightAttribute *lightAttrib);
     void          removeLight(vsLightAttribute *lightAttrib);
 
     vsBackfaceAttribute        *getBackface();
     vsFogAttribute             *getFog();
     vsMaterialAttribute        *getMaterial();
+    vsShaderAttribute          *getShader();
     vsShadingAttribute         *getShading();
     vsTextureAttribute         *getTexture();
     vsTextureCubeAttribute     *getTextureCube();
     vsTransparencyAttribute    *getTransparency();
     vsWireframeAttribute       *getWireframe();
-    
+
     vsLightAttribute           *getLight(int index);
     int                        getLightCount();
     
     void          lockBackface(void *lockAddr);
     void          lockFog(void *lockAddr);
     void          lockMaterial(void *lockAddr);
+    void          lockShader(void *lockAddr);
     void          lockShading(void *lockAddr);
     void          lockTexture(void *lockAddr);
     void          lockTransparency(void *lockAddr);
@@ -113,6 +119,7 @@ public:
     void          unlockBackface(void *lockAddr);
     void          unlockFog(void *lockAddr);
     void          unlockMaterial(void *lockAddr);
+    void          unlockShader(void *lockAddr);
     void          unlockShading(void *lockAddr);
     void          unlockTexture(void *lockAddr);
     void          unlockTransparency(void *lockAddr);
