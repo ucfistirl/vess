@@ -10,6 +10,7 @@
 // performace will not likely be what is expected.
 
 #include "vsMotionModel.h++"
+#include "vsMouse.h++"
 #include "vsInputAxis.h++"
 #include "vsInputButton.h++"
 
@@ -72,33 +73,39 @@ protected:
 
 public:
 
-                    vsFlyingMotion(vsInputAxis *headingAx,
-                                   vsInputAxis *pitchAx, 
-                                   vsInputAxis *throttleAx);
+                        vsFlyingMotion(vsMouse *mouse);
 
-                    vsFlyingMotion(vsInputAxis *headingAx,
-                                   vsInputAxis *pitchAx, 
-                                   vsInputButton *accelBtn,
-                                   vsInputButton *decelBtn, 
-                                   vsInputButton *stopBtn);
+                        vsFlyingMotion(vsMouse *mouse, int accelButtonIndex,
+                                       int decelButtonIndex, 
+                                       int stopButtonIndex);
 
-                    ~vsFlyingMotion();
+                        vsFlyingMotion(vsInputAxis *headingAx,
+                                       vsInputAxis *pitchAx, 
+                                       vsInputAxis *throttleAx);
 
-    void            getAxisModes(vsFlyingAxisMode *heading,
-                                 vsFlyingAxisMode *pitch,
-                                 vsFlyingAxisMode *throttle);
-    void            setAxisModes(vsFlyingAxisMode newHeadingMode,
-                                 vsFlyingAxisMode newPitchMode,
-                                 vsFlyingAxisMode newThrottleMode);
+                        vsFlyingMotion(vsInputAxis *headingAx,
+                                       vsInputAxis *pitchAx, 
+                                       vsInputButton *accelBtn,
+                                       vsInputButton *decelBtn, 
+                                       vsInputButton *stopBtn);
 
-    double          getAccelerationRate();
-    void            setAccelerationRate(double newRate);
-    double          getTurningRate();
-    void            setTurningRate(double newRate);
-    double          getMaxVelocity();
-    void            setMaxVelocity(double newMax);
+                        ~vsFlyingMotion();
 
-    virtual vsVecQuat    update();
+    void                getAxisModes(vsFlyingAxisMode *heading,
+                                     vsFlyingAxisMode *pitch,
+                                     vsFlyingAxisMode *throttle);
+    void                setAxisModes(vsFlyingAxisMode newHeadingMode,
+                                     vsFlyingAxisMode newPitchMode,
+                                     vsFlyingAxisMode newThrottleMode);
+
+    double              getAccelerationRate();
+    void                setAccelerationRate(double newRate);
+    double              getTurningRate();
+    void                setTurningRate(double newRate);
+    double              getMaxVelocity();
+    void                setMaxVelocity(double newMax);
+
+    virtual vsMatrix    update();
 };
 
 #endif

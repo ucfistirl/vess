@@ -1,6 +1,78 @@
 #include "vsFlyingMotion.h++"
 
 // ------------------------------------------------------------------------
+// Constructs a flying motion model using a mouse and the default button
+// configuration.
+// ------------------------------------------------------------------------
+vsFlyingMotion::vsFlyingMotion(vsMouse *mouse)
+              : vsMotionModel()
+{
+    headingAxis = mouse->getAxis(0);
+    pitchAxis = mouse->getAxis(1);
+    throttleAxis = NULL;
+    accelButton = mouse->getButton(0);
+    decelButton = mouse->getButton(2);
+    stopButton = mouse->getButton(1);
+
+    if (((headingAxis != NULL) && (!headingAxis->isNormalized())) ||
+        ((pitchAxis != NULL) && (!pitchAxis->isNormalized())) ||
+        ((throttleAxis != NULL) && (!throttleAxis->isNormalized())))
+    {
+        printf("vsFlyingMotion::vsFlyingMotion:  One or more axes are not "
+               "normalized!\n");
+    }
+
+    lastHeadingAxisVal = 0.0;
+    lastPitchAxisVal = 0.0;
+
+    velocity = 0.0;
+
+    accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
+    turningRate = VS_FM_DEFAULT_TURNING_RATE;
+    maxVelocity = VS_FM_DEFAULT_MAX_VELOCITY;
+
+    headingMode = VS_FM_DEFAULT_HEADING_MODE;
+    pitchMode  = VS_FM_DEFAULT_PITCH_MODE;
+    throttleMode = VS_FM_DEFAULT_THROTTLE_MODE;
+}
+
+// ------------------------------------------------------------------------
+// Constructs a flying motion model with the given control axes
+// ------------------------------------------------------------------------
+vsFlyingMotion::vsFlyingMotion(vsMouse *mouse, int accelButtonIndex, 
+                               int decelButtonIndex, int stopButtonIndex)
+              : vsMotionModel()
+{
+    headingAxis = mouse->getAxis(0);
+    pitchAxis = mouse->getAxis(1);
+    throttleAxis = NULL;
+    accelButton = mouse->getButton(accelButtonIndex);
+    decelButton = mouse->getButton(decelButtonIndex);
+    stopButton = mouse->getButton(stopButtonIndex);
+
+    if (((headingAxis != NULL) && (!headingAxis->isNormalized())) ||
+        ((pitchAxis != NULL) && (!pitchAxis->isNormalized())) ||
+        ((throttleAxis != NULL) && (!throttleAxis->isNormalized())))
+    {
+        printf("vsFlyingMotion::vsFlyingMotion:  One or more axes are not "
+               "normalized!\n");
+    }
+
+    lastHeadingAxisVal = 0.0;
+    lastPitchAxisVal = 0.0;
+
+    velocity = 0.0;
+
+    accelerationRate = VS_FM_DEFAULT_ACCEL_RATE;
+    turningRate = VS_FM_DEFAULT_TURNING_RATE;
+    maxVelocity = VS_FM_DEFAULT_MAX_VELOCITY;
+
+    headingMode = VS_FM_DEFAULT_HEADING_MODE;
+    pitchMode  = VS_FM_DEFAULT_PITCH_MODE;
+    throttleMode = VS_FM_DEFAULT_THROTTLE_MODE;
+}
+
+// ------------------------------------------------------------------------
 // Constructs a flying motion model with the given control axes
 // ------------------------------------------------------------------------
 vsFlyingMotion::vsFlyingMotion(vsInputAxis *headingAx, vsInputAxis *pitchAx,
@@ -160,17 +232,15 @@ void vsFlyingMotion::setMaxVelocity(double newMax)
 // ------------------------------------------------------------------------
 // Updates the motion model
 // ------------------------------------------------------------------------
-vsVecQuat vsFlyingMotion::update()
+vsMatrix vsFlyingMotion::update()
 {
-    double               interval;
-    double               dHeading;
-    double               dPitch;
-    vsVector             dPos;
-    vsQuat               dOrn, quat1, quat2;
-    vsVecQuat            movement;
-
-    vsMatrix             mat;
-    int                  i, j;
+    double              interval;
+    double              dHeading;
+    double              dPitch;
+    vsVector            dPos;
+    vsQuat              dOrn, quat1, quat2;
+    vsMatrix            transMat, rotMat;
+    vsMatrix            movement;
 
     interval = getTimeInterval();
 
@@ -278,14 +348,10 @@ vsVecQuat vsFlyingMotion::update()
     quat1.setAxisAngleRotation(0, 0, 1, dHeading);
     quat2.setAxisAngleRotation(1, 0, 0, dPitch);
     dOrn = quat1 * quat2;
+    rotMat.setQuatRotation(dOrn);
 
     // Update the position
-    dPos.setSize(3);
-    dPos.clear();
-    dPos[VS_Y] = velocity * interval;
+    transMat.setTranslation(0.0, velocity * interval, 0.0);
 
-    movement.vector = dPos;
-    movement.quat = dOrn;
-
-    return movement;   
+    return rotMat * transMat;   
 }
