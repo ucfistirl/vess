@@ -16,7 +16,7 @@
 //    Description:  Attribute that specifies a texture cube to use for
 //                  effects like evironment mapping on geometry
 //
-//    Author(s):    Bryan Kline, Duvan Cope
+//    Author(s):    Duvan Cope, Bryan Kline
 //
 //------------------------------------------------------------------------
 
@@ -26,7 +26,6 @@
 #include <osg/TextureCubeMap>
 #include <osg/Texture>
 #include <osg/TexEnv>
-#include <osg/TexGen>
 #include <osg/Image>
 #include "vsStateAttribute.h++"
 #include "vsTextureAttribute.h++"
@@ -41,15 +40,6 @@ enum VS_GRAPHICS_DLL vsTextureCubeFace
     VS_TEXTURE_CUBE_NEGATIVE_Y,
     VS_TEXTURE_CUBE_POSITIVE_Z,
     VS_TEXTURE_CUBE_NEGATIVE_Z
-};
-
-enum VS_GRAPHICS_DLL vsTextureGenMode
-{
-    VS_TEXTURE_GEN_OBJECT_LINEAR = osg::TexGen::OBJECT_LINEAR,
-    VS_TEXTURE_GEN_EYE_LINEAR = osg::TexGen::EYE_LINEAR,
-    VS_TEXTURE_GEN_SPHERE_MAP = osg::TexGen::SPHERE_MAP,
-    VS_TEXTURE_GEN_NORMAL_MAP = osg::TexGen::NORMAL_MAP,
-    VS_TEXTURE_GEN_REFLECTION_MAP = osg::TexGen::REFLECTION_MAP
 };
 
 class VS_GRAPHICS_DLL vsTextureCubeAttribute : public vsStateAttribute
