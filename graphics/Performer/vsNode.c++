@@ -58,8 +58,7 @@ vsNode::~vsNode()
         // Remove the first attribute; delete it if it's unused.
         attr = getAttribute(0);
         removeAttribute(attr);
-        if (!(attr->isAttached()))
-            delete attr;
+        vsObject::checkDelete(attr);
     }
 }
 
