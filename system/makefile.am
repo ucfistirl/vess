@@ -1,0 +1,59 @@
+# Libraries to build
+lib_LIBRARIES = libvsSystem.a libvsSystem.so
+
+# Sources for libvsSystem.a
+libvsSystem_a_SOURCES = \
+                        @SG@/vsSystem.c++ 
+
+# Sources for libvsSystem.so (same as libvsSystem.a)
+libvsSystem_so_SOURCES = $(libvsSystem_a_SOURCES)
+
+# Header files
+include_HEADERS = \
+                  @SG@/vsSystem.h++
+
+# Include directives for the compiler
+INCLUDES = \
+           -I. \
+           -I../avatar/common \
+	   -I../motion/common \
+	   -I../io/common \
+	   -I../io/@WS@ \
+	   -I../io/@SG@_@WS@ \
+           -I../io/@OS@ \
+	   -I../sound/@AL@ \
+	   -I../graphics/common \
+	   -I../graphics/@SG@ \
+	   -I../graphics/@SG@_@WS@ \
+	   -I../util/common \
+           @GFX_INCLUDE_DIR@
+
+# Rule to make libvsSystem.so
+libvsSystem.so: libvsSystem.a
+	rm -f $@
+	$(CXX) $(LDFLAGS) -shared -o $@ @SO_LINK@ libvsSystem.a @SO_NO_LINK@
+
+# Override automake's install rule for the libraries.  This is done to
+# keep automake from running ranlib on the shared library (since we're
+# not using libtool, automake doesn't know that libvess.so is a shared
+# library).
+install-libLIBRARIES: $(lib_LIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f="`echo $$p | sed -e 's|^.*/||'`"; \
+	    echo " $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f"; \
+	    $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f; \
+	  else :; fi; \
+	done
+	@$(POST_INSTALL)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test x`echo $$p | awk -F \. '{print $$NF}'` != xso ; then \
+	    if test -f $$p; then \
+	      p="`echo $$p | sed -e 's|^.*/||'`"; \
+	      echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
+	      $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
+	    fi; \
+	  fi;\
+	done

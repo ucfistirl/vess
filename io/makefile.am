@@ -1,0 +1,139 @@
+# Libraries to build
+lib_LIBRARIES = libvsIO.a libvsIO.so
+
+# Sources for libvsIO.a
+libvsIO_a_SOURCES = \
+                    common/vs6DInputDevice.c++ \
+                    common/vsArticulationGlove.c++ \
+                    common/vsChordGloves.c++ \
+                    common/vsCyberGloveBox.c++ \
+                    common/vsFlockOfBirds.c++ \
+                    common/vsInputAxis.c++ \
+                    common/vsInputButton.c++ \
+                    common/vsInputDevice.c++ \
+                    common/vsInputSystem.c++ \
+                    common/vsISTJoystickBox.c++ \
+                    common/vsJoystickBox.c++ \
+                    common/vsJoystick.c++ \
+                    common/vsKeyboard.c++ \
+                    common/vsMotionTracker.c++ \
+                    common/vsMouse.c++ \
+                    common/vsNetworkInterface.c++ \
+                    common/vsPinchGloveBox.c++ \
+                    common/vsSerialMotionStar.c++ \
+                    common/vsSharedInputData.c++ \
+                    common/vsSpaceball.c++ \
+                    common/vsTrackingSystem.c++ \
+                    common/vsUDPNetworkInterface.c++ \
+                    common/vsUDPUnicastNetworkInterface.c++ \
+                    common/vsUnwinder.c++ \
+                    @OS@/vsAscensionSerialTrackingSystem.c++ \
+                    @OS@/vsEthernetMotionStar.c++ \
+                    @OS@/vsFastrak.c++ \
+                    @OS@/vsIS600.c++ \
+                    @OS@/vsSerialPort.c++ \
+                    @WS@/vsWSSpaceball.c++ \
+                    @SG@_@WS@/vsWindowSystem.c++
+
+# Sources for libvsIO.so (same as libvsIO.a)
+libvsIO_so_SOURCES = $(libvsIO_a_SOURCES)
+
+# Extra sources for libvsIO.a.  These are compiled only if certain
+# configuration conditions are met.
+EXTRA_libvsIO_a_SOURCES = \
+                          Linux/vsLinuxJoystickSystem.c++
+
+# Extra sources for libvsIO.so (same as libvsIO.a)
+EXTRA_libvsIO_so_SOURCES = $(EXTRA_libvsIO_a_SOURCES)
+
+# Header files
+include_HEADERS = \
+                  common/vs6DInputDevice.h++ \
+                  common/vsArticulationGlove.h++ \
+                  common/vsChordGloves.h++ \
+                  common/vsCyberGloveBox.h++ \
+                  common/vsFlockOfBirds.h++ \
+                  common/vsInputAxis.h++ \
+                  common/vsInputButton.h++ \
+                  common/vsInputDevice.h++ \
+                  common/vsInputSystem.h++ \
+                  common/vsISTJoystickBox.h++ \
+                  common/vsJoystickBox.h++ \
+                  common/vsJoystick.h++ \
+                  common/vsKeyboard.h++ \
+                  common/vsMotionTracker.h++ \
+                  common/vsMouse.h++ \
+                  common/vsNetworkInterface.h++ \
+                  common/vsPinchGloveBox.h++ \
+                  common/vsSerialMotionStar.h++ \
+                  common/vsSharedInputData.h++ \
+                  common/vsSpaceball.h++ \
+                  common/vsTrackingSystem.h++ \
+                  common/vsUDPNetworkInterface.h++ \
+                  common/vsUDPUnicastNetworkInterface.h++ \
+                  common/vsUnwinder.h++ \
+                  @OS@/vsAscensionSerialTrackingSystem.h++ \
+                  @OS@/vsEthernetMotionStar.h++ \
+                  @OS@/vsFastrak.h++ \
+                  @OS@/vsIS600.h++ \
+                  @OS@/vsSerialPort.h++ \
+                  @WS@/vsWSSpaceball.c++ \
+                  @SG@_@WS@/vsWindowSystem.c++
+
+# Extra header files, used only if certain configuration conditions are
+# met.
+EXTRA_HEADERS = \
+                Linux/vsLinuxJoystickSystem.h++
+
+# Extra dependencies for libvsIO.a.  These reflect the additional dependencies
+# necessary if any conditionally compiled sources are compiled.
+libvsIO_a_DEPENDENCIES = @EXTRA_IO_OBJECTS@
+
+# Extra dependencies for libvsIO.a (same as libvsIO.a)
+libvsIO_so_DEPENDENCIES = $(libvsIO_a_DEPENDENCIES)
+
+# Extra object files for libvsIO.a.  If any conditionally-compiled sources
+# are used, this rule adds them to libvsIO.a
+libvsIO_a_LIBADD = @EXTRA_IO_OBJECTS@
+
+# Include directives for the compiler.
+INCLUDES = \
+           -I../io/common \
+           -I../io/@WS@ \
+           -I../io/@SG@_@WS@ \
+           -I../io/@OS@ \
+           -I../graphics/common \
+           -I../graphics/@SG@ \
+           -I../graphics/@SG@_@WS@ \
+           @GFX_INCLUDE_DIR@ \
+           -I../util/common
+
+# Rule to make libvsIO.so
+libvsIO.so: libvsIO.a
+	rm -f $@
+	$(CXX) $(LDFLAGS) -shared -o $@ @SO_LINK@ libvsIO.a @SO_NO_LINK@
+
+# Override automake's install rule for the libraries.  This is done to
+# keep automake from running ranlib on the shared library (since we're
+# not using libtool, automake doesn't know that libvess.so is a shared
+# library).
+install-libLIBRARIES: $(lib_LIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f="`echo $$p | sed -e 's|^.*/||'`"; \
+	    echo " $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f"; \
+	    $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f; \
+	  else :; fi; \
+	done
+	@$(POST_INSTALL)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test x`echo $$p | awk -F \. '{print $$NF}'` != xso ; then \
+	    if test -f $$p; then \
+	      p="`echo $$p | sed -e 's|^.*/||'`"; \
+	      echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
+	      $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
+	    fi; \
+	  fi;\
+	done

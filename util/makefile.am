@@ -1,0 +1,59 @@
+# Libraries to build
+lib_LIBRARIES = libvsUtil.a libvsUtil.so
+
+# Sources for libvsUtil.a
+libvsUtil_a_SOURCES = \
+                      common/vsGrowableArray.c++ \
+                      common/vsMatrix.c++ \
+                      common/vsObject.c++ \
+                      common/vsObjectMap.c++ \
+                      common/vsQuat.c++ \
+                      common/vsTimer.c++ \
+                      common/vsTreeMap.c++ \
+                      common/vsUpdatable.c++ \
+                      common/vsVector.c++
+
+# Sources for libvsUtil.so (same as libvsUtil.a)
+libvsUtil_so_SOURCES = $(libvsUtil_a_SOURCES)
+
+# Header files
+include_HEADERS = \
+                  common/vsGrowableArray.h++ \
+                  common/vsMatrix.h++ \
+                  common/vsObject.h++ \
+                  common/vsObjectMap.h++ \
+                  common/vsQuat.h++ \
+                  common/vsTimer.h++ \
+                  common/vsTreeMap.h++ \
+                  common/vsUpdatable.h++ \
+                  common/vsVector.h++
+
+# Rule to make libvsUtil.so
+libvsUtil.so: libvsUtil.a
+	rm -f $@
+	$(CXX) $(LDFLAGS) -shared -o $@ @SO_LINK@ libvsUtil.a @SO_NO_LINK@
+
+# Override automake's install rule for the libraries.  This is done to
+# keep automake from running ranlib on the shared library (since we're
+# not using libtool, automake doesn't know that libvess.so is a shared
+# library).
+install-libLIBRARIES: $(lib_LIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f="`echo $$p | sed -e 's|^.*/||'`"; \
+	    echo " $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f"; \
+	    $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f; \
+	  else :; fi; \
+	done
+	@$(POST_INSTALL)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test x`echo $$p | awk -F \. '{print $$NF}'` != xso ; then \
+	    if test -f $$p; then \
+	      p="`echo $$p | sed -e 's|^.*/||'`"; \
+	      echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
+	      $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
+	    fi; \
+	  fi;\
+	done

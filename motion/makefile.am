@@ -1,0 +1,84 @@
+# Libraries to build.
+lib_LIBRARIES = libvsMotion.a libvsMotion.so
+
+# Sources for libvsMotion.a
+libvsMotion_a_SOURCES = \
+                        common/vs3TrackerArm.c++ \
+                        common/vsAxisRotation.c++ \
+                        common/vsCollision.c++ \
+                        common/vsDifferentialTrackedOrientation.c++ \
+                        common/vsDrivingMotion.c++ \
+                        common/vsFlyingMotion.c++ \
+                        common/vsKinematics.c++ \
+                        common/vsMotionModel.c++ \
+                        common/vsSphericalMotion.c++ \
+                        common/vsTerrainFollow.c++ \
+                        common/vsTrackballMotion.c++ \
+                        common/vsTrackedMotion.c++ \
+                        common/vsWalkArticulation.c++ \
+                        common/vsWalkInPlace.c++
+
+# Sources for libvsMotion.a (same as libvsMotion.a)
+libvsMotion_so_SOURCES = $(libvsMotion_a_SOURCES)
+
+# Header files
+include_HEADERS = \
+                  common/vs3TrackerArm.h++ \
+                  common/vsAxisRotation.h++ \
+                  common/vsCollision.h++ \
+                  common/vsDifferentialTrackedOrientation.h++ \
+                  common/vsDrivingMotion.h++ \
+                  common/vsFlyingMotion.h++ \
+                  common/vsKinematics.h++ \
+                  common/vsMotionModel.h++ \
+                  common/vsSphericalMotion.h++ \
+                  common/vsTerrainFollow.h++ \
+                  common/vsTrackballMotion.h++ \
+                  common/vsTrackedMotion.h++ \
+                  common/vsWalkArticulation.h++ \
+                  common/vsWalkInPlace.h++
+
+# Include directives for the compiler.
+INCLUDES = \
+           -I. \
+	   -I../io/common \
+	   -I../io/@WS@ \
+	   -I../io/@SG@_@WS@ \
+           -I../io/@OS@ \
+	   -I../sound/@AL@ \
+           @SOUND_INCLUDE_DIR@ \
+	   -I../graphics/common \
+	   -I../graphics/@SG@ \
+	   -I../graphics/@SG@_@WS@ \
+           @GFX_INCLUDE_DIR@ \
+	   -I../util/common
+
+# Rule to make libvsMotion.so
+libvsMotion.so: libvsMotion.a
+	rm -f $@
+	$(CXX) $(LDFLAGS) -shared -o $@ @SO_LINK@ libvsMotion.a @SO_NO_LINK@
+
+# Override automake's install rule for the libraries.  This is done to
+# keep automake from running ranlib on the shared library (since we're
+# not using libtool, automake doesn't know that libvess.so is a shared
+# library).
+install-libLIBRARIES: $(lib_LIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f="`echo $$p | sed -e 's|^.*/||'`"; \
+	    echo " $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f"; \
+	    $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f; \
+	  else :; fi; \
+	done
+	@$(POST_INSTALL)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test x`echo $$p | awk -F \. '{print $$NF}'` != xso ; then \
+	    if test -f $$p; then \
+	      p="`echo $$p | sed -e 's|^.*/||'`"; \
+	      echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
+	      $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
+	    fi; \
+	  fi;\
+	done

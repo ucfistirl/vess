@@ -1,0 +1,62 @@
+# Libraries to make
+lib_LIBRARIES = libvsSound.a libvsSound.so
+
+# Sources for libvsSound.a
+libvsSound_a_SOURCES = \
+                       @AL@/vsSoundBuffer.c++ \
+                       @AL@/vsSoundListenerAttribute.c++ \
+                       @AL@/vsSoundPipe.c++ \
+                       @AL@/vsSoundSample.c++ \
+                       @AL@/vsSoundSourceAttribute.c++ \
+                       @AL@/vsSoundStream.c++
+
+# Sources for libvsSound.so (same as libvsSound.a)
+libvsSound_so_SOURCES = $(libvsSound_a_SOURCES)
+
+# Header files
+include_HEADERS = \
+                  @AL@/vsSoundBuffer.h++ \
+                  @AL@/vsSoundListenerAttribute.h++ \
+                  @AL@/vsSoundPipe.h++ \
+                  @AL@/vsSoundSample.h++ \
+                  @AL@/vsSoundSourceAttribute.h++ \
+                  @AL@/vsSoundStream.h++
+
+# Include directives for the compiler
+INCLUDES = \
+           -I../util/common \
+           -I../graphics/common \
+           -I../graphics/@SG@ \
+           -I../graphics/@SG@_@WS@ \
+           @GFX_INCLUDE_DIR@ \
+           @SOUND_INCLUDE_DIR@
+
+# Rule to make libvsSound.so
+libvsSound.so: libvsSound.a
+	rm -f $@
+	$(CXX) $(LDFLAGS) -shared -o $@ @SO_LINK@ libvsSound.a @SO_NO_LINK@
+
+# Override automake's install rule for the libraries.  This is done to
+# keep automake from running ranlib on the shared library (since we're
+# not using libtool, automake doesn't know that libvess.so is a shared
+# library).
+install-libLIBRARIES: $(lib_LIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f="`echo $$p | sed -e 's|^.*/||'`"; \
+	    echo " $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f"; \
+	    $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f; \
+	  else :; fi; \
+	done
+	@$(POST_INSTALL)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test x`echo $$p | awk -F \. '{print $$NF}'` != xso ; then \
+	    if test -f $$p; then \
+	      p="`echo $$p | sed -e 's|^.*/||'`"; \
+	      echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
+	      $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
+	    fi; \
+	  fi;\
+	done
