@@ -178,6 +178,8 @@ public:
     void            stop();
     int             getPlayMode();
 
+    void            configureFromFile(char *filename);
+
     virtual void    update();
 
     vsVector        getCurrentPosition();

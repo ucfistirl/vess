@@ -142,7 +142,11 @@ void vsPathMotion::setCycleMode(int mode)
 //------------------------------------------------------------------------
 void vsPathMotion::setCycleCount(int cycles)
 {
-    cycleCount = cycles;
+    if (cycleCount >= 0)
+        cycleCount = cycles;
+    else
+        printf("vsPathMotion::setCycleCount: Invalid cycle count (%d)\n",
+            cycles);
 }
 
 //------------------------------------------------------------------------
@@ -623,6 +627,193 @@ void vsPathMotion::stop()
 int vsPathMotion::getPlayMode()
 {
     return currentPlayMode;
+}
+
+//------------------------------------------------------------------------
+// Sets any or all of the data in the object from the instructions
+// contained in the specified external data file
+//------------------------------------------------------------------------
+void vsPathMotion::configureFromFile(char *filename)
+{
+    FILE *infile;
+    char lineBuf[256], commandStr[256], constantStr[256];
+    int intValue;
+    double doubleValue;
+    vsVector vector(3);
+    vsQuat quat;
+
+    // Attempt to open the specified file
+    infile = fopen(filename, "r");
+    if (!infile)
+    {
+        printf("vsPathMotion::configureFromFile: Unable to open file '%s'\n",
+            filename);
+        return;
+    }
+
+    // Strip leading whitespace
+    fscanf(infile, " \n");
+
+    // Go through each line in the file and interpret the commands
+    while (!feof(infile))
+    {
+        // Read in the line
+        fgets(lineBuf, 255, infile);
+
+        // Scan in the first token in the line, which should be the name of
+        // the particular command to process
+        sscanf(lineBuf, "%s", commandStr);
+
+        // Interpret the command
+        if (!strcmp(commandStr, "setPositionMode"))
+        {
+            // Read in the position mode constant and set it
+            sscanf(lineBuf, "%*s %s", constantStr);
+            if (!strcmp(constantStr, "VS_PATH_POS_IMODE_NONE"))
+                setPositionMode(VS_PATH_POS_IMODE_NONE);
+            else if (!strcmp(constantStr, "VS_PATH_POS_IMODE_NONE"))
+                setPositionMode(VS_PATH_POS_IMODE_NONE);
+            else if (!strcmp(constantStr, "VS_PATH_POS_IMODE_NONE"))
+                setPositionMode(VS_PATH_POS_IMODE_NONE);
+            else if (!strcmp(constantStr, "VS_PATH_POS_IMODE_NONE"))
+                setPositionMode(VS_PATH_POS_IMODE_NONE);
+            else
+                printf("vsPathMotion::configureFromFile (setPositionMode): "
+                    "Unrecognized position mode constant '%s'\n", constantStr);
+        }
+        else if (!strcmp(commandStr, "setOrientationMode"))
+        {
+            // Read in the orientation mode constant and set it
+            sscanf(lineBuf, "%*s %s", constantStr);
+            if (!strcmp(constantStr, "VS_PATH_ORI_IMODE_NONE"))
+                setOrientationMode(VS_PATH_ORI_IMODE_NONE);
+            else if (!strcmp(constantStr, "VS_PATH_ORI_IMODE_SLERP"))
+                setOrientationMode(VS_PATH_ORI_IMODE_SLERP);
+            else if (!strcmp(constantStr, "VS_PATH_ORI_IMODE_SPLINE"))
+                setOrientationMode(VS_PATH_ORI_IMODE_SPLINE);
+            else if (!strcmp(constantStr, "VS_PATH_ORI_IMODE_ATPOINT"))
+                setOrientationMode(VS_PATH_ORI_IMODE_ATPOINT);
+            else if (!strcmp(constantStr, "VS_PATH_ORI_IMODE_FORWARD"))
+                setOrientationMode(VS_PATH_ORI_IMODE_FORWARD);
+            else
+                printf("vsPathMotion::configureFromFile (setOrientationMode):"
+                    "Unrecognized orientation mode constant '%s'\n",
+                    constantStr);
+        }
+        else if (!strcmp(commandStr, "setCycleMode"))
+        {
+            // Read in the cycle mode constant and set it
+            sscanf(lineBuf, "%*s %s", constantStr);
+            if (!strcmp(constantStr, "VS_PATH_CYCLE_RESTART"))
+                setCycleMode(VS_PATH_CYCLE_RESTART);
+            else if (!strcmp(constantStr, "VS_PATH_CYCLE_CLOSED_LOOP"))
+                setCycleMode(VS_PATH_CYCLE_CLOSED_LOOP);
+            else
+                printf("vsPathMotion::configureFromFile (setCycleMode):"
+                    "Unrecognized cycle mode constant '%s'\n", constantStr);
+        }
+        else if (!strcmp(commandStr, "setCycleCount"))
+        {
+            // Read in the cycle count value and set it
+            sscanf(lineBuf, "%*s %d", &intValue);
+            setCycleCount(intValue);
+        }
+        else if (!strcmp(commandStr, "setCornerRadius"))
+        {
+            // Read in the corner radius value and set it
+            sscanf(lineBuf, "%*s %lf", &doubleValue);
+            setCornerRadius(doubleValue);
+        }
+        else if (!strcmp(commandStr, "setLookAtPoint"))
+        {
+            // Read in the look-at-point vector and set it
+            sscanf(lineBuf, "%*s %lf %lf %lf", &(vector[0]), &(vector[1]),
+                &(vector[2]));
+            setLookAtPoint(vector);
+        }
+        else if (!strcmp(commandStr, "setUpDirection"))
+        {
+            // Read in the up-direction vector and set it
+            sscanf(lineBuf, "%*s %lf %lf %lf", &(vector[0]), &(vector[1]),
+                &(vector[2]));
+            setUpDirection(vector);
+        }
+        else if (!strcmp(commandStr, "setPointListSize"))
+        {
+            // Read in the list size value and set it
+            sscanf(lineBuf, "%*s %d", &intValue);
+            setPointListSize(intValue);
+        }
+        else if (!strcmp(commandStr, "setPosition"))
+        {
+            // Read in the position index and vector and set it
+            sscanf(lineBuf, "%*s %d %lf %lf %lf", &intValue, &(vector[0]),
+                &(vector[1]), &(vector[2]));
+            setPosition(intValue, vector);
+        }
+        else if (!strcmp(commandStr, "setOrientation"))
+        {
+            // Read in the orientation index and quat and set it
+            sscanf(lineBuf, "%*s %d %lf %lf %lf %lf", &intValue, &(quat[0]),
+                &(quat[1]), &(quat[2]), &(quat[3]));
+            setOrientation(intValue, quat);
+        }
+        else if (!strcmp(commandStr, "setEulerOrientation"))
+        {
+            // Read in the orientation in terms of Euler angles (heading,
+            // pitch, roll), convert that to a quaternion, and set that as the
+            // orientation
+            sscanf(lineBuf, "%*s %d %lf %lf %lf", &intValue, &(vector[0]),
+                &(vector[1]), &(vector[2]));
+            quat.setEulerRotation(VS_EULER_ANGLES_ZXY_R, vector[0], vector[1],
+                vector[2]);
+            setOrientation(intValue, quat);
+        }
+        else if (!strcmp(commandStr, "setTime"))
+        {
+            // Read in the time index and value and set it
+            sscanf(lineBuf, "%*s %d %lf", &intValue, &doubleValue);
+            setTime(intValue, doubleValue);
+        }
+        else if (!strcmp(commandStr, "setPauseTime"))
+        {
+            // Read in the pause time index and value and set it
+            sscanf(lineBuf, "%*s %d %lf", &intValue, &doubleValue);
+            setPauseTime(intValue, doubleValue);
+        }
+        else if (!strcmp(commandStr, "autoSetTimes"))
+        {
+            // Read in the total path time and run the auto set function
+            sscanf(lineBuf, "%*s %lf", &doubleValue);
+            autoSetTimes(doubleValue);
+        }
+        else if (!strcmp(commandStr, "startResume"))
+        {
+            // Start the sequence
+            startResume();
+        }
+        else if (!strcmp(commandStr, "pause"))
+        {
+            // Pause the sequence
+            pause();
+        }
+        else if (!strcmp(commandStr, "stop"))
+        {
+            // Stop the sequence
+            stop();
+        }
+        else
+        {
+            printf("vsPathMotion::configureFromFile: Unrecognized command "
+                "'%s'\n", commandStr);
+        }
+
+        // Strip trailing whitespace
+        fscanf(infile, " \n");
+    }
+
+    // Clean up
+    fclose(infile);
 }
 
 //------------------------------------------------------------------------
