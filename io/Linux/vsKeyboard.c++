@@ -51,7 +51,10 @@ vsKeyboard::vsKeyboard(int kbMode)
     for (i = 0; i < VS_KB_MAX_BUTTONS; i++)
     {
         if ((i < 'a') || (i > 'z'))
+        {
             button[i] = new vsInputButton();
+            (button[i])->ref();
+        }
     }
     
     // Map the lower-case letters to the buttons for the upper-case letters
@@ -75,7 +78,7 @@ vsKeyboard::~vsKeyboard()
         // be deleted when the same upper-case letter's button is deleted
         if (((i < 'a') || (i > 'z')) && (button[i]))
         {
-            delete button[i];
+            vsObject::unrefDelete(button[i]);
         }
     }
 }
