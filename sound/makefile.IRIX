@@ -1,0 +1,241 @@
+#!/bin/make
+#======================================================================
+#		makefile
+#======================================================================
+
+
+#----------------------------------------------------------------------
+#   Notes:
+#
+#	To add a new file to the system, simply list its source and
+#	object files immediately below, then run 'make dep' --- this 
+#	will make the new dependencies
+#
+
+#----------------------------------------------------------------------
+#                       Name of the library
+#----------------------------------------------------------------------
+LIBNAME = libvsSound.a
+
+#----------------------------------------------------------------------
+#			All Source and Object files
+#----------------------------------------------------------------------
+SRCS = \
+       vsSoundBuffer.c++ \
+       vsSoundListenerAttribute.c++ \
+       vsSoundPipe.c++ \
+       vsSoundSample.c++ \
+       vsSoundSourceAttribute.c++
+
+OBJS = \
+       vsSoundBuffer.o \
+       vsSoundListenerAttribute.o \
+       vsSoundPipe.o \
+       vsSoundSample.o \
+       vsSoundSourceAttribute.o
+
+#----------------------------------------------------------------------
+#			Misc. settings
+#----------------------------------------------------------------------
+OS = IRIX
+
+#----------------------------------------------------------------------
+#			Compiler settings
+#----------------------------------------------------------------------
+CC = cc
+CXX = CC
+AR = ar
+CFLAGS = -g -D$(OS) -n32 -mips3 -DSGI -xansi $(INCS)
+CXXFLAGS = -g -D$(OS) -xansi -n32 -DSGI -mips3 $(INCS)
+ARFLAGS = -rulc
+
+#----------------------------------------------------------------------
+#			Include file directories
+#----------------------------------------------------------------------
+INCS = \
+       -I../corelib \
+       -I../scene \
+       -I../math \
+       -I../input \
+       -I/ist/projects/vr2/usr/jdaly/openal/include \
+       -I/ist/projects/vr2/usr/jdaly/openal/linux/include
+
+#----------------------------------------------------------------------
+#			Default target
+#----------------------------------------------------------------------
+all: $(LIBNAME)
+
+#----------------------------------------------------------------------
+#			Library archive rules
+#----------------------------------------------------------------------
+$(LIBNAME): $(OBJS)
+	ar $(ARFLAGS) $(LIBNAME) $(OBJS)
+
+#----------------------------------------------------------------------
+#			Inference Rules
+#----------------------------------------------------------------------
+.c++.o:
+	$(CXX) $(CXXFLAGS) -c $< -o $*.o
+
+.c.o:
+	$(CXX) $(CXXFLAGS) -c $< -o $*.o
+
+clean:
+	rm -f *.o
+	rm -f core
+	rm -f $(LIBNAME)
+	rm -f makefile.*.bak
+
+#----------------------------------------------------------------------
+#			This is the dependency update rule
+#----------------------------------------------------------------------
+dep: depend
+depend:
+	makedepend -f makefile.IRIX -- $(CFLAGS) $(INCS) -- $(SRCS)
+#----------------------------------------------------------------------
+# Our automatically generated dependencies follow...
+# Please don't mess below this line
+# DO NOT DELETE
+
+vsSoundBuffer.o: vsSoundBuffer.h++
+vsSoundBuffer.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/al.h
+vsSoundBuffer.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/altypes.h
+vsSoundListenerAttribute.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/al.h
+vsSoundListenerAttribute.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/altypes.h
+vsSoundListenerAttribute.o: /usr/include/sys/time.h /usr/include/standards.h
+vsSoundListenerAttribute.o: /usr/include/sgidefs.h /usr/include/stdio.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfSCS.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfGroup.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfNode.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfUpdatable.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pf.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pr.h
+vsSoundListenerAttribute.o: /usr/include/sys/types.h /usr/include/ulocks.h
+vsSoundListenerAttribute.o: /usr/include/limits.h /usr/include/task.h
+vsSoundListenerAttribute.o: /usr/include/sys/prctl.h /usr/include/unistd.h
+vsSoundListenerAttribute.o: /usr/include/errno.h /usr/include/sys/errno.h
+vsSoundListenerAttribute.o: /usr/include/X11/X.h /usr/include/X11/Xlib.h
+vsSoundListenerAttribute.o: /usr/include/X11/Xfuncproto.h
+vsSoundListenerAttribute.o: /usr/include/X11/Xosdefs.h /usr/include/stddef.h
+vsSoundListenerAttribute.o: /usr/include/X11/Xutil.h
+vsSoundListenerAttribute.o: /usr/include/X11/extensions/XSGIvc.h
+vsSoundListenerAttribute.o: /usr/include/X11/extensions/XSGIvcstr.h
+vsSoundListenerAttribute.o: /usr/include/wctype.h /usr/include/wchar.h
+vsSoundListenerAttribute.o: /usr/include/locale_attr.h /usr/include/ctype.h
+vsSoundListenerAttribute.o: /usr/include/time.h /usr/include/GL/gl.h
+vsSoundListenerAttribute.o: /usr/include/GL/glx.h /usr/include/X11/Xmd.h
+vsSoundListenerAttribute.o: /usr/include/GL/glxtokens.h /usr/include/GL/glu.h
+vsSoundListenerAttribute.o: /usr/include/Performer/opengl.h
+vsSoundListenerAttribute.o: /usr/include/Performer/prmath.h
+vsSoundListenerAttribute.o: /usr/include/math.h
+vsSoundListenerAttribute.o: /usr/include/Performer/prstats.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfLinMath.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfObject.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfMemory.h
+vsSoundListenerAttribute.o: /usr/include/string.h /usr/include/bstring.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfType.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfStruct.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pfstats.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfBuffer.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfUpdate.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfLists.h
+vsSoundListenerAttribute.o: /usr/include/sys/stream.h
+vsSoundListenerAttribute.o: /usr/include/sys/strmdep.h
+vsSoundListenerAttribute.o: /usr/include/sys/cdefs.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfFrameStats.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pf/pfPipe.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfVideoChannel.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfList.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfCalligraphic.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfStats.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfDispList.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfGeoState.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfState.h
+vsSoundListenerAttribute.o: /usr/include/Performer/pr/pfGeoMath.h
+vsSoundListenerAttribute.o: vsSoundListenerAttribute.h++
+vsSoundListenerAttribute.o: ../scene/vsAttribute.h++ /usr/include/stdlib.h
+vsSoundListenerAttribute.o: ../corelib/vsGlobals.h++ vsSoundBuffer.h++
+vsSoundListenerAttribute.o: ../math/vsVector.h++ ../math/vsMatrix.h++
+vsSoundListenerAttribute.o: ../math/vsQuat.h++ ../scene/vsNode.h++
+vsSoundListenerAttribute.o: ../corelib/vsGrowableArray.h++
+vsSoundListenerAttribute.o: ../scene/vsAttributeList.h++
+vsSoundListenerAttribute.o: ../scene/vsComponent.h++
+vsSoundListenerAttribute.o: ../corelib/vsDatabaseLoader.h++
+vsSoundListenerAttribute.o: /usr/include/Performer/pfdb/pfflt.h
+vsSoundPipe.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/al.h
+vsSoundPipe.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/altypes.h
+vsSoundPipe.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/alc.h
+vsSoundPipe.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/alctypes.h
+vsSoundPipe.o: vsSoundPipe.h++
+vsSoundSample.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/al.h
+vsSoundSample.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/altypes.h
+vsSoundSample.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/alc.h
+vsSoundSample.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/alctypes.h
+vsSoundSample.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/alut.h
+vsSoundSample.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/altypes.h
+vsSoundSample.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/aluttypes.h
+vsSoundSample.o: /usr/include/stdio.h /usr/include/standards.h
+vsSoundSample.o: /usr/include/sgidefs.h /usr/include/stdlib.h
+vsSoundSample.o: vsSoundSample.h++ ../corelib/vsGlobals.h++ vsSoundBuffer.h++
+vsSoundSourceAttribute.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/al.h
+vsSoundSourceAttribute.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/altypes.h
+vsSoundSourceAttribute.o: /ist/projects/vr2/usr/jdaly/openal/linux/include/AL/alkludge.h
+vsSoundSourceAttribute.o: /ist/projects/vr2/usr/jdaly/openal/linux/include/AL/alkludgetypes.h
+vsSoundSourceAttribute.o: /ist/projects/vr2/usr/jdaly/openal/include/AL/altypes.h
+vsSoundSourceAttribute.o: /usr/include/sys/time.h /usr/include/standards.h
+vsSoundSourceAttribute.o: /usr/include/sgidefs.h /usr/include/stdio.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfSCS.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfGroup.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfNode.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfUpdatable.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pf.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pr.h
+vsSoundSourceAttribute.o: /usr/include/sys/types.h /usr/include/ulocks.h
+vsSoundSourceAttribute.o: /usr/include/limits.h /usr/include/task.h
+vsSoundSourceAttribute.o: /usr/include/sys/prctl.h /usr/include/unistd.h
+vsSoundSourceAttribute.o: /usr/include/errno.h /usr/include/sys/errno.h
+vsSoundSourceAttribute.o: /usr/include/X11/X.h /usr/include/X11/Xlib.h
+vsSoundSourceAttribute.o: /usr/include/X11/Xfuncproto.h
+vsSoundSourceAttribute.o: /usr/include/X11/Xosdefs.h /usr/include/stddef.h
+vsSoundSourceAttribute.o: /usr/include/X11/Xutil.h
+vsSoundSourceAttribute.o: /usr/include/X11/extensions/XSGIvc.h
+vsSoundSourceAttribute.o: /usr/include/X11/extensions/XSGIvcstr.h
+vsSoundSourceAttribute.o: /usr/include/wctype.h /usr/include/wchar.h
+vsSoundSourceAttribute.o: /usr/include/locale_attr.h /usr/include/ctype.h
+vsSoundSourceAttribute.o: /usr/include/time.h /usr/include/GL/gl.h
+vsSoundSourceAttribute.o: /usr/include/GL/glx.h /usr/include/X11/Xmd.h
+vsSoundSourceAttribute.o: /usr/include/GL/glxtokens.h /usr/include/GL/glu.h
+vsSoundSourceAttribute.o: /usr/include/Performer/opengl.h
+vsSoundSourceAttribute.o: /usr/include/Performer/prmath.h /usr/include/math.h
+vsSoundSourceAttribute.o: /usr/include/Performer/prstats.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfLinMath.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfObject.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfMemory.h
+vsSoundSourceAttribute.o: /usr/include/string.h /usr/include/bstring.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfType.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfStruct.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pfstats.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfBuffer.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfUpdate.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfLists.h
+vsSoundSourceAttribute.o: /usr/include/sys/stream.h
+vsSoundSourceAttribute.o: /usr/include/sys/strmdep.h /usr/include/sys/cdefs.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfFrameStats.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pf/pfPipe.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfVideoChannel.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfList.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfCalligraphic.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfStats.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfDispList.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfGeoState.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfState.h
+vsSoundSourceAttribute.o: /usr/include/Performer/pr/pfGeoMath.h
+vsSoundSourceAttribute.o: vsSoundSourceAttribute.h++ ../scene/vsAttribute.h++
+vsSoundSourceAttribute.o: /usr/include/stdlib.h ../corelib/vsGlobals.h++
+vsSoundSourceAttribute.o: vsSoundBuffer.h++ ../math/vsVector.h++
+vsSoundSourceAttribute.o: ../math/vsMatrix.h++ ../math/vsQuat.h++
+vsSoundSourceAttribute.o: ../scene/vsNode.h++ ../corelib/vsGrowableArray.h++
+vsSoundSourceAttribute.o: ../scene/vsAttributeList.h++
+vsSoundSourceAttribute.o: ../scene/vsComponent.h++
+vsSoundSourceAttribute.o: ../corelib/vsDatabaseLoader.h++
+vsSoundSourceAttribute.o: /usr/include/Performer/pfdb/pfflt.h
