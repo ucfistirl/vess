@@ -101,7 +101,6 @@ void vsCal3DLoader::parseFile(char *filename)
     int fileSize;
     int maxRead;
     int fileLineLength;
-    char *tokenBuffer;
     char *fileLine;
     char *fields;
     char *fieldValue;
@@ -139,7 +138,6 @@ void vsCal3DLoader::parseFile(char *filename)
 
     // Allocate a token and line buffer, to the maximum possible line size.
     fileLine = new char[fileSize];
-    tokenBuffer = new char[fileSize];
     maxRead = fileSize;
 
     // While there are still lines to read, process them.
@@ -231,7 +229,6 @@ void vsCal3DLoader::parseFile(char *filename)
     // Close the file and free the buffers.
     fclose(filePointer);
     delete [] fileLine;
-    delete [] tokenBuffer;
 }
 
 //------------------------------------------------------------------------
