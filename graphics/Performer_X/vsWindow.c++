@@ -31,201 +31,6 @@
 // object and creating connections with that, verifying that the window is
 // being properly displayed, recording some size data from the window
 // manager, and configuring the window with its default position and size.
-// ------------------------------------------------------------------------
-vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
-{
-    vsPipe *parentPipe;
-    Display *xWindowDisplay;
-    Window xWindowID;
-    Window *childPointer;
-    unsigned int childCount;
-    Window parentID, rootID;
-    XWindowAttributes xattr;
-    int result;
-    
-    // No panes attached to start with
-    childPaneCount = 0;
-    
-    // Get the parent screen and pipe objects for this window
-    parentScreen = parent;
-    parentPipe = parentScreen->getParentPipe();
-    
-    // Create a new Performer rendering window
-    performerPipeWindow = new pfPipeWindow(parentPipe->getBaseLibraryObject());
-    performerPipeWindow->ref();
-    
-    // Add this window to the parent screen's window list
-    parentScreen->addWindow(this);
-    
-    // Window configuration
-    performerPipeWindow->setMode(PFWIN_ORIGIN_LL, 0);
-    if (hideBorder)
-        performerPipeWindow->setMode(PFWIN_NOBORDER, 1);
-    performerPipeWindow->setOriginSize(VS_WINDOW_DEFAULT_XPOS,
-        VS_WINDOW_DEFAULT_YPOS, VS_WINDOW_DEFAULT_WIDTH,
-        VS_WINDOW_DEFAULT_HEIGHT);
-
-    // WORKAROUND:  Performer 2.5.1 seems to have introduced an annoying
-    //              glitch where the program will hang if a pfPipeWindow
-    //              is opened too soon after calling pfInit()  A 1-
-    //              second sleep seems to get around this.
-    sleep(1);
-
-    // Display the Performer window
-    performerPipeWindow->open();
-
-    // Force the window open by repeatedly calling the X server to
-    // flush the stream
-    xWindowDisplay = pfGetCurWSConnection();
-    while (!(performerPipeWindow->isOpen()))
-    {
-        pfFrame();
-        XFlush(xWindowDisplay);
-    }
-
-    // Get the window that Performer thinks is topmost, and then query the
-    // X server to determine if that window really is the topmost one.
-    xWindowID = performerPipeWindow->getWSWindow();
-
-    // Keep trying until we reach the window we want
-    do
-    {
-        // Query X for the ID of the window's parent window
-        result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
-            &childPointer, &childCount);
-        XFree(childPointer);
-
-        // Store the parent window ID, if it's something meaningful. (zero
-        // means we're at the screen's root window; that's too far.)
-        if (result == 0)
-        {
-            pfFrame();
-            XFlush(xWindowDisplay);
-        }
-        else if (parentID != rootID)
-            xWindowID = parentID;
-    }
-    while (rootID != parentID);
-
-    // Store the ID of the topmost window
-    topWindowID = xWindowID;
-
-    // Attempt to determine the size of the window manager's border for
-    // this window by checking the difference between Performer's idea
-    // of the window size and X's one.
-    XGetWindowAttributes(xWindowDisplay, topWindowID, &xattr);
-    xPositionOffset = VS_WINDOW_DEFAULT_XPOS - xattr.x;
-    yPositionOffset = VS_WINDOW_DEFAULT_YPOS - xattr.y;
-    widthOffset = xattr.width - VS_WINDOW_DEFAULT_WIDTH;
-    heightOffset = xattr.height - VS_WINDOW_DEFAULT_HEIGHT;
-    
-    // Set the window's location and size to default values
-    setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
-    setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
-}
-
-// ------------------------------------------------------------------------
-// Constructor - Initializes the window by creating a Performer pipe window
-// object and creating connections with that, verifying that the window is
-// being properly displayed, recording some size data from the window
-// manager, and configuring the window with the given position and size.
-// ------------------------------------------------------------------------
-vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
-                   int hideBorder) : childPaneList(1, 1)
-{
-    vsPipe *parentPipe;
-    Display *xWindowDisplay;
-    Window xWindowID;
-    Window *childPointer;
-    unsigned int childCount;
-    Window parentID, rootID;
-    XWindowAttributes xattr;
-    int result;
-    
-    // No panes attached to start with
-    childPaneCount = 0;
-    
-    // Get the parent screen and pipe objects for this window
-    parentScreen = parent;
-    parentPipe = parentScreen->getParentPipe();
-    
-    // Create a new Performer rendering window
-    performerPipeWindow = new pfPipeWindow(parentPipe->getBaseLibraryObject());
-    performerPipeWindow->ref();
-    
-    // Add this window to the parent screen's window list
-    parentScreen->addWindow(this);
-    
-    // Window configuration
-    performerPipeWindow->setMode(PFWIN_ORIGIN_LL, 0);
-    if (hideBorder)
-        performerPipeWindow->setMode(PFWIN_NOBORDER, 1);
-    performerPipeWindow->setOriginSize(x, y, width, height);
-
-    // WORKAROUND:  Performer 2.5.1 seems to have introduced an annoying
-    //              glitch where the program will hang if a pfPipeWindow
-    //              is opened too soon after calling pfInit()  A 1-
-    //              second sleep seems to get around this.
-    sleep(1);
-
-    // Display the Performer window
-    performerPipeWindow->open();
-
-    // Force the window open by repeatedly calling the X server to
-    // flush the stream
-    xWindowDisplay = pfGetCurWSConnection();
-    while (!(performerPipeWindow->isOpen()))
-    {
-        pfFrame();
-        XFlush(xWindowDisplay);
-    }
-
-    // Get the window that Performer thinks is topmost, and then query the
-    // X server to determine if that window really is the topmost one.
-    xWindowID = performerPipeWindow->getWSWindow();
-
-    // Keep trying until we reach the window we want
-    do
-    {
-        // Query X for the ID of the window's parent window
-        result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
-            &childPointer, &childCount);
-        XFree(childPointer);
-
-        // Store the parent window ID, if it's something meaningful. (zero
-        // means we're at the screen's root window; that's too far.)
-        if (result == 0)
-        {
-            pfFrame();
-            XFlush(xWindowDisplay);
-        }
-        else if (parentID != rootID)
-            xWindowID = parentID;
-    }
-    while (rootID != parentID);
-
-    // Store the ID of the topmost window
-    topWindowID = xWindowID;
-
-    // Attempt to determine the size of the window manager's border for
-    // this window by checking the difference between Performer's idea
-    // of the window size and X's one.
-    XGetWindowAttributes(xWindowDisplay, topWindowID, &xattr);
-    xPositionOffset = x - xattr.x;
-    yPositionOffset = y - xattr.y;
-    widthOffset = xattr.width - width;
-    heightOffset = xattr.height - height;
-    
-    // Set the window's location and size to default values
-    setPosition(x, y);
-    setSize(width, height);
-}
-
-// ------------------------------------------------------------------------
-// Constructor - Initializes the window by creating a Performer pipe window
-// object and creating connections with that, verifying that the window is
-// being properly displayed, recording some size data from the window
-// manager, and configuring the window with its default position and size.
 // Also configures the window's buffer settings to be either mono or stereo
 // based on the value of the stereo parameter
 // ------------------------------------------------------------------------
@@ -491,7 +296,18 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
     Window parentID, rootID;
     XWindowAttributes xattr;
     int result;
-    
+
+    // Check the value of the xWin parameter, and print a warning if it
+    // looks like the user is trying to use the old vsWindow constructor
+    if ((xWin == 0) || (xWin == 1) || (xWin == -1))
+    {
+        printf("vsWindow::vsWindow:  WARNING:  X Window parameter is ");
+        printf("probably not valid (%d).\n", xWin);
+        printf("    The vsWindow::vsWindow(parentScreen, hideBorder) form\n");
+        printf("    of the vsWindow constructor was removed in VESS 3.0.0\n\n");        printf("    If a BadWindow error appears below, make sure your code\n");        printf("    is not using this outdated constructor.\n");
+    }
+
+    // Start with no panes attached
     childPaneCount = 0;
     
     // Get the parent screen and pipe

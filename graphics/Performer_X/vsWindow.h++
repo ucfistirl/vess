@@ -59,9 +59,6 @@ VS_INTERNAL:
 
 public:
 
-                       vsWindow(vsScreen *parent, int hideBorder);
-                       vsWindow(vsScreen *parent, int x, int y, int width,
-                                int height, int hideBorder);
                        vsWindow(vsScreen *parent, int hideBorder, int stereo);
                        vsWindow(vsScreen *parent, int x, int y, int width,
                                 int height, int hideBorder, int stereo);

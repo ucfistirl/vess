@@ -34,509 +34,13 @@ int vsWindow::windowCount = 0;
 // ------------------------------------------------------------------------
 // Constructor - Initializes the window by creating a GLX window and 
 // creating connections with that, verifying that the window is being 
-// properly displayed, recording some size data from the window
-// manager, and configuring the window with its default position and size.
-// ------------------------------------------------------------------------
-vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
-{
-    vsPipe *parentPipe;
-    Display *xWindowDisplay;
-    XVisualInfo *visual;
-    Window xWindowID;
-    Window *childPointer;
-    unsigned int childCount;
-    Window parentID, rootID;
-    XWindowAttributes winXAttr, topXAttr;
-    Colormap colorMap;
-    PropMotifWmHints motifHints;
-    Atom property, propertyType;
-    XSetWindowAttributes setWinAttrs;
-    XEvent event;
-    int result;
-
-    // Default frame buffer configuration
-    static int attributeList[] =
-    {
-        GLX_RGBA,
-        GLX_RED_SIZE, 8,
-        GLX_GREEN_SIZE, 8,
-        GLX_BLUE_SIZE, 8,
-        GLX_DEPTH_SIZE, 24,
-        GLX_STENCIL_SIZE, 1,
-        GLX_DOUBLEBUFFER,
-        0   
-    };
-    
-    // Initialize the pane count
-    childPaneCount = 0;
-
-    // Assign this window an index and increment the window count.
-    // Note: this procedure may need to be protected for thread-safeness 
-    // if OSG becomes multi-threaded.
-    windowNumber = windowCount++;
-    
-    // Get the parent vsScreen and vsPipe
-    parentScreen = parent;
-    parentPipe = parentScreen->getParentPipe();
-    
-    // Get the X display from the pipe
-    xWindowDisplay = parentPipe->getXDisplay();
-
-    // Choose an XVisual most closely matching the default attributes
-    visual = glXChooseVisual(xWindowDisplay, parentScreen->getScreenIndex(), 
-        attributeList);
-
-    // Make sure the visual is valid
-    if (visual == NULL)
-    {
-        // Invalid visual, print an error
-        printf("vsWindow::vsWindow: Unable to choose an appropriate frame-"
-               "buffer configuration!\n");
-
-        // Signal this window object is not valid
-        validObject = false;
-
-        // Bail out
-        return;
-    }
-
-    // Create an OpenGL rendering context using direct rendering
-    glContext = glXCreateContext(xWindowDisplay, visual, NULL, GL_TRUE);
-
-    // Make sure the context is valid
-    if (glContext == NULL)
-    {
-        // Invalid context, print an error
-        printf("vsWindow::vsWindow:  Unable to create an OpenGL context!\n");
-
-        // Signal this window object is not valid
-        validObject = false;
-
-        // Bail out
-        return;
-    }
-
-    // Create a color map for the window
-    colorMap = XCreateColormap(xWindowDisplay, 
-                               RootWindow(xWindowDisplay, visual->screen),
-                               visual->visual, AllocNone);
-
-    // Make sure the color map is valid
-    if (colorMap == 0)
-    {
-        // Invalid colormap, print an error
-        printf("vsWindow::vsWindow:  Unable to create colormap for visual!\n");
-
-        // Signal this window object is not valid
-        validObject = false;
-
-        // Bail out
-        return;
-    }
-
-    // Create the window using the colormap we created, and with the event
-    // mask set to notify us of window structure changes (size, position, etc)
-    setWinAttrs.colormap = colorMap;
-    setWinAttrs.border_pixel = 0;
-    setWinAttrs.event_mask = StructureNotifyMask | KeyPressMask;
-    xWindow = XCreateWindow(xWindowDisplay, RootWindow(xWindowDisplay, 
-                            visual->screen), VS_WINDOW_DEFAULT_XPOS, 
-                            VS_WINDOW_DEFAULT_YPOS, VS_WINDOW_DEFAULT_WIDTH, 
-                            VS_WINDOW_DEFAULT_HEIGHT, 0, visual->depth, 
-                            InputOutput, visual->visual, 
-                            CWBorderPixel|CWColormap|CWEventMask, 
-                            &setWinAttrs);
-
-    // Make sure the X window is valid
-    if (xWindow == 0)
-    {
-        // Print an error
-        printf("vsWindow::vsWindow:  Unable to create X Window!\n");
-
-        // Signal that this window object is not valid
-        validObject = false;
-
-        // Bail out
-        return;
-    }
-
-    // Make the border hidden if requested
-    if (hideBorder)
-    {
-        // Use the Motif interface for hiding window decorations.  Most 
-        // modern window managers will honor this request.
-
-        // Get the atom for the decorations property.  The last argument
-        // specifies that we only want the property if it exists (i.e.:
-        // don't create it).
-        property = XInternAtom(xWindowDisplay, "_MOTIF_WM_HINTS", True);
-
-        // Make sure the WM Hints property is valid
-        if (property == 0)
-        {
-            // The window manager doesn't support this property
-            printf("vsWindow::vsWindow:  No window manager support for ");
-            printf("decoration hints.\n");
-            printf("                     Unable to hide the window border.\n");
-        }
-        else
-        {
-            // Set up the property, zero in the decorations field means
-            // no decorations
-            motifHints.flags = MWM_HINTS_DECORATIONS;
-            motifHints.decorations = 0;
-
-            // Change the property
-            propertyType = property;
-            XChangeProperty(xWindowDisplay, xWindow, property, propertyType,
-                            sizeof(unsigned long) * 8, PropModeReplace, 
-                            (unsigned char *) &motifHints,
-                            PROP_MOTIF_WM_HINTS_ELEMENTS);
-        }
-        
-    }
-
-    // Map (ie: open) the window and wait for it to finish mapping
-    XMapWindow(xWindowDisplay, xWindow);
-    XIfEvent(xWindowDisplay, &event, vsWindow::waitForMap, (char *)xWindow);
-
-    // Add the window to its parent screen
-    parentScreen->addWindow(this);
-
-    // For some reason (probably window manager interaction), the window
-    // does not seem to appear at the position it was supposed to be 
-    // created.  To fix this, we'll move it there and flush the display
-    // to make sure it happens.
-    setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
-    XFlush(xWindowDisplay);
-
-    // After mapping the window, the window manager may reparent the
-    // window to add its own stuff (decorations, etc.).  Query the X
-    // Windows tree attached to this window to find the topmost window
-    // in the tree.  This should let us measure the size of the window
-    // manager decorations.
-
-    // Start from the window we just mapped
-    xWindowID = xWindow;
-
-    // Keep trying until we reach the top window
-    do
-    {
-        // Query the tree from the current window
-        result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
-            &childPointer, &childCount);
-
-        // Free the child list that's returned (we don't need it for anything)
-        XFree(childPointer);
-
-        // See if the query succeeded
-        if (result == 0)
-        {
-            // Failed, flush the display and try again
-            XFlush(xWindowDisplay);
-        }
-        else 
-        {
-            // Query succeeded, if we're not yet at the top, move the
-            // current window id to the parent and query again.  Note that
-            // we don't want the root window, because this is the entire
-            // desktop.  We want the window one level down from the root.
-            if (parentID != rootID)
-                xWindowID = parentID;
-        }
-    }
-    while (rootID != parentID);
-
-    // Keep track of the topmost window
-    topWindowID = xWindowID;
-
-    // Flush the display to ensure every event has been processed before
-    // we take our measurements
-    XFlush(xWindowDisplay);
-
-    // See if the window was reparented
-    if (xWindow != topWindowID)
-    {
-        // Attempt to determine the size of the window manager's border for
-        // this window by checking the position of the main window relative
-        // to its parent, and finding the difference in width and height.
-        XGetWindowAttributes(xWindowDisplay, xWindow, &winXAttr);
-        XGetWindowAttributes(xWindowDisplay, topWindowID, &topXAttr);
-        xPositionOffset = winXAttr.x;
-        yPositionOffset = winXAttr.y;
-        widthOffset = topXAttr.width - winXAttr.width;
-        heightOffset = topXAttr.height - winXAttr.height;
-
-        // Adjust the window using the offsets we computed
-        setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
-        setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
-        XFlush(xWindowDisplay);
-    }
-    else
-    {
-        // Window was not reparented, initialize the offsets to zero
-        xPositionOffset = 0;
-        yPositionOffset = 0;
-        widthOffset = 0;
-        heightOffset = 0;
-    }
-}
-
-// ------------------------------------------------------------------------
-// Constructor - Initializes the window by creating a GLX window and 
-// creating connections with that, verifying that the window is being 
-// properly displayed, recording some size data from the window
-// manager, and configuring the window with the specified position and
-// size
-// ------------------------------------------------------------------------
-vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
-                   int height, int hideBorder) : childPaneList(1, 1)
-{
-    vsPipe *parentPipe;
-    Display *xWindowDisplay;
-    XVisualInfo *visual;
-    Window xWindowID;
-    Window *childPointer;
-    unsigned int childCount;
-    Window parentID, rootID;
-    XWindowAttributes winXAttr, topXAttr;
-    Colormap colorMap;
-    PropMotifWmHints motifHints;
-    Atom property, propertyType;
-    XSetWindowAttributes setWinAttrs;
-    XEvent event;
-    int result;
-
-    // Default frame buffer configuration
-    static int attributeList[] =
-    {
-        GLX_RGBA,
-        GLX_RED_SIZE, 8,
-        GLX_GREEN_SIZE, 8,
-        GLX_BLUE_SIZE, 8,
-        GLX_DEPTH_SIZE, 24,
-        GLX_STENCIL_SIZE, 1,
-        GLX_DOUBLEBUFFER,
-        0   
-    };
-    
-    // Initialize the pane count
-    childPaneCount = 0;
-    
-    // Assign this window an index and increment the window count.
-    // Note: this procedure may need to be protected for thread-safeness 
-    // if OSG becomes multi-threaded.
-    windowNumber = windowCount++;
-    
-    // Get the parent vsScreen and vsPipe
-    parentScreen = parent;
-    parentPipe = parentScreen->getParentPipe();
-    
-    // Get the X display from the pipe
-    xWindowDisplay = parentPipe->getXDisplay();
-
-    // Choose an XVisual most closely matching the default attributes
-    visual = glXChooseVisual(xWindowDisplay, parentScreen->getScreenIndex(), 
-        attributeList);
-
-    // Make sure the visual is valid
-    if (visual == NULL)
-    {
-        // Invalid visual, print an error
-        printf("vsWindow::vsWindow: Unable to choose an appropriate frame-"
-               "buffer configuration!\n");
-
-        // Signal this window object is not valid
-        validObject = false;
-
-        // Bail out
-        return;
-    }
-
-    // Create an OpenGL rendering context using direct rendering
-    glContext = glXCreateContext(xWindowDisplay, visual, NULL, GL_TRUE);
-
-    // Make sure the context is valid
-    if (glContext == NULL)
-    {
-        // Invalid context, print an error
-        printf("vsWindow::vsWindow:  Unable to create an OpenGL context!\n");
-
-        // Signal this window object is not valid
-        validObject = false;
-
-        // Bail out
-        return;
-    }
-
-    // Create a color map for the window
-    colorMap = XCreateColormap(xWindowDisplay, 
-                               RootWindow(xWindowDisplay, visual->screen),
-                               visual->visual, AllocNone);
-
-    // Make sure the color map is valid
-    if (colorMap == 0)
-    {
-        // Invalid colormap, print an error
-        printf("vsWindow::vsWindow:  Unable to create colormap for visual!\n");
-
-        // Signal this window object is not valid
-        validObject = false;
-
-        // Bail out
-        return;
-    }
-
-    // Create the window using the colormap we created, and with the event
-    // mask set to notify us of window structure changes (size, position, etc)
-    setWinAttrs.colormap = colorMap;
-    setWinAttrs.border_pixel = 0;
-    setWinAttrs.event_mask = StructureNotifyMask | KeyPressMask;
-    xWindow = XCreateWindow(xWindowDisplay, RootWindow(xWindowDisplay, 
-                            visual->screen), xPosition, 
-                            yPosition, width, height, 0, visual->depth, 
-                            InputOutput, visual->visual, 
-                            CWBorderPixel|CWColormap|CWEventMask, 
-                            &setWinAttrs);
-
-    // Make sure the X Window is valid
-    if (xWindow == 0)
-    {
-        // Invalid window, print an error
-        printf("vsWindow::vsWindow:  Unable to create X Window!\n");
-
-        // Flag this object as invalid
-        validObject = false;
-
-        // Bail out
-        return;
-    }
-
-    // Make the border hidden if requested
-    if (hideBorder)
-    {
-        // Use the Motif interface for hiding window decorations.  Most 
-        // modern window managers will honor this request.
-
-        // Get the atom for the decorations property.  The last argument
-        // specifies that we only want the property if it exists (i.e.:
-        // don't create it).
-        property = XInternAtom(xWindowDisplay, "_MOTIF_WM_HINTS", True);
-        if (property == 0)
-        {
-            // The window manager doesn't support this property
-            printf("vsWindow::vsWindow:  No window manager support for ");
-            printf("decoration hints.\n");
-            printf("                     Unable to hide the window border.\n");
-        }
-        else
-        {
-            // Set up the property, zero in the decorations field means
-            // no decorations
-            motifHints.flags = MWM_HINTS_DECORATIONS;
-            motifHints.decorations = 0;
-
-            // Change the property
-            propertyType = property;
-            XChangeProperty(xWindowDisplay, xWindow, property, propertyType,
-                            sizeof(unsigned long) * 8, PropModeReplace, 
-                            (unsigned char *) &motifHints,
-                            PROP_MOTIF_WM_HINTS_ELEMENTS);
-        }
-    }
-
-    // Map (ie: open) the window and wait for it to finish mapping
-    XMapWindow(xWindowDisplay, xWindow);
-    XIfEvent(xWindowDisplay, &event, vsWindow::waitForMap, (char *)xWindow);
-
-    // Add the window to its parent screen
-    parentScreen->addWindow(this);
-
-    // After mapping the window, the window manager may reparent the
-    // window to add its own stuff (decorations, etc.).  Query the X
-    // Windows tree attached to this window to find the topmost window
-    // in the tree.  This should let us measure the size of the window
-    // manager decorations.
-
-    // Start from the window we just mapped
-    xWindowID = xWindow;
-
-    // Keep trying until we reach the top window
-    do
-    {
-        // Query the tree from the current window
-        result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
-            &childPointer, &childCount);
-
-        // Free the child list that's returned (we don't need it for anything)
-        XFree(childPointer);
-
-        // See if the query succeeded
-        if (result == 0)
-        {
-            // Failed, flush the display and try again
-            XFlush(xWindowDisplay);
-        }
-        else
-        {
-            // Query succeeded, if we're not yet at the top, move the
-            // current window id to the parent and query again.  Note that
-            // we don't want the root window, because this is the entire
-            // desktop.  We want the window one level down from the root.
-            if (parentID != rootID)
-                xWindowID = parentID;
-        }
-    }
-    while (rootID != parentID);
-
-    // Keep track of the topmost window
-    topWindowID = xWindowID;
-
-    // For some reason (probably window manager interaction), the window
-    // does not seem to appear at the position it was supposed to be 
-    // created.  To fix this, we'll move it there and flush the display
-    // to make sure it happens.
-    setPosition(xPosition, yPosition);
-    XFlush(xWindowDisplay);
-
-    // See if the window was reparented
-    if (xWindow != topWindowID)
-    {
-        // Attempt to determine the size of the window manager's border for
-        // this window by checking the position of the main window relative
-        // to its parent, and finding the difference in width and height.
-        XGetWindowAttributes(xWindowDisplay, xWindow, &winXAttr);
-        XGetWindowAttributes(xWindowDisplay, topWindowID, &topXAttr);
-        xPositionOffset = winXAttr.x;
-        yPositionOffset = winXAttr.y;
-        widthOffset = topXAttr.width - winXAttr.width;
-        heightOffset = topXAttr.height - winXAttr.height;
-
-        // Adjust the window using the offsets we computed
-        setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
-        setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
-        XFlush(xWindowDisplay);
-    }
-    else
-    {
-        // Window was not reparented, initialize the offsets to zero
-        xPositionOffset = 0;
-        yPositionOffset = 0;
-        widthOffset = 0;
-        heightOffset = 0;
-    }
-}
-
-// ------------------------------------------------------------------------
-// Constructor - Initializes the window by creating a GLX window and 
-// creating connections with that, verifying that the window is being 
 // properly displayed, recording some size data from the window manager, 
 // and configuring the window with its default position and size.  Also 
 // configures the window's buffer settings to be either mono or stereo
 // based on the value of the stereo parameter
 // ------------------------------------------------------------------------
 vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo) 
-         : childPaneList(1, 1)
+    : childPaneList(1, 1)
 {
     vsPipe *parentPipe;
     Display *xWindowDisplay;
@@ -789,9 +293,8 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
 // configures the window's buffer settings to be either mono or stereo
 // based on the value of the stereo parameter
 // ------------------------------------------------------------------------
-vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
-                   int height, int hideBorder, int stereo) 
-         : childPaneList(1, 1)
+vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height, 
+                   int hideBorder, int stereo) : childPaneList(1, 1)
 {
     vsPipe *parentPipe;
     Display *xWindowDisplay;
@@ -902,9 +405,8 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
     setWinAttrs.border_pixel = 0;
     setWinAttrs.event_mask = StructureNotifyMask;
     xWindow = XCreateWindow(xWindowDisplay, RootWindow(xWindowDisplay, 
-                            visual->screen), xPosition, yPosition,
-                            width, height, 0, visual->depth, InputOutput, 
-                            visual->visual, 
+                            visual->screen), x, y, width, height, 0, 
+                            visual->depth, InputOutput, visual->visual, 
                             CWBorderPixel|CWColormap|CWEventMask, 
                             &setWinAttrs);
 
@@ -966,7 +468,7 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
     // does not seem to appear at the position it was supposed to be 
     // created.  To fix this, we'll move it there and flush the display
     // to make sure it happens.
-    setPosition(xPosition, yPosition);
+    setPosition(x, y);
     XFlush(xWindowDisplay);
 
     // After mapping the window, the window manager may reparent the
@@ -1017,14 +519,14 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
         // to its parent, and finding the difference in width and height.
         XGetWindowAttributes(xWindowDisplay, xWindow, &winXAttr);
         XGetWindowAttributes(xWindowDisplay, topWindowID, &topXAttr);
-        xPositionOffset = winXAttr.x;
-        yPositionOffset = winXAttr.y;
-        widthOffset = topXAttr.width - winXAttr.width;
-        heightOffset = topXAttr.height - winXAttr.height;
+        xPositionOffset = x - winXAttr.x;
+        yPositionOffset = y - winXAttr.y;
+        widthOffset = topXAttr.width - width;
+        heightOffset = topXAttr.height - height;
 
         // Adjust the window using the offsets we computed
-        setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
-        setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
+        setPosition(x, y);
+        setSize(width, height);
         XFlush(xWindowDisplay);
     }
     else
@@ -1055,6 +557,18 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
     unsigned int childCount;
     Window parentID, rootID;
     int result;
+
+    // Check the value of the xWin parameter, and print a warning if it
+    // looks like the user is trying to use the old vsWindow constructor
+    if ((xWin == 0) || (xWin == 1) || (xWin == -1))
+    {
+        printf("vsWindow::vsWindow:  WARNING:  X Window parameter is ");
+        printf("probably not valid (%d).\n", xWin);
+        printf("    The vsWindow::vsWindow(parentScreen, hideBorder) form\n");
+        printf("    of the vsWindow constructor was removed in VESS 3.0.0\n\n");
+        printf("    If a BadWindow error appears below, make sure your code\n");
+        printf("    is not using this outdated constructor.\n");
+    }
 
     // Initialize the pane count
     childPaneCount = 0;
