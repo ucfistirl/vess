@@ -258,7 +258,8 @@ void vsDrivingMotion::update()
     {
         if (steeringMode == VS_DM_STEER_RELATIVE)
         {
-            dHeading = -(steering->getPosition()) * 45.0 * currentSpeed;
+            dHeading = -(steering->getPosition()) * steeringRate * 
+                currentSpeed;
         }
         else
         {
