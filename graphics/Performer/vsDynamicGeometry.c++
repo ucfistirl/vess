@@ -582,6 +582,14 @@ void vsDynamicGeometry::setBinding(int whichData, int binding)
         case VS_GEOMETRY_TEXTURE7_COORDS:
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return;
+            }
                                                                                 
             // Texture coordinate binding must be none or per-vertex
             // (no other binding makes sense).
@@ -598,6 +606,48 @@ void vsDynamicGeometry::setBinding(int whichData, int binding)
             performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit, 
                 performerBinding, texCoordList[unit], NULL);
             texCoordBinding[unit] = performerBinding;
+            break;
+
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            printf("vsGeometry::setBinding: Vertex weights not supported in "
+                "vsDynamicGeometry.\n");
+            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::setBinding: Alternate colors not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::setBinding: Fog coordinates not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+            printf("vsGeometry::setBinding: User data attributes not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::setBinding: Generic attributes not supported "
+                "under Performer.\n");
             break;
 
         default:
@@ -620,12 +670,15 @@ int vsDynamicGeometry::getBinding(int whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
             return VS_GEOMETRY_BIND_PER_VERTEX;
+
         case VS_GEOMETRY_NORMALS:
             result = normalBinding;
             break;
+
         case VS_GEOMETRY_COLORS:
             result = colorBinding;
             break;
+
         case VS_GEOMETRY_TEXTURE0_COORDS:
         case VS_GEOMETRY_TEXTURE1_COORDS:
         case VS_GEOMETRY_TEXTURE2_COORDS:
@@ -637,8 +690,59 @@ int vsDynamicGeometry::getBinding(int whichData)
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
                                                                                 
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return VS_GEOMETRY_BIND_NONE;
+            }
+                                                                                
             result = texCoordBinding[unit];
             break;
+
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            printf("vsGeometry::getBinding: Vertex weights not supported in "
+                "vsDynamicGeometry.\n");
+            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::getBinding: Alternate colors not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::getBinding: Fog coordinates not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+            printf("vsGeometry::getBinding: User data attributes not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::getBinding: Generic attributes not supported "
+                "under Performer.\n");
+            break;
+
         default:
             printf("vsDynamicGeometry::getBinding: Unrecognized data value\n");
             return -1;
@@ -759,6 +863,14 @@ void vsDynamicGeometry::setData(int whichData, int dataIndex, vsVector data)
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
                                                                                 
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return;
+            }
+                                                                                
             // Validate the index
             if (dataIndex >= texCoordListSize[unit])
             {
@@ -777,6 +889,48 @@ void vsDynamicGeometry::setData(int whichData, int dataIndex, vsVector data)
             // Copy the data from the vector into the texture coordinate list
             for (loop = 0; loop < 2; loop++)
                 (texCoordList[unit][dataIndex])[loop] = data[loop];
+            break;
+
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            printf("vsGeometry::setData: Vertex weights not supported in "
+                "vsDynamicGeometry.\n");
+            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::setData: Alternate colors not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::setData: Fog coordinates not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+            printf("vsGeometry::setData: User data attributes not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::setData: Generic attributes not supported "
+                "under Performer.\n");
             break;
 
         default:
@@ -870,6 +1024,14 @@ vsVector vsDynamicGeometry::getData(int whichData, int dataIndex)
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
 
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return result;
+            }
+                                                                                
             // Validate the index
             if (dataIndex >= texCoordListSize[unit])
             {
@@ -883,6 +1045,48 @@ vsVector vsDynamicGeometry::getData(int whichData, int dataIndex)
             // Copy the texture coordinate in question 
             for (loop = 0; loop < 2; loop++)
                 result[loop] = (texCoordList[unit][dataIndex])[loop];
+            break;
+
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            printf("vsGeometry::getData: Vertex weights not supported in "
+                "vsDynamicGeometry.\n");
+            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::getData: Alternate colors not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::getData: Fog coordinates not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+            printf("vsGeometry::getData: User data attributes not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::getData: Generic attributes not supported "
+                "under Performer.\n");
             break;
 
         default:
@@ -912,16 +1116,19 @@ void vsDynamicGeometry::setDataList(int whichData, vsVector *dataList)
                 for (sloop = 0; sloop < 3; sloop++)
                     vertexList[loop][sloop] = dataList[loop][sloop];
             break;
+
         case VS_GEOMETRY_NORMALS:
             for (loop = 0; loop < normalListSize; loop++)
                 for (sloop = 0; sloop < 3; sloop++)
                     normalList[loop][sloop] = dataList[loop][sloop];
             break;
+
         case VS_GEOMETRY_COLORS:
             for (loop = 0; loop < colorListSize; loop++)
                 for (sloop = 0; sloop < 4; sloop++)
                     colorList[loop][sloop] = dataList[loop][sloop];
             break;
+
         case VS_GEOMETRY_TEXTURE0_COORDS:
         case VS_GEOMETRY_TEXTURE1_COORDS:
         case VS_GEOMETRY_TEXTURE2_COORDS:
@@ -933,10 +1140,61 @@ void vsDynamicGeometry::setDataList(int whichData, vsVector *dataList)
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
                                                                                 
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return;
+            }
+                                                                                
             for (loop = 0; loop < texCoordListSize[unit]; loop++)
                 for (sloop = 0; sloop < 2; sloop++)
                     texCoordList[unit][loop][sloop] = dataList[loop][sloop];
             break;
+
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            printf("vsGeometry::setDataList: Vertex weights not supported in "
+                "vsDynamicGeometry.\n");
+            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::setDataList: Alternate colors not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::setDataList: Fog coordinates not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+            printf("vsGeometry::setDataList: User data attributes not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::setDataList: Generic attributes not supported "
+                "under Performer.\n");
+            break;
+
         default:
             printf("vsDynamicGeometry::setDataList: Unrecognized data type\n");
             return;
@@ -992,6 +1250,14 @@ void vsDynamicGeometry::getDataList(int whichData, vsVector *dataBuffer)
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
                                                                                 
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return;
+            }
+                                                                                
             for (loop = 0; loop < texCoordListSize[unit]; loop++)
             {
                 dataBuffer[loop].setSize(2);
@@ -999,6 +1265,49 @@ void vsDynamicGeometry::getDataList(int whichData, vsVector *dataBuffer)
                     dataBuffer[loop][sloop] = texCoordList[unit][loop][sloop];
             }
             break;
+
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            printf("vsGeometry::getDataList: Vertex weights not supported in "
+                "vsDynamicGeometry.\n");
+            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::getDataList: Alternate colors not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::getDataList: Fog coordinates not supported "
+                "under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+            printf("vsGeometry::getDataList: User data attributes not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::getDataList: Generic attributes not supported "
+                "under Performer.\n");
+            break;
+
         default:
             printf("vsDynamicGeometry::getDataList: Unrecognized data type\n");
             return;
@@ -1192,6 +1501,14 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
                                                                                 
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return;
+            }
+                                                                                
             // Check the current texture coordinate list size and the 
             // requested new size, and reallocate the list as appropriate
             if (newSize && !texCoordList[unit])
@@ -1240,6 +1557,49 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
             texCoordListSize[unit] = newSize;
             break;
 
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            printf("vsGeometry::setDataListSize: Vertex weights not " 
+                "supported \n");
+            printf("    in vsDynamicGeometry.\n");
+            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::setDataListSize: Alternate colors not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::setDataListSize: Fog coordinates not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+            printf("vsGeometry::setDataListSize: User data attributes not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::setDataListSize: Generic attributes not "
+                "supported under Performer.\n");
+            break;
+
         default:
 
             printf("vsDynamicGeometry::setDataListSize: Unrecognized data "
@@ -1260,10 +1620,13 @@ int vsDynamicGeometry::getDataListSize(int whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
             return vertexListSize;
+
         case VS_GEOMETRY_NORMALS:
             return normalListSize;
+
         case VS_GEOMETRY_COLORS:
             return colorListSize;
+
         case VS_GEOMETRY_TEXTURE0_COORDS:
         case VS_GEOMETRY_TEXTURE1_COORDS:
         case VS_GEOMETRY_TEXTURE2_COORDS:
@@ -1275,7 +1638,59 @@ int vsDynamicGeometry::getDataListSize(int whichData)
             // Calculate the texture unit we are working with.
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
 
+            // Make sure we're not trying to affect an invalid texture unit
+            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
+            {
+                printf("vsGeometry::getBinding:  Unsupported texture "
+                    "unit %d\n", unit);
+                return 0;
+            }
+                                                                                
             return texCoordListSize[unit];
+
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            printf("vsGeometry::setDataListSize: Vertex weights not " 
+                "supported \n");
+            printf("    in vsDynamicGeometry.\n");
+            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_ALT_COLORS:
+            printf("vsGeometry::setDataListSize: Alternate colors not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_FOG_COORDS:
+            printf("vsGeometry::setDataListSize: Fog coordinates not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+            printf("vsGeometry::setDataListSize: User data attributes not "
+                "supported under Performer.\n");
+            break;
+                                                                                
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            printf("vsGeometry::setDataListSize: Generic attributes not "
+                "supported under Performer.\n");
+            break;
+
         default:
             printf("vsDynamicGeometry::getDataListSize: Unrecognized data "
                 "value\n");
