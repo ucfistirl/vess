@@ -554,7 +554,7 @@ void vsSystem::drawFrame()
     osgFrameStamp->setFrameNumber(frameNumber);
     osgFrameStamp->setReferenceTime(simTime);
     
-    // Perform app, cull, and draw traversals for each pane
+    // Perform update, cull, and draw traversals for each pane
     for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
     {
         targetScreen = vsScreen::getScreen(screenLoop);
@@ -577,8 +577,8 @@ void vsSystem::drawFrame()
                 targetPane->getBaseLibraryObject()->
                     setFrameStamp(osgFrameStamp);
 
-                // Do app and cull traversals
-                targetPane->getBaseLibraryObject()->app();
+                // Do update and cull traversals
+                targetPane->getBaseLibraryObject()->update();
                 targetPane->getBaseLibraryObject()->cull();
 
                 // Only draw the pane if the visibility flag is true
