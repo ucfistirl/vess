@@ -22,14 +22,14 @@ protected:
 
 public:
 
-                         vsTrackedMotion(vsMotionTracker *theTracker);
+                        vsTrackedMotion(vsMotionTracker *theTracker);
 
-                         ~vsTrackedMotion();
+                        ~vsTrackedMotion();
 
-    void                 enablePosition(int enabled);
-    void                 enableOrientation(int enabled);
+    void                enablePosition(int enabled);
+    void                enableOrientation(int enabled);
 
-    virtual vsVecQuat    update();
+    virtual vsMatrix    update();
 };
 
 #endif

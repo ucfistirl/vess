@@ -18,13 +18,13 @@ protected:
     double      lastTime;
 
 public:
-                         vsMotionModel();
-    virtual              ~vsMotionModel();
+                        vsMotionModel();
+    virtual             ~vsMotionModel();
 
     // Returns time in seconds between calls to this function
-    double               getTimeInterval();
+    double              getTimeInterval();
 
-    virtual vsVecQuat    update() = 0;
+    virtual vsMatrix    update() = 0;
 };
 
 #endif

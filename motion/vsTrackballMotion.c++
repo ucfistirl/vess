@@ -82,19 +82,16 @@ vsTrackballMotion::~vsTrackballMotion()
 // ------------------------------------------------------------------------
 // Updates the motion model
 // ------------------------------------------------------------------------
-vsVecQuat vsTrackballMotion::update()
+vsMatrix vsTrackballMotion::update()
 {
     vsVector  origin;
     vsVector  currentPos;
     double    dHoriz, dVert;
     vsQuat    rot1, rot2;
-    vsVecQuat motion;
+    vsMatrix  motion;
 
     // Initialize
-    motion.vector.setSize(3);
-    motion.vector.clear();
-    motion.quat.clear();
-    motion.quat[VS_W] = 1;
+    motion.setIdentity();
 
     // Next, get the amount of axis movement
     dHoriz = 0.0;
@@ -116,9 +113,8 @@ vsVecQuat vsTrackballMotion::update()
     if ((transXZButton != NULL) && (transXZButton->isPressed()))
     {
         // Translate in the XZ (screen) plane
-        motion.vector[VS_X] = dHoriz * VS_TBM_TRANSLATE_CONST;
-        motion.vector[VS_Y] = 0.0;
-        motion.vector[VS_Z] = -dVert * VS_TBM_TRANSLATE_CONST;
+        motion.setTranslation(dHoriz * VS_TBM_TRANSLATE_CONST, 0.0, 
+            -dVert * VS_TBM_TRANSLATE_CONST);
     }
     else if ((rotButton != NULL) && (rotButton->isPressed()))
     {
@@ -130,8 +126,7 @@ vsVecQuat vsTrackballMotion::update()
             rot2.setAxisAngleRotation(0, 1, 0,
                 -dVert * VS_TBM_ROTATE_CONST);
 
-            motion.vector.clear();
-            motion.quat = rot2 * rot1;
+            motion.setQuatRotation(rot2 * rot1);
         }
         else
         {
@@ -141,16 +136,13 @@ vsVecQuat vsTrackballMotion::update()
             rot2.setAxisAngleRotation(1, 0, 0, 
                 dVert * VS_TBM_ROTATE_CONST);
 
-            motion.vector.clear();
-            motion.quat = rot2 * rot1;
+            motion.setQuatRotation(rot2 * rot1);
         }
     }
     else if ((transYButton != NULL) && (transYButton->isPressed()))
     {
         // Translate in the Y direction
-        motion.vector[VS_X] = 0.0;
-        motion.vector[VS_Y] = -dVert * VS_TBM_TRANSLATE_CONST;
-        motion.vector[VS_Z] = 0.0;
+        motion.setTranslation(0.0, -dVert * VS_TBM_TRANSLATE_CONST, 0.0);
     }
 
     return motion;

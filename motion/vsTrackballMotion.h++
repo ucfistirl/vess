@@ -27,22 +27,22 @@ protected:
 
 public:
 
-                         vsTrackballMotion(vsMouse *mouse);
+                        vsTrackballMotion(vsMouse *mouse);
 
-                         vsTrackballMotion(vsMouse *mouse, 
-                                           int xyTransButtonIndex,
-                                           int zTransButtonIndex, 
-                                           int rotButtonIndex);
+                        vsTrackballMotion(vsMouse *mouse, 
+                                          int xyTransButtonIndex,
+                                          int zTransButtonIndex, 
+                                          int rotButtonIndex);
 
-                         vsTrackballMotion(vsInputAxis *horizAxis, 
-                                           vsInputAxis *vertAxis,
-                                           vsInputButton *xyTransBtn, 
-                                           vsInputButton *zTransBtn, 
-                                           vsInputButton *rotBtn);
+                        vsTrackballMotion(vsInputAxis *horizAxis, 
+                                          vsInputAxis *vertAxis,
+                                          vsInputButton *xyTransBtn, 
+                                          vsInputButton *zTransBtn, 
+                                          vsInputButton *rotBtn);
 
-                         ~vsTrackballMotion();
+                        ~vsTrackballMotion();
  
-    virtual vsVecQuat    update();
+    virtual vsMatrix    update();
 };
 
 #endif

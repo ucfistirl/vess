@@ -7,10 +7,19 @@
 vsTrackedMotion::vsTrackedMotion(vsMotionTracker *theTracker)
                : vsMotionModel()
 {
-     tracker = theTracker;   
+    tracker = theTracker;   
 
-     positionEnabled = VS_TRUE;
-     orientationEnabled = VS_TRUE;
+    if (tracker == NULL)
+    {
+        printf("vsTrackedMotion::vsTrackedMotion:  WARNING --"
+            " NULL motion tracker!\n");
+    }
+
+    positionEnabled = VS_TRUE;
+    orientationEnabled = VS_TRUE;
+
+    lastTrackerPos.set(0.0, 0.0, 0.0);
+    lastTrackerOrn.set(0.0, 0.0, 0.0, 1.0);
 }
 
 // ------------------------------------------------------------------------
@@ -39,19 +48,16 @@ void vsTrackedMotion::enableOrientation(int enabled)
 // ------------------------------------------------------------------------
 // Updates the motion model
 // ------------------------------------------------------------------------
-vsVecQuat vsTrackedMotion::update()
+vsMatrix vsTrackedMotion::update()
 {
     vsMatrix  currentTransform;
     vsVector  trackerPos;
     vsQuat    trackerOrn;
-    vsQuat    temp;
+    vQuat    temp;
     vsVector  dPos;
     vsQuat    dOrn;
-    vsMatrix  newPosition;
+    vsMatrix  newTranslation;
     vsMatrix  newRotation;
-    vsVector  origin;
-    vsVector  currentPos;
-    vsVecQuat motion;
 
     // Get tracker data
     trackerPos = tracker->getPositionVec();  
@@ -61,30 +67,25 @@ vsVecQuat vsTrackedMotion::update()
     dPos = trackerPos - lastTrackerPos;
 
     temp = lastTrackerOrn;
-    lastTrackerOrn.conjugate();
+    temp.conjugate();
     dOrn = trackerOrn * temp;
 
+    newRotation.setIdentity();
+    newTranslation.setIdentity();
     if (orientationEnabled)
     {
-        motion.quat = dOrn;
-    }
-    else
-    {
-        motion.quat.clear();
+        newRotation.setQuatRotation(dOrn);
     }
 
     if (positionEnabled)
     {
-        motion.vector = dPos;
-    }
-    else
-    {
-        motion.vector.setSize(3);
-        motion.vector.clear();
+        newTranslation.setTranslation(dPos[VS_X], dPos[VS_Y], dPos[VS_Z]);
     }
 
     lastTrackerPos = trackerPos;
     lastTrackerOrn = trackerOrn;
 
-    return motion;
+    tempMat = newTranslation * newRotation;
+    
+    return newTranslation * newRotation;
 }
