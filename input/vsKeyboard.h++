@@ -1,10 +1,31 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsKeyboard.h++
+//
+//    Description:  Class to handle the keyboard state, and/or keep track
+//                  of command input strings.
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_KEYBOARD_HPP
 #define VS_KEYBOARD_HPP
 
-// Class to handle the keyboard state, and/or keep track of command input
-// strings.  This implementation supports the keys found on standard 101-key 
-// PC keyboards (or equivalent keyboards on other systems) running on 
-// X Windows systems.
+// This implementation supports the keys found on standard 101-key PC
+// keyboards (or equivalent keyboards on other systems) running on X
+// Windows systems.
 
 #include "vsInputDevice.h++"
 #include <X11/Xlib.h>

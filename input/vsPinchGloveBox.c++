@@ -1,3 +1,25 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsPinchGloveBox.c++
+//
+//    Description:  Input system class supporting the Fakespace PINCH
+//                  glove system
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include <stdio.h>
 #include <string.h>
 #include "vsPinchGloveBox.h++"

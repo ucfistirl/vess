@@ -1,3 +1,25 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsKeyboard.c++
+//
+//    Description:  Class to handle the keyboard state, and/or keep track
+//                  of command input strings.
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include "vsKeyboard.h++"
 #include <stdio.h>
 

@@ -1,8 +1,28 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsInputAxis.h++
+//
+//    Description:  Class for handling the position of an input device's
+//                  axis
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_INPUT_AXIS_HPP
 #define VS_INPUT_AXIS_HPP
 
-// Class for handling the position of an input device's axis
-//
 // Values are stored as raw device values (the values returned by the
 // hardware).  When retrieved, they are converted to a scaled value
 // within the range of -1.0 to 1.0.

@@ -1,3 +1,26 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsWindowSystem.c++
+//
+//    Description:  Class to handle input events from the window system,
+//                  specifically the mouse and keyboard.  This
+//                  implementation is for X Window systems.
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include "vsWindowSystem.h++"
 #include "Performer/pf/pfPipeWindow.h"
 

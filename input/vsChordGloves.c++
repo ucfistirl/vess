@@ -1,3 +1,25 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsChordGloves.c++
+//
+//    Description:  Device to keep track of the state of a pair of VR
+//                  chord gloves.
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include "vsChordGloves.h++"
 #include <stdio.h>
 #include <string.h>

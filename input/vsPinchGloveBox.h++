@@ -1,7 +1,28 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsPinchGloveBox.h++
+//
+//    Description:  Input system class supporting the Fakespace PINCH
+//                  glove system
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_PINCH_GLOVE_BOX_HPP
 #define VS_PINCH_GLOVE_BOX_HPP
 
-// Input system class supporting the Fakespace PINCH glove system.
 // This vsInputSystem descendant creates a vsChordGlove input device to
 // maintain its state data.  The glove box communicates via serial port.
 // The PINCH system supports a timestamp feature to indicate when and for

@@ -1,3 +1,29 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsAscensionSerialTrackingSystem.c++
+//
+//    Description:  Base class to handle input from Ascension serial-based
+//                  Motion Tracking systems that use Ascension's RS-232
+//                  command set.  This includes the Flock of Birds and
+//                  MotionStar systems.  Do not instantiate this class
+//                  directly. Instead, use the vsFlockOfBirds or
+//                  vsSerialMotionStar classes.
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>

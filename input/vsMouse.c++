@@ -1,3 +1,24 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsMouse.c++
+//
+//    Description:  Class to handle the state of the mouse
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include "vsMouse.h++"
 #include <stdio.h>
 

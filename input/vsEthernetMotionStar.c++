@@ -1,3 +1,25 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsEthernetMotionStar.h++
+//
+//    Description:  Class to handle input from an Ascension MotionStar
+//                  motion capture system.
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>

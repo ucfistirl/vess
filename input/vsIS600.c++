@@ -1,3 +1,27 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsIS600.c++
+//
+//    Description:  Class supporting the InterSense IS-600 Mark 2 motion
+//                  tracking system. This class supports a single IS-600
+//                  running over an RS-232 interface with up to
+//                  VS_IS_MAX_TRACKERS receivers.
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include "vsIS600.h++"
 #include <stdio.h>
 #include <string.h>

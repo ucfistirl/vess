@@ -1,14 +1,32 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsISTJoystickBox.h++
+//
+//    Description:  Support for the IST joystick box
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_IST_JOYSTICK_HPP
 #define VS_IST_JOYSTICK_HPP
-
-// Support for the IST joystick box 
 
 // This class supports the older 68HC11-based boxes that
 // translate 2 axes and 2 buttons, as well as the more
 // recent BASIC Stamp II-based boxes that support only the 2
 // buttons.  If the BASIC Stamp boxes are used, the axes can 
 // be queried, but they will always be reported as centered.
-
 
 #include "vsJoystick.h++"
 #include "vsJoystickBox.h++"

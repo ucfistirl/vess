@@ -1,3 +1,27 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsFastrak.c++
+//
+//    Description:  Class supporting the Polhemus FASTRAK motion tracking
+//                  system.  This class supports a single FASTRAK running
+//                  over an RS-232 interface with up to VS_FT_MAX_TRACKERS
+//                  receivers.
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include "vsFastrak.h++"
 #include <stdio.h>
 #include <string.h>

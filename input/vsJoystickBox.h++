@@ -1,7 +1,26 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsJoystickBox.h++
+//
+//    Description:  Abstract base class for all joystick interface boxes
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_JOYSTICK_BOX_HPP
 #define VS_JOYSTICK_BOX_HPP
-
-// Abstract base class for all joystick interface boxes
 
 #include "vsInputSystem.h++"
 #include "vsJoystick.h++"

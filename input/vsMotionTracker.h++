@@ -1,7 +1,27 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsMotionTracker.h++
+//
+//    Description:  Class for storing and returning the state of a motion
+//                  tracker
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_MOTION_TRACKER_HPP
 #define VS_MOTION_TRACKER_HPP
-
-// Class for storing and returning the state of a motion tracker
 
 #include "vs6DInputDevice.h++"
 

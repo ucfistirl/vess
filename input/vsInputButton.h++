@@ -1,7 +1,27 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsInputButton.h++
+//
+//    Description:  Class for storing and returning the state of an input
+//                  device's button
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_INPUT_BUTTON_HPP
 #define VS_INPUT_BUTTON_HPP
-
-// Class for storing and returning the state of an input device's button
 
 #include "vsGlobals.h++"
 

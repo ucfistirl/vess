@@ -1,7 +1,26 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsSerialPort.h++
+//
+//    Description:  Class for handling serial port communications
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_SERIAL_PORT_HPP
 #define VS_SERIAL_PORT_HPP
-
-// Class for handling serial port communications
 
 #include <termios.h>
 #include <unistd.h>

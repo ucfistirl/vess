@@ -1,3 +1,27 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsSerialMotionStar.c++
+//
+//    Description:  Subclass of vsAscensionSerialTrackingSystem intended
+//                  to be used for the MotionStar running via serial
+//                  port(s).  This class currently adds no functionality
+//                  to the base class.
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include "vsSerialMotionStar.h++"
 
 // ------------------------------------------------------------------------

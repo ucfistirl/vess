@@ -1,3 +1,26 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsWSSpaceball.c++
+//
+//    Description:  A class for handling spaceball input from the window
+//                  system.  This implementation is for X Window systems
+//                  using the X11 input extension.
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include "vsWSSpaceball.h++"
 
 // ------------------------------------------------------------------------

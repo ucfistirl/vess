@@ -1,3 +1,25 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsSharedInputData.c++
+//
+//    Description:  A class to handle exchange of vsMotionTracker data
+//                  between concurrent processes via shared memory
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include <stdio.h>
 #include "vsSharedInputData.h++"
 

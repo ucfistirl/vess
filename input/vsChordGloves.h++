@@ -1,14 +1,35 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsChordGloves.h++
+//
+//    Description:  Device to keep track of the state of a pair of VR
+//                  chord gloves.
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_CHORD_GLOVES_HPP
 #define VS_CHORD_GLOVES_HPP
 
-// Device to keep track of the state of a pair of VR chord gloves.  Chord 
-// gloves have electrical contact pads (or other means) to detect when certain
-// digits are touching (such as the thumb and the index finger).  They are 
-// generally paired, allowing both hands to manipulate objects in a virtual
-// environment.  Generally, chord gloves work by detecting when a finger comes
-// into contact with the thumb or the palm.  Many systems (such as the
-// Fakespace PINCH system) also allow contact between digits of each hand
-// (i.e.: the left forefinger touching the right thumb).
+// Chord gloves have electrical contact pads (or other means) to detect when
+// certain digits are touching (such as the thumb and the index finger).
+// They are generally paired, allowing both hands to manipulate objects in a
+// virtual environment.  Generally, chord gloves work by detecting when a
+// finger comes into contact with the thumb or the palm.  Many systems (such
+// as the Fakespace PINCH system) also allow contact between digits of each
+// hand (i.e.: the left forefinger touching the right thumb).
 //
 // This class is written generically to allow support for most glove systems
 // (for example, palm contact is supported even though the PINCH system

@@ -1,7 +1,26 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vs6DInputDevice.h++
+//
+//    Description:  Abstract base class for all 6 DOF input devices
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_6D_INPUT_DEVICE_HPP
 #define VS_6D_INPUT_DEVICE_HPP
-
-// Abstract base class for all 6 DOF input devices
 
 #include "vsVector.h++"
 #include "vsMatrix.h++"

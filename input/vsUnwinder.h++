@@ -1,8 +1,26 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsUnwinder.h++
+//
+//    Description:  Support for the Unwinder joystick box
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_UNWINDER_JOYSTICK_HPP
 #define VS_UNWINDER_JOYSTICK_HPP
-
-// Support for the Fakespace PINCH glove system
-
 
 #include "vsJoystickBox.h++"
 #include "vsSerialPort.h++"

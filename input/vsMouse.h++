@@ -1,8 +1,29 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsMouse.h++
+//
+//    Description:  Class to handle the state of the mouse
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_MOUSE_HPP
 #define VS_MOUSE_HPP
 
-// Class to handle the state of the mouse.  This class is generally updated
-// by the window system input object (e.g: vsWSInput)
+// This class is generally updated by the window system input object
+// (e.g: vsWSInput)
 
 #include "vsInputDevice.h++"
 

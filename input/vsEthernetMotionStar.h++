@@ -1,8 +1,29 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsEthernetMotionStar.h++
+//
+//    Description:  Class to handle input from an Ascension MotionStar
+//                  motion capture system.
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_ETHERNET_MOTION_STAR_HPP
 #define VS_ETHERNET_MOTION_STAR_HPP
 
-// Class to handle input from an Ascension MotionStar motion capture
-// system.  This class supports the Wired and Wireless versions of the
+// This class supports the Wired and Wireless versions of the
 // MotionStar running with the Ethernet option.
 //
 // This class does not yet support multiple chassis configurations. 
