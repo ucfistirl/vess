@@ -446,7 +446,7 @@ case "$SG" in
             GFX_LIB="$GFX_LIB -losgNVCg -losgNV"
 
             dnl Add the extra objects that OSG requires.
-            EXTRA_GRAPHICS_OBJECTS="$EXTRA_GRAPHICS_OBJECTS vsCgMatrixParameter.$OBJEXT vsCgParameter.$OBJEXT vsCgShaderAttribute.$OBJEXT vsCgStateMatrixParameter.$OBJEXT vsCgTextureParameter.$OBJEXT vsCgVectorParameter.$OBJEXT"
+            EXTRA_GRAPHICS_OBJECTS="$EXTRA_GRAPHICS_OBJECTS vsCgMatrixParameter.$OBJEXT vsCgParameter.$OBJEXT vsCgParameterBlockAttribute.$OBJEXT vsCgShaderAttribute.$OBJEXT vsCgStateMatrixParameter.$OBJEXT vsCgTextureParameter.$OBJEXT vsCgVectorParameter.$OBJEXT"
         fi
 
         dnl Add the extra objects that OSG requires
