@@ -1,9 +1,30 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsPolaris.h++
+//
+//    Description:  Tracking system class supporting the Northern Digital
+//                  Polaris optical tracking system
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #ifndef VS_POLARIS_HPP
 #define VS_POLARIS_HPP
 
 #include "vsTrackingSystem.h++"
 #include "vsSerialPort.h++"
-#include "vsSharedInputData.h++"
 
 #define VS_PL_MAX_TRACKERS 25
 
@@ -24,7 +45,7 @@ enum
     VS_PL_ERR_ERROR_MSG
 };
 
-class vsPolaris : public vsTrackingSystem
+class VS_IO_DLL vsPolaris : public vsTrackingSystem
 {
 protected:
 

@@ -1,12 +1,31 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsPolaris.c++
+//
+//    Description:  Tracking system class supporting the Northern Digital
+//                  Polaris optical tracking system
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include "vsPolaris.h++"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <time.h>
-
-// Static class variable for instructing the server (child) process to exit
-bool vsPolaris::serverDone;
 
 // ------------------------------------------------------------------------
 // Creates a vsPolaris object on the given serial port using the given
@@ -23,7 +42,6 @@ vsPolaris::vsPolaris(int portNumber, long baud, int nTrackers)
     // Initialize data members
     memset(tracker, 0, sizeof(tracker));
     memset(portHandle, 0, sizeof(portHandle));
-    memset(validTrackingVolumes, 0, sizeof(validTrackingVolumes));
 
     // Test for endianness
     bigEndian = isBigEndian();
@@ -39,7 +57,7 @@ vsPolaris::vsPolaris(int portNumber, long baud, int nTrackers)
 
     // Initialize the reference frame to identity.  This assumes that
     // the tracker's cameras are mounted facing forward
-    referenceFrame.setIdentity();
+    referenceFrame.set(0, 0, 0, 1);
 
     // Open the port
     port = new vsSerialPort(portDevice, 9600, 8, 'N', 1);
@@ -91,7 +109,8 @@ vsPolaris::vsPolaris(int portNumber, long baud, int nTrackers)
 // ------------------------------------------------------------------------
 vsPolaris::~vsPolaris()
 {
-    int i;
+    DWORD exitCode;
+    int i, timeOut;
 
     // Print status info for the shutdown
     printf("vsPolaris::~vsPolaris:\n");
@@ -195,7 +214,6 @@ bool vsPolaris::testIR()
 {
     int result;
     bool irResult;
-    unsigned char buf[100];
 
     // Set the test result flag to true (no IR interference) to start
     irResult = true;
@@ -595,7 +613,6 @@ unsigned int vsPolaris::calculateCRC(unsigned char *string, int length)
 void vsPolaris::sendCommand(char *command)
 {
     short crc;
-    char *chPtr;
     char fullCommand[50];
     char cmdLength;
 
@@ -614,7 +631,7 @@ void vsPolaris::sendCommand(char *command)
     }
 
     // Get the crc value for the command
-    crc = calculateCRC((unsigned char *)command, strlen(command));
+    crc = calculateCRC((unsigned char *)command, (int)strlen(command));
 
     // Append the CRC and a return character to the end of the command 
     // string
@@ -633,7 +650,6 @@ int vsPolaris::getReply()
 {
     int replyIdx;
     int goodByte;
-    int timeout;
     unsigned char inCh;
     char crcStr[5];
     short givenCRC, compCRC;
@@ -684,7 +700,7 @@ int vsPolaris::getReply()
 
     // Remove the CRC from the reply string and calculate our own CRC
     dataBuffer[replyIdx - 5] = 0;
-    compCRC = calculateCRC(dataBuffer, strlen((char *)dataBuffer));
+    compCRC = calculateCRC(dataBuffer, (int)strlen((char *)dataBuffer));
 
     // Check the two CRC values against each other
     if (compCRC != givenCRC)
@@ -712,11 +728,7 @@ int vsPolaris::getReply()
 // ------------------------------------------------------------------------
 int vsPolaris::getBinaryReply()
 {
-    int replyIdx;
     int length;
-    int i;
-    int timeout;
-    char crcStr[5];
     short givenCRC, compCRC;
     short packetLength;
 
@@ -754,12 +766,13 @@ int vsPolaris::getBinaryReply()
                 dataBuffer[12] = 0;
 
                 // Get the CRC to verify the error code
-                sscanf((char *)&dataBuffer[7], "%04X", givenCRC);
+                sscanf((char *)&dataBuffer[7], "%04X", &givenCRC);
 
                 // Remove the CRC from the error string and calculate our
                 // own CRC
                 dataBuffer[8] = 0;
-                compCRC = calculateCRC(dataBuffer, strlen((char *)dataBuffer));
+                compCRC = calculateCRC(dataBuffer, 
+                    (int)strlen((char *)dataBuffer));
 
                 // Check the CRC's
                 if (givenCRC == compCRC)
@@ -1176,12 +1189,12 @@ DWORD WINAPI vsPolaris::serverLoop(void *parameter)
 
     // Reset the tracking system
     printf("  Resetting Polaris\n");
-    stopTracking();
-    resetSystem();
+    instance->stopTracking();
+    instance->resetSystem();
 
     printf("  Closing serial port\n");
-    if (port != NULL)
-        delete port;
+    if (instance->port != NULL)
+        delete instance->port;
 
     // Return from the thread (this calls ExitThread() implicitly)
     return 0;
@@ -1252,7 +1265,7 @@ void vsPolaris::processTrackerData()
     int numHandles;
     int handleNum;
     int handleStatus;
-    int i, j;
+    int i;
     float qx, qy, qz, qw;
     float tx, ty, tz;
     float error;
@@ -1260,7 +1273,6 @@ void vsPolaris::processTrackerData()
     vsVector translation;
     vsQuat rotation;
     vsQuat translationXform;
-    bool foundIt;
     unsigned char statusByte;
     vsInputButton *button;
 
@@ -1583,7 +1595,7 @@ void vsPolaris::setTrackingVolume(int volumeNumber)
     sprintf(cmdStr, "VSEL:%d", volumeNumber);
 
     // Get the Polaris's reply
-    result = getReply()
+    result = getReply();
     if (result != VS_PL_ERR_NONE)
     {
         printError("setTrackingVolume", "Unable to change tracking volume",
@@ -1597,7 +1609,6 @@ void vsPolaris::setTrackingVolume(int volumeNumber)
 void vsPolaris::setLED(int tracker, int led, int ledState)
 {
     char cmdStr[10];
-    int result;
 
     // Validate the tracker number
     if ((tracker < 0) || (tracker >= numTrackers))
