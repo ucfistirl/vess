@@ -988,10 +988,9 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
     vsSkeletonMeshGeometry *smGeometry;
     vsAttribute *attribute;
     int loop, sloop;
-    int size, length;
     vsMatrix mat;
     double r, g, b;
-    double near, far;
+    double nearFog, farFog;
     int mode;
     int shadingData;
     bool attrData;
@@ -1259,9 +1258,9 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                         // Ranges
                         writeBlanks(outfile, (treeDepth * 2) + 3);
                         fprintf(outfile, "Ranges: ");
-                        ((vsFogAttribute *)attribute)->getRanges(&near, &far);
+                        ((vsFogAttribute *)attribute)->getRanges(&nearFog, &farFog);
                         fprintf(outfile, "near: %0.2lf far: %0.2lf\n", 
-                            near, far);       
+                            nearFog, farFog);
                     }
                     break;
 
