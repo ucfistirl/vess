@@ -47,9 +47,21 @@ enum VS_GRAPHICS_DLL vsGeometryPrimType
 enum VS_GRAPHICS_DLL vsGeometryDataType
 {
     VS_GEOMETRY_VERTEX_COORDS,
+    VS_GEOMETRY_SKIN_VERTEX_COORDS,
+    VS_GEOMETRY_SKIN_NORMALS,
+    VS_GEOMETRY_VERTEX_WEIGHTS,
+    VS_GEOMETRY_BONE_INDICES,
     VS_GEOMETRY_NORMALS,
     VS_GEOMETRY_COLORS,
-    VS_GEOMETRY_TEXTURE_COORDS
+    VS_GEOMETRY_TEXTURE0_COORDS,
+    VS_GEOMETRY_TEXTURE1_COORDS,
+    VS_GEOMETRY_TEXTURE2_COORDS,
+    VS_GEOMETRY_TEXTURE3_COORDS,
+    VS_GEOMETRY_TEXTURE4_COORDS,
+    VS_GEOMETRY_TEXTURE5_COORDS,
+    VS_GEOMETRY_TEXTURE6_COORDS,
+    VS_GEOMETRY_TEXTURE7_COORDS,
+    VS_GEOMETRY_TEXTURE_COORDS = VS_GEOMETRY_TEXTURE0_COORDS
 };
 
 enum VS_GRAPHICS_DLL vsGeometryDataBinding
@@ -82,12 +94,12 @@ private:
     int                 colorListSize;
     osg::Vec3Array      *normalList;
     int                 normalListSize;
-    osg::Vec2Array      *texCoordList;
-    int                 texCoordListSize;
+    osg::Vec2Array      *texCoordList[VS_MAXIMUM_TEXTURE_UNITS];
+    int                 texCoordListSize[VS_MAXIMUM_TEXTURE_UNITS];
     osg::Vec3Array      *vertexList;
     int                 vertexListSize;
 
-    int                 textureBinding;
+    int                 textureBinding[VS_MAXIMUM_TEXTURE_UNITS];
 
     int                 *lengthsList;
     int                 primitiveCount;

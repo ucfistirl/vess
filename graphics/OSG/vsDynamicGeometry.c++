@@ -44,6 +44,8 @@
 // ------------------------------------------------------------------------
 vsDynamicGeometry::vsDynamicGeometry() : parentList(5, 5)
 {
+    unsigned int unit;
+
     parentCount = 0;
 
     // Geode
@@ -71,12 +73,15 @@ vsDynamicGeometry::vsDynamicGeometry() : parentList(5, 5)
     normalListSize = 0;
     osgGeometry->setNormalArray(normalList);
 
-    // Texture coordinate array
-    texCoordList = new osg::Vec2Array();
-    texCoordList->ref();
-    texCoordListSize = 0;
-    osgGeometry->setTexCoordArray(0, NULL);
-    textureBinding = VS_GEOMETRY_BIND_NONE;
+    for (unit = 0; unit < VS_MAXIMUM_TEXTURE_UNITS; unit++)
+    {
+        // Texture coordinate array
+        texCoordList[unit] = new osg::Vec2Array();
+        texCoordList[unit]->ref();
+        texCoordListSize[unit] = 0;
+        osgGeometry->setTexCoordArray(unit, NULL);
+        textureBinding[unit] = VS_GEOMETRY_BIND_NONE;
+    }
 
     // Vertex array
     vertexList = new osg::Vec3Array();
@@ -100,6 +105,8 @@ vsDynamicGeometry::vsDynamicGeometry() : parentList(5, 5)
 // ------------------------------------------------------------------------
 vsDynamicGeometry::~vsDynamicGeometry()
 {
+    unsigned int unit;
+
     // Remove all parents
     detachFromParents();
 
@@ -109,7 +116,8 @@ vsDynamicGeometry::~vsDynamicGeometry()
     // Unlink and destroy the OSG objects
     colorList->unref();
     normalList->unref();
-    texCoordList->unref();
+    for (unit = 0; unit < VS_MAXIMUM_TEXTURE_UNITS; unit++)
+        texCoordList[unit]->unref();
     vertexList->unref();
     osgGeometry->unref();
     osgGeode->unref();
@@ -134,7 +142,7 @@ const char *vsDynamicGeometry::getClassName()
 // ------------------------------------------------------------------------
 int vsDynamicGeometry::getNodeType()
 {
-    return VS_NODE_TYPE_GEOMETRY;
+    return VS_NODE_TYPE_DYNAMIC_GEOMETRY;
 }
 
 // ------------------------------------------------------------------------
@@ -336,6 +344,7 @@ void vsDynamicGeometry::getPrimitiveLengths(int *lengthsBuffer)
 void vsDynamicGeometry::setBinding(int whichData, int binding)
 {
     osg::Geometry::AttributeBinding osgBinding;
+    unsigned int unit;
     
     // Translate the binding constant
     switch (binding)
@@ -378,7 +387,17 @@ void vsDynamicGeometry::setBinding(int whichData, int binding)
             osgGeometry->setColorBinding(osgBinding);
             break;
 
-        case VS_GEOMETRY_TEXTURE_COORDS:
+        case VS_GEOMETRY_TEXTURE0_COORDS:
+        case VS_GEOMETRY_TEXTURE1_COORDS:
+        case VS_GEOMETRY_TEXTURE2_COORDS:
+        case VS_GEOMETRY_TEXTURE3_COORDS:
+        case VS_GEOMETRY_TEXTURE4_COORDS:
+        case VS_GEOMETRY_TEXTURE5_COORDS:
+        case VS_GEOMETRY_TEXTURE6_COORDS:
+        case VS_GEOMETRY_TEXTURE7_COORDS:
+            // Calculate the texture unit we are working with.
+            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+                                                                                
             if ((binding != VS_GEOMETRY_BIND_PER_VERTEX) &&
                 (binding != VS_GEOMETRY_BIND_NONE))
             {
@@ -393,10 +412,10 @@ void vsDynamicGeometry::setBinding(int whichData, int binding)
             // array pointer to NULL if textures are to be off.
             // (Yes, OSG detects NULL pointers and works around them.)
             if (binding == VS_GEOMETRY_BIND_NONE)
-                osgGeometry->setTexCoordArray(0, NULL);
+                osgGeometry->setTexCoordArray(unit, NULL);
             else
-                osgGeometry->setTexCoordArray(0, texCoordList);
-            textureBinding = binding;
+                osgGeometry->setTexCoordArray(unit, texCoordList[unit]);
+            textureBinding[unit] = binding;
             break;
 
         default:
@@ -411,6 +430,7 @@ void vsDynamicGeometry::setBinding(int whichData, int binding)
 // ------------------------------------------------------------------------
 int vsDynamicGeometry::getBinding(int whichData)
 {
+    unsigned int unit;
     int result;
 
     switch (whichData)
@@ -423,8 +443,18 @@ int vsDynamicGeometry::getBinding(int whichData)
         case VS_GEOMETRY_COLORS:
             result = osgGeometry->getColorBinding();
             break;
-        case VS_GEOMETRY_TEXTURE_COORDS:
-            return textureBinding;
+        case VS_GEOMETRY_TEXTURE0_COORDS:
+        case VS_GEOMETRY_TEXTURE1_COORDS:
+        case VS_GEOMETRY_TEXTURE2_COORDS:
+        case VS_GEOMETRY_TEXTURE3_COORDS:
+        case VS_GEOMETRY_TEXTURE4_COORDS:
+        case VS_GEOMETRY_TEXTURE5_COORDS:
+        case VS_GEOMETRY_TEXTURE6_COORDS:
+        case VS_GEOMETRY_TEXTURE7_COORDS:
+            // Calculate the texture unit we are working with.
+            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+                                                                                
+            return textureBinding[unit];
             break;
         default:
             printf("vsDynamicGeometry::getBinding: Unrecognized data value\n");
@@ -454,6 +484,7 @@ int vsDynamicGeometry::getBinding(int whichData)
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::setData(int whichData, int dataIndex, vsVector data)
 {
+    unsigned int unit;
     int loop;
 
     if (dataIndex < 0)
@@ -515,8 +546,18 @@ void vsDynamicGeometry::setData(int whichData, int dataIndex, vsVector data)
             osgGeometry->setColorArray(colorList);
             break;
 
-        case VS_GEOMETRY_TEXTURE_COORDS:
-            if (dataIndex >= texCoordListSize)
+        case VS_GEOMETRY_TEXTURE0_COORDS:
+        case VS_GEOMETRY_TEXTURE1_COORDS:
+        case VS_GEOMETRY_TEXTURE2_COORDS:
+        case VS_GEOMETRY_TEXTURE3_COORDS:
+        case VS_GEOMETRY_TEXTURE4_COORDS:
+        case VS_GEOMETRY_TEXTURE5_COORDS:
+        case VS_GEOMETRY_TEXTURE6_COORDS:
+        case VS_GEOMETRY_TEXTURE7_COORDS:
+            // Calculate the texture unit we are working with.
+            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+                                                                                
+            if (dataIndex >= texCoordListSize[unit])
             {
                 printf("vsDynamicGeometry::setData: Index out of bounds\n");
                 return;
@@ -528,8 +569,8 @@ void vsDynamicGeometry::setData(int whichData, int dataIndex, vsVector data)
                 return;
             }
             for (loop = 0; loop < 2; loop++)
-                ((*texCoordList)[dataIndex])[loop] = data[loop];
-            osgGeometry->setTexCoordArray(0, texCoordList);
+                ((*texCoordList[unit])[dataIndex])[loop] = data[loop];
+            osgGeometry->setTexCoordArray(unit, texCoordList[unit]);
             break;
 
         default:
@@ -547,6 +588,7 @@ void vsDynamicGeometry::setData(int whichData, int dataIndex, vsVector data)
 vsVector vsDynamicGeometry::getData(int whichData, int dataIndex)
 {
     vsVector result;
+    unsigned int unit;
     int loop;
 
     if (dataIndex < 0)
@@ -597,17 +639,28 @@ vsVector vsDynamicGeometry::getData(int whichData, int dataIndex)
                 result[loop] = ((*colorList)[dataIndex])[loop];
             break;
 
-        case VS_GEOMETRY_TEXTURE_COORDS:
-            if (dataIndex >= texCoordListSize)
+        case VS_GEOMETRY_TEXTURE0_COORDS:
+        case VS_GEOMETRY_TEXTURE1_COORDS:
+        case VS_GEOMETRY_TEXTURE2_COORDS:
+        case VS_GEOMETRY_TEXTURE3_COORDS:
+        case VS_GEOMETRY_TEXTURE4_COORDS:
+        case VS_GEOMETRY_TEXTURE5_COORDS:
+        case VS_GEOMETRY_TEXTURE6_COORDS:
+        case VS_GEOMETRY_TEXTURE7_COORDS:
+            // Calculate the texture unit we are working with.
+            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+                                                                                
+            if (dataIndex >= texCoordListSize[unit])
             {
                 printf("vsDynamicGeometry::getData: Index out of bounds "
-                    "(list = TEXTURE_COORDS, dataIndex = %d, listSize = %d)\n",
-                    dataIndex, texCoordListSize);
+                    "(list = TEXTURE%d_COORDS, dataIndex = %d, "
+                    "listSize = %d)\n", unit, dataIndex,
+                    texCoordListSize[unit]);
                 return result;
             }
             result.setSize(2);
             for (loop = 0; loop < 2; loop++)
-                result[loop] = ((*texCoordList)[dataIndex])[loop];
+                result[loop] = ((*texCoordList[unit])[dataIndex])[loop];
             break;
 
         default:
@@ -625,6 +678,7 @@ vsVector vsDynamicGeometry::getData(int whichData, int dataIndex)
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::setDataList(int whichData, vsVector *dataList)
 {
+    unsigned int unit;
     int loop, sloop;
     
     switch (whichData)
@@ -650,11 +704,21 @@ void vsDynamicGeometry::setDataList(int whichData, vsVector *dataList)
             osgGeometry->setColorArray(colorList);
             break;
 
-        case VS_GEOMETRY_TEXTURE_COORDS:
-            for (loop = 0; loop < texCoordListSize; loop++)
+        case VS_GEOMETRY_TEXTURE0_COORDS:
+        case VS_GEOMETRY_TEXTURE1_COORDS:
+        case VS_GEOMETRY_TEXTURE2_COORDS:
+        case VS_GEOMETRY_TEXTURE3_COORDS:
+        case VS_GEOMETRY_TEXTURE4_COORDS:
+        case VS_GEOMETRY_TEXTURE5_COORDS:
+        case VS_GEOMETRY_TEXTURE6_COORDS:
+        case VS_GEOMETRY_TEXTURE7_COORDS:
+            // Calculate the texture unit we are working with.
+            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+                                                                                
+            for (loop = 0; loop < texCoordListSize[unit]; loop++)
                 for (sloop = 0; sloop < 2; sloop++)
-                    (*texCoordList)[loop][sloop] = dataList[loop][sloop];
-            osgGeometry->setTexCoordArray(0, texCoordList);
+                    (*texCoordList[unit])[loop][sloop] = dataList[loop][sloop];
+            osgGeometry->setTexCoordArray(unit, texCoordList[unit]);
             break;
 
         default:
@@ -671,6 +735,7 @@ void vsDynamicGeometry::setDataList(int whichData, vsVector *dataList)
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::getDataList(int whichData, vsVector *dataBuffer)
 {
+    unsigned int unit;
     int loop, sloop;
     
     switch (whichData)
@@ -702,12 +767,23 @@ void vsDynamicGeometry::getDataList(int whichData, vsVector *dataBuffer)
             }
             break;
 
-        case VS_GEOMETRY_TEXTURE_COORDS:
-            for (loop = 0; loop < texCoordListSize; loop++)
+        case VS_GEOMETRY_TEXTURE0_COORDS:
+        case VS_GEOMETRY_TEXTURE1_COORDS:
+        case VS_GEOMETRY_TEXTURE2_COORDS:
+        case VS_GEOMETRY_TEXTURE3_COORDS:
+        case VS_GEOMETRY_TEXTURE4_COORDS:
+        case VS_GEOMETRY_TEXTURE5_COORDS:
+        case VS_GEOMETRY_TEXTURE6_COORDS:
+        case VS_GEOMETRY_TEXTURE7_COORDS:
+            // Calculate the texture unit we are working with.
+            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+                                                                                
+            for (loop = 0; loop < texCoordListSize[unit]; loop++)
             {
                 dataBuffer[loop].setSize(2);
                 for (sloop = 0; sloop < 2; sloop++)
-                    dataBuffer[loop][sloop] = (*texCoordList)[loop][sloop];
+                    dataBuffer[loop][sloop] =
+                        (*texCoordList[unit])[loop][sloop];
             }
             break;
 
@@ -724,6 +800,8 @@ void vsDynamicGeometry::getDataList(int whichData, vsVector *dataBuffer)
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
 {
+    unsigned int unit;
+
     // Sanity check
     if ((newSize < 0) || (newSize > 1000000))
     {
@@ -753,17 +831,27 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
             colorListSize = newSize;
             break;
 
-        case VS_GEOMETRY_TEXTURE_COORDS:
-            texCoordList->resize(newSize);
-            texCoordListSize = newSize;
+        case VS_GEOMETRY_TEXTURE0_COORDS:
+        case VS_GEOMETRY_TEXTURE1_COORDS:
+        case VS_GEOMETRY_TEXTURE2_COORDS:
+        case VS_GEOMETRY_TEXTURE3_COORDS:
+        case VS_GEOMETRY_TEXTURE4_COORDS:
+        case VS_GEOMETRY_TEXTURE5_COORDS:
+        case VS_GEOMETRY_TEXTURE6_COORDS:
+        case VS_GEOMETRY_TEXTURE7_COORDS:
+            // Calculate the texture unit we are working with.
+            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+                                                                                
+            texCoordList[unit]->resize(newSize);
+            texCoordListSize[unit] = newSize;
         
             // If the texture coordinate binding is OFF, then the pointer
             // to the coordinate list should be NULL so that OSG knows not
             // to use texture coordinates at all.
-            if (textureBinding == VS_GEOMETRY_BIND_NONE)
-                osgGeometry->setTexCoordArray(0, NULL);
+            if (textureBinding[unit] == VS_GEOMETRY_BIND_NONE)
+                osgGeometry->setTexCoordArray(unit, NULL);
             else
-                osgGeometry->setTexCoordArray(0, texCoordList);
+                osgGeometry->setTexCoordArray(unit, texCoordList[unit]);
             break;
 
         default:
@@ -778,6 +866,8 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
 // ------------------------------------------------------------------------
 int vsDynamicGeometry::getDataListSize(int whichData)
 {
+    unsigned int unit;
+
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
@@ -786,8 +876,18 @@ int vsDynamicGeometry::getDataListSize(int whichData)
             return normalListSize;
         case VS_GEOMETRY_COLORS:
             return colorListSize;
-        case VS_GEOMETRY_TEXTURE_COORDS:
-            return texCoordListSize;
+        case VS_GEOMETRY_TEXTURE0_COORDS:
+        case VS_GEOMETRY_TEXTURE1_COORDS:
+        case VS_GEOMETRY_TEXTURE2_COORDS:
+        case VS_GEOMETRY_TEXTURE3_COORDS:
+        case VS_GEOMETRY_TEXTURE4_COORDS:
+        case VS_GEOMETRY_TEXTURE5_COORDS:
+        case VS_GEOMETRY_TEXTURE6_COORDS:
+        case VS_GEOMETRY_TEXTURE7_COORDS:
+            // Calculate the texture unit we are working with.
+            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+                                                                                
+            return texCoordListSize[unit];
         default:
             printf("vsDynamicGeometry::getDataListSize: Unrecognized data "
                 "value\n");
