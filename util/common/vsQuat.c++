@@ -706,7 +706,7 @@ void vsQuat::getAxisAngleRotation(double *x, double *y, double *z,
     double *rotDegrees) const
 {
     vsVector axis;
-    double mag, degrees;
+    double mag, temp, degrees;
 
     // If the first three values of the quaternion are virtually zero,
     // then this quaternion represents no rotation.
@@ -724,13 +724,23 @@ void vsQuat::getAxisAngleRotation(double *x, double *y, double *z,
 	    *rotDegrees = 0.0;
 	return;
     }
-    
+
     // Obtain the axis of rotation by normalizing the first three values
-    // of the quaternion, and use the fourth value to compute the
-    // rotation degree measure.
     axis.normalize();
-    degrees = VS_RAD2DEG(acos(data[3]) * 2.0);
-    
+
+    // Make sure that the angle of rotation hasn't drifted outside the
+    // -1.0 - 1.0 range due to floating point error, otherwise the acos()
+    // call below will fail.
+    temp = data[3];
+    if (temp > 1.0)
+        temp = 1.0;
+    else if (temp < -1.0)
+        temp = -1.0;
+
+    // Obtain the angle of rotation using the fourth component of the
+    // quaternion
+    degrees = VS_RAD2DEG(acos(temp) * 2.0);
+
     // Check which return values are desired and copy the function results
     // into the specified locations
     if (x)
