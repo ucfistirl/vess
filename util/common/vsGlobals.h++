@@ -172,6 +172,13 @@ enum vsMathEulerAxisOrder
         #define VS_SYSTEM_DLL  __declspec(dllimport)
     #endif
 
+    // vsEnvironment library
+    #ifdef VS_ENVIRONMENT_EXPORTS
+        #define VS_ENVIRONMENT_DLL  __declspec(dllexport)
+    #else
+        #define VS_ENVIRONMENT_DLL  __declspec(dllimport)
+    #endif
+
 #else
 
      // Define all tokens to be nothing
@@ -183,6 +190,7 @@ enum vsMathEulerAxisOrder
      #define VS_MOTION_DLL
      #define VS_SOUND_DLL
      #define VS_SYSTEM_DLL
+     #define VS_ENVIRONMENT_DLL
      
 #endif
 
