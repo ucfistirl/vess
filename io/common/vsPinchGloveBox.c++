@@ -29,7 +29,7 @@
 // gets its information.
 // ------------------------------------------------------------------------
 vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
-               : vsInputSystem()
+               : vsIOSystem()
 {
     char          portDevice[20];
     unsigned char buf[100];

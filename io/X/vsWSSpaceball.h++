@@ -24,7 +24,7 @@
 #ifndef VS_WS_SPACEBALL_HPP
 #define VS_WS_SPACEBALL_HPP
 
-#include "vsInputSystem.h++"
+#include "vsIOSystem.h++"
 #include "vsSpaceball.h++"
 #include "vsWindowSystem.h++"
 #include <X11/extensions/XI.h>
@@ -33,7 +33,7 @@
 
 #define VS_SB_MAX_BUTTONS 9
 
-class vsWSSpaceball : public vsInputSystem
+class vsWSSpaceball : public vsIOSystem
 {
 protected:
 

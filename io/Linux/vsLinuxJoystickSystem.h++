@@ -24,7 +24,7 @@
 #ifndef VS_LINUX_JOYSTICK_SYSTEM_HPP
 #define VS_LINUX_JOYSTICK_SYSTEM_HPP
 
-#include "vsInputSystem.h++"
+#include "vsIOSystem.h++"
 #include "vsJoystick.h++"
 
 #include <linux/joystick.h>
@@ -35,7 +35,7 @@
 #define VS_LINUX_JS_BUTTON_PRESSED  1
 #define VS_LINUX_JS_BUTTON_RELEASED 0
 
-class vsLinuxJoystickSystem : public vsInputSystem
+class vsLinuxJoystickSystem : public vsIOSystem
 {
 protected:
 

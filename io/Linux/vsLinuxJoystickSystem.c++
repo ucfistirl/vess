@@ -39,7 +39,7 @@
 // Constructor. Creates a vsJoystick object from the specified port
 // ------------------------------------------------------------------------
 vsLinuxJoystickSystem::vsLinuxJoystickSystem(char *joystickPortName)
-    : vsInputSystem()
+    : vsIOSystem()
 {   
     char totalAxes;
     char totalButtons;

@@ -23,13 +23,13 @@
 #ifndef VS_PINCH_GLOVE_BOX_HPP
 #define VS_PINCH_GLOVE_BOX_HPP
 
-// This vsInputSystem descendant creates a vsChordGlove input device to
+// This vsIOSystem descendant creates a vsChordGlove input device to
 // maintain its state data.  The glove box communicates via serial port.
 // The PINCH system supports a timestamp feature to indicate when and for
 // how long finger contacts occur.  This feature is not supported by this
 // class since vsInputButton handles this in software.
 
-#include "vsInputSystem.h++"
+#include "vsIOSystem.h++"
 #include "vsSerialPort.h++"
 #include "vsChordGloves.h++"
 
@@ -60,7 +60,7 @@
 #define VS_PG_RING_BIT        0x02
 #define VS_PG_PINKY_BIT       0x01
 
-class VS_IO_DLL vsPinchGloveBox : public vsInputSystem
+class VS_IO_DLL vsPinchGloveBox : public vsIOSystem
 {
 protected:
 

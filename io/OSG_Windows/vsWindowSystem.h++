@@ -26,14 +26,14 @@
 
 #include <windows.h>
 #include "vsObjectMap.h++"
-#include "vsInputSystem.h++"
+#include "vsIOSystem.h++"
 #include "vsWindow.h++"
 #include "vsMouse.h++"
 #include "vsKeyboard.h++"
 
 #define VS_WS_MOUSE_WRAP_THRESHOLD_DEFAULT 6
 
-class VS_IO_DLL vsWindowSystem : public vsInputSystem
+class VS_IO_DLL vsWindowSystem : public vsIOSystem
 {
 protected:
 

@@ -23,7 +23,7 @@
 #ifndef VS_SIMPLE_JOYSTICK_HPP
 #define VS_SIMPLE_JOYSTICK_HPP
 
-#include "vsInputDevice.h++"
+#include "vsIODevice.h++"
 
 #define VS_JS_MAX_AXES    20
 #define VS_JS_MAX_BUTTONS 30
@@ -36,7 +36,7 @@ enum VS_IO_DLL
     VS_JS_T_AXIS = 3
 };
 
-class VS_IO_DLL vsJoystick : public vsInputDevice
+class VS_IO_DLL vsJoystick : public vsIODevice
 {
 protected:
 

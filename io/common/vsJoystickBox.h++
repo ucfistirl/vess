@@ -22,10 +22,10 @@
 #ifndef VS_JOYSTICK_BOX_HPP
 #define VS_JOYSTICK_BOX_HPP
 
-#include "vsInputSystem.h++"
+#include "vsIOSystem.h++"
 #include "vsJoystick.h++"
 
-class VS_IO_DLL vsJoystickBox : public vsInputSystem
+class VS_IO_DLL vsJoystickBox : public vsIOSystem
 {
 public:
 

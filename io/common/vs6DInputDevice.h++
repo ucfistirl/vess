@@ -25,12 +25,12 @@
 #include "vsVector.h++"
 #include "vsMatrix.h++"
 #include "vsQuat.h++"
-#include "vsInputDevice.h++"
+#include "vsIODevice.h++"
 #include "vsInputAxis.h++"
 
 #define VS_6DINPUT_NUM_AXES 3
 
-class VS_IO_DLL vs6DInputDevice : public vsInputDevice
+class VS_IO_DLL vs6DInputDevice : public vsIODevice
 {
 protected:
 

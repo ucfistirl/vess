@@ -30,14 +30,14 @@
 #undef index
 
 #include "vsObjectMap.h++"
-#include "vsInputSystem.h++"
+#include "vsIOSystem.h++"
 #include "vsWindow.h++"
 #include "vsMouse.h++"
 #include "vsKeyboard.h++"
 
 #define VS_WS_MOUSE_WRAP_THRESHOLD_DEFAULT 6
 
-class vsWindowSystem : public vsInputSystem
+class vsWindowSystem : public vsIOSystem
 {
 protected:
 
