@@ -29,6 +29,7 @@ SRCS = vsDatabaseLoader.c++ \
        vsPipe.c++ \
        vsScreen.c++ \
        vsSystem.c++ \
+       vsUpdatable.c++ \
        vsView.c++ \
        vsWindow.c++
 
@@ -40,6 +41,7 @@ OBJS = vsDatabaseLoader.o \
        vsPipe.o \
        vsScreen.o \
        vsSystem.o \
+       vsUpdatable.o \
        vsView.o \
        vsWindow.o
 
