@@ -65,6 +65,7 @@ int vsSoundBuffer::getBufferSize()
 double vsSoundBuffer::getLength()
 {
     int numSamples;
+    int bytesPerSample, channelCount;
                                                                                 
     if ((getChannelCount() < 1) || (getBytesPerSample() < 1))
     {
@@ -72,9 +73,23 @@ double vsSoundBuffer::getLength()
         // buffer length
         return 0;
     }
-                                                                                
-    // Compute the number of audio samples in the data
-    numSamples = bufferSize / getBytesPerSample() / getChannelCount();
+     
+    // Get the sample parameters
+    bytesPerSample = getBytesPerSample();
+    channelCount = getChannelCount();
+    
+    // If either parameter is zero, we can't compute the buffer length
+    if ((bytesPerSample <= 0) || (channelCount <= 0))
+    {
+        // Return zero for the length, because we don't recognize the
+        // audio format
+        return 0;
+    }
+    else
+    {
+        // Compute the number of audio samples in the data
+        numSamples = bufferSize / getBytesPerSample() / getChannelCount();
+    }
                                                                                 
     // Divide the number of samples by the frequency (samples per second)
     // to get the number of seconds
