@@ -1,13 +1,12 @@
 #!/bin/make
 
 VSLIBS = \
-         avatar \
-         corelib \
          math \
          scene \
          input \
          motion \
          sound \
+         system \
          test
 
 OS = `uname`
