@@ -23,6 +23,7 @@ libvsUtil_so_SOURCES = $(libvsUtil_a_SOURCES)
 # Header files
 include_HEADERS = \
                   common/vsChromaKey.h++ \
+                  common/vsGlobals.h++ \
                   common/vsGrowableArray.h++ \
                   common/vsMatrix.h++ \
                   common/vsObject.h++ \
