@@ -4,6 +4,7 @@
 #include "vsScreen.h++"
 #include "vsWindow.h++"
 #include "vsPane.h++"
+#include "vsSystem.h++"
 
 #define VS_RI_MAX_BUFFER_SIZE   65536
 
@@ -180,10 +181,6 @@ void vsRemoteInterface::processXMLDocument()
         {
             processStats(doc, current);
         }
-        else if (xmlStrcmp(current->name, (const xmlChar *) "readytosync") == 0)
-        {
-            processReadyToSync(doc, current);
-        }
         else if (xmlStrcmp(current->name, (const xmlChar *) "releasesync") == 0)
         {
             processReleaseSync(doc, current);
@@ -232,13 +229,9 @@ void vsRemoteInterface::processStats(xmlDocPtr doc, xmlNodePtr current)
 }
 
 
-void vsRemoteInterface::processReadyToSync(xmlDocPtr doc, xmlNodePtr current)
-{
-}
-
-
 void vsRemoteInterface::processReleaseSync(xmlDocPtr doc, xmlNodePtr current)
 {
+   vsSystem::systemObject->releaseSync();
 }
 
 
