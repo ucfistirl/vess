@@ -1394,7 +1394,6 @@ vsQuat vsPathMotion::interpolateOriSpline(vsQuat *ori0, vsQuat *ori1,
     vsQuat oriZero, oriThree;
     vsQuat aQuat, bQuat;
     vsQuat tempQuat;
-    double x, y, z, degrees;
     vsQuat q11, q12, q13, q21, q22;
 
     // NULL parameter check
