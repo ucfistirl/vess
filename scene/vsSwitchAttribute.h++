@@ -24,7 +24,7 @@ VS_INTERNAL:
 public:
 
                    vsSwitchAttribute();
-                   ~vsSwitchAttribute();
+    virtual        ~vsSwitchAttribute();
 
     virtual int    getAttributeType();
     virtual int    getAttributeCategory();

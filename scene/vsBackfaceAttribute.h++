@@ -22,7 +22,7 @@ VS_INTERNAL:
 public:
 
                    vsBackfaceAttribute();
-                   ~vsBackfaceAttribute();
+    virtual        ~vsBackfaceAttribute();
 
     virtual int    getAttributeType();
 

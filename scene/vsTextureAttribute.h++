@@ -68,7 +68,7 @@ VS_INTERNAL:
 public:
 
                    vsTextureAttribute();
-                   ~vsTextureAttribute();
+    virtual        ~vsTextureAttribute();
 
     virtual int    getAttributeType();
     

@@ -41,7 +41,7 @@ VS_INTERNAL:
 public:
 
                    vsSequenceAttribute();
-                   ~vsSequenceAttribute();
+    virtual        ~vsSequenceAttribute();
 
     virtual int    getAttributeType();
     virtual int    getAttributeCategory();

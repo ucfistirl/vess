@@ -50,7 +50,7 @@ VS_INTERNAL:
 public:
 
                    vsMaterialAttribute();
-                   ~vsMaterialAttribute();
+    virtual        ~vsMaterialAttribute();
 
     virtual int    getAttributeType();
     

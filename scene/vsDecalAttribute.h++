@@ -24,7 +24,7 @@ VS_INTERNAL:
 public:
 
                    vsDecalAttribute();
-                   ~vsDecalAttribute();
+    virtual        ~vsDecalAttribute();
 
     virtual int    getAttributeType();
     virtual int    getAttributeCategory();

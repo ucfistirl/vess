@@ -30,7 +30,7 @@ VS_INTERNAL:
 public:
 
                 vsViewpointAttribute(vsView *theView);
-                ~vsViewpointAttribute();
+    virtual     ~vsViewpointAttribute();
 
     int         getAttributeType();
     int         getAttributeCategory();

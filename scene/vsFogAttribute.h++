@@ -31,7 +31,7 @@ VS_INTERNAL:
 public:
 
                    vsFogAttribute();
-                   ~vsFogAttribute();
+    virtual        ~vsFogAttribute();
 
     virtual int    getAttributeType();
 

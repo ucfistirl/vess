@@ -24,7 +24,7 @@ VS_INTERNAL:
 public:
 
                    vsLODAttribute();
-                   ~vsLODAttribute();
+    virtual        ~vsLODAttribute();
 
     virtual int    getAttributeType();
     virtual int    getAttributeCategory();

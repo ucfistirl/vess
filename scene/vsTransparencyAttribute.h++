@@ -21,7 +21,7 @@ VS_INTERNAL:
 public:
 
                    vsTransparencyAttribute();
-                   ~vsTransparencyAttribute();
+    virtual        ~vsTransparencyAttribute();
 
     virtual int    getAttributeType();
 

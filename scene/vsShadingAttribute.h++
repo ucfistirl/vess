@@ -27,7 +27,7 @@ VS_INTERNAL:
 public:
 
                    vsShadingAttribute();
-                   ~vsShadingAttribute();
+    virtual        ~vsShadingAttribute();
 
     virtual int    getAttributeType();
     
