@@ -1,0 +1,64 @@
+# Libraries to make
+lib_LIBRARIES = libvsEnvironment.a libvsEnvironment.so
+
+# Sources for libvsSound.a
+libvsEnvironment_a_SOURCES = \
+                       common/vsCal3DAnimationLoader.c++ \
+                       common/vsCal3DLoader.c++
+
+# Sources for libvsSound.so (same as libvsSound.a)
+libvsEnvironment_so_SOURCES = $(libvsEnvironment_a_SOURCES)
+
+# Header files
+include_HEADERS = \
+                  common/vsCal3DAnimationLoader.h++ \
+                  common/vsCal3DLoader.h++
+
+# Include directives for the compiler
+INCLUDES = \
+           -I../util/common \
+           -I../util/@OS@ \
+           -I../util/@SG@ \
+           -I../graphics/common \
+           -I../graphics/@SG@ \
+           -I../graphics/@SG@_@WS@ \
+           @GFX_INCLUDE_DIR@ \
+           -I../io/common \
+           -I../io/@OS@ \
+           -I../io/@WS@ \
+           -I../io/@SG@_@WS@ \
+           @IO_INCLUDE_DIR@ \
+           -I../llio/@OS@ \
+           @SOUND_INCLUDE_DIR@ \
+           -I../motion/common \
+           @XML_INCLUDE_DIR@
+
+# Rule to make libvsEnvironment.so
+libvsEnvironment.so: libvsEnvironment.a
+	rm -f $@
+	$(CXX) $(LDFLAGS) $(AM_LDFLAGS) -shared -o $@ @SO_LINK@ libvsEnvironment.a @SO_NO_LINK@
+
+# Override automake's install rule for the libraries.  This is done to
+# keep automake from running ranlib on the shared library (since we're
+# not using libtool, automake doesn't know that libvess.so is a shared
+# library).
+install-libLIBRARIES: $(lib_LIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f="`echo $$p | sed -e 's|^.*/||'`"; \
+	    echo " $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f"; \
+	    $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f; \
+	  else :; fi; \
+	done
+	@$(POST_INSTALL)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test x`echo $$p | awk -F \. '{print $$NF}'` != xso ; then \
+	    if test -f $$p; then \
+	      p="`echo $$p | sed -e 's|^.*/||'`"; \
+	      echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
+	      $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
+	    fi; \
+	  fi;\
+	done
