@@ -735,6 +735,7 @@ vsNode *vsDatabaseLoader::convertGeode(pfGeode *geode, vsObjectMap *attrMap)
     pfGeoSet *sourceGeoSet;
     unsigned short *indexList;
     vsShadingAttribute *flatShadeAttr;
+    int textureUnit;
 
     // Each pfGeode contains any number of pfGeoSets. This structure 
     // converts into a vsComponent (the Geode), with any number of child
@@ -900,10 +901,15 @@ vsNode *vsDatabaseLoader::convertGeode(pfGeode *geode, vsObjectMap *attrMap)
                 indexList);
 
             // Copy Texture Coordinate data
-            sourceGeoSet->getAttrLists(PFGS_TEXCOORD2, &attrList, &indexList);
-            copyData(geometry, VS_GEOMETRY_TEXTURE_COORDS, 
-                sourceGeoSet, sourceGeoSet->getAttrBind(PFGS_TEXCOORD2), 
-                attrList, indexList);
+            for (textureUnit = 0; textureUnit < VS_MAXIMUM_TEXTURE_UNITS;
+                 textureUnit++)
+            {
+                sourceGeoSet->getMultiAttrLists(PFGS_TEXCOORD2, textureUnit,
+                    &attrList, &indexList);
+                copyData(geometry, (VS_GEOMETRY_TEXTURE0_COORDS+textureUnit), 
+                    sourceGeoSet, sourceGeoSet->getMultiAttrBind(PFGS_TEXCOORD2,
+                    textureUnit), attrList, indexList);
+            }
 
             // Check the flatFlag, and add a flat-shading attribute if
             // it is set
@@ -1677,7 +1683,14 @@ void vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
         pfVec4Array = (pfVec4 *)sourceArray;
         arraySize = 4;
     }
-    else if (targetDataType == VS_GEOMETRY_TEXTURE_COORDS)
+    else if ((targetDataType == VS_GEOMETRY_TEXTURE0_COORDS) ||
+             (targetDataType == VS_GEOMETRY_TEXTURE1_COORDS) ||
+             (targetDataType == VS_GEOMETRY_TEXTURE2_COORDS) ||
+             (targetDataType == VS_GEOMETRY_TEXTURE3_COORDS) ||
+             (targetDataType == VS_GEOMETRY_TEXTURE4_COORDS) ||
+             (targetDataType == VS_GEOMETRY_TEXTURE5_COORDS) ||
+             (targetDataType == VS_GEOMETRY_TEXTURE6_COORDS) ||
+             (targetDataType == VS_GEOMETRY_TEXTURE7_COORDS))
     {
         pfVec2Array = (pfVec2 *)sourceArray;
         arraySize = 2;
