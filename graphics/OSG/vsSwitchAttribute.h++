@@ -33,6 +33,10 @@ class VS_GRAPHICS_DLL vsSwitchAttribute : public vsAttribute
 private:
 
     osgSim::MultiSwitch     *osgSwitch;
+    
+    bool                    allEnabled;
+    bool                    allDisabled;
+    
 
 VS_INTERNAL:
 
