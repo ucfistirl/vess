@@ -222,6 +222,11 @@ bool vsComponent::insertChild(vsNode *newChild, int index)
         return false;
     }
 
+    // If the index is greater than the current number of children on this
+    // component, simply add the new child on the end normally
+    if (index >= childCount)
+        return addChild(newChild);
+
     // Notify the newChild node that it is getting a new parent. This might
     // fail, as the child node is permitted to object to getting a parent.
     if (newChild->addParent(this) == false)
@@ -231,11 +236,6 @@ bool vsComponent::insertChild(vsNode *newChild, int index)
 	return false;
     }
     
-    // If the index is greater than the current number of children on this
-    // component, simply add the new child on the end normally
-    if (index >= childCount)
-        return addChild(newChild);
-
     // First connect the Performer nodes together
     if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
     {
