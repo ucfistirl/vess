@@ -5,7 +5,6 @@
 
 class vsQuat;
 
-#include "vsGlobals.h++"
 #include "vsMatrix.h++"
 
 class vsQuat
@@ -46,6 +45,9 @@ public:
     vsQuat      getNormalized();
     void        normalize();
     void        conjugate();
+    vsQuat      getConjugate();
+    void        invert();
+    vsQuat      getInverse();
     
     void        setMatrixRotation(vsMatrix theMatrix);
     void        setEulerRotation(vsMathEulerAxisOrder axisOrder,
@@ -56,6 +58,8 @@ public:
                     double *axis3Degrees);
     void        setAxisAngleRotation(double x, double y, double z,
                     double rotDegrees);
+    void        setVecsRotation(vsVector originForward, vsVector originUp,
+                    vsVector targetForward, vsVector targetUp);
 
     vsVector    rotatePoint(vsVector targetPoint);
 

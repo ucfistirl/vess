@@ -1,9 +1,9 @@
 // File vsQuat.c++
 
+#include "vsQuat.h++"
+
 #include <math.h>
 #include <stdio.h>
-
-#include "vsQuat.h++"
 #include "vsGlobals.h++"
 
 // ------------------------------------------------------------------------
@@ -324,6 +324,55 @@ void vsQuat::conjugate()
 }
 
 // ------------------------------------------------------------------------
+// Conjugates this quaternion, returning the result. Quaternion conjugation
+// negates the vector portion but leaves the scalar portion unchanged.
+// If the quaternion represents a rotation, the conjugate is the opposite
+// rotation.
+// ------------------------------------------------------------------------
+vsQuat vsQuat::getConjugate()
+{
+    vsQuat result;
+    int loop;
+    
+    for (loop = 0; loop < 4; loop++)
+    {
+        if (loop == 3)
+            result[loop] = data[loop];
+        else
+            result[loop] = -data[loop];
+    }
+
+    return result;
+}
+
+// ------------------------------------------------------------------------
+// Sets this quaternion to its multiplicative inverse. The inverse of a
+// quaternion is its conjugate divided by the square of its magnitude.
+// ------------------------------------------------------------------------
+void vsQuat::invert()
+{
+    double mag;
+    int loop;
+    
+    mag = getMagnitude();
+
+    conjugate();
+    for (loop = 0; loop < 4; loop++)
+        data[loop] /= (mag * mag);
+}
+
+// ------------------------------------------------------------------------
+// Returns the multiplicative inverse of this quaternion. The inverse of a
+// quaternion is its conjugate divided by the square of its magnitude.
+// ------------------------------------------------------------------------
+vsQuat vsQuat::getInverse()
+{
+    vsQuat result(data);
+    result.invert();
+    return result;
+}
+
+// ------------------------------------------------------------------------
 // Sets this quaternion to a rotational quaternion representing the same
 // rotation as what is stored within the matrix parameter.
 // ------------------------------------------------------------------------
@@ -518,6 +567,67 @@ void vsQuat::setAxisAngleRotation(double x, double y, double z,
     data[1] = axis[1] * sin(VS_DEG2RAD(rotDegrees / 2.0));
     data[2] = axis[2] * sin(VS_DEG2RAD(rotDegrees / 2.0));
     data[3] = cos(VS_DEG2RAD(rotDegrees / 2.0));
+}
+
+// ------------------------------------------------------------------------
+// Sets this quaternion to represent the coordinate space rotation that
+// will rotate the directions specified by originForward and originUp to
+// match those specified by targetForward and targetUp, respectively.
+// ------------------------------------------------------------------------
+void vsQuat::setVecsRotation(vsVector originForward, vsVector originUp,
+    vsVector targetForward, vsVector targetUp)
+{
+    vsVector startDir, startUp, endDir, endUp;
+    vsVector newUp;
+    vsVector rotAxis;
+    double rotAngle, dotProd;
+    vsVector componentVec;
+    vsQuat roll;
+
+    startDir.clearCopy(originForward);
+    startDir.setSize(3);
+    startDir.normalize();
+    startUp.clearCopy(originUp);
+    startUp.setSize(3);
+    startUp.normalize();
+    endDir.clearCopy(targetForward);
+    endDir.setSize(3);
+    endDir.normalize();
+    endUp.clearCopy(targetUp);
+    endUp.setSize(3);
+    endUp.normalize();
+
+    set(0.0, 0.0, 0.0, 1.0);
+
+    // First, rotate the forward directions to match
+    if (!(startDir == endDir))
+    {
+        rotAxis = startDir.getCrossProduct(endDir);
+        rotAngle = startDir.getAngleBetween(endDir);
+        setAxisAngleRotation(rotAxis[0], rotAxis[1], rotAxis[2], rotAngle);
+    }
+
+    // Second, with both forward directions aligned, roll the up
+    // directions to match
+    newUp = (*this).rotatePoint(startUp);
+    if (!(newUp == endUp) && !(startDir == startUp) && !(endDir == endUp))
+    {
+        dotProd = endDir.getDotProduct(newUp);
+        componentVec = endDir * dotProd;
+        newUp -= componentVec;
+        newUp.normalize();
+
+        dotProd = endDir.getDotProduct(endUp);
+        componentVec = endDir * dotProd;
+        endUp -= componentVec;
+        endUp.normalize();
+
+        rotAxis = newUp.getCrossProduct(endUp);
+        rotAngle = newUp.getAngleBetween(endUp);
+
+        roll.setAxisAngleRotation(rotAxis[0], rotAxis[1], rotAxis[2], rotAngle);
+        (*this) = roll * (*this);
+    }
 }
 
 // ------------------------------------------------------------------------
