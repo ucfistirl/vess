@@ -21,6 +21,9 @@ protected:
 
     u_char                   xmlResponses[VS_RI_MAX_XML_DOCUMENT_SIZE];
 
+    float                    xmlToFloat(xmlChar *tmpStr);
+    int                      xmlToInt(xmlChar *tmpStr);
+
     void                     getPosition(xmlDocPtr doc, xmlNodePtr node,
                                          double *x, double *y, double *z);
     void                     getOrientation(xmlDocPtr doc, xmlNodePtr node,

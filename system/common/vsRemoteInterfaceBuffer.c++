@@ -54,6 +54,44 @@ vsRemoteInterfaceBuffer::~vsRemoteInterfaceBuffer()
 
 
 // ------------------------------------------------------------------------
+// Gets a float from an XML string (also frees the memory used by the 
+// XML string)
+// ------------------------------------------------------------------------
+float vsRemoteInterfaceBuffer::xmlToFloat(xmlChar *tmpStr)
+{
+   float   tmp;
+
+   // Get the float number out of the string
+   tmp = atof((char *) tmpStr);
+
+   // Free the string
+   xmlFree(tmpStr);
+
+   // Return the float!
+   return tmp;
+}
+
+
+// ------------------------------------------------------------------------
+// Gets an int from an XML string (also frees the memory used by the
+// XML string)
+// ------------------------------------------------------------------------
+int vsRemoteInterfaceBuffer::xmlToInt(xmlChar *tmpStr)
+{
+   int   tmp;
+                                                                                
+   // Get the int number out of the string
+   tmp = atoi((char *) tmpStr);
+                                                                                
+   // Free the string
+   xmlFree(tmpStr);
+                                                                                
+   // Return the int!
+   return tmp;
+}
+
+
+// ------------------------------------------------------------------------
 // Gets the position information at this level in the XML document
 // ------------------------------------------------------------------------
 void vsRemoteInterfaceBuffer::getPosition(xmlDocPtr doc, xmlNodePtr current,
@@ -67,23 +105,20 @@ void vsRemoteInterfaceBuffer::getPosition(xmlDocPtr doc, xmlNodePtr current,
         if (xmlStrcmp(current->name, (const xmlChar *) "x") == 0)
         {
             // Get the value of the "x" element and store it
-            *x = atof((char *) xmlNodeListGetString(doc, 
-                                                    current->xmlChildrenNode, 
-                                                    1));
+            *x = xmlToFloat(xmlNodeListGetString(doc, current->xmlChildrenNode,
+                                                 1));
         }
         else if (xmlStrcmp(current->name, (const xmlChar *) "y") == 0)
         {
             // Get the value of the "y" element and store it
-            *y = atof((char *) xmlNodeListGetString(doc, 
-                                                    current->xmlChildrenNode, 
-                                                    1));
+            *y = xmlToFloat(xmlNodeListGetString(doc, current->xmlChildrenNode,
+                                                 1));
         }
         else if (xmlStrcmp(current->name, (const xmlChar *) "z") == 0)
         {
             // Get the value of the "z" element and store it
-            *z = atof((char *) xmlNodeListGetString(doc, 
-                                                    current->xmlChildrenNode, 
-                                                    1));
+            *z = xmlToFloat(xmlNodeListGetString(doc, current->xmlChildrenNode,
+                                                 1));
         }
 
         // Go to the next node
@@ -157,6 +192,9 @@ void vsRemoteInterfaceBuffer::getOrientation(xmlDocPtr doc, xmlNodePtr current,
     else if (xmlStrcmp(order, (const xmlChar *) "ZYZ_R") == 0)
         ordering = VS_EULER_ANGLES_ZYZ_R;
 
+    // Don't need the order attribute anymore so free it
+    xmlFree(order);
+
     // Get euler angles from the passed in quaternion
     quat->getEulerRotation(ordering, &h, &p, &r);
 
@@ -168,23 +206,20 @@ void vsRemoteInterfaceBuffer::getOrientation(xmlDocPtr doc, xmlNodePtr current,
         if (xmlStrcmp(current->name, (const xmlChar *) "h") == 0)
         {
             // Store the new heading
-            h = atof((char *) xmlNodeListGetString(doc, 
-                                                   current->xmlChildrenNode, 
-                                                   1));
+            h = xmlToFloat(xmlNodeListGetString(doc, current->xmlChildrenNode,
+                                                1));
         }
         else if (xmlStrcmp(current->name, (const xmlChar *) "p") == 0)
         {
             // Store the new pitch
-            p = atof((char *) xmlNodeListGetString(doc, 
-                                                   current->xmlChildrenNode, 
-                                                   1));
+            p = xmlToFloat(xmlNodeListGetString(doc, current->xmlChildrenNode,
+                                                1));
         }
         else if (xmlStrcmp(current->name, (const xmlChar *) "r") == 0)
         {
             // Store the new roll
-            r = atof((char *) xmlNodeListGetString(doc, 
-                                                   current->xmlChildrenNode, 
-                                                   1));
+            r = xmlToFloat(xmlNodeListGetString(doc, current->xmlChildrenNode,
+                                                1));
         }
 
         // Go to the next node
@@ -369,17 +404,17 @@ void vsRemoteInterfaceBuffer::processPlaceComponent(xmlDocPtr doc,
     quat.set(0, 0, 0, 1);
 
     // Look for the required attributes
-    screenIndex = atoi((const char *) xmlGetProp(current, 
-                                                 (const xmlChar *) "screen"));
-    windowIndex = atoi((const char *) xmlGetProp(current, 
-                                                 (const xmlChar *) "window"));
-    paneIndex = atoi((const char *) xmlGetProp(current, 
-                                               (const xmlChar *) "pane"));
+    screenIndex = xmlToInt(xmlGetProp(current, (const xmlChar *) "screen"));
+    windowIndex = xmlToInt(xmlGetProp(current, (const xmlChar *) "window"));
+    paneIndex = xmlToInt(xmlGetProp(current, (const xmlChar *) "pane"));
     name = (char *) xmlGetProp(current, (const xmlChar *) "name");
 
     // Get the component named as given
     node = vsScreen::getScreen(screenIndex)->getChildWindow(windowIndex)->
                getChildPane(paneIndex)->getScene()->findNodeByName(name);
+
+    // Don't need the name attribute anymore so free it
+    xmlFree(name);
 
     // Get the transform on the node
     xform = (vsTransformAttribute *) node->getTypedAttribute(
@@ -480,7 +515,10 @@ void vsRemoteInterfaceBuffer::processSetKinematics(xmlDocPtr doc,
     kinematics = 
         (vsKinematics *) rootSequencer->getUpdatableByName(kinematicsName);
 
-    // Make sure we found the kinematics we were looking for
+    // First, free the kinematics attribute since we don't need it anymore
+    xmlFree(kinematicsName);
+
+    // Now, make sure we found the kinematics we were looking for
     if (kinematics == NULL)
         printf("Kinematics not found from name in <setkinematics> element.\n");
     else
@@ -541,8 +579,8 @@ void vsRemoteInterfaceBuffer::processSetSequence(xmlDocPtr doc,
                                                  vsSequencer *currentSequencer)
 {
     u_long         numUpdatable;
-    char           *updatableName;
-    char           *updatableLatency;
+    xmlChar        *updatableName;
+    xmlChar        *updatableLatency;
     vsUpdatable    *updatable;
 
     // Initialize count
@@ -559,13 +597,16 @@ void vsRemoteInterfaceBuffer::processSetSequence(xmlDocPtr doc,
              (xmlStrcmp(current->name, (const xmlChar *) "sequence") == 0) )
         {
             // Look for the required attributes
-            updatableName = (char *) xmlGetProp(current, 
-                                                (const xmlChar *) "name");
-            updatableLatency = (char *) xmlGetProp(current, 
-                                           (const xmlChar *) "minlatency");
+            updatableName = xmlGetProp(current, (const xmlChar *) "name");
+            updatableLatency = xmlGetProp(current, 
+                                          (const xmlChar *) "minlatency");
 
             // Find the updatable in the sequencer's list
-            updatable = currentSequencer->getUpdatableByName(updatableName);
+            updatable = currentSequencer->getUpdatableByName(
+                (char *) updatableName);
+
+            // Get rid of the name attribute since we don't need it anymore
+            xmlFree(updatableName);
 
             // Set the position of this updatable (assuming we found it)
             if (updatable != NULL)
@@ -576,8 +617,11 @@ void vsRemoteInterfaceBuffer::processSetSequence(xmlDocPtr doc,
                 // Set the latency on the updatable (but not sequences)
                 if (updatableLatency != NULL)
                 {
+                    // Set the latency with the new value (note that the
+                    // call to xmlToFloat frees the memory associated with
+                    // the updatable latency attribute0
                     currentSequencer->setUpdatableTime(updatable, 
-                                                       atof(updatableLatency));
+                                          xmlToFloat(updatableLatency));
                 }
 
                 // Move to the next relative position
@@ -610,12 +654,9 @@ void vsRemoteInterfaceBuffer::processStats(xmlDocPtr doc, xmlNodePtr current)
     xmlChar   *displayMode;
 
     // Look for the required attributes
-    screenIndex = atoi((const char *) xmlGetProp(current, 
-                                                 (const xmlChar *) "screen"));
-    windowIndex = atoi((const char *) xmlGetProp(current, 
-                                                 (const xmlChar *) "window"));
-    paneIndex = atoi((const char *) xmlGetProp(current, 
-                                               (const xmlChar *) "pane"));
+    screenIndex = xmlToInt(xmlGetProp(current, (const xmlChar *) "screen"));
+    windowIndex = xmlToInt(xmlGetProp(current, (const xmlChar *) "window"));
+    paneIndex = xmlToInt(xmlGetProp(current, (const xmlChar *) "pane"));
     displayMode = xmlGetProp(current, (const xmlChar *) "display");
 
     // Set the stats mode accordingly
@@ -631,6 +672,9 @@ void vsRemoteInterfaceBuffer::processStats(xmlDocPtr doc, xmlNodePtr current)
         vsScreen::getScreen(screenIndex)->getChildWindow(windowIndex)->
             getChildPane(paneIndex)->disableStats();
     }
+
+    // Free the memory associated with the XML display mode attribute
+    xmlFree(displayMode);
 }
 
 
