@@ -47,9 +47,10 @@ vsLightAttribute::vsLightAttribute()
     lightNode->off();
     lightObject->off();
     
-    setScope(VS_LIGHT_MODE_GLOBAL);
+    lightScope = VS_LIGHT_MODE_GLOBAL;
     
     attachedFlag = 0;
+    parentNode = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -298,6 +299,8 @@ void vsLightAttribute::setScope(int scope)
     }
     
     lightScope = scope;
+    if (parentNode)
+	parentNode->dirty();
 }
 
 // ------------------------------------------------------------------------
@@ -316,6 +319,8 @@ void vsLightAttribute::on()
     lightOn = VS_TRUE;
     if (lightScope == VS_LIGHT_MODE_GLOBAL)
         lightNode->on();
+    else if (parentNode)
+	parentNode->dirty();
 }
 
 // ------------------------------------------------------------------------
@@ -324,7 +329,10 @@ void vsLightAttribute::on()
 void vsLightAttribute::off()
 {
     lightOn = VS_FALSE;
-    lightNode->off();
+    if (lightScope == VS_LIGHT_MODE_GLOBAL)
+	lightNode->off();
+    else if (parentNode)
+	parentNode->dirty();
 }
 
 // ------------------------------------------------------------------------
@@ -371,6 +379,7 @@ void vsLightAttribute::attach(vsNode *theNode)
     lightHookGroup->addChild(lightNode);
 
     attachedFlag = 1;
+    parentNode = theNode;
 }
 
 // ------------------------------------------------------------------------
@@ -390,6 +399,7 @@ void vsLightAttribute::detach(vsNode *theNode)
     lightHookGroup = NULL;
 
     attachedFlag = 0;
+    parentNode = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -435,7 +445,7 @@ void vsLightAttribute::apply()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
-    if (lightScope == VS_LIGHT_MODE_LOCAL)
+    if ((lightScope == VS_LIGHT_MODE_LOCAL) && lightOn)
         gState->addLight(this);
 }
 
@@ -447,7 +457,7 @@ void vsLightAttribute::restoreSaved()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
-    if (lightScope == VS_LIGHT_MODE_LOCAL)
+    if ((lightScope == VS_LIGHT_MODE_LOCAL) && lightOn)
         gState->removeLight(this);
 }
 

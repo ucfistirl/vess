@@ -45,6 +45,8 @@ private:
     
     int              lightOn;
     int              lightScope;
+    
+    vsNode           *parentNode;
 
 VS_INTERNAL:
 
