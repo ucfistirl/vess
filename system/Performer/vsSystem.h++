@@ -39,7 +39,7 @@ class vsSystem
 {
 private:
 
-    int                 validObject;
+    bool                validObject;
     int			isInitted;
 
     double              lastFrameDuration;
@@ -59,7 +59,7 @@ public:
 
     void		init();
     void		simpleInit(char *databaseFilename, char *windowName,
-				   int fullScreen, vsNode **sceneGraph,
+				   bool fullScreen, vsNode **sceneGraph,
 				   vsView **viewpoint, vsWindow **window);
 
     void                drawFrame();
