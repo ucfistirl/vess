@@ -81,6 +81,10 @@ int vsCgParameterBlockAttribute::getAttributeType()
 // ------------------------------------------------------------------------
 void vsCgParameterBlockAttribute::addCgParameter(vsCgParameter *parameter)
 {
+    // If the parameter is NULL, do nothing.
+    if (parameter == NULL)
+        return;
+
     // Reference the given paramter.
     parameter->ref();
 
@@ -119,9 +123,7 @@ void vsCgParameterBlockAttribute::removeCgParameter(vsCgParameter *parameter)
 
         // Unref the parameter we are removing.
         tempParameter = (vsCgParameter *) parameterArray->getData(index);
-        tempParameter->unref();
-// Should I unrefDelete?
-        //vsObject::unrefDelete(tempParameter);
+        vsObject::unrefDelete(tempParameter);
 
         parameterCount--;
 
