@@ -137,10 +137,10 @@ protected:
 
     // Indicates whether or not to estimate the distal interphalangial
     // joints
-    int              estimateDistal;
+    bool             estimateDistal;
 
     // Indicates whether or not the glove is currently being calibrated
-    int              calibrating;
+    bool             calibrating;
 
     // The raw sensor values
     vsInputAxis      *sensors[VS_AG_NUM_SENSORS];
@@ -157,7 +157,7 @@ VS_INTERNAL:
     void             update();
 
 public:
-                     vsArticulationGlove(int estDistal);
+                     vsArticulationGlove(bool estDistal);
     virtual          ~vsArticulationGlove();
 
     // Inherited methods

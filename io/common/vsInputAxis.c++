@@ -37,9 +37,9 @@ vsInputAxis::vsInputAxis(void)
     offset = 0.0;
     position = 0.0;
     previousPosition1 = previousPosition2 = 0.0;
-    normalized = VS_FALSE;
-    inverted = VS_FALSE;
-    passiveCalibration = VS_FALSE;
+    normalized = false;
+    inverted = false;
+    passiveCalibration = false;
 }
 
 // ------------------------------------------------------------------------
@@ -60,9 +60,9 @@ vsInputAxis::vsInputAxis(double minPos, double maxPos)
         axisMin = minPos;
         axisMax = maxPos;
         threshold = 0.0;
-        normalized = VS_TRUE;
-        inverted = VS_FALSE;
-        passiveCalibration = VS_FALSE;
+        normalized = true;
+        inverted = false;
+        passiveCalibration = false;
     }
     else
     {
@@ -77,8 +77,8 @@ vsInputAxis::vsInputAxis(double minPos, double maxPos)
         previousPosition1 = previousPosition2 = 0.0;
         offset = 0.0;
         threshold = 0.0;
-        normalized = VS_FALSE;
-        inverted = VS_FALSE;
+        normalized = false;
+        inverted = false;
     }
 }
 
@@ -259,7 +259,7 @@ double vsInputAxis::getPosition(void)
 // Turn normalizing on or off.  Reject request to set it to on if there is 
 // not a valid axis range and/or idle position set
 // ------------------------------------------------------------------------
-void vsInputAxis::setNormalized(int normOn)
+void vsInputAxis::setNormalized(bool normOn)
 {
     char errMsg[100];
 
@@ -280,25 +280,25 @@ void vsInputAxis::setNormalized(int normOn)
             puts(errMsg);
 
             // Normalization is not possible
-            normalized = VS_FALSE;
+            normalized = false;
         }
         else
         {
             // Enable normalization
-            normalized = VS_TRUE;
+            normalized = true;
         }
     }
     else
     {
         // Disable normalization
-        normalized = VS_FALSE;
+        normalized = false;
     }
 }
 
 // ------------------------------------------------------------------------
 // Returns whether or not the axis values are normalized
 // ------------------------------------------------------------------------
-int vsInputAxis::isNormalized(void)
+bool vsInputAxis::isNormalized(void)
 {
     return normalized;
 }
@@ -314,7 +314,7 @@ void vsInputAxis::setInverted(int invert)
 // ------------------------------------------------------------------------
 // Returns whether or not the axis values are inverted
 // ------------------------------------------------------------------------
-int vsInputAxis::isInverted()
+bool vsInputAxis::isInverted()
 {
     return inverted;
 }
@@ -421,7 +421,7 @@ double vsInputAxis::getThreshold()
 // Turn on/off passive calibration.  Passive calibration constantly updates
 // the axis's range extents to provide ever more accurate axis data.
 // ------------------------------------------------------------------------
-void vsInputAxis::passiveCalibrate(int enable)
+void vsInputAxis::passiveCalibrate(bool enable)
 {
     // Check the parameter to see if we should enable or disable calibration
     if (enable)
@@ -431,12 +431,12 @@ void vsInputAxis::passiveCalibrate(int enable)
         axisMax = offset + 0.01;
 
         // Enable calibration
-        passiveCalibration = VS_TRUE;
+        passiveCalibration = true;
     }
     else
     {
         // Disable calibration
-        passiveCalibration = VS_FALSE;
+        passiveCalibration = false;
     }
 }
 

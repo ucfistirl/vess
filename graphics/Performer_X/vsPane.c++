@@ -84,7 +84,7 @@ vsPane::vsPane(vsWindow *parent)
     performerChannel->setFOV(-1.0, -1.0);
 
     // By default, don't draw stats
-    statsEnabled = VS_FALSE;
+    statsEnabled = false;
 }
 
 // ------------------------------------------------------------------------
@@ -562,7 +562,7 @@ void vsPane::getESColor(int which, double *r, double *g, double *b)
 // ------------------------------------------------------------------------
 void vsPane::enableStats()
 {
-    statsEnabled = VS_TRUE;
+    statsEnabled = true;
 }
 
 // ------------------------------------------------------------------------
@@ -571,13 +571,13 @@ void vsPane::enableStats()
 // ------------------------------------------------------------------------
 void vsPane::disableStats()
 {
-    statsEnabled = VS_FALSE;
+    statsEnabled = false;
 }
 
 // ------------------------------------------------------------------------
 // Returns whether or not statistics are set to be drawn
 // ------------------------------------------------------------------------
-int vsPane::areStatsEnabled()
+bool vsPane::areStatsEnabled()
 {
     return statsEnabled;
 }

@@ -93,7 +93,7 @@ protected:
 
     vsArticulationGlove    *glove;
     int                    numSensors;
-    int                    touchInstalled;
+    bool                   touchInstalled;
 
     // Initializes the glove box
     void                   initialize();

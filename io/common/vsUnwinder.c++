@@ -178,7 +178,7 @@ void vsUnwinder::ping(void)
 // Calculate a checksum from an Unwinder data packet and compares it with
 // the checkSum value reported by the Unwinder
 // ------------------------------------------------------------------------
-int vsUnwinder::isCheckSumOK(vsUnwinderPacket *packet)
+bool vsUnwinder::isCheckSumOK(vsUnwinderPacket *packet)
 {
     unsigned char sum;
 
@@ -221,9 +221,9 @@ int vsUnwinder::isCheckSumOK(vsUnwinderPacket *packet)
 
     // Check for equality
     if (sum == packet->checkSum)
-        return VS_TRUE;
+        return true;
     else
-        return VS_FALSE;
+        return false;
 }
 
 // ------------------------------------------------------------------------
@@ -233,7 +233,7 @@ void vsUnwinder::getReport(vsUnwinderPacket *packet)
 {
     int           result;
     int           numBytes;
-    int           error;
+    bool          error;
 
     // Read status and mode bytes
     result = port->readPacket(&(packet->status), 2);
@@ -246,7 +246,7 @@ void vsUnwinder::getReport(vsUnwinderPacket *packet)
         numBytes = 2; 
 
         // Initialize the error flag to false
-        error = VS_FALSE;
+        error = false;
 
 #ifdef VS_UW_DEBUG
         printf("vsUnwinder::getReport: "
@@ -276,11 +276,11 @@ void vsUnwinder::getReport(vsUnwinderPacket *packet)
 
             // Check the error bit for Joystick 0
             if (packet->status & 0x20)
-                error = VS_TRUE;
+                error = true;
 
             // Check for serial errors
             if (result != 8)
-                error = VS_TRUE;
+                error = true;
 
             // Add the number of bytes for Joystick 0
             numBytes += 8;
@@ -289,7 +289,7 @@ void vsUnwinder::getReport(vsUnwinderPacket *packet)
         {
             // Flag an error if we should have data for Joystick 0
             if (isConnected(0))
-                error = VS_TRUE;
+                error = true;
         }
 
         // Report an error if anything went wrong
@@ -300,7 +300,7 @@ void vsUnwinder::getReport(vsUnwinderPacket *packet)
         }
 
         // Reset the error flag for Joystick 1
-        error = VS_FALSE;
+        error = false;
 
         // Check the status byte to see if Joystick 1 data is present
         if (packet->status & 0x80)
@@ -323,11 +323,11 @@ void vsUnwinder::getReport(vsUnwinderPacket *packet)
 
             // Check the error bit for Joystick 1
             if (packet->status & 0x10)
-                error = VS_TRUE;
+                error = true;
 
             // Check for serial errors
             if (result != 8)
-                error = VS_TRUE;
+                error = true;
 
             // Add Joystick 1's bytes to the total
             numBytes += 8;
@@ -336,7 +336,7 @@ void vsUnwinder::getReport(vsUnwinderPacket *packet)
         {
             // Flag an error if we should have data for Joystick 1
             if (isConnected(1))
-                error = VS_TRUE;
+                error = true;
         }
 
         // Report an error if anything went wrong
@@ -407,14 +407,14 @@ vsJoystick *vsUnwinder::getJoystick(int index)
 }
 
 // ------------------------------------------------------------------------
-// Return VS_TRUE if the given joystick is connected to the joystick box
+// Return true if the given joystick is connected to the joystick box
 // ------------------------------------------------------------------------
-int vsUnwinder::isConnected(int index)
+bool vsUnwinder::isConnected(int index)
 {
     if (joystick[index] != NULL)
-        return VS_TRUE;
+        return true;
     else
-        return VS_FALSE;
+        return false;
 }
 
 // ------------------------------------------------------------------------

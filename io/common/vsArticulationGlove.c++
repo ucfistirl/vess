@@ -26,9 +26,9 @@
 // ------------------------------------------------------------------------
 // Constructor.  Initializes all the vsInputAxis and vsInputButton objects.
 // The parameter indicates whether or not the distal interphalangial joints
-// should be estimated or not.  VS_TRUE means yes, VS_FALSE means no.
+// should be estimated or not.  true means yes, false means no.
 // ------------------------------------------------------------------------
-vsArticulationGlove::vsArticulationGlove(int estDistal)
+vsArticulationGlove::vsArticulationGlove(bool estDistal)
 {
     int i;
 
@@ -36,7 +36,7 @@ vsArticulationGlove::vsArticulationGlove(int estDistal)
     estimateDistal = estDistal;
 
     // Initialize the calibrating flag to false (not calibrating)
-    calibrating = VS_FALSE;
+    calibrating = false;
 
     // Construct sensor axes, start with a reasonable range, which will
     // be more closely calibrated later
@@ -353,25 +353,25 @@ void vsArticulationGlove::passiveCalibrate(int enable)
     if (enable)
     {
         // Enabling calibration.  Set the flag to true.
-        calibrating = VS_TRUE;
+        calibrating = true;
 
         // Set all idle positions to the maximum sensor value and enable 
         // calibration on the input axes
         for (i = 0; i < VS_AG_NUM_SENSORS; i++)
         {
             sensors[i]->setIdlePosition(255);
-            sensors[i]->passiveCalibrate(VS_TRUE);
+            sensors[i]->passiveCalibrate(true);
         }
     }
     else
     {
         // Disabling calibration.  Set the flag to false.
-        calibrating = VS_FALSE;
+        calibrating = false;
 
         // Disable calibration on the input axes
         for (i = 0; i < VS_AG_NUM_SENSORS; i++)
         {
-            sensors[i]->passiveCalibrate(VS_FALSE);
+            sensors[i]->passiveCalibrate(false);
         }
     }
 

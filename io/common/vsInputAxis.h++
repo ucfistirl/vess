@@ -49,10 +49,10 @@ protected:
     double       offset;   
 
     // Indicates whether or not to normalize the axis value
-    int          normalized;
+    bool         normalized;
 
     // Indicates whether or not to invert the axis value
-    int          inverted;
+    bool         inverted;
 
     // Minimum and maximum positions (raw device values)
     double       axisMin;
@@ -62,7 +62,7 @@ protected:
     double       threshold;
 
     // Indicates whether or not passive calibration is enabled
-    int          passiveCalibration;
+    bool         passiveCalibration;
 
     // Returns the normalized value of the given raw value
     double       getNormalizedValue(double rawValue);
@@ -91,10 +91,10 @@ public:
     double                  getDelta();
 
     // Axis operations
-    void                    setNormalized(int normalize);
-    int                     isNormalized();
+    void                    setNormalized(bool normOn);
+    bool                    isNormalized();
     void                    setInverted(int invert);
-    int                     isInverted();
+    bool                    isInverted();
     void                    setRange(double minPos, double maxPos);
     void                    getRange(double *minPos, double *maxPos);
 
@@ -107,7 +107,7 @@ public:
     void                    setThreshold(double newThreshold);
     double                  getThreshold();
 
-    void                    passiveCalibrate(int enable);
+    void                    passiveCalibrate(bool enable);
 };
 
 #endif

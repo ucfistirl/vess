@@ -87,7 +87,7 @@ private:
     int                 curProjMode;
     double              curProjHval, curProjVval;
 
-    int                 statsEnabled;
+    bool                statsEnabled;
 
 VS_INTERNAL:
 
@@ -137,7 +137,7 @@ public:
 
     void                enableStats();
     void                disableStats();
-    int                 areStatsEnabled();
+    bool                areStatsEnabled();
 
     pfChannel           *getBaseLibraryObject();
 };

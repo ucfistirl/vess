@@ -34,14 +34,14 @@ class VS_IO_DLL vsInputButton : public vsUpdatable
 protected:
 
     // Indicates the state of the button
-    int          pressed;
+    bool         pressed;
 
     // Timer to measure time between button presses
     vsTimer      *buttonTimer;
 
     // Indicates whether or not the last press of the button was
     // a double-click
-    int          doubleClicked;
+    bool         doubleClicked;
 
     // The maximum time interval at which two consecutive presses 
     // are considered a "double-click"
@@ -61,8 +61,8 @@ public:
 
     virtual const char *    getClassName();
 
-    int                     isPressed(void);
-    int                     wasDoubleClicked(void);
+    bool                    isPressed(void);
+    bool                    wasDoubleClicked(void);
 
     void                    setDoubleClickInterval(double interval);
 };

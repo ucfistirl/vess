@@ -68,7 +68,7 @@ protected:
 
     // Utility functions
     void            ping(void);
-    int             isCheckSumOK(vsUnwinderPacket *packet);
+    bool            isCheckSumOK(vsUnwinderPacket *packet);
     void            getReport(vsUnwinderPacket *packet);
 
 public:
@@ -83,7 +83,7 @@ public:
     virtual vsJoystick    *getJoystick();
     virtual vsJoystick    *getJoystick(int index);
 
-    virtual int           isConnected(int index);
+    virtual bool          isConnected(int index);
 
     virtual void          setIdlePosition();
     virtual void          update();

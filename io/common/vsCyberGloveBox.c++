@@ -50,7 +50,7 @@ vsCyberGloveBox::vsCyberGloveBox(int portNum, long baud, int nSensors)
 
     // Initialize variables
     numSensors = 0;
-    touchInstalled = VS_FALSE;
+    touchInstalled = false;
 
     // Initialize the glove box
     if (port)
@@ -89,13 +89,13 @@ vsCyberGloveBox::vsCyberGloveBox(int portNum, long baud, int nSensors)
         if (numSensors < 22)
         {
             // Estimate the distal interphalangial joints
-            glove = new vsArticulationGlove(VS_TRUE);
+            glove = new vsArticulationGlove(true);
             glove->ref();
         }
         else
         {
             // Use the distal interphalangial joint sensors (don't estimate)
-            glove = new vsArticulationGlove(VS_FALSE);
+            glove = new vsArticulationGlove(false);
             glove->ref();
         }
 
@@ -207,12 +207,12 @@ void vsCyberGloveBox::initialize()
         if (buf[4] & VS_CYG_PARAM_CYBERTOUCH)
         {
             printf("    CyberTouch option present\n");
-            touchInstalled = VS_TRUE;
+            touchInstalled = true;
         }
         else
         {
             printf("    CyberTouch option not installed\n");
-            touchInstalled = VS_FALSE;
+            touchInstalled = false;
         }
     }
 }

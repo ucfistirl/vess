@@ -29,8 +29,8 @@
 vsInputButton::vsInputButton(void)
 {
     // Initialize variables
-    pressed = VS_FALSE;
-    doubleClicked = VS_FALSE;
+    pressed = false;
+    doubleClicked = false;
     doubleClickInterval = VS_IB_DBLCLICK_INTERVAL;
     
     // Create the button timer
@@ -64,7 +64,7 @@ void vsInputButton::update()
 // ------------------------------------------------------------------------
 // Returns whether or not the button is pressed
 // ------------------------------------------------------------------------
-int vsInputButton::isPressed(void)
+bool vsInputButton::isPressed(void)
 {
     return pressed;
 }
@@ -72,7 +72,7 @@ int vsInputButton::isPressed(void)
 // ------------------------------------------------------------------------
 // Returns whether or not the last press was a double-click
 // ------------------------------------------------------------------------
-int vsInputButton::wasDoubleClicked(void)
+bool vsInputButton::wasDoubleClicked(void)
 {
     return doubleClicked;
 }
@@ -86,7 +86,7 @@ void vsInputButton::setPressed(void)
     if (!pressed)
     {
         // Set the button to pressed
-        pressed = VS_TRUE;
+        pressed = true;
 
         // Mark the button press time
         buttonTimer->mark();
@@ -95,11 +95,11 @@ void vsInputButton::setPressed(void)
         // and flag a double-click if the interval is small enough
         if (buttonTimer->getInterval() <= doubleClickInterval)
         {
-            doubleClicked = VS_TRUE;
+            doubleClicked = true;
         }
         else
         {
-            doubleClicked = VS_FALSE;
+            doubleClicked = false;
         }
     }
 }
@@ -109,7 +109,7 @@ void vsInputButton::setPressed(void)
 // ------------------------------------------------------------------------
 void vsInputButton::setReleased(void)
 {
-    pressed = VS_FALSE;
+    pressed = false;
 }
 
 // ------------------------------------------------------------------------
