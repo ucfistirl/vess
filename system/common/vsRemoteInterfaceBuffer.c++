@@ -230,8 +230,10 @@ void vsRemoteInterfaceBuffer::getSequenceTree(vsSequencer *currentSequencer,
         else
         {
             // Add in the XML code for this updatable
-            sprintf(updatableStr, "<updatable name=\"%s\"></updatable>",
-                    currentSequencer->getUpdatableName(updatable));
+            sprintf(updatableStr, 
+                    "<updatable name=\"%s\" minlatency=\"%lf\"></updatable>",
+                    currentSequencer->getUpdatableName(updatable),
+                    currentSequencer->getUpdatableTime(updatable));
             strcat(sequenceTreeBuffer, updatableStr);
         }
     }
@@ -540,6 +542,7 @@ void vsRemoteInterfaceBuffer::processSetSequence(xmlDocPtr doc,
 {
     u_long         numUpdatable;
     char           *updatableName;
+    char           *updatableLatency;
     vsUpdatable    *updatable;
 
     // Initialize count
@@ -555,9 +558,11 @@ void vsRemoteInterfaceBuffer::processSetSequence(xmlDocPtr doc,
         if ( (xmlStrcmp(current->name, (const xmlChar *) "updatable") == 0) ||
              (xmlStrcmp(current->name, (const xmlChar *) "sequence") == 0) )
         {
-            // Look for the required attribute
+            // Look for the required attributes
             updatableName = (char *) xmlGetProp(current, 
                                                 (const xmlChar *) "name");
+            updatableLatency = (char *) xmlGetProp(current, 
+                                           (const xmlChar *) "minlatency");
 
             // Find the updatable in the sequencer's list
             updatable = currentSequencer->getUpdatableByName(updatableName);
@@ -567,6 +572,13 @@ void vsRemoteInterfaceBuffer::processSetSequence(xmlDocPtr doc,
             {
                 // Place the updatable and the relative position we want
                 currentSequencer->setUpdatablePosition(updatable, numUpdatable);
+
+                // Set the latency on the updatable (but not sequences)
+                if (updatableLatency != NULL)
+                {
+                    currentSequencer->setUpdatableTime(updatable, 
+                                                       atof(updatableLatency));
+                }
 
                 // Move to the next relative position
                 numUpdatable++;
