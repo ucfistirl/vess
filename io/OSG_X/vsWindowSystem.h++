@@ -56,16 +56,16 @@ protected:
     vsKeyboard         *keyboard;
 
     // Flag to indicate if the mouse is in the window
-    int                mouseInWindow;
+    bool               mouseInWindow;
 
     // Flag to indicate if mouse is grabbed to the given window or not
-    int                mouseGrabbed;
+    bool               mouseGrabbed;
 
     // Flag to indicate if the mouse cursor is hidden or not
-    int                mouseCursorHidden;
+    bool               mouseCursorHidden;
 
     // Flags to indicate if the mouse cursor wrapped on the last update or not
-    int                mouseWrapped[2];
+    bool               mouseWrapped[2];
 
     // Sets how many pixels from the edge of the window that will cause the
     // mouse to wrap
@@ -89,25 +89,25 @@ public:
     vsMouse               *getMouse();   
     vsKeyboard            *getKeyboard();   
 
-    int                   isMouseInWindow();
+    bool                  isMouseInWindow();
 
     void                  grabMouse();
     void                  unGrabMouse();
-    int                   isMouseGrabbed();
+    bool                  isMouseGrabbed();
 
     void                  hideCursor();
     void                  showCursor();
-    int                   isCursorHidden();
+    bool                  isCursorHidden();
 
     void                  getMouseLocation( int *x, int *y );
     void                  warpMouse( int x, int y );
 
     void                  enableMouseWrap( int axis );
     void                  disableMouseWrap( int axis );
-    int                   isMouseWrapEnabled( int axis );
+    bool                  isMouseWrapEnabled( int axis );
     void                  setMouseWrapThreshold( int axis, int threshold );
     int                   getMouseWrapThreshold( int axis );
-    int                   didMouseWrap( int axis );
+    bool                  didMouseWrap( int axis );
 
     virtual void          update();
 };

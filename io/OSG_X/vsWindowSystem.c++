@@ -46,9 +46,9 @@ vsWindowSystem::vsWindowSystem(vsWindow *mainWindow)
     window = 0x0;
     keyboard = NULL;
     mouse = NULL;
-    mouseCursorHidden = VS_FALSE;
-    mouseGrabbed = VS_FALSE;
-    mouseWrapped[0] =  mouseWrapped[1] = VS_FALSE;
+    mouseCursorHidden = false;
+    mouseGrabbed = false;
+    mouseWrapped[0] =  mouseWrapped[1] = false;
     mouseWrapping[0] = mouseWrapping[1] = 0;
     
     // Check window for other window system
@@ -75,7 +75,7 @@ vsWindowSystem::vsWindowSystem(vsWindow *mainWindow)
 
     // Assume the mouse isn't in the window yet (an EnterNotify or 
     // PointerMotion event will change this)
-    mouseInWindow = VS_FALSE;
+    mouseInWindow = false;
 
     // Change the window's event mask to select the X Input events we want
     // First, get the current event mask
@@ -175,7 +175,7 @@ Window vsWindowSystem::getWindow()
 // ------------------------------------------------------------------------
 // Return whether or not the mouse is currently in the window
 // ------------------------------------------------------------------------
-int vsWindowSystem::isMouseInWindow()
+bool vsWindowSystem::isMouseInWindow()
 {
     return mouseInWindow;
 }
@@ -263,7 +263,7 @@ void vsWindowSystem::update()
             case MotionNotify:        
                 // If we get a MotionNotify event, the mouse is definitely
                 // in the window
-                mouseInWindow = VS_TRUE;
+                mouseInWindow = true;
 
                 // Get the position of the mouse pointer
                 if (XQueryPointer(display, window, &rootWin, &childWin, 
@@ -276,12 +276,12 @@ void vsWindowSystem::update()
 
             case EnterNotify:
                 // The mouse pointer has entered the window
-                mouseInWindow = VS_TRUE;
+                mouseInWindow = true;
                 break;
 
             case LeaveNotify:
                 // The mouse pointer has left the window
-                mouseInWindow = VS_FALSE;
+                mouseInWindow = false;
                 break;
         }
     }
@@ -310,8 +310,8 @@ void vsWindowSystem::update()
     }
 
     // Reset the mouse wrapped flags
-    mouseWrapped[0] = VS_FALSE; //x axis
-    mouseWrapped[1] = VS_FALSE; //y axis
+    mouseWrapped[0] = false; //x axis
+    mouseWrapped[1] = false; //y axis
 
     // If we're wrapping for one of the mouse axes, do it now
     if( mouseWrapping[0] || mouseWrapping[1] )
@@ -374,7 +374,7 @@ void vsWindowSystem::update()
             {
                 // We're left of the threshold, warp to the right side of the
                 // window
-                mouseWrapped[0] = VS_TRUE;
+                mouseWrapped[0] = true;
 
                 // Always move just beyond the right threshold so that we don't
                 // immediately warp back (that's what the "*2" is here for. It
@@ -385,7 +385,7 @@ void vsWindowSystem::update()
             {
                 // We're right of the threshold, warp to the left side of the
                 // window
-                mouseWrapped[0] = VS_TRUE;
+                mouseWrapped[0] = true;
                 newMouseX = wrapLeft + mouseWrapping[0]*2;
             }
             else
@@ -400,14 +400,14 @@ void vsWindowSystem::update()
             {
                 // We're above the threshold, warp to the bottom side of the
                 // window
-                mouseWrapped[1] = VS_TRUE;
+                mouseWrapped[1] = true;
                 newMouseY = wrapBottom - mouseWrapping[1]*2;
             }
             else if( mousey > (wrapBottom - mouseWrapping[1] - 1) )
             {
                 // We're below the threshold, warp to the upper side of the
                 // window
-                mouseWrapped[1] = VS_TRUE;
+                mouseWrapped[1] = true;
                 newMouseY = wrapTop + mouseWrapping[1]*2;
             }
             else
@@ -440,14 +440,14 @@ void vsWindowSystem::update()
 void vsWindowSystem::grabMouse()
 {
     // Make sure we have a display and that the mouse is not already grabbed
-    if( display!=NULL && mouseGrabbed==VS_FALSE )
+    if( display!=NULL && mouseGrabbed==false )
     {
         // Grab the mouse with X
         XGrabPointer( display, window, True, 0, GrabModeAsync,
             GrabModeAsync, window, None, CurrentTime );
 
         // Mark that we grabbed the mouse
-        mouseGrabbed = VS_TRUE;
+        mouseGrabbed = true;
     }
 }
 
@@ -457,20 +457,20 @@ void vsWindowSystem::grabMouse()
 void vsWindowSystem::unGrabMouse( )
 {
     // Make sure we have a display and that the mouse is already grabbed
-    if( display!=NULL && mouseGrabbed==VS_TRUE )
+    if( display!=NULL && mouseGrabbed==true )
     {
         // Ungrab the mouse with X
         XUngrabPointer( display, CurrentTime );
 
         // Mark the mouse as ungrabbed
-        mouseGrabbed = VS_FALSE;
+        mouseGrabbed = false;
     }
 }
 
 // ------------------------------------------------------------------------
 // Is the mouse grabbed? (Is the mouse confined to the window?)
 // ------------------------------------------------------------------------
-int vsWindowSystem::isMouseGrabbed()
+bool vsWindowSystem::isMouseGrabbed()
 {
     return mouseGrabbed;
 }
@@ -483,7 +483,7 @@ int vsWindowSystem::isMouseGrabbed()
 void vsWindowSystem::enableMouseWrap( int axis )
 {
     // If mouse wrap is not already enabled, enable it now with our default
-    if( isMouseWrapEnabled( axis )==VS_FALSE )
+    if( isMouseWrapEnabled( axis )==false )
         setMouseWrapThreshold( axis, VS_WS_MOUSE_WRAP_THRESHOLD_DEFAULT );
 }
 
@@ -500,13 +500,13 @@ void vsWindowSystem::disableMouseWrap( int axis )
 // Return a boolean value indicating whether or not mouse wrapping is on
 // for a given axis
 // ------------------------------------------------------------------------
-int vsWindowSystem::isMouseWrapEnabled( int axis )
+bool vsWindowSystem::isMouseWrapEnabled( int axis )
 {
     // If the threshold is not equal to 0, we're in wrap mode
     if( getMouseWrapThreshold( axis ) != 0 )
-        return VS_TRUE;
+        return true;
     else
-        return VS_FALSE;
+        return false;
 }
 
 // ------------------------------------------------------------------------
@@ -535,12 +535,12 @@ int vsWindowSystem::getMouseWrapThreshold( int axis )
 // ------------------------------------------------------------------------
 // Did the mouse wrap on the last update()?
 // ------------------------------------------------------------------------
-int vsWindowSystem::didMouseWrap( int axis )
+bool vsWindowSystem::didMouseWrap( int axis )
 {
     if( axis>=0 && axis<2 )
         return mouseWrapped[axis];
     else
-        return VS_FALSE;
+        return false;
 }
 
 // ------------------------------------------------------------------------
@@ -574,7 +574,7 @@ void vsWindowSystem::hideCursor( )
     XFreeCursor( display, blankCursor );
 
     // Mark the cursor as hidden
-    mouseCursorHidden = VS_TRUE;
+    mouseCursorHidden = true;
 }
 
 // ------------------------------------------------------------------------
@@ -589,14 +589,14 @@ void vsWindowSystem::showCursor( )
         XUndefineCursor( display, window );
 
         // Mark the cursor as visible
-        mouseCursorHidden = VS_FALSE;
+        mouseCursorHidden = false;
     }
 }
 
 // ------------------------------------------------------------------------
 // Is the mouse cursor currently hidden?
 // ------------------------------------------------------------------------
-int vsWindowSystem::isCursorHidden( )
+bool vsWindowSystem::isCursorHidden( )
 {
     return mouseCursorHidden;
 }
