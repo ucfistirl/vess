@@ -31,6 +31,7 @@ SRCS = \
        vsTerrainFollow.c++ \
        vsTrackballMotion.c++ \
        vsTrackedMotion.c++ \
+       vsWalkArticulation.c++ \
        vsWalkInPlace.c++
 
 OBJS = \
@@ -44,6 +45,7 @@ OBJS = \
        vsTerrainFollow.o \
        vsTrackballMotion.o \
        vsTrackedMotion.o \
+       vsWalkArticulation.o \
        vsWalkInPlace.o
 
 #----------------------------------------------------------------------
