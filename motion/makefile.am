@@ -4,6 +4,7 @@ lib_LIBRARIES = libvsMotion.a libvsMotion.so
 # Sources for libvsMotion.a
 libvsMotion_a_SOURCES = \
                         common/vs3TrackerArm.c++ \
+                        common/vsArticulatedCollision.c++ \
                         common/vsAxisRotation.c++ \
                         common/vsCollision.c++ \
                         common/vsDifferentialTrackedOrientation.c++ \
@@ -11,6 +12,7 @@ libvsMotion_a_SOURCES = \
                         common/vsFlyingMotion.c++ \
                         common/vsHandArticulation.c++ \
                         common/vsHandCollision.c++ \
+                        common/vsInverseKinematics.c++ \
                         common/vsKinematics.c++ \
                         common/vsMotionModel.c++ \
                         common/vsPathMotion.c++ \
@@ -31,6 +33,7 @@ libvsMotion_so_SOURCES = $(libvsMotion_a_SOURCES)
 # Header files
 include_HEADERS = \
                   common/vs3TrackerArm.h++ \
+                  common/vsArticulatedCollision.h++ \
                   common/vsAxisRotation.h++ \
                   common/vsCollision.h++ \
                   common/vsDifferentialTrackedOrientation.h++ \
@@ -39,6 +42,7 @@ include_HEADERS = \
                   common/vsHandArticulation.h++ \
                   common/vsHandCollision.h++ \
                   common/vsKinematics.h++ \
+                  common/vsInverseKinematics.h++ \
                   common/vsMotionModel.h++ \
                   common/vsPathMotion.h++ \
                   common/vsRelativeMouseMotion.h++ \
