@@ -6,7 +6,6 @@
 
 #include <AL/al.h>
 #include <AL/alc.h>
-#include <AL/alkludge.h>
 #include "vsGlobals.h++"
 #include "vsSoundBuffer.h++"
 

@@ -221,7 +221,7 @@ double vsSoundListenerAttribute::getGain()
 {
     float gain;
 
-    alGetListenerf(AL_GAIN, &gain);
+    alGetListenerfv(AL_GAIN, &gain);
 
     return (double)gain;
 }

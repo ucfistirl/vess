@@ -88,12 +88,7 @@ public:
     void           play();
     void           stop();
     void           pause();
-
-/*  
-    Not yet implemented
-
     void           rewind();
-*/
 
     // Loop control
     int            isLooping();
@@ -107,15 +102,12 @@ public:
     double         getMaxGain();
     void           setMaxGain(double gain);
 
-/*  In the OpenAL spec, but not yet implemented
-
     double         getReferenceDistance();
     void           setReferenceDistance(double distance);
     double         getMaxDistance();
     void           setMaxDistance(double distance);
     double         getRolloffFactor();
     void           setRolloffFactor(double factor);
-*/
 
     // Pitch parameters
     double         getPitchShift();
@@ -128,12 +120,8 @@ public:
     void           setInnerConeAngle(double angle);
     double         getOuterConeAngle();
     void           setOuterConeAngle(double angle);
-
-/*  In the OpenAL spec, but not yet implemented
-
     double         getOuterConeGain();
     void           setOuterConeGain(double gain);
-*/
     
 };
 

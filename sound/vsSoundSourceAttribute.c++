@@ -1,5 +1,4 @@
 #include <AL/al.h>
-#include <AL/alkludge.h>
 #include <sys/time.h>
 #include <stdio.h>
 
@@ -282,7 +281,7 @@ void vsSoundSourceAttribute::update()
     // to allow the old buffer to be refilled
     if (streamingSource)
     {
-        alGetSourcei(sourceID, AL_BUFFERS_PROCESSED, &buffersProcessed);
+        alGetSourceiv(sourceID, AL_BUFFERS_PROCESSED, &buffersProcessed);
 
         if (buffersProcessed > 0)
         {
@@ -332,9 +331,6 @@ void vsSoundSourceAttribute::pause()
     alSourcePause(sourceID);
 }
 
-/* 
-   This is part of the OpenAL spec, but not yet implemented
-
 // ------------------------------------------------------------------------
 // Rewinds the source
 // ------------------------------------------------------------------------
@@ -343,8 +339,6 @@ void vsSoundSourceAttribute::rewind()
     alSourceRewind(sourceID);
 }
 
-*/
-
 // ------------------------------------------------------------------------
 // Returns whether or not this source is looping
 // ------------------------------------------------------------------------
@@ -352,7 +346,7 @@ int vsSoundSourceAttribute::isLooping()
 {
     ALint looping;
 
-    alGetSourcei(sourceID, AL_LOOPING, &looping);
+    alGetSourceiv(sourceID, AL_LOOPING, &looping);
 
     return (int)looping;
 }
@@ -372,7 +366,7 @@ double vsSoundSourceAttribute::getGain()
 {
     float gain;
 
-    alGetListenerf(AL_GAIN, &gain);
+    alGetSourcefv(sourceID, AL_GAIN, &gain);
 
     return (double)gain;
 }
@@ -393,7 +387,7 @@ double vsSoundSourceAttribute::getMinGain()
 {
     float gain;
 
-    alGetSourcef(sourceID, AL_MIN_GAIN, &gain);
+    alGetSourcefv(sourceID, AL_MIN_GAIN, &gain);
 
     return (double)gain;
 }
@@ -414,7 +408,7 @@ double vsSoundSourceAttribute::getMaxGain()
 {
     float gain;
 
-    alGetSourcef(sourceID, AL_MAX_GAIN, &gain);
+    alGetSourcefv(sourceID, AL_MAX_GAIN, &gain);
 
     return (double)gain;
 }
@@ -427,9 +421,6 @@ void vsSoundSourceAttribute::setMaxGain(double gain)
     alSourcef(sourceID, AL_MIN_GAIN, (float)gain);
 }
 
-/*
-   Not yet implemented
-
 // ------------------------------------------------------------------------
 // Returns the reference distance of the source (the distance at which 
 // maximum gain is heard) (range = [0, inf), default = 1.0)
@@ -438,7 +429,7 @@ double vsSoundSourceAttribute::getReferenceDistance()
 {
     float dist;
 
-    alGetSourcef(sourceID, AL_REFERENCE_DISTANCE, &dist);
+    alGetSourcefv(sourceID, AL_REFERENCE_DISTANCE, &dist);
 
     return (double)dist;
 }
@@ -460,7 +451,7 @@ double vsSoundSourceAttribute::getMaxDistance()
 {
     float dist;
 
-    alGetSourcef(sourceID, AL_MAX_DISTANCE, &dist);
+    alGetSourcefv(sourceID, AL_MAX_DISTANCE, &dist);
 
     return (double)dist;
 }
@@ -483,7 +474,7 @@ double vsSoundSourceAttribute::getRolloffFactor()
 {
     float factor;
 
-    alGetSourcef(sourceID, AL_ROLLOFF_FACTOR, &factor);
+    alGetSourcefv(sourceID, AL_ROLLOFF_FACTOR, &factor);
 
     return (double)factor;
 }
@@ -493,10 +484,8 @@ double vsSoundSourceAttribute::getRolloffFactor()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::setRolloffFactor(double factor)
 {
-    alSourcef(sourceID, AL_ROLLOFF_FACTOR, (float)gain);
+    alSourcef(sourceID, AL_ROLLOFF_FACTOR, (float)factor);
 }
-
-*/
 
 // ------------------------------------------------------------------------
 // Returns the current pitch shifting of the source.  Every 50% reduction
@@ -508,7 +497,7 @@ double vsSoundSourceAttribute::getPitchShift()
 {
     float shift;
 
-    alGetSourcef(sourceID, AL_PITCH, &shift);
+    alGetSourcefv(sourceID, AL_PITCH, &shift);
 
     return (double)shift;
 }
@@ -565,7 +554,7 @@ double vsSoundSourceAttribute::getInnerConeAngle()
 {
     float angle;
 
-    alGetSourcef(sourceID, AL_CONE_INNER_ANGLE, &angle);
+    alGetSourcefv(sourceID, AL_CONE_INNER_ANGLE, &angle);
 
     return (double)angle;
 }
@@ -587,7 +576,7 @@ double vsSoundSourceAttribute::getOuterConeAngle()
 {
     float angle;
 
-    alGetSourcef(sourceID, AL_CONE_OUTER_ANGLE, &angle);
+    alGetSourcefv(sourceID, AL_CONE_OUTER_ANGLE, &angle);
 
     return (double)angle;
 }
@@ -600,9 +589,6 @@ void vsSoundSourceAttribute::setOuterConeAngle(double angle)
     alSourcef(sourceID, AL_CONE_OUTER_ANGLE, (float)angle);
 }
 
-/* 
-   In the spec, but not yet implemented
-
 // ------------------------------------------------------------------------
 // Sets the gain reduction of a directional source's outer cone of 
 // radiation.  A gain of 1.0 means no reduction (same as the inner cone)
@@ -613,7 +599,7 @@ double vsSoundSourceAttribute::getOuterConeGain()
 {
     float gain;
 
-    alGetSourcef(sourceID, AL_CONE_OUTER_GAIN, &gain);
+    alGetSourcefv(sourceID, AL_CONE_OUTER_GAIN, &gain);
 
     return (double)gain;
 }
@@ -625,5 +611,3 @@ void vsSoundSourceAttribute::setOuterConeGain(double gain)
 {
     alSourcef(sourceID, AL_CONE_OUTER_GAIN, (float)gain);
 }
-
-*/

@@ -1,25 +1,22 @@
-#include <AL/al.h>
-#include <AL/alc.h>
 #include "vsSoundPipe.h++"
+#include <stdio.h>
 
 // ------------------------------------------------------------------------
-// Creates a vsSoundPipe with the given parameters
-// NOTE:  OpenAL currently does not support the channels option, a sound
-//        pipe will always have two channels by default
+// Creates a vsSoundPipe with the given internal buffer frequency
 // ------------------------------------------------------------------------
 vsSoundPipe::vsSoundPipe(int freq, int width, int channels)
 {
-     int attrList[7];
+    int attrList[3];
 
-     attrList[0] = ALC_FREQUENCY;
-     attrList[1] = freq;
-     attrList[2] = ALC_RESOLUTION;
-     attrList[3] = width;
-     attrList[4] = ALC_CHANNELS;
-     attrList[5] = channels;
-     attrList[6] = 0;
+    deviceHandle = alcOpenDevice(NULL);
 
-     pipeHandle = alcCreateContext(attrList);
+    attrList[0] = ALC_FREQUENCY;
+    attrList[1] = freq;
+    attrList[2] = 0;
+
+    pipeHandle = alcCreateContext(deviceHandle, attrList);
+
+    alcMakeContextCurrent(pipeHandle);
 }
 
 // ------------------------------------------------------------------------
@@ -32,7 +29,9 @@ vsSoundPipe::vsSoundPipe()
 
     attrList[0] = 0;
 
-    pipeHandle = alcCreateContext(attrList);
+    deviceHandle = alcOpenDevice(NULL);
+    pipeHandle = alcCreateContext(deviceHandle, attrList);
+    alcMakeContextCurrent(pipeHandle);
 }
 
 // ------------------------------------------------------------------------
@@ -50,7 +49,7 @@ double vsSoundPipe::getDopplerScale()
 {
     float scale;
 
-    alGetFloatv(AL_DOPPLER_SCALE, &scale);
+    alGetFloatv(AL_DOPPLER_FACTOR, &scale);
 
     return (double)scale;
 }
@@ -60,7 +59,7 @@ double vsSoundPipe::getDopplerScale()
 // ------------------------------------------------------------------------
 void vsSoundPipe::setDopplerScale(double scale)
 {
-    alDopplerScale((float)scale);
+    alDopplerFactor((float)scale);
 }
 
 // ------------------------------------------------------------------------
@@ -71,7 +70,7 @@ double vsSoundPipe::getDopplerVelocity()
 {
     float speed;
 
-    alGetFloatv(AL_PROPAGATION_SPEED, &speed);
+    alGetFloatv(AL_DOPPLER_VELOCITY, &speed);
 
     return (double)speed;
 }
@@ -81,5 +80,5 @@ double vsSoundPipe::getDopplerVelocity()
 // ------------------------------------------------------------------------
 void vsSoundPipe::setDopplerVelocity(double speed)
 {
-    alPropagationSpeed((float)speed);
+    alDopplerVelocity((float)speed);
 }

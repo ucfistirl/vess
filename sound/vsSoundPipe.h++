@@ -5,12 +5,18 @@
 // Also handles all global sound options (such as distance attenuation scale)
 // This implementation uses OpenAL
 
+#include <AL/al.h>
+#include <AL/alc.h>
+
 class vsSoundPipe
 {
 protected:
 
-    // Handle to the audio hardware (an OpenAL context ID in this case)
-    void    *pipeHandle;
+    // Handle to the audio hardware (an OpenAL device ID in this case)
+    ALCdevice     *deviceHandle;
+
+    // Handle to the audio rendering context
+    void          *pipeHandle;
 
 public:
 
