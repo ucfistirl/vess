@@ -34,6 +34,16 @@ vsObjectMap *vsWindow::windowMap = NULL;
 // created.  Used to assign a unique index to each window
 int vsWindow::windowCount = 0;
 
+// WGL extensions function pointers.  These are looked up the first time
+// the extension is used.
+PFNWGLGETEXTENSIONSSTRINGARBPROC vsWindow::wglGetExtensionsStringARB = NULL;
+PFNWGLCHOOSEPIXELFORMATARBPROC vsWindow::wglChoosePixelFormatARB = NULL;
+PFNWGLRELEASEPBUFFERDCARBPROC vsWindow::wglReleasePbufferDCARB = NULL;
+PFNWGLDESTROYPBUFFERARBPROC vsWindow::wglDestroyPbufferARB = NULL;
+PFNWGLCREATEPBUFFERARBPROC vsWindow::wglCreatePbufferARB = NULL;
+PFNWGLGETPBUFFERDCARBPROC vsWindow::wglGetPbufferDCARB = NULL;
+PFNWGLQUERYPBUFFERARBPROC vsWindow::wglQueryPbufferARB = NULL;
+
 // ------------------------------------------------------------------------
 // Constructor - Initializes the window by creating a GLX window and 
 // creating connections with that, verifying that the window is being 
@@ -383,7 +393,6 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
 {
     vsPipe *parentPipe;
     UINT numFormats;
-    PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB;
     char *wglExtensions, *token;
     bool wglPbufferFlag, wglPixelFormatFlag;
     
@@ -428,67 +437,78 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
     // Get the current valid device context from the system
     deviceContext = wglGetCurrentDC();
     
-    // This function pointer must be fetched to determine which WGL
-    // extensions are installed on this machine
-    wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)
-        wglGetProcAddress("wglGetExtensionsStringARB");
+    if (wglGetExtensionsStringARB == NULL)
+    {
+        // This function pointer must be fetched to determine which WGL
+        // extensions are installed on this machine
+        wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)
+            wglGetProcAddress("wglGetExtensionsStringARB");
 
-    // If the extensions are not installed, bail out
-    if(!wglGetExtensionsStringARB)
-    {
-        printf("vsWindow::vsWindow:  WGL Extensions not detected. "
-               "Cannot instantiate off-screen window\n");
-        return;
-    }
-        
-    // Get the extensions string
-    wglExtensions = (char *)wglGetExtensionsStringARB(deviceContext);
+        // If the extensions are not installed, bail out
+        if(wglGetExtensionsStringARB == NULL)
+        {
+            printf("vsWindow::vsWindow:  WGL Extensions not detected. "
+                   "Cannot instantiate off-screen window\n");
+            return;
+        }
+
+        // Get the extensions string
+        wglExtensions = (char *)wglGetExtensionsStringARB(deviceContext);
+
+        // Initialize the flags indicating the presence of the two WGL
+        // extensions to false, since they have not yet been found
+        wglPbufferFlag = false;
+        wglPixelFormatFlag = false;
     
-    // Initialize the flags indicating the presence of the two WGL extensions
-    // to false, since they have not yet been found
-    wglPbufferFlag = false;
-    wglPixelFormatFlag = false;
+        // Start a tokenizer on the extensions string
+        token = strtok(wglExtensions, " \n");
     
-    // Start a tokenizer on the extensions string
-    token = strtok(wglExtensions, " \n");
-    
-    // If the token matches either extensions string, set the flag to true
-    if(strcmp(token, "WGL_ARB_pbuffer") == 0)
-        wglPbufferFlag = true;
-    else if(strcmp(token, "WGL_ARB_pixel_format") == 0)
-        wglPixelFormatFlag = true;
-        
-    // Scan the tokenizer for the strings, setting the flags appropriately
-    while(token = strtok(NULL, " \n"))
-    {
+        // If the token matches either extensions string, set the flag to true
         if(strcmp(token, "WGL_ARB_pbuffer") == 0)
             wglPbufferFlag = true;
         else if(strcmp(token, "WGL_ARB_pixel_format") == 0)
             wglPixelFormatFlag = true;
+        
+        // Scan the tokenizer for the strings, setting the flags appropriately
+        while(token = strtok(NULL, " \n"))
+        {
+            if(strcmp(token, "WGL_ARB_pbuffer") == 0)
+                wglPbufferFlag = true;
+            else if(strcmp(token, "WGL_ARB_pixel_format") == 0)
+                wglPixelFormatFlag = true;
+        }
+    
+        // If either the pbuffer or pixel format extensions are missing, the window
+        // cannot be instantiated
+        if((!wglPbufferFlag) || (!wglPixelFormatFlag))
+        {
+            printf("vsWindow::vsWindow:  WGL extensions not installed!\n");
+            return;
+        }
+    
+        // Set the WGL function pointers
+        wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)
+            wglGetProcAddress("wglChoosePixelFormatARB");
+        wglReleasePbufferDCARB = (PFNWGLRELEASEPBUFFERDCARBPROC)
+            wglGetProcAddress("wglReleasePbufferDCARB");        
+        wglDestroyPbufferARB = (PFNWGLDESTROYPBUFFERARBPROC)
+            wglGetProcAddress("wglDestroyPbufferARB");
+        wglCreatePbufferARB = (PFNWGLCREATEPBUFFERARBPROC)
+            wglGetProcAddress("wglCreatePbufferARB");
+        wglGetPbufferDCARB = (PFNWGLGETPBUFFERDCARBPROC)
+            wglGetProcAddress("wglGetPbufferDCARB");
+        wglQueryPbufferARB = (PFNWGLQUERYPBUFFERARBPROC)
+            wglGetProcAddress("wglQueryPbufferARB");
     }
     
-    // If either the pbuffer or pixel format extensions are missing, the window
-    // cannot be instantiated
-    if((!wglPbufferFlag) || (!wglPixelFormatFlag))
+    // Make sure we got the functions we need for pixel formats
+    if (wglChoosePixelFormatARB == NULL)
     {
-        printf("vsWindow::vsWindow:  WGL extensions not installed!\n");
+        printf("vsWindow::vsWindow:  WGL pixel format extensions not "
+            "installed!\n");
         return;
     }
     
-    // Set the WGL function pointers
-    wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)
-        wglGetProcAddress("wglChoosePixelFormatARB");
-    wglReleasePbufferDCARB = (PFNWGLRELEASEPBUFFERDCARBPROC)
-        wglGetProcAddress("wglReleasePbufferDCARB");        
-    wglDestroyPbufferARB = (PFNWGLDESTROYPBUFFERARBPROC)
-        wglGetProcAddress("wglDestroyPbufferARB");
-    wglCreatePbufferARB = (PFNWGLCREATEPBUFFERARBPROC)
-        wglGetProcAddress("wglCreatePbufferARB");
-    wglGetPbufferDCARB = (PFNWGLGETPBUFFERDCARBPROC)
-        wglGetProcAddress("wglGetPbufferDCARB");
-    wglQueryPbufferARB = (PFNWGLQUERYPBUFFERARBPROC)
-        wglGetProcAddress("wglQueryPbufferARB");
-
     // Search the current device context for the pixel format that most
     // closely matches the format we described
     if( !wglChoosePixelFormatARB(deviceContext, iAttributeList, fAttributeList,
@@ -499,6 +519,13 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
         return;
     }
 
+    // Make sure we got the functions we need for pbuffers
+    if (wglCreatePbufferARB == NULL)
+    {
+        printf("vsWindow::vsWindow:  WGL pbuffer extensions not installed!\n");
+        return;
+    }
+    
     // Create the Pbuffer based on the new pixel format
     pBuffer = wglCreatePbufferARB(deviceContext, pixelFormat, offScreenWidth,
         offScreenHeight, bufferAttribList);
@@ -618,6 +645,9 @@ vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
 // ------------------------------------------------------------------------
 vsWindow::~vsWindow()
 {
+    // Make this window's context current
+    makeCurrent();
+    
     // Delete all child panes
     // The vsPane destructor includes a call to the parent vsWindow (this)
     // to remove it from the pane list. Keep deleting vsPanes and eventually

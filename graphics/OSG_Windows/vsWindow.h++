@@ -85,12 +85,13 @@ private:
     bool                       isOffScreenWindow;
 
     // Function pointers for the WGL Extensions for off-screen windows
-    PFNWGLCHOOSEPIXELFORMATARBPROC   wglChoosePixelFormatARB;
-    PFNWGLRELEASEPBUFFERDCARBPROC    wglReleasePbufferDCARB;
-    PFNWGLDESTROYPBUFFERARBPROC      wglDestroyPbufferARB;
-    PFNWGLCREATEPBUFFERARBPROC       wglCreatePbufferARB;
-    PFNWGLGETPBUFFERDCARBPROC        wglGetPbufferDCARB;
-    PFNWGLQUERYPBUFFERARBPROC        wglQueryPbufferARB;
+    static PFNWGLGETEXTENSIONSSTRINGARBPROC    wglGetExtensionsStringARB;
+    static PFNWGLCHOOSEPIXELFORMATARBPROC      wglChoosePixelFormatARB;
+    static PFNWGLRELEASEPBUFFERDCARBPROC       wglReleasePbufferDCARB;
+    static PFNWGLDESTROYPBUFFERARBPROC         wglDestroyPbufferARB;
+    static PFNWGLCREATEPBUFFERARBPROC          wglCreatePbufferARB;
+    static PFNWGLGETPBUFFERDCARBPROC           wglGetPbufferDCARB;
+    static PFNWGLQUERYPBUFFERARBPROC           wglQueryPbufferARB;
 
 VS_INTERNAL:
 
