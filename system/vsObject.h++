@@ -35,7 +35,7 @@ private:
 public:
 
                 vsObject();
-                ~vsObject();
+    virtual     ~vsObject();
 
     void        ref();
     void        unref();
