@@ -686,7 +686,7 @@ void vsWindow::getDrawableSize(int *width, int *height)
     // Query the window attributes from X, and make sure the query
     // succeeds
     result = XGetWindowAttributes(xWindowDisplay, 
-        performerPipeWindow->getWSWindow(), &xattr) == 0)
+        performerPipeWindow->getWSWindow(), &xattr);
     if (result == 0)
     {
         // The query failed, return zeroes as default
