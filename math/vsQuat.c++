@@ -398,6 +398,9 @@ vsQuat vsQuat::getInverse()
 // ------------------------------------------------------------------------
 void vsQuat::setMatrixRotation(vsMatrix theMatrix)
 {
+    // The following algorithm is drawn from the SIGGRAPH '85 paper
+    // "Animating Rotation with Quaternion Curves", by Ken Shoemake.
+
     double ws, xs, ys;
 
     ws = (1.0 + theMatrix[0][0] + theMatrix[1][1] + theMatrix[2][2]) / 4.0;
@@ -445,6 +448,9 @@ void vsQuat::setMatrixRotation(vsMatrix theMatrix)
 void vsQuat::setEulerRotation(vsMathEulerAxisOrder axisOrder,
     double axis1Degrees, double axis2Degrees, double axis3Degrees)
 {
+    // This function simply creates three separate quaternions, one
+    // for each rotation, and then combines them.
+
     vsQuat firstQuat, secondQuat, thirdQuat, resultQuat;
     
     switch (axisOrder)
@@ -574,6 +580,7 @@ void vsQuat::setAxisAngleRotation(double x, double y, double z,
     vsVector axis(x, y, z);
     double tempVal;
 
+    // Check for a zero axis of rotation
     if ((x == 0.0) && (y == 0.0) && (z == 0.0))
     {
         data[0] = 0.0;
@@ -585,6 +592,9 @@ void vsQuat::setAxisAngleRotation(double x, double y, double z,
 
     axis.normalize();
 
+    // Compte the final quaternion, which consists of a vector part of
+    // the rotation axis scaled by the sine of the rotation degree
+    // measure, and a scalar part of the cosine of the degree measure.
     tempVal = sin(VS_DEG2RAD(rotDegrees / 2.0));
     data[0] = axis[0] * tempVal;
     data[1] = axis[1] * tempVal;
@@ -603,7 +613,9 @@ void vsQuat::getAxisAngleRotation(double *x, double *y, double *z,
 {
     vsVector axis;
     double mag, degrees;
-    
+
+    // If the first three values of the quaternion are virtually zero,
+    // then this quaternion represents no rotation.
     axis.set(data[0], data[1], data[2]);
     mag = axis.getMagnitude();
     if (mag < 1E-6)
@@ -619,6 +631,9 @@ void vsQuat::getAxisAngleRotation(double *x, double *y, double *z,
 	return;
     }
     
+    // Obtain the axis of rotation by normalizing the first three values
+    // of the quaternion, and use the fourth value to compute the
+    // rotation degree measure.
     axis.normalize();
     degrees = VS_RAD2DEG(acos(data[3]) * 2.0);
     
@@ -760,15 +775,22 @@ vsVector vsQuat::rotatePoint(vsVector targetPoint)
     vsQuat targetAsQuat, conjQuat, resultQuat;
     int loop;
     
+    // Construct the inverse of this quaternion. Since rotation
+    // quaternions are unit length, the inverse of the quaternion is
+    // equivalent to its conjugate.
     conjQuat.set(data);
     conjQuat.conjugate();
 
+    // Create a quaternion out of the point to be rotated
     targetAsQuat.clear();
     for (loop = 0; (loop < targetPoint.getSize()) && (loop < 3); loop++)
         targetAsQuat[loop] = targetPoint[loop];
 
+    // The point rotation is accomplished by computing the composite
+    // quaternion [Q * P * (Q^-1)]
     resultQuat = (*this) * targetAsQuat * conjQuat;
     
+    // Convert the resulting quaternion back into a point
     resultPt = targetPoint;
     for (loop = 0; (loop < targetPoint.getSize()) && (loop < 3); loop++)
         resultPt[loop] = resultQuat[loop];
@@ -796,22 +818,32 @@ vsQuat vsQuat::slerp(vsQuat destination, double parameter)
         return resultQuat;
     }
     
+    // If the two quaternions are identical, there's no work to do.
     if (isEqual(destination))
 	return (*this);
 
+    // Calculate the angle between the two quaternions as 4-D vectors
+    // by computing the inverse cosine of their dot product
     theta = 0.0;
     for (loop = 0; loop < 4; loop++)
         theta += (data[loop] * destination[loop]);
     theta = acos(theta);
-    
+
+    // Interpolate between the two quaternions by scaling each one based
+    // on the parameter value, and summing the resulting quaternions. The
+    // 'spherical' effect is accomplished with the sine functions.
+
+    // Scale the starting quaternion
     startQuat.set(data);
     q1val = sin((1.0 - parameter) * theta) / sin(theta);
     startQuat.scale(q1val);
-    
+
+    // Scale the destination quaternion
     endQuat = destination;
     q2val = sin(parameter * theta) / sin(theta);
     endQuat.scale(q2val);
-    
+
+    // Combine the two and finish
     resultQuat = startQuat + endQuat;
     return resultQuat;
 }
@@ -921,4 +953,3 @@ int vsQuat::operator==(vsQuat operand)
 
     return VS_TRUE;
 }
-
