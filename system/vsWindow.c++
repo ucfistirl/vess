@@ -112,6 +112,88 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
 }
 
 // ------------------------------------------------------------------------
+// Constructor - Initializes the window using the given Performer pipe 
+// window object.   The window is forced open if it is not already open.
+// ------------------------------------------------------------------------
+vsWindow::vsWindow(vsScreen *parent, pfPipeWindow *pWin) : childPaneList(1, 1)
+{
+    vsPipe *parentPipe;
+    Display *xWindowDisplay;
+    Window xWindowID;
+    Window *childPointer;
+    unsigned int childCount;
+    Window parentID, rootID;
+    XWindowAttributes xattr;
+    int result;
+    
+    childPaneCount = 0;
+    
+    // Get the parent screen
+    parentScreen = parent;
+    parentPipe = parentScreen->getParentPipe();
+    
+    // Reference the pfPipeWindow
+    performerPipeWindow = pWin;
+    performerPipeWindow->ref();
+    
+    // Add this window to the screen object
+    parentScreen->addWindow(this);
+    
+    // Switch the origin to lower-left
+    performerPipeWindow->setMode(PFWIN_ORIGIN_LL, 0);
+
+    // Tell the window to open
+    if (!performerPipeWindow->isOpen())
+        performerPipeWindow->open();
+
+    // Force the window open
+    xWindowDisplay = pfGetCurWSConnection();
+
+    while (!(performerPipeWindow->isOpen()))
+    {
+        pfFrame();
+        XFlush(xWindowDisplay);
+    }
+
+    // Get the window that Performer thinks is topmost, and then query the
+    // X server to determine if that window really is the topmost one.
+    xWindowID = performerPipeWindow->getWSWindow();
+
+    do
+    {
+        result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
+            &childPointer, &childCount);
+        XFree(childPointer);
+
+        if (result == 0)
+        {
+            pfFrame();
+            XFlush(xWindowDisplay);
+        }
+        else if (parentID != rootID)
+            xWindowID = parentID;
+    }
+    while (rootID != parentID);
+    topWindowID = xWindowID;
+
+    // Attempt to determine the size of the window manager's border for
+    // this window by checking the difference between Performer's idea
+    // of the window size and X's one.
+    XGetWindowAttributes(xWindowDisplay, topWindowID, &xattr);
+    xPositionOffset = VS_WINDOW_DEFAULT_XPOS - xattr.x;
+    yPositionOffset = VS_WINDOW_DEFAULT_YPOS - xattr.y;
+    widthOffset = xattr.width - VS_WINDOW_DEFAULT_WIDTH;
+    heightOffset = xattr.height - VS_WINDOW_DEFAULT_HEIGHT;
+    
+    // Set the window's location and size to default values
+    setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
+    setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
+    
+    // Start off with no vsWindowSystem atatched
+    currentWS = NULL;
+}
+
+// ------------------------------------------------------------------------
 // Constructor - Initializes the window by creating a Performer pipe window
 // object and creating connections with that, verifying that the window is
 // being properly displayed, recording some size data from the window
