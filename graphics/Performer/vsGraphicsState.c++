@@ -54,7 +54,10 @@ vsGraphicsState *vsGraphicsState::getInstance()
 {
     // Create a new instance if none exists
     if (!classInstance)
-	classInstance = new vsGraphicsState();
+    {
+        classInstance = new vsGraphicsState();
+        classInstance->ref();
+    }
 
     // Return the singleton instance
     return classInstance;
@@ -68,7 +71,7 @@ void vsGraphicsState::deleteInstance()
 {
     // If the instance exists, destroy it
     if (classInstance)
-	delete classInstance;
+        vsObject::unrefDelete(classInstance);
 
     // Reset the instance pointer to NULL
     classInstance = NULL;
@@ -242,9 +245,9 @@ void vsGraphicsState::removeLight(vsLightAttribute *lightAttrib)
     for (loop = 0; loop < lightAttrCount; loop++)
         if (lightAttrib == lightAttrList[loop])
         {
-	    // If found, remove the attribute from the list by copying
-	    // the last entry in the list over the attribute to be removed,
-	    // and decrement the list size
+            // If found, remove the attribute from the list by copying
+            // the last entry in the list over the attribute to be removed,
+            // and decrement the list size
             lightAttrList[loop] = lightAttrList[--lightAttrCount];
             return;
         }
