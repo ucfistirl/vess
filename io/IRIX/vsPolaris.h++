@@ -1,3 +1,24 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsPolaris.h++
+//
+//    Description:  Support for the Northern Digital, Inc. POLARIS optical
+//                  tracking system.
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
 #ifndef VS_POLARIS_HPP
 #define VS_POLARIS_HPP
 
