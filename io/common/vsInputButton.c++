@@ -44,6 +44,22 @@ vsInputButton::~vsInputButton(void)
 }
 
 // ------------------------------------------------------------------------
+// Returns the class name
+// ------------------------------------------------------------------------
+const char * vsInputButton::getClassName()
+{
+    return "vsInputButton";
+}
+
+// ------------------------------------------------------------------------
+// Update function called by this vsInputButton's vsInputDevice every time
+// the vsInputDevice is updated
+// ------------------------------------------------------------------------
+void vsInputButton::update()
+{
+}
+
+// ------------------------------------------------------------------------
 // Returns the current system time in seconds
 // ------------------------------------------------------------------------
 double vsInputButton::getTime()

@@ -370,4 +370,7 @@ void vsPinchGloveBox::update()
         // Increment the index
         i += 2;
     }
+
+    // Update the input device
+    gloves->update();
 }

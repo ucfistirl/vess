@@ -1365,4 +1365,11 @@ void vsFastrak::update()
         // Get tracker data from hardware
         updateSystem();
     }
+
+    // Update all input devices
+    for( i=0; i<numTrackers; i++ )
+    {
+        if( tracker[i] )
+            tracker[i]->update();
+    }
 }

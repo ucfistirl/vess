@@ -146,4 +146,6 @@ void vsLinuxJoystickSystem::update()
                 break;
         }
     }
+
+    joystick->update();
 }

@@ -28,16 +28,22 @@
 // within the range of -1.0 to 1.0.
 
 #include "vsGlobals.h++"
+#include "vsUpdatable.h++"
 
 #define VS_AXIS_DEFAULT_MIN 0.0
 #define VS_AXIS_DEFAULT_MAX 255.0
 
-class vsInputAxis
+class vsInputAxis : public vsUpdatable
 {
 protected:
 
     // Position of the axis (raw device value)
-    double       position;    
+    double       position;
+
+    // Position of the axis (raw device value) at the last 2 update() calls
+    // These are used to calculate relative positions
+    double       previousPosition1;    
+    double       previousPosition2;
 
     // Calibration offset (raw device value)
     double       offset;   
@@ -58,36 +64,50 @@ protected:
     // Indicates whether or not passive calibration is enabled
     int          passiveCalibration;
 
+    // Returns the normalized value of the given raw value
+    double       getNormalizedValue(double rawValue);
+
 VS_INTERNAL:
 
-    void         setPosition(double rawPos);
+    void            setPosition(double rawPos);
+
+    // Normally, the previous position is automatically saved by setPosition(),
+    // these are for special instances when you need to override that value
+    // (i.e. the mouse wrapping in vsWindowSystem uses this)
+    void            forcePreviousPosition(double rawPos);
+    void            forceShiftPreviousPosition(double rawShiftPos);
+
+    virtual void    update();
 
 public:
 
-                 vsInputAxis();
-                 vsInputAxis(double minPos, double maxPos);
-                 ~vsInputAxis();
+                            vsInputAxis();
+                            vsInputAxis(double minPos, double maxPos);
+                            ~vsInputAxis();
 
-    double       getPosition();
+    virtual const char *    getClassName();
+
+    double                  getPosition();
+    double                  getDelta();
 
     // Axis operations
-    void         setNormalized(int normalize);
-    int          isNormalized();
-    void         setInverted(int invert);
-    int          isInverted();
-    void         setRange(double minPos, double maxPos);
-    void         getRange(double *minPos, double *maxPos);
+    void                    setNormalized(int normalize);
+    int                     isNormalized();
+    void                    setInverted(int invert);
+    int                     isInverted();
+    void                    setRange(double minPos, double maxPos);
+    void                    getRange(double *minPos, double *maxPos);
 
     // Calibration functions
-    void         setIdlePosition();
-    void         setIdlePosition(double newOffset);
-    double       getIdlePosition();
+    void                    setIdlePosition();
+    void                    setIdlePosition(double newOffset);
+    double                  getIdlePosition();
 
     // Threshold functions
-    void         setThreshold(double newThreshold);
-    double       getThreshold();
+    void                    setThreshold(double newThreshold);
+    double                  getThreshold();
 
-    void         passiveCalibrate(int enable);
+    void                    passiveCalibrate(int enable);
 };
 
 #endif

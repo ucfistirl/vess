@@ -36,3 +36,38 @@ vsInputDevice::~vsInputDevice(void)
 {
 
 }
+
+// ------------------------------------------------------------------------
+// Return the class name
+// ------------------------------------------------------------------------
+const char * vsInputDevice::getClassName()
+{
+    return "vsInputDevice";
+}
+
+// ------------------------------------------------------------------------
+// Each frame, the vsInputSystem responsible for this device should call this
+// update function.
+// ------------------------------------------------------------------------
+void vsInputDevice::update()
+{
+    int i;
+
+    // Update all axes associated with this device
+    for( i=0; i<getNumAxes(); i++ )
+    {
+        vsInputAxis * axis = getAxis(i);
+
+        if( axis )
+            axis->update();
+    }
+
+    // Update all buttons associated with this device
+    for( i=0; i<getNumButtons(); i++ )
+    {
+        vsInputButton * button = getButton(i);
+
+        if( button )
+            button->update();
+    }
+}

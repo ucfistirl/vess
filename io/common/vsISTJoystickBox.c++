@@ -281,4 +281,7 @@ void vsISTJoystickBox::update(void)
 
     // Request the next packet
     ping();
+
+    // Update all the axes and buttons
+    joystick->update();
 }

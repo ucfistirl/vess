@@ -2145,4 +2145,11 @@ void vsAscensionSerialTrackingSystem::update()
         // Get the data directly from hardware
         updateSystem();
     }
+
+    // Update all input devices
+    for( i=0; i<numTrackers; i++ )
+    {
+        if( tracker[i] )
+            tracker[i]->update();
+    }
 }

@@ -257,6 +257,9 @@ void vsArticulationGlove::update()
     joints[VS_AG_JOINT_PALM_ARCH].setAxisAngleRotation(0, 0, 0, 1);
 
     // Abduction values not yet supported
+
+    // Update all buttons and axes
+    vsInputDevice::update();
 }
 
 // ------------------------------------------------------------------------
@@ -357,4 +360,7 @@ void vsArticulationGlove::passiveCalibrate(int enable)
             sensors[i]->passiveCalibrate(VS_FALSE);
         }
     }
+
+    // Update all the buttons and axes
+    vsInputDevice::update();
 }

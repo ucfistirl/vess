@@ -233,4 +233,6 @@ void vsWSSpaceball::update()
                 button->setReleased();
         }
     }
+
+    spaceball->update();
 }

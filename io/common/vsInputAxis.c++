@@ -35,6 +35,7 @@ vsInputAxis::vsInputAxis(void)
     axisMax = 0.0;
     offset = 0.0;
     position = 0.0;
+    previousPosition1 = previousPosition2 = 0.0;
     normalized = VS_FALSE;
     inverted = VS_FALSE;
     passiveCalibration = VS_FALSE;
@@ -56,6 +57,7 @@ vsInputAxis::vsInputAxis(double minPos, double maxPos)
         // Initialize variables
         position = (maxPos + minPos) / 2;
         offset = position;
+        previousPosition1 = previousPosition2 = position;
         axisMin = minPos;
         axisMax = maxPos;
         threshold = 0.0;
@@ -73,6 +75,7 @@ vsInputAxis::vsInputAxis(double minPos, double maxPos)
         axisMin = 0.0;
         axisMax = 0.0;
         position = 0.0;
+        previousPosition1 = previousPosition2 = 0.0;
         offset = 0.0;
         threshold = 0.0;
         normalized = VS_FALSE;
@@ -86,6 +89,33 @@ vsInputAxis::vsInputAxis(double minPos, double maxPos)
 vsInputAxis::~vsInputAxis(void)
 {
 
+}
+
+// ------------------------------------------------------------------------
+// Returns the class name (inherited from vsObject)
+// ------------------------------------------------------------------------
+const char * vsInputAxis::getClassName()
+{
+    return "vsInputAxis";
+}
+
+// ------------------------------------------------------------------------
+// Force the previous positions to shift to a given value
+// (we just add the given "shift value" on the existing positions
+// ------------------------------------------------------------------------
+void vsInputAxis::forceShiftPreviousPosition(double rawShiftPos)
+{
+    previousPosition1 += rawShiftPos;
+    previousPosition2 += rawShiftPos;
+}
+
+// ------------------------------------------------------------------------
+// Force the previous positions to a given value
+// ------------------------------------------------------------------------
+void vsInputAxis::forcePreviousPosition(double rawPos)
+{
+    previousPosition1 = rawPos;
+    previousPosition2 = previousPosition1;
 }
 
 // ------------------------------------------------------------------------
@@ -119,6 +149,91 @@ void vsInputAxis::setPosition(double rawPos)
 }
 
 // ------------------------------------------------------------------------
+// Takes a given raw value and normalizes it. A Normalized value is between
+// -1.0 and 1.0 and is calculated using the axis range (see setRange)
+// ------------------------------------------------------------------------
+double vsInputAxis::getNormalizedValue(double rawValue)
+{
+    double temp1, temp2;
+    double normalizedPos;
+
+    // Determine if the axis position is on the negative or positive
+    // side of the idle position
+    temp1 = rawValue - offset;
+   
+    if (temp1 < 0) 
+    {
+        // Normalize the axis to a value between the minimum extent 
+        // and the idle position of the axis
+        temp2 = offset - axisMin;
+
+        // Avoid dividing by zero
+        if (fabs(temp2) > 1E-6)
+        {
+            // Calculate the normalized position
+            normalizedPos = temp1 / temp2;
+
+            // Check the value vs. the threshold and return zero
+            // or the normalized position accordingly
+            if (normalizedPos < -threshold)
+                return normalizedPos;
+            else
+                return 0.0;
+        }
+        else
+            return 0.0;
+    }
+    else
+    {
+        // Normalize the axis to a value between the maximum extent 
+        // and the idle position of the axis
+        temp2 = axisMax - offset;
+
+        // Avoid dividing by zero
+        if (fabs(temp2) > 1E-6)
+        {
+            // Calculate the normalized position
+            normalizedPos = temp1 / temp2;
+ 
+            // Check the value vs. the threshold and return zero
+            // or the normalized position accordingly
+            if (normalizedPos > threshold)
+                return normalizedPos;
+            else
+                return 0.0;
+        }
+        else
+            return 0.0;
+    }
+}
+
+// ------------------------------------------------------------------------
+// If we are set to normalize, return the scaled axis position based on the
+// axis range and indle position.  If not, return the raw device position
+//
+// The normalized value will be between -1.0 and 1.0
+// ------------------------------------------------------------------------
+double vsInputAxis::getDelta(void)
+{
+    double delta;
+
+    // Check to see if the axis should be normalized
+    if (normalized)
+    { 
+        // Calculate the normalized value of the current position and the
+        // previous one and then return the difference
+        return getNormalizedValue(previousPosition1)
+            - getNormalizedValue(previousPosition2);
+    }
+    else
+    {
+        // Return the difference between the current position and the previous
+        // position
+        return previousPosition1 - previousPosition2;
+    }
+}
+
+// ------------------------------------------------------------------------
 // If we are set to normalize, return the scaled axis position based on the
 // axis range and indle position.  If not, return the raw device position
 //
@@ -132,54 +247,8 @@ double vsInputAxis::getPosition(void)
     // Check to see if the axis should be normalized
     if (normalized)
     { 
-        // Determine if the axis position is on the negative or positive
-        // side of the idle position
-        temp1 = position - offset;
-   
-        if (temp1 < 0) 
-        {
-            // Normalize the axis to a value between the minimum extent 
-            // and the idle position of the axis
-            temp2 = offset - axisMin;
-
-            // Avoid dividing by zero
-            if (fabs(temp2) > 1E-6)
-            {
-                // Calculate the normalized position
-                normalizedPos = temp1 / temp2;
-
-                // Check the value vs. the threshold and return zero
-                // or the normalized position accordingly
-                if (normalizedPos < -threshold)
-                    return normalizedPos;
-                else
-                    return 0.0;
-            }
-            else
-                return 0.0;
-        }
-        else
-        {
-            // Normalize the axis to a value between the maximum extent 
-            // and the idle position of the axis
-            temp2 = axisMax - offset;
-
-            // Avoid dividing by zero
-            if (fabs(temp2) > 1E-6)
-            {
-                // Calculate the normalized position
-                normalizedPos = temp1 / temp2;
- 
-                // Check the value vs. the threshold and return zero
-                // or the normalized position accordingly
-                if (normalizedPos > threshold)
-                    return normalizedPos;
-                else
-                    return 0.0;
-            }
-            else
-                return 0.0;
-        }
+        // Calculate the normalized value of this position
+        return getNormalizedValue(position);
     }
     else
     {
@@ -375,4 +444,18 @@ void vsInputAxis::passiveCalibrate(int enable)
         // Disable calibration
         passiveCalibration = VS_FALSE;
     }
+}
+
+// ------------------------------------------------------------------------
+// Each frame, the vsInputDevice responsible for this axis should call this
+// update function.
+// Here, we save the current and previous positions so that we can
+// calculate relative movements.
+// ------------------------------------------------------------------------
+void vsInputAxis::update()
+{
+    // Save the current and previous (from the last update()) positions
+    // for calculating relative movements
+    previousPosition2 = previousPosition1;
+    previousPosition1 = position;
 }

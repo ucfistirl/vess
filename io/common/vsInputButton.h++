@@ -24,10 +24,11 @@
 #define VS_INPUT_BUTTON_HPP
 
 #include "vsGlobals.h++"
+#include "vsUpdatable.h++"
 
 #define VS_IB_DBLCLICK_INTERVAL  0.2
 
-class vsInputButton
+class vsInputButton : public vsUpdatable
 {
 protected:
 
@@ -51,18 +52,22 @@ protected:
 
 VS_INTERNAL:
 
-    void         setPressed(void);
-    void         setReleased(void);
+    void            setPressed(void);
+    void            setReleased(void);
+
+    virtual void    update();
 
 public:
   
-                 vsInputButton(void);
-                 ~vsInputButton(void);
+                            vsInputButton(void);
+                            ~vsInputButton(void);
 
-    int          isPressed(void);
-    int          wasDoubleClicked(void);
+    virtual const char *    getClassName();
 
-    void         setDoubleClickInterval(double interval);
+    int                     isPressed(void);
+    int                     wasDoubleClicked(void);
+
+    void                    setDoubleClickInterval(double interval);
 };
 
 #endif

@@ -23,15 +23,22 @@
 #define VS_INPUT_DEVICE_HPP
 
 #include "vsGlobals.h++"
+#include "vsUpdatable.h++"
 #include "vsInputAxis.h++"
 #include "vsInputButton.h++"
 
-class vsInputDevice 
+class vsInputDevice : public vsUpdatable
 {
+VS_INTERNAL:
+
+    virtual void             update();
+
 public:
 
                              vsInputDevice();
     virtual                  ~vsInputDevice();
+
+    virtual const char *     getClassName();
 
     virtual int              getNumAxes() = 0;
     virtual int              getNumButtons() = 0;

@@ -35,6 +35,8 @@
 #include "vsMouse.h++"
 #include "vsKeyboard.h++"
 
+#define VS_WS_MOUSE_WRAP_THRESHOLD_DEFAULT 6
+
 class vsWindowSystem : public vsInputSystem
 {
 protected:
@@ -56,6 +58,19 @@ protected:
     // Flag to indicate if the mouse is in the window
     int                mouseInWindow;
 
+    // Flag to indicate if mouse is grabbed to the given window or not
+    int                mouseGrabbed;
+
+    // Flag to indicate if the mouse cursor is hidden or not
+    int                mouseCursorHidden;
+
+    // Flags to indicate if the mouse cursor wrapped on the last update or not
+    int                mouseWrapped[2];
+
+    // Sets how many pixels from the edge of the window that will cause the
+    // mouse to wrap
+    int                mouseWrapping[2];
+
 VS_INTERNAL:
 
     static vsObjectMap *getMap();
@@ -75,6 +90,24 @@ public:
     vsKeyboard            *getKeyboard();   
 
     int                   isMouseInWindow();
+
+    void                  grabMouse();
+    void                  unGrabMouse();
+    int                   isMouseGrabbed();
+
+    void                  hideCursor();
+    void                  showCursor();
+    int                   isCursorHidden();
+
+    void                  getMouseLocation( int *x, int *y );
+    void                  warpMouse( int x, int y );
+
+    void                  enableMouseWrap( int axis );
+    void                  disableMouseWrap( int axis );
+    int                   isMouseWrapEnabled( int axis );
+    void                  setMouseWrapThreshold( int axis, int threshold );
+    int                   getMouseWrapThreshold( int axis );
+    int                   didMouseWrap( int axis );
 
     virtual void          update();
 };
