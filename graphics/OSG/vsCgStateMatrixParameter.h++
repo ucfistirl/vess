@@ -49,10 +49,10 @@ enum vsCgStateMatrixMapping
 class vsCgStateMatrixParameter : public vsCgParameter
 {
 protected:
-    osgNVCg::StateMatrixParameter *stateMatrixParameter;
+    osgNVCg::StateMatrixParameter    *stateMatrixParameter;
 
 VS_INTERNAL:
-    virtual osgNVCg::Parameter    *getCgParameter();
+    virtual osgNVCg::Parameter       *getCgParameter();
 
 public:
     vsCgStateMatrixParameter(vsCgShaderAttribute *newShaderAttribute,
@@ -60,11 +60,12 @@ public:
                              char *newVariableName);
     ~vsCgStateMatrixParameter();   
 
-    virtual const char        *getClassName();
-    virtual vsCgParameterType getCgParameterType();
+    virtual const char           *getClassName();
+    virtual vsCgParameterType    getCgParameterType();
 
-    void set(vsCgStateMatrix matrix);
-    void set(vsCgStateMatrix matrix, vsCgStateMatrixMapping mapping);
+    void                         set(vsCgStateMatrix matrix);
+    void                         set(vsCgStateMatrix matrix,
+                                     vsCgStateMatrixMapping mapping);
 };
 
 #endif

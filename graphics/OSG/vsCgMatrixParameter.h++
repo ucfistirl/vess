@@ -33,7 +33,7 @@ class vsCgMatrixParameter : public vsCgParameter
 {
 protected:
     osgNVCg::MatrixParameter    *matrixParameter;
-    osg::Matrix osgMatrix;
+    osg::Matrix                 osgMatrix;
 
 VS_INTERNAL:
     virtual osgNVCg::Parameter    *getCgParameter();
@@ -44,10 +44,10 @@ public:
                         char *newVariableName);
     ~vsCgMatrixParameter();   
 
-    virtual const char        *getClassName();
-    virtual vsCgParameterType getCgParameterType();
+    virtual const char           *getClassName();
+    virtual vsCgParameterType    getCgParameterType();
 
-    void set(vsMatrix value);
+    void                         set(vsMatrix value);
 };
 
 #endif

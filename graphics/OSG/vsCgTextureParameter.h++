@@ -9,8 +9,8 @@
 class vsCgTextureParameter : public vsCgParameter
 {
 protected:
-    osgNVCg::TextureParameter *textureParameter;
-    vsStateAttribute          *textureAttribute;
+    osgNVCg::TextureParameter    *textureParameter;
+    vsStateAttribute             *textureAttribute;
 
 VS_INTERNAL:
     virtual osgNVCg::Parameter    *getCgParameter();
@@ -21,11 +21,11 @@ public:
                          char *newVariableName);
     ~vsCgTextureParameter();   
 
-    virtual const char        *getClassName();
-    virtual vsCgParameterType getCgParameterType();
+    virtual const char           *getClassName();
+    virtual vsCgParameterType    getCgParameterType();
 
-    void set(vsTextureAttribute *value);
-    void set(vsTextureCubeAttribute *value);
+    void                         set(vsTextureAttribute *value);
+    void                         set(vsTextureCubeAttribute *value);
 };
 
 #endif

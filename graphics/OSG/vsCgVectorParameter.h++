@@ -31,7 +31,7 @@
 class vsCgVectorParameter : public vsCgParameter
 {
 protected:
-    osgNVCg::VectorParameter *vectorParameter;
+    osgNVCg::VectorParameter    *vectorParameter;
 
 VS_INTERNAL:
     virtual osgNVCg::Parameter    *getCgParameter();
@@ -42,14 +42,14 @@ public:
                         char *newVariableName);
     ~vsCgVectorParameter();   
 
-    virtual const char        *getClassName();
-    virtual vsCgParameterType getCgParameterType();
+    virtual const char           *getClassName();
+    virtual vsCgParameterType    getCgParameterType();
 
-    void set(double x);
-    void set(double x, double y);
-    void set(double x, double y, double z);
-    void set(double x, double y, double z, double w);
-    void set(vsVector value);
+    void                         set(double x);
+    void                         set(double x, double y);
+    void                         set(double x, double y, double z);
+    void                         set(double x, double y, double z, double w);
+    void                         set(vsVector value);
 };
 
 #endif
