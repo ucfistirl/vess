@@ -267,6 +267,7 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
             databaseFilename);
         return NULL;
     }
+    osgScene->ref();
 
     // Create the object maps required for the OSG to VESS conversion
     // process to work
