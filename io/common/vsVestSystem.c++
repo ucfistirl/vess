@@ -62,8 +62,11 @@ vsVestSystem::vsVestSystem( int portNumber )
 
     // Check: Does starting the vest turn all zones to off?
 
-    // Create the vest object and configure it
+    // Create the vest object
     vest = new vsVest( VS_VEST_NUMBER_OF_ZONES );
+    vest->ref();
+
+    // Configure the vest
     for(i=0; i<VS_VEST_NUMBER_OF_ZONES; i++)
     {
         // check to see if this vest zone is on
@@ -95,6 +98,9 @@ vsVestSystem::~vsVestSystem()
     // see if there is any more data to be read from the vest
     while ( port->isDataWaiting( 0.5 ) )
         readVestData();
+
+    // Clean up the actual vest object
+    vsObject::unrefDelete( vest );
 
     // Clean up the serial port
     delete port;
