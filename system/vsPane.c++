@@ -48,6 +48,8 @@ vsPane::vsPane(vsWindow *parent)
     defaultState->setMode(PFSTATE_CULLFACE, PFCF_BACK);
     defaultState->setMode(PFSTATE_ENLIGHTING, PF_ON);
     defaultState->setMode(PFSTATE_SHADEMODEL, PFSM_GOURAUD);
+    defaultState->setMode(PFSTATE_ALPHAFUNC, PFAF_GREATER);
+    defaultState->setVal(PFSTATE_ALPHAREF, 0.0);
 
     lightModel = new pfLightModel();
     lightModel->setLocal(PF_ON);
