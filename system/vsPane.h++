@@ -61,7 +61,7 @@ private:
     vsWindow       *parentWindow;
     vsView         *sceneView;
 
-    vsNode         *sceneRoot;
+    vsComponent    *sceneRoot;
     pfScene        *performerScene;
 
     pfChannel      *performerChannel;
@@ -77,32 +77,32 @@ VS_INTERNAL:
 
 public:
 
-                 vsPane(vsWindow *parent);
-    virtual      ~vsPane();
+                   vsPane(vsWindow *parent);
+    virtual        ~vsPane();
 
-    vsWindow     *getParentWindow();
-    void         setView(vsView *view);
-    vsView       *getView();
-    void         setScene(vsNode *newScene);
-    vsNode       *getScene();
+    vsWindow       *getParentWindow();
+    void           setView(vsView *view);
+    vsView         *getView();
+    void           setScene(vsComponent *newScene);
+    vsComponent    *getScene();
 
-    void         setSize(int width, int height);
-    void         getSize(int *width, int *height);
-    void         setPosition(int xPos, int yPos);
-    void         getPosition(int *xPos, int *yPos);
-    void         autoConfigure(int panePlacement);
+    void           setSize(int width, int height);
+    void           getSize(int *width, int *height);
+    void           setPosition(int xPos, int yPos);
+    void           getPosition(int *xPos, int *yPos);
+    void           autoConfigure(int panePlacement);
 
-    void         showPane();
-    void         hidePane();
-    
-    void         enableEarthSky();
-    void         disableEarthSky();
-    void         setESGroundHeight(double newHeight);
-    double       getESGroundHeight();
-    void         setESColor(int which, double r, double g, double b);
-    void         getESColor(int which, double *r, double *g, double *b);
+    void           showPane();
+    void           hidePane();
 
-    pfChannel    *getBaseLibraryObject();
+    void           enableEarthSky();
+    void           disableEarthSky();
+    void           setESGroundHeight(double newHeight);
+    double         getESGroundHeight();
+    void           setESColor(int which, double r, double g, double b);
+    void           getESColor(int which, double *r, double *g, double *b);
+
+    pfChannel      *getBaseLibraryObject();
 };
 
 #endif

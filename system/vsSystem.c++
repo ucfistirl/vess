@@ -131,7 +131,7 @@ vsSystem::vsSystem(char *databaseFilename, char **nameList, char *windowTitle,
     vsPane *defaultPane;
     vsView *defaultView;
     vsVector viewPt, upDir;
-    vsNode *scene;
+    vsComponent *scene;
     vsLightAttribute *globalLight;
     struct timeval timeStruct;
 
@@ -399,8 +399,11 @@ void vsSystem::drawFrame()
                 targetPane->updateView();
 
                 scene = targetPane->getScene();
-                graphicsState->clearState();
-                preFrameTraverse(scene);
+		if (scene)
+		{
+		    graphicsState->clearState();
+		    preFrameTraverse(scene);
+		}
             }
         }
     }

@@ -128,26 +128,26 @@ vsView *vsPane::getView()
 // ------------------------------------------------------------------------
 // Sets the root node of the geometry that is to be displayed in this pane
 // ------------------------------------------------------------------------
-void vsPane::setScene(vsNode *newScene)
+void vsPane::setScene(vsComponent *newScene)
 {
     pfNode *childNode;
 
     if (performerScene->getNumChildren() > 0)
     {
         childNode = performerScene->getChild(0);
-        if (newScene->getNodeType() == VS_NODE_TYPE_GEOMETRY)
-            performerScene->replaceChild(childNode,
-                ((vsGeometry *)newScene)->getBaseLibraryObject());
-        else
+//        if (newScene->getNodeType() == VS_NODE_TYPE_GEOMETRY)
+//            performerScene->replaceChild(childNode,
+//                ((vsGeometry *)newScene)->getBaseLibraryObject());
+//        else
             performerScene->replaceChild(childNode,
                 ((vsComponent *)newScene)->getBaseLibraryObject());
     }
     else
     {
-        if (newScene->getNodeType() == VS_NODE_TYPE_GEOMETRY)
-            performerScene->addChild(
-                ((vsGeometry *)newScene)->getBaseLibraryObject());
-        else
+//        if (newScene->getNodeType() == VS_NODE_TYPE_GEOMETRY)
+//            performerScene->addChild(
+//                ((vsGeometry *)newScene)->getBaseLibraryObject());
+//        else
             performerScene->addChild(
                 ((vsComponent *)newScene)->getBaseLibraryObject());
     }
@@ -158,7 +158,7 @@ void vsPane::setScene(vsNode *newScene)
 // ------------------------------------------------------------------------
 // Retrieves the root node of the geometry being displayed in this pane
 // ------------------------------------------------------------------------
-vsNode *vsPane::getScene()
+vsComponent *vsPane::getScene()
 {
     return sceneRoot;
 }
