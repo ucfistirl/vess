@@ -43,6 +43,12 @@ vsDecalCallback::vsDecalCallback(vsDecalAttribute *decalAttrib) :
 //------------------------------------------------------------------------
 vsDecalCallback::~vsDecalCallback()
 {
+    // Delete any and all OSG StateSets we may have created. (Deleting the
+    // StateSets should also delete their attached PolygonOffsets.)
+    int loop;
+
+    for (loop = 0; loop < stateSetArraySize; loop++)
+        ((osg::StateSet *)(stateSetArray[loop]))->unref();
 }
 
 //------------------------------------------------------------------------
