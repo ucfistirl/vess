@@ -24,6 +24,7 @@
 #include "vsComponent.h++"
 #include "vsGeometry.h++"
 #include "vsDynamicGeometry.h++"
+#include "vsSkeletonMeshGeometry.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Set the light list and child pointer to NULL,
@@ -131,6 +132,7 @@ bool vsScene::addChild(vsNode *newChild)
     vsComponent *childComponent;
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
+    vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
 
     // Make sure we don't already have a child
     if (child)
@@ -167,6 +169,11 @@ bool vsScene::addChild(vsNode *newChild)
         childDynamicGeometry = (vsDynamicGeometry *)newChild;
         osgGroup->addChild(childDynamicGeometry->getBaseLibraryObject());
     }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
+    {
+        childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)newChild;
+        osgGroup->addChild(childSkeletonMeshGeometry->getBaseLibraryObject());
+    }
 
     // Set the newChild node as our child
     child = newChild;
@@ -187,6 +194,7 @@ bool vsScene::insertChild(vsNode *newChild, int index)
     vsComponent *childComponent;
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
+    vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
 
     // Make sure we don't already have a child
     if (child)
@@ -230,6 +238,11 @@ bool vsScene::insertChild(vsNode *newChild, int index)
         childDynamicGeometry = (vsDynamicGeometry *)newChild;
         osgGroup->addChild(childDynamicGeometry->getBaseLibraryObject());
     }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
+    {
+        childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)newChild;
+        osgGroup->addChild(childSkeletonMeshGeometry->getBaseLibraryObject());
+    }
 
     // Set the newChild node as our child
     child = newChild;
@@ -249,6 +262,7 @@ bool vsScene::removeChild(vsNode *targetChild)
     vsComponent *childComponent;
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
+    vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
 
     // Make sure the target child is actually our child
     if (child != targetChild)
@@ -281,6 +295,13 @@ bool vsScene::removeChild(vsNode *targetChild)
         childDynamicGeometry = (vsDynamicGeometry *)targetChild;
         osgGroup->removeChild(childDynamicGeometry->getBaseLibraryObject());
     }
+    else if (targetChild->getNodeType() == 
+                VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
+    {
+        childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)targetChild;
+        osgGroup->removeChild(
+            childSkeletonMeshGeometry->getBaseLibraryObject());
+    }
 
     // Finish the VESS detachment
     child = NULL;
@@ -305,6 +326,7 @@ bool vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
     vsComponent *childComponent;
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
+    vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
     osg::Node *oldNode, *newNode;
 
     // Make sure the target child is actually our child
@@ -348,6 +370,11 @@ bool vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
         childDynamicGeometry = (vsDynamicGeometry *)targetChild;
         oldNode = childDynamicGeometry->getBaseLibraryObject();
     }
+    else if (targetChild->getNodeType() == VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
+    {
+        childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)targetChild;
+        oldNode = childSkeletonMeshGeometry->getBaseLibraryObject();
+    }
 
     // Next, get the new child node.
     if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
@@ -364,6 +391,11 @@ bool vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
     {
         childDynamicGeometry = (vsDynamicGeometry *)newChild;
         newNode = childDynamicGeometry->getBaseLibraryObject();
+    }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
+    {
+        childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)newChild;
+        newNode = childSkeletonMeshGeometry->getBaseLibraryObject();
     }
 
     // Finally, replace the child on the osg::Group node

@@ -24,6 +24,7 @@
 #include "vsIntersect.h++"
 #include "vsComponent.h++"
 #include "vsDynamicGeometry.h++"
+#include "vsSkeletonMeshGeometry.h++"
 #include "vsScene.h++"
 
 // ------------------------------------------------------------------------
@@ -509,6 +510,8 @@ void vsIntersect::intersect(vsNode *targetNode)
         osgNode = ((vsGeometry *)targetNode)->getBaseLibraryObject();
     else if (targetNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY)
         osgNode = ((vsDynamicGeometry *)targetNode)->getBaseLibraryObject();
+    else if (targetNode->getNodeType() == VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
+        osgNode = ((vsSkeletonMeshGeometry*)targetNode)->getBaseLibraryObject();
     else if (targetNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
         osgNode = ((vsComponent *)targetNode)->getBaseLibraryObject();
     else if (targetNode->getNodeType() == VS_NODE_TYPE_SCENE)

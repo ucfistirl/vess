@@ -31,6 +31,7 @@
 #include "vsBillboardAttribute.h++"
 #include "vsGeometry.h++"
 #include "vsDynamicGeometry.h++"
+#include "vsSkeletonMeshGeometry.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Sets up the OSG objects associated with
@@ -147,6 +148,7 @@ bool vsComponent::addChild(vsNode *newChild)
     vsComponent *childComponent;
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
+    vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
 
     // Notify the newChild node that it is getting a new parent. This might
     // fail, as the child node is permitted to object to getting a parent.
@@ -174,6 +176,12 @@ bool vsComponent::addChild(vsNode *newChild)
         childDynamicGeometry = (vsDynamicGeometry *)newChild;
         bottomGroup->addChild(childDynamicGeometry->getBaseLibraryObject());
     }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
+    {
+        childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)newChild;
+        bottomGroup->addChild(
+            childSkeletonMeshGeometry->getBaseLibraryObject());
+    }
 
     // Add the newChild node to our child node list
     childList[childCount++] = newChild;
@@ -195,6 +203,7 @@ bool vsComponent::insertChild(vsNode *newChild, int index)
     vsComponent *childComponent;
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
+    vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
     osg::Node *newNode, *displacedNode;
     int loop;
 
@@ -237,6 +246,11 @@ bool vsComponent::insertChild(vsNode *newChild, int index)
     {
         childDynamicGeometry = (vsDynamicGeometry *)newChild;
         newNode = childDynamicGeometry->getBaseLibraryObject();
+    }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
+    {
+        childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)newChild;
+        newNode = childSkeletonMeshGeometry->getBaseLibraryObject();
     }
 
     // Now, we replace the node at index and shove the rest of the nodes
@@ -281,6 +295,7 @@ bool vsComponent::removeChild(vsNode *targetChild)
     vsComponent *childComponent;
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
+    vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
     
     // Search the child list for the target child
     for (loop = 0; loop < childCount; loop++)
@@ -313,6 +328,15 @@ bool vsComponent::removeChild(vsNode *targetChild)
                 bottomGroup->removeChild(
                     childDynamicGeometry->getBaseLibraryObject());
             }
+            else if (targetChild->getNodeType() ==
+                        VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
+            {
+                childSkeletonMeshGeometry =
+                    (vsSkeletonMeshGeometry *)targetChild;
+                bottomGroup->removeChild(
+                    childSkeletonMeshGeometry->getBaseLibraryObject());
+            }
+
 
             // 'Slide' the rest of the children down to fill in the gap
             for (sloop = loop; sloop < childCount-1; sloop++)
@@ -346,6 +370,7 @@ bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
     vsComponent *childComponent;
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
+    vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
     osg::Node *oldNode, *newNode;
     
     // Search the child list for the target child
@@ -386,6 +411,13 @@ bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
                 childDynamicGeometry = (vsDynamicGeometry *)targetChild;
                 oldNode = childDynamicGeometry->getBaseLibraryObject();
             }
+            else if (targetChild->getNodeType() ==
+                        VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
+            {
+                childSkeletonMeshGeometry =
+                    (vsSkeletonMeshGeometry *)targetChild;
+                oldNode = childSkeletonMeshGeometry->getBaseLibraryObject();
+            }
 
             if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
             {
@@ -402,7 +434,13 @@ bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
                 childDynamicGeometry = (vsDynamicGeometry *)newChild;
                 newNode = childDynamicGeometry->getBaseLibraryObject();
             }
-            
+            else if (newChild->getNodeType() ==
+                        VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
+            {
+                childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)newChild;
+                newNode = childSkeletonMeshGeometry->getBaseLibraryObject();
+            }
+
             // Replace the old child with the new one on this component's
             // bottom group
             bottomGroup->replaceChild(oldNode, newNode);

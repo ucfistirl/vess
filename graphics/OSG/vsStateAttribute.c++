@@ -23,6 +23,7 @@
 #include "vsComponent.h++"
 #include "vsGeometry.h++"
 #include "vsDynamicGeometry.h++"
+#include "vsSkeletonMeshGeometry.h++"
 #include "vsScene.h++"
 
 // ------------------------------------------------------------------------
@@ -107,6 +108,9 @@ osg::StateSet *vsStateAttribute::getOSGStateSet(vsNode *node)
             break;
         case VS_NODE_TYPE_DYNAMIC_GEOMETRY:
             osgNode = ((vsDynamicGeometry *)node)->getBaseLibraryObject();
+            break;
+        case VS_NODE_TYPE_SKELETON_MESH_GEOMETRY:
+            osgNode = ((vsSkeletonMeshGeometry *)node)->getBaseLibraryObject();
             break;
         case VS_NODE_TYPE_SCENE:
             osgNode = ((vsScene *)node)->getBaseLibraryObject();
