@@ -1,0 +1,549 @@
+#!/bin/make
+#======================================================================
+#		makefile
+#======================================================================
+
+
+#----------------------------------------------------------------------
+#   Notes:
+#
+#	To add a new file to the system, simply list its source and
+#	object files immediately below, then run 'make dep' --- this 
+#	will make the new dependencies
+#
+
+#----------------------------------------------------------------------
+#                       Name of the library
+#----------------------------------------------------------------------
+LIBNAME = libvsMotion.a
+
+#----------------------------------------------------------------------
+#			All Source and Object files
+#----------------------------------------------------------------------
+SRCS = \
+       vsFlyingMotion.c++ \
+       vsMotionModel.c++ \
+       vsTrackedMotion.c++ \
+       vsTrackballMotion.c++
+
+OBJS = \
+       vsFlyingMotion.o \
+       vsMotionModel.o \
+       vsTrackedMotion.o \
+       vsTrackballMotion.o
+
+#----------------------------------------------------------------------
+#			Misc. settings
+#----------------------------------------------------------------------
+OS = LINUX
+
+#----------------------------------------------------------------------
+#			Compiler settings
+#----------------------------------------------------------------------
+CC = gcc
+CXX = g++ 
+AR = ar
+CFLAGS = -g -O -D_XOPEN_SOURCE -D_BSD_SOURCE -D_MISC_SOURCE -D$(OS) -D__linux__ -ansi $(INCS)
+CXXFLAGS = -g -O -D_XOPEN_SOURCE -D_BSD_SOURCE -D_MISC_SOURCE -D$(OS) -D__linux__ -ansi $(INCS)
+ARFLAGS = -ruc
+
+#----------------------------------------------------------------------
+#			Include file directories
+#----------------------------------------------------------------------
+INCS = \
+       -I.. \
+       -I../scene \
+       -I../math \
+       -I../input \
+       -I../corelib \
+       -I/usr/include/g++-2 \
+       -I/usr/X11R6/include
+
+#----------------------------------------------------------------------
+#			Linking Libraries - directories and libs
+#----------------------------------------------------------------------
+LDIRS = \
+      -nostdlib \
+      -L/usr/lib32/mips3 \
+      -L/usr/lib32/internal \
+      -L/usr/lib32/libpfdb \
+      -L/usr/lib32
+
+LLIBS = -ignore_unresolved \
+	-lC \
+	-lc \
+	-lm
+
+LIBS = $(LDIRS) $(LLIBS)
+
+#----------------------------------------------------------------------
+#			Default target
+#----------------------------------------------------------------------
+all: $(LIBNAME)
+
+#----------------------------------------------------------------------
+#			Library archive rules
+#----------------------------------------------------------------------
+$(LIBNAME): $(OBJS)
+	ar $(ARFLAGS) $(LIBNAME) $(OBJS)
+
+#----------------------------------------------------------------------
+#			Inference Rules
+#----------------------------------------------------------------------
+.SUFFIXES: .c .c++ .o .h .h++
+
+.c++.o:
+	$(CXX) $(CXXFLAGS) -c $< -o $*.o
+
+.c.o:
+	$(CXX) $(CXXFLAGS) -c $< -o $*.o
+
+clean:
+	rm -f *.o
+	rm -f core
+	rm -f $(LIBNAME)
+	rm -f makefile.*.bak
+
+#----------------------------------------------------------------------
+#			This is the dependency update rule
+#----------------------------------------------------------------------
+dep: depend
+depend:
+	makedepend -f makefile.Linux -- $(CFLAGS) $(INCS) -- $(SRCS)
+#----------------------------------------------------------------------
+# Our automatically generated dependencies follow...
+# Please don't mess below this line
+# DO NOT DELETE
+
+vsFlyingMotion.o: vsFlyingMotion.h++ vsMotionModel.h++
+vsFlyingMotion.o: ../corelib/vsGlobals.h++ ../math/vsVecQuat.h++
+vsFlyingMotion.o: ../math/vsMatrix.h++ ../math/vsVector.h++
+vsFlyingMotion.o: ../math/vsQuat.h++ ../scene/vsComponent.h++
+vsFlyingMotion.o: /usr/include/Performer/pf/pfGroup.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfNode.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfUpdatable.h
+vsFlyingMotion.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
+vsFlyingMotion.o: /usr/include/sys/types.h /usr/include/features.h
+vsFlyingMotion.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsFlyingMotion.o: /usr/include/bits/types.h
+vsFlyingMotion.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stddef.h
+vsFlyingMotion.o: /usr/include/time.h /usr/include/endian.h
+vsFlyingMotion.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+vsFlyingMotion.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+vsFlyingMotion.o: /usr/include/sys/sysmacros.h /usr/include/stdio.h
+vsFlyingMotion.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stdarg.h
+vsFlyingMotion.o: /usr/include/libio.h /usr/include/_G_config.h
+vsFlyingMotion.o: /usr/include/bits/stdio_lim.h /usr/include/getopt.h
+vsFlyingMotion.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+vsFlyingMotion.o: /usr/include/bits/confname.h /usr/include/errno.h
+vsFlyingMotion.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+vsFlyingMotion.o: /usr/include/asm/errno.h /usr/X11R6/include/X11/X.h
+vsFlyingMotion.o: /usr/X11R6/include/X11/Xlib.h
+vsFlyingMotion.o: /usr/X11R6/include/X11/Xfuncproto.h
+vsFlyingMotion.o: /usr/X11R6/include/X11/Xosdefs.h
+vsFlyingMotion.o: /usr/X11R6/include/X11/Xutil.h /usr/X11R6/include/GL/gl.h
+vsFlyingMotion.o: /usr/X11R6/include/GL/glx.h /usr/X11R6/include/GL/glu.h
+vsFlyingMotion.o: /usr/include/Performer/opengl.h
+vsFlyingMotion.o: /usr/include/Performer/linuxstubs.h
+vsFlyingMotion.o: /usr/include/Performer/image.h /usr/include/stdlib.h
+vsFlyingMotion.o: /usr/include/alloca.h /usr/include/string.h
+vsFlyingMotion.o: /usr/include/sys/prctl.h /usr/include/linux/prctl.h
+vsFlyingMotion.o: /usr/include/Performer/prmath.h /usr/include/math.h
+vsFlyingMotion.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsFlyingMotion.o: /usr/include/bits/mathcalls.h
+vsFlyingMotion.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/float.h
+vsFlyingMotion.o: /usr/include/Performer/prstats.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfLinMath.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfObject.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfMemory.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfType.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfStruct.h
+vsFlyingMotion.o: /usr/include/Performer/pfstats.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfBuffer.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfUpdate.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfLists.h
+vsFlyingMotion.o: /usr/include/g++-2/iostream.h
+vsFlyingMotion.o: /usr/include/g++-2/streambuf.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfFrameStats.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfPipe.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfVideoChannel.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfList.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfCalligraphic.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfStats.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfDispList.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfGeoState.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfState.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfGeoMath.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfSwitch.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfFlux.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfEngine.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfSequence.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfLOD.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfLODState.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfGeode.h ../corelib/vsSystem.h++
+vsFlyingMotion.o: ../corelib/vsPipe.h++ ../corelib/vsScreen.h++
+vsFlyingMotion.o: ../corelib/vsWindow.h++
+vsFlyingMotion.o: /usr/include/Performer/pf/pfPipeWindow.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfWindow.h ../corelib/vsPane.h++
+vsFlyingMotion.o: /usr/include/Performer/pf/pfChannel.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfEarthSky.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfScene.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfGeoSet.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfCycleBuffer.h
+vsFlyingMotion.o: ../corelib/vsView.h++ ../scene/vsViewpointAttribute.h++
+vsFlyingMotion.o: /usr/include/Performer/pf/pfSCS.h ../scene/vsNode.h++
+vsFlyingMotion.o: ../scene/vsAttributeList.h++ ../scene/vsAttribute.h++
+vsFlyingMotion.o: ../corelib/vsDatabaseLoader.h++
+vsFlyingMotion.o: /usr/include/Performer/pf/pfBillboard.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfCuller.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfTraverser.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfGenericMatrix.h
+vsFlyingMotion.o: /usr/include/Performer/pr/pfSprite.h
+vsFlyingMotion.o: /usr/include/Performer/pf/pfDCS.h
+vsFlyingMotion.o: /usr/include/Performer/pfdu.h /usr/include/dlfcn.h
+vsFlyingMotion.o: /usr/include/bits/dlfcn.h /usr/include/Performer/pfutil.h
+vsFlyingMotion.o: /usr/include/Performer/objfnt.h
+vsFlyingMotion.o: /usr/include/Performer/pfdb/pfflt.h
+vsFlyingMotion.o: ../corelib/vsObjectMap.h++
+vsFlyingMotion.o: ../scene/vsTransformAttribute.h++
+vsFlyingMotion.o: ../scene/vsSwitchAttribute.h++
+vsFlyingMotion.o: ../scene/vsSequenceAttribute.h++
+vsFlyingMotion.o: ../scene/vsLODAttribute.h++
+vsFlyingMotion.o: ../scene/vsBillboardAttribute.h++ ../scene/vsGeometry.h++
+vsFlyingMotion.o: ../scene/vsFogAttribute.h++
+vsFlyingMotion.o: /usr/include/Performer/pr/pfFog.h
+vsFlyingMotion.o: ../scene/vsMaterialAttribute.h++
+vsFlyingMotion.o: /usr/include/Performer/pr/pfMaterial.h
+vsFlyingMotion.o: ../scene/vsTextureAttribute.h++
+vsFlyingMotion.o: /usr/include/Performer/pr/pfTexture.h
+vsFlyingMotion.o: /usr/include/Performer/image.h
+vsFlyingMotion.o: ../scene/vsTransparencyAttribute.h++
+vsFlyingMotion.o: ../scene/vsBackfaceAttribute.h++
+vsFlyingMotion.o: /usr/include/Performer/pr/pfLight.h
+vsFlyingMotion.o: ../input/vsInputAxis.h++ ../input/vsInputButton.h++
+vsFlyingMotion.o: ../input/vsMouse.h++ ../input/vsInputDevice.h++
+vsMotionModel.o: vsMotionModel.h++ ../corelib/vsGlobals.h++
+vsMotionModel.o: ../math/vsVecQuat.h++ ../math/vsMatrix.h++
+vsMotionModel.o: ../math/vsVector.h++ ../math/vsQuat.h++
+vsMotionModel.o: ../scene/vsComponent.h++ /usr/include/Performer/pf/pfGroup.h
+vsMotionModel.o: /usr/include/Performer/pf/pfNode.h
+vsMotionModel.o: /usr/include/Performer/pf/pfUpdatable.h
+vsMotionModel.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
+vsMotionModel.o: /usr/include/sys/types.h /usr/include/features.h
+vsMotionModel.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsMotionModel.o: /usr/include/bits/types.h
+vsMotionModel.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stddef.h
+vsMotionModel.o: /usr/include/time.h /usr/include/endian.h
+vsMotionModel.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+vsMotionModel.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+vsMotionModel.o: /usr/include/sys/sysmacros.h /usr/include/stdio.h
+vsMotionModel.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stdarg.h
+vsMotionModel.o: /usr/include/libio.h /usr/include/_G_config.h
+vsMotionModel.o: /usr/include/bits/stdio_lim.h /usr/include/getopt.h
+vsMotionModel.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+vsMotionModel.o: /usr/include/bits/confname.h /usr/include/errno.h
+vsMotionModel.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+vsMotionModel.o: /usr/include/asm/errno.h /usr/X11R6/include/X11/X.h
+vsMotionModel.o: /usr/X11R6/include/X11/Xlib.h
+vsMotionModel.o: /usr/X11R6/include/X11/Xfuncproto.h
+vsMotionModel.o: /usr/X11R6/include/X11/Xosdefs.h
+vsMotionModel.o: /usr/X11R6/include/X11/Xutil.h /usr/X11R6/include/GL/gl.h
+vsMotionModel.o: /usr/X11R6/include/GL/glx.h /usr/X11R6/include/GL/glu.h
+vsMotionModel.o: /usr/include/Performer/opengl.h
+vsMotionModel.o: /usr/include/Performer/linuxstubs.h
+vsMotionModel.o: /usr/include/Performer/image.h /usr/include/stdlib.h
+vsMotionModel.o: /usr/include/alloca.h /usr/include/string.h
+vsMotionModel.o: /usr/include/sys/prctl.h /usr/include/linux/prctl.h
+vsMotionModel.o: /usr/include/Performer/prmath.h /usr/include/math.h
+vsMotionModel.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsMotionModel.o: /usr/include/bits/mathcalls.h
+vsMotionModel.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/float.h
+vsMotionModel.o: /usr/include/Performer/prstats.h
+vsMotionModel.o: /usr/include/Performer/pr/pfLinMath.h
+vsMotionModel.o: /usr/include/Performer/pr/pfObject.h
+vsMotionModel.o: /usr/include/Performer/pr/pfMemory.h
+vsMotionModel.o: /usr/include/Performer/pr/pfType.h
+vsMotionModel.o: /usr/include/Performer/pr/pfStruct.h
+vsMotionModel.o: /usr/include/Performer/pfstats.h
+vsMotionModel.o: /usr/include/Performer/pf/pfBuffer.h
+vsMotionModel.o: /usr/include/Performer/pf/pfUpdate.h
+vsMotionModel.o: /usr/include/Performer/pf/pfLists.h
+vsMotionModel.o: /usr/include/g++-2/iostream.h /usr/include/g++-2/streambuf.h
+vsMotionModel.o: /usr/include/Performer/pf/pfFrameStats.h
+vsMotionModel.o: /usr/include/Performer/pf/pfPipe.h
+vsMotionModel.o: /usr/include/Performer/pr/pfVideoChannel.h
+vsMotionModel.o: /usr/include/Performer/pr/pfList.h
+vsMotionModel.o: /usr/include/Performer/pr/pfCalligraphic.h
+vsMotionModel.o: /usr/include/Performer/pr/pfStats.h
+vsMotionModel.o: /usr/include/Performer/pr/pfDispList.h
+vsMotionModel.o: /usr/include/Performer/pr/pfGeoState.h
+vsMotionModel.o: /usr/include/Performer/pr/pfState.h
+vsMotionModel.o: /usr/include/Performer/pr/pfGeoMath.h
+vsMotionModel.o: /usr/include/Performer/pf/pfSwitch.h
+vsMotionModel.o: /usr/include/Performer/pr/pfFlux.h
+vsMotionModel.o: /usr/include/Performer/pr/pfEngine.h
+vsMotionModel.o: /usr/include/Performer/pf/pfSequence.h
+vsMotionModel.o: /usr/include/Performer/pf/pfLOD.h
+vsMotionModel.o: /usr/include/Performer/pf/pfLODState.h
+vsMotionModel.o: /usr/include/Performer/pf/pfGeode.h ../corelib/vsSystem.h++
+vsMotionModel.o: ../corelib/vsPipe.h++ ../corelib/vsScreen.h++
+vsMotionModel.o: ../corelib/vsWindow.h++
+vsMotionModel.o: /usr/include/Performer/pf/pfPipeWindow.h
+vsMotionModel.o: /usr/include/Performer/pr/pfWindow.h ../corelib/vsPane.h++
+vsMotionModel.o: /usr/include/Performer/pf/pfChannel.h
+vsMotionModel.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
+vsMotionModel.o: /usr/include/Performer/pf/pfEarthSky.h
+vsMotionModel.o: /usr/include/Performer/pf/pfScene.h
+vsMotionModel.o: /usr/include/Performer/pr/pfGeoSet.h
+vsMotionModel.o: /usr/include/Performer/pr/pfCycleBuffer.h
+vsMotionModel.o: ../corelib/vsView.h++ ../scene/vsViewpointAttribute.h++
+vsMotionModel.o: /usr/include/Performer/pf/pfSCS.h ../scene/vsNode.h++
+vsMotionModel.o: ../scene/vsAttributeList.h++ ../scene/vsAttribute.h++
+vsMotionModel.o: ../corelib/vsDatabaseLoader.h++
+vsMotionModel.o: /usr/include/Performer/pf/pfBillboard.h
+vsMotionModel.o: /usr/include/Performer/pf/pfCuller.h
+vsMotionModel.o: /usr/include/Performer/pf/pfTraverser.h
+vsMotionModel.o: /usr/include/Performer/pr/pfGenericMatrix.h
+vsMotionModel.o: /usr/include/Performer/pr/pfSprite.h
+vsMotionModel.o: /usr/include/Performer/pf/pfDCS.h
+vsMotionModel.o: /usr/include/Performer/pfdu.h /usr/include/dlfcn.h
+vsMotionModel.o: /usr/include/bits/dlfcn.h /usr/include/Performer/pfutil.h
+vsMotionModel.o: /usr/include/Performer/objfnt.h
+vsMotionModel.o: /usr/include/Performer/pfdb/pfflt.h
+vsMotionModel.o: ../corelib/vsObjectMap.h++ ../scene/vsTransformAttribute.h++
+vsMotionModel.o: ../scene/vsSwitchAttribute.h++
+vsMotionModel.o: ../scene/vsSequenceAttribute.h++ ../scene/vsLODAttribute.h++
+vsMotionModel.o: ../scene/vsBillboardAttribute.h++ ../scene/vsGeometry.h++
+vsMotionModel.o: ../scene/vsFogAttribute.h++
+vsMotionModel.o: /usr/include/Performer/pr/pfFog.h
+vsMotionModel.o: ../scene/vsMaterialAttribute.h++
+vsMotionModel.o: /usr/include/Performer/pr/pfMaterial.h
+vsMotionModel.o: ../scene/vsTextureAttribute.h++
+vsMotionModel.o: /usr/include/Performer/pr/pfTexture.h
+vsMotionModel.o: /usr/include/Performer/image.h
+vsMotionModel.o: ../scene/vsTransparencyAttribute.h++
+vsMotionModel.o: ../scene/vsBackfaceAttribute.h++
+vsMotionModel.o: /usr/include/Performer/pr/pfLight.h ../input/vsInputAxis.h++
+vsMotionModel.o: ../input/vsInputButton.h++ /usr/include/sys/time.h
+vsMotionModel.o: /usr/include/bits/time.h
+vsTrackedMotion.o: vsTrackedMotion.h++ vsMotionModel.h++
+vsTrackedMotion.o: ../corelib/vsGlobals.h++ ../math/vsVecQuat.h++
+vsTrackedMotion.o: ../math/vsMatrix.h++ ../math/vsVector.h++
+vsTrackedMotion.o: ../math/vsQuat.h++ ../scene/vsComponent.h++
+vsTrackedMotion.o: /usr/include/Performer/pf/pfGroup.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfNode.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfUpdatable.h
+vsTrackedMotion.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
+vsTrackedMotion.o: /usr/include/sys/types.h /usr/include/features.h
+vsTrackedMotion.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsTrackedMotion.o: /usr/include/bits/types.h
+vsTrackedMotion.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stddef.h
+vsTrackedMotion.o: /usr/include/time.h /usr/include/endian.h
+vsTrackedMotion.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+vsTrackedMotion.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+vsTrackedMotion.o: /usr/include/sys/sysmacros.h /usr/include/stdio.h
+vsTrackedMotion.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stdarg.h
+vsTrackedMotion.o: /usr/include/libio.h /usr/include/_G_config.h
+vsTrackedMotion.o: /usr/include/bits/stdio_lim.h /usr/include/getopt.h
+vsTrackedMotion.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+vsTrackedMotion.o: /usr/include/bits/confname.h /usr/include/errno.h
+vsTrackedMotion.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+vsTrackedMotion.o: /usr/include/asm/errno.h /usr/X11R6/include/X11/X.h
+vsTrackedMotion.o: /usr/X11R6/include/X11/Xlib.h
+vsTrackedMotion.o: /usr/X11R6/include/X11/Xfuncproto.h
+vsTrackedMotion.o: /usr/X11R6/include/X11/Xosdefs.h
+vsTrackedMotion.o: /usr/X11R6/include/X11/Xutil.h /usr/X11R6/include/GL/gl.h
+vsTrackedMotion.o: /usr/X11R6/include/GL/glx.h /usr/X11R6/include/GL/glu.h
+vsTrackedMotion.o: /usr/include/Performer/opengl.h
+vsTrackedMotion.o: /usr/include/Performer/linuxstubs.h
+vsTrackedMotion.o: /usr/include/Performer/image.h /usr/include/stdlib.h
+vsTrackedMotion.o: /usr/include/alloca.h /usr/include/string.h
+vsTrackedMotion.o: /usr/include/sys/prctl.h /usr/include/linux/prctl.h
+vsTrackedMotion.o: /usr/include/Performer/prmath.h /usr/include/math.h
+vsTrackedMotion.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsTrackedMotion.o: /usr/include/bits/mathcalls.h
+vsTrackedMotion.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/float.h
+vsTrackedMotion.o: /usr/include/Performer/prstats.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfLinMath.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfObject.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfMemory.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfType.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfStruct.h
+vsTrackedMotion.o: /usr/include/Performer/pfstats.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfBuffer.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfUpdate.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfLists.h
+vsTrackedMotion.o: /usr/include/g++-2/iostream.h
+vsTrackedMotion.o: /usr/include/g++-2/streambuf.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfFrameStats.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfPipe.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfVideoChannel.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfList.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfCalligraphic.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfStats.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfDispList.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfGeoState.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfState.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfGeoMath.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfSwitch.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfFlux.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfEngine.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfSequence.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfLOD.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfLODState.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfGeode.h
+vsTrackedMotion.o: ../corelib/vsSystem.h++ ../corelib/vsPipe.h++
+vsTrackedMotion.o: ../corelib/vsScreen.h++ ../corelib/vsWindow.h++
+vsTrackedMotion.o: /usr/include/Performer/pf/pfPipeWindow.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfWindow.h ../corelib/vsPane.h++
+vsTrackedMotion.o: /usr/include/Performer/pf/pfChannel.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfEarthSky.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfScene.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfGeoSet.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfCycleBuffer.h
+vsTrackedMotion.o: ../corelib/vsView.h++ ../scene/vsViewpointAttribute.h++
+vsTrackedMotion.o: /usr/include/Performer/pf/pfSCS.h ../scene/vsNode.h++
+vsTrackedMotion.o: ../scene/vsAttributeList.h++ ../scene/vsAttribute.h++
+vsTrackedMotion.o: ../corelib/vsDatabaseLoader.h++
+vsTrackedMotion.o: /usr/include/Performer/pf/pfBillboard.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfCuller.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfTraverser.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfGenericMatrix.h
+vsTrackedMotion.o: /usr/include/Performer/pr/pfSprite.h
+vsTrackedMotion.o: /usr/include/Performer/pf/pfDCS.h
+vsTrackedMotion.o: /usr/include/Performer/pfdu.h /usr/include/dlfcn.h
+vsTrackedMotion.o: /usr/include/bits/dlfcn.h /usr/include/Performer/pfutil.h
+vsTrackedMotion.o: /usr/include/Performer/objfnt.h
+vsTrackedMotion.o: /usr/include/Performer/pfdb/pfflt.h
+vsTrackedMotion.o: ../corelib/vsObjectMap.h++
+vsTrackedMotion.o: ../scene/vsTransformAttribute.h++
+vsTrackedMotion.o: ../scene/vsSwitchAttribute.h++
+vsTrackedMotion.o: ../scene/vsSequenceAttribute.h++
+vsTrackedMotion.o: ../scene/vsLODAttribute.h++
+vsTrackedMotion.o: ../scene/vsBillboardAttribute.h++ ../scene/vsGeometry.h++
+vsTrackedMotion.o: ../scene/vsFogAttribute.h++
+vsTrackedMotion.o: /usr/include/Performer/pr/pfFog.h
+vsTrackedMotion.o: ../scene/vsMaterialAttribute.h++
+vsTrackedMotion.o: /usr/include/Performer/pr/pfMaterial.h
+vsTrackedMotion.o: ../scene/vsTextureAttribute.h++
+vsTrackedMotion.o: /usr/include/Performer/pr/pfTexture.h
+vsTrackedMotion.o: /usr/include/Performer/image.h
+vsTrackedMotion.o: ../scene/vsTransparencyAttribute.h++
+vsTrackedMotion.o: ../scene/vsBackfaceAttribute.h++
+vsTrackedMotion.o: /usr/include/Performer/pr/pfLight.h
+vsTrackedMotion.o: ../input/vsInputAxis.h++ ../input/vsInputButton.h++
+vsTrackedMotion.o: ../input/vsMotionTracker.h++ ../input/vs6DInputDevice.h++
+vsTrackedMotion.o: ../input/vsInputDevice.h++
+vsTrackballMotion.o: vsTrackballMotion.h++ vsMotionModel.h++
+vsTrackballMotion.o: ../corelib/vsGlobals.h++ ../math/vsVecQuat.h++
+vsTrackballMotion.o: ../math/vsMatrix.h++ ../math/vsVector.h++
+vsTrackballMotion.o: ../math/vsQuat.h++ ../scene/vsComponent.h++
+vsTrackballMotion.o: /usr/include/Performer/pf/pfGroup.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfNode.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfUpdatable.h
+vsTrackballMotion.o: /usr/include/Performer/pf.h /usr/include/Performer/pr.h
+vsTrackballMotion.o: /usr/include/sys/types.h /usr/include/features.h
+vsTrackballMotion.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+vsTrackballMotion.o: /usr/include/bits/types.h
+vsTrackballMotion.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stddef.h
+vsTrackballMotion.o: /usr/include/time.h /usr/include/endian.h
+vsTrackballMotion.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+vsTrackballMotion.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+vsTrackballMotion.o: /usr/include/sys/sysmacros.h /usr/include/stdio.h
+vsTrackballMotion.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stdarg.h
+vsTrackballMotion.o: /usr/include/libio.h /usr/include/_G_config.h
+vsTrackballMotion.o: /usr/include/bits/stdio_lim.h /usr/include/getopt.h
+vsTrackballMotion.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+vsTrackballMotion.o: /usr/include/bits/confname.h /usr/include/errno.h
+vsTrackballMotion.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+vsTrackballMotion.o: /usr/include/asm/errno.h /usr/X11R6/include/X11/X.h
+vsTrackballMotion.o: /usr/X11R6/include/X11/Xlib.h
+vsTrackballMotion.o: /usr/X11R6/include/X11/Xfuncproto.h
+vsTrackballMotion.o: /usr/X11R6/include/X11/Xosdefs.h
+vsTrackballMotion.o: /usr/X11R6/include/X11/Xutil.h
+vsTrackballMotion.o: /usr/X11R6/include/GL/gl.h /usr/X11R6/include/GL/glx.h
+vsTrackballMotion.o: /usr/X11R6/include/GL/glu.h
+vsTrackballMotion.o: /usr/include/Performer/opengl.h
+vsTrackballMotion.o: /usr/include/Performer/linuxstubs.h
+vsTrackballMotion.o: /usr/include/Performer/image.h /usr/include/stdlib.h
+vsTrackballMotion.o: /usr/include/alloca.h /usr/include/string.h
+vsTrackballMotion.o: /usr/include/sys/prctl.h /usr/include/linux/prctl.h
+vsTrackballMotion.o: /usr/include/Performer/prmath.h /usr/include/math.h
+vsTrackballMotion.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+vsTrackballMotion.o: /usr/include/bits/mathcalls.h
+vsTrackballMotion.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/float.h
+vsTrackballMotion.o: /usr/include/Performer/prstats.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfLinMath.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfObject.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfMemory.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfType.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfStruct.h
+vsTrackballMotion.o: /usr/include/Performer/pfstats.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfBuffer.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfUpdate.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfLists.h
+vsTrackballMotion.o: /usr/include/g++-2/iostream.h
+vsTrackballMotion.o: /usr/include/g++-2/streambuf.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfFrameStats.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfPipe.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfVideoChannel.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfList.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfCalligraphic.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfStats.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfDispList.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfGeoState.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfState.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfGeoMath.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfSwitch.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfFlux.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfEngine.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfSequence.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfLOD.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfLODState.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfGeode.h
+vsTrackballMotion.o: ../corelib/vsSystem.h++ ../corelib/vsPipe.h++
+vsTrackballMotion.o: ../corelib/vsScreen.h++ ../corelib/vsWindow.h++
+vsTrackballMotion.o: /usr/include/Performer/pf/pfPipeWindow.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfWindow.h
+vsTrackballMotion.o: ../corelib/vsPane.h++
+vsTrackballMotion.o: /usr/include/Performer/pf/pfChannel.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfPipeVideoChannel.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfEarthSky.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfScene.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfGeoSet.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfCycleBuffer.h
+vsTrackballMotion.o: ../corelib/vsView.h++ ../scene/vsViewpointAttribute.h++
+vsTrackballMotion.o: /usr/include/Performer/pf/pfSCS.h ../scene/vsNode.h++
+vsTrackballMotion.o: ../scene/vsAttributeList.h++ ../scene/vsAttribute.h++
+vsTrackballMotion.o: ../corelib/vsDatabaseLoader.h++
+vsTrackballMotion.o: /usr/include/Performer/pf/pfBillboard.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfCuller.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfTraverser.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfGenericMatrix.h
+vsTrackballMotion.o: /usr/include/Performer/pr/pfSprite.h
+vsTrackballMotion.o: /usr/include/Performer/pf/pfDCS.h
+vsTrackballMotion.o: /usr/include/Performer/pfdu.h /usr/include/dlfcn.h
+vsTrackballMotion.o: /usr/include/bits/dlfcn.h
+vsTrackballMotion.o: /usr/include/Performer/pfutil.h
+vsTrackballMotion.o: /usr/include/Performer/objfnt.h
+vsTrackballMotion.o: /usr/include/Performer/pfdb/pfflt.h
+vsTrackballMotion.o: ../corelib/vsObjectMap.h++
+vsTrackballMotion.o: ../scene/vsTransformAttribute.h++
+vsTrackballMotion.o: ../scene/vsSwitchAttribute.h++
+vsTrackballMotion.o: ../scene/vsSequenceAttribute.h++
+vsTrackballMotion.o: ../scene/vsLODAttribute.h++
+vsTrackballMotion.o: ../scene/vsBillboardAttribute.h++
+vsTrackballMotion.o: ../scene/vsGeometry.h++ ../scene/vsFogAttribute.h++
+vsTrackballMotion.o: /usr/include/Performer/pr/pfFog.h
+vsTrackballMotion.o: ../scene/vsMaterialAttribute.h++
+vsTrackballMotion.o: /usr/include/Performer/pr/pfMaterial.h
+vsTrackballMotion.o: ../scene/vsTextureAttribute.h++
+vsTrackballMotion.o: /usr/include/Performer/pr/pfTexture.h
+vsTrackballMotion.o: /usr/include/Performer/image.h
+vsTrackballMotion.o: ../scene/vsTransparencyAttribute.h++
+vsTrackballMotion.o: ../scene/vsBackfaceAttribute.h++
+vsTrackballMotion.o: /usr/include/Performer/pr/pfLight.h
+vsTrackballMotion.o: ../input/vsInputAxis.h++ ../input/vsInputButton.h++
+vsTrackballMotion.o: ../input/vsMouse.h++ ../input/vsInputDevice.h++

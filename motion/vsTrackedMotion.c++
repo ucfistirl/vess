@@ -53,7 +53,7 @@ vsMatrix vsTrackedMotion::update()
     vsMatrix  currentTransform;
     vsVector  trackerPos;
     vsQuat    trackerOrn;
-    vQuat    temp;
+    vsQuat    temp;
     vsVector  dPos;
     vsQuat    dOrn;
     vsMatrix  newTranslation;
@@ -85,7 +85,5 @@ vsMatrix vsTrackedMotion::update()
     lastTrackerPos = trackerPos;
     lastTrackerOrn = trackerOrn;
 
-    tempMat = newTranslation * newRotation;
-    
     return newTranslation * newRotation;
 }
