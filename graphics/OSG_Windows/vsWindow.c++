@@ -139,12 +139,18 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     pixelFormatDesc.nSize = sizeof(pixelFormat);
     pixelFormatDesc.nVersion = 1;
     pixelFormatDesc.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL |
-                              PFD_DOUBLEBUFFER | PFD_STEREO;
+                              PFD_DOUBLEBUFFER;
     pixelFormatDesc.iPixelType = PFD_TYPE_RGBA;
     pixelFormatDesc.cColorBits = 32;
     pixelFormatDesc.cDepthBits = 24;
     pixelFormatDesc.cStencilBits = 1;
     pixelFormatDesc.iLayerType = PFD_MAIN_PLANE;
+    
+    // Add the stereo flag to the pixel format if requested
+    if (stereo)
+    {
+        pixelFormatDesc.dwFlags |= PFD_STEREO;
+    }
     
     // Get the device context from the window
     deviceContext = GetDC(msWindow);
@@ -153,14 +159,18 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     // closely matches the format we described
     pixelFormat = ChoosePixelFormat(deviceContext, &pixelFormatDesc);
     
-    // See if we succeeded in getting a stereo pixel format.  If not,
-    // continue normally but inform the user of the potential problem.
-    DescribePixelFormat(deviceContext, pixelFormat, 
-        sizeof(PIXELFORMATDESCRIPTOR), &stereoPFD);
-    if ((stereoPFD.dwFlags & PFD_STEREO) == 0)
+    // If stereo was requested, see if we succeeded in getting a stereo pixel 
+    // format.  If not, continue normally but inform the user of the potential 
+    //problem.
+    if (stereo)
     {
-        printf("vsWindow::vsWindow:  WARNING -- Unable to obtain a stereo "
-            "pixel format!\n");
+        DescribePixelFormat(deviceContext, pixelFormat, 
+            sizeof(PIXELFORMATDESCRIPTOR), &stereoPFD);
+        if ((stereoPFD.dwFlags & PFD_STEREO) == 0)
+        {
+            printf("vsWindow::vsWindow:  WARNING -- Unable to obtain a stereo "
+                "pixel format!\n");
+        }
     }
     
     // Set the window's pixel format
@@ -292,12 +302,16 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     pixelFormatDesc.nSize = sizeof(pixelFormat);
     pixelFormatDesc.nVersion = 1;
     pixelFormatDesc.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL |
-                              PFD_DOUBLEBUFFER | PFD_STEREO;
+                              PFD_DOUBLEBUFFER;
     pixelFormatDesc.iPixelType = PFD_TYPE_RGBA;
     pixelFormatDesc.cColorBits = 32;
     pixelFormatDesc.cDepthBits = 24;
     pixelFormatDesc.cStencilBits = 1;
     pixelFormatDesc.iLayerType = PFD_MAIN_PLANE;
+    
+    // If stereo was requested, add the stereo pixel format flag
+    if (stereo)
+        pixelFormatDesc.dwFlags |= PFD_STEREO;
     
     // Get the device context from the window
     deviceContext = GetDC(msWindow);
@@ -306,14 +320,18 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     // closely matches the format we described
     pixelFormat = ChoosePixelFormat(deviceContext, &pixelFormatDesc);
     
-    // See if we succeeded in getting a stereo pixel format.  If not,
-    // continue normally but inform the user of the potential problem.
-    DescribePixelFormat(deviceContext, pixelFormat, 
-        sizeof(PIXELFORMATDESCRIPTOR), &stereoPFD);
-    if ((stereoPFD.dwFlags & PFD_STEREO) == 0)
+    // If stereo was requested, see if we succeeded in getting a stereo pixel
+    // format.  If not, continue normally but inform the user of the potential
+    // problem.
+    if (stereo)
     {
-        printf("vsWindow::vsWindow:  WARNING -- Unable to obtain a stereo "
-            "pixel format!\n");
+        DescribePixelFormat(deviceContext, pixelFormat, 
+            sizeof(PIXELFORMATDESCRIPTOR), &stereoPFD);
+        if ((stereoPFD.dwFlags & PFD_STEREO) == 0)
+        {
+            printf("vsWindow::vsWindow:  WARNING -- Unable to obtain a stereo "
+                "pixel format!\n");
+        }
     }
     
     // Set the window's pixel format
@@ -520,6 +538,28 @@ void vsWindow::getSize(int *width, int *height)
     // Return the height if requested
     if (height)
         *height = windowRect.bottom - windowRect.top;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the size of the drawable area of this window in pixels.  This
+// will be the same as the window's size if no borders or decorations are
+// present (Windows calls this the "client area".  NULL pointers may be 
+// passed in for undesired data values.
+// ------------------------------------------------------------------------
+void vsWindow::getDrawableSize(int *width, int *height)
+{
+    RECT clientRect;
+    
+    // Get the dimensions of the window
+    GetClientRect(msWindow, &clientRect);
+    
+    // Return the width if requested
+    if (width)
+        *width = clientRect.right - clientRect.left;
+
+    // Return the height if requested
+    if (height)
+        *height = clientRect.bottom - clientRect.top;
 }
 
 // ------------------------------------------------------------------------
