@@ -66,7 +66,8 @@ int vsKeyboard::mapToButton(KeySym keySym)
     }
     else if ((keySym >= XK_F1) && (keySym <= XK_F12))
     {
-        return (keySym - XK_F1 + 10);
+        printf("function key pressed!\n");
+        return (keySym - XK_F1 + 1);
     }
     else if ((keySym >= XK_Home) && (keySym <= XK_End))
     {
@@ -255,7 +256,7 @@ void vsKeyboard::redrawPrompt()
 void vsKeyboard::pressKey(KeySym keySym, char *string)
 {
     int  index;
-    char buffer[10];
+    char buffer[50];
     int  cmdLength;
 
     // Copy the string representation for use in terminal commands

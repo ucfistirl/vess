@@ -87,24 +87,25 @@ Window vsWindowSystem::getWindow()
 void vsWindowSystem::update()
 {
     XEvent       event;
-    char         buffer[10];
+    char         buffer[50];
     KeySym       keySym;
     Window       rootWin;
     Window       childWin;
     int          rootX, rootY, winX, winY;
     unsigned int modMask;
+    int          t=0;
 
     // Process all the events we're interested in
 
     while (XCheckTypedWindowEvent(display, window, KeyPress, &event))
     {
-        XLookupString(&(event.xkey), buffer, 9, &keySym, NULL); 
+        XLookupString(&(event.xkey), buffer, sizeof(buffer), &keySym, NULL); 
 
         keyboard->pressKey(keySym, buffer);
     }
     while (XCheckTypedWindowEvent(display, window, KeyRelease, &event))
     {
-        XLookupString(&(event.xkey), buffer, 9, &keySym, NULL); 
+        XLookupString(&(event.xkey), buffer, sizeof(buffer), &keySym, NULL); 
 
         keyboard->releaseKey(keySym);
     }
