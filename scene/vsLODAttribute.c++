@@ -91,7 +91,7 @@ void vsLODAttribute::setRangeEnd(int childNum, double rangeLimit)
         return;
     }
 
-    if ((childNum < 0) && (childNum >= performerLOD->getNumChildren()))
+    if ((childNum < 0) || (childNum >= performerLOD->getNumChildren()))
     {
         printf("vsLODAttribute::setRangeEnd: Index out of bounds\n");
         return;
@@ -113,7 +113,7 @@ double vsLODAttribute::getRangeEnd(int childNum)
         return 0.0;
     }
 
-    if ((childNum < 0) && (childNum >= performerLOD->getNumChildren()))
+    if ((childNum < 0) || (childNum >= performerLOD->getNumChildren()))
     {
         printf("vsLODAttribute::getRangeEnd: Index out of bounds\n");
         return 0.0;
