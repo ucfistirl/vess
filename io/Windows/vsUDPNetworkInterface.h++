@@ -24,17 +24,17 @@
 
 #include "vsNetworkInterface.h++"
 
-class vsUDPNetworkInterface : public vsNetworkInterface
+class VS_IO_DLL vsUDPNetworkInterface : public vsNetworkInterface
 {
 public:
-               vsUDPNetworkInterface(char *address, u_short port);
-               vsUDPNetworkInterface(u_short port);
-    virtual    ~vsUDPNetworkInterface();
+                          vsUDPNetworkInterface(char *address, u_short port);
+                          vsUDPNetworkInterface(u_short port);
+    virtual               ~vsUDPNetworkInterface();
 
     virtual const char    *getClassName();
 
-    int        read(u_char *buffer, u_long len);
-    int        write(u_char *buffer, u_long len);
+    int                   read(u_char *buffer, u_long len);
+    int                   write(u_char *buffer, u_long len);
 };
 
 #endif
