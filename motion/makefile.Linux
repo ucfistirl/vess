@@ -64,6 +64,8 @@ ARFLAGS = -ruc
 #----------------------------------------------------------------------
 #			Include file directories
 #----------------------------------------------------------------------
+include ../libpaths.Linux
+
 INCS = \
        -I.. \
        -I../scene \
@@ -71,24 +73,8 @@ INCS = \
        -I../input \
        -I../system \
        -I/usr/include/g++-2 \
-       -I/usr/X11R6/include
-
-#----------------------------------------------------------------------
-#			Linking Libraries - directories and libs
-#----------------------------------------------------------------------
-LDIRS = \
-      -nostdlib \
-      -L/usr/lib32/mips3 \
-      -L/usr/lib32/internal \
-      -L/usr/lib32/libpfdb \
-      -L/usr/lib32
-
-LLIBS = -ignore_unresolved \
-	-lC \
-	-lc \
-	-lm
-
-LIBS = $(LDIRS) $(LLIBS)
+       -I/usr/X11R6/include \
+       $(EXTRA_INCS)
 
 #----------------------------------------------------------------------
 #			Default target

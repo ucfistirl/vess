@@ -54,13 +54,14 @@ ARFLAGS = -rulc
 #----------------------------------------------------------------------
 #			Include file directories
 #----------------------------------------------------------------------
+include ../libpaths.IRIX
+
 INCS = \
        -I../system \
        -I../scene \
        -I../math \
        -I../input \
-       -I/ist/projects/vr1/tools/openal/include \
-       -I/ist/projects/vr1/tools/openal/linux/include
+       $(EXTRA_INCS)
 
 #----------------------------------------------------------------------
 #			Default target

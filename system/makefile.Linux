@@ -1,5 +1,7 @@
 #!/bin/make
 
+include ../libpaths.Linux
+
 INCDIRS = -I. \
 	  -I../math \
 	  -I../scene \
@@ -7,7 +9,8 @@ INCDIRS = -I. \
 	  -I../motion \
 	  -I/usr/include/X11 \
           -I/usr/X11R6/include \
-          -I/usr/include/g++-2
+          -I/usr/include/g++-2 \
+          $(EXTRA_INCS)
 
 LIBDIRS = -L../math \
 	  -L../scene \

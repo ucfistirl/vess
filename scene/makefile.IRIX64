@@ -1,8 +1,11 @@
 #!/bin/make
 
+include ../libpaths.IRIX64
+
 INCDIRS =   -I.\
 	    -I../system \
-	    -I../math
+	    -I../math \
+            $(EXTRA_INCS)
 TYPE = -n32 -mips3
 FLAGS = $(TYPE) -g -xansi -DSGI -DPF_CPLUSPLUS_API=1 -woff 1681 $(INCDIRS)
 

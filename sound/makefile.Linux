@@ -54,6 +54,8 @@ ARFLAGS = -ruc
 #----------------------------------------------------------------------
 #			Include file directories
 #----------------------------------------------------------------------
+include ../libpaths.Linux
+
 INCS = \
        -I.. \
        -I../scene \
@@ -62,8 +64,7 @@ INCS = \
        -I../system \
        -I/usr/include/g++-2 \
        -I/usr/X11R6/include \
-       -I/ist/projects/vr2/usr/jdaly/openal/include \
-       -I/ist/projects/vr2/usr/jdaly/openal/linux/include
+       $(EXTRA_INCS)
 
 #----------------------------------------------------------------------
 #			Linking Libraries - directories and libs

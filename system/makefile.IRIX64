@@ -1,11 +1,14 @@
 #!/bin/make
 
+include ../libpaths.IRIX64
+
 INCDIRS = -I. \
 	  -I../math \
 	  -I../scene \
 	  -I../input \
 	  -I../motion \
-	  -I/usr/include/X11
+	  -I/usr/include/X11 \
+          $(EXTRA_INCS)
 
 LIBNAME = libvsSystem.a
 
