@@ -67,6 +67,9 @@ vsLinuxJoystickSystem::vsLinuxJoystickSystem(char *joystickPortName)
     // Create the joystick
     joystick = new vsJoystick(int(totalAxes), int(totalButtons),
         VS_LINUX_JS_AXIS_MIN, VS_LINUX_JS_AXIS_MAX);
+
+    // Update once to get the initial joystick state
+    update();
 }
 
 // ------------------------------------------------------------------------
