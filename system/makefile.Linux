@@ -55,7 +55,7 @@ depend:
 
 
 clean:
-	rm *.o core $(LIBNAME) makefile.*.bak
+	rm -f *.o core $(LIBNAME) makefile.*.bak
 
 
 .c++.o:
