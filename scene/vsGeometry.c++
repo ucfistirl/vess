@@ -265,6 +265,7 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
 	    transAttrib->disable();
 	else
 	    transAttrib->enable();
+
         addAttribute(transAttrib);
     }
     else
@@ -1367,26 +1368,10 @@ void vsGeometry::inflateFlatGeometry()
 // ------------------------------------------------------------------------
 void vsGeometry::applyAttributes()
 {
-    vsTransparencyAttribute *transpAttrib;
-
     vsNode::applyAttributes();
     
     (vsSystem::systemObject)->getGraphicsState()->applyState(
 	performerGeostate);
-
-    // *** Fix: force bin sorting to work correctly
-    transpAttrib = (vsTransparencyAttribute *)
-	getTypedAttribute(VS_ATTRIBUTE_TYPE_TRANSPARENCY, 0);
-    if (transpAttrib && (transpAttrib->isEnabled()))
-    {
-	// Transparent bin
-	performerGeoset->setDrawBin(PFSORT_TRANSP_BIN);
-    }
-    else
-    {
-	// Opaque bin
-	performerGeoset->setDrawBin(PFSORT_OPAQUE_BIN);
-    }
 }
 
 // ------------------------------------------------------------------------
