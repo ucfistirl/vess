@@ -65,6 +65,8 @@ public:
                 vsView();
     virtual     ~vsView();
 
+    virtual const char    *getClassName();
+
     void        setViewpoint(double xPosition, double yPosition,
                              double zPosition);
     void        setViewpoint(vsVector newPosition);

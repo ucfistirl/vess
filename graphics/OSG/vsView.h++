@@ -54,6 +54,9 @@ public:
                    vsView();
     virtual        ~vsView();
 
+    // Inherited functions
+    virtual const char    *getClassName();
+
     // Position manipulations
     void           setViewpoint(double xPosition, double yPosition,
                                 double zPosition);

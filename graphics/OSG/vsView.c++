@@ -46,6 +46,14 @@ vsView::~vsView()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsView::getClassName()
+{
+    return "vsView";
+}
+
+// ------------------------------------------------------------------------
 // Sets the current viewpoint
 // ------------------------------------------------------------------------
 void vsView::setViewpoint(double xPosition, double yPosition, double zPosition)
