@@ -1,6 +1,7 @@
 #!/bin/make
 
 VSLIBS = \
+         avatar \
          math \
          scene \
          input \
