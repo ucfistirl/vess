@@ -22,6 +22,7 @@
 #include "vsImage.h++"
 
 #include <string.h>
+#include <stdlib.h>
 #include "jpeglib.h"
 
 // ---------------------------------------------------------------------------
@@ -170,7 +171,7 @@ const unsigned char * vsImage::getData()
 
 // ---------------------------------------------------------------------------
 // Duplicates the raw image data and returns a pointer to the duplicated data.
-// NOTE: the returned pointer *MUST* be freed using "delete []"
+// NOTE: the returned pointer *MUST* be freed using "free()"
 // ---------------------------------------------------------------------------
 unsigned char * vsImage::cloneData()
 {
@@ -178,7 +179,7 @@ unsigned char * vsImage::cloneData()
  
     if( data != NULL )
     {
-        newData = new unsigned char[ getDataSize() ];
+        newData = (unsigned char *) malloc(getDataSize());
 
         memcpy( newData, data, getDataSize() );
     }
