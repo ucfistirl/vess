@@ -59,18 +59,17 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
         VS_WINDOW_DEFAULT_HEIGHT);
     performerPipeWindow->open();
 
-    // Attempt to determine the size of the window manager's border for
-    // this window by checking the difference between Performer's idea
-    // of the window size and X's one.
+    // Force the window open
     xWindowDisplay = pfGetCurWSConnection();
-    xWindowID = performerPipeWindow->getWSWindow();
-
     while (!(performerPipeWindow->isOpen()))
     {
         pfFrame();
 	XFlush(xWindowDisplay);
     }
 
+    // Get the window that Performer thinks is topmost, and then query the
+    // X server to determine if that window really is the topmost one.
+    xWindowID = performerPipeWindow->getWSWindow();
 //    printf("xWindowID(%d)\n", xWindowID);
 
     do
@@ -93,6 +92,9 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     topWindowID = xWindowID;
 //    printf("topWindowID: %d\n", topWindowID);
 
+    // Attempt to determine the size of the window manager's border for
+    // this window by checking the difference between Performer's idea
+    // of the window size and X's one.
     XGetWindowAttributes(xWindowDisplay, topWindowID, &xattr);
     xPositionOffset = VS_WINDOW_DEFAULT_XPOS - xattr.x;
     yPositionOffset = VS_WINDOW_DEFAULT_YPOS - xattr.y;
