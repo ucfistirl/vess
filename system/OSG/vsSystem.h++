@@ -87,7 +87,10 @@ public:
                             bool fullScreen, vsNode **sceneGraph,
                                          vsView **viewpoint, vsWindow **window);
 
+    vsSequencer         *getSequencer();
+
     void                drawFrame();
+
     void                releaseSync();
     void                terminateCluster();
     bool                hasBeenTerminated();

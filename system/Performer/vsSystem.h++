@@ -30,6 +30,7 @@
 #include "vsClusterConfig.h++"
 #include "vsRemoteInterface.h++"
 #include "vsTCPNetworkInterface.h++"
+#include "vsSequencer.h++"
 
 enum vsMultiprocessMode
 {
@@ -48,6 +49,7 @@ private:
     double                  lastFrameDuration;
     
     vsRemoteInterface       *remoteInterface;
+    vsSequencer             *rootSequencer;
     
     // For cluster rendering
     vsClusterConfig         *cluster;
@@ -76,11 +78,13 @@ public:
                                 bool fullScreen, vsNode **sceneGraph,
                                 vsView **viewpoint, vsWindow **window);
 
+    vsSequencer         *getSequencer();
+
     void                drawFrame();
+
     void                releaseSync();
     void                terminateCluster();
     bool                hasBeenTerminated();
-
 };
 
 #endif

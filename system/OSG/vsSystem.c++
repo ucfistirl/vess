@@ -84,6 +84,10 @@ vsSystem::vsSystem()
 #else
     remoteInterface = new vsRemoteInterface();
 #endif
+
+    // Create a sequencer to act as a "root sequencer"
+    rootSequencer = new vsSequencer();
+    rootSequencer->ref();
 }
 
 // ------------------------------------------------------------------------
@@ -166,6 +170,9 @@ vsSystem::vsSystem(vsClusterConfig *config)
     remoteInterface = new vsRemoteInterface();
 #endif
 
+    // Create a sequencer to act as a "root sequencer"
+    rootSequencer = new vsSequencer();
+    rootSequencer->ref();
 }
 
 
@@ -196,6 +203,10 @@ vsSystem::~vsSystem()
 
     // Delete the remote interface
     delete remoteInterface;
+
+    // Delete the "root sequencer"
+    rootSequencer->unref();
+    delete rootSequencer;
 
 #ifdef VESS_DEBUG
     FILE *outfile = fopen("vess_objects.log", "w");
@@ -507,6 +518,18 @@ void vsSystem::preFrameTraverse(vsNode *node)
 }
 
 // ------------------------------------------------------------------------
+// Returns the "root" sequencer that the user can attach his/her
+// vsUpdatables to and have drawFrame call them if desired (this is not
+// a required element -- the user can call the update() methods
+// directly if desired).
+// ------------------------------------------------------------------------
+vsSequencer *vsSystem::getSequencer()
+{
+    // Return the pointer to the root sequencer
+    return rootSequencer;
+}
+
+// ------------------------------------------------------------------------
 // The main function for any VESS program. Prompts each active pane object
 // to render its attached geometry into its parent window.
 // ------------------------------------------------------------------------
@@ -537,6 +560,9 @@ void vsSystem::drawFrame()
         return;
     }
     
+    // Tell the "root" sequencer to update itself and everything attached
+    rootSequencer->update();
+
     // Have the remote interface process any requests, etc.
     remoteInterface->update();
 
