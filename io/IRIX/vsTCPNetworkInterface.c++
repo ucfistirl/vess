@@ -253,7 +253,7 @@ int vsTCPNetworkInterface::makeConnection()
             // If we are not in blocking mode, tell the loop to stop (we give 
             // up); Otherwise, tell the user the info that we failed this time
             // and re-open the socket
-            if ( (fcntl(socketValue, F_GETFL) & FNONBLOCK) != 0 )
+            if ( (statusFlags & FNONBLOCK) != 0 )
                 keepTrying = 0;
             else
             {
