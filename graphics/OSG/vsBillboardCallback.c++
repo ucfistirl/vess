@@ -74,7 +74,7 @@ void vsBillboardCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
     
     // Obtain the accumulated global transform matrix
     osgMatrix.makeIdentity();
-    osgCullVisitor->getLocalToWorldMatrix(osgMatrix, node);
+    osgMatrix = osgCullVisitor->getModelViewMatrix();
     for (loop = 0; loop < 4; loop++)
         for (sloop = 0; sloop < 4; sloop++)
             xformMatrix[loop][sloop] = osgMatrix(sloop, loop);
