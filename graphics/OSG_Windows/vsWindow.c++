@@ -37,290 +37,6 @@ int vsWindow::windowCount = 0;
 // ------------------------------------------------------------------------
 // Constructor - Initializes the window by creating a GLX window and 
 // creating connections with that, verifying that the window is being 
-// properly displayed, recording some size data from the window
-// manager, and configuring the window with its default position and size.
-// ------------------------------------------------------------------------
-vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
-{
-    vsPipe *parentPipe;
-    DWORD windowStyle;
-    PIXELFORMATDESCRIPTOR pixelFormatDesc;
-    int pixelFormat;
-    
-    // Initialize the pane count
-    childPaneCount = 0;
-
-    // Assign this window an index and increment the window count.
-    // Note: this procedure may need to be protected for thread-safeness 
-    // if OSG becomes multi-threaded.
-    windowNumber = windowCount++;
-    
-    // Get the parent vsScreen and vsPipe
-    parentScreen = parent;
-    parentPipe = parentScreen->getParentPipe();
-
-	// Set up the window class.  First pick a name for it, use the
-	// window number to keep it unique.
-	sprintf(windowClassName, "VS_WINDOW_CLASS_%d", windowNumber);
-	
-	// Size in memory
-	windowClass.cbSize = sizeof(WNDCLASSEX); 
-	
-    // Make sure each window gets its own device context
-	windowClass.style = CS_OWNDC;
-	
-	// Main window procedure (message handler function)
-	windowClass.lpfnWndProc = (WNDPROC)mainWindowProc;
-	
-	// No extra per-class or per-window memory
-	windowClass.cbClsExtra = 0;
-	windowClass.cbWndExtra = 0;
-	
-	// Handle to application instance
-	windowClass.hInstance = GetModuleHandle(NULL);
-	
-	// Large icon (use the standard application icon)
-	windowClass.hIcon = LoadIcon(windowClass.hInstance, 
-	    MAKEINTRESOURCE(IDI_VESSV));
-	
-	// Application cursor (use the standard arrow cursor)
-	windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	
-	// Background color brush
-	windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
-	
-	// No menu bar
-	windowClass.lpszMenuName = NULL;
-	
-	// A name for this window class
-	windowClass.lpszClassName = windowClassName;
-	
-	// Small icon (use the standard application icon again)
-	windowClass.hIconSm = LoadIcon(windowClass.hInstance, 
-	    MAKEINTRESOURCE(IDI_VESSV));
-	
-	// Try to register the window class.  Print an error message and
-	// bail if this fails.
-	if (RegisterClassEx(&windowClass) == 0)
-	{
-	    printf("vsWindow::vsWindow:  Unable to register window class\n");
-	    return;
-	}
-	
-	// Set up the window style.  The following style flags are recommended
-	// in the docs for OpenGL windows.
-    windowStyle = WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-    
-    // Add the "overlapped" style if we don't want to hide the window border
-    if (!hideBorder)
-	    windowStyle |= WS_OVERLAPPEDWINDOW;
-	
-	// Now, try to open the window
-	msWindow = CreateWindow(windowClassName, "WGL/OSG Test", windowStyle,
-	    CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL,
-	    GetModuleHandle(NULL), NULL);
-	    
-	// Set the oldWindowProc member to NULL, since we aren't subclassing
-	// this window
-	oldWindowProc = NULL;
-	    
-	// Print an error and bail out if the window doesn't open
-	if (msWindow == NULL)
-	{
-	    printf("vsWindow::vsWindow:  Unable to open window\n");
-	    return;
-	}
-
-    // Describe a pixel format containing our default attributes
-    // as possible (32-bit color, 24-bit z-buffer, stencil buffer, double-
-    // buffered)
-  	memset(&pixelFormat, 0, sizeof(pixelFormat));
-    pixelFormatDesc.nSize = sizeof(pixelFormat);
-    pixelFormatDesc.nVersion = 1;
-    pixelFormatDesc.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL |
-                              PFD_DOUBLEBUFFER;
-    pixelFormatDesc.iPixelType = PFD_TYPE_RGBA;
-    pixelFormatDesc.cColorBits = 32;
-    pixelFormatDesc.cDepthBits = 24;
-    pixelFormatDesc.cStencilBits = 1;
-    pixelFormatDesc.iLayerType = PFD_MAIN_PLANE;
-    
-    // Get the device context from the window
-    deviceContext = GetDC(msWindow);
-
-    // Search the window's device context for the pixel format that most
-    // closely matches the format we described
-    pixelFormat = ChoosePixelFormat(deviceContext, &pixelFormatDesc);
-    
-    // Set the window's pixel format
-    SetPixelFormat(deviceContext, pixelFormat, &pixelFormatDesc);
-    
-    // Create an OpenGL context for the window
-    glContext = wglCreateContext(deviceContext);
-
-    // If the context is not valid, bail out.
-    if (glContext == NULL)
-    {
-        printf("vsWindow::vsWindow:  Unable to create OpenGL context\n");
-        return;
-    }
-    
-    // Display and update the window
-    ShowWindow(msWindow, SW_SHOW);
-    UpdateWindow(msWindow);
-
-    // Add the window to its parent screen
-    parentScreen->addWindow(this);
-    
-    // Register a mapping between this vsWindow and its MS window handle
-    getMap()->registerLink(msWindow, this);
-}
-
-// ------------------------------------------------------------------------
-// Constructor - Initializes the window by creating a GLX window and 
-// creating connections with that, verifying that the window is being 
-// properly displayed, recording some size data from the window
-// manager, and configuring the window with the specified position and
-// size
-// ------------------------------------------------------------------------
-vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
-                   int height, int hideBorder) : childPaneList(1, 1)
-{
-    vsPipe *parentPipe;
-    DWORD windowStyle;
-    PIXELFORMATDESCRIPTOR pixelFormatDesc;
-    int pixelFormat;
-    
-    // Initialize the pane count
-    childPaneCount = 0;
-
-    // Assign this window an index and increment the window count.
-    // Note: this procedure may need to be protected for thread-safeness 
-    // if OSG becomes multi-threaded.
-    windowNumber = windowCount++;
-    
-    // Get the parent vsScreen and vsPipe
-    parentScreen = parent;
-    parentPipe = parentScreen->getParentPipe();
-
-	// Set up the window class.  First pick a name for it, use the
-	// window number to keep it unique.
-	sprintf(windowClassName, "VS_WINDOW_CLASS_%d", windowNumber);
-	
-	// Size in memory
-	windowClass.cbSize = sizeof(WNDCLASSEX); 
-	
-    // Make sure each window gets its own device context
-	windowClass.style = CS_OWNDC;
-	
-	// Main window procedure (message handler function)
-	windowClass.lpfnWndProc = (WNDPROC)mainWindowProc;
-	
-	// No extra per-class or per-window memory
-	windowClass.cbClsExtra = 0;
-	windowClass.cbWndExtra = 0;
-	
-	// Handle to application instance
-	windowClass.hInstance = GetModuleHandle(NULL);
-	
-	// Large icon (use the standard application icon)
-	windowClass.hIcon = LoadIcon(NULL, MAKEINTRESOURCE(IDI_VESSV));
-	
-	// Application cursor (use the standard arrow cursor)
-	windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	
-	// Background color brush
-	windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
-	
-	// No menu bar
-	windowClass.lpszMenuName = NULL;
-	
-	// A name for this window class
-	windowClass.lpszClassName = windowClassName;
-	
-	// Small icon (use the standard application icon again)
-	windowClass.hIconSm = LoadIcon(NULL, MAKEINTRESOURCE(IDI_VESSV));
-	
-	// Try to register the window class.  Print an error message and
-	// bail if this fails.
-	if (RegisterClassEx(&windowClass) == 0)
-	{
-	    printf("vsWindow::vsWindow:  Unable to register window class\n");
-	    return;
-	}
-	
-	// Set up the window style.  The following style flags are recommended
-	// in the docs for OpenGL windows.
-    windowStyle = WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-    
-    // Add the "overlapped" style if we don't want to hide the window border
-    if (!hideBorder)
-	    windowStyle |= WS_OVERLAPPEDWINDOW;
-	
-	// Now, try to open the window
-	msWindow = CreateWindow(windowClassName, "WGL/OSG Test", windowStyle,
-	    xPosition, yPosition, width, height, NULL, NULL,
-	    GetModuleHandle(NULL), NULL);
-	    
-	// Set the oldWindowProc member to NULL, since we aren't subclassing
-	// this window
-	oldWindowProc = NULL;
-	    
-	// Print an error and bail out if the window doesn't open
-	if (msWindow == NULL)
-	{
-	    printf("vsWindow::vsWindow:  Unable to open window\n");
-	    return;
-	}
-
-    // Describe a pixel format containing our default attributes
-    // as possible (32-bit color, 24-bit z-buffer, stencil buffer, double-
-    // buffered)
-  	memset(&pixelFormat, 0, sizeof(pixelFormat));
-    pixelFormatDesc.nSize = sizeof(pixelFormat);
-    pixelFormatDesc.nVersion = 1;
-    pixelFormatDesc.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL |
-                              PFD_DOUBLEBUFFER;
-    pixelFormatDesc.iPixelType = PFD_TYPE_RGBA;
-    pixelFormatDesc.cColorBits = 32;
-    pixelFormatDesc.cDepthBits = 24;
-    pixelFormatDesc.cStencilBits = 1;
-    pixelFormatDesc.iLayerType = PFD_MAIN_PLANE;
-    
-    // Get the device context from the window
-    deviceContext = GetDC(msWindow);
-
-    // Search the window's device context for the pixel format that most
-    // closely matches the format we described
-    pixelFormat = ChoosePixelFormat(deviceContext, &pixelFormatDesc);
-    
-    // Set the window's pixel format
-    SetPixelFormat(deviceContext, pixelFormat, &pixelFormatDesc);
-    
-    // Create an OpenGL context for the window
-    glContext = wglCreateContext(deviceContext);
-
-    // If the context is not valid, bail out.
-    if (glContext == NULL)
-    {
-        printf("vsWindow::vsWindow:  Unable to create OpenGL context\n");
-        return;
-    }
-    
-    // Display and update the window
-    ShowWindow(msWindow, SW_SHOW);
-    UpdateWindow(msWindow);
-
-    // Add the window to its parent screen
-    parentScreen->addWindow(this);
-    
-    // Register a mapping between this vsWindow and its MS window handle
-    getMap()->registerLink(msWindow, this);
-}
-
-// ------------------------------------------------------------------------
-// Constructor - Initializes the window by creating a GLX window and 
-// creating connections with that, verifying that the window is being 
 // properly displayed, recording some size data from the window manager, 
 // and configuring the window with its default position and size.  Also 
 // configures the window's buffer settings to be either mono or stereo
@@ -401,7 +117,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
 	    windowStyle |= WS_OVERLAPPEDWINDOW;
 	
 	// Now, try to open the window
-	msWindow = CreateWindow(windowClassName, "WGL/OSG Test", windowStyle,
+	msWindow = CreateWindow(windowClassName, "VESS Window", windowStyle,
 	    CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL,
 	    GetModuleHandle(NULL), NULL);
 	    
@@ -479,9 +195,8 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
 // configures the window's buffer settings to be either mono or stereo
 // based on the value of the stereo parameter
 // ------------------------------------------------------------------------
-vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
-                   int height, int hideBorder, int stereo) 
-         : childPaneList(1, 1)
+vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height, 
+                   int hideBorder, int stereo) : childPaneList(1, 1)
 {
     vsPipe *parentPipe;
     DWORD windowStyle;
@@ -555,8 +270,8 @@ vsWindow::vsWindow(vsScreen *parent, int xPosition, int yPosition, int width,
 	    windowStyle |= WS_OVERLAPPEDWINDOW;
 	
 	// Now, try to open the window
-	msWindow = CreateWindow(windowClassName, "WGL/OSG Test", windowStyle,
-	    xPosition, yPosition, width, height, NULL, NULL,
+	msWindow = CreateWindow(windowClassName, "VESS Window", windowStyle,
+	    x, y, width, height, NULL, NULL,
 	    GetModuleHandle(NULL), NULL);
 	    
 	// Set the oldWindowProc member to NULL, since we aren't subclassing
