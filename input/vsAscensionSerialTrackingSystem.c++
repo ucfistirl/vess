@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <string.h>
+#include <stdlib.h>
 #include "vsAscensionSerialTrackingSystem.h++"
 
 // Static class variable for instructing the server (child) process to exit
