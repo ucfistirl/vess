@@ -275,9 +275,6 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
     vsVector upperLeft, upperRight, lowerLeft;
     vsVector rightDirection, downDirection;
     vsVector nearPt, farPt;
-    vsView *paneView;
-    vsMatrix viewRot;
-    vsVector viewPos;
 
     if ((segNum < 0) || (segNum >= segListSize))
     {
@@ -311,12 +308,7 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
     farPt = upperLeft + rightDirection.getScaled((x + 1.0) / 2.0) +
         downDirection.getScaled((y + 1.0) / 2.0);
 
-    // Transform the two points by the current view parameters
-    paneView = pane->getView();
-    viewRot = paneView->getRotationMat();
-    viewPos = paneView->getViewpoint();
-
-    // Add the newly-build segment to the list using one of the other
+    // Add the newly-built segment to the list using one of the other
     // segment setting calls
     setSeg(segNum, nearPt, farPt);
 }
