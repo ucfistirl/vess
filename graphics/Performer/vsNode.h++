@@ -114,6 +114,9 @@ public:
 
     virtual void        addAttribute(vsAttribute *newAttribute);
     virtual void        removeAttribute(vsAttribute *targetAttribute);
+    
+    virtual void        enableLighting() = 0;
+    virtual void        disableLighting() = 0;
 
     int                 getAttributeCount();
     vsAttribute         *getAttribute(int index);
