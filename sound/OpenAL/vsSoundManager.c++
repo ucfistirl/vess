@@ -72,8 +72,6 @@ vsSoundManager::vsSoundManager()
             alError = true;
     }
     hardwareVoiceLimit = numVoices;
-    printf("vsSoundManager::vsSoundManager:  System is limited to %d"
-        " voices\n", numVoices);
 
     // Set the "soft" voice limit to the number of voices generated or to
     // the default,  whichever is less.
