@@ -43,12 +43,11 @@
 #include "vsWindow.h++"
 #include "vsWindowSystem.h++"
 
-#define VS_MENU_ACTION_COUNT 7
+#define VS_MENU_ACTION_COUNT 6
 
 enum VS_SYSTEM_DLL vsMenuAction
 {
     VS_MENU_ACTION_ACTIVATE,
-    VS_MENU_ACTION_CANCEL,
     VS_MENU_ACTION_PREVIOUS,
     VS_MENU_ACTION_NEXT,
     VS_MENU_ACTION_DECREASE,
@@ -95,13 +94,13 @@ public:
     vsView                *getView();
 
     void                  setMenuTree(vsMenuTree *newTree);
-    void                  setMenuButton(vsMenuAction action,
-                              vsInputButton *newButton);
-
     void                  rebuildMenu();
 
     void                  setFrame(vsMenuFrame *frame);
     vsMenuFrame           *getFrame();
+
+    void                  setMenuButton(vsMenuAction action,
+                              vsInputButton *newButton);
 
     vsMenuObject          *getSelection();
 
