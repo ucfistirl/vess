@@ -22,9 +22,10 @@
 #ifndef VS_IPC_INTERFACE_HPP
 #define VS_IPC_INTERFACE_HPP
 
-#include <sys/types.h>
+#include <windows.h>
+#include "vsGlobals.h++"
 
-class vsIPCInterface
+class VS_IO_DLL vsIPCInterface : public vsObject
 {
 public:
 
