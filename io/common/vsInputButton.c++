@@ -42,6 +42,7 @@ vsInputButton::vsInputButton(void)
 // ------------------------------------------------------------------------
 vsInputButton::~vsInputButton(void)
 {
+    delete buttonTimer;
 }
 
 // ------------------------------------------------------------------------
