@@ -16,7 +16,7 @@
 //    Description:  Attribute that specifies which texture should be used
 //                  to cover geometry
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Duvan Cope
 //
 //------------------------------------------------------------------------
 
@@ -26,6 +26,7 @@
 #include <osg/Texture2D>
 #include <osg/Texture>
 #include <osg/TexEnv>
+#include <osg/TexGen>
 #include <osg/Image>
 #include "vsStateAttribute.h++"
 
@@ -71,20 +72,34 @@ enum VS_GRAPHICS_DLL vsTextureMinificationFilter
     VS_TEXTURE_MINFILTER_MIPMAP_LINEAR
 };
 
+enum VS_GRAPHICS_DLL vsTextureGenMode
+{
+    VS_TEXTURE_GEN_OBJECT_LINEAR,
+    VS_TEXTURE_GEN_EYE_LINEAR,
+    VS_TEXTURE_GEN_SPHERE_MAP,
+    VS_TEXTURE_GEN_NORMAL_MAP,
+    VS_TEXTURE_GEN_REFLECTION_MAP,
+    VS_TEXTURE_GEN_OFF
+};
+
 class VS_GRAPHICS_DLL vsTextureAttribute : public vsStateAttribute
 {
 private:
 
     osg::Texture2D    *osgTexture;
     osg::TexEnv       *osgTexEnv;
+    osg::TexGen       *osgTexGen;
     osg::Image        *osgTexImage;
+
+    bool              removeTexGen;
 
     virtual void      setOSGAttrModes(vsNode *node);
 
 VS_INTERNAL:
 
                       vsTextureAttribute(osg::Texture2D *texObject,
-                                         osg::TexEnv *texEnvObject);
+                                         osg::TexEnv *texEnvObject,
+                                         osg::TexGen *texGenObject);
 
     virtual void      attach(vsNode *node);
     virtual void      detach(vsNode *node);
@@ -125,6 +140,9 @@ public:
     int                   getMagFilter();
     void                  setMinFilter(int newFilter);
     int                   getMinFilter();
+    
+    void                  setGenMode(int genMode);
+    int                   getGenMode();
 };
 
 #endif

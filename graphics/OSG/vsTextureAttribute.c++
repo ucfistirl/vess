@@ -16,7 +16,7 @@
 //    Description:  Attribute that specifies which texture should be used
 //                  to cover geometry
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Duvan Cope
 //
 //------------------------------------------------------------------------
 
@@ -36,6 +36,10 @@ vsTextureAttribute::vsTextureAttribute()
     osgTexture->ref();
     osgTexEnv = new osg::TexEnv();
     osgTexEnv->ref();
+    osgTexGen = NULL;
+
+    // Initialize the TexGen remove flag to false.
+    removeTexGen = false;
 
     // Start with no image data
     osgTexImage = NULL;
@@ -56,15 +60,21 @@ vsTextureAttribute::vsTextureAttribute()
 // Constructor - Sets the texture attribute up as already attached
 // ------------------------------------------------------------------------
 vsTextureAttribute::vsTextureAttribute(osg::Texture2D *texObject,
-    osg::TexEnv *texEnvObject)
+    osg::TexEnv *texEnvObject, osg::TexGen *texGenObject)
 {
     // Save and reference the Texture2D and TexEnv objects
     osgTexture = texObject;
     osgTexture->ref();
     osgTexEnv = texEnvObject;
     osgTexEnv->ref();
+    osgTexGen = texGenObject;
+    if (osgTexGen)
+        osgTexGen->ref();
     osgTexImage = osgTexture->getImage();
     osgTexImage->ref();
+
+    // Initialize the TexGen remove flag to false.
+    removeTexGen = false;
 
     // Set the texture border color to black
     osgTexture->setBorderColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
@@ -78,6 +88,8 @@ vsTextureAttribute::~vsTextureAttribute()
     // Unreference the Texture2D and TexEnv objects
     osgTexture->unref();
     osgTexEnv->unref();
+    if (osgTexGen)
+        osgTexGen->unref();
 
     // Unreference the texture image data if it exists
     if (osgTexImage != NULL)
@@ -428,6 +440,111 @@ int vsTextureAttribute::getMinFilter()
 }
 
 // ------------------------------------------------------------------------
+// Sets the texture coordinate generation mode of the texture
+// ------------------------------------------------------------------------
+void vsTextureAttribute::setGenMode(int genMode)
+{
+    bool update;
+
+    update = false;
+
+    // Translate the genMode to an OSG value and set it on the TexGen
+    switch (genMode)
+    {
+        case VS_TEXTURE_GEN_OBJECT_LINEAR:
+            if (osgTexGen == NULL)
+            {
+                osgTexGen = new osg::TexGen();
+                osgTexGen->ref();
+                update = true;
+            }
+            osgTexGen->setMode(osg::TexGen::OBJECT_LINEAR);
+            break;
+        case VS_TEXTURE_GEN_EYE_LINEAR:
+            if (osgTexGen == NULL)
+            {
+                osgTexGen = new osg::TexGen();
+                osgTexGen->ref();
+                update = true;
+            }
+            osgTexGen->setMode(osg::TexGen::EYE_LINEAR);
+            break;
+        case VS_TEXTURE_GEN_SPHERE_MAP:
+            if (osgTexGen == NULL)
+            {
+                osgTexGen = new osg::TexGen();
+                osgTexGen->ref();
+                update = true;
+            }
+            osgTexGen->setMode(osg::TexGen::SPHERE_MAP);
+            break;
+        case VS_TEXTURE_GEN_NORMAL_MAP:
+            if (osgTexGen == NULL)
+            {
+                osgTexGen = new osg::TexGen();
+                osgTexGen->ref();
+                update = true;
+            }
+            osgTexGen->setMode(osg::TexGen::NORMAL_MAP);
+            break;
+        case VS_TEXTURE_GEN_REFLECTION_MAP:
+            if (osgTexGen == NULL)
+            {
+                osgTexGen = new osg::TexGen();
+                osgTexGen->ref();
+                update = true;
+            }
+            osgTexGen->setMode(osg::TexGen::REFLECTION_MAP);
+            break;
+        case VS_TEXTURE_GEN_OFF:
+            if (osgTexGen)
+            {
+                removeTexGen = true;
+                update = true;
+            }
+            break;
+        default:
+            printf("vsTextureAttribute::setGenMode: Bad generation mode "
+                "value\n");
+            return;
+    }
+
+    // If we need to update the Attr modes due to the texgen, do so.
+    if (update)
+    {
+        markOwnersDirty();
+        setAllOwnersOSGAttrModes();
+    }
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the texture coordinate generation mode of the texture
+// ------------------------------------------------------------------------
+int vsTextureAttribute::getGenMode()
+{
+    if (osgTexGen)
+    {
+        // Translate the current texture coordinate generation mode on the
+        // osg::TexGen into a VESS value and return it
+        switch (osgTexGen->getMode())
+        {
+            case osg::TexGen::OBJECT_LINEAR:
+                return VS_TEXTURE_GEN_OBJECT_LINEAR;
+            case osg::TexGen::EYE_LINEAR:
+                return VS_TEXTURE_GEN_EYE_LINEAR;
+            case osg::TexGen::SPHERE_MAP:
+                return VS_TEXTURE_GEN_SPHERE_MAP;
+            case osg::TexGen::NORMAL_MAP:
+                return VS_TEXTURE_GEN_NORMAL_MAP;
+            case osg::TexGen::REFLECTION_MAP:
+                return VS_TEXTURE_GEN_REFLECTION_MAP;
+        }
+    }
+    else
+        return VS_TEXTURE_GEN_OFF;
+}
+
+// ------------------------------------------------------------------------
 // Private function
 // Sets the modes on the StateSet of this node's OSG node to reflect the
 // settings of this attribute
@@ -452,6 +569,19 @@ void vsTextureAttribute::setOSGAttrModes(vsNode *node)
     // on the node's StateSet
     osgStateSet->setTextureAttributeAndModes(0, osgTexture, attrMode);
     osgStateSet->setTextureAttributeAndModes(0, osgTexEnv, attrMode);
+    if (osgTexGen)
+    {
+        if (removeTexGen)
+        {
+            osgStateSet->setTextureAttributeAndModes(0, osgTexGen,
+                osg::StateAttribute::INHERIT);
+            osgTexGen->unref();
+            osgTexGen = NULL;
+            removeTexGen = false;
+        }
+        else
+            osgStateSet->setTextureAttributeAndModes(0, osgTexGen, attrMode);   
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -485,6 +615,9 @@ void vsTextureAttribute::detach(vsNode *node)
         osg::StateAttribute::INHERIT);
     osgStateSet->setTextureAttributeAndModes(0, osgTexEnv,
         osg::StateAttribute::INHERIT);
+    if (osgTexGen)
+        osgStateSet->setTextureAttributeAndModes(0, osgTexGen,
+            osg::StateAttribute::INHERIT);
 
     // Finish with standard StateAttribute detaching
     vsStateAttribute::detach(node);
@@ -551,6 +684,12 @@ bool vsTextureAttribute::isEquivalent(vsAttribute *attribute)
     // Compare apply modes
     val1 = getApplyMode();
     val2 = attr->getApplyMode();
+    if (val1 != val2)
+        return false;
+
+    // Compare texture coordinate generation modes
+    val1 = getGenMode();
+    val2 = attr->getGenMode();
     if (val1 != val2)
         return false;
 
