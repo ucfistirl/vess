@@ -40,7 +40,7 @@ vsArticulatedCollision::vsArticulatedCollision(vsInverseKinematics *invkin,
     // Create a vsIntersect object and configure it
     intersect = new vsIntersect();
     intersect->ref();
-    intersect->setSegListSize(16);
+    intersect->setSegListSize(VS_ARTCOL_SEGMENT_COUNT);
     intersect->disablePaths();
 
     // Set default parameters
@@ -76,6 +76,8 @@ void vsArticulatedCollision::update()
     vsMatrix tempMat;
     int loop, sloop;
     vsVector startPt, endPt;
+    vsVector segmentVec;
+    double dotProd;
     int chainSize;
     vsKinematics *jointKin;
     double angle;
@@ -119,20 +121,35 @@ void vsArticulatedCollision::update()
             endPt = tempMat.getPointXform(jointKin->getCenterOfMass());
         }
 
-        // Figure out which directions are 'up' and 'right' in the coordinate
-        // system of this joint, so that we can compute the segment offsets
-        jointKin = invKinematics->getKinematicsObject(loop);
-        tempMat = jointKin->getComponent()->getGlobalXform();
-        upVec = tempMat.getVectorXform(vsVector(0.0, 0.0, 1.0));
-        rightVec = tempMat.getVectorXform(vsVector(1.0, 0.0, 0.0));
+        // Compute two vectors that are perpendicular to this joint segment
 
-        // Compute the sixteen segments that form the cylinder of intersection
-        // around the joint segment
-        for (sloop = 0; sloop < 16; sloop++)
+        // - Construct the vector that represents this segment's direction
+        segmentVec = (endPt - startPt).getNormalized();
+
+        // - Create a vector that isn't parallel to the segment vector
+        upVec.set(0.0, 0.0, 1.0);
+        dotProd = segmentVec.getDotProduct(upVec);
+        if (VS_EQUAL(fabs(dotProd), 1.0))
+        {
+            upVec.set(0.0, 1.0, 0.0);
+            dotProd = segmentVec.getDotProduct(upVec);
+        }
+
+        // - Project the non-parallel vector into the perpendicular plane
+        upVec -= segmentVec.getScaled(dotProd);
+        upVec.normalize();
+
+        // - Compute a second perpendicular vector by taking the cross product
+        // of the segment vector and the first perpendicular vector
+        rightVec = segmentVec.getCrossProduct(upVec);
+
+        // Compute the segments that form the cylinder of intersection around
+        // the joint segment
+        for (sloop = 0; sloop < VS_ARTCOL_SEGMENT_COUNT; sloop++)
         {
             // Compute the offset from the joint segment center to the
             // intersection segment
-            angle = (double)sloop / 360.0;
+            angle = (double)sloop  * (360.0 / (double)(VS_ARTCOL_SEGMENT_COUNT));
             segOffsetVec = rightVec * cos(VS_DEG2RAD(angle));
             segOffsetVec += upVec * sin(VS_DEG2RAD(angle));
             segOffsetVec *= segmentRadius;
@@ -146,7 +163,7 @@ void vsArticulatedCollision::update()
         intersect->intersect(scene);
 
         // Check each intersection segment for an intersection
-        for (sloop = 0; sloop < 16; sloop++)
+        for (sloop = 0; sloop < VS_ARTCOL_SEGMENT_COUNT; sloop++)
         {
             // If there's an intersection, figure out how far away it is from
             // the beginning of the joint segment
