@@ -22,7 +22,9 @@
 #ifndef VS_MOTION_MODEL_HPP
 #define VS_MOTION_MODEL_HPP
 
-class vsMotionModel
+#include "vsUpdatable.h++"
+
+class vsMotionModel : public vsUpdatable
 {
 public:
 
