@@ -107,8 +107,10 @@ case "$target" in
     VESS under IRIX requires the MIPSPro compiler version 7.2 or later.
     Your compiler version is not sufficient to compile VESS.
     
-    E-mail vess@ist.ucf.edu if you think you've received this message in
-    error.
+    For further support, consult the VESS User's Guide or join the 
+    vess-users mailing list at:
+
+        http://lists.sourceforge.net/lists/listinfo/vess-users
 
 ])
        fi
@@ -255,8 +257,10 @@ case "$SG" in
     There is a problem with OpenGL Performer.  Either Performer is not
     installed, or the libraries are installed in a non-standard location.
 
-    E-mail vess@ist.ucf.edu if you think you've received this message in
-    error.
+    For further support, consult the VESS User's Guide or join the 
+    vess-users mailing list at:
+
+        http://lists.sourceforge.net/lists/listinfo/vess-users
 
 ]
             )
@@ -285,11 +289,13 @@ case "$SG" in
         if test x$THREAD_ERROR = xyes ; then
             AC_MSG_ERROR([
 
-    There is a problem with the OpenThreads library.  OpenThreads is required for 
-    Open Scene Graph (and VESS) to work properly.
+    There is a problem with the OpenThreads library.  OpenThreads is required 
+    for Open Scene Graph (and VESS) to work properly.
 
-    E-mail vess@ist.ucf.edu if you think you've received this message in
-    error.
+    For further support, consult the VESS User's Guide or join the 
+    vess-users mailing list at:
+
+        http://lists.sourceforge.net/lists/listinfo/vess-users
 
 ]
             )
@@ -335,8 +341,10 @@ case "$SG" in
     Configure was unable to find the Freetype 2 library.  Freetype 2 is 
     required for Open Scene Graph (and VESS) to work properly.
 
-    E-mail vess@ist.ucf.edu if you think you've received this message in
-    error.
+    For further support, consult the VESS User's Guide or join the 
+    vess-users mailing list at:
+
+        http://lists.sourceforge.net/lists/listinfo/vess-users
 
 ]
             )
@@ -354,8 +362,10 @@ case "$SG" in
     There is a problem with Freetype 2.  Freetype 2 is required for Open 
     Scene Graph (and VESS) to work properly.
 
-    E-mail vess@ist.ucf.edu if you think you've received this message in
-    error.
+    For further support, consult the VESS User's Guide or join the 
+    vess-users mailing list at:
+
+        http://lists.sourceforge.net/lists/listinfo/vess-users
 
 ]
             )
@@ -380,8 +390,10 @@ case "$SG" in
     You can specify a path to the Open Scene Graph libraries using the
     --with-osg=PREFIX option to configure.
 
-    E-mail vess@ist.ucf.edu if you think you've received this message in
-    error.
+    For further support, consult the VESS User's Guide or join the 
+    vess-users mailing list at:
+
+        http://lists.sourceforge.net/lists/listinfo/vess-users
 
 ]
             )
@@ -403,8 +415,10 @@ case "$SG" in
     There is a problem with the osgNV library. Check to make sure that it is
     installed correctly and in the specified location.
                                                                                 
-    E-mail vess@ist.ucf.edu if you think you've received this message in
-    error.
+    For further support, consult the VESS User's Guide or join the 
+    vess-users mailing list at:
+
+        http://lists.sourceforge.net/lists/listinfo/vess-users
 
 ])
             fi
@@ -598,8 +612,10 @@ if test x$with_raw1394 != xno ; then
     There is a problem with the raw1394 library. Check to make sure that it
     is installed correctly and in the specified location. 
 
-    E-mail vess@ist.ucf.edu if you think you've received this message in
-    error.
+    For further support, consult the VESS User's Guide or join the 
+    vess-users mailing list at:
+
+        http://lists.sourceforge.net/lists/listinfo/vess-users
 
 ])
     fi
@@ -613,8 +629,10 @@ if test x$with_raw1394 != xno ; then
     There is a problem with the dc1394 library. Check to make sure that it
     is installed correctly and in the specified location. 
 
-    E-mail vess@ist.ucf.edu if you think you've received this message in
-    error.
+    For further support, consult the VESS User's Guide or join the 
+    vess-users mailing list at:
+
+        http://lists.sourceforge.net/lists/listinfo/vess-users
 
 ])
         fi
@@ -663,8 +681,10 @@ if test x$with_ffmpeg != xno ; then
     There is a problem with the ffmpeg library. Check to make sure that it
     is installed correctly and in the specified location. 
 
-    E-mail vess@ist.ucf.edu if you think you've received this message in
-    error.
+    For further support, consult the VESS User's Guide or join the 
+    vess-users mailing list at:
+
+        http://lists.sourceforge.net/lists/listinfo/vess-users
 
 ])
     fi
@@ -706,8 +726,10 @@ if test x$XML_ERROR = xyes ; then
   installed correctly, or they have not been compiled.  VESS will not
   compile without the libxml2 libraries.
 
-  E-mail vess@ist.ucf.edu if you think you've received this message in
-  error.
+  For further support, consult the VESS User's Guide or join the 
+  vess-users mailing list at:
+
+      http://lists.sourceforge.net/lists/listinfo/vess-users
 
 ])
 fi
@@ -736,8 +758,10 @@ if test x$JPEG_ERROR = xyes ; then
   installed correctly, or they have not been compiled.  VESS will not
   compile without the libjpeg libraries.
 
-  E-mail vess@ist.ucf.edu if you think you've received this message in
-  error.
+  For further support, consult the VESS User's Guide or join the 
+  vess-users mailing list at:
+
+      http://lists.sourceforge.net/lists/listinfo/vess-users
 
 ])
 fi
