@@ -1,2 +1,4 @@
-EXTRA_INCS = 
-EXTRA_LIBS = 
+EXTRA_INCS = -I/ist/projects/vr2/usr/jdaly/openal/include \
+             -I/ist/projects/vr2/usr/jdaly/openal/linux/include
+
+EXTRA_LIBS = -L/ist/projects/vr2/usr/jdaly/openal/linux/src
