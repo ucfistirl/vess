@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../motion/common;../../sound/OpenAL;../../io/OSG_Windows;../../io/Windows;../../io/common;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../util/Windows;../../util/common;n:\usr\jdaly\osg\0.9.2\OpenSceneGraph\include"
+				AdditionalIncludeDirectories="../../motion/common;../../sound/OpenAL;../../io/OSG_Windows;../../io/Windows;../../io/common;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../util/Windows;../../util/common;&quot;C:\Documents and Settings\Glenn Martin\Desktop\Haptics\winosg\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_AVATAR_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -105,7 +105,7 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
+			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
 				RelativePath="..\..\avatar\common\vsAvatar.c++">
 			</File>
@@ -118,7 +118,7 @@
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc">
+			Filter="h++;h;hpp;hxx;hm;inl;inc">
 			<File
 				RelativePath="..\..\avatar\common\vsAvatar.h++">
 			</File>
