@@ -433,7 +433,7 @@ void vsVector::crossProduct(vsVector operand)
 
     result[0] = (data[1] * operand[2]) - (data[2] * operand[1]);
     result[1] = (data[2] * operand[0]) - (data[0] * operand[2]);
-    result[2] = (data[0] * operand[1]) - (data[1] * operand[2]);
+    result[2] = (data[0] * operand[1]) - (data[1] * operand[0]);
     
     data[0] = result[0];
     data[1] = result[1];
