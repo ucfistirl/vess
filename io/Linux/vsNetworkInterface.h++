@@ -40,12 +40,13 @@ protected:
 
 public:
 
-                    vsNetworkInterface();
-    virtual         ~vsNetworkInterface();
+                          vsNetworkInterface();
+    virtual               ~vsNetworkInterface();
 
-    virtual void    enableBlocking();
-    virtual void    disableBlocking();
+    virtual const char    *getClassName();
+
+    virtual void          enableBlocking();
+    virtual void          disableBlocking();
 };
 
 #endif
-
