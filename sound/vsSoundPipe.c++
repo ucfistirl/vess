@@ -1,3 +1,26 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsSoundPipe.h++
+//
+//    Description:  Constructs and maintains all low-level access to the
+//                  audio hardware. Also handles all global sound options
+//                  (such as distance attenuation scale).
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include "vsSoundPipe.h++"
 #include <stdio.h>
 

@@ -1,3 +1,25 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsSoundSample.c++
+//
+//    Description:  Loads and maintains a static buffer of audio data from
+//                  a given sound file
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alut.h>

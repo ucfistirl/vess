@@ -1,3 +1,25 @@
+//------------------------------------------------------------------------
+//
+//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
+//
+//    Copyright (c) 2001, University of Central Florida
+//
+//       See the file LICENSE for license information
+//
+//    E-mail:  vess@ist.ucf.edu
+//    WWW:     http://vess.ist.ucf.edu/
+//
+//------------------------------------------------------------------------
+//
+//    VESS Module:  vsSoundListenerAttribute.c++
+//
+//    Description:  Attribute to maintain the location/orientation of the
+//                  listener in the VESS scene graph
+//
+//    Author(s):    Jason Daly
+//
+//------------------------------------------------------------------------
+
 #include <AL/al.h>
 #include <sys/time.h>
 #include <stdio.h>
