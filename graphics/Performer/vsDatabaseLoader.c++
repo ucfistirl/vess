@@ -1150,7 +1150,7 @@ void vsDatabaseLoader::convertAttrs(vsGeometry *geometry, pfGeoState *geoState,
 
         // If we still haven't detected transparency and this geometry
         // has a texture, check the texture image for transparent texels
-        if ((!transpFlag) && 
+        if ((!transpFlag) &&  (textureAttr != NULL) &&
             (textureAttr->getApplyMode() != VS_TEXTURE_APPLY_DECAL))
         {
             long texLoop, pixelSize;
