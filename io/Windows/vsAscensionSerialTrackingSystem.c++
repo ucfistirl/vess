@@ -1778,6 +1778,9 @@ void vsAscensionSerialTrackingSystem::forkTracking()
     // Print the thread ID
     printf("vsAscensionSerialTrackingSystem::forkTracking:\n");
     printf("    Server Thread ID is %d\n", serverThreadID);
+    
+    // Set the forked flag to indicate we've started running multithreaded
+    forked = VS_TRUE;
 }
 
 
