@@ -135,8 +135,8 @@ void vsCgShaderAttribute::detach(vsNode *node)
     // Get the node's StateSet
     osgStateSet = getOSGStateSet(node);
 
-    // According to Marco Jez, who may define the value at some point.
-    osgStateSet->setAttributeToInherit(0xa7b7);
+    // Disable the current CgContext, set to inherit.
+    osgStateSet->setAttributeToInherit(osgNVCg::Context::CG_CONTEXT);
 
     // Finish detaching the attribute
     vsStateAttribute::detach(node);
