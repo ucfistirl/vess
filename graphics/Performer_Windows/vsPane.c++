@@ -182,7 +182,7 @@ void vsPane::setScene(vsScene *newScene)
 
         // If we're in stereo mode, clear the stereo channel's scene as well
         if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
-            stereoChannel->setScene(newScene->getBaseLibraryObject());
+            stereoChannel->setScene(NULL);
     }
 }
 

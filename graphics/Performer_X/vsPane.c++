@@ -105,7 +105,7 @@ vsPane::~vsPane()
     // Unreference the sceneRoot node
     if (sceneRoot != NULL)
         sceneRoot->unref();
-    
+ 
     // Remove the pane from its window
     parentWindow->removePane(this);
 
@@ -164,7 +164,7 @@ void vsPane::setScene(vsScene *newScene)
     // Set the new scene as the pane's scene
     sceneRoot = newScene;
 
-    // Check if the scene is NULL, don't try to dereference it if so
+    // Make sure the scene is non-NULL before trying to set it
     if (newScene != NULL)
     {
         // Set the channel's scene to use the new scene
@@ -182,7 +182,7 @@ void vsPane::setScene(vsScene *newScene)
 
         // If we're in stereo mode, clear the stereo channel's scene as well
         if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
-            stereoChannel->setScene(newScene->getBaseLibraryObject());
+            stereoChannel->setScene(NULL);
     }
 }
 
@@ -240,10 +240,10 @@ void vsPane::setSize(int width, int height)
 void vsPane::getSize(int *width, int *height)
 {
     int x, y;
-    
+ 
     // Get the size of the Performer channel
     performerChannel->getSize(&x, &y);
-    
+ 
     // Return the desired values
     if (width)
         *width = x;
