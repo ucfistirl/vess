@@ -128,3 +128,32 @@ void vsShadingAttribute::setState(pfGeoState *state)
     else
         state->setMode(PFSTATE_SHADEMODEL, PFSM_GOURAUD);
 }
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Determines if the specified attribute has state information that is
+// equivalent to what this attribute has
+// ------------------------------------------------------------------------
+int vsShadingAttribute::isEquivalent(vsAttribute *attribute)
+{
+    vsShadingAttribute *attr;
+    int val1, val2;
+    
+    if (!attribute)
+        return VS_FALSE;
+
+    if (this == attribute)
+        return VS_TRUE;
+    
+    if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_SHADING)
+        return VS_FALSE;
+
+    attr = (vsShadingAttribute *)attribute;
+
+    val1 = getShading();
+    val2 = attr->getShading();
+    if (val1 != val2)
+        return VS_FALSE;
+
+    return VS_TRUE;
+}

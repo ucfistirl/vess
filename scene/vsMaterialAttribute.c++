@@ -394,3 +394,115 @@ void vsMaterialAttribute::setState(pfGeoState *state)
     state->setAttr(PFSTATE_FRONTMTL, frontMaterial);
     state->setAttr(PFSTATE_BACKMTL, backMaterial);
 }
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Determines if the specified attribute has state information that is
+// equivalent to what this attribute has
+// ------------------------------------------------------------------------
+int vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
+{
+    vsMaterialAttribute *attr;
+    double val1, val2;
+    int ival1, ival2;
+    double r1, g1, b1, r2, g2, b2;
+    
+    if (!attribute)
+        return VS_FALSE;
+
+    if (this == attribute)
+        return VS_TRUE;
+    
+    if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_MATERIAL)
+        return VS_FALSE;
+
+    attr = (vsMaterialAttribute *)attribute;
+
+    getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_AMBIENT,
+        &r1, &g1, &b1);
+    attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_AMBIENT,
+        &r2, &g2, &b2);
+    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+        return VS_FALSE;
+
+    getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_AMBIENT,
+        &r1, &g1, &b1);
+    attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_AMBIENT,
+        &r2, &g2, &b2);
+    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+        return VS_FALSE;
+
+    getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_DIFFUSE,
+        &r1, &g1, &b1);
+    attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_DIFFUSE,
+        &r2, &g2, &b2);
+    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+        return VS_FALSE;
+
+    getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_DIFFUSE,
+        &r1, &g1, &b1);
+    attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_DIFFUSE,
+        &r2, &g2, &b2);
+    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+        return VS_FALSE;
+
+    getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_SPECULAR,
+        &r1, &g1, &b1);
+    attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_SPECULAR,
+        &r2, &g2, &b2);
+    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+        return VS_FALSE;
+
+    getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_SPECULAR,
+        &r1, &g1, &b1);
+    attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_SPECULAR,
+        &r2, &g2, &b2);
+    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+        return VS_FALSE;
+
+    getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_EMISSIVE,
+        &r1, &g1, &b1);
+    attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_EMISSIVE,
+        &r2, &g2, &b2);
+    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+        return VS_FALSE;
+
+    getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_EMISSIVE,
+        &r1, &g1, &b1);
+    attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_EMISSIVE,
+        &r2, &g2, &b2);
+    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+        return VS_FALSE;
+
+    val1 = getAlpha(VS_MATERIAL_SIDE_FRONT);
+    val2 = attr->getAlpha(VS_MATERIAL_SIDE_FRONT);
+    if (!VS_EQUAL(val1,val2))
+        return VS_FALSE;
+
+    val1 = getAlpha(VS_MATERIAL_SIDE_BACK);
+    val2 = attr->getAlpha(VS_MATERIAL_SIDE_BACK);
+    if (!VS_EQUAL(val1,val2))
+        return VS_FALSE;
+
+    val1 = getShininess(VS_MATERIAL_SIDE_FRONT);
+    val2 = attr->getShininess(VS_MATERIAL_SIDE_FRONT);
+    if (!VS_EQUAL(val1,val2))
+        return VS_FALSE;
+
+    val1 = getShininess(VS_MATERIAL_SIDE_BACK);
+    val2 = attr->getShininess(VS_MATERIAL_SIDE_BACK);
+    if (!VS_EQUAL(val1,val2))
+        return VS_FALSE;
+
+    ival1 = getColorMode(VS_MATERIAL_SIDE_FRONT);
+    ival2 = attr->getColorMode(VS_MATERIAL_SIDE_FRONT);
+    if (ival1 != ival2)
+        return VS_FALSE;
+
+    ival1 = getColorMode(VS_MATERIAL_SIDE_BACK);
+    ival2 = attr->getColorMode(VS_MATERIAL_SIDE_BACK);
+    if (ival1 != ival2)
+        return VS_FALSE;
+
+    return VS_TRUE;
+}

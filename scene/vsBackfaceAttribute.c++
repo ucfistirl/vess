@@ -155,3 +155,32 @@ void vsBackfaceAttribute::setState(pfGeoState *state)
     state->setMode(PFSTATE_CULLFACE, cullfaceVal);
     state->setAttr(PFSTATE_LIGHTMODEL, lightModel);
 }
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Determines if the specified attribute has state information that is
+// equivalent to what this attribute has
+// ------------------------------------------------------------------------
+int vsBackfaceAttribute::isEquivalent(vsAttribute *attribute)
+{
+    vsBackfaceAttribute *attr;
+    int val1, val2;
+    
+    if (!attribute)
+        return VS_FALSE;
+
+    if (this == attribute)
+        return VS_TRUE;
+    
+    if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_BACKFACE)
+        return VS_FALSE;
+
+    attr = (vsBackfaceAttribute *)attribute;
+    
+    val1 = isEnabled();
+    val2 = attr->isEnabled();
+    if (val1 != val2)
+        return VS_FALSE;
+
+    return VS_TRUE;
+}

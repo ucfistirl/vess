@@ -40,6 +40,8 @@ VS_INTERNAL:
     virtual void    apply();
     virtual void    restoreSaved();
     virtual void    setState(pfGeoState *state);
+    
+    virtual int     isEquivalent(vsAttribute *attribute);
 
 public:
 

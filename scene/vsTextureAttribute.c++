@@ -369,7 +369,7 @@ void vsTextureAttribute::apply()
 
     gState->setTexture(this);
     if (overrideFlag)
-	gState->lockTexture(this);
+        gState->lockTexture(this);
 }
 
 // ------------------------------------------------------------------------
@@ -381,7 +381,7 @@ void vsTextureAttribute::restoreSaved()
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
     if (overrideFlag)
-	gState->unlockTexture(this);
+        gState->unlockTexture(this);
     gState->setTexture((vsTextureAttribute *)(attrSaveList[--attrSaveCount]));
 }
 
@@ -394,4 +394,60 @@ void vsTextureAttribute::setState(pfGeoState *state)
     state->setMode(PFSTATE_ENTEXTURE, PF_ON);
     state->setAttr(PFSTATE_TEXENV, performerTexEnv);
     state->setAttr(PFSTATE_TEXTURE, performerTexture);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Determines if the specified attribute has state information that is
+// equivalent to what this attribute has
+// ------------------------------------------------------------------------
+int vsTextureAttribute::isEquivalent(vsAttribute *attribute)
+{
+    vsTextureAttribute *attr;
+    unsigned char *image1, *image2;
+    int xval1, yval1, xval2, yval2, val1, val2;
+    
+    if (!attribute)
+        return VS_FALSE;
+
+    if (this == attribute)
+        return VS_TRUE;
+    
+    if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_TEXTURE)
+        return VS_FALSE;
+
+    attr = (vsTextureAttribute *)attribute;
+
+    getImage(&image1, &xval1, &yval1, &val1);
+    attr->getImage(&image2, &xval2, &yval2, &val2);
+    if ((image1 != image2) || (xval1 != xval2) || (yval1 != val2) ||
+        (val1 != val2))
+        return VS_FALSE;
+
+    val1 = getBoundaryMode(VS_TEXTURE_DIRECTION_S);
+    val2 = attr->getBoundaryMode(VS_TEXTURE_DIRECTION_S);
+    if (val1 != val2)
+        return VS_FALSE;
+
+    val1 = getBoundaryMode(VS_TEXTURE_DIRECTION_T);
+    val2 = attr->getBoundaryMode(VS_TEXTURE_DIRECTION_T);
+    if (val1 != val2)
+        return VS_FALSE;
+
+    val1 = getApplyMode();
+    val2 = attr->getApplyMode();
+    if (val1 != val2)
+        return VS_FALSE;
+
+    val1 = getMagFilter();
+    val2 = attr->getMagFilter();
+    if (val1 != val2)
+        return VS_FALSE;
+
+    val1 = getMinFilter();
+    val2 = attr->getMinFilter();
+    if (val1 != val2)
+        return VS_FALSE;
+
+    return VS_TRUE;
 }

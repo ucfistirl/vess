@@ -86,7 +86,7 @@ void vsTransparencyAttribute::disable()
 }
 
 // ------------------------------------------------------------------------
-// Returns a flag specifying is transparency is enabled
+// Returns a flag specifying if transparency is enabled
 // ------------------------------------------------------------------------
 int vsTransparencyAttribute::isEnabled()
 {
@@ -144,6 +144,14 @@ void vsTransparencyAttribute::disableOcclusion()
 
     if (isEnabled())
         enable();
+}
+
+// ------------------------------------------------------------------------
+// Returns a flag specifying if occlusion is enabled
+// ------------------------------------------------------------------------
+int vsTransparencyAttribute::isOcclusionEnabled()
+{
+    return occlusion;
 }
 
 // ------------------------------------------------------------------------
@@ -210,4 +218,43 @@ void vsTransparencyAttribute::restoreSaved()
 void vsTransparencyAttribute::setState(pfGeoState *state)
 {
     state->setMode(PFSTATE_TRANSPARENCY, transpValue);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Determines if the specified attribute has state information that is
+// equivalent to what this attribute has
+// ------------------------------------------------------------------------
+int vsTransparencyAttribute::isEquivalent(vsAttribute *attribute)
+{
+    vsTransparencyAttribute *attr;
+    int val1, val2;
+    
+    if (!attribute)
+        return VS_FALSE;
+
+    if (this == attribute)
+        return VS_TRUE;
+    
+    if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_TRANSPARENCY)
+        return VS_FALSE;
+
+    attr = (vsTransparencyAttribute *)attribute;
+
+    val1 = isEnabled();
+    val2 = attr->isEnabled();
+    if (val1 != val2)
+        return VS_FALSE;
+
+    val1 = getQuality();
+    val2 = attr->getQuality();
+    if (val1 != val2)
+        return VS_FALSE;
+
+    val1 = isOcclusionEnabled();
+    val2 = attr->isOcclusionEnabled();
+    if (val1 != val2)
+        return VS_FALSE;
+
+    return VS_TRUE;
 }

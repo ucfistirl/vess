@@ -224,3 +224,44 @@ void vsFogAttribute::setState(pfGeoState *state)
     state->setMode(PFSTATE_ENFOG, PFFOG_ON);
     state->setAttr(PFSTATE_FOG, performerFog);
 }
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Determines if the specified attribute has state information that is
+// equivalent to what this attribute has
+// ------------------------------------------------------------------------
+int vsFogAttribute::isEquivalent(vsAttribute *attribute)
+{
+    vsFogAttribute *attr;
+    int val1, val2;
+    double r1, g1, b1, r2, g2, b2;
+    double near1, far1, near2, far2;
+    
+    if (!attribute)
+        return VS_FALSE;
+
+    if (this == attribute)
+        return VS_TRUE;
+    
+    if (attribute->getAttributeType() != VS_ATTRIBUTE_TYPE_FOG)
+        return VS_FALSE;
+
+    attr = (vsFogAttribute *)attribute;
+
+    val1 = getEquationType();
+    val2 = attr->getEquationType();
+    if (val1 != val2)
+        return VS_FALSE;
+
+    getColor(&r1, &g1, &b1);
+    attr->getColor(&r2, &g2, &b2);
+    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+        return VS_FALSE;
+
+    getRanges(&near1, &far1);
+    attr->getRanges(&near2, &far2);
+    if (!VS_EQUAL(near1,near2) || !VS_EQUAL(far1,far2))
+        return VS_FALSE;
+
+    return VS_TRUE;
+}
