@@ -42,43 +42,41 @@ class vsSystem
 {
 private:
 
-    bool                validObject;
-    int			isInitted;
+    bool                    validObject;
+    int                     isInitted;
 
-    double              lastFrameDuration;
+    double                  lastFrameDuration;
     
-    vsRemoteInterface   *remoteInterface;
-
-    void                preFrameTraverse(vsNode *node);
+    vsRemoteInterface       *remoteInterface;
 
     // For cluster rendering
-    vsClusterConfig     *cluster;
+    vsClusterConfig         *cluster;
     vsTCPNetworkInterface   **slaves;
-    //    vsTCPNetworkInterface   *master
-    int                 numSlaves;
-    bool                isSlave;
-    bool                readyToSwap;
+    int                     numSlaves;
+    bool                    isSlave;
+    bool                    readyToSwap;
 
+    void                    preFrameTraverse(vsNode *node);
 
 public:
 
     static vsSystem     *systemObject;
 
-			vsSystem();
-            vsSystem(vsClusterConfig *config);
+                        vsSystem();
+                        vsSystem(vsClusterConfig *config);
                         ~vsSystem();
 
-    void		setMultiprocessMode(int mpMode);
+    void                setMultiprocessMode(int mpMode);
     
     void                addExtension(char *fileExtension);
 
-    void		init();
-    void		simpleInit(char *databaseFilename, char *windowName,
-				   bool fullScreen, vsNode **sceneGraph,
-				   vsView **viewpoint, vsWindow **window);
+    void                init();
+    void                simpleInit(char *databaseFilename, char *windowName,
+                                   bool fullScreen, vsNode **sceneGraph,
+                                   vsView **viewpoint, vsWindow **window);
 
-    void        drawFrame();
-    void        releaseSync();
+    void                drawFrame();
+    void                releaseSync();
 };
 
 #endif
