@@ -117,7 +117,8 @@ vsSystem::vsSystem(vsClusterConfig *config)
     // point to this instance
     validObject = 1;
     systemObject = this;
-    if(cluster && cluster->isValid())
+    //printf("Confirmed: I am getting at least this far\n");
+    if(config && config->isValid())
     {
         cluster = config;
         slaves = (vsTCPNetworkInterface**)calloc(cluster->numSlaves(),
@@ -130,11 +131,16 @@ vsSystem::vsSystem(vsClusterConfig *config)
                    (int)slaveAddr[2],(int)slaveAddr[3]);
             slaves[i] = new vsTCPNetworkInterface(slaveName, 
                     VS_RI_DEFAULT_CONTROL_PORT);
+            //slaves[i]->enableBlocking();
+            int x;
+            while((x = slaves[i]->makeConnection()) < 0);
+            printf("%d\n",x);
+            slaves[i]->disableBlocking();
         }
         //master = NULL;
         isSlave = false;
     }
-    else if(cluster == NULL)
+    else if(config == NULL)
     {
         cluster = NULL;
         slaves = NULL;
@@ -615,6 +621,7 @@ void vsSystem::drawFrame()
     }
     
     //Perform cluster rendering
+    printf("Confirmed: I am getting at least this far\n");
     if(slaves != NULL && !isSlave)
     {
         //Send out relevant info to clients
@@ -645,7 +652,7 @@ void vsSystem::drawFrame()
                 "</vessxml>");
         for(i=0;i<numSlaves;i++)
         {
-            slaves[i]->write((u_char *)commStr, strlen(commStr));
+            slaves[i]->write((u_char *)commStr, strlen(commStr)+1);
         }
     }
     else if( isSlave)
@@ -660,7 +667,7 @@ void vsSystem::drawFrame()
                 "<readytosync>\n"
                 "</readytosync>\n"
                 "</vessxml>");
-        remoteInterface->send((u_char *)commStr, strlen(commStr));
+        remoteInterface->send((u_char *)commStr, strlen(commStr)+1);
         
         
         //Block until released by master
@@ -668,6 +675,7 @@ void vsSystem::drawFrame()
         while(!readyToSwap)
         {
             remoteInterface->update();
+            printf("I'm being a defiant client!\n");
         }
         
     }
