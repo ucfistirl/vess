@@ -140,6 +140,27 @@ void vsView::setDirectionFromRotation(vsMatrix rotMatrix)
 }
 
 // ------------------------------------------------------------------------
+// Sets the distances from the viewer of the near and far clipping planes
+// ------------------------------------------------------------------------
+void vsView::setClipDistances(double nearPlane, double farPlane)
+{
+    nearClip = nearPlane;
+    farClip = farPlane;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the distances from the viewer of the near and far clipping
+// planes. NULL pointers may be passed in for undesired values.
+// ------------------------------------------------------------------------
+void vsView::getClipDistances(double *nearPlane, double *farPlane)
+{
+    if (nearPlane)
+	*nearPlane = nearClip;
+    if (farPlane)
+	*farPlane = farClip;
+}    
+
+// ------------------------------------------------------------------------
 // Returns a vector indicating the current view direction
 // ------------------------------------------------------------------------
 vsVector vsView::getDirection()

@@ -19,6 +19,8 @@ private:
     vsVector                viewLocation;
     vsMatrix                viewRotation;
     
+    double		    nearClip, farClip;
+    
     vsViewpointAttribute    *viewAttribute;
 
 VS_INTERNAL:
@@ -44,6 +46,9 @@ public:
     void        lookAtPoint(vsVector targetPoint, vsVector upDirection);
     void        setDirectionFromRotation(vsQuat rotQuat);
     void        setDirectionFromRotation(vsMatrix rotMatrix);
+    
+    void	setClipDistances(double nearPlane, double farPlane);
+    void	getClipDistances(double *nearPlane, double *farPlane);
 
     vsVector    getDirection();
     vsVector    getUpDirection();
