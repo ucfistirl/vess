@@ -9,6 +9,7 @@ libvsUtil_a_SOURCES = \
                       common/vsObject.c++ \
                       common/vsObjectMap.c++ \
                       common/vsQuat.c++ \
+                      common/vsSequencer.c++ \
                       common/vsTreeMap.c++ \
                       common/vsUpdatable.c++ \
                       common/vsVector.c++ \
@@ -25,6 +26,7 @@ include_HEADERS = \
                   common/vsObject.h++ \
                   common/vsObjectMap.h++ \
                   common/vsQuat.h++ \
+                  common/vsSequencer.h++ \
                   common/vsTreeMap.h++ \
                   common/vsUpdatable.h++ \
                   common/vsVector.h++ \
