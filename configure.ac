@@ -674,7 +674,7 @@ AC_ARG_WITH(libxml2,
 [[  --with-libxml2=PREFIX   Specify the location of libxml2 [/usr]]],, with_libxml2=/usr)
 if test "x$with_libxml2" != "x/usr"; then
    XML_INCLUDE_DIR="-I$with_libxml2/include/libxml2"
-   XML_LIB_DIR="-L$with_libxml2/lib"
+   XML_LIB_DIR="-L$with_libxml2/$LIBDIR"
    XML_LIB="-lxml2"
 fi
 
