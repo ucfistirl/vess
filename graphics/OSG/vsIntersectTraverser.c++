@@ -27,15 +27,11 @@
 // Internal function
 // Constructor.  Initializes the NodeVisitor
 // ------------------------------------------------------------------------
-vsIntersectTraverser::vsIntersectTraverser(osgUtil::IntersectVisitor *isect)
-                    : osg::NodeVisitor()
+vsIntersectTraverser::vsIntersectTraverser()
 {
     // Except for switches, sequences, and LOD nodes, we want to traverse
     // all children of a node.
     _traversalMode = osg::NodeVisitor::TRAVERSE_ALL_CHILDREN;
- 
-    // Keep a handle to the IntersectVisitor
-    isectVisitor = isect;
 
     // Default all traversal modes to CURRENT or FIRST
     sequenceTravMode = VS_INTERSECT_SEQUENCE_CURRENT;
@@ -107,17 +103,6 @@ int vsIntersectTraverser::getLODTravMode()
 
 // ------------------------------------------------------------------------
 // Internal function (called by OSG)
-// Apply this traverser to an osg::Node
-// ------------------------------------------------------------------------
-void vsIntersectTraverser::apply(osg::Node &node)
-{
-    // If not a Switch, Sequence, or LOD node, just traverse the node
-    // normally
-    node.traverse(*isectVisitor);
-}
-
-// ------------------------------------------------------------------------
-// Internal function (called by OSG)
 // Apply this traverser to an osg::Sequence
 // ------------------------------------------------------------------------
 void vsIntersectTraverser::apply(osg::Sequence &node)
@@ -139,14 +124,14 @@ void vsIntersectTraverser::apply(osg::Sequence &node)
             // IntersectVisitor to it if so
             if (node.getValue() == i)
             {
-                node.getChild(i)->accept(*isectVisitor);
+                node.getChild(i)->accept(*this);
             }
         }
         else
         {
             // We're traversing all frames, apply the IntersectVisitor to
             // the current frame with no check
-            node.getChild(i)->accept(*isectVisitor);
+            node.getChild(i)->accept(*this);
         }
     }
 }
@@ -174,14 +159,14 @@ void vsIntersectTraverser::apply(osg::Switch &node)
             // IntersectVisitor to it if so
             if (node.getValue(i))
             {
-                node.getChild(i)->accept(*isectVisitor);
+                node.getChild(i)->accept(*this);
             }
         }
         else
         {
             // We're traversing all children, apply the IntersectVisitor to
             // the current child with no check
-            node.getChild(i)->accept(*isectVisitor);
+            node.getChild(i)->accept(*this);
         }
     }
 }
@@ -203,7 +188,8 @@ void vsIntersectTraverser::apply(osg::LOD &node)
     // child
     if (lodTravMode == VS_INTERSECT_LOD_FIRST)
     {
-        node.getChild(0)->accept(*isectVisitor);
+        node.getChild(0)->accept(*this);
+        return;
     }
 
     // Otherwise, iterate over the LOD's children
@@ -211,6 +197,6 @@ void vsIntersectTraverser::apply(osg::LOD &node)
     {
         // We're traversing all children, apply the IntersectVisitor to
         // the current child with no check
-        node.getChild(i)->accept(*isectVisitor);
+        node.getChild(i)->accept(*this);
     }
 }

@@ -52,19 +52,17 @@ enum VS_GRAPHICS_DLL vsIntersectLODTraversalMode
     VS_INTERSECT_LOD_ALL
 };
 
-class VS_GRAPHICS_DLL vsIntersectTraverser : public osg::NodeVisitor
+class VS_GRAPHICS_DLL vsIntersectTraverser : public osgUtil::IntersectVisitor
 {
 private:
 
-    int                          switchTravMode;
-    int                          sequenceTravMode;
-    int                          lodTravMode;
-
-    osgUtil::IntersectVisitor    *isectVisitor;
+    int         switchTravMode;
+    int         sequenceTravMode;
+    int         lodTravMode;
 
 VS_INTERNAL:
 
-                    vsIntersectTraverser(osgUtil::IntersectVisitor *isect);
+                    vsIntersectTraverser();
     virtual         ~vsIntersectTraverser();
 
     void            setSequenceTravMode(int newMode);
@@ -74,7 +72,6 @@ VS_INTERNAL:
     void            setLODTravMode(int newMode);
     int             getLODTravMode();
 
-    virtual void    apply(osg::Node &node);
     virtual void    apply(osg::Sequence &node);
     virtual void    apply(osg::Switch &node);
     virtual void    apply(osg::LOD &node);

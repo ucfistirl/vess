@@ -51,25 +51,24 @@ class VS_GRAPHICS_DLL vsIntersect : public vsObject
 {
 private:
 
-    osgUtil::IntersectVisitor    *osgIntersect;
-    vsIntersectTraverser         *traverser;
+    vsIntersectTraverser    *traverser;
 
-    vsGrowableArray              segList;
-    int                          segListSize;
-    int                          segListChanged;
+    vsGrowableArray         segList;
+    int                     segListSize;
+    int                     segListChanged;
 
-    bool                         pathsEnabled;
-    int                          facingMode;
-    int                          travMode;
+    bool                    pathsEnabled;
+    int                     facingMode;
+    int                     travMode;
 
     // Intersection results
-    bool                         validFlag[VS_INTERSECT_SEGS_MAX];
-    vsVector                     sectPoint[VS_INTERSECT_SEGS_MAX];
-    vsVector                     sectNorm[VS_INTERSECT_SEGS_MAX];
-    vsMatrix                     sectXform[VS_INTERSECT_SEGS_MAX];
-    vsGeometry                   *sectGeom[VS_INTERSECT_SEGS_MAX];
-    int                          sectPrim[VS_INTERSECT_SEGS_MAX];
-    vsGrowableArray              *sectPath[VS_INTERSECT_SEGS_MAX];
+    bool                    validFlag[VS_INTERSECT_SEGS_MAX];
+    vsVector                sectPoint[VS_INTERSECT_SEGS_MAX];
+    vsVector                sectNorm[VS_INTERSECT_SEGS_MAX];
+    vsMatrix                sectXform[VS_INTERSECT_SEGS_MAX];
+    vsGeometry              *sectGeom[VS_INTERSECT_SEGS_MAX];
+    int                     sectPrim[VS_INTERSECT_SEGS_MAX];
+    vsGrowableArray         *sectPath[VS_INTERSECT_SEGS_MAX];
 
 public:
 

@@ -33,9 +33,6 @@ vsIntersect::vsIntersect() : segList(5, 10)
 {
     int loop;
 
-    // Create the OSG IntersectVisitor
-    osgIntersect = new osgUtil::IntersectVisitor();
-
     // Initialize the segment list
     segListSize = 0;
 
@@ -47,12 +44,8 @@ vsIntersect::vsIntersect() : segList(5, 10)
     // Create the auxiliary visitor for the IntersectVisitor that will
     // control traversals.  This will handle the special traversal
     // modes for sequence, switches, and LOD's
-    traverser = new vsIntersectTraverser(osgIntersect);
+    traverser = new vsIntersectTraverser();
     traverser->ref();
-
-    // Instruct the IntersectVisitor to use the vsIntersectTraverser to
-    // handle the traversal
-    osgIntersect->setTraversalVisitor(traverser);
 }
 
 // ------------------------------------------------------------------------
@@ -74,9 +67,6 @@ vsIntersect::~vsIntersect()
 
     // Delete the vsIntersectTraverser
     traverser->unref();
-
-    // Delete the OSG IntersectVisitor
-    osgIntersect->unref();
 }
 
 // ------------------------------------------------------------------------
@@ -390,7 +380,7 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
 // ------------------------------------------------------------------------
 void vsIntersect::setMask(unsigned int newMask)
 {
-    osgIntersect->setTraversalMask(newMask);
+    traverser->setTraversalMask(newMask);
 }
 
 // ------------------------------------------------------------------------
@@ -398,7 +388,7 @@ void vsIntersect::setMask(unsigned int newMask)
 // ------------------------------------------------------------------------
 unsigned int vsIntersect::getMask()
 {
-    return osgIntersect->getTraversalMask();
+    return traverser->getTraversalMask();
 }
 
 // ------------------------------------------------------------------------
@@ -525,17 +515,17 @@ void vsIntersect::intersect(vsNode *targetNode)
         osgNode = ((vsScene *)targetNode)->getBaseLibraryObject();
 
     // Reset the IntersectVisitor for the new traversal
-    osgIntersect->reset();
+    traverser->reset();
 
     // Add all the segments from the segment list to the IntersectVisitor
     for (loop = 0; loop < segListSize; loop++)
     {
         if (segList[loop])
-            osgIntersect->addLineSegment((osg::LineSegment *)(segList[loop]));
+            traverser->addLineSegment((osg::LineSegment *)(segList[loop]));
     }
 
     // Call the Visitor's accept() method to run the intersection traversal
-    osgNode->accept(*osgIntersect);
+    osgNode->accept(*traverser);
     
     // Interpret and store the results
     for (loop = 0; loop < segListSize; loop++)
@@ -556,7 +546,7 @@ void vsIntersect::intersect(vsNode *targetNode)
         }
 
         // Get the list of hits for this segment
-        hitList = osgIntersect->getHitList((osg::LineSegment *)(segList[loop]));
+        hitList = traverser->getHitList((osg::LineSegment *)(segList[loop]));
         
         // Check for intersections, set this segment's results to zero 
         // values and skip to the next segment if there aren't any
