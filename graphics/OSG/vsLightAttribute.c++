@@ -67,7 +67,7 @@ vsLightAttribute::vsLightAttribute()
     lightScope = VS_LIGHT_MODE_GLOBAL;
     
     // Begin as unattached
-    attachedFlag = 0;
+    attachedCount = 0;
     parentNode = NULL;
 }
 
@@ -576,7 +576,7 @@ bool vsLightAttribute::canAttach()
 {
     // If we're already attached to a node, don't allow any further 
     // attachments
-    if (attachedFlag)
+    if (attachedCount)
         return false;
 
     // Otherwise, we can be attached
@@ -593,7 +593,7 @@ void vsLightAttribute::attach(vsNode *theNode)
     vsNode  *searchNode;
 
     // If we're already attached to a node, bail out
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsLightAttribute::attach: Attribute is already attached\n");
         return;
@@ -666,7 +666,7 @@ void vsLightAttribute::attach(vsNode *theNode)
     }
 
     // Mark the attribute as attached and remember the node we're attached to
-    attachedFlag = 1;
+    attachedCount = 1;
     parentNode = theNode;
 }
 
@@ -678,7 +678,7 @@ void vsLightAttribute::attach(vsNode *theNode)
 void vsLightAttribute::detach(vsNode *theNode)
 {
     // If we're not attached, we don't need to do anything
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsLightAttribute::detach: Attribute is not attached\n");
         return;
@@ -699,7 +699,7 @@ void vsLightAttribute::detach(vsNode *theNode)
     }
 
     // Mark the node as unattached, and forget the node we were attached to
-    attachedFlag = 0;
+    attachedCount = 0;
     parentNode = NULL;
 }
 

@@ -192,7 +192,7 @@ void vsViewpointAttribute::deleteMap()
 bool vsViewpointAttribute::canAttach()
 {
     // Return false if we're already attached to a component
-    if (attachedFlag)
+    if (attachedCount)
         return false;
 
     // Otherwise, return true
@@ -207,7 +207,7 @@ bool vsViewpointAttribute::canAttach()
 void vsViewpointAttribute::attach(vsNode *theNode)
 {
     // Fail if we're already attached to a node
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsViewpointAttribute::attach: Attribute is already attached\n");
         return;
@@ -227,7 +227,7 @@ void vsViewpointAttribute::attach(vsNode *theNode)
     parentComponent = (vsComponent *)theNode;
     
     // Flag the attribute as attached to a component
-    attachedFlag = 1;
+    attachedCount = 1;
 }
 
 // ------------------------------------------------------------------------
@@ -238,7 +238,7 @@ void vsViewpointAttribute::attach(vsNode *theNode)
 void vsViewpointAttribute::detach(vsNode *theNode)
 {
     // Fail if we're not attached to anything
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsViewpointAttribute::detach: Attribute is not attached\n");
         return;
@@ -248,7 +248,7 @@ void vsViewpointAttribute::detach(vsNode *theNode)
     parentComponent = NULL;
     
     // Flag the attribute as not attached
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -273,7 +273,7 @@ void vsViewpointAttribute::update()
 
     // No work to do if we're not attached, or we don't have a valid 
     // view object
-    if (!attachedFlag)
+    if (!attachedCount)
         return;
     if (!viewObject)
         return;

@@ -72,7 +72,7 @@ int vsSwitchAttribute::getAttributeCategory()
 void vsSwitchAttribute::enableOne(int index)
 {
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSwitchAttribute::enableOne: Attribute must be attached "
             "before switch can be manipulated\n");
@@ -97,7 +97,7 @@ void vsSwitchAttribute::enableOne(int index)
 void vsSwitchAttribute::disableOne(int index)
 {
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSwitchAttribute::disableOne: Attribute must be attached "
             "before switch can be manipulated\n");
@@ -121,7 +121,7 @@ void vsSwitchAttribute::disableOne(int index)
 void vsSwitchAttribute::enableAll()
 {
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSwitchAttribute::enableAll: Attribute must be attached "
             "before switch can be manipulated\n");
@@ -139,7 +139,7 @@ void vsSwitchAttribute::enableAll()
 void vsSwitchAttribute::disableAll()
 {
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSwitchAttribute::disableAll: Attribute must be attached "
             "before switch can be manipulated\n");
@@ -158,7 +158,7 @@ void vsSwitchAttribute::disableAll()
 bool vsSwitchAttribute::isEnabled(int index)
 {
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSwitchAttribute::isEnabled: Attribute must be attached "
             "before switch can be manipulated\n");
@@ -184,7 +184,7 @@ bool vsSwitchAttribute::canAttach()
 {
     // Make sure we're not already attached to a node, if we are, we can't
     // be attached to another
-    if (attachedFlag)
+    if (attachedCount)
         return false;
 
     // Otherwise, we can be attached
@@ -199,7 +199,7 @@ bool vsSwitchAttribute::canAttach()
 void vsSwitchAttribute::attach(vsNode *theNode)
 {
     // Make sure we're not already attached to a node, bail out if we are
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsSwitchAttribute::attach: Attribute is already attached\n");
         return;
@@ -221,7 +221,7 @@ void vsSwitchAttribute::attach(vsNode *theNode)
     ((vsComponent *)theNode)->replaceBottomGroup(osgSwitch);
 
     // Flag the attribute as attached
-    attachedFlag = 1;
+    attachedCount = 1;
 }
 
 // ------------------------------------------------------------------------
@@ -234,7 +234,7 @@ void vsSwitchAttribute::detach(vsNode *theNode)
     osg::Group *newGroup;
 
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSwitchAttribute::detach: Attribute is not attached\n");
         return;
@@ -246,7 +246,7 @@ void vsSwitchAttribute::detach(vsNode *theNode)
     osgSwitch = NULL;
     
     // Flag the attribute as not attached
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------

@@ -35,7 +35,7 @@ vsLODAttribute::vsLODAttribute()
 {
     // Start unattached with no OSG LOD node
     osgLOD = NULL;
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -80,7 +80,7 @@ void vsLODAttribute::setRangeEnd(int childNum, double rangeLimit)
     double minRange, maxRange;
 
     // If we're not yet attached, print a warning and bail out
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsLODAttribute::setRangeEnd: Attribute must be attached "
             "before LOD can be manipulated\n");
@@ -126,7 +126,7 @@ void vsLODAttribute::setRangeEnd(int childNum, double rangeLimit)
 double vsLODAttribute::getRangeEnd(int childNum)
 {
     // If we're not yet attached, print a warning and bail out
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsLODAttribute::getRangeEnd: Attribute must be attached "
             "before LOD can be manipulated\n");
@@ -151,7 +151,7 @@ double vsLODAttribute::getRangeEnd(int childNum)
 bool vsLODAttribute::canAttach()
 {
     // Only one node attachment allowed, return false if we're attached
-    if (attachedFlag)
+    if (attachedCount)
         return false;
 
     // Otherwise, return true
@@ -168,7 +168,7 @@ void vsLODAttribute::attach(vsNode *theNode)
     int loop, childCount;
 
     // If we're already attached, bail out
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsLODAttribute::attach: Attribute is already attached\n");
         return;
@@ -195,7 +195,7 @@ void vsLODAttribute::attach(vsNode *theNode)
             (1000.0 * (double)(loop+1) / (double)childCount));
 
     // Set the attached flag to true
-    attachedFlag = true;
+    attachedCount = true;
 }
 
 // ------------------------------------------------------------------------
@@ -208,7 +208,7 @@ void vsLODAttribute::detach(vsNode *theNode)
     osg::Group *newGroup;
 
     // If we're not attached to a node, we don't need to detach
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsLODAttribute::detach: Attribute is not attached\n");
         return;
@@ -220,7 +220,7 @@ void vsLODAttribute::detach(vsNode *theNode)
     osgLOD = NULL;
     
     // Clear the attached flag
-    attachedFlag = false;
+    attachedCount = false;
 }
 
 // ------------------------------------------------------------------------

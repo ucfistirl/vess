@@ -73,7 +73,7 @@ int vsSequenceAttribute::getAttributeCategory()
 void vsSequenceAttribute::setChildTime(int childNum, double seconds)
 {
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::setChildTime: Attribute must be attached "
             "before sequence can be manipulated\n");
@@ -98,7 +98,7 @@ void vsSequenceAttribute::setChildTime(int childNum, double seconds)
 double vsSequenceAttribute::getChildTime(int childNum)
 {
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::getChildTime: Attribute must be attached "
             "before sequence can be manipulated\n");
@@ -127,7 +127,7 @@ void vsSequenceAttribute::setRepetitionCount(int numReps)
     int temp;
 
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::setRepetitionCount: Attribute must be "
             "attached before sequence can be manipulated\n");
@@ -150,7 +150,7 @@ int vsSequenceAttribute::getRepetitionCount()
     float temp;
 
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::getRepetitionCount: Attribute must be "
             "attached before sequence can be manipulated\n");
@@ -173,7 +173,7 @@ void vsSequenceAttribute::setCycleMode(int seqCycle)
     int begin, end;
 
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::setCycleMode: Attribute must be "
             "attached before sequence can be manipulated\n");
@@ -209,7 +209,7 @@ int vsSequenceAttribute::getCycleMode()
     int begin, end;
 
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::getCycleMode: Attribute must be "
             "attached before sequence can be manipulated\n");
@@ -232,7 +232,7 @@ int vsSequenceAttribute::getCycleMode()
 void vsSequenceAttribute::setPlayMode(int playMode)
 {
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::setPlayMode: Attribute must be "
             "attached before sequence can be manipulated\n");
@@ -268,7 +268,7 @@ void vsSequenceAttribute::setPlayMode(int playMode)
 int vsSequenceAttribute::getPlayMode()
 {
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::getPlayMode: Attribute must be "
             "attached before sequence can be manipulated\n");
@@ -300,7 +300,7 @@ int vsSequenceAttribute::getPlayMode()
 int vsSequenceAttribute::getCurrentChildNum()
 {
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::getCurrentChildNum: Attribute must be "
             "attached before sequence can be manipulated\n");
@@ -318,7 +318,7 @@ int vsSequenceAttribute::getCurrentChildNum()
 bool vsSequenceAttribute::canAttach()
 {
     // If a node is already attached, we can't attach another one
-    if (attachedFlag)
+    if (attachedCount)
         return false;
 
     // Otherwise, return TRUE
@@ -335,7 +335,7 @@ void vsSequenceAttribute::attach(vsNode *theNode)
     int childCount, loop;
 
     // Make sure we're not attached to a node, bail out if we are
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsSequenceAttribute::attach: Attribute is already attached\n");
         return;
@@ -369,7 +369,7 @@ void vsSequenceAttribute::attach(vsNode *theNode)
         osgSequence->setTime(loop, 1.0);
     
     // Flag the attribute as attached
-    attachedFlag = 1;
+    attachedCount = 1;
 }
 
 // ------------------------------------------------------------------------
@@ -382,7 +382,7 @@ void vsSequenceAttribute::detach(vsNode *theNode)
     osg::Group *newGroup;
 
     // Make sure we're attached to a node, bail out if not
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSequenceAttribute::attach: Attribute is not attached\n");
         return;
@@ -394,7 +394,7 @@ void vsSequenceAttribute::detach(vsNode *theNode)
     osgSequence = NULL;
     
     // Flag the attribute as not attached
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------

@@ -77,7 +77,7 @@ void vsTransformAttribute::setPreTransform(vsMatrix newTransform)
     preMatrix = newTransform;
     
     // If not attached, return.
-    if (!attachedFlag)
+    if (!attachedCount)
         return;
     
     // Apply the three transformations.
@@ -100,7 +100,7 @@ void vsTransformAttribute::setDynamicTransform(vsMatrix newTransform)
     dynMatrix = newTransform;
     
     // If not attached, return.
-    if (!attachedFlag)
+    if (!attachedCount)
         return;
     
     // Apply the three transformations.
@@ -123,7 +123,7 @@ void vsTransformAttribute::setPostTransform(vsMatrix newTransform)
     postMatrix = newTransform;
     
     // If not attached, return.
-    if (!attachedFlag)
+    if (!attachedCount)
         return;
 
     // Apply the three transformations.
@@ -182,7 +182,7 @@ void vsTransformAttribute::applyTransformations()
 // ------------------------------------------------------------------------
 bool vsTransformAttribute::canAttach()
 {
-    if (attachedFlag)
+    if (attachedCount)
         return false;
 
     return true;
@@ -197,7 +197,7 @@ void vsTransformAttribute::attach(vsNode *theNode)
 {
     osg::Group *aboveGroup, *belowGroup;
 
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsTransformAttribute::attach: Attribute is already attached\n");
         return;
@@ -226,7 +226,7 @@ void vsTransformAttribute::attach(vsNode *theNode)
     transform->addChild(belowGroup);
 
     // Set attached flag to true.
-    attachedFlag = 1;
+    attachedCount = 1;
 
     // Apply the three transformations.
     applyTransformations();   
@@ -242,14 +242,14 @@ void vsTransformAttribute::detach(vsNode *theNode)
     osg::Group *aboveGroup;
     osg::Node *belowNode;
 
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsTransformAttribute::detach: Attribute is not attached\n");
         return;
     }
 
     // Update the attached flag to false.
-    attachedFlag = 0;
+    attachedCount = 0;
 
     // Replace the transform child in the aboveGroup with its child group.
     aboveGroup = componentTop;
