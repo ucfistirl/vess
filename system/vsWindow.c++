@@ -66,22 +66,21 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     while (!(performerPipeWindow->isOpen()))
     {
         pfFrame();
-	XFlush(xWindowDisplay);
+        XFlush(xWindowDisplay);
     }
 
     // Get the window that Performer thinks is topmost, and then query the
     // X server to determine if that window really is the topmost one.
     xWindowID = performerPipeWindow->getWSWindow();
-
-    //printf("xWindowID(%d)\n", xWindowID);
+//    printf("xWindowID(%d)\n", xWindowID);
 
     do
     {
         result = XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
             &childPointer, &childCount);
         XFree(childPointer);
-        printf("result(%d) rootID(%d) parentID(%d) xWindowID(%d)\n", result,
-            rootID, parentID, xWindowID);
+//        printf("result(%d) rootID(%d) parentID(%d) xWindowID(%d)\n", result,
+//            rootID, parentID, xWindowID);
 
         if (result == 0)
         {
@@ -93,7 +92,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     }
     while (rootID != parentID);
     topWindowID = xWindowID;
-    printf("topWindowID: %d\n", topWindowID);
+//    printf("topWindowID: %d\n", topWindowID);
 
     // Attempt to determine the size of the window manager's border for
     // this window by checking the difference between Performer's idea
@@ -107,6 +106,9 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     // Set the window's location and size to default values
     setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
     setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
+    
+    // Start off with no vsWindowSystem atatched
+    currentWS = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -219,6 +221,9 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder, int stereo)
     // Set the window's location and size to default values
     setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
     setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
+
+    // Start off with no vsWindowSystem atatched
+    currentWS = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -533,6 +538,14 @@ void vsWindow::saveImage(char *filename)
 }
 
 // ------------------------------------------------------------------------
+// Returns the vsWindowSystem object associated with this window
+// ------------------------------------------------------------------------
+vsWindowSystem *vsWindow::getWSystem()
+{
+    return currentWS;
+}
+
+// ------------------------------------------------------------------------
 // Returns the Performer object associated with this object
 // ------------------------------------------------------------------------
 pfPipeWindow *vsWindow::getBaseLibraryObject()
@@ -575,3 +588,24 @@ void vsWindow::removePane(vsPane *targetPane)
     printf("vsWindow::removePane: Specified pane not part of window\n");
 }
 
+// ------------------------------------------------------------------------
+// VESS internal function
+// Notifies the window that the specified vsWindowSystem is attached
+// ------------------------------------------------------------------------
+void vsWindow::attachWSystem(vsWindowSystem *wSystem)
+{
+    if (currentWS)
+        printf("vsWindow::attachWSystem:: Window already has a "
+            "vsWindowSystem attached\n");
+    else
+        currentWS = wSystem;
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Notifies the window that the specified vsWindowSystem is unattached
+// ------------------------------------------------------------------------
+void vsWindow::removeWSystem()
+{
+    currentWS = NULL;
+}

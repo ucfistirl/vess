@@ -29,6 +29,7 @@ class vsWindow;
 #include "vsScreen.h++"
 #include "vsPane.h++"
 #include "vsGrowableArray.h++"
+#include "vsWindowSystem.h++"
 
 #define VS_WINDOW_DEFAULT_WIDTH  640
 #define VS_WINDOW_DEFAULT_HEIGHT 480
@@ -51,32 +52,39 @@ private:
     int                xPositionOffset, yPositionOffset;
     int                widthOffset, heightOffset;
     
+    vsWindowSystem     *currentWS;
+    
 VS_INTERNAL:
 
     void        addPane(vsPane *newPane);
     void        removePane(vsPane *targetPane);
+
+    void        attachWSystem(vsWindowSystem *wSystem);
+    void        removeWSystem();
     
 public:
 
-                    vsWindow(vsScreen *parent, int hideBorder);
-                    vsWindow(vsScreen *parent, int hideBorder, int stereo);
-    virtual         ~vsWindow();
+                      vsWindow(vsScreen *parent, int hideBorder);
+                      vsWindow(vsScreen *parent, int hideBorder, int stereo);
+    virtual           ~vsWindow();
     
-    vsScreen        *getParentScreen();
-    int             getChildPaneCount();
-    vsPane          *getChildPane(int index);
+    vsScreen          *getParentScreen();
+    int               getChildPaneCount();
+    vsPane            *getChildPane(int index);
 
-    void            setSize(int width, int height);
-    void            getSize(int *width, int *height);
-    void            setPosition(int xPos, int yPos);
-    void            getPosition(int *xPos, int *yPos);
-    void            setFullScreen();
+    void              setSize(int width, int height);
+    void              getSize(int *width, int *height);
+    void              setPosition(int xPos, int yPos);
+    void              getPosition(int *xPos, int *yPos);
+    void              setFullScreen();
     
-    void            setName(char *newName);
+    void              setName(char *newName);
 
-    void            saveImage(char *filename);
+    void              saveImage(char *filename);
+    
+    vsWindowSystem    *getWSystem();
 
-    pfPipeWindow    *getBaseLibraryObject();
+    pfPipeWindow      *getBaseLibraryObject();
 };
 
 #endif
