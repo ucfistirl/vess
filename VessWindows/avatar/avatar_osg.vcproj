@@ -80,13 +80,13 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/avatar.dll"
+				OutputFile="$(OutDir)/vsAvatar.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/avatar.lib"
+				ImportLibrary="$(OutDir)/vsAvatar.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
