@@ -2,16 +2,16 @@
 lib_LIBRARIES = libvsMenu.a libvsMenu.so
 
 # Sources for libvsMenu.a
-libvsMenu = \
-            common/vsMenuButton.c++ \
-            common/vsMenuFrame.c++ \
-            common/vsMenuIterator.c++ \
-            common/vsMenuLabel.c++ \
-            common/vsMenuLink.c++ \
-            common/vsMenuObject.c++ \
-            common/vsMenuSystem.c++ \
-            common/vsMenuToggleButton.c++ \
-            common/vsMenuTree.c++
+libvsMenu_a_SOURCES = \
+                      common/vsMenuButton.c++ \
+                      common/vsMenuFrame.c++ \
+                      common/vsMenuIterator.c++ \
+                      common/vsMenuLabel.c++ \
+                      common/vsMenuLink.c++ \
+                      common/vsMenuObject.c++ \
+                      common/vsMenuSystem.c++ \
+                      common/vsMenuToggleButton.c++ \
+                      common/vsMenuTree.c++
 
 
 # Sources for libvsMenu.so (same as libvsMenu.a)
