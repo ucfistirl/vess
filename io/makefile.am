@@ -22,6 +22,8 @@ libvsIO_a_SOURCES = \
                     common/vsSpaceball.c++ \
                     common/vsTrackingSystem.c++ \
                     common/vsUnwinder.c++ \
+                    common/vsVest.c++ \
+                    common/vsVestSystem.c++ \
                     @OS@/vsAscensionSerialTrackingSystem.c++ \
                     @OS@/vsEthernetMotionStar.c++ \
                     @OS@/vsFastrak.c++ \
@@ -68,6 +70,8 @@ include_HEADERS = \
                   common/vsSpaceball.h++ \
                   common/vsTrackingSystem.h++ \
                   common/vsUnwinder.h++ \
+                  common/vsVest.h++ \
+                  common/vsVestSystem.h++ \
                   @OS@/vsAscensionSerialTrackingSystem.h++ \
                   @OS@/vsEthernetMotionStar.h++ \
                   @OS@/vsFastrak.h++ \
