@@ -54,57 +54,77 @@ enum vsPaneEarthSkyColor
     VS_PANE_ESCOLOR_GROUND_NEAR
 };
 
+enum vsPaneBufferMode
+{
+    VS_PANE_BUFFER_MONO,
+    VS_PANE_BUFFER_STEREO_L,
+    VS_PANE_BUFFER_STEREO_R
+};
+
+struct vsPaneSharedData
+{
+    vsPaneBufferMode bufferMode;
+};
+
 class vsPane
 {
 private:
 
-    vsWindow       *parentWindow;
-    vsView         *sceneView;
+    vsWindow            *parentWindow;
+    vsView              *sceneView;
 
-    vsComponent    *sceneRoot;
-    pfScene        *performerScene;
+    vsComponent         *sceneRoot;
+    pfScene             *performerScene;
 
-    pfChannel      *performerChannel;
-    pfEarthSky     *earthSky;
+    pfChannel           *performerChannel;
+    pfEarthSky          *earthSky;
 
-    double         curNearClip, curFarClip;
-    int            curProjMode;
-    double         curProjHval, curProjVval;
+    vsPaneBufferMode    bufferMode;
+    vsPaneSharedData    *sharedData;
+
+    double              curNearClip, curFarClip;
+    int                 curProjMode;
+    double              curProjHval, curProjVval;
 
 VS_INTERNAL:
 
-    void          updateView();
+    void           updateView();
 
-    static int    gstateCallback(pfGeoState *gstate, void *userData);
+    static int     gstateCallback(pfGeoState *gstate, void *userData);
+
+    static void    drawPane(pfChannel *chan, void *userData);
 
 public:
 
-                   vsPane(vsWindow *parent);
-    virtual        ~vsPane();
+                        vsPane(vsWindow *parent);
+    virtual             ~vsPane();
 
-    vsWindow       *getParentWindow();
-    void           setView(vsView *view);
-    vsView         *getView();
-    void           setScene(vsComponent *newScene);
-    vsComponent    *getScene();
+    vsWindow            *getParentWindow();
+    void                setView(vsView *view);
+    vsView              *getView();
+    void                setScene(vsComponent *newScene);
+    vsComponent         *getScene();
 
-    void           setSize(int width, int height);
-    void           getSize(int *width, int *height);
-    void           setPosition(int xPos, int yPos);
-    void           getPosition(int *xPos, int *yPos);
-    void           autoConfigure(int panePlacement);
+    void                setSize(int width, int height);
+    void                getSize(int *width, int *height);
+    void                setPosition(int xPos, int yPos);
+    void                getPosition(int *xPos, int *yPos);
+    void                autoConfigure(int panePlacement);
 
-    void           showPane();
-    void           hidePane();
+    void                setBufferMode(vsPaneBufferMode newMode);
+    vsPaneBufferMode    getBufferMode();
 
-    void           enableEarthSky();
-    void           disableEarthSky();
-    void           setESGroundHeight(double newHeight);
-    double         getESGroundHeight();
-    void           setESColor(int which, double r, double g, double b);
-    void           getESColor(int which, double *r, double *g, double *b);
+    void                showPane();
+    void                hidePane();
 
-    pfChannel      *getBaseLibraryObject();
+    void                enableEarthSky();
+    void                disableEarthSky();
+    void                setESGroundHeight(double newHeight);
+    double              getESGroundHeight();
+    void                setESColor(int which, double r, double g, double b);
+    void                getESColor(int which, double *r, double *g, double *b);
+
+    pfChannel           *getBaseLibraryObject();
 };
 
 #endif

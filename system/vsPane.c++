@@ -54,6 +54,11 @@ vsPane::vsPane(vsWindow *parent)
     if (tempPWin)
         tempPWin->removeChan(performerChannel);
 
+    // Normally, this will be a monovision pane, so there is no need for
+    // shared data
+    bufferMode = VS_PANE_BUFFER_MONO;
+    sharedData = NULL;
+
     parentWindow->addPane(this);
 
     performerScene = new pfScene();
@@ -276,6 +281,65 @@ void vsPane::autoConfigure(int panePlacement)
             printf("vsPane::autoConfigure: Invalid parameter");
             break;
     }
+}
+
+// ------------------------------------------------------------------------
+// Sets the buffer mode of this pane.  If newMode specifies a stereo mode
+// this will also register a Performer DRAW process callback.
+// ------------------------------------------------------------------------
+void vsPane::setBufferMode(vsPaneBufferMode newMode)
+{
+    if ((newMode == VS_PANE_BUFFER_STEREO_L) ||
+        (newMode == VS_PANE_BUFFER_STEREO_R))
+    {
+        if (bufferMode == VS_PANE_BUFFER_MONO)
+        {
+            // Allocate a chunk of shared memory for the shared data
+            sharedData = (vsPaneSharedData *)
+                performerChannel->allocChanData(sizeof(vsPaneSharedData));
+
+            // Set the DRAW process callback
+            performerChannel->setTravFunc(PFTRAV_DRAW, vsPane::drawPane);
+        }
+
+        // Change the buffer mode
+        bufferMode = newMode;
+
+        // Set the buffer mode in the shared data block and pass it
+        // to the DRAW process
+        sharedData->bufferMode = newMode;
+        performerChannel->passChanData();
+    }
+    else
+    {
+        if ((bufferMode == VS_PANE_BUFFER_STEREO_L) ||
+            (bufferMode == VS_PANE_BUFFER_STEREO_R))
+        {
+            // Detach the channel DRAW callback
+            performerChannel->setTravFunc(PFTRAV_DRAW, NULL);
+
+            // Stop passing channel data
+            if (sharedData != NULL)
+            {
+                performerChannel->setChanData(NULL, 0);
+
+                // Deallocate the channel data
+                pfDelete(sharedData);
+                sharedData = NULL;
+            }
+        }
+
+        // Change the buffer mode
+        bufferMode = newMode;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Returns the current buffer mode of this pane.
+// ------------------------------------------------------------------------
+vsPaneBufferMode vsPane::getBufferMode()
+{
+    return bufferMode;
 }
 
 // ------------------------------------------------------------------------
@@ -502,4 +566,30 @@ int vsPane::gstateCallback(pfGeoState *gstate, void *userData)
     (vsSystem::systemObject)->getGraphicsState()->clearState();
     
     return 0;
+}
+
+// ------------------------------------------------------------------------
+// static VESS internal function - Performer callback
+// Pre-DRAW callback to select which OpenGL buffer to draw the scene into
+// prior to actually drawing the scene.  Note that this function is not
+// called unless a VS_PANE_BUFFER_STEREO_* buffer mode is set (via
+// setBufferMode())
+// ------------------------------------------------------------------------
+void vsPane::drawPane(pfChannel *chan, void *userData)
+{
+    vsPaneSharedData *paneData;
+
+    paneData = (vsPaneSharedData *)userData;
+
+    // Select the appropriate buffer to use
+    if (paneData->bufferMode == VS_PANE_BUFFER_STEREO_L)
+        glDrawBuffer(GL_BACK_LEFT);
+    else if (paneData->bufferMode == VS_PANE_BUFFER_STEREO_R)
+        glDrawBuffer(GL_BACK_RIGHT);
+    else
+        glDrawBuffer(GL_BACK);
+
+    chan->clear();
+
+    pfDraw();
 }
