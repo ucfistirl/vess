@@ -46,7 +46,6 @@ vsGeometry::vsGeometry()
     performerGeoset = new pfGeoSet();
     performerGeoset->ref();
     performerGeode->addGSet(performerGeoset);
-    setPrimitiveCount(0);
     
     performerGeostate = new pfGeoState();
     performerGeostate->ref();
@@ -61,6 +60,8 @@ vsGeometry::vsGeometry()
     vertexList = NULL;
     vertexListSize = 0;
     lengthsList = NULL;
+
+    setPrimitiveCount(0);
     
     lightsList = (pfLight **)
         (pfMemory::malloc(sizeof(pfLight *) * PF_MAX_LIGHTS));
