@@ -81,7 +81,7 @@ bool vsDecalAttribute::canAttach()
 {
     // This attribute is not available to be attached if it is already
     // attached to another node
-    if (attachedFlag)
+    if (attachedCount)
         return false;
 
     return true;
@@ -95,7 +95,7 @@ bool vsDecalAttribute::canAttach()
 void vsDecalAttribute::attach(vsNode *theNode)
 {
     // Verify that we're not already attached to something
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsDecalAttribute::attach: Attribute is already attached\n");
         return;
@@ -115,7 +115,7 @@ void vsDecalAttribute::attach(vsNode *theNode)
     bottomGroup->setCullCallback(decalCallback);
 
     // Mark this attribute as attached
-    attachedFlag = 1;
+    attachedCount = 1;
 }
 
 // ------------------------------------------------------------------------
@@ -126,7 +126,7 @@ void vsDecalAttribute::attach(vsNode *theNode)
 void vsDecalAttribute::detach(vsNode *theNode)
 {
     // Can't detach an unattached attribute
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsDecalAttribute::detach: Attribute is not attached\n");
         return;
@@ -139,7 +139,7 @@ void vsDecalAttribute::detach(vsNode *theNode)
     bottomGroup->unref();
     bottomGroup = NULL;
 
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------
