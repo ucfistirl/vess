@@ -2254,7 +2254,7 @@ void *vsAvatar::makeVsTrackedMotion()
     vsVector posOffset(0.0, 0.0, 0.0);
     vsQuat oriOffset(0.0, 0.0, 0.0, 1.0);
     double a, b, c;
-    double posScale;
+    double posScale = 1.0;
     vsTrackedMotion *result;
 
     while (lineType != -1)
