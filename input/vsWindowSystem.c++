@@ -60,7 +60,7 @@ vsWindowSystem::vsWindowSystem(vsWindow *mainWindow)
     // Select the X Input events we want
     XSelectInput(display, window, PointerMotionHintMask | PointerMotionMask |
         ButtonPressMask | ButtonReleaseMask | KeyPressMask | KeyReleaseMask |
-        StructureNotifyMask | EnterWindowMask | LeaveWindowMask);
+        EnterWindowMask | LeaveWindowMask);
 }
 
 // ------------------------------------------------------------------------
@@ -121,13 +121,14 @@ int vsWindowSystem::isMouseInWindow()
 // ------------------------------------------------------------------------
 void vsWindowSystem::update()
 {
-    XEvent       event;
-    char         buffer[50];
-    KeySym       keySym;
-    Window       rootWin;
-    Window       childWin;
-    int          rootX, rootY, winX, winY;
-    unsigned int modMask;
+    XEvent            event;
+    XWindowAttributes xattr;
+    char              buffer[50];
+    KeySym            keySym;
+    Window            rootWin;
+    Window            childWin;
+    int               rootX, rootY, winX, winY;
+    unsigned int      modMask;
 
     // Process all the events we're interested in
 
@@ -194,6 +195,10 @@ void vsWindowSystem::update()
     {
         mouseInWindow = VS_FALSE;
     }
+/*
+    Looking for ConfigureNotify events clashes with Performer,  so
+    let's not do that anymore
+    
     while (XCheckTypedWindowEvent(display, window, ConfigureNotify,
         &event))
     {
@@ -204,6 +209,28 @@ void vsWindowSystem::update()
             mouse->getAxis(1)->setRange(0, event.xconfigure.height);
             mouse->getAxis(1)->setIdlePosition(event.xconfigure.height / 2);
         }
+    }
+*/
+
+    // Check the size of the X Window and update the mouse's axis extents
+    // and idle position
+    if (XGetWindowAttributes(display, window, &xattr) == 0)
+    {
+        winX = 0;
+        winY = 0;
+    }
+    else
+    {
+        winX = xattr.width;
+        winY = xattr.height;
+    }
+
+    if (mouse)
+    {
+        mouse->getAxis(0)->setRange(0, winX);
+        mouse->getAxis(0)->setIdlePosition(winX / 2);
+        mouse->getAxis(1)->setRange(0, winY);
+        mouse->getAxis(1)->setIdlePosition(winY / 2);
     }
 
     // Update the keyboard
