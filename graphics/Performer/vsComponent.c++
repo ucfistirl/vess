@@ -34,6 +34,7 @@
 #include "vsSkeletonMeshGeometry.h++"
 #include "vsTextureAttribute.h++"
 #include "vsTextureCubeAttribute.h++"
+#include "vsTextureRectangleAttribute.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Sets up the Performer objects associated with
@@ -637,7 +638,8 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
         // not another one of the same type already
         case VS_ATTRIBUTE_CATEGORY_STATE:
             if ((newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE) ||
-                (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE))
+                (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE) ||
+                (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_RECTANGLE))
             {
                 // Initialize the texture unit to invalid maximum.
                 textureUnit = VS_MAXIMUM_TEXTURE_UNITS;
@@ -658,6 +660,11 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
                     newTextureUnit = ((vsTextureCubeAttribute *) 
                         newAttribute)->getTextureUnit();
                 }
+                else if (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_RECTANGLE)
+                {
+                    newTextureUnit = ((vsTextureRectangleAttribute *) 
+                        newAttribute)->getTextureUnit();
+                }
                                                                                 
                 // Check each attribute we have.
                 for (loop = 0; loop < getAttributeCount(); loop++)
@@ -675,6 +682,11 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
                     else if (attrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE)
                     {
                         textureUnit = ((vsTextureCubeAttribute *) 
+                            attribute)->getTextureUnit();
+                    }
+                    else if (attrType == VS_ATTRIBUTE_TYPE_TEXTURE_RECTANGLE)
+                    {
+                        textureUnit = ((vsTextureRectangleAttribute *) 
                             attribute)->getTextureUnit();
                     }
                                                                                 

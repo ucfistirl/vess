@@ -27,6 +27,7 @@
 #include "vsSkeletonMeshGeometry.h++"
 #include "vsTextureAttribute.h++"
 #include "vsTextureCubeAttribute.h++"
+#include "vsTextureRectangleAttribute.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Set the light list and child pointer to NULL,
@@ -557,7 +558,8 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
     // attribute
     newAttrType = newAttribute->getAttributeType();
     if ((newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE) ||
-        (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE))
+        (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE) ||
+        (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_RECTANGLE))
     {
         // Initialize the texture unit to invalid maximum.
         textureUnit = VS_MAXIMUM_TEXTURE_UNITS;
@@ -578,6 +580,11 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
             newTextureUnit = ((vsTextureCubeAttribute *)
                 newAttribute)->getTextureUnit();
         }
+        else if (newAttrType == VS_ATTRIBUTE_TYPE_TEXTURE_RECTANGLE)
+        {
+            newTextureUnit = ((vsTextureRectangleAttribute *)
+                newAttribute)->getTextureUnit();
+        }
 
         // Check each attribute we have.
         for (loop = 0; loop < getAttributeCount(); loop++)
@@ -595,6 +602,11 @@ void vsScene::addAttribute(vsAttribute *newAttribute)
             else if (attrType == VS_ATTRIBUTE_TYPE_TEXTURE_CUBE)
             {
                 textureUnit = ((vsTextureCubeAttribute *)
+                    attribute)->getTextureUnit();
+            }
+            else if (attrType == VS_ATTRIBUTE_TYPE_TEXTURE_RECTANGLE)
+            {
+                textureUnit = ((vsTextureRectangleAttribute *)
                     attribute)->getTextureUnit();
             }
 
