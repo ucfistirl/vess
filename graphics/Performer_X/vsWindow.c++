@@ -964,7 +964,7 @@ vsImage * vsWindow::getImage()
         // Get the callback list of the last child pane, so that the image
         // taken is the one drawn last
         callbackList =
-            getChildPane(childPaneCount -1)->getPerformerCallbackList();
+            getChildPane(childPaneCount - 1)->getPerformerCallbackList();
 
         // Give the callback list a save image callback, storing the shared
         // memory on which the callback acts into the temporary buffer. The
@@ -979,7 +979,7 @@ vsImage * vsWindow::getImage()
             pfFrame();
         }
 
-        // Save the image
+        // Store the image data
         image = new vsImage(width, height, VS_IMAGE_FORMAT_RGB,
             (unsigned char *)sharedBuffer);
 
@@ -1185,14 +1185,14 @@ void vsWindow::removePane(vsPane *targetPane)
 // ------------------------------------------------------------------------
 void vsWindow::InitPbuffer(pfPipeWindow *pipeWindow)
 {
-    pfWSConnection display;
-    int            screenIndex;
-    int            width;
-    int            height;
-    GLXFBConfig    *configList;
-    int            configCount;
-    GLXPbuffer     pBuffer;
-    GLXContext     glContext;
+    pfWSConnection    display;
+    GLXFBConfig       *configList;
+    GLXPbuffer        pBuffer;
+    GLXContext        glContext;
+    int               screenIndex;
+    int               width;
+    int               height;
+    int               configCount;
 
     // Default frame buffer configuration
     int frameBufferAttributes[20] =
@@ -1267,7 +1267,7 @@ void vsWindow::InitPbuffer(pfPipeWindow *pipeWindow)
         pipeWindow->open();
     }
 }
-                                                                                                                                                             
+
 // ------------------------------------------------------------------------
 // static VESS internal function - Performer callback
 // Post-DRAW callback to read the pixels from the current frame and save
@@ -1277,14 +1277,14 @@ void vsWindow::InitPbuffer(pfPipeWindow *pipeWindow)
 // ------------------------------------------------------------------------
 void vsWindow::saveImage(pfChannel *chan, void *userData)
 {
-    pfPipeWindow *pipeWindow;
-    pfGLContext pipeWindowContext;
-    pfWSConnection display;
-    pfWSDrawable pBuffer;
-    int numChans;
-    int chanIndex;
-    unsigned int width;
-    unsigned int height;
+    pfPipeWindow      *pipeWindow;
+    pfGLContext       pipeWindowContext;
+    pfWSConnection    display;
+    pfWSDrawable      pBuffer;
+    unsigned int      width;
+    unsigned int      height;
+    int               numChans;
+    int               chanIndex;
 
     // Retrieve the parent pipe window from the channel
     pipeWindow = chan->getPWin();
@@ -1321,7 +1321,7 @@ void vsWindow::saveImage(pfChannel *chan, void *userData)
             (GLvoid *)vsCallbackList::getData(userData));
 
         // Tell the callback node to delete itself from the list
-        vsCallbackList::removeCallbackNode(userData);
+        vsCallbackList::nodeRemove(userData);
     }
 }
 
