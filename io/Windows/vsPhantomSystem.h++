@@ -67,7 +67,7 @@ static double ntohd(double x)
 }
 #define htond(x) ntohd(x)
 
-class vsPhantomSystem : public vsIOSystem
+class VS_IO_DLL vsPhantomSystem : public vsIOSystem
 {
 protected:
 
