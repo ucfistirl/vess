@@ -37,6 +37,8 @@ public:
                 vsUDPUnicastNetworkInterface(char *address, short port, 
                                              int blocking);
     virtual     ~vsUDPUnicastNetworkInterface();
+
+    virtual const char    *getClassName();
 };
 
 #endif
