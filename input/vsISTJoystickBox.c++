@@ -22,7 +22,7 @@ vsISTJoystickBox::vsISTJoystickBox(int portNumber)
     sprintf(portDevice, "/dev/ttyd%d", portNumber);
 #endif
 
-#ifdef LINUX
+#ifdef __linux__
     sprintf(portDevice, "/dev/ttyS%d", portNumber - 1);
 #endif
 

@@ -44,7 +44,7 @@ vsUnwinder::vsUnwinder(int portNumber, int joy1, int joy2)
     sprintf(portDevice, "/dev/ttyd%d", portNumber);
 #endif
 
-#ifdef LINUX
+#ifdef __linux__
     sprintf(portDevice, "/dev/ttyS%d", portNumber - 1);
 #endif
 

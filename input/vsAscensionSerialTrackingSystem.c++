@@ -155,7 +155,7 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
             sprintf(portDevice, "/dev/ttyd%d", portNumbers[i]);
 #endif
 
-#ifdef LINUX
+#ifdef __linux__
             sprintf(portDevice, "/dev/ttyS%d", portNumbers[i] - 1);
 #endif
 
