@@ -343,7 +343,7 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
     {
         startPoints[loop] = globalXform.getPointXform(offsetPoints[loop]);
         startPoints[loop] += posOffset;
-        if (valid2[loop])
+        if (valid1[loop])
             intersect->setSeg(loop, startPoints[loop],
                 normals[loop].getScaled(-1.0), 10000.0);
         else
