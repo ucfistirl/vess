@@ -671,12 +671,12 @@ void vsPathMotion::configureFromFile(char *filename)
             sscanf(lineBuf, "%*s %s", constantStr);
             if (!strcmp(constantStr, "VS_PATH_POS_IMODE_NONE"))
                 setPositionMode(VS_PATH_POS_IMODE_NONE);
-            else if (!strcmp(constantStr, "VS_PATH_POS_IMODE_NONE"))
-                setPositionMode(VS_PATH_POS_IMODE_NONE);
-            else if (!strcmp(constantStr, "VS_PATH_POS_IMODE_NONE"))
-                setPositionMode(VS_PATH_POS_IMODE_NONE);
-            else if (!strcmp(constantStr, "VS_PATH_POS_IMODE_NONE"))
-                setPositionMode(VS_PATH_POS_IMODE_NONE);
+            else if (!strcmp(constantStr, "VS_PATH_POS_IMODE_LINEAR"))
+                setPositionMode(VS_PATH_POS_IMODE_LINEAR);
+            else if (!strcmp(constantStr, "VS_PATH_POS_IMODE_ROUNDED"))
+                setPositionMode(VS_PATH_POS_IMODE_ROUNDED);
+            else if (!strcmp(constantStr, "VS_PATH_POS_IMODE_SPLINE"))
+                setPositionMode(VS_PATH_POS_IMODE_SPLINE);
             else
                 printf("vsPathMotion::configureFromFile (setPositionMode): "
                     "Unrecognized position mode constant '%s'\n", constantStr);
