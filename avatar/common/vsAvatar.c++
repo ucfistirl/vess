@@ -371,7 +371,7 @@ void *vsAvatar::createObject(char *idString)
     else if (!strcmp(idString, "viewpoint"))
         return makeViewpoint();
     else if (!strcmp(idString, "inputDevice"))
-        return makeInputDevice();
+        return makeIODevice();
     else if (!strcmp(idString, "vsISTJoystickBox"))
         return makeVsISTJoystickBox();
     else if (!strcmp(idString, "vsUnwinder"))
@@ -750,16 +750,16 @@ void *vsAvatar::makeViewpoint()
 
 // ------------------------------------------------------------------------
 // Protected function
-// Extracts a subclass of vsInputDevice out of a specified vsInputSystem.
+// Extracts a subclass of vsIODevice out of a specified vsIOSystem.
 // Motion models that can use a vsInputAxis or vsInputButton take one of
 // these objects and get the axis or button from that.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeInputDevice()
+void *vsAvatar::makeIODevice()
 {
     char cfgLine[256];
     char token[256];
     int lineType = 0;
-    vsInputDevice *result = NULL;
+    vsIODevice *result = NULL;
     char objName[256];
     int objNum;
     vsJoystickBox *joyBox;
@@ -851,7 +851,7 @@ void *vsAvatar::makeInputDevice()
                     else if (!strcmp(objName, "keyboard"))
                         result = wsys->getKeyboard();
                     else
-                        printf("vsAvatar::makeInputDevice (windowSystem): "
+                        printf("vsAvatar::makeIODevice (windowSystem): "
                             "Unrecognized window system device '%s'\n",
                             objName);
                 }
@@ -876,13 +876,13 @@ void *vsAvatar::makeInputDevice()
                 result = cyberBox->getGlove();
         }
         else
-            printf("vsAvatar::makeInputDevice: Unrecognized token '%s'\n",
+            printf("vsAvatar::makeIODevice: Unrecognized token '%s'\n",
                 token);
     }
     
     // Error checking
     if (!result)
-        printf("vsAvatar::makeInputDevice: No vsInputSystem specified\n");
+        printf("vsAvatar::makeIODevice: No vsIOSystem specified\n");
 
     // Return the created input device
     return result;
@@ -2082,7 +2082,7 @@ void *vsAvatar::makeVsAxisRotation()
     vsQuat defaultOrient = vsQuat(0.0, 0.0, 0.0, 1.0);
     double heading, pitch, roll;
     vsAxisRotation *result;
-    vsInputDevice *inputDev;
+    vsIODevice *inputDev;
     vsInputAxis *headingAxis = NULL;
     vsInputAxis *pitchAxis = NULL;
     vsInputButton *resetBtn = NULL;
@@ -2109,7 +2109,7 @@ void *vsAvatar::makeVsAxisRotation()
 
             // Find the specified object and get the specified axis
             // from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 headingAxis = inputDev->getAxis(objNum);
         }
@@ -2120,7 +2120,7 @@ void *vsAvatar::makeVsAxisRotation()
 
             // Find the specified object and get the specified axis
             // from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 pitchAxis = inputDev->getAxis(objNum);
         }
@@ -2131,7 +2131,7 @@ void *vsAvatar::makeVsAxisRotation()
 
             // Find the specified object and get the specified button
             // from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 resetBtn = inputDev->getButton(objNum);
         }
@@ -2368,7 +2368,7 @@ void *vsAvatar::makeVsDrivingMotion()
     vsInputButton *accelBtn = NULL;
     vsInputButton *stopBtn = NULL;
     vsInputButton *decelBtn = NULL;
-    vsInputDevice *inputDev;
+    vsIODevice *inputDev;
     int objNum;
     
     // Read the parameters for this object
@@ -2402,7 +2402,7 @@ void *vsAvatar::makeVsDrivingMotion()
 
             // Find the specified object and get the specified axis
             // from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 steerAxis = inputDev->getAxis(objNum);
         }
@@ -2413,7 +2413,7 @@ void *vsAvatar::makeVsDrivingMotion()
 
             // Find the specified object and get the specified axis
             // from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 throttleAxis = inputDev->getAxis(objNum);
         }
@@ -2424,7 +2424,7 @@ void *vsAvatar::makeVsDrivingMotion()
 
             // Find the specified object and get the specified button
             // from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 accelBtn = inputDev->getButton(objNum);
         }
@@ -2435,7 +2435,7 @@ void *vsAvatar::makeVsDrivingMotion()
 
             // Find the specified object and get the specified button
             // from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 stopBtn = inputDev->getButton(objNum);
         }
@@ -2446,7 +2446,7 @@ void *vsAvatar::makeVsDrivingMotion()
 
             // Find the specified object and get the specified button
             // from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 decelBtn = inputDev->getButton(objNum);
         }
@@ -2575,7 +2575,7 @@ void *vsAvatar::makeVsFlyingMotion()
     vsInputButton *accelBtn = NULL;
     vsInputButton *stopBtn = NULL;
     vsInputButton *decelBtn = NULL;
-    vsInputDevice *inputDev;
+    vsIODevice *inputDev;
     int objNum;
 
     // Read in the object parameters
@@ -2609,7 +2609,7 @@ void *vsAvatar::makeVsFlyingMotion()
 
             // Find the specified input device and extract the specified
             // axis from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 headingAxis = inputDev->getAxis(objNum);
         }
@@ -2620,7 +2620,7 @@ void *vsAvatar::makeVsFlyingMotion()
 
             // Find the specified input device and extract the specified
             // axis from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 pitchAxis = inputDev->getAxis(objNum);
         }
@@ -2631,7 +2631,7 @@ void *vsAvatar::makeVsFlyingMotion()
 
             // Find the specified input device and extract the specified
             // axis from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 throttleAxis = inputDev->getAxis(objNum);
         }
@@ -2642,7 +2642,7 @@ void *vsAvatar::makeVsFlyingMotion()
 
             // Find the specified input device and extract the specified
             // button from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 accelBtn = inputDev->getButton(objNum);
         }
@@ -2653,7 +2653,7 @@ void *vsAvatar::makeVsFlyingMotion()
 
             // Find the specified input device and extract the specified
             // button from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 stopBtn = inputDev->getButton(objNum);
         }
@@ -2664,7 +2664,7 @@ void *vsAvatar::makeVsFlyingMotion()
 
             // Find the specified input device and extract the specified
             // button from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 decelBtn = inputDev->getButton(objNum);
         }
@@ -2985,7 +2985,7 @@ void *vsAvatar::makeVsTrackballMotion()
     vsInputButton *xyBtn = NULL;
     vsInputButton *zBtn = NULL;
     vsInputButton *rotBtn = NULL;
-    vsInputDevice *inputDev;
+    vsIODevice *inputDev;
     int objNum;
 
     // Read all the parameters for the object
@@ -3020,7 +3020,7 @@ void *vsAvatar::makeVsTrackballMotion()
 
             // Find the specified input device and extract the specified
             // axis from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 horizAxis = inputDev->getAxis(objNum);
         }
@@ -3032,7 +3032,7 @@ void *vsAvatar::makeVsTrackballMotion()
 
             // Find the specified input device and extract the specified
             // axis from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 vertiAxis = inputDev->getAxis(objNum);
         }
@@ -3044,7 +3044,7 @@ void *vsAvatar::makeVsTrackballMotion()
 
             // Find the specified input device and extract the specified
             // button from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 xyBtn = inputDev->getButton(objNum);
         }
@@ -3056,7 +3056,7 @@ void *vsAvatar::makeVsTrackballMotion()
 
             // Find the specified input device and extract the specified
             // button from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 zBtn = inputDev->getButton(objNum);
         }
@@ -3068,7 +3068,7 @@ void *vsAvatar::makeVsTrackballMotion()
 
             // Find the specified input device and extract the specified
             // button from it
-            inputDev = (vsInputDevice *)(findObject(objName));
+            inputDev = (vsIODevice *)(findObject(objName));
             if (inputDev)
                 rotBtn = inputDev->getButton(objNum);
         }

@@ -65,7 +65,7 @@ protected:
     // the associated type
     void               *makeGeometry();
     void               *makeViewpoint();
-    void               *makeInputDevice();
+    void               *makeIODevice();
 
     // input objects
     void               *makeVsISTJoystickBox();
