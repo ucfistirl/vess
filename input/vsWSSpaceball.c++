@@ -161,13 +161,13 @@ void vsWSSpaceball::update()
         {
             button = spaceball->getButton(0);
             if (button)
-                button->setReleased();
+                button->setPressed();
         }
         else 
         {
             button = spaceball->getButton(buttonNumber);
             if (button)
-                button->setReleased();
+                button->setPressed();
         }
     }
 
