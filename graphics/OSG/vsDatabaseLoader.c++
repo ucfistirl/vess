@@ -26,10 +26,11 @@
 #include <osgDB/ReadFile>
 #include <osg/LOD>
 #include <osg/Sequence>
+#include <osgSim/MultiSwitch>
 #include <osg/Switch>
 #include <osg/Matrix>
 #include <osg/MatrixTransform>
-#include <osg/DOFTransform>
+#include <osgSim/DOFTransform>
 #include <osg/PositionAttitudeTransform>
 #include <osg/Billboard>
 #include <osg/Fog>
@@ -40,6 +41,7 @@
 #include <osg/TexGen>
 #include <osg/PolygonMode>
 #include <osg/PolygonOffset>
+#include <osgUtil/SmoothingVisitor>
 #include "vsDatabaseLoader.h++"
 #include "vsGeometry.h++"
 #include "vsComponent.h++"
@@ -75,7 +77,7 @@ vsDatabaseLoader::vsDatabaseLoader() : nodeNames(0, 50)
     
     unitMode = VS_DATABASE_UNITS_METERS;
 
-    loaderModes = VS_DATABASE_MODE_AUTO_UNLIT;
+    loaderModes = VS_DATABASE_MODE_AUTOGEN_NORMALS;
 }
 
 // ------------------------------------------------------------------------
@@ -367,13 +369,16 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
             
     // Switch vars
     osg::Switch *switchGroup;
+    osgSim::MultiSwitch *multiSwitchGroup;
+    osgSim::MultiSwitch::ValueList switchMask;
+    int currentSet;
     vsSwitchAttribute *switchAttr;
             
     // Transform vars
     vsTransformAttribute *xformAttr;
     osg::Matrix osgMat;
     vsMatrix xformMat, tempMat;
-    osg::DOFTransform *dofXformGroup;
+    osgSim::DOFTransform *dofXformGroup;
     osg::MatrixTransform *matrixXformGroup;
     osg::PositionAttitudeTransform *posAttXformGroup;
 
@@ -469,9 +474,6 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
         }
         else if (dynamic_cast<osg::Sequence *>(node))
         {
-            // Sequence must be checked for before Switch, because in
-            // OSG, Sequence is derived from Switch
-
             // Cast the node to an osg::Sequence and create a sequence
             // attribute
             sequenceGroup = (osg::Sequence *)node;
@@ -490,6 +492,34 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
             else
                 sequenceAttr->setCycleMode(VS_SEQUENCE_CYCLE_FORWARD);
         }
+        else if (dynamic_cast<osgSim::MultiSwitch *>(node))
+        {
+            // MultiSwitch, cast the node to an osgSim::MultiSwitch and 
+            // convert it to a switch attribute
+            multiSwitchGroup = (osgSim::MultiSwitch *)node;
+            switchAttr = new vsSwitchAttribute();
+
+            // Add the attribute _before_ setting its data, because the
+            // attribute checks the number of children on the component
+            // before setting any values
+            newComponent->addAttribute(switchAttr);
+
+            // Copy the MultiSwitch settings to the vsSwitchAttribute
+            for (loop = 0; loop < multiSwitchGroup->getSwitchSetList().size(); 
+                 loop++)
+            {
+                // Get the next switch mask
+                switchMask = multiSwitchGroup->getValueList(loop);
+
+                // Copy the mask elements to the new switch attribute
+                for (sloop = 0; sloop < switchMask.size(); sloop++)
+                    switchAttr->setMaskValue(loop, sloop,
+                        multiSwitchGroup->getValue(loop, sloop));
+            }
+
+            // Set the current switch mask on the attribute
+            switchAttr->enableOne(multiSwitchGroup->getActiveSwitchSet());
+        }
         else if (dynamic_cast<osg::Switch *>(node))
         {
             // Switch, cast the node to an osg::Switch and create a switch
@@ -501,15 +531,6 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
             // attribute checks the number of children on the component
             // before setting any values
             newComponent->addAttribute(switchAttr);
-
-            // Copy the Switch settings to the vsSwitchAttribute
-            for (loop = 0; loop < newComponent->getChildCount(); loop++)
-            {
-                if (switchGroup->getValue(loop))
-                    switchAttr->enableOne(loop);
-                else
-                    switchAttr->disableOne(loop);
-            }
         }
         else if (dynamic_cast<osg::Transform *>(node))
         {
@@ -521,10 +542,10 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
             // There are three different types of transforms in OSG;
             // handle them all separately
             
-            if (dynamic_cast<osg::DOFTransform *>(node))
+            if (dynamic_cast<osgSim::DOFTransform *>(node))
             {
                 // DOFTransform, cast the node to a DOFTransform node
-                dofXformGroup = (osg::DOFTransform *)node;
+                dofXformGroup = (osgSim::DOFTransform *)node;
 
                 // Set the pre-transform data
                 osgMat = dofXformGroup->getInversePutMatrix();
@@ -666,6 +687,8 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     double offsetFactor;
     double offsetUnits;
 
+    osgUtil::SmoothingVisitor *smoother;
+
     // Create the component that represents the osg Geode
     geodeComponent = new vsComponent();
 
@@ -714,6 +737,10 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     offsetArray = (double *)(malloc(sizeof(double) * geode->getNumDrawables()));
     offsetArraySize = 0;
 
+    // Create an osgUtil::SmoothingVisitor to generate normals if we need
+    // to
+    smoother = new osgUtil::SmoothingVisitor();
+
     // Convert each osg::Geometry into one or more vsGeometry objects (one
     // per PrimitiveSet)
     for (loop = 0; loop < (int)geode->getNumDrawables(); loop++)
@@ -725,6 +752,17 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
             // Create a new component to represent the Geometry
             childComponent = new vsComponent();
             geodeComponent->addChild(childComponent);
+
+            // Check for the presence of normals; if none, and the 
+            // AUTOGEN_NORMALS mode is on, use the osgUtil::SmoothingVisitor 
+            // to generate them.  This attempts to better emulate the
+            // OpenGL Performer .flt loader behavior of automatically
+            // generating normals.  If this behavior isn't desired, then
+            // the AUTOGEN_NORMALS loader mode can be switched off.
+            if ((loaderModes & VS_DATABASE_MODE_AUTOGEN_NORMALS) &&
+                ((osgGeometry->getNormalBinding() == osg::Geometry::BIND_OFF) ||
+                 (osgGeometry->getNormalArray() == NULL)))
+                smoother->smooth(*osgGeometry);
 
             // Handle the geometry's state set, if it has one
             osgStateSet = osgGeometry->getStateSet();
@@ -765,7 +803,7 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
             colorMark = 0;
             for (sloop = 0; sloop < VS_MAXIMUM_TEXTURE_UNITS; sloop++)
                 texCoordMark[sloop] = 0;
-        
+
             // For each primitive set on the Geometry, create a vsGeometry
             // that contains the same information
             for (sloop = 0; sloop < (int)osgGeometry->getNumPrimitiveSets(); 
