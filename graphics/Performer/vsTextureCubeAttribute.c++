@@ -16,7 +16,7 @@
 //    Description:  Attribute that specifies a texture cube to use for
 //                  effects like evironment mapping on geometry
 //
-//    Author(s):    Bryan Kline, Duvan Cope
+//    Author(s):    Duvan Cope, Bryan Kline
 //
 //------------------------------------------------------------------------
 
