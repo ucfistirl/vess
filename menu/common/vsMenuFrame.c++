@@ -181,6 +181,10 @@ bool vsMenuFrame::isEqual(vsMenuFrame *frame)
 {
     int i;
 
+    // If an object is compared to itself, the result should always be true
+    if (this == frame)
+        return true;
+
     // The frames are only considered equivalent if they are of the same length
     if (pathDepth == frame->getDepth())
     {
