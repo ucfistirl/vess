@@ -21,7 +21,7 @@
 //                  this version does not need to do any extra work to
 //                  support dynamic geometry.
 //
-//    Author(s):    Bryan Kline, Jason Daly
+//    Author(s):    Bryan Kline, Jason Daly, Duvan Cope
 //
 //------------------------------------------------------------------------
 
