@@ -90,6 +90,7 @@ public:
 
     void              setSize(int width, int height);
     void              getSize(int *width, int *height);
+    void              getDrawableSize(int *width, int *height);
     void              setPosition(int xPos, int yPos);
     void              getPosition(int *xPos, int *yPos);
     void              setFullScreen();
