@@ -69,6 +69,7 @@ private:
     int                 numSlaves;
     bool                isSlave;
     bool                readyToSwap;
+    bool                readyToTerminate;
 public:
 
     static vsSystem     *systemObject;
@@ -88,6 +89,8 @@ public:
 
     void                drawFrame();
     void                releaseSync();
+    void                terminateCluster();
+    bool                hasBeenTerminated();
 };
 
 #endif
