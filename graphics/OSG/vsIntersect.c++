@@ -494,15 +494,18 @@ void vsIntersect::intersect(vsNode *targetNode)
     osg::Node *osgNode; 
     osg::Geode *geoNode;
     osg::Node *pathNode;
-    int loop, sloop, tloop;
+    int loop, sloop, tloop, hloop;
     osgUtil::IntersectVisitor::HitList hitList;
     osgUtil::Hit hit;
+    int validHit;
     int arraySize;
-    osg::Vec3 hitPoint, polyNormal;
+    osg::Vec3 hitPoint, polyNormal, viewRay;
     osg::Matrix xformMat;
     osg::NodePath hitNodePath;
     int pathLength;
     vsNode *vessNode;
+    vsVector viewVec, normalVec;
+    double viewDot;
 
     // This is where the fun begins.  First figure out what kind of node
     // we're starting from and get the Open Scene Graph node out of it
@@ -550,10 +553,67 @@ void vsIntersect::intersect(vsNode *targetNode)
 
         // Get the list of hits for this segment
         hitList = traverser->getHitList((osg::LineSegment *)(segList[loop]));
-        
+
+        // If the facing mode is anything other than VS_INTERSECT_IGNORE_NONE,
+        // separate back and front culling checks must be made to find valid
+        // intersections
+        if (facingMode != VS_INTERSECT_IGNORE_NONE)
+        {
+            // Set up a vector indicating the view direction for this segment
+            viewRay = ((osg::LineSegment *)segList[loop])->end() -
+                      ((osg::LineSegment *)segList[loop])->start();
+            viewVec.set(viewRay.x(), viewRay.y(), viewRay.z());
+           
+            // Set the hit-searching variables to their defaults
+            hloop = 0;
+            validHit = -1;
+
+            // Test all possible hits from front to back until finding the
+            // first that is valid under the current culling mode
+            while ((hloop < hitList.size()) && (validHit == -1))
+            {
+                // Get the next hit for the segment
+                hit = hitList.at(hloop);
+
+                // Find the normal 
+                polyNormal = hit.getWorldIntersectNormal();
+
+                // Convert the normal into a vsVector
+                normalVec.set(polyNormal.x(), polyNormal.y(), polyNormal.z());
+
+                // Get the dot product of the view vector with the normal of
+                // the intersected geometry at this hit
+                viewDot = viewVec.getDotProduct(normalVec);
+
+                // If the dot product of the view vector with the normal of the
+                // intersected polygon is positive, then the polygon was hit
+                // from the back and should only be counted if the facing mode
+                // is not ignoring the back. The same is true for a positive
+                // dot product and a facing mode not ignoring the front.
+                if ((facingMode == VS_INTERSECT_IGNORE_BACKFACE) &&
+                    (viewDot < 0.0))
+                {
+                    validHit = hloop;
+                }
+                else if ((facingMode == VS_INTERSECT_IGNORE_FRONTFACE) &&
+                    (viewDot > 0.0))
+                {
+                    validHit = hloop;
+                }
+
+                // Move on to the next potential hit
+                hloop++;
+            }
+        }
+        else
+        {
+            // The first hit is always valid in this mode
+            validHit = 0;
+        }
+
         // Check for intersections, set this segment's results to zero 
         // values and skip to the next segment if there aren't any
-        if (hitList.empty())
+        if ((hitList.empty()) || (validHit == -1))
         {
             validFlag[loop] = false;
             sectPoint[loop].set(0, 0, 0);
@@ -563,95 +623,96 @@ void vsIntersect::intersect(vsNode *targetNode)
             if (sectPath[loop])
                 delete (sectPath[loop]);
             sectPath[loop] = NULL;
-            continue;
-        }
-        
-        // Set the flag to indicate this segment has a valid intersection
-        validFlag[loop] = true;
-
-        // Get the segment's first hit
-        hit = hitList.front();
-
-        // Get the point and normal vector of intersection
-        hitPoint = hit.getWorldIntersectPoint();
-        polyNormal = hit.getWorldIntersectNormal();
-
-        // See if there is a transform matrix for this intersection
-        if (hit._matrix.valid())
-        {
-            // Get the local-to-global transformation matrix for the 
-            // intersection
-            xformMat = *(hit._matrix.get());
-            
-            // Convert to a vsMatrix
-            for (sloop = 0; sloop < 4; sloop++)
-                for (tloop = 0; tloop < 4; tloop++)
-                    sectXform[loop][sloop][tloop] = xformMat(tloop, sloop);
         }
         else
         {
-            // Set the local-to-global transform matrix to identity (no
-            // transform)
-            sectXform[loop].setIdentity();
-        }
+            // Get the first valid hit from the list
+            hit = hitList.at(validHit);
 
-        // Convert the point and normal to vsVectors
-        sectPoint[loop].set(hitPoint[0], hitPoint[1], hitPoint[2]);
-        sectNorm[loop].set(polyNormal[0], polyNormal[1], polyNormal[2]);
+            // Set the flag to indicate this segment has a valid intersection
+            validFlag[loop] = true;
 
-        // Get the vsGeometry and the primitive index intersected
-        geoNode = hit._geode.get();
-        sectGeom[loop] = (vsGeometry *)((vsNode::getMap())->
-            mapSecondToFirst(geoNode));
-        sectPrim[loop] = hit._primitiveIndex;
-        
-        // Create path information if so requested
-        if (pathsEnabled)
-        {
-            // If the path array for this segment hasn't been allocated,
-            // do it now.
-            if (sectPath[loop] == NULL)
-                sectPath[loop] = new vsGrowableArray(10, 10);
+            // Get the point and normal vector of intersection
+            hitPoint = hit.getWorldIntersectPoint();
+            polyNormal = hit.getWorldIntersectNormal();
 
-            // Get the intersection path from OSG
-            hitNodePath = hit._nodePath;
-
-            // Get the length of the path
-            pathLength = hitNodePath.size();
-
-            // Initialize the index for the array of vsNodes
-            arraySize = 0;
-
-            // Traverse the path and translate it into an array of VESS nodes
-            for (sloop = 0; sloop < pathLength; sloop++)
+            // See if there is a transform matrix for this intersection
+            if (hit._matrix.valid())
             {
-                // Get the next path node from the Performer path array
-                pathNode = (osg::Node *)(hitNodePath[sloop]);
+                // Get the local-to-global transformation matrix for the 
+                // intersection
+                xformMat = *(hit._matrix.get());
+            
+                // Convert to a vsMatrix
+                for (sloop = 0; sloop < 4; sloop++)
+                    for (tloop = 0; tloop < 4; tloop++)
+                        sectXform[loop][sloop][tloop] = xformMat(tloop, sloop);
+            }
+            else
+            {
+                // Set the local-to-global transform matrix to identity (no
+                // transform)
+                sectXform[loop].setIdentity();
+            }
 
-                // If the path node is valid, try to map it to a VESS node
-                if (pathNode != NULL)
+            // Convert the point and normal to vsVectors
+            sectPoint[loop].set(hitPoint[0], hitPoint[1], hitPoint[2]);
+            sectNorm[loop].set(polyNormal[0], polyNormal[1], polyNormal[2]);
+
+            // Get the vsGeometry and the primitive index intersected
+            geoNode = hit._geode.get();
+            sectGeom[loop] = (vsGeometry *)((vsNode::getMap())->
+                mapSecondToFirst(geoNode));
+            sectPrim[loop] = hit._primitiveIndex;
+        
+            // Create path information if so requested
+            if (pathsEnabled)
+            {
+                // If the path array for this segment hasn't been allocated,
+                // do it now.
+                if (sectPath[loop] == NULL)
+                    sectPath[loop] = new vsGrowableArray(10, 10);
+
+                // Get the intersection path from OSG
+                hitNodePath = hit._nodePath;
+
+                // Get the length of the path
+                pathLength = hitNodePath.size();
+
+                // Initialize the index for the array of vsNodes
+                arraySize = 0;
+
+                // Traverse the path and translate it into an array of VESS nodes
+                for (sloop = 0; sloop < pathLength; sloop++)
                 {
-                    vessNode = (vsNode *)
-                        ((vsNode::getMap())->mapSecondToFirst(pathNode));
+                    // Get the next path node from the Performer path array
+                    pathNode = (osg::Node *)(hitNodePath[sloop]);
 
-                    // Add this node to the array if there is a valid mapping
-                    // (not all OSG nodes will have a corresponding VESS node)
-                    if (vessNode)
+                    // If the path node is valid, try to map it to a VESS node
+                    if (pathNode != NULL)
                     {
-                        (sectPath[loop])->setData(arraySize++, vessNode);
+                        vessNode = (vsNode *)
+                            ((vsNode::getMap())->mapSecondToFirst(pathNode));
+
+                        // Add this node to the array if there is a valid mapping
+                        // (not all OSG nodes will have a corresponding VESS node)
+                        if (vessNode)
+                        {
+                            (sectPath[loop])->setData(arraySize++, vessNode);
+                        }
                     }
                 }
-            }
                 
-            // Terminate the path with a NULL
-            (sectPath[loop])->setData(arraySize, NULL);
-        }
-        else if (sectPath[loop])
-        {
-            // Paths have been turned off, so delete the existing path
-            // array
-            delete (sectPath[loop]);
-            sectPath[loop] = NULL;
+                // Terminate the path with a NULL
+                (sectPath[loop])->setData(arraySize, NULL);
+            }
+            else if (sectPath[loop])
+            {
+                // Paths have been turned off, so delete the existing path
+                // array
+                delete (sectPath[loop]);
+                sectPath[loop] = NULL;
+            }
         }
     }
 }
