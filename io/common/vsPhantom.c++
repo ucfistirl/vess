@@ -76,6 +76,14 @@ void vsPhantom::setPosition(vsVector posVec)
 }
 
 // ------------------------------------------------------------------------
+// Set the velocity of the PHANToM's motion
+// ------------------------------------------------------------------------
+void vsPhantom::setVelocity(vsVector velVec)
+{
+    velocity = velVec;
+}
+
+// ------------------------------------------------------------------------
 // Set the orientation of the PHANToM stylus.
 // ------------------------------------------------------------------------
 void vsPhantom::setOrientation(vsVector ornVec,
@@ -129,5 +137,10 @@ vsInputButton *vsPhantom::getButton(int index)
         // Invalid button specified.
         return NULL;
     }
+}
+
+vsVector vsPhantom::getVelocityVec(void)
+{
+    return(velocity);
 }
 

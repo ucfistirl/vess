@@ -32,10 +32,12 @@ class vsPhantom: public vs6DInputDevice
 protected:
 
     vsInputButton    *button[VS_PHANTOM_BUTTONS];
+    vsVector         velocity;
 
 VS_INTERNAL:
 
     void        setPosition(vsVector posVec);
+    void        setVelocity(vsVector velVec);
     void        setOrientation(vsVector ornVec, vsMathEulerAxisOrder axisOrder);
     void        setOrientation(vsMatrix ornMat);
     void        setOrientation(vsQuat ornQuat);
@@ -49,6 +51,8 @@ public:
 
     virtual int               getNumButtons(void);
     virtual vsInputButton    *getButton(int index);
+
+    vsVector                 getVelocityVec(void);
 };
 
 #endif
