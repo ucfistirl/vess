@@ -1175,7 +1175,7 @@ double vsSphereIntersect::getSphereRadius(int sphNum)
     {
         printf("vsSphereIntersect::getSphereRadius: Sphere number out of "
             "bounds\n");
-        return result;
+        return -1.0;
     }
     
     // Get the sphere end point
