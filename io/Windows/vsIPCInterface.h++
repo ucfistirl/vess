@@ -24,6 +24,7 @@
 
 #include <windows.h>
 #include "vsGlobals.h++"
+#include "vsObject.h++"
 
 class VS_IO_DLL vsIPCInterface : public vsObject
 {
