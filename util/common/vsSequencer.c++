@@ -496,6 +496,38 @@ unsigned long vsSequencer::getUpdatableCount(void)
 }
 
 // ------------------------------------------------------------------------
+// Return the updatable with this name.  NULL if not found.
+// ------------------------------------------------------------------------
+vsUpdatable *vsSequencer::getUpdatableByName(char *name)
+{
+    UpdatableEntry  *tempEntry;
+    bool            found;
+
+    // Go through the list, starting at the head.
+    tempEntry = updatableListHead;
+    found = false;
+
+    // Go through the list until the item is found
+    while ((tempEntry) && (!found))
+    {
+        // Check if the names match (meaning we found it)
+        if (strcmp(tempEntry->name, name) == 0)
+            found = true;
+        else
+        {
+           // Advance to the next updatable entry if not found yet
+           tempEntry = tempEntry->next;
+        }
+    }
+
+    // Return appropriate value
+    if (!found)
+        return NULL;
+    else
+        return tempEntry->updatable;
+}
+
+// ------------------------------------------------------------------------
 // Update all the updatables this sequencer manages.
 // ------------------------------------------------------------------------
 void vsSequencer::update(void)
@@ -602,3 +634,4 @@ void vsSequencer::removeEntryFromList(UpdatableEntry *entry)
     entry->next = NULL;
     entry->prev = NULL;
 }
+

@@ -6,6 +6,9 @@
 #include "vsPane.h++"
 #include "vsSystem.h++"
 #include "vsSequencer.h++"
+#include "vsTransformAttribute.h++"
+#include "vsKinematics.h++"
+
 
 #define VS_RI_MAX_BUFFER_SIZE   65536
 
@@ -135,6 +138,149 @@ vsRemoteInterface::~vsRemoteInterface()
 
 
 // ------------------------------------------------------------------------
+// Gets the position information at this level in the XML document
+// ------------------------------------------------------------------------
+void vsRemoteInterface::getPosition(xmlDocPtr doc, xmlNodePtr current,
+                                    double *x, double *y, double *z)
+{
+    // Go through the childen and see what updates are there
+    current = current->xmlChildrenNode;
+    while (current != NULL)
+    {
+        // Look for element tags we recognize
+        if (xmlStrcmp(current->name, (const xmlChar *) "x") == 0)
+        {
+            // Get the value of the "x" element and store it
+            *x = atof((char *) xmlNodeListGetString(doc, 
+                                                    current->xmlChildrenNode, 
+                                                    1));
+        }
+        else if (xmlStrcmp(current->name, (const xmlChar *) "y") == 0)
+        {
+            // Get the value of the "y" element and store it
+            *y = atof((char *) xmlNodeListGetString(doc, 
+                                                    current->xmlChildrenNode, 
+                                                    1));
+        }
+        else if (xmlStrcmp(current->name, (const xmlChar *) "z") == 0)
+        {
+            // Get the value of the "z" element and store it
+            *z = atof((char *) xmlNodeListGetString(doc, 
+                                                    current->xmlChildrenNode, 
+                                                    1));
+        }
+
+        // Go to the next node
+        current = current->next;
+    }
+}
+
+
+// ------------------------------------------------------------------------
+// Gets the orientation information at this level in the XML document
+// ------------------------------------------------------------------------
+void vsRemoteInterface::getOrientation(xmlDocPtr doc, xmlNodePtr current,
+                                       vsQuat *quat)
+{
+    xmlChar                *order;
+    vsMathEulerAxisOrder   ordering;
+    double                 h;
+    double                 p;
+    double                 r;
+
+    // Get the attribute for the axis ordering
+    order = xmlGetProp(current, (const xmlChar *) "order");
+
+    // Determine the proper VESS constant for the string
+    if (xmlStrcmp(order, (const xmlChar *) "XYZ_S") == 0)
+        ordering = VS_EULER_ANGLES_XYZ_S;
+    else if (xmlStrcmp(order, (const xmlChar *) "XZY_S") == 0)
+        ordering = VS_EULER_ANGLES_XZY_S;
+    else if (xmlStrcmp(order, (const xmlChar *) "YXZ_S") == 0)
+        ordering = VS_EULER_ANGLES_YXZ_S;
+    else if (xmlStrcmp(order, (const xmlChar *) "YZX_S") == 0)
+        ordering = VS_EULER_ANGLES_YZX_S;
+    else if (xmlStrcmp(order, (const xmlChar *) "ZXY_S") == 0)
+        ordering = VS_EULER_ANGLES_ZXY_S;
+    else if (xmlStrcmp(order, (const xmlChar *) "ZYX_S") == 0)
+        ordering = VS_EULER_ANGLES_ZYX_S;
+    else if (xmlStrcmp(order, (const xmlChar *) "XYX_S") == 0)
+        ordering = VS_EULER_ANGLES_XYX_S;
+    else if (xmlStrcmp(order, (const xmlChar *) "XZX_S") == 0)
+        ordering = VS_EULER_ANGLES_XZX_S;
+    else if (xmlStrcmp(order, (const xmlChar *) "YXY_S") == 0)
+        ordering = VS_EULER_ANGLES_YXY_S;
+    else if (xmlStrcmp(order, (const xmlChar *) "YZY_S") == 0)
+        ordering = VS_EULER_ANGLES_YZY_S;
+    else if (xmlStrcmp(order, (const xmlChar *) "ZXZ_S") == 0)
+        ordering = VS_EULER_ANGLES_ZXZ_S;
+    else if (xmlStrcmp(order, (const xmlChar *) "ZYZ_S") == 0)
+        ordering = VS_EULER_ANGLES_ZYZ_S;
+    else if (xmlStrcmp(order, (const xmlChar *) "XYZ_R") == 0)
+        ordering = VS_EULER_ANGLES_XYZ_R;
+    else if (xmlStrcmp(order, (const xmlChar *) "XZY_R") == 0)
+        ordering = VS_EULER_ANGLES_XZY_R;
+    else if (xmlStrcmp(order, (const xmlChar *) "YXZ_R") == 0)
+        ordering = VS_EULER_ANGLES_YXZ_R;
+    else if (xmlStrcmp(order, (const xmlChar *) "YZX_R") == 0)
+        ordering = VS_EULER_ANGLES_YZX_R;
+    else if (xmlStrcmp(order, (const xmlChar *) "ZXY_R") == 0)
+        ordering = VS_EULER_ANGLES_ZXY_R;
+    else if (xmlStrcmp(order, (const xmlChar *) "ZYX_R") == 0)
+        ordering = VS_EULER_ANGLES_ZYX_R;
+    else if (xmlStrcmp(order, (const xmlChar *) "XYX_R") == 0)
+        ordering = VS_EULER_ANGLES_XYX_R;
+    else if (xmlStrcmp(order, (const xmlChar *) "XZX_R") == 0)
+        ordering = VS_EULER_ANGLES_XZX_R;
+    else if (xmlStrcmp(order, (const xmlChar *) "YXY_R") == 0)
+        ordering = VS_EULER_ANGLES_YXY_R;
+    else if (xmlStrcmp(order, (const xmlChar *) "YZY_R") == 0)
+        ordering = VS_EULER_ANGLES_YZY_R;
+    else if (xmlStrcmp(order, (const xmlChar *) "ZXZ_R") == 0)
+        ordering = VS_EULER_ANGLES_ZXZ_R;
+    else if (xmlStrcmp(order, (const xmlChar *) "ZYZ_R") == 0)
+        ordering = VS_EULER_ANGLES_ZYZ_R;
+
+    // Get euler angles from the passed in quaternion
+    quat->getEulerRotation(ordering, &h, &p, &r);
+
+    // Go through the children and see what updates are there
+    current = current->xmlChildrenNode;
+    while (current != NULL)
+    {
+        // Look for element tags we recognize
+        if (xmlStrcmp(current->name, (const xmlChar *) "h") == 0)
+        {
+            // Store the new heading
+            h = atof((char *) xmlNodeListGetString(doc, 
+                                                   current->xmlChildrenNode, 
+                                                   1));
+        }
+        else if (xmlStrcmp(current->name, (const xmlChar *) "p") == 0)
+        {
+            // Store the new pitch
+            p = atof((char *) xmlNodeListGetString(doc, 
+                                                   current->xmlChildrenNode, 
+                                                   1));
+        }
+        else if (xmlStrcmp(current->name, (const xmlChar *) "r") == 0)
+        {
+            // Store the new roll
+            r = atof((char *) xmlNodeListGetString(doc, 
+                                                   current->xmlChildrenNode, 
+                                                   1));
+        }
+
+        // Go to the next node
+        current = current->next;
+    }
+
+    // Set the quaternion based on the new values
+    quat->setEulerRotation(ordering, h, p, r);
+}
+
+
+// ------------------------------------------------------------------------
 // Takes an XML document from the xml buffer, validates it, determines
 // what type it is, and calls the appropriate processing method
 // ------------------------------------------------------------------------
@@ -205,13 +351,23 @@ void vsRemoteInterface::processXMLDocument()
         // Look at the child's name and process accordingly (the name will
         // match what we think of as VESS XML commands -- "stats" for
         // example)
-        if (xmlStrcmp(current->name, (const xmlChar *) "querysequence") == 0)
+        if (xmlStrcmp(current->name, (const xmlChar *) "placecomponent") == 0)
+        {
+            processPlaceComponent(doc, current);
+        }
+        else if (xmlStrcmp(current->name, 
+                           (const xmlChar *) "querysequence") == 0)
         {
             processQuerySequence(doc, current);
         }
         else if (xmlStrcmp(current->name, (const xmlChar *) "releasesync") == 0)
         {
             processReleaseSync(doc, current);
+        }
+        else if (xmlStrcmp(current->name, 
+                           (const xmlChar *) "setkinematics") == 0)
+        {
+            processSetKinematics(doc, current);
         }
         else if (xmlStrcmp(current->name, (const xmlChar *) "stats") == 0)
         {
@@ -235,6 +391,82 @@ void vsRemoteInterface::processXMLDocument()
 
 
 // ------------------------------------------------------------------------
+// Update the position and orientation (if given) of the given component
+// ------------------------------------------------------------------------
+void vsRemoteInterface::processPlaceComponent(xmlDocPtr doc, xmlNodePtr current)
+{
+    int                    screenIndex;
+    int                    windowIndex;
+    int                    paneIndex;
+    char                   *name;
+    vsNode                 *node;
+    vsTransformAttribute   *xform;
+    vsMatrix               mat;
+    double                 x;
+    double                 y;
+    double                 z;
+    vsQuat                 quat;
+
+    // Initialize the quaternion that stores the orientation
+    quat.set(0, 0, 0, 1);
+
+    // Look for the required attributes
+    screenIndex = atoi((const char *) xmlGetProp(current, 
+                                                 (const xmlChar *) "screen"));
+    windowIndex = atoi((const char *) xmlGetProp(current, 
+                                                 (const xmlChar *) "window"));
+    paneIndex = atoi((const char *) xmlGetProp(current, 
+                                               (const xmlChar *) "pane"));
+    name = (char *) xmlGetProp(current, (const xmlChar *) "name");
+
+    // Get the component named as given
+    node = vsScreen::getScreen(screenIndex)->getChildWindow(windowIndex)->
+               getChildPane(paneIndex)->getScene()->findNodeByName(name);
+
+    // Get the transform on the node
+    xform = (vsTransformAttribute *) node->getTypedAttribute(
+        VS_ATTRIBUTE_TYPE_TRANSFORM, 0);
+
+    // Check to make sure we got a transform; otherwise,
+    if (xform == NULL)
+    {
+        printf("Don't have a transform\n");
+        return;
+    }
+
+    // Get the matrix from the transform and get the position and orientation
+    // out of it
+    mat = xform->getDynamicTransform();
+    mat.getTranslation(&x, &y, &z);
+    quat.setMatrixRotation(mat);
+
+    // Go through the children and see what updates are there
+    current = current->xmlChildrenNode;
+    while (current != NULL)
+    {
+        if (xmlStrcmp(current->name, (const xmlChar *) "position") == 0)
+        {
+            // Found a position so get the components out of it
+            getPosition(doc, current, &x, &y, &z);
+        }
+        else if (xmlStrcmp(current->name, (const xmlChar *) "orientation") == 0)
+        {
+            // Found an orientation so get the components out of it
+            getOrientation(doc, current, &quat);
+        }
+
+        // Get the next child of the root element
+        current = current->next;
+    }
+
+    // Set the new transform onto the transform attribute
+    mat.setTranslation(x, y, z);
+    mat.setQuatRotation(quat);
+    xform->setDynamicTransform(mat);
+}
+
+
+// ------------------------------------------------------------------------
 // Get the current sequence from the "root" sequencer and send it back
 // to the calling client
 // ------------------------------------------------------------------------
@@ -244,6 +476,8 @@ void vsRemoteInterface::processQuerySequence(xmlDocPtr doc, xmlNodePtr current)
 
     // Get the "root" sequencer
     rootSequencer = vsSystem::systemObject->getSequencer();
+
+    // Go through and collect the state of the sequencer
 }
 
 
@@ -256,6 +490,63 @@ void vsRemoteInterface::processReleaseSync(xmlDocPtr doc, xmlNodePtr current)
 {
     // Release the swap locking sync on the cluster
     vsSystem::systemObject->releaseSync();
+}
+
+
+// ------------------------------------------------------------------------
+// Set a kinematics object (position and orientation)
+// ------------------------------------------------------------------------
+void vsRemoteInterface::processSetKinematics(xmlDocPtr doc, xmlNodePtr current)
+{
+    vsQuat         quat;
+    char           *kinematicsName;
+    vsSequencer    *rootSequencer;
+    vsKinematics   *kinematics;
+    vsVector       positionVector;
+    double         x;
+    double         y;
+    double         z;
+
+    // Initialize the quaternion that stores the orientation
+    quat.set(0, 0, 0, 1);
+
+    // Look for the required attribute
+    kinematicsName = (char *) xmlGetProp(current, (const xmlChar *) "name");
+
+    // Search for the kinematics associated with the name in the sequencer
+    rootSequencer = vsSystem::systemObject->getSequencer();
+    kinematics = 
+        (vsKinematics *) rootSequencer->getUpdatableByName(kinematicsName);
+
+    // Get the data out of the kinematics
+    positionVector = kinematics->getPosition();
+    x = positionVector[VS_X];
+    y = positionVector[VS_Y];
+    z = positionVector[VS_Z];
+    quat = kinematics->getOrientation();
+
+    // Go through the children and see what updates are there
+    current = current->xmlChildrenNode;
+    while (current != NULL)
+    {
+        if (xmlStrcmp(current->name, (const xmlChar *) "position") == 0)
+        {
+            getPosition(doc, current, &x, &y, &z);
+        }
+        else if (xmlStrcmp(current->name, (const xmlChar *) "orientation") == 0)        {
+            getOrientation(doc, current, &quat);
+        }
+
+        // Get the next child of the root element
+        current = current->next;
+    }
+
+    // Set the kinematics with the new data
+    positionVector[VS_X] = x;
+    positionVector[VS_Y] = y;
+    positionVector[VS_Z] = z;
+    kinematics->setPosition(positionVector);
+    kinematics->setOrientation(quat);
 }
 
 
@@ -316,13 +607,12 @@ void vsRemoteInterface::processTerminateCluster(xmlDocPtr doc,
 void vsRemoteInterface::update()
 {
     int      tempClientID;
-    u_long   i;
     int      lengthRead;
     u_char   buffer[VS_RI_MAX_XML_DOCUMENT_SIZE + VS_RI_MAX_BUFFER_SIZE];
     u_char   *nextNull;
     u_char   *endTag;
-    u_long   partialChunkSize;
-    u_long   numWhiteSpace;
+    int      partialChunkSize;
+    int      numWhiteSpace;
 
     // See if somebody wants to connect through the TCP interface
     tempClientID = tcpInterface->acceptConnection();

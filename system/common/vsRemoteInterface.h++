@@ -27,11 +27,20 @@ protected:
     u_long                   numClients;
     int                      tcpClientIDs[VS_MAX_CONNECTIONS];
 
+    void                     getPosition(xmlDocPtr doc, xmlNodePtr node,
+                                         double *x, double *y, double *z);
+    void                     getOrientation(xmlDocPtr doc, xmlNodePtr node,
+                                            vsQuat *quat);
+
     void                     processXMLDocument();
+    void                     processPlaceComponent(xmlDocPtr doc, 
+                                                   xmlNodePtr current);
     void                     processQuerySequence(xmlDocPtr doc, 
                                                   xmlNodePtr current);
     void                     processReleaseSync(xmlDocPtr doc, 
                                                 xmlNodePtr current);
+    void                     processSetKinematics(xmlDocPtr doc, 
+                                                  xmlNodePtr current);
     void                     processStats(xmlDocPtr doc, xmlNodePtr current);
     void                     processTerminateCluster(xmlDocPtr doc, 
                                                      xmlNodePtr current);

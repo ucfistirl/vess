@@ -76,6 +76,7 @@ public:
 
     unsigned long   getUpdatableCount(void);
     vsUpdatable     *getUpdatable(unsigned long i);
+    vsUpdatable     *getUpdatableByName(char *name);
 
     virtual void    update(void);
 };
