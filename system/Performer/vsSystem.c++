@@ -334,6 +334,19 @@ void vsSystem::preFrameTraverse(vsNode *node)
 // ------------------------------------------------------------------------
 void vsSystem::drawFrame()
 {
+    int screenLoop, windowLoop, paneLoop;
+    int windowCount, paneCount;
+    vsScreen *targetScreen;
+    vsWindow *targetWindow;
+    vsPane *targetPane;
+    vsNode *scene;
+    int screenCount;
+    vsTreeMap *binModeList;
+    vsGrowableArray binList(1, 1);
+    vsGrowableArray modeList(1, 1);
+    int binLoop;
+    int binNum, binMode;
+
     // Do nothing if this isn't a real system object
     if (!validObject)
         return;
@@ -345,18 +358,8 @@ void vsSystem::drawFrame()
 	return;
     }
 
-    int screenLoop, windowLoop, paneLoop;
-    int windowCount, paneCount;
-    vsScreen *targetScreen;
-    vsWindow *targetWindow;
-    vsPane *targetPane;
-    vsNode *scene;
-    int screenCount = vsScreen::getScreenCount();
-    vsTreeMap *binModeList;
-    vsGrowableArray binList(1, 1);
-    vsGrowableArray modeList(1, 1);
-    int binLoop;
-    int binNum, binMode;
+    // Get the number of screens available
+    screenCount = vsScreen::getScreenCount();
 
     // Get the bin mode list from the vsGeometry class
     binModeList = vsGeometry::getBinModeList();
@@ -372,6 +375,7 @@ void vsSystem::drawFrame()
         // Loop over all screens
         for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
         {
+            // Find the number of windows on this screen
             targetScreen = vsScreen::getScreen(screenLoop);
             windowCount = targetScreen->getChildWindowCount();
 
