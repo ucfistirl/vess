@@ -33,6 +33,10 @@ vsSequenceAttribute::vsSequenceAttribute()
 {
     // Start with a NULL osg::Sequence
     osgSequence = NULL;
+
+    // Create a sequence callback function pointing to this attribute
+    seqCallback = new vsSequenceCallback(this);
+    seqCallback->ref();
 }
 
 // ------------------------------------------------------------------------
@@ -40,6 +44,14 @@ vsSequenceAttribute::vsSequenceAttribute()
 // ------------------------------------------------------------------------
 vsSequenceAttribute::~vsSequenceAttribute()
 {
+    // Detach before deleting
+    if (isAttached())
+    {
+        detach(NULL);
+    }
+
+    // Unreference the sequence callback, so OSG will delete it
+    seqCallback->unref();
 }
 
 // ------------------------------------------------------------------------
@@ -364,9 +376,12 @@ void vsSequenceAttribute::attach(vsNode *theNode)
     osgSequence->setDuration(1.0, -1);
     osgSequence->setMode(osg::Sequence::START);
 
-    // Set the default time for each child to one second
+    // Set the default time for each child to zero time
     for (loop = 0; loop < childCount; loop++)
-        osgSequence->setTime(loop, 1.0);
+        osgSequence->setTime(loop, 0.016);
+
+    // Set the app callback for the OSG sequence node we're using
+    osgSequence->setAppCallback(seqCallback);
     
     // Flag the attribute as attached
     attachedCount = 1;
@@ -387,6 +402,9 @@ void vsSequenceAttribute::detach(vsNode *theNode)
         printf("vsSequenceAttribute::attach: Attribute is not attached\n");
         return;
     }
+    
+    // Remove the app callback from the OSG sequence node
+    osgSequence->setAppCallback(NULL);
     
     // Replace the sequence with an ordinary group
     newGroup = new osg::Group();

@@ -25,9 +25,12 @@
 #ifndef VS_SEQUENCE_ATTRIBUTE_HPP
 #define VS_SEQUENCE_ATTRIBUTE_HPP
 
+class vsSequenceAttribute;
+
 #include <osg/Sequence>
 #include "vsAttribute.h++"
 #include "vsNode.h++"
+#include "vsSequenceCallback.h++"
 
 #define VS_SEQUENCE_ALL_CHILDREN -1
 #define VS_SEQUENCE_TIME_PAUSE   -1.0
@@ -50,7 +53,8 @@ class VS_GRAPHICS_DLL vsSequenceAttribute : public vsAttribute
 {
 private:
 
-    osg::Sequence   *osgSequence;
+    osg::Sequence         *osgSequence;
+    vsSequenceCallback    *seqCallback;
 
 VS_INTERNAL:
 
