@@ -740,6 +740,9 @@ vsQuat vsQuat::slerp(vsQuat destination, double parameter)
         printf("vsQuat::slerp: 'parameter' must be in range 0.0 - 1.0\n");
         return resultQuat;
     }
+    
+    if (isEqual(destination))
+	return (*this);
 
     theta = 0.0;
     for (loop = 0; loop < 4; loop++)
