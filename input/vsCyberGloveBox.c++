@@ -312,7 +312,6 @@ void vsCyberGloveBox::update()
     int           stat;
     int           retry;
     int           sensor, bufPos;
-    int           i;
 
     buf[0] = 0;
     bytesRead = 0;
