@@ -15,11 +15,10 @@
 //
 //    Description:  vsNode subclass that is a leaf node in a VESS scene
 //                  graph. Stores geometry data such as vertex and texture
-//                  coordinates, colors, and face normals.  This version
-//                  is a simple subclass of vsGeometry for Open Scene
-//                  Graph.  Since OSG only operates in a single process,
-//                  this version does not need to do any extra work to
-//                  support dynamic geometry.
+//                  coordinates, colors, and face normals.  Under Open
+//                  Scene Graph, the only real difference between this 
+//                  class and vsGeometry is that this class disables the
+//                  use of display lists.
 //
 //    Author(s):    Bryan Kline, Jason Daly, Duvan Cope
 //
