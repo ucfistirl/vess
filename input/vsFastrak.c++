@@ -98,6 +98,9 @@ vsFastrak::vsFastrak(int portNumber, long baud, int nTrackers)
             numTrackers = nTrackers;
         }
 
+        // Check the byte ordering of the local machine
+        bigEndian = isBigEndian();
+
         // Set some default configurations
         setBinaryOutput();
 
@@ -359,18 +362,46 @@ void vsFastrak::initOutputFormat()
 }
 
 // ------------------------------------------------------------------------
+// From Harbinson&Steele.  Determines whether this machine is big- or
+// little-endian.
+// ------------------------------------------------------------------------
+int vsFastrak::isBigEndian()
+{
+    // Union of a long and four bytes used to perform the test
+    union
+    {
+        long          l;
+        unsigned char c[sizeof (long)];
+    } u;
+
+    // Set the long to 1
+    u.l = 1;
+
+    // If the last byte of the character array corresponding to the long
+    // is 1, we're big-endian
+    return (u.c[sizeof (long) - 1] == 1);
+}
+
+// ------------------------------------------------------------------------
 // Convert a little-endian 32-bit floating point number to big-endian (or 
-// vice versa)
+// vice versa)  The FASTRAK uses little-endian floats, so we'll need to
+// convert if the machine is big-endian
 // ------------------------------------------------------------------------
 void vsFastrak::endianSwap(float *inFloat, float *outFloat)
 {
-    *outFloat = *inFloat;
-/*
-    ((unsigned char *)outFloat)[0] = ((unsigned char *)inFloat)[3];
-    ((unsigned char *)outFloat)[1] = ((unsigned char *)inFloat)[2];
-    ((unsigned char *)outFloat)[2] = ((unsigned char *)inFloat)[1];
-    ((unsigned char *)outFloat)[3] = ((unsigned char *)inFloat)[0];
-*/
+    if (bigEndian)
+    {
+        // Perform the swap
+        ((unsigned char *)outFloat)[0] = ((unsigned char *)inFloat)[3];
+        ((unsigned char *)outFloat)[1] = ((unsigned char *)inFloat)[2];
+        ((unsigned char *)outFloat)[2] = ((unsigned char *)inFloat)[1];
+        ((unsigned char *)outFloat)[3] = ((unsigned char *)inFloat)[0];
+    }
+    else
+    {
+        // Just copy the input to the output
+        *outFloat = *inFloat;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -656,7 +687,7 @@ void vsFastrak::updateSystem()
                                 // The Fastrak sends the scalar part first,
                                 // but the vsQuat expects it last, so we have
                                 // to account for this by shifting the indices
-                                tempQuat[(j + 1) % 4] = tempFloat;
+                                tempQuat[(j+1) % 4] = tempFloat;
 
                                 bufIndex += sizeof(float);
                             }
