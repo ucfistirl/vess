@@ -82,6 +82,9 @@ vsDatabaseLoader::~vsDatabaseLoader()
 {
     // Delete the important names list
     clearNames();
+
+    // Delete the loader path
+    free(loaderFilePath);
 }
 
 // ------------------------------------------------------------------------
