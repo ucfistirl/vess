@@ -28,6 +28,7 @@ libvsGraphics_a_SOURCES = \
                           @SG@/vsSwitchAttribute.c++ \
                           @SG@/vsTextBuilder.c++ \
                           @SG@/vsTextureAttribute.c++ \
+                          @SG@/vsTextureCubeAttribute.c++ \
                           @SG@/vsTransformAttribute.c++ \
                           @SG@/vsTransparencyAttribute.c++ \
                           @SG@/vsView.c++ \
@@ -48,6 +49,7 @@ EXTRA_libvsGraphics_a_SOURCES = \
                                 OSG/vsBillboardCallback.c++ \
                                 OSG/vsCgMatrixParameter.c++ \
                                 OSG/vsCgParameter.c++ \
+                                OSG/vsCgParameterBlockAttribute.c++ \
                                 OSG/vsCgShaderAttribute.c++ \
                                 OSG/vsCgStateMatrixParameter.c++ \
                                 OSG/vsCgTextureParameter.c++ \
@@ -88,6 +90,7 @@ include_HEADERS = \
                   @SG@/vsSwitchAttribute.h++ \
                   @SG@/vsTextBuilder.h++ \
                   @SG@/vsTextureAttribute.h++ \
+                  @SG@/vsTextureCubeAttribute.h++ \
                   @SG@/vsTransformAttribute.h++ \
                   @SG@/vsTransparencyAttribute.h++ \
                   @SG@/vsView.h++ \
@@ -105,6 +108,7 @@ EXTRA_HEADERS = \
                 OSG/vsBillboardCallback.h++ \
                 OSG/vsCgMatrixParameter.h++ \
                 OSG/vsCgParameter.h++ \
+                OSG/vsCgParameterBlockAttribute.h++ \
                 OSG/vsCgShaderAttribute.h++ \
                 OSG/vsCgStateMatrixParameter.h++ \
                 OSG/vsCgTextureParameter.h++ \
