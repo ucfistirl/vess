@@ -46,8 +46,8 @@ vsMenuLink::vsMenuLink()
 vsMenuLink::vsMenuLink(vsMenuObject *object)
 {
     // Store the component and kinematics for later use
-    menuComponent = object->getComponent();
-    menuKinematics = object->getKinematics();
+    menuComponent = (vsComponent *)object->getComponent()->cloneTree();
+    menuKinematics = new vsKinematics(menuComponent);
 
     // Reference the component and kinematics objects
     if (menuComponent)
