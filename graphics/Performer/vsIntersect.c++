@@ -27,6 +27,7 @@
 #include <Performer/pf/pfSCS.h>
 
 #include "vsDynamicGeometry.h++"
+#include "vsSkeletonMeshGeometry.h++"
 
 // ------------------------------------------------------------------------
 // Constructor - Initializes the segment list
@@ -492,6 +493,9 @@ void vsIntersect::intersect(vsNode *targetNode)
     else if (targetNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY)
         performerNode = 
             ((vsDynamicGeometry *)targetNode)->getBaseLibraryObject();
+    else if (targetNode->getNodeType() == VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
+        performerNode = 
+            ((vsSkeletonMeshGeometry *)targetNode)->getBaseLibraryObject();
     else if (targetNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
         performerNode = ((vsComponent *)targetNode)->getBaseLibraryObject();
 

@@ -177,7 +177,8 @@ void vsBillboardAttribute::attach(vsNode *theNode)
     }
     
     if ((theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY) ||
-        (theNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY))
+        (theNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY) ||
+        (theNode->getNodeType() == VS_NODE_TYPE_SKELETON_MESH_GEOMETRY))
     {
         printf("vsBillboardAttribute::attach: Can't attach billboard "
             "attributes to geometry nodes\n");

@@ -403,7 +403,8 @@ void vsTransformAttribute::attach(vsNode *theNode)
     
     // Transform attributes may not be attached to geometry nodes
     if ((theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY) ||
-        (theNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY))
+        (theNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY) ||
+        (theNode->getNodeType() == VS_NODE_TYPE_SKELETON_MESH_GEOMETRY))
     {
         printf("vsTransformAttribute::attach: Can't attach transform "
             "attributes to geometry nodes\n");
