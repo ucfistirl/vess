@@ -992,6 +992,7 @@ void *vsAvatar::makeVsLinuxJoystickSystem()
     char token[256];
     int lineType = 0;
     char portName[256];
+    vsLinuxJoystickSystem *result;
 
     // Read the parameters for the object
     while (lineType != VS_AVT_LINE_END)
@@ -2059,8 +2060,8 @@ void *vsAvatar::makeVsAxisRotation()
     char token[256];
     int lineType = 0;
     vsKinematics *kinematics = NULL;
-    vsMouse *mouse = NULL;
     char objName[256], strValue[256];
+    int objNum;
     double headingWidth = VS_AR_DEFAULT_HEADING_WIDTH;
     double pitchWidth = VS_AR_DEFAULT_PITCH_WIDTH;
     double headingSpeed = VS_AR_DEFAULT_HEADING_SPEED;
@@ -2068,11 +2069,10 @@ void *vsAvatar::makeVsAxisRotation()
     vsQuat defaultOrient = vsQuat(0.0, 0.0, 0.0, 1.0);
     double heading, pitch, roll;
     vsAxisRotation *result;
+    vsInputDevice *inputDev;
     vsInputAxis *headingAxis = NULL;
     vsInputAxis *pitchAxis = NULL;
     vsInputButton *resetBtn = NULL;
-    vsInputDevice *inputDev;
-    int objNum;
     
     // Read the parameters for this object
     while (lineType != VS_AVT_LINE_END)
@@ -2178,7 +2178,7 @@ void *vsAvatar::makeVsAxisRotation()
     else
     {
         // Need to have at least one of the axes for a useful object
-        printf("vsAvatar::makeVsDrivingMotion: No heading or pitch axis "
+        printf("vsAvatar::makeVsAxisRotation: No heading or pitch axis "
             "specified\n");
         return NULL;
     }
@@ -2192,7 +2192,7 @@ void *vsAvatar::makeVsAxisRotation()
 
     // Center the rotations to start with
     result->center();
-    
+
     return result;
 }
 
