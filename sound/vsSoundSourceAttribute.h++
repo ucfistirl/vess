@@ -7,7 +7,12 @@
 #include "vsComponent.h++"
 #include "vsAttribute.h++"
 #include "vsSoundSample.h++"
+
+/* 
+    Sound streams are not available yet
 #include "vsSoundStream.h++"
+*/
+
 #include "vsVector.h++"
 #include "vsMatrix.h++"
 #include "vsQuat.h++"
@@ -59,8 +64,10 @@ public:
     // sound)
                    vsSoundSourceAttribute(vsSoundSample *buffer, int loop);
 
+/*
     // Constructor for a streaming sound source
                    vsSoundSourceAttribute(vsSoundStream *buffer);
+*/
 
     // Destructor
     virtual        ~vsSoundSourceAttribute();

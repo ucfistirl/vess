@@ -4,6 +4,9 @@
 // Loads and maintains a static buffer of audio data from a given sound file
 // This implementation uses OpenAL
 
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alkludge.h>
 #include "vsGlobals.h++"
 #include "vsSoundBuffer.h++"
 
