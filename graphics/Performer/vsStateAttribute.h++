@@ -45,7 +45,7 @@ VS_INTERNAL:
     virtual void    attach(vsNode *theNode);
     virtual void    detach(vsNode *theNode);
 
-    virtual bool    isEquivalent(vsAttribute *attribute) = false;
+    virtual bool    isEquivalent(vsAttribute *attribute) = 0;
 
 public:
 
