@@ -31,7 +31,9 @@
 // ------------------------------------------------------------------------
 vsMatrix::vsMatrix()
 {
-    clear();
+    // I would normally call clear() to zero the matrix here, but since the
+    // matrix is made up of vsVectors, which zero themselves on creation
+    // anyway, it's unnecessary to do it again.
 }
 
 // ------------------------------------------------------------------------
@@ -325,57 +327,138 @@ double vsMatrix::getDeterminant() const
 // ------------------------------------------------------------------------
 void vsMatrix::invert()
 {
+    // The code for this is pulled from the document "Streaming SIMD
+    // Externsions - Inverse of 4x4 Matrix", Intel Technical Document
+    // AP-928.
+
     double det;
-    int i, j, k;
-    vsMatrix result;
-    vsMatrix minorMatrix;
+    double sourceMat[16];
+    double destMat[16];
+    double temp[12];
+    int i;
 
     // A matrix with a zero determinant can't be inverted
     det = getDeterminant();
-    if (fabs(det) < VS_DEFAULT_TOLERANCE)
+    if (det == 0.0)
     {
         printf("vsMatrix::invert: Matrix has no inverse\n");
         return;
     }
-    
-    // Find the cofactor matrix
+
+    // Extract the elements of the matrix into a local variable to improve
+    // access speed. Also transpose the matrix at the same time, as this is
+    // something we'd have to do anyway.
     for (i = 0; i < 4; i++)
-        for (j = 0; j < 4; j++)
-        {
-            // Compute this value in the cofactor matrix by finding
-            // the determinant of the minor matrix for this entry.
+    {
+        sourceMat[i]      = data[i].getValue(0);
+        sourceMat[i + 4]  = data[i].getValue(1);
+        sourceMat[i + 8]  = data[i].getValue(2);
+        sourceMat[i + 12] = data[i].getValue(3);
+    }
 
-            // Since we're just going to do a determinant calculation
-            // afterwards, the effect of creating a minor matrix can be
-            // emulated by clearing the row and column of the matrix
-            // that would have been removed intead to zero, except for
-            // the value at the intersection of the row and column,
-            // which is set to one.
-            minorMatrix = (*this);
+    // Compute temporary values for the first round of calculations
+    temp[0]  = sourceMat[10] * sourceMat[15];
+    temp[1]  = sourceMat[11] * sourceMat[14];
+    temp[2]  = sourceMat[9]  * sourceMat[15];
+    temp[3]  = sourceMat[11] * sourceMat[13];
+    temp[4]  = sourceMat[9]  * sourceMat[14];
+    temp[5]  = sourceMat[10] * sourceMat[13];
+    temp[6]  = sourceMat[8]  * sourceMat[15];
+    temp[7]  = sourceMat[11] * sourceMat[12];
+    temp[8]  = sourceMat[8]  * sourceMat[14];
+    temp[9]  = sourceMat[10] * sourceMat[12];
+    temp[10] = sourceMat[8]  * sourceMat[13];
+    temp[11] = sourceMat[9]  * sourceMat[12];
 
-            // Row clear
-            minorMatrix.data[i].clear();
+    // Calculate the top half of the result matrix
+    destMat[0]  = temp[0]*sourceMat[5] + temp[3]*sourceMat[6] +
+        temp[4]*sourceMat[7];
+    destMat[0] -= temp[1]*sourceMat[5] + temp[2]*sourceMat[6] +
+        temp[5]*sourceMat[7];
+    destMat[1]  = temp[1]*sourceMat[4] + temp[6]*sourceMat[6] +
+        temp[9]*sourceMat[7];
+    destMat[1] -= temp[0]*sourceMat[4] + temp[7]*sourceMat[6] +
+        temp[8]*sourceMat[7];
+    destMat[2]  = temp[2]*sourceMat[4] + temp[7]*sourceMat[5] +
+        temp[10]*sourceMat[7];
+    destMat[2] -= temp[3]*sourceMat[4] + temp[6]*sourceMat[5] +
+        temp[11]*sourceMat[7];
+    destMat[3]  = temp[5]*sourceMat[4] + temp[8]*sourceMat[5] +
+        temp[11]*sourceMat[6];
+    destMat[3] -= temp[4]*sourceMat[4] + temp[9]*sourceMat[5] +
+        temp[10]*sourceMat[6];
+    destMat[4]  = temp[1]*sourceMat[1] + temp[2]*sourceMat[2] +
+        temp[5]*sourceMat[3];
+    destMat[4] -= temp[0]*sourceMat[1] + temp[3]*sourceMat[2] +
+        temp[4]*sourceMat[3];
+    destMat[5]  = temp[0]*sourceMat[0] + temp[7]*sourceMat[2] +
+        temp[8]*sourceMat[3];
+    destMat[5] -= temp[1]*sourceMat[0] + temp[6]*sourceMat[2] +
+        temp[9]*sourceMat[3];
+    destMat[6]  = temp[3]*sourceMat[0] + temp[6]*sourceMat[1] +
+        temp[11]*sourceMat[3];
+    destMat[6] -= temp[2]*sourceMat[0] + temp[7]*sourceMat[1] +
+        temp[10]*sourceMat[3];
+    destMat[7]  = temp[4]*sourceMat[0] + temp[9]*sourceMat[1] +
+        temp[10]*sourceMat[2];
+    destMat[7] -= temp[5]*sourceMat[0] + temp[8]*sourceMat[1] +
+        temp[11]*sourceMat[2];
 
-            // Column clear
-            for (k = 0; k < 4; k++)
-                minorMatrix.data[k][j] = 0.0;
+    // Compute temporary values for the first round of calculations
+    temp[0]  = sourceMat[2] * sourceMat[7];
+    temp[1]  = sourceMat[3] * sourceMat[6];
+    temp[2]  = sourceMat[1] * sourceMat[7];
+    temp[3]  = sourceMat[3] * sourceMat[5];
+    temp[4]  = sourceMat[1] * sourceMat[6];
+    temp[5]  = sourceMat[2] * sourceMat[5];
+    temp[6]  = sourceMat[0] * sourceMat[7];
+    temp[7]  = sourceMat[3] * sourceMat[4];
+    temp[8]  = sourceMat[0] * sourceMat[6];
+    temp[9]  = sourceMat[2] * sourceMat[4];
+    temp[10] = sourceMat[0] * sourceMat[5];
+    temp[11] = sourceMat[1] * sourceMat[4];
 
-            // Set intersection to one
-            minorMatrix.data[i][j] = 1.0;
+    // Calculate the bottom half of the result matrix
+    destMat[8]   = temp[0]*sourceMat[13]  + temp[3]*sourceMat[14]  +
+        temp[4]*sourceMat[15];
+    destMat[8]  -= temp[1]*sourceMat[13]  + temp[2]*sourceMat[14]  +
+        temp[5]*sourceMat[15];
+    destMat[9]   = temp[1]*sourceMat[12]  + temp[6]*sourceMat[14]  +
+        temp[9]*sourceMat[15];
+    destMat[9]  -= temp[0]*sourceMat[12]  + temp[7]*sourceMat[14]  +
+        temp[8]*sourceMat[15];
+    destMat[10]  = temp[2]*sourceMat[12]  + temp[7]*sourceMat[13]  +
+        temp[10]*sourceMat[15];
+    destMat[10] -= temp[3]*sourceMat[12]  + temp[6]*sourceMat[13]  +
+        temp[11]*sourceMat[15];
+    destMat[11]  = temp[5]*sourceMat[12]  + temp[8]*sourceMat[13]  +
+        temp[11]*sourceMat[14];
+    destMat[11] -= temp[4]*sourceMat[12]  + temp[9]*sourceMat[13]  +
+        temp[10]*sourceMat[14];
+    destMat[12]  = temp[2]*sourceMat[10]  + temp[5]*sourceMat[11]  +
+        temp[1]*sourceMat[9];
+    destMat[12] -= temp[4]*sourceMat[11]  + temp[0]*sourceMat[9]   +
+        temp[3]*sourceMat[10];
+    destMat[13]  = temp[8]*sourceMat[11]  + temp[0]*sourceMat[8]   +
+        temp[7]*sourceMat[10];
+    destMat[13] -= temp[6]*sourceMat[10]  + temp[9]*sourceMat[11]  +
+        temp[1]*sourceMat[8];
+    destMat[14]  = temp[6]*sourceMat[9]   + temp[11]*sourceMat[11] +
+        temp[3]*sourceMat[8];
+    destMat[14] -= temp[10]*sourceMat[11] + temp[2]*sourceMat[8]   +
+        temp[7]*sourceMat[9];
+    destMat[15]  = temp[10]*sourceMat[10] + temp[4]*sourceMat[8]   +
+        temp[9]*sourceMat[9];
+    destMat[15] -= temp[8]*sourceMat[9]   + temp[11]*sourceMat[10] +
+        temp[5]*sourceMat[8];
 
-            // Compute determinant and store
-            result.data[i][j] = minorMatrix.getDeterminant();
-        }
-
-    // Create the adjoint matrix by transposing the cofactor matrix
-    result.transpose();
-    
-    // Divide the adjoint matrix by the determinant of the original
-    // matrix to form the inverse
-    result.scale(1.0 / getDeterminant());
-
-    // Assign the contents of the result matrix to this matrix
-    (*this) = result;
+    // Copy the resulting values back into this matrix, scaling by the inverse
+    // of the determinant at the same time to form the matrix inverse
+    for (i = 0; i < 4; i++)
+        data[i].set(destMat[(i * 4) + 0] / det,
+                    destMat[(i * 4) + 1] / det,
+                    destMat[(i * 4) + 2] / det,
+                    destMat[(i * 4) + 3] / det);
 }
 
 // ------------------------------------------------------------------------
@@ -401,8 +484,9 @@ vsMatrix vsMatrix::getInverse() const
 void vsMatrix::preMultiply(const vsMatrix &operand)
 {
     double result[4][4];
-    int i, j, k;
-    
+    vsMatrix thisTranspose = getTranspose();
+    int i, j;
+
     // Do a matrix-multiply operation between this matrix and the operand
     // matrix, with this matrix second; place the results in a temporary
     // matrix instead of this one so that we don't overwrite values that
@@ -410,9 +494,13 @@ void vsMatrix::preMultiply(const vsMatrix &operand)
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
         {
-            result[i][j] = 0.0;
-            for (k = 0; k < 4; k++)
-                result[i][j] += (operand.data[i].getValue(k) * data[k][j]);
+            // Since the second matrix is transposed, each element of the
+            // result can be computed by taking the dot product of the
+            // appropriate rows of each matrix. This should be a lot faster
+            // than accessing each element directly, as it avoids a good deal
+            // of the error checking on the vsVector data accessors.
+            result[i][j] =
+                operand.data[i].getDotProduct(thisTranspose.data[j]);
         }
 
     // Copy the result from the temporary matrix back to this one
@@ -427,19 +515,22 @@ void vsMatrix::preMultiply(const vsMatrix &operand)
 vsMatrix vsMatrix::getPreMultiplied(const vsMatrix &operand) const
 {
     vsMatrix result;
-    int i, j, k;
-    
+    vsMatrix thisTranspose = getTranspose();
+    int i, j;
+
     // Do a matrix-multiply operation between this matrix and the operand
     // matrix, with this matrix second; place the results in the target
     // matrix.
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
         {
-            // Shouldn't need to clear the result matrix; matrices start
-            // zeroed by default.
-            for (k = 0; k < 4; k++)
-                result.data[i][j] +=
-                    (operand.data[i].getValue(k) * data[k].getValue(j));
+            // Since the second matrix is transposed, each element of the
+            // result can be computed by taking the dot product of the
+            // appropriate rows of each matrix. This should be a lot faster
+            // than accessing each element directly, as it avoids a good deal
+            // of the error checking on the vsVector data accessors.
+            result.data[i][j] =
+                operand.data[i].getDotProduct(thisTranspose.data[j]);
         }
 
     // Return the target matrix
@@ -453,8 +544,9 @@ vsMatrix vsMatrix::getPreMultiplied(const vsMatrix &operand) const
 void vsMatrix::postMultiply(const vsMatrix &operand)
 {
     double result[4][4];
-    int i, j, k;
-    
+    vsMatrix operandTranspose = operand.getTranspose();
+    int i, j;
+
     // Do a matrix-multiply operation between this matrix and the operand
     // matrix, with this matrix first; place the results in a temporary
     // matrix instead of this one so that we don't overwrite values that
@@ -462,9 +554,12 @@ void vsMatrix::postMultiply(const vsMatrix &operand)
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
         {
-            result[i][j] = 0.0;
-            for (k = 0; k < 4; k++)
-                result[i][j] += (data[i][k] * operand.data[k].getValue(j));
+            // Since the second matrix is transposed, each element of the
+            // result can be computed by taking the dot product of the
+            // appropriate rows of each matrix. This should be a lot faster
+            // than accessing each element directly, as it avoids a good deal
+            // of the error checking on the vsVector data accessors.
+            result[i][j] = data[i].getDotProduct(operandTranspose.data[j]);
         }
 
     // Copy the result from the temporary matrix back to this one
@@ -479,7 +574,8 @@ void vsMatrix::postMultiply(const vsMatrix &operand)
 vsMatrix vsMatrix::getPostMultiplied(const vsMatrix &operand) const
 {
     vsMatrix result;
-    int i, j, k;
+    vsMatrix operandTranspose = operand.getTranspose();
+    int i, j;
 
     // Do a matrix-multiply operation between this matrix and the operand
     // matrix, with this matrix first; place the results in the target
@@ -487,11 +583,13 @@ vsMatrix vsMatrix::getPostMultiplied(const vsMatrix &operand) const
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
         {
-            // Shouldn't need to clear the result matrix; matrices start
-            // zeroed by default.
-            for (k = 0; k < 4; k++)
-                result.data[i][j] +=
-                    (data[i].getValue(k) * operand.data[k].getValue(j));
+            // Since the second matrix is transposed, each element of the
+            // result can be computed by taking the dot product of the
+            // appropriate rows of each matrix. This should be a lot faster
+            // than accessing each element directly, as it avoids a good deal
+            // of the error checking on the vsVector data accessors.
+            result.data[i][j] =
+                data[i].getDotProduct(operandTranspose.data[j]);
         }
 
     // Return the target matrix
@@ -1089,7 +1187,8 @@ vsMatrix vsMatrix::operator-(const vsMatrix &subtrahend) const
 vsMatrix vsMatrix::operator*(const vsMatrix &operand) const
 {
     vsMatrix result;
-    int i, j, k;
+    vsMatrix operandTranspose = operand.getTranspose();
+    int i, j;
 
     // Do a matrix-multiply operation between this matrix and the operand
     // matrix, with this matrix first; place the results in the target
@@ -1097,11 +1196,13 @@ vsMatrix vsMatrix::operator*(const vsMatrix &operand) const
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
         {
-            // Shouldn't need to clear the result matrix; matrices start
-            // zeroed by default.
-            for (k = 0; k < 4; k++)
-                result.data[i][j] +=
-                    (data[i].getValue(k) * operand.data[k].getValue(j));
+            // Since the second matrix is transposed, each element of the
+            // result can be computed by taking the dot product of the
+            // appropriate rows of each matrix. This should be a lot faster
+            // than accessing each element directly, as it avoids a good deal
+            // of the error checking on the vsVector data accessors.
+            result.data[i][j] =
+                data[i].getDotProduct(operandTranspose.data[j]);
         }
 
     // Return the target matrix
