@@ -137,6 +137,14 @@ vsSharedInputData::~vsSharedInputData()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsSharedInputData::getClassName()
+{
+    return "vsSharedInputData";
+}
+
+// ------------------------------------------------------------------------
 // Stores the vsVector's data in specified shared memory slot
 // ------------------------------------------------------------------------
 void vsSharedInputData::storeVectorData(int index, vsVector vector)

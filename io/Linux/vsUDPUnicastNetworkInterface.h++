@@ -35,8 +35,10 @@ class vsUDPUnicastNetworkInterface : public vsUDPNetworkInterface
 {
 public:
                 vsUDPUnicastNetworkInterface(char *address, short port, 
-                                           int blocking);
-                ~vsUDPUnicastNetworkInterface();
+                                             int blocking);
+    virtual     ~vsUDPUnicastNetworkInterface();
+
+    virtual const char    *getClassName();
 };
 
 #endif

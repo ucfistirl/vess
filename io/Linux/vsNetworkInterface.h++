@@ -31,12 +31,11 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <errno.h>
-
+#include "vsObject.h++"
 
 #define MAX_PACKET_SIZE   65000
 
-
-class vsNetworkInterface
+class vsNetworkInterface : public vsObject
 {
 protected:
     int                   socketValue;

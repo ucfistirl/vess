@@ -30,6 +30,7 @@
 
 #include "vsVector.h++"
 #include "vsQuat.h++"
+#include "vsObject.h++"
 
 #ifdef _XOPEN_SOURCE
 union semun {
@@ -45,7 +46,7 @@ typedef struct
     double quatData[4];
 } vsInputData;
 
-class vsSharedInputData
+class vsSharedInputData : public vsObject
 {
 protected:
 
@@ -65,7 +66,9 @@ protected:
 public:
 
                  vsSharedInputData(key_t key, int entryCount, int master);
-                 ~vsSharedInputData();
+    virtual      ~vsSharedInputData();
+
+    virtual const char    *getClassName();
 
     void         storeVectorData(int index, vsVector vector);
     void         storeQuatData(int index, vsQuat quat);
