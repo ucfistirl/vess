@@ -47,7 +47,7 @@ vsMenuSystem::vsMenuSystem(vsWindow *window, vsWindowSystem *windowSystem)
     // Set up the viewing objects
     menuPane->setScene(menuScene);
     menuPane->setView(menuView);
-    menuPane->setGLClearMask(GL_DEPTH_BUFFER_BIT);
+//    menuPane->setGLClearMask(GL_DEPTH_BUFFER_BIT);
 
     // This version of the constructor has a cursor
     hasCursor = true;
