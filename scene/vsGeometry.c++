@@ -796,6 +796,12 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
                 printf("vsGeometry::setData: Index out of bounds\n");
                 return;
             }
+            if (data.getSize() < 3)
+            {
+                printf("vsGeometry::setData: Insufficient data (vertex "
+                    "coordinates require 3 values)\n");
+                return;
+            }
             for (loop = 0; loop < 3; loop++)
                 (vertexList[dataIndex])[loop] = data[loop];
             break;
@@ -803,6 +809,12 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
             if (dataIndex >= normalListSize)
             {
                 printf("vsGeometry::setData: Index out of bounds\n");
+                return;
+            }
+            if (data.getSize() < 3)
+            {
+                printf("vsGeometry::setData: Insufficient data (vertex "
+                    "normals require 3 values)\n");
                 return;
             }
             for (loop = 0; loop < 3; loop++)
@@ -814,6 +826,12 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
                 printf("vsGeometry::setData: Index out of bounds\n");
                 return;
             }
+            if (data.getSize() < 4)
+            {
+                printf("vsGeometry::setData: Insufficient data (colors "
+                    "require 4 values)\n");
+                return;
+            }
             for (loop = 0; loop < 4; loop++)
                 (colorList[dataIndex])[loop] = data[loop];
             break;
@@ -821,6 +839,12 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
             if (dataIndex >= texCoordListSize)
             {
                 printf("vsGeometry::setData: Index out of bounds\n");
+                return;
+            }
+            if (data.getSize() < 2)
+            {
+                printf("vsGeometry::setData: Insufficient data (texture "
+                    "coordinates require 2 values)\n");
                 return;
             }
             for (loop = 0; loop < 2; loop++)
