@@ -397,6 +397,7 @@ void *vsAvatar::makeGeometry()
     int optFlag = 1;
     unsigned int isectVal = 0xFFFFFFFF;
     int autoAdd = 0;
+    int emptyFlag = VS_FALSE;
     
     dbLoader = (vsSystem::systemObject)->getLoader();
     
@@ -437,6 +438,8 @@ void *vsAvatar::makeGeometry()
         }
         else if (!strcmp(token, "filename"))
             sscanf(cfgLine, "%*s %s", dbName);
+        else if (!strcmp(token, "empty"))
+            emptyFlag = VS_TRUE;
         else if (!strcmp(token, "optimize"))
             sscanf(cfgLine, "%*s %d", &optFlag);
         else if (!strcmp(token, "addpath"))
@@ -452,8 +455,10 @@ void *vsAvatar::makeGeometry()
             printf("vsAvatar::makeGeometry: Unrecognized token '%s'\n",
                 token);
     }
-    
-    if (strlen(dbName) > 0)
+
+    if (emptyFlag)
+	result = new vsComponent();
+    else if (strlen(dbName) > 0)
     {
         result = dbLoader->loadDatabase(dbName);
         if (result && optFlag)
@@ -491,6 +496,7 @@ void *vsAvatar::makeViewpoint()
     char geoObjectName[256], nodeName[256];
     vsComponent *geom = NULL;
     vsComponent *root;
+    int lineLen;
     vsVector posOffset(0.0, 0.0, 0.0);
     vsQuat oriOffset(0.0, 0.0, 0.0, 1.0);
     double xoffset = 0.0;
@@ -511,10 +517,15 @@ void *vsAvatar::makeViewpoint()
         
         if (!strcmp(token, "geometry"))
         {
-            sscanf(cfgLine, "%*s %s %s", geoObjectName, nodeName);
-            root = (vsComponent *)(findObject(geoObjectName));
-            if (root)
-                geom = (vsComponent *)(root->findNodeByName(nodeName));
+            lineLen = sscanf(cfgLine, "%*s %s %s", geoObjectName, nodeName);
+	    if (lineLen < 2)
+		geom = (vsComponent *)(findObject(geoObjectName));
+	    else
+	    {
+		root = (vsComponent *)(findObject(geoObjectName));
+		if (root)
+		    geom = (vsComponent *)(root->findNodeByName(nodeName));
+	    }
         }
         else if (!strcmp(token, "pane"))
         {
@@ -1366,6 +1377,7 @@ void *vsAvatar::makeVsKinematics()
     int lineType = 0;
     vsComponent *root;
     vsComponent *geom = NULL;
+    int lineLen;
     int inertia = -1;
     vsVector massCenter(0.0, 0.0, 0.0);
     vsVector startPos(0.0, 0.0, 0.0);
@@ -1384,10 +1396,15 @@ void *vsAvatar::makeVsKinematics()
         
         if (!strcmp(token, "geometry"))
         {
-            sscanf(cfgLine, "%*s %s %s", geoObjectName, nodeName);
-            root = (vsComponent *)(findObject(geoObjectName));
-            if (root)
-                geom = (vsComponent *)(root->findNodeByName(nodeName));
+            lineLen = sscanf(cfgLine, "%*s %s %s", geoObjectName, nodeName);
+	    if (lineLen < 2)
+		geom = (vsComponent *)(findObject(geoObjectName));
+	    else
+	    {
+		root = (vsComponent *)(findObject(geoObjectName));
+		if (root)
+		    geom = (vsComponent *)(root->findNodeByName(nodeName));
+	    }
         }
         else if (!strcmp(token, "inertia"))
             sscanf(cfgLine, "%*s %d", &inertia);
