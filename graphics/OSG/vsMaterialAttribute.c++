@@ -234,7 +234,6 @@ void vsMaterialAttribute::getColor(int side, int whichColor, double *r,
                                    double *g, double *b)
 {
     osg::Vec4 color;
-    float red, green, blue;
     
     // Get the color from the BACK, if specified
     if (side == VS_MATERIAL_SIDE_BACK)
