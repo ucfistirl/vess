@@ -1,0 +1,30 @@
+#!/bin/make
+
+INCDIRS = -I../corelib -I../scene -I../math -I../input -I../motion
+TYPE = -n32 -mips3
+FLAGS = $(TYPE) -g -xansi -DSGI -DPF_CPLUSPLUS_API=1 -woff 1681 $(INCDIRS)
+
+LIBSRCS = vsAvatar.c++
+
+LIBOBJS = vsAvatar.o
+
+LIBNAME = libvsAvatar.a
+
+all: $(LIBNAME)
+
+$(LIBNAME): $(LIBOBJS)
+	ar -rc $(LIBNAME) $(LIBOBJS)
+
+dep: depend
+depend:
+	makedepend -f makefile.IRIX -- $(FLAGS) -- $(LIBSRCS)
+
+clean:
+	rm -f *.o core $(LIBNAME) makefile.*.bak
+
+
+.c++.o:
+	CC $(FLAGS) -c $< -o ./$*.o
+
+.c.o:
+	CC $(FLAGS) -c $< -o ./$*.o
