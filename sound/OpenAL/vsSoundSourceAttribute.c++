@@ -402,7 +402,7 @@ int vsSoundSourceAttribute::isPlaying()
     int srcState;
 
     // Get the state of the sound source from OpenAL
-    alGetSourceiv(sourceID, AL_SOURCE_STATE, &srcState);
+    alGetSourcei(sourceID, AL_SOURCE_STATE, &srcState);
 
     // Return true if playing, false otherwise
     if (srcState == AL_PLAYING)
@@ -420,7 +420,7 @@ int vsSoundSourceAttribute::isStopped()
     int srcState;
 
     // Get the state of the sound source from OpenAL
-    alGetSourceiv(sourceID, AL_SOURCE_STATE, &srcState);
+    alGetSourcei(sourceID, AL_SOURCE_STATE, &srcState);
 
     // Return true if stopped.  OpenAL also has an INITIAL state, which
     // is almost the same as STOPPED, but is slightly different (an
@@ -442,7 +442,7 @@ int vsSoundSourceAttribute::isPaused()
     int srcState;
 
     // Get the state of the sound source from OpenAL
-    alGetSourceiv(sourceID, AL_SOURCE_STATE, &srcState);
+    alGetSourcei(sourceID, AL_SOURCE_STATE, &srcState);
 
     // Return true if paused, false otherwise
     if (srcState == AL_PAUSED)
