@@ -92,12 +92,10 @@ void vsStateAttribute::markOwnersDirty()
 // ------------------------------------------------------------------------
 void vsStateAttribute::attach(vsNode *theNode)
 {
-    // Add the specified node to our list of owner nodes, reference that
-    // node to make it harder to delete out form under us, and mark that
+    // Add the specified node to our list of owner nodes and mark that
     // node as dirty.
     ownerList[ownerCount] = theNode;
     ownerCount++;
-    theNode->ref();
     theNode->dirty();
     
     // Call the inherited version of this function
@@ -123,7 +121,6 @@ void vsStateAttribute::detach(vsNode *theNode)
 	    // by one
             ownerList[loop] = ownerList[ownerCount-1];
             ownerCount--;
-            theNode->unref();
             theNode->dirty();
 
 	    // Call the inherited version of this function

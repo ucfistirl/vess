@@ -144,8 +144,7 @@ void vsStateAttribute::attach(vsNode *theNode)
     ownerList[ownerCount] = theNode;
     ownerCount++;
 
-    // Reference the given node, and mark it dirty
-    theNode->ref();
+    // Mark the given node dirty
     theNode->dirty();
     
     // Do standard vsAttribute attaching
@@ -174,8 +173,7 @@ void vsStateAttribute::detach(vsNode *theNode)
             // Decrement the owner count
             ownerCount--;
 
-            // Unreference the node, and mark it dirty
-            theNode->unref();
+            // Mark the node dirty
             theNode->dirty();
 
             // Finish the vsAttribute detaching
