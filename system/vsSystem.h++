@@ -86,6 +86,8 @@ public:
 				   vsView **viewpoint, vsWindow **window);
 
     vsPipe              *getPipe(int index);
+
+    int                 getScreenCount();
     vsScreen            *getScreen(int index);
     
     vsComponent         *loadDatabase(char *databaseFilename);

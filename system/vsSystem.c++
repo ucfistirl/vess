@@ -281,6 +281,14 @@ vsPipe *vsSystem::getPipe(int index)
 }
 
 // ------------------------------------------------------------------------
+// Returns the number of screen objects
+// ------------------------------------------------------------------------
+int vsSystem::getScreenCount()
+{
+    return screenCount;
+}
+
+// ------------------------------------------------------------------------
 // Retrieves one of the system's screen objects, specified by index. The
 // index of the first screen is 0.
 // ------------------------------------------------------------------------
