@@ -80,10 +80,10 @@ clean:
 
 
 .c++.o:
-	g++ $(FLAGS) -c $< -o ./$*.o
+	g++ $(FLAGS) -c $< -o ./$*.o -Wno-deprecated
 
 .c.o:
-	g++ $(FLAGS) -c $< -o ./$*.o
+	g++ $(FLAGS) -c $< -o ./$*.o -Wno-deprecated
 
 
 

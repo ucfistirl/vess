@@ -101,10 +101,10 @@ $(LIBNAME): $(OBJS)
 .SUFFIXES: .c .c++ .o .h .h++
 
 .c++.o:
-	$(CXX) $(CXXFLAGS) -c $< -o $*.o
+	$(CXX) $(CXXFLAGS) -c $< -o $*.o -Wno-deprecated
 
 .c.o:
-	$(CXX) $(CXXFLAGS) -c $< -o $*.o
+	$(CXX) $(CXXFLAGS) -c $< -o $*.o -Wno-deprecated
 
 clean:
 	rm -f *.o
