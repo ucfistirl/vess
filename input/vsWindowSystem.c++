@@ -93,7 +93,6 @@ void vsWindowSystem::update()
     Window       childWin;
     int          rootX, rootY, winX, winY;
     unsigned int modMask;
-    int          t=0;
 
     // Process all the events we're interested in
 

@@ -155,7 +155,7 @@ int vsISTJoystickBox::getNumJoysticks()
 }
 
 // ------------------------------------------------------------------------
-// Returns the number of joysticks connected to this box (always 1)
+// Returns this box's joystick object
 // ------------------------------------------------------------------------
 vsJoystick *vsISTJoystickBox::getJoystick()
 {
@@ -163,11 +163,11 @@ vsJoystick *vsISTJoystickBox::getJoystick()
 }
 
 // ------------------------------------------------------------------------
-// Returns the number of joysticks connected to this box (always 1)
+// Returns the specified joystick object (only 0 accepted)
 // ------------------------------------------------------------------------
 vsJoystick *vsISTJoystickBox::getJoystick(int index)
 {
-    if (index > 1)
+    if (index == 0)
     {
         return joystick;
     }
