@@ -103,8 +103,8 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
         xformAttrib = new vsTransformAttribute((pfSCS *)currentNode,
             this, nameDirectory);
 
-	attributeList[attributeCount++] = xformAttrib;
-	
+        attributeList[attributeCount++] = xformAttrib;
+        
         while (currentNode->isOfType(pfSCS::getClassType()))
         {
             previousGroup = (pfGroup *)currentNode;
@@ -156,28 +156,28 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
         {
             // Switch attribute
             switchAttrib = new vsSwitchAttribute((pfSwitch *)currentNode);
-	    attributeList[attributeCount++] = switchAttrib;
+            attributeList[attributeCount++] = switchAttrib;
             bottomGroup = (pfGroup *)currentNode;
         }
         else if (currentNode->isOfType(pfSequence::getClassType()))
         {
             // Sequence attribute
             seqAttrib = new vsSequenceAttribute((pfSequence *)currentNode);
-	    attributeList[attributeCount++] = seqAttrib;
+            attributeList[attributeCount++] = seqAttrib;
             bottomGroup = (pfGroup *)currentNode;
         }
         else if (currentNode->isOfType(pfLOD::getClassType()))
         {
             // LOD attribute
             detailAttrib = new vsLODAttribute((pfLOD *)currentNode);
-	    attributeList[attributeCount++] = detailAttrib;
+            attributeList[attributeCount++] = detailAttrib;
             bottomGroup = (pfGroup *)currentNode;
         }
         else if (currentNode->isOfType(pfLayer::getClassType()))
         {
             // Decal attribute
             decalAttrib = new vsDecalAttribute((pfLayer *)currentNode);
-	    attributeList[attributeCount++] = decalAttrib;
+            attributeList[attributeCount++] = decalAttrib;
             bottomGroup = (pfGroup *)currentNode;
         }
         else
@@ -349,24 +349,18 @@ vsNode *vsComponent::cloneTree()
 void vsComponent::deleteTree()
 {
     vsNode *node;
-    vsComponent *component;
-    int loop;
     
-    for (loop = 0; loop < getChildCount(); loop++)
+    while (getChildCount() > 0)
     {
         node = getChild(0);
+
         if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
-        {
-            component = (vsComponent *)node;
-            component->deleteTree();
-        }
+            ((vsComponent *)node)->deleteTree();
 
         removeChild(node);
+
         if (node->getParentCount() == 0)
-        {
             delete node;
-            loop--;
-        }
     }
 }
 
