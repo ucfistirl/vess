@@ -112,16 +112,16 @@ double vsMatrix::getValue(int row, int column) const
     if ((row < 0) || (row > 3))
     {
         printf("vsMatrix::getValue: Bad row index\n");
-        return data[0][0];
+        return data[0].getValue(0);
     }
     if ((column < 0) || (column > 3))
     {
         printf("vsMatrix::getValue: Bad column index\n");
-        return data[0][0];
+        return data[0].getValue(0);
     }
     
     // Return the desired value
-    return data[row][column];
+    return data[row].getValue(column);
 }
 
 // ------------------------------------------------------------------------
@@ -278,7 +278,7 @@ vsMatrix vsMatrix::getTranspose() const
     // to the target matrix in a swapped-across-the-diagonal fashion
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
-            result.data[j][i] = data[i][j];
+            result.data[j][i] = data[i].getValue(j);
 
     // Return the target matrix
     return result;
@@ -293,18 +293,30 @@ double vsMatrix::getDeterminant() const
     // the determinant, since the matrix is of fixed size we can just
     // hardcode the pattern of multiplications.
 
-    return ((data[0][0]*data[1][1] - data[0][1]*data[1][0]) * 
-            (data[2][2]*data[3][3] - data[2][3]*data[3][2])) +
-           ((data[0][2]*data[1][0] - data[0][0]*data[1][2]) *
-            (data[2][1]*data[3][3] - data[2][3]*data[3][1])) +
-           ((data[0][1]*data[1][2] - data[0][2]*data[1][1]) *
-            (data[2][0]*data[3][3] - data[2][3]*data[3][0])) +
-           ((data[0][0]*data[1][3] - data[0][3]*data[1][0]) *
-            (data[2][1]*data[3][2] - data[2][2]*data[3][1])) +
-           ((data[0][3]*data[1][1] - data[0][1]*data[1][3]) *
-            (data[2][0]*data[3][2] - data[2][2]*data[3][0])) +
-           ((data[0][2]*data[1][3] - data[0][3]*data[1][2]) *
-            (data[2][0]*data[3][1] - data[2][1]*data[3][0]));   
+    return ((data[0].getValue(0) * data[1].getValue(1) -
+                data[0].getValue(1) * data[1].getValue(0)) * 
+            (data[2].getValue(2) * data[3].getValue(3) -
+                data[2].getValue(3) * data[3].getValue(2))) +
+           ((data[0].getValue(2) * data[1].getValue(0) -
+                data[0].getValue(0) * data[1].getValue(2)) *
+            (data[2].getValue(1) * data[3].getValue(3) -
+                data[2].getValue(3) * data[3].getValue(1))) +
+           ((data[0].getValue(1) * data[1].getValue(2) -
+                data[0].getValue(2) * data[1].getValue(1)) *
+            (data[2].getValue(0) * data[3].getValue(3) -
+                data[2].getValue(3) * data[3].getValue(0))) +
+           ((data[0].getValue(0) * data[1].getValue(3) -
+                data[0].getValue(3) * data[1].getValue(0)) *
+            (data[2].getValue(1) * data[3].getValue(2) -
+                data[2].getValue(2) * data[3].getValue(1))) +
+           ((data[0].getValue(3) * data[1].getValue(1) -
+                data[0].getValue(1) * data[1].getValue(3)) *
+            (data[2].getValue(0) * data[3].getValue(2) -
+                data[2].getValue(2) * data[3].getValue(0))) +
+           ((data[0].getValue(2) * data[1].getValue(3) -
+                data[0].getValue(3) * data[1].getValue(2)) *
+            (data[2].getValue(0) * data[3].getValue(1) -
+                data[2].getValue(1) * data[3].getValue(0)));   
 }
 
 // ------------------------------------------------------------------------
@@ -409,7 +421,7 @@ void vsMatrix::preMultiply(const vsMatrix &operand)
         {
             result[i][j] = 0.0;
             for (k = 0; k < 4; k++)
-                result[i][j] += (operand.data[i][k] * data[k][j]);
+                result[i][j] += (operand.data[i].getValue(k) * data[k][j]);
         }
 
     // Copy the result from the temporary matrix back to this one
@@ -435,7 +447,8 @@ vsMatrix vsMatrix::getPreMultiplied(const vsMatrix &operand) const
             // Shouldn't need to clear the result matrix; matrices start
             // zeroed by default.
             for (k = 0; k < 4; k++)
-                result.data[i][j] += (operand.data[i][k] * data[k][j]);
+                result.data[i][j] +=
+                    (operand.data[i].getValue(k) * data[k].getValue(j));
         }
 
     // Return the target matrix
@@ -460,7 +473,7 @@ void vsMatrix::postMultiply(const vsMatrix &operand)
         {
             result[i][j] = 0.0;
             for (k = 0; k < 4; k++)
-                result[i][j] += (data[i][k] * operand.data[k][j]);
+                result[i][j] += (data[i][k] * operand.data[k].getValue(j));
         }
 
     // Copy the result from the temporary matrix back to this one
@@ -486,7 +499,8 @@ vsMatrix vsMatrix::getPostMultiplied(const vsMatrix &operand) const
             // Shouldn't need to clear the result matrix; matrices start
             // zeroed by default.
             for (k = 0; k < 4; k++)
-                result.data[i][j] += (data[i][k] * operand.data[k][j]);
+                result.data[i][j] +=
+                    (data[i].getValue(k) * operand.data[k].getValue(j));
         }
 
     // Return the target matrix
@@ -519,9 +533,9 @@ vsVector vsMatrix::getPointXform(const vsVector &operand) const
         {
             // Assume the fourth value of the vector is one
             if (j == 3)
-                result[i] += data[i][j];
+                result[i] += data[i].getValue(j);
             else
-                result[i] += (data[i][j] * operand.getValue(j));
+                result[i] += (data[i].getValue(j) * operand.getValue(j));
         }
     }
     
@@ -555,7 +569,7 @@ vsVector vsMatrix::getVectorXform(const vsVector &operand) const
         // Vectors start cleared by default; no need to set to zero here.
 	// Ignore the fourth value of the vector, if there is one.
         for (j = 0; j < 3; j++)
-            result[i] += (data[i][j] * operand.getValue(j));
+            result[i] += (data[i].getValue(j) * operand.getValue(j));
     }
     
     // Resize the result to match the size of the operand vector, and
@@ -572,7 +586,7 @@ vsVector vsMatrix::getVectorXform(const vsVector &operand) const
 vsVector vsMatrix::getFullXform(const vsVector &operand) const
 {
     vsVector result;
-    int i, j;
+    int i;
 
     // To be transformed in this manner, the operand vector must be
     // at least size 4.
@@ -827,34 +841,34 @@ void vsMatrix::getEulerRotation(vsMathEulerAxisOrder axisOrder,
     if (isRepeat)
     {
         // One axis was repeated
-        yVal = sqrt(VS_SQR(data[i][j]) + VS_SQR(data[i][k]));
+        yVal = sqrt(VS_SQR(data[i].getValue(j)) + VS_SQR(data[i].getValue(k)));
         if (yVal > 1E-6)
         {
-            result1 = VS_RAD2DEG(atan2(data[i][j], data[i][k]));
-            result2 = VS_RAD2DEG(atan2(yVal, data[i][i]));
-            result3 = VS_RAD2DEG(atan2(data[j][i], -data[k][i]));
+            result1 = VS_RAD2DEG(atan2(data[i].getValue(j), data[i].getValue(k)));
+            result2 = VS_RAD2DEG(atan2(yVal, data[i].getValue(i)));
+            result3 = VS_RAD2DEG(atan2(data[j].getValue(i), -data[k].getValue(i)));
         }
         else
         {
-            result1 = VS_RAD2DEG(atan2(-data[j][k], data[j][j]));
-            result2 = VS_RAD2DEG(atan2(yVal, data[i][i]));
+            result1 = VS_RAD2DEG(atan2(-data[j].getValue(k), data[j].getValue(j)));
+            result2 = VS_RAD2DEG(atan2(yVal, data[i].getValue(i)));
             result3 = VS_RAD2DEG(0.0);
         }
     }
     else
     {
         // Each axis used only once
-        yVal = sqrt(VS_SQR(data[i][i]) + VS_SQR(data[j][i]));
+        yVal = sqrt(VS_SQR(data[i].getValue(i)) + VS_SQR(data[j].getValue(i)));
         if (yVal > 1E-6)
         {
-            result1 = VS_RAD2DEG(atan2(data[k][j], data[k][k]));
-            result2 = VS_RAD2DEG(atan2(-data[k][i], yVal));
-            result3 = VS_RAD2DEG(atan2(data[j][i], data[i][i]));
+            result1 = VS_RAD2DEG(atan2(data[k].getValue(j), data[k].getValue(k)));
+            result2 = VS_RAD2DEG(atan2(-data[k].getValue(i), yVal));
+            result3 = VS_RAD2DEG(atan2(data[j].getValue(i), data[i].getValue(i)));
         }
         else
         {
-            result1 = VS_RAD2DEG(atan2(-data[j][k], data[j][j]));
-            result2 = VS_RAD2DEG(atan2(-data[k][i], yVal));
+            result1 = VS_RAD2DEG(atan2(-data[j].getValue(k), data[j].getValue(j)));
+            result2 = VS_RAD2DEG(atan2(-data[k].getValue(i), yVal));
             result3 = VS_RAD2DEG(0.0);
         }
     }
@@ -1026,7 +1040,8 @@ vsMatrix vsMatrix::operator*(const vsMatrix &operand) const
             // Shouldn't need to clear the result matrix; matrices start
             // zeroed by default.
             for (k = 0; k < 4; k++)
-                result.data[i][j] += (data[i][k] * operand.data[k][j]);
+                result.data[i][j] +=
+                    (data[i].getValue(k) * operand.data[k].getValue(j));
         }
 
     // Return the target matrix
@@ -1074,8 +1089,9 @@ void vsMatrix::printRow(int rowNum) const
     // Assume that the matrix is an affine transform matrix, which
     // generally doesn't have large numbers in it.  Doing so allows
     // us to have an idea how wide the matrix's columns will be.
-    printf("%8.4lf %8.4lf %8.4lf %8.4lf", data[rowNum][0], data[rowNum][1],
-        data[rowNum][2], data[rowNum][3]);
+    printf("%8.4lf %8.4lf %8.4lf %8.4lf", data[rowNum].getValue(0),
+        data[rowNum].getValue(1), data[rowNum].getValue(2),
+        data[rowNum].getValue(3));
 }
 
 // ------------------------------------------------------------------------
@@ -1093,8 +1109,9 @@ void vsMatrix::printRow(int rowNum, FILE *fp) const
     // Assume that the matrix is an affine transform matrix, which
     // generally doesn't have large numbers in it.  Doing so allows
     // us to have an idea how wide the matrix's columns will be.
-    fprintf(fp, "%8.4lf %8.4lf %8.4lf %8.4lf", data[rowNum][0], 
-        data[rowNum][1], data[rowNum][2], data[rowNum][3]);
+    fprintf(fp, "%8.4lf %8.4lf %8.4lf %8.4lf", data[rowNum].getValue(0), 
+        data[rowNum].getValue(1), data[rowNum].getValue(2),
+        data[rowNum].getValue(3));
 }
 
 // ------------------------------------------------------------------------
