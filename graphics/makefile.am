@@ -118,7 +118,8 @@ INCLUDES = \
            @GFX_INCLUDE_DIR@ \
            -I../llio/@OS@ \
            -I../util/common \
-           -I../util/@OS@
+           -I../util/@OS@ \
+           -I../util/@SG@
 
 # Extra object files.  If any conditionally-compiled sources are used, this
 # rule adds the object files to libvsIO.a.

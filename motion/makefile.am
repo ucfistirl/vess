@@ -61,7 +61,8 @@ INCLUDES = \
            @GFX_INCLUDE_DIR@ \
            -I../llio/@OS@ \
 	   -I../util/common \
-	   -I../util/@OS@
+	   -I../util/@OS@ \
+	   -I../util/@SG@
 
 # Rule to make libvsMotion.so
 libvsMotion.so: libvsMotion.a

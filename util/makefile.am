@@ -4,7 +4,6 @@ lib_LIBRARIES = libvsUtil.a libvsUtil.so
 # Sources for libvsUtil.a
 libvsUtil_a_SOURCES = \
                       common/vsGrowableArray.c++ \
-                      common/vsImage.c++ \
                       common/vsMatrix.c++ \
                       common/vsObject.c++ \
                       common/vsObjectMap.c++ \
@@ -14,7 +13,8 @@ libvsUtil_a_SOURCES = \
                       common/vsTreeMap.c++ \
                       common/vsUpdatable.c++ \
                       common/vsVector.c++ \
-                      @OS@/vsTimer.c++
+                      @OS@/vsTimer.c++ \
+                      @SG@/vsImage.c++
 
 # Sources for libvsUtil.so (same as libvsUtil.a)
 libvsUtil_so_SOURCES = $(libvsUtil_a_SOURCES)
@@ -22,7 +22,6 @@ libvsUtil_so_SOURCES = $(libvsUtil_a_SOURCES)
 # Header files
 include_HEADERS = \
                   common/vsGrowableArray.h++ \
-                  common/vsImage.h++ \
                   common/vsMatrix.h++ \
                   common/vsObject.h++ \
                   common/vsObjectMap.h++ \
@@ -32,12 +31,14 @@ include_HEADERS = \
                   common/vsTreeMap.h++ \
                   common/vsUpdatable.h++ \
                   common/vsVector.h++ \
-                  @OS@/vsTimer.h++
+                  @OS@/vsTimer.h++ \
+                  @SG@/vsImage.h++
 
 # Include directives
 INCLUDES = \
            -I../util/common \
-           -I../util/@OS@
+           -I../util/@OS@ \
+           -I../util/@SG@
 
 # Rule to make libvsUtil.so
 libvsUtil.so: libvsUtil.a

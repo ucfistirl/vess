@@ -48,7 +48,8 @@ libvsLLIO_a_LIBADD = @EXTRA_LLIO_OBJECTS@
 INCLUDES = \
            -I../llio/@OS@ \
            -I../util/common \
-           -I../util/@OS@
+           -I../util/@OS@ \
+           -I../util/@SG@
 
 # Rule to make libvsLLIO.so
 libvsLLIO.so: libvsLLIO.a

@@ -33,9 +33,10 @@ INCLUDES = \
 	   -I../graphics/common \
 	   -I../graphics/@SG@ \
 	   -I../graphics/@SG@_@WS@ \
-	   -I../util/common \
            -I../llio/@OS@ \
+	   -I../util/common \
 	   -I../util/@OS@ \
+	   -I../util/@SG@ \
            @GFX_INCLUDE_DIR@ \
            @XML_INCLUDE_DIR@ 
 
