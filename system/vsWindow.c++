@@ -11,7 +11,7 @@
 // being properly displayed, recording some size data from the window
 // manager, and configuring the window with its default position and size.
 // ------------------------------------------------------------------------
-vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1, 0)
+vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
 {
     vsPipe *parentPipe;
     Display *xWindowDisplay;
@@ -45,20 +45,36 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1, 0)
     // * Obtain the size of the window manager's border for our outer window
     xWindowDisplay = pfGetCurWSConnection();
     xWindowID = performerPipeWindow->getWSWindow();
-    
+
     XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID, &childPointer,
         &childCount);
     XFree(childPointer);
+    while (parentID == 0)
+    {
+        XFlush(xWindowDisplay);
+        XQueryTree(xWindowDisplay, xWindowID, &rootID, &parentID,
+            &childPointer, &childCount);
+        XFree(childPointer);
+    }
+
     XQueryTree(xWindowDisplay, parentID, &rootID, &topWindowID,
         &childPointer, &childCount);
     XFree(childPointer);
+    while (topWindowID == 0)
+    {
+        XFlush(xWindowDisplay);
+        XQueryTree(xWindowDisplay, parentID, &rootID, &topWindowID,
+            &childPointer, &childCount);
+        XFree(childPointer);
+    }
+
     XGetWindowAttributes(xWindowDisplay, topWindowID, &xattr);
-    
     xPositionOffset = VS_WINDOW_DEFAULT_XPOS - xattr.x;
     yPositionOffset = VS_WINDOW_DEFAULT_YPOS - xattr.y;
     widthOffset = xattr.width - VS_WINDOW_DEFAULT_WIDTH;
     heightOffset = xattr.height - VS_WINDOW_DEFAULT_HEIGHT;
     
+    // Set the window's location and size to default values
     setPosition(VS_WINDOW_DEFAULT_XPOS, VS_WINDOW_DEFAULT_YPOS);
     setSize(VS_WINDOW_DEFAULT_WIDTH, VS_WINDOW_DEFAULT_HEIGHT);
 }

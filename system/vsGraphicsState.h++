@@ -9,17 +9,26 @@
 #include "vsShadingAttribute.h++"
 #include "vsTextureAttribute.h++"
 #include "vsTransparencyAttribute.h++"
+#include "vsLightAttribute.h++"
+#include "vsGrowableArray.h++"
 
 class vsGraphicsState
 {
 private:
 
-    vsBackfaceAttribute        *currentBackface, *newBackface;
-    vsFogAttribute             *currentFog, *newFog;
-    vsMaterialAttribute        *currentMaterial, *newMaterial;
-    vsShadingAttribute         *currentShading, *newShading;
-    vsTextureAttribute         *currentTexture, *newTexture;
-    vsTransparencyAttribute    *currentTransparency, *newTransparency;
+    vsBackfaceAttribute        *backfaceAttr;
+    vsFogAttribute             *fogAttr;
+    vsMaterialAttribute        *materialAttr;
+    vsShadingAttribute         *shadingAttr;
+    vsTextureAttribute         *textureAttr;
+    vsTransparencyAttribute    *transparencyAttr;
+    
+    vsGrowableArray            lightAttrList;
+    int                        lightAttrCount;
+
+VS_INTERNAL:
+
+    void        applyState(pfGeoState *state);
 
 public:
 
@@ -27,7 +36,6 @@ public:
                   ~vsGraphicsState();
 
     void          clearState();
-    void          applyState();
 
     void          setBackface(vsBackfaceAttribute *newAttrib);
     void          setFog(vsFogAttribute *newAttrib);
@@ -35,6 +43,9 @@ public:
     void          setShading(vsShadingAttribute *newAttrib);
     void          setTexture(vsTextureAttribute *newAttrib);
     void          setTransparency(vsTransparencyAttribute *newAttrib);
+    
+    void          addLight(vsLightAttribute *lightAttrib);
+    void          removeLight(vsLightAttribute *lightAttrib);
 
     vsBackfaceAttribute        *getBackface();
     vsFogAttribute             *getFog();
@@ -42,6 +53,9 @@ public:
     vsShadingAttribute         *getShading();
     vsTextureAttribute         *getTexture();
     vsTransparencyAttribute    *getTransparency();
+    
+    vsLightAttribute           *getLight(int index);
+    int                        getLightCount();
 
     static int    isSameBackface(vsAttribute *firstAttr,
                                  vsAttribute *secondAttr);

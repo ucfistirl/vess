@@ -6,6 +6,7 @@
 #include <Performer/pf.h>
 #include <Performer/pfutil.h>
 #include "vsLightAttribute.h++"
+#include "vsComponent.h++"
 
 vsSystem *vsSystem::systemObject = NULL;
 
@@ -32,9 +33,14 @@ vsSystem::vsSystem(vsDatabaseLoader *fileLoader)
     validObject = 1;
     systemObject = this;
 
+    // Enlarge the semaphore arena size to twice the default; Performer
+    // produces a strange out-of-arena-memory error when VESS is given
+    // a very large database
+    pfSemaArenaSize(262144 * 2);
+
     pfInit();
     pfuInit();
-    
+
     // Configure the system for the available number of graphics pipelines
     winConnection = pfGetCurWSConnection();
     numScreens = ScreenCount(winConnection);
@@ -270,6 +276,36 @@ vsNode *vsSystem::loadDatabase(char *databaseFilename)
 }
 
 // ------------------------------------------------------------------------
+// Private function
+// Traverses the VESS scene graph in order to give processing time to each
+// attribute in the scene
+// ------------------------------------------------------------------------
+void vsSystem::preFrameTraverse(vsNode *node)
+{
+    vsComponent *component;
+    vsNode *childNode;
+    int loop;
+    
+    node->clean();
+
+    node->saveCurrentAttributes();
+    node->applyAttributes();
+    
+    if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
+    {
+        component = (vsComponent *)node;
+        for (loop = 0; loop < component->getChildCount(); loop++)
+        {
+            childNode = component->getChild(loop);
+            if (childNode->isDirty())
+                preFrameTraverse(childNode);
+        }
+    }
+    
+    node->restoreSavedAttributes();
+}
+
+// ------------------------------------------------------------------------
 // VESS internal function
 // Retrieves the node map object for the system object
 // ------------------------------------------------------------------------
@@ -307,6 +343,7 @@ void vsSystem::drawFrame()
     vsScreen *targetScreen;
     vsWindow *targetWindow;
     vsPane *targetPane;
+    vsNode *scene;
     
     // Update the viewpoint of each pane by its vsView object
     for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
@@ -321,6 +358,10 @@ void vsSystem::drawFrame()
             {
                 targetPane = targetWindow->getChildPane(paneLoop);
                 targetPane->updateView();
+
+                scene = targetPane->getScene();
+                graphicsState->clearState();
+                preFrameTraverse(scene);
             }
         }
     }

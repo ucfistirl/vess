@@ -7,7 +7,7 @@
 // ------------------------------------------------------------------------
 // Constructor
 // ------------------------------------------------------------------------
-vsGraphicsState::vsGraphicsState()
+vsGraphicsState::vsGraphicsState() : lightAttrList(1, 1)
 {
 }
 
@@ -24,98 +24,52 @@ vsGraphicsState::~vsGraphicsState()
 // ------------------------------------------------------------------------
 void vsGraphicsState::clearState()
 {
-    currentBackface = (vsBackfaceAttribute *)(-1);
-    currentFog = (vsFogAttribute *)(-1);
-    currentMaterial = (vsMaterialAttribute *)(-1);
-    currentShading = (vsShadingAttribute *)(-1);
-    currentTexture = (vsTextureAttribute *)(-1);
-    currentTransparency = (vsTransparencyAttribute *)(-1);
-
-    newBackface = NULL;
-    newFog = NULL;
-    newMaterial = NULL;
-    newShading = NULL;
-    newTexture = NULL;
-    newTransparency = NULL;
-    
-    applyState();
+    backfaceAttr = NULL;
+    fogAttr = NULL;
+    materialAttr = NULL;
+    shadingAttr = NULL;
+    textureAttr = NULL;
+    transparencyAttr = NULL;
+    lightAttrCount = 0;
 }
 
 // ------------------------------------------------------------------------
-// Synchronizes the current graphics library state with the desired state
+// VESS internal function
+// Packages the current state into a Performer GeoState
 // ------------------------------------------------------------------------
-void vsGraphicsState::applyState()
+void vsGraphicsState::applyState(pfGeoState *state)
 {
-    if ((currentBackface != newBackface) &&
-        !(isSameBackface(currentBackface, newBackface)))
-    {
-        if (newBackface)
-            newBackface->setState();
-        else
-            vsBackfaceAttribute::setDefault();
+    int loop;
+    pfLight **lightList;
+    pfGStateFuncType preFunc, postFunc;
+    void *data;
+    
+    state->setInherit(PFSTATE_ALL);
 
-        currentBackface = newBackface;
-    }
+    if (backfaceAttr)
+        backfaceAttr->setState(state);
 
-    if ((currentFog != newFog) && !(isSameFog(currentFog, newFog)))
-    {
-        if (newBackface)
-        {
-            if (currentBackface == NULL)
-                pfEnable(PFEN_FOG);
-            newFog->setState();
-        }
-        else
-            pfDisable(PFEN_FOG);
+    if (fogAttr)
+        fogAttr->setState(state);
 
-        currentFog = newFog;
-    }
+    if (materialAttr)
+        materialAttr->setState(state);
 
-    if ((currentMaterial != newMaterial) &&
-        !(isSameMaterial(currentMaterial, newMaterial)))
-    {
-        if (newMaterial)
-            newMaterial->setState();
+    if (shadingAttr)
+        shadingAttr->setState(state);
 
-        currentMaterial = newMaterial;
-    }
+    if (textureAttr)
+        textureAttr->setState(state);
 
-    if ((currentShading != newShading) &&
-        !(isSameShading(currentShading, newShading)))
-    {
-        if (newShading)
-            newShading->setState();
-        else
-            vsShadingAttribute::setDefault();
+    if (transparencyAttr)
+        transparencyAttr->setState(state);
 
-        currentShading = newShading;
-    }
-
-    if ((currentTexture != newTexture) &&
-        !(isSameTexture(currentTexture, newTexture)))
-    {
-        if (newTexture)
-        {
-            if (currentTexture == NULL)
-                pfEnable(PFEN_TEXTURE);
-            newTexture->setState();
-        }
-        else
-            pfDisable(PFEN_TEXTURE);
-
-        currentTexture = newTexture;
-    }
-
-    if ((currentTransparency != newTransparency) &&
-        !(isSameTransparency(currentTransparency, newTransparency)))
-    {
-        if (newTransparency)
-            newTransparency->setState();
-        else
-            vsTransparencyAttribute::setDefault();
-
-        currentTransparency = newTransparency;
-    }
+    state->getFuncs(&preFunc, &postFunc, &data);
+    lightList = (pfLight **)data;
+    for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
+        lightList[loop] = NULL;
+    for (loop = 0; loop < lightAttrCount; loop++)
+        ((vsLightAttribute *)(lightAttrList[loop]))->setState(state);
 }
 
 // ------------------------------------------------------------------------
@@ -123,7 +77,7 @@ void vsGraphicsState::applyState()
 // ------------------------------------------------------------------------
 void vsGraphicsState::setBackface(vsBackfaceAttribute *newAttrib)
 {
-    newBackface = newAttrib;
+    backfaceAttr = newAttrib;
 }
 
 // ------------------------------------------------------------------------
@@ -131,7 +85,7 @@ void vsGraphicsState::setBackface(vsBackfaceAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setFog(vsFogAttribute *newAttrib)
 {
-    newFog = newAttrib;
+    fogAttr = newAttrib;
 }
 
 // ------------------------------------------------------------------------
@@ -139,7 +93,7 @@ void vsGraphicsState::setFog(vsFogAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setMaterial(vsMaterialAttribute *newAttrib)
 {
-    newMaterial = newAttrib;
+    materialAttr = newAttrib;
 }
 
 // ------------------------------------------------------------------------
@@ -147,7 +101,7 @@ void vsGraphicsState::setMaterial(vsMaterialAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setShading(vsShadingAttribute *newAttrib)
 {
-    newShading = newAttrib;
+    shadingAttr = newAttrib;
 }
 
 // ------------------------------------------------------------------------
@@ -155,7 +109,7 @@ void vsGraphicsState::setShading(vsShadingAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setTexture(vsTextureAttribute *newAttrib)
 {
-    newTexture = newAttrib;
+    textureAttr = newAttrib;
 }
 
 // ------------------------------------------------------------------------
@@ -163,61 +117,97 @@ void vsGraphicsState::setTexture(vsTextureAttribute *newAttrib)
 // ------------------------------------------------------------------------
 void vsGraphicsState::setTransparency(vsTransparencyAttribute *newAttrib)
 {
-    newTransparency = newAttrib;
+    transparencyAttr = newAttrib;
 }
 
 // ------------------------------------------------------------------------
-// Retrieves the attribute that contains the desired (not neccessarily
-// current) backface state
+// Adds the light attribute to the graphics state list of local lights
+// ------------------------------------------------------------------------
+void vsGraphicsState::addLight(vsLightAttribute *lightAttrib)
+{
+    lightAttrList[lightAttrCount++] = lightAttrib;
+}
+
+// ------------------------------------------------------------------------
+// Removes the light attribute from the graphics state list of local lights
+// ------------------------------------------------------------------------
+void vsGraphicsState::removeLight(vsLightAttribute *lightAttrib)
+{
+    int loop;
+    
+    for (loop = 0; loop < lightAttrCount; loop++)
+        if (lightAttrib == lightAttrList[loop])
+        {
+            lightAttrList[loop] = lightAttrList[--lightAttrCount];
+            return;
+        }
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the attribute that contains the current backface state
 // ------------------------------------------------------------------------
 vsBackfaceAttribute *vsGraphicsState::getBackface()
 {
-    return newBackface;
+    return backfaceAttr;
 }
 
 // ------------------------------------------------------------------------
-// Retrieves the attribute that contains the desired (not neccessarily
-// current) fog state
+// Retrieves the attribute that contains the current fog state
 // ------------------------------------------------------------------------
 vsFogAttribute *vsGraphicsState::getFog()
 {
-    return newFog;
+    return fogAttr;
 }
 
 // ------------------------------------------------------------------------
-// Retrieves the attribute that contains the desired (not neccessarily
-// current) material state
+// Retrieves the attribute that contains the current material state
 // ------------------------------------------------------------------------
 vsMaterialAttribute *vsGraphicsState::getMaterial()
 {
-    return newMaterial;
+    return materialAttr;
 }
 
 // ------------------------------------------------------------------------
-// Retrieves the attribute that contains the desired (not neccessarily
-// current) shading state
+// Retrieves the attribute that contains the current shading state
 // ------------------------------------------------------------------------
 vsShadingAttribute *vsGraphicsState::getShading()
 {
-    return newShading;
+    return shadingAttr;
 }
 
 // ------------------------------------------------------------------------
-// Retrieves the attribute that contains the desired (not neccessarily
-// current) texture state
+// Retrieves the attribute that contains the current texture state
 // ------------------------------------------------------------------------
 vsTextureAttribute *vsGraphicsState::getTexture()
 {
-    return newTexture;
+    return textureAttr;
 }
 
 // ------------------------------------------------------------------------
-// Retrieves the attribute that contains the desired (not neccessarily
-// current) transparecy state
+// Retrieves the attribute that contains the current transparency state
 // ------------------------------------------------------------------------
 vsTransparencyAttribute *vsGraphicsState::getTransparency()
 {
-    return newTransparency;
+    return transparencyAttr;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the attribute that contains the specified local light
+// ------------------------------------------------------------------------
+vsLightAttribute *vsGraphicsState::getLight(int index)
+{
+    if ((index < 0) || (index >= lightAttrCount))
+        return NULL;
+
+    return (vsLightAttribute *)(lightAttrList[index]);
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the current number of active local lights
+// ------------------------------------------------------------------------
+int vsGraphicsState::getLightCount()
+{
+    return lightAttrCount;
 }
 
 // ------------------------------------------------------------------------

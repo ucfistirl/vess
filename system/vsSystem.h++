@@ -26,6 +26,8 @@ private:
     
     vsObjectMap         *nodeMap;
     vsGraphicsState     *graphicsState;
+    
+    void                preFrameTraverse(vsNode *node);
 
 VS_INTERNAL:
 

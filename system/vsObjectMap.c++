@@ -8,7 +8,7 @@
 // ------------------------------------------------------------------------
 // Constructor - Initializes the object map's internal arrays
 // ------------------------------------------------------------------------
-vsObjectMap::vsObjectMap() : firstList(100, 50, 0), secondList(100, 50, 0)
+vsObjectMap::vsObjectMap() : firstList(100, 50), secondList(100, 50)
 {
     objectEntryCount = 0;
 }

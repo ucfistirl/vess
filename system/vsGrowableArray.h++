@@ -9,15 +9,13 @@ private:
 
     void        **storage;
     int         currentSize, stepSize, maxSize;
-    int         shared;
     void        *nowhere;
     
     int         access(int index);
 
 public:
 
-                vsGrowableArray(int initialSize, int sizeIncrement,
-                                int sharedMemory);
+                vsGrowableArray(int initialSize, int sizeIncrement);
                 ~vsGrowableArray();
     
     void        setSize(int newSize);

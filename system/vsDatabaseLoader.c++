@@ -17,7 +17,7 @@
 // list of file extensions. Initializes the list of important node names.
 // ------------------------------------------------------------------------
 vsDatabaseLoader::vsDatabaseLoader(char *fileExtension) :
-    extensions(1, 5, 0), nodeNames(0, 50, 0)
+    extensions(1, 5), nodeNames(0, 50)
 {
     extensions[0] = strdup(fileExtension);
     extensionCount = 1;
@@ -54,7 +54,7 @@ void vsDatabaseLoader::addExtension(char *fileExtension)
         printf("vsDatabaseLoader::addExtension: Error allocating space "
             "for extension string\n");
     else
-	extensionCount++;
+        extensionCount++;
 }
 
 // ------------------------------------------------------------------------
@@ -69,7 +69,7 @@ void vsDatabaseLoader::addImportantNodeName(char *newName)
         printf("vsDatabaseLoader::addImportantNodeName: Error allocating "
             "space for node name string\n");
     else
-	nodeNameCount++;
+        nodeNameCount++;
 }
 
 // ------------------------------------------------------------------------

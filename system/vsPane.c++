@@ -38,16 +38,22 @@ vsPane::vsPane(vsWindow *parent)
 
     performerScene = new pfScene();
     performerScene->ref();
+
+    // Create the global geostate settings
     defaultState = new pfGeoState();
     defaultState->makeBasic();
 
+    defaultState->setMode(PFSTATE_DECAL,
+        PFDECAL_BASE_DISPLACE | PFDECAL_LAYER_OFFSET);
+    defaultState->setMode(PFSTATE_CULLFACE, PFCF_BACK);
     defaultState->setMode(PFSTATE_ENLIGHTING, PF_ON);
+    defaultState->setMode(PFSTATE_SHADEMODEL, PFSM_GOURAUD);
+
     lightModel = new pfLightModel();
-    lightModel->setLocal(VS_TRUE);
-    lightModel->setTwoSide(VS_FALSE);
+    lightModel->setLocal(PF_ON);
+    lightModel->setTwoSide(PF_OFF);
     lightModel->setAmbient(0.0, 0.0, 0.0);
     defaultState->setAttr(PFSTATE_LIGHTMODEL, lightModel);
-    defaultState->setFuncs(gstateCallback, NULL, NULL);
     
     performerScene->setGState(defaultState);
 
@@ -61,7 +67,7 @@ vsPane::~vsPane()
 {
     performerChannel->setScene(NULL);
     performerChannel->unref();
-    // pfChannel's can't be deleted
+    // pfChannels can't be deleted
     performerScene->unref();
     pfDelete(performerScene);
     

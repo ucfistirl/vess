@@ -6,7 +6,7 @@
 // Constructor - Initializes the child window list and sets this object
 // as a child of its parent pipe
 // ------------------------------------------------------------------------
-vsScreen::vsScreen(vsPipe *parent) : childWindowList(1, 1, 0)
+vsScreen::vsScreen(vsPipe *parent) : childWindowList(1, 1)
 {
     childWindowCount = 0;
 
