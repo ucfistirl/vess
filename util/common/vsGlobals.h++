@@ -208,4 +208,10 @@ enum vsMathEulerAxisOrder
     #define usleep(x) Sleep((x) / 1000)
 #endif
 
+// This is for the ffmpeg library under Windows, so that the int64_t and
+// uint64_t types get defined
+#ifdef WIN32
+    #define EMULATE_INTTYPES
+#endif
+
 #endif
