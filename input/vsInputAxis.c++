@@ -52,7 +52,7 @@ vsInputAxis::vsInputAxis(double minPos, double maxPos)
     if (minPos < maxPos) 
     {
         // Initialize variables
-        position = (maxPos - minPos) / 2;
+        position = (maxPos + minPos) / 2;
         offset = position;
         axisMin = minPos;
         axisMax = maxPos;
