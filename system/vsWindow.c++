@@ -119,11 +119,13 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
 }
 
 // ------------------------------------------------------------------------
-// Constructor - Initializes the window using the given Performer pipe 
-// window object.   The window is forced open if it is not already open.
+// Constructor - Initializes the window by creating a pfPipeWindow and
+// using the given X Window as the pipe window's WSWindow and WSDrawable.
+// The window is forced open if it is not already open.
 // ------------------------------------------------------------------------
-vsWindow::vsWindow(vsScreen *parent, pfPipeWindow *pWin) : childPaneList(1, 1)
+vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
 {
+    vsPipe *parentPipe;
     Display *xWindowDisplay;
     Window xWindowID;
     Window *childPointer;
@@ -136,9 +138,15 @@ vsWindow::vsWindow(vsScreen *parent, pfPipeWindow *pWin) : childPaneList(1, 1)
     
     // Get the parent screen
     parentScreen = parent;
+    parentPipe = parentScreen->getParentPipe();
+    
+    // Create and configure the pfPipeWindow to use the given X Window
+    performerPipeWindow = new pfPipeWindow(parentPipe->getBaseLibraryObject());
+    performerPipeWindow->setWinType(PFPWIN_TYPE_X);
+    performerPipeWindow->setWSWindow(pfGetCurWSConnection(), xWin);
+    performerPipeWindow->setWSDrawable(pfGetCurWSConnection(), xWin);
     
     // Reference the pfPipeWindow
-    performerPipeWindow = pWin;
     performerPipeWindow->ref();
     
     // Add this window to the screen object
