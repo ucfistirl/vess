@@ -75,6 +75,7 @@ INCS = \
        -I../input \
        -I../system \
        -I/usr/include/g++-2 \
+       -I/usr/include/g++-3 \
        -I/usr/X11R6/include \
        $(EXTRA_INCS)
 

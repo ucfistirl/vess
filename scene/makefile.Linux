@@ -8,6 +8,7 @@ INCDIRS =   -I.\
 	    -I../input \
             -I/usr/X11R6/include \
             -I/usr/include/g++-2 \
+            -I/usr/include/g++-3 \
             $(EXTRA_INCS)
 
 FLAGS = -D_XOPEN_SOURCE -D_BSD_SOURCE -D_MISC_SOURCE -DPF_CPLUSPLUS_API=1 -g -O -ansi -D__linux__ $(INCDIRS)
