@@ -227,8 +227,6 @@ void vsCyberGloveBox::startFeedback(int index, int amplitude)
     buf[2] = index;
     buf[3] = amplitude;
     port->writePacket(buf, 4);
- 
-    port->readPacket(buf, 2);
 }
 
 // ------------------------------------------------------------------------
@@ -250,8 +248,6 @@ void vsCyberGloveBox::stopFeedback(int index)
     buf[2] = index;
     buf[3] = 0;
     port->writePacket(buf, 4);
- 
-    port->readPacket(buf, 2);
 }
 
 // ------------------------------------------------------------------------
@@ -277,8 +273,6 @@ void vsCyberGloveBox::startAllFeedback(int amplitude)
     buf[6] = amplitude;
     buf[7] = amplitude;
     port->writePacket(buf, 8);
- 
-    port->readPacket(buf, 2);
 }
 
 // ------------------------------------------------------------------------
@@ -297,8 +291,6 @@ void vsCyberGloveBox::stopAllFeedback()
     buf[6] = 0;
     buf[7] = 0;
     port->writePacket(buf, 8);
- 
-    port->readPacket(buf, 2);
 }
 
 // ------------------------------------------------------------------------
