@@ -441,8 +441,9 @@ void vsSystem::drawFrame()
                 {
                     targetPane = targetWindow->getChildPane(paneLoop);
                     scene = targetPane->getScene();
-                    
-                    scene->dirty();
+
+                    if (scene)
+                        scene->dirty();
                 }
             }
         }
