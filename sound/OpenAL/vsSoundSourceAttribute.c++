@@ -111,8 +111,8 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundStream *buffer)
     // Initialize class members
     offsetMatrix.setIdentity();
     parentComponent = NULL;
-    lastPos.clear();
-    lastDir.clear();
+    lastPos.set(0.0, 0.0, 0.0);
+    lastDir.set(0.0, 0.0, 0.0);
 
     // Create a timer to measure playback time
     playTimer = new vsTimer();
@@ -287,7 +287,7 @@ void vsSoundSourceAttribute::assignVoice(int voiceID)
 
     // If the source should be playing, start playing now
     if (playState == AL_PLAYING)
-        alSourcePlay(sourceID);
+        play();
 }
 
 // ------------------------------------------------------------------------
@@ -298,7 +298,7 @@ void vsSoundSourceAttribute::assignVoice(int voiceID)
 void vsSoundSourceAttribute::revokeVoice()
 {
     // Stop the source from playing
-    alSourceStop(sourceID);
+    stop();
 
     // If streaming, detach the stream from the OpenAL source
     if (streamingSource)
