@@ -1,35 +1,49 @@
 #ifndef VS_TRACKED_MOTION_HPP
 #define VS_TRACKED_MOTION_HPP
 
-// Class inteded to take motion data directly from motion trackers and
-// apply the movements directly to the component.  Useful for viewpoint
-// head tracking.  This motion model is not intended for use with other
-// motion models simultaneously.
+// Class intended to take motion data from a motion tracker and apply
+// the movements directly to the component.  Useful for viewpoint head
+// tracking.  This motion model is not intended for use with other motion
+// models simultaneously on the same kinematics object.
 
 #include "vsMotionModel.h++"
 #include "vsMotionTracker.h++"
+#include "vsKinematics.h++"
 
 class vsTrackedMotion : public vsMotionModel
 {
 protected:
 
-    vsMotionTracker *tracker;
-    int             positionEnabled;
-    int             orientationEnabled;
+    vsMotionTracker    *tracker;
+    vsKinematics       *kinematics;
 
-    vsVector        lastTrackerPos;
-    vsQuat          lastTrackerOrn;
+    int                positionEnabled;
+    int                orientationEnabled;
+    
+    vsVector           positionOffset;
+    vsQuat             orientationOffset;
+    
+    vsVector           resetPosition;
+    vsQuat             resetOrientation;
 
 public:
 
-                        vsTrackedMotion(vsMotionTracker *theTracker);
+                    vsTrackedMotion(vsMotionTracker *theTracker,
+                                    vsKinematics *kinObject);
+                    ~vsTrackedMotion();
 
-                        ~vsTrackedMotion();
+    void            enablePositionTracking();
+    void            disablePositionTracking();
+    void            enableOrientationTracking();
+    void            disableOrientationTracking();
+    
+    void            setPositionOffset(vsVector newOffset);
+    vsVector        getPositionOffset();
+    void            setOrientationOffset(vsQuat newOffset);
+    vsQuat          getOrientationOffset();
 
-    void                enablePosition(int enabled);
-    void                enableOrientation(int enabled);
-
-    virtual vsMatrix    update();
+    virtual void    update();
+    virtual void    reset();
 };
 
 #endif

@@ -4,22 +4,20 @@
 // Creates a vsTrackedMotion motion model using the given component and
 // tracker
 // ------------------------------------------------------------------------
-vsTrackedMotion::vsTrackedMotion(vsMotionTracker *theTracker)
-               : vsMotionModel()
+vsTrackedMotion::vsTrackedMotion(vsMotionTracker *theTracker,
+    vsKinematics *kinObject)
 {
     tracker = theTracker;   
-
-    if (tracker == NULL)
-    {
-        printf("vsTrackedMotion::vsTrackedMotion:  WARNING --"
-            " NULL motion tracker!\n");
-    }
+    kinematics = kinObject;
 
     positionEnabled = VS_TRUE;
     orientationEnabled = VS_TRUE;
+    
+    positionOffset.set(0.0, 0.0, 0.0);
+    orientationOffset.set(0.0, 0.0, 0.0, 1.0);
 
-    lastTrackerPos.set(0.0, 0.0, 0.0);
-    lastTrackerOrn.set(0.0, 0.0, 0.0, 1.0);
+    resetPosition.set(0.0, 0.0, 0.0);
+    resetOrientation.set(0.0, 0.0, 0.0, 1.0);
 }
 
 // ------------------------------------------------------------------------
@@ -30,60 +28,109 @@ vsTrackedMotion::~vsTrackedMotion()
 }
 
 // ------------------------------------------------------------------------
-// Enables/Disables positional motion
+// Enables positional motion
 // ------------------------------------------------------------------------
-void vsTrackedMotion::enablePosition(int enabled)
+void vsTrackedMotion::enablePositionTracking()
 {
-    positionEnabled = enabled;
+    positionEnabled = VS_TRUE;
 }
 
 // ------------------------------------------------------------------------
-// Enables/Disables rotational motion
+// Disables positional motion
 // ------------------------------------------------------------------------
-void vsTrackedMotion::enableOrientation(int enabled)
+void vsTrackedMotion::disablePositionTracking()
 {
-    orientationEnabled = enabled;
+    positionEnabled = VS_FALSE;
+}
+
+// ------------------------------------------------------------------------
+// Enables rotational motion
+// ------------------------------------------------------------------------
+void vsTrackedMotion::enableOrientationTracking()
+{
+    orientationEnabled = VS_TRUE;
+}
+
+// ------------------------------------------------------------------------
+// Disables rotational motion
+// ------------------------------------------------------------------------
+void vsTrackedMotion::disableOrientationTracking()
+{
+    orientationEnabled = VS_FALSE;
+}
+
+// ------------------------------------------------------------------------
+// Sets the position offset
+// ------------------------------------------------------------------------
+void vsTrackedMotion::setPositionOffset(vsVector newOffset)
+{
+    positionOffset.clearCopy(newOffset);
+    positionOffset.setSize(3);
+}
+
+// ------------------------------------------------------------------------
+// Gets the position offset
+// ------------------------------------------------------------------------
+vsVector vsTrackedMotion::getPositionOffset()
+{
+    return positionOffset;
+}
+
+// ------------------------------------------------------------------------
+// Sets the orientation post-offset
+// ------------------------------------------------------------------------
+void vsTrackedMotion::setOrientationOffset(vsQuat newOffset)
+{
+    orientationOffset = newOffset;
+}
+
+// ------------------------------------------------------------------------
+// Gets the orientation post-offset
+// ------------------------------------------------------------------------
+vsQuat vsTrackedMotion::getOrientationOffset()
+{
+    return orientationOffset;
 }
 
 // ------------------------------------------------------------------------
 // Updates the motion model
 // ------------------------------------------------------------------------
-vsMatrix vsTrackedMotion::update()
+void vsTrackedMotion::update()
 {
-    vsMatrix  currentTransform;
-    vsVector  trackerPos;
-    vsQuat    trackerOrn;
-    vsQuat    temp;
-    vsVector  dPos;
-    vsQuat    dOrn;
-    vsMatrix  newTranslation;
-    vsMatrix  newRotation;
+    vsVector trackerPos;
+    vsQuat trackerOrn;
+
+    // Get tracker data
+    trackerPos = tracker->getPositionVec();  
+    trackerOrn = tracker->getOrientationQuat();
+    
+    // Factor in reset position and offsets
+    trackerPos += resetPosition;
+    trackerOrn = resetOrientation * trackerOrn;
+    
+    // Factor in specified offsets
+    trackerPos += positionOffset;
+    trackerOrn = orientationOffset * trackerOrn;
+    
+    // Apply the data to the kinematics object
+    kinematics->setPosition(trackerPos);
+    kinematics->setOrientation(trackerOrn);
+}
+
+// ------------------------------------------------------------------------
+// Sets the reset position and orientation of the motion model to the
+// current position and orientation
+// ------------------------------------------------------------------------
+void vsTrackedMotion::reset()
+{
+    vsVector trackerPos;
+    vsQuat trackerOrn;
 
     // Get tracker data
     trackerPos = tracker->getPositionVec();  
     trackerOrn = tracker->getOrientationQuat();
 
-    // Figure differences
-    dPos = trackerPos - lastTrackerPos;
-
-    temp = lastTrackerOrn;
-    temp.conjugate();
-    dOrn = trackerOrn * temp;
-
-    newRotation.setIdentity();
-    newTranslation.setIdentity();
-    if (orientationEnabled)
-    {
-        newRotation.setQuatRotation(dOrn);
-    }
-
-    if (positionEnabled)
-    {
-        newTranslation.setTranslation(dPos[VS_X], dPos[VS_Y], dPos[VS_Z]);
-    }
-
-    lastTrackerPos = trackerPos;
-    lastTrackerOrn = trackerOrn;
-
-    return newTranslation * newRotation;
+    // Set the reset data
+    resetPosition = trackerPos * -1.0;
+    resetOrientation = trackerOrn.getConjugate();
 }
