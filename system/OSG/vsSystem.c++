@@ -435,15 +435,12 @@ void vsSystem::drawFrame()
 #ifdef WIN32
     MSG message;
 #endif
-    int numSlavesReportedIn;
     int screenLoop, windowLoop, paneLoop;
     int windowCount, paneCount;
-    int i;
     vsScreen *targetScreen;
     vsWindow *targetWindow;
     vsPane *targetPane;
     vsScene *scene;
-    char commStr[256];
     int screenCount = vsScreen::getScreenCount();
 
     // Do nothing if this isn't a real system object
