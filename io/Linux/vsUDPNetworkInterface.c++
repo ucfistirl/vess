@@ -1,8 +1,9 @@
+
 //------------------------------------------------------------------------
 //
 //    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
 //
-//    Copyright (c) 2001, University of Central Florida
+//    Copyright (c) 2003, University of Central Florida
 //
 //       See the file LICENSE for license information
 //
@@ -19,29 +20,80 @@
 //
 //------------------------------------------------------------------------
 
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/param.h>
 #include "vsUDPNetworkInterface.h++"
 
 // ------------------------------------------------------------------------
-// Creates and opens a UDP (datagram) socket
+// Constructor, opens a socket to the given address on the given port
 // ------------------------------------------------------------------------
-vsUDPNetworkInterface::vsUDPNetworkInterface(int blocking) 
-                     : vsNetworkInterface()
+vsUDPNetworkInterface::vsUDPNetworkInterface(char *address, u_short port)
 {
-    // Open the datagram socket, and print an error if this fails
-    if ( (socketValue = socket(AF_INET, SOCK_DGRAM, 0)) < 0 )
-        perror("socket");
+    char             hostname[MAXHOSTNAMELEN];
+    struct hostent   *host;
 
-    // Set to non blocking, if so configured
-    if (!blocking)
+    // Open the socket
+    if ( (socketValue = socket(AF_INET, SOCK_DGRAM, 0)) < 0 )
+        printf("Unable to open socket for communication.\n");
+
+    // Get information about this host and initialize the read name field
+    gethostname(hostname, sizeof(hostname));
+    host = gethostbyname(hostname);
+    readName.sin_family = AF_INET;
+    memcpy(&readName.sin_addr.s_addr, host->h_addr_list[0], host->h_length);
+    readName.sin_port = htons(port);
+
+    // Get information about remote host and initialize the write name field
+    host = gethostbyname(address);
+    writeName.sin_family = AF_INET;
+    memcpy(&writeName.sin_addr.s_addr, host->h_addr_list[0], host->h_length);
+    writeName.sin_port = htons(port);
+
+    // Bind to the port
+    if (bind(socketValue, (struct sockaddr *) &readName, sizeof(readName)) < 0)
     {
-        if (fcntl(socketValue, F_SETFL, FNDELAY) < 0)
-            perror("fcntl");
+        printf("Unable to bind to the port.\n");
     }
 }
 
+// ------------------------------------------------------------------------
+// Constructor, opens a socket on the broadcast address on the given port
+// ------------------------------------------------------------------------
+vsUDPNetworkInterface::vsUDPNetworkInterface(u_short port)
+{
+    int    on;
+
+    // Open the socket
+    if ( (socketValue = socket(AF_INET, SOCK_DGRAM, 0)) < 0 )
+        printf("Unable to open socket for communication.\n");
+
+    // Initialize the name fields
+    readName.sin_family = AF_INET;
+    readName.sin_addr.s_addr = htonl(INADDR_ANY);
+    readName.sin_port = htons(port);
+    writeName.sin_family = AF_INET;
+    writeName.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+    writeName.sin_port = htons(port);
+
+    // Set the options we need for broadcasting
+    on = 1;
+    if (setsockopt(socketValue, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on)) < 0)
+        printf("Unable to set broadcasting on socket.\n");
+
+    // Bind to the port
+    if (bind(socketValue, (struct sockaddr *) &readName, sizeof(readName)) < 0)
+    {
+        printf("Unable to bind to the port.\n");
+    }
+}
 
 // ------------------------------------------------------------------------
-// Closes the UDP socket
+// Destructor
 // ------------------------------------------------------------------------
 vsUDPNetworkInterface::~vsUDPNetworkInterface()
 {
@@ -53,139 +105,35 @@ vsUDPNetworkInterface::~vsUDPNetworkInterface()
 // Reads up to maxSize bytes from the socket into the buffer and returns
 // the actual number of bytes read
 // ------------------------------------------------------------------------
-int vsUDPNetworkInterface::readPacket(u_char *buffer, int maxSize)
+int vsUDPNetworkInterface::read(u_char *buffer, u_long len)
 {
-    int length;
+    struct sockaddr_in    fromAddress;
+    socklen_t             fromAddressLength;
+    int                   packetLength;
 
-    // Get the length of the socket structure for the origin of the packet
-    readNameLength = sizeof(readName);
+    // Get a packet
+    fromAddressLength = sizeof(fromAddress);
+    packetLength = recvfrom(socketValue, buffer, len, 0, 
+                            (struct sockaddr *) &fromAddress, 
+                            &fromAddressLength);
 
-    // Receive a packet from the socket
-    length = recvfrom(socketValue, buffer, maxSize, 0,
-                      (struct sockaddr *) &readName, 
-                      (socklen_t *) &readNameLength);
-
-    // Check the length and error conditions, and print an error
-    // if anything is wrong
-    if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
-        perror("recvfrom");
-
-    // Return the length of the packet
-    return (length);
-}
-
-// ------------------------------------------------------------------------
-// Reads up to maxSize bytes from the socket into the buffer and returns
-// the actual number of bytes read.  Also stores a timestamp in packetTime
-// ------------------------------------------------------------------------
-int vsUDPNetworkInterface::readPacket(u_char *buffer, int maxSize,
-                                      struct timeval *packetTime)
-{
-    int length;
-
-    // Get the length of the socket structure for the origin of the packet
-    readNameLength = sizeof(readName);
-
-    // Receive a packet from the socket
-    length = recvfrom(socketValue, buffer, maxSize, 0,
-                      (struct sockaddr *) &readName,
-                      (socklen_t *) &readNameLength);
-
-    // Check the length and error conditions, and print an error
-    // if anything is wrong.  Otherwise, return the current system
-    // time in the packetTime field
-    if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
-        perror("recvfrom");
-    else
-        gettimeofday(packetTime, NULL);
-
-    return (length);
-}
-
-// ------------------------------------------------------------------------
-// Reads up to maxSize bytes from the socket into the buffer and returns 
-// the actual number of bytes read.  The originating host of the packet is 
-// stored in origin.
-// ------------------------------------------------------------------------
-int vsUDPNetworkInterface::readPacket(u_char *buffer, int maxSize, char *origin)
-{
-    int    length;
-    char   *addr;
-
-    // Get the length of the socket structure for the origin of the packet
-    readNameLength = sizeof(readName);
-
-    // Receive a packet from the socket
-    length = recvfrom(socketValue, buffer, maxSize, 0,
-                      (struct sockaddr *) &readName,
-                      (socklen_t *) &readNameLength);
-
-    // Check the length and error conditions, and print an error
-    // if anything is wrong.
-    if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
-        perror("recvfrom");
-
-    // Copy the packet's origin IP address into the origin field
-    addr = (char *) &readName.sin_addr.s_addr;
-    sprintf(origin, "%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]);
-
-    // Return the length of the packet
-    return (length);
-}
-
-// ------------------------------------------------------------------------
-// Reads up to maxSize bytes from the socket into the buffer and returns 
-// the actual number of bytes read.  The originating host of the packet is 
-// stored in origin and a timestamp is stored in packetTime.
-// ------------------------------------------------------------------------
-int vsUDPNetworkInterface::readPacket(u_char *buffer, int maxSize, 
-                                      struct timeval *packetTime, char *origin)
-{
-    int  length;
-    char *addr;
-
-    // Get the length of the socket structure for the origin of the packet
-    readNameLength = sizeof(readName);
-
-    // Receive a packet from the socket
-    length = recvfrom(socketValue, buffer, maxSize, 0,
-                      (struct sockaddr *) &readName,
-                      (socklen_t *) &readNameLength);
-
-    // Check the length and error conditions, and print an error
-    // if anything is wrong.  Otherwise, return the current system
-    // time in the packetTime field
-    if ( (length == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
-        perror("recvfrom");
-    else
-        gettimeofday(packetTime, NULL);
-
-    // Copy the packet's origin IP address into the origin field
-    addr = (char *) &readName.sin_addr.s_addr;
-    sprintf(origin, "%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]);
-
-    // Return the length of the packet
-    return (length);
+    // Tell user how many bytes we read (-1 if error)
+    return packetLength;
 }
 
 // ------------------------------------------------------------------------
 // Writes a packet of the specified length containing the data in buffer
 // to the socket.
 // ------------------------------------------------------------------------
-int vsUDPNetworkInterface::writePacket(u_char *buffer, int length)
+int vsUDPNetworkInterface::write(u_char *buffer, u_long len)
 {
-    int error;
+    int    lengthWritten;
 
-    // Send the packet on the open socket
-    error = sendto(socketValue, buffer, length, 0,
-                   (struct sockaddr *) &writeName, writeNameLength);
+    // Write the packet
+    lengthWritten = sendto(socketValue, buffer, len, 0, 
+                           (struct sockaddr *) &writeName, writeNameLength);
 
-    // Check for any error condition, and print an error message if
-    // any exists
-    if ( (error == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) )
-        perror("sendto");
-
-    // Return the length of the packet
-    return (error);
+    // Tell user how many bytes we wrote (-1 if error)
+    return lengthWritten;
 }
 

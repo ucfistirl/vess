@@ -38,7 +38,7 @@
 #include "vsMatrix.h++"
 #include "vsQuat.h++"
 #include "vsSharedInputData.h++"
-#include "vsUDPUnicastNetworkInterface.h++"
+#include "vsUDPNetworkInterface.h++"
 
 // Maximum number of receivers
 #define VS_MSTAR_MAX_TRACKERS     126
@@ -339,7 +339,7 @@ class vsEthernetMotionStar : public vsTrackingSystem
 protected:
    
     // Network interface
-    vsUDPUnicastNetworkInterface    *net;
+    vsUDPNetworkInterface    *net;
 
     // Motion trackers and the associated information
     int                     numTrackers;

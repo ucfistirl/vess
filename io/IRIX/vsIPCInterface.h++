@@ -11,28 +11,28 @@
 //
 //------------------------------------------------------------------------
 //
-//    VESS Module:  vsUDPNetworkInterface.h++
+//    VESS Module:  IPCInterface.h++
 //
-//    Description:  Class supporting UDP network communications
+//    Description:  Class supporting abstract communication
 //
 //    Author(s):    Glenn Martin
 //
 //------------------------------------------------------------------------
 
-#ifndef UDP_NETWORK_INTERFACE_HPP
-#define UDP_NETWORK_INTERFACE_HPP
+#ifndef VS_IPC_INTERFACE_HPP
+#define VS_IPC_INTERFACE_HPP
 
-#include "vsNetworkInterface.h++"
+#include <sys/types.h>
 
-class vsUDPNetworkInterface : public vsNetworkInterface
+class vsIPCInterface
 {
 public:
-               vsUDPNetworkInterface(char *address, u_short port);
-               vsUDPNetworkInterface(u_short port);
-    virtual    ~vsUDPNetworkInterface();
 
-    int        read(u_char *buffer, u_long len);
-    int        write(u_char *buffer, u_long len);
+                   vsIPCInterface();
+    virtual        ~vsIPCInterface();
+
+    virtual int    read(u_char *buffer, u_long length) = 0;
+    virtual int    write(u_char *buffer, u_long length) = 0;
 };
 
 #endif
