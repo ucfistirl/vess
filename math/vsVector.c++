@@ -388,6 +388,9 @@ void vsVector::normalize()
 
     mag = getMagnitude();
     
+    if (mag == 0.0)
+	return;
+    
     for (int i = 0; i < vecSize; i++)
         data[i] /= mag;
 }
@@ -403,6 +406,9 @@ vsVector vsVector::getNormalized()
     result.setSize(vecSize);
     mag = getMagnitude();
     
+    if (mag == 0.0)
+	return result;
+
     for (int i = 0; i < vecSize; i++)
         result[i] = (data[i] / mag);
 
