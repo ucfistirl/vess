@@ -67,6 +67,11 @@ vsIntersect::~vsIntersect()
         if (sectPath[loop] != NULL)
             delete (sectPath[loop]);
 
+    // Clean up any line segments that were allocated
+    for (loop = 0; loop < segListSize; loop++)
+        if (segList[loop]!=NULL)
+            ((osg::LineSegment *)(segList[loop]))->unref();
+
     // Unreference the vsIntersectTraverser
     traverser->unref();
 
@@ -103,7 +108,8 @@ void vsIntersect::setSegListSize(int newSize)
         // that are going away.
         for (loop = newSize; loop < segListSize; loop++)
         {
-            ((osg::LineSegment *)(segList[loop]))->unref();
+            if (segList[loop]!=NULL)
+                ((osg::LineSegment *)(segList[loop]))->unref();
         }
     }
     
