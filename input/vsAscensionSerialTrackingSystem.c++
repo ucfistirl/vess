@@ -92,6 +92,14 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
 
     if (port[0])
     {
+        // Drop the RTS line to put the flock into FLY mode
+        printf("  Dropping RTS on %s\n", portDevice);
+        port[0]->setRTS(VS_FALSE);
+        port[0]->setDTR(VS_TRUE);
+
+        // Wait for the bird to wake up
+        sleep(1);
+
         if (configuration == VS_AS_MODE_STANDALONE)
         {
             // Standalone configuration, tracker number is 0
@@ -187,6 +195,10 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
 #endif
 
             port[i] = new vsSerialPort(portDevice, baud, 8, 'N', 1);
+
+            // Drop the RTS line to put the flock into FLY mode
+            port[i]->setRTS(VS_FALSE);
+            port[i]->setDTR(VS_TRUE);
         }
 
         // Initialize variables
@@ -490,6 +502,7 @@ void vsAscensionSerialTrackingSystem::enumerateTrackers()
         printf("  Error reading master bird status (%d of 2 bytes)\n", result);
     }
 
+
     // Next, ask the master for the system status
     outBuf[0] = VS_AS_CMD_EXAMINE_VALUE;
     outBuf[1] = VS_AS_VAL_FLOCK_STATUS;
@@ -498,7 +511,10 @@ void vsAscensionSerialTrackingSystem::enumerateTrackers()
     for (i = 0; i < VS_AS_CMD_PACKET_SIZE; i++)
     {
         inBuf[i] = 0;
+        statusBuf[i] = 0;
     }
+
+    sleep(3);
 
     if (addressMode == VS_AS_ADDR_SUPER_EXP)
     {
@@ -1245,7 +1261,7 @@ void vsAscensionSerialTrackingSystem::ping()
         // Send the ping to each bird
         for (trackerNum = 0; trackerNum < numTrackers; trackerNum++)
         {
-            if ((trackerNum + 1 < ercAddress) || (ercAddress == 0))
+            if (((trackerNum + 1) < ercAddress) || (ercAddress == 0))
                 port[trackerNum + 1]->writePacket(&buf, 1);
             else
                 port[trackerNum + 2]->writePacket(&buf, 1);
@@ -1319,7 +1335,7 @@ void vsAscensionSerialTrackingSystem::updateSystem()
             // Read a data packet from each bird
             for (trackerNum = 0; trackerNum < numTrackers; trackerNum++)
             {
-                if ((trackerNum + 1 < ercAddress) || (ercAddress == 0))
+                if (((trackerNum + 1) < ercAddress) || (ercAddress == 0))
                     bytesRead = 
                         port[trackerNum + 1]->
                         readPacket(&buf[trackerNum * birdDataSize], 1);
@@ -1379,7 +1395,7 @@ void vsAscensionSerialTrackingSystem::updateSystem()
                         buf[ (i * birdDataSize) + (birdDataSize - 1)];
 
                     // Translate the address to an index into the tracker array
-                    if (currentAddress > ercAddress)
+                    if ((currentAddress > ercAddress) && (ercAddress != 0))
                         currentTracker = currentAddress - 2;
                     else
                         currentTracker = currentAddress - 1;
@@ -1414,7 +1430,7 @@ void vsAscensionSerialTrackingSystem::updateSystem()
                     msb = msb << 8;
                     flockData[j/2] = (msb | lsb) << 1;
                 }
-    
+
                 switch (dataFormat)
                 {
                     case VS_AS_DATA_POSITION:
@@ -1594,17 +1610,44 @@ void vsAscensionSerialTrackingSystem::setActiveHemisphere(int trackerNum,
                                                           short hSphere)
 {
     unsigned char buf[3];
-    short         hemisphere;
     int           address;
 
-    hemisphere = hSphere;
+    // memcpy() of the hSphere parameter doesn't work on little-endian
+    // machines.  To account for this, we set each byte of the hemisphere
+    // command explicitly.
+    switch (hSphere)
+    {
+        case VS_AS_HSPH_FORWARD:
+            buf[0] = 0x00;
+            buf[1] = 0x00;
+            break;
+        case VS_AS_HSPH_AFT:
+            buf[0] = 0x00;
+            buf[1] = 0x01;
+            break;
+        case VS_AS_HSPH_UPPER:
+            buf[0] = 0x0C;
+            buf[1] = 0x01;
+            break;
+        case VS_AS_HSPH_LOWER:
+            buf[0] = 0x0C;
+            buf[1] = 0x00;
+            break;
+        case VS_AS_HSPH_LEFT:
+            buf[0] = 0x06;
+            buf[1] = 0x01;
+            break;
+        case VS_AS_HSPH_RIGHT:
+            buf[0] = 0x06;
+            buf[1] = 0x00;
+            break;
+    }
 
     if (configuration == VS_AS_MODE_STANDALONE)
     {
         if (trackerNum == 0)
         {
             address = 0;
-            memcpy(buf, &hemisphere, 2);
             fbbCommand(address, VS_AS_CMD_HEMISPHERE, buf, 2);
         }
         else 
@@ -1617,19 +1660,15 @@ void vsAscensionSerialTrackingSystem::setActiveHemisphere(int trackerNum,
     {
         if (trackerNum < numTrackers)
         {
-            if ((trackerNum + 1) < ercAddress)
+            if (((trackerNum + 1) < ercAddress) || (ercAddress == 0))
                 address = trackerNum + 1;
             else
                 address = trackerNum + 2;
-
-            memcpy(buf, &hemisphere, 2);
 
             fbbCommand(address, VS_AS_CMD_HEMISPHERE, buf, 2);
         }
         else if (trackerNum == VS_AS_ALL_TRACKERS)
         {
-            memcpy(buf, &hemisphere, 2);
-
             fbbCommand(VS_AS_ALL_TRACKERS, VS_AS_CMD_HEMISPHERE, buf, 2);
         }
         else 
@@ -1712,7 +1751,7 @@ void vsAscensionSerialTrackingSystem::setAngleAlignment(int trackerNum,
     {
         if (trackerNum < numTrackers)
         {
-            if ((trackerNum + 1) < ercAddress)
+            if (((trackerNum + 1) < ercAddress) || (ercAddress == 0))
                 address = trackerNum + 1;
             else
                 address = trackerNum + 2;
