@@ -617,14 +617,9 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     int primSetType, primCount, vertCount;
     osg::DrawArrayLengths *osgDrawLengthsPrim;
 
-    osg::Vec3Array *osgNormalArray;
-    osg::Array *osgArray;
-    int osgArraySize;
     osg::Vec2 osgVec2;
     osg::Vec3 osgVec3;
     osg::Vec4 osgVec4;
-    osg::IndexArray *osgIndexArray;
-    int copySize, idx;
     int normalMark, colorMark, texCoordMark;
 
     int needsDecal;
@@ -798,9 +793,9 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
                     {
                         osgDrawLengthsPrim =
                             (osg::DrawArrayLengths *)osgPrimitiveSet;
-                        for (loop = 0; loop < primCount; loop++)
-                            geometry->setPrimitiveLength(loop,
-                                (*osgDrawLengthsPrim)[loop]);
+                        for (tloop = 0; tloop < primCount; tloop++)
+                            geometry->setPrimitiveLength(tloop,
+                                (*osgDrawLengthsPrim)[tloop]);
                     }
                     else
                         geometry->setPrimitiveLength(0, vertCount);
@@ -889,7 +884,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     osg::ShadeModel *osgShadeModel;
     vsShadingAttribute *vsShadingAttr;
 
-    osg::PolygonMode *osgPolyMode, *newPolyMode;
+    osg::PolygonMode *osgPolyMode;
     vsWireframeAttribute *vsWireframeAttr;
     
     // Fog
@@ -1412,7 +1407,6 @@ int vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
     osg::Array *sourceArray, osg::IndexArray *indexArray)
 {
     int loop;
-    int offset;
     osg::DrawArrays *osgDrawArraysPrim;
     osg::DrawArrayLengths *osgDrawLengthsPrim;
     osg::DrawElementsUByte *osgDrawByteElemsPrim;
@@ -1424,8 +1418,7 @@ int vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
     osg::Vec2 osgVec2;
     osg::Vec3 osgVec3;
     osg::Vec4 osgVec4;
-    osg::IndexArray *osgIndexArray;
-    int idx, primLength;
+    int idx;
     int vertCount, primCount;
     int osgArraySize;
     int copySize;
