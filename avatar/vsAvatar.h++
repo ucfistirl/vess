@@ -31,6 +31,13 @@
 
 #define VS_AVATAR_LOCAL_ISECT_MASK 0x01000000
 
+enum ConfigLineType
+{
+    VS_AVT_LINE_END    = -1,
+    VS_AVT_LINE_PARAM  = 0,
+    VS_AVT_LINE_OBJECT = 1
+};
+
 class vsAvatar : public vsUpdatable
 {
 protected:
