@@ -52,7 +52,6 @@ libvsGraphics_so_SOURCES = $(libvsGraphics_a_SOURCES)
 # Extra sources for libvsGraphics.a.  These are only compiled if certain
 # conditions in the configure process are met.
 EXTRA_libvsGraphics_a_SOURCES = \
-                                common/vsMPEGReader.c++ \
                                 OSG/vsBillboardCallback.c++ \
                                 OSG/vsCgMatrixParameter.c++ \
                                 OSG/vsCgParameter.c++ \
@@ -119,7 +118,6 @@ include_HEADERS = \
 # Extra header files.  These are only used if certain conditions in the
 # configure process are met.
 EXTRA_HEADERS = \
-                common/vsMPEGReader.h++ \
                 OSG/vsBillboardCallback.h++ \
                 OSG/vsCgMatrixParameter.h++ \
                 OSG/vsCgParameter.h++ \
