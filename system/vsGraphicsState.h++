@@ -104,20 +104,6 @@ public:
     void          unlockTexture(void *lockAddr);
     void          unlockTransparency(void *lockAddr);
     void          unlockWireframe(void *lockAddr);
-
-    static int    isSameBackface(vsAttribute *firstAttr,
-                                 vsAttribute *secondAttr);
-    static int    isSameFog(vsAttribute *firstAttr, vsAttribute *secondAttr);
-    static int    isSameMaterial(vsAttribute *firstAttr,
-                                 vsAttribute *secondAttr);
-    static int    isSameShading(vsAttribute *firstAttr,
-                                vsAttribute *secondAttr);
-    static int    isSameTexture(vsAttribute *firstAttr,
-                                vsAttribute *secondAttr);
-    static int    isSameTransparency(vsAttribute *firstAttr,
-                                     vsAttribute *secondAttr);
-    static int    isSameWireframe(vsAttribute *firstAttr,
-                                  vsAttribute *secondAttr);
 };
 
 #endif
