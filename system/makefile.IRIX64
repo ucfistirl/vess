@@ -6,11 +6,6 @@ INCDIRS = -I. \
 	  -I../input \
 	  -I../motion \
 	  -I/usr/include/X11
-LIBDIRS = -L../math \
-	  -L../scene \
-	  -L../input \
-	  -L../motion \
-	  -L/usr/lib32/libpfdb
 
 LIBNAME = libvsCore.a
 
@@ -41,38 +36,13 @@ OBJS = vsDatabaseLoader.o \
        vsView.o \
        vsWindow.o
 
-LIBS = -lvsMath \
-       -lvsScene \
-       -lvsInput \
-       -lvsMotion \
-       -lpf_ogl \
-       -lpfutil_ogl \
-       -lpfdu_ogl \
-       -lpfflt_ogl \
-       -lpfui \
-       -lC \
-       -lc \
-       -lm \
-       -lX11 \
-       -lXext \
-       -lXm \
-       -lXt \
-       -lXmu \
-       -lgl \
-       -lGLU \
-       -lGL \
-       -lmalloc \
-       -limage
-
-#      -lfm
-
 $(LIBNAME): $(OBJS)
 	ar -rc $(LIBNAME) $(OBJS)
 
 
 dep: depend
 depend:
-	makedepend -f makefile.IRIX -- $(FLAGS) -- $(SRCS)
+	makedepend -f makefile.IRIX64 -- $(FLAGS) -- $(SRCS)
 
 
 clean:
@@ -83,7 +53,7 @@ clean:
 	CC $(FLAGS) -c $< -o ./$*.o
 
 .c.o:
-	CC $(FLAGS) -c $< -o ./$*.o
+	cc $(FLAGS) -c $< -o ./$*.o
 
 
 #----------------------------------------------------------------------
