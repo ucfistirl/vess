@@ -28,6 +28,7 @@
 #include "vsMaterialAttribute.h++"
 #include "vsShadingAttribute.h++"
 #include "vsTextureAttribute.h++"
+#include "vsTextureCubeAttribute.h++"
 #include "vsTransparencyAttribute.h++"
 #include "vsWireframeAttribute.h++"
 #include "vsLightAttribute.h++"
@@ -44,6 +45,7 @@ private:
     vsMaterialAttribute        *materialAttr;
     vsShadingAttribute         *shadingAttr;
     vsTextureAttribute         *textureAttr;
+    vsTextureCubeAttribute     *textureCubeAttr;
     vsTransparencyAttribute    *transparencyAttr;
     vsWireframeAttribute       *wireframeAttr;
     
@@ -81,6 +83,7 @@ public:
     void          setMaterial(vsMaterialAttribute *newAttrib);
     void          setShading(vsShadingAttribute *newAttrib);
     void          setTexture(vsTextureAttribute *newAttrib);
+    void          setTextureCube(vsTextureCubeAttribute *newAttrib);
     void          setTransparency(vsTransparencyAttribute *newAttrib);
     void          setWireframe(vsWireframeAttribute *newAttrib);
     
@@ -92,6 +95,7 @@ public:
     vsMaterialAttribute        *getMaterial();
     vsShadingAttribute         *getShading();
     vsTextureAttribute         *getTexture();
+    vsTextureCubeAttribute     *getTextureCube();
     vsTransparencyAttribute    *getTransparency();
     vsWireframeAttribute       *getWireframe();
     

@@ -89,6 +89,7 @@ void vsGraphicsState::clearState()
     materialAttr = NULL;
     shadingAttr = NULL;
     textureAttr = NULL;
+    textureCubeAttr = NULL;
     transparencyAttr = NULL;
     wireframeAttr = NULL;
     lightAttrCount = 0;
@@ -136,6 +137,10 @@ void vsGraphicsState::applyState(pfGeoState *state)
     // Call the texture attribute (if any) to make its state changes
     if (textureAttr)
         textureAttr->setState(state);
+
+    // Call the texture cube attribute (if any) to make its state changes
+    if (textureCubeAttr)
+        textureCubeAttr->setState(state);
 
     // Call the transparency attribute (if any) to make its state changes
     if (transparencyAttr)
@@ -201,7 +206,23 @@ void vsGraphicsState::setTexture(vsTextureAttribute *newAttrib)
 {
     // Set the current attribute, if it's not locked
     if (!textureLock)
+    {
         textureAttr = newAttrib;
+        textureCubeAttr = NULL;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Sets the attribute that contains the desired texture cube state
+// ------------------------------------------------------------------------
+void vsGraphicsState::setTextureCube(vsTextureCubeAttribute *newAttrib)
+{
+    // Set the current attribute, if it's not locked
+    if (!textureLock)
+    {
+        textureCubeAttr = newAttrib;
+        textureAttr = NULL;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -291,6 +312,14 @@ vsShadingAttribute *vsGraphicsState::getShading()
 vsTextureAttribute *vsGraphicsState::getTexture()
 {
     return textureAttr;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the attribute that contains the current texture cube state
+// ------------------------------------------------------------------------
+vsTextureCubeAttribute *vsGraphicsState::getTextureCube()
+{
+    return textureCubeAttr;
 }
 
 // ------------------------------------------------------------------------
