@@ -8,10 +8,10 @@ libvsUtil_a_SOURCES = \
                       common/vsObject.c++ \
                       common/vsObjectMap.c++ \
                       common/vsQuat.c++ \
-                      common/vsTimer.c++ \
                       common/vsTreeMap.c++ \
                       common/vsUpdatable.c++ \
-                      common/vsVector.c++
+                      common/vsVector.c++ \
+                      @OS@/vsTimer.c++
 
 # Sources for libvsUtil.so (same as libvsUtil.a)
 libvsUtil_so_SOURCES = $(libvsUtil_a_SOURCES)
@@ -23,15 +23,20 @@ include_HEADERS = \
                   common/vsObject.h++ \
                   common/vsObjectMap.h++ \
                   common/vsQuat.h++ \
-                  common/vsTimer.h++ \
                   common/vsTreeMap.h++ \
                   common/vsUpdatable.h++ \
-                  common/vsVector.h++
+                  common/vsVector.h++ \
+                  @OS@/vsTimer.h++
+
+# Include directives
+INCLUDES = \
+           -I../util/common \
+           -I../util/@OS@
 
 # Rule to make libvsUtil.so
 libvsUtil.so: libvsUtil.a
 	rm -f $@
-	$(CXX) $(LDFLAGS) -shared -o $@ @SO_LINK@ libvsUtil.a @SO_NO_LINK@
+	$(CXX) $(LDFLAGS) $(AM_LDFLAGS) -shared -o $@ @SO_LINK@ libvsUtil.a @SO_NO_LINK@
 
 # Override automake's install rule for the libraries.  This is done to
 # keep automake from running ranlib on the shared library (since we're

@@ -26,12 +26,13 @@ INCLUDES = \
 	   -I../graphics/@SG@ \
 	   -I../graphics/@SG@_@WS@ \
 	   -I../util/common \
+	   -I../util/@OS@ \
            @GFX_INCLUDE_DIR@
 
 # Rule to make libvsSystem.so
 libvsSystem.so: libvsSystem.a
 	rm -f $@
-	$(CXX) $(LDFLAGS) -shared -o $@ @SO_LINK@ libvsSystem.a @SO_NO_LINK@
+	$(CXX) $(LDFLAGS) $(AM_LDFLAGS) -shared -o $@ @SO_LINK@ libvsSystem.a @SO_NO_LINK@
 
 # Override automake's install rule for the libraries.  This is done to
 # keep automake from running ranlib on the shared library (since we're

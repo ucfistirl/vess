@@ -53,12 +53,13 @@ INCLUDES = \
 	   -I../graphics/@SG@ \
 	   -I../graphics/@SG@_@WS@ \
            @GFX_INCLUDE_DIR@ \
-	   -I../util/common
+	   -I../util/common \
+	   -I../util/@OS@
 
 # Rule to make libvsMotion.so
 libvsMotion.so: libvsMotion.a
 	rm -f $@
-	$(CXX) $(LDFLAGS) -shared -o $@ @SO_LINK@ libvsMotion.a @SO_NO_LINK@
+	$(CXX) $(LDFLAGS) $(AM_LDFLAGS) -shared -o $@ @SO_LINK@ libvsMotion.a @SO_NO_LINK@
 
 # Override automake's install rule for the libraries.  This is done to
 # keep automake from running ranlib on the shared library (since we're

@@ -15,23 +15,23 @@ libvsIO_a_SOURCES = \
                     common/vsISTJoystickBox.c++ \
                     common/vsJoystickBox.c++ \
                     common/vsJoystick.c++ \
-                    common/vsKeyboard.c++ \
                     common/vsMotionTracker.c++ \
                     common/vsMouse.c++ \
-                    common/vsNetworkInterface.c++ \
                     common/vsPinchGloveBox.c++ \
                     common/vsSerialMotionStar.c++ \
-                    common/vsSharedInputData.c++ \
                     common/vsSpaceball.c++ \
                     common/vsTrackingSystem.c++ \
-                    common/vsUDPNetworkInterface.c++ \
-                    common/vsUDPUnicastNetworkInterface.c++ \
                     common/vsUnwinder.c++ \
                     @OS@/vsAscensionSerialTrackingSystem.c++ \
                     @OS@/vsEthernetMotionStar.c++ \
                     @OS@/vsFastrak.c++ \
                     @OS@/vsIS600.c++ \
+                    @OS@/vsKeyboard.c++ \
+                    @OS@/vsNetworkInterface.c++ \
                     @OS@/vsSerialPort.c++ \
+                    @OS@/vsSharedInputData.c++ \
+                    @OS@/vsUDPNetworkInterface.c++ \
+                    @OS@/vsUDPUnicastNetworkInterface.c++ \
                     @WS@/vsWSSpaceball.c++ \
                     @SG@_@WS@/vsWindowSystem.c++
 
@@ -60,23 +60,23 @@ include_HEADERS = \
                   common/vsISTJoystickBox.h++ \
                   common/vsJoystickBox.h++ \
                   common/vsJoystick.h++ \
-                  common/vsKeyboard.h++ \
                   common/vsMotionTracker.h++ \
                   common/vsMouse.h++ \
-                  common/vsNetworkInterface.h++ \
                   common/vsPinchGloveBox.h++ \
                   common/vsSerialMotionStar.h++ \
-                  common/vsSharedInputData.h++ \
                   common/vsSpaceball.h++ \
                   common/vsTrackingSystem.h++ \
-                  common/vsUDPNetworkInterface.h++ \
-                  common/vsUDPUnicastNetworkInterface.h++ \
                   common/vsUnwinder.h++ \
                   @OS@/vsAscensionSerialTrackingSystem.h++ \
                   @OS@/vsEthernetMotionStar.h++ \
                   @OS@/vsFastrak.h++ \
                   @OS@/vsIS600.h++ \
+                  @OS@/vsKeyboard.h++ \
+                  @OS@/vsNetworkInterface.h++ \
                   @OS@/vsSerialPort.h++ \
+                  @OS@/vsSharedInputData.h++ \
+                  @OS@/vsUDPNetworkInterface.h++ \
+                  @OS@/vsUDPUnicastNetworkInterface.h++ \
                   @WS@/vsWSSpaceball.c++ \
                   @SG@_@WS@/vsWindowSystem.c++
 
@@ -106,12 +106,13 @@ INCLUDES = \
            -I../graphics/@SG@ \
            -I../graphics/@SG@_@WS@ \
            @GFX_INCLUDE_DIR@ \
-           -I../util/common
+           -I../util/common \
+           -I../util/@OS@
 
 # Rule to make libvsIO.so
 libvsIO.so: libvsIO.a
 	rm -f $@
-	$(CXX) $(LDFLAGS) -shared -o $@ @SO_LINK@ libvsIO.a @SO_NO_LINK@
+	$(CXX) $(LDFLAGS) $(AM_LDFLAGS) -shared -o $@ @SO_LINK@ libvsIO.a @SO_NO_LINK@
 
 # Override automake's install rule for the libraries.  This is done to
 # keep automake from running ranlib on the shared library (since we're
