@@ -75,32 +75,32 @@ VS_INTERNAL:
 
 public:
 
-                       vsWindow(vsScreen *parent, bool hideBorder, bool stereo);
-                       vsWindow(vsScreen *parent, int xPosition, int yPosition,
-                                int width, int height, bool hideBorder, 
-                                bool stereo);
-                       vsWindow(vsScreen *parent, Window xWin);
-    virtual            ~vsWindow();
+                          vsWindow(vsScreen *parent, bool hideBorder, 
+                                   bool stereo);
+                          vsWindow(vsScreen *parent, int x, int y, int width, 
+                                   int height, bool hideBorder, bool stereo);
+                          vsWindow(vsScreen *parent, Window xWin);
+    virtual               ~vsWindow();
 
-    virtual const char *getClassName();
+    virtual const char    *getClassName();
     
-    vsScreen           *getParentScreen();
-    int                getChildPaneCount();
-    vsPane             *getChildPane(int index);
+    vsScreen              *getParentScreen();
+    int                   getChildPaneCount();
+    vsPane                *getChildPane(int index);
 
-    void               setSize(int width, int height);
-    void               getSize(int *width, int *height);
-    void               getDrawableSize(int *width, int *height);
-    void               setPosition(int xPos, int yPos);
-    void               getPosition(int *xPos, int *yPos);
-    void               setFullScreen();
+    void                  setSize(int width, int height);
+    void                  getSize(int *width, int *height);
+    void                  getDrawableSize(int *width, int *height);
+    void                  setPosition(int xPos, int yPos);
+    void                  getPosition(int *xPos, int *yPos);
+    void                  setFullScreen();
 
-    void               setName(char *newName);
+    void                  setName(char *newName);
 
-    void               saveImage(char *filename);
-    vsImage *          getImage( );
+    void                  saveImage(char *filename);
+    vsImage *             getImage( );
 
-    Window             getBaseLibraryObject();
+    Window                getBaseLibraryObject();
 };
 
 #endif
