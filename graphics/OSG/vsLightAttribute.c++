@@ -311,7 +311,7 @@ void vsLightAttribute::setSpotlightValues(double exponent, double cutoffDegrees)
 {
     // Pass the values to the OSG Light object
     lightObject->setSpotExponent(exponent);
-    lightObject->setSpotCutoff(VS_DEG2RAD(cutoffDegrees));
+    lightObject->setSpotCutoff(cutoffDegrees);
 }
 
 // ------------------------------------------------------------------------
@@ -484,7 +484,9 @@ void vsLightAttribute::restoreSaved()
 
     // If this is a local light, remove it from the graphics state.
     if (lightScope == VS_LIGHT_MODE_LOCAL)
+    {
         graphicsState->removeLocalLight(this);
+    }
 }
 
 // ------------------------------------------------------------------------
