@@ -32,6 +32,10 @@ vsSwitchAttribute::vsSwitchAttribute()
     // Start with a NULL osgSim::MultiSwitch (this will be created in the 
     // attach() method)
     osgSwitch = NULL;
+    
+    // By default, we start with all children enabled.
+    allEnabled = true;
+    allDisabled = false;
 }
 
 // ------------------------------------------------------------------------
@@ -89,6 +93,11 @@ void vsSwitchAttribute::enableOne(int index)
     
     // Activate the requested switch mask on the osgSim::MultiSwitch
     osgSwitch->setActiveSwitchSet(index);
+
+    // Adjust the all-children states appropriately, so the switch attribute
+    // remembers that only a subset of children are enabled
+    allEnabled = false;
+    allDisabled = false;
 }
 
 // ------------------------------------------------------------------------
@@ -118,6 +127,11 @@ void vsSwitchAttribute::disableOne(int index)
     // a negative value.
     if (osgSwitch->getActiveSwitchSet() == index)
         disableAll();
+
+    // Adjust the all-children states appropriately, so the switch attribute
+    // remembers that only a subset of children are enabled
+    allEnabled = false;
+    allDisabled = false;
 }
 
 // ------------------------------------------------------------------------
@@ -143,6 +157,11 @@ void vsSwitchAttribute::enableAll()
     // state of new nodes added to the switch) to false, because the call
     // to setAllChildrenOn() above has the side effect of changing this value.
     osgSwitch->setNewChildDefaultValue(false);
+    
+    // Adjust the all-children states appropriately, so the switch attribute
+    // remembers that all children are enabled
+    allEnabled = true;
+    allDisabled = false;
 }
 
 // ------------------------------------------------------------------------
@@ -163,6 +182,11 @@ void vsSwitchAttribute::disableAll()
     // during the attach() process.
     osgSwitch->setActiveSwitchSet(osgSwitch->getSwitchSetList().size() - 1);
     osgSwitch->setAllChildrenOff(osgSwitch->getSwitchSetList().size() - 1);
+    
+    // Adjust the all-children states appropriately, so the switch attribute
+    // remembers that all children are disabled
+    allDisabled = true;
+    allEnabled = false;
 }
 
 // ------------------------------------------------------------------------
@@ -340,7 +364,10 @@ void vsSwitchAttribute::addMask(vsComponent *parent, vsNode *newChild)
     int childIndex;
     int maskListSize;
     bool maskValue;
+    int currentMask;
     int i, j;
+    bool allChildren;
+    bool allChildrenOn;
 
     // Bail out if we're not attached (no switch to manipulate)
     if (attachedCount <= 0)
@@ -362,9 +389,9 @@ void vsSwitchAttribute::addMask(vsComponent *parent, vsNode *newChild)
     {
         // Slide all of the switch masks down by one position
         for (i = childIndex; i < maskListSize; i++)
-        {
+        {   
             for (j = 0; j < parent->getChildCount(); j++)
-            {
+            {   
                 // Get the value for the mask in this position
                 maskValue = osgSwitch->getValue(i, j);
 
@@ -378,6 +405,23 @@ void vsSwitchAttribute::addMask(vsComponent *parent, vsNode *newChild)
     // Now that we've made sure we have room for this child's switch mask, 
     // set it up to have only this child on.
     osgSwitch->setSingleChildOn(childIndex, childIndex);
+
+    // Get the new size of the switch set list
+    maskListSize = osgSwitch->getSwitchSetList().size();
+
+    // Adjust the "all children" mask to also contain the new child. Use the
+    // allEnabled value to tell whether the mask should be enabled or
+    // disabled.
+    if (allEnabled)
+        osgSwitch->setAllChildrenOn(maskListSize);
+    else
+        osgSwitch->setAllChildrenOff(maskListSize);
+
+    // If we previously had all children on or off, make sure we still do
+    // by activating the "all children" mask at the end of the OSG switch's
+    // mask list
+    if (allEnabled || allDisabled)
+        osgSwitch->setActiveSwitchSet(maskListSize);
 }
 
 // ------------------------------------------------------------------------
@@ -395,10 +439,17 @@ void vsSwitchAttribute::pruneMasks(vsComponent *parent)
     int newMaskCount;
     int i, j;
     bool empty;
+    int currentMask;
+    bool allChildren, allChildrenOn;
 
     // Bail out if we're not attached (no switch to manipulate)
     if (attachedCount <= 0)
         return;
+
+    // Get the current switch set (mask).  If it's the "all children" mask
+    // we need to make sure that we adjust the active switch set to the new 
+    // "all children" value after the list of masks is updated.
+    maskListSize = osgSwitch->getSwitchSetList().size();
 
     // If we find any empty masks in the MultiSwitch, then we should
     // remove them (it serves no purpose any longer). Create a new 
@@ -436,6 +487,53 @@ void vsSwitchAttribute::pruneMasks(vsComponent *parent)
     osgSwitch->unref();
     osgSwitch = newSwitch;
     osgSwitch->ref();
+
+    // Now, we need to adjust the new switch to be enabled or
+    // disabled, based upon the isSwitchEnabled value.
+    maskListSize = osgSwitch->getSwitchSetList().size();
+    if (allEnabled)
+    {
+        // Make sure that the number of switch masks reported is valid.
+        if(maskListSize > 0)
+        {
+           // All children are enabled, so enable them all on the switch
+           osgSwitch->setAllChildrenOn(maskListSize - 1);
+        }
+        else
+        {
+           // All children are enabled, so enable them all on the switch
+           osgSwitch->setAllChildrenOn(0);
+        }
+    }
+    else
+    {
+        // Make sure that the number of switch masks reported is valid.
+        if(maskListSize > 0)
+        {
+           // Disable all the children in the "all children" mask
+           osgSwitch->setAllChildrenOff(maskListSize - 1);
+        }
+        else
+        {
+           // Disable all the children in the "all children" mask
+           osgSwitch->setAllChildrenOff(0);
+        }
+    }
+
+    // Finally, if we previously had all children on or off, make sure we
+    // still do
+    if (allEnabled || allDisabled)
+    {
+        // Make sure that the number of switch masks reported is valid.
+        if(maskListSize > 0)
+        {
+           osgSwitch->setActiveSwitchSet(maskListSize - 1);
+        }
+        else
+        {
+           osgSwitch->setActiveSwitchSet(0);
+        }
+    }
 }
 
 // ------------------------------------------------------------------------
