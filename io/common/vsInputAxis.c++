@@ -308,6 +308,13 @@ bool vsInputAxis::isNormalized(void)
 // ------------------------------------------------------------------------
 void vsInputAxis::setInverted(bool invert)
 {
+    // If the axis inversion setting is changing, invert the current
+    // axis position immediately, otherwise the axis position won't be
+    // correct until the next call to setPosition()
+    if (inverted != invert)
+        position = -position;
+
+    // Save the new inversion setting
     inverted = invert;
 }
 
