@@ -28,8 +28,6 @@
 #include "X11/Xutil.h"
 #include "X11/Xos.h"
 
-//class vsWindowSystem;
-
 #include "vsObjectMap.h++"
 #include "vsInputSystem.h++"
 #include "vsWindow.h++"
@@ -83,7 +81,7 @@ VS_INTERNAL:
 public:
 
                           vsWindowSystem(vsWindow *mainWindow);
-                          ~vsWindowSystem();
+    virtual               ~vsWindowSystem();
 
     virtual const char    *getClassName();
 

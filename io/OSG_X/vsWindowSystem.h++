@@ -82,7 +82,7 @@ VS_INTERNAL:
 public:
 
                           vsWindowSystem(vsWindow *mainWindow);
-                          ~vsWindowSystem();
+    virtual               ~vsWindowSystem();
 
     virtual const char    *getClassName();
 

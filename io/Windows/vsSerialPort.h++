@@ -47,7 +47,7 @@ public:
                  vsSerialPort(char *deviceName);
                  vsSerialPort(char *deviceName, long baud, int wordLength,
                               char parity, int stopBits);
-                 ~vsSerialPort(void);
+    virtual      ~vsSerialPort(void);
       
     int          writePacket(unsigned char *string, int length);
     int          readPacket(unsigned char *string, int length);

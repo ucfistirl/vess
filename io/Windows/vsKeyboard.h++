@@ -178,7 +178,7 @@ VS_INTERNAL:
 public:
 
                           vsKeyboard(int mode);
-                          ~vsKeyboard();
+    virtual               ~vsKeyboard();
                      
     // Inherited class name method
     virtual const char    *getClassName();

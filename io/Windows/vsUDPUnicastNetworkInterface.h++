@@ -32,7 +32,7 @@ class VS_IO_DLL vsUDPUnicastNetworkInterface : public vsUDPNetworkInterface
 public:
                 vsUDPUnicastNetworkInterface(char *address, short port, 
                                            int blocking);
-                ~vsUDPUnicastNetworkInterface();
+    virtual     ~vsUDPUnicastNetworkInterface();
 };
 
 #endif
