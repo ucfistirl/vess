@@ -375,21 +375,10 @@ int vsTextureAttribute::getMinFilter()
 // ------------------------------------------------------------------------
 void vsTextureAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsTextureAttribute *newAttrib;
-    pfTexture *newTex;
-    pfTexEnv *newTexEnv;
-    
-    // Create new Performer objects as duplicates of the ones we have
-    newTex = new pfTexture();
-    newTex->copy(performerTexture);
-    newTexEnv = new pfTexEnv();
-    newTexEnv->copy(performerTexEnv);
-    
-    // Create a duplicate texture attribute using the new Performer objects
-    newAttrib = new vsTextureAttribute(newTex, newTexEnv);
-
-    // Attach the duplicate attribute to the specified node
-    theNode->addAttribute(newAttrib);
+    // Do NOT duplicate the texture attribute; just point to the one we
+    // have already. We don't want multiple texture objects with
+    // repetitive data floating around the scene graph.
+    theNode->addAttribute(this);
 }
 
 // ------------------------------------------------------------------------

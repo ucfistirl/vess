@@ -365,20 +365,10 @@ int vsMaterialAttribute::getColorMode(int side)
 // ------------------------------------------------------------------------
 void vsMaterialAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsMaterialAttribute *newAttrib;
-    pfMaterial *newFront, *newBack;
-    
-    // Create duplicates of this attribute's materials
-    newFront = new pfMaterial();
-    newFront->copy(frontMaterial);
-    newBack = new pfMaterial();
-    newBack->copy(backMaterial);
-    
-    // Create a duplicate material attribute
-    newAttrib = new vsMaterialAttribute(frontMaterial, backMaterial);
-
-    // Attach the duplicate attribute to the specified node
-    theNode->addAttribute(newAttrib);
+    // Do NOT duplicate the material attribute; just point to the one we
+    // have already. We don't want multiple material objects with
+    // repetitive data floating around the scene graph.
+    theNode->addAttribute(this);
 }
 
 // ------------------------------------------------------------------------
