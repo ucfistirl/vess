@@ -54,6 +54,7 @@ vsButtonAxis::vsButtonAxis(vsInputButton *positiveBtn,
     // Set the axis parameters to default values
     outputAxis->setRange(VS_AXIS_DEFAULT_MIN, VS_AXIS_DEFAULT_MAX);
     outputAxis->setIdlePosition((VS_AXIS_DEFAULT_MIN + VS_AXIS_DEFAULT_MAX) / 2.0);
+    outputAxis->setNormalized(true);
 
     // Set the current position to the idle position
     setPosition(outputAxis->getIdlePosition());
@@ -105,6 +106,7 @@ vsButtonAxis::vsButtonAxis(vsInputButton *positiveBtn,
         outputAxis->setRange(VS_AXIS_DEFAULT_MIN, VS_AXIS_DEFAULT_MAX);
         outputAxis->setIdlePosition((VS_AXIS_DEFAULT_MIN + VS_AXIS_DEFAULT_MAX) / 2.0);
     }
+    outputAxis->setNormalized(true);
 
     // Set the current position to the idle position
     setPosition(outputAxis->getIdlePosition());
