@@ -1,16 +1,20 @@
 #include "vsDrivingMotion.h++"
+#include <stdio.h>
+#include "vsMatrix.h++"
 
 // ------------------------------------------------------------------------
 // Constructs a driving motion model using the given input axes
 // ------------------------------------------------------------------------
 vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis, 
-                                 vsInputAxis *throttleAxis)
+                                 vsInputAxis *throttleAxis, 
+                                 vsKinematics *kin)
 {
     steering = steeringAxis;
     throttle = throttleAxis;
     accelButton = NULL;
     decelButton = NULL;
     stopButton = NULL;
+    kinematics = kin;
 
     if (((steering != NULL) && (!steering->isNormalized())) ||
         ((throttle != NULL) && (!throttle->isNormalized())))
@@ -18,9 +22,6 @@ vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis,
         printf("vsDrivingMotion::vsDrivingMotion:  One or more axes are not "
             "normalized\n");
     }
-
-    lastSteeringVal = 0.0;
-    lastThrottleVal = 0.0;
 
     accelerationRate = VS_DM_DEFAULT_ACCEL_RATE;
     steeringRate = VS_DM_DEFAULT_STEER_RATE;
@@ -36,13 +37,15 @@ vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis,
 vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis, 
                                  vsInputButton *accelBtn,
                                  vsInputButton *decelBtn,
-                                 vsInputButton *stopBtn)
+                                 vsInputButton *stopBtn,
+                                 vsKinematics *kin)
 {
     steering = steeringAxis;
     throttle = NULL;
     accelButton = accelBtn;
     decelButton = decelBtn;
     stopButton = stopBtn;
+    kinematics = kin;
 
     if (((steering != NULL) && (!steering->isNormalized())) ||
         ((throttle != NULL) && (!throttle->isNormalized())))
@@ -65,13 +68,14 @@ vsDrivingMotion::vsDrivingMotion(vsInputAxis *steeringAxis,
 // Constructs a driving motion model using a mouse with the default axis
 // and button configuration
 // ------------------------------------------------------------------------
-vsDrivingMotion::vsDrivingMotion(vsMouse *mouse)
+vsDrivingMotion::vsDrivingMotion(vsMouse *mouse, vsKinematics *kin)
 {
     steering = mouse->getAxis(0);
     throttle = NULL;
     accelButton = mouse->getButton(0);
     decelButton = mouse->getButton(2);
     stopButton = mouse->getButton(1);
+    kinematics = kin;
 
     if (((steering != NULL) && (!steering->isNormalized())) ||
         ((throttle != NULL) && (!throttle->isNormalized())))
@@ -79,9 +83,6 @@ vsDrivingMotion::vsDrivingMotion(vsMouse *mouse)
         printf("vsDrivingMotion::vsDrivingMotion:  One or more axes are not "
             "normalized\n");
     }
-
-    lastSteeringVal = 0.0;
-    lastThrottleVal = 0.0;
 
     accelerationRate = VS_DM_DEFAULT_ACCEL_RATE;
     steeringRate = VS_DM_DEFAULT_STEER_RATE;
@@ -95,13 +96,15 @@ vsDrivingMotion::vsDrivingMotion(vsMouse *mouse)
 // configuration
 // ------------------------------------------------------------------------
 vsDrivingMotion::vsDrivingMotion(vsMouse *mouse, int accelButtonIndex,
-                                 int decelButtonIndex, int stopButtonIndex)
+                                 int decelButtonIndex, int stopButtonIndex,
+                                 vsKinematics *kin)
 {
     steering = mouse->getAxis(0);
     throttle = NULL;
     accelButton = mouse->getButton(accelButtonIndex);
     decelButton = mouse->getButton(decelButtonIndex);
     stopButton = mouse->getButton(stopButtonIndex);
+    kinematics = kin;
 
     if (((steering != NULL) && (!steering->isNormalized())) ||
         ((throttle != NULL) && (!throttle->isNormalized())))
@@ -109,9 +112,6 @@ vsDrivingMotion::vsDrivingMotion(vsMouse *mouse, int accelButtonIndex,
         printf("vsDrivingMotion::vsDrivingMotion:  One or more axes are not "
             "normalized\n");
     }
-
-    lastSteeringVal = 0.0;
-    lastThrottleVal = 0.0;
 
     accelerationRate = VS_DM_DEFAULT_ACCEL_RATE;
     steeringRate = VS_DM_DEFAULT_STEER_RATE;
@@ -211,24 +211,45 @@ void vsDrivingMotion::setSteeringRate(double rate)
 // ------------------------------------------------------------------------
 // Updates the motion model
 // ------------------------------------------------------------------------
-vsMatrix vsDrivingMotion::update()
+void vsDrivingMotion::update()
 {
     double              interval;
     double              dHeading;
+    vsVector            steeringAxis;
+    vsVector            v;
+    vsVector            tempV;
+    double              fwdVelocity;
+    vsQuat              orn;
+    vsQuat              inverseOrn;
     vsVector            dPos;
     vsQuat              dOrn;
     vsMatrix            transMat, rotMat;
     vsMatrix            movement;
 
+    // Get elapsed time
     interval = getTimeInterval();
+
+    // Get the current rotation
+    orn = kinematics->getOrientation();
+
+    // Determine the steering axis
+    steeringAxis.set(0.0, 0.0, 1.0);
+    steeringAxis = orn.rotatePoint(steeringAxis);
+
+    // Determine the forward velocity component
+    v = kinematics->getVelocity();
+    inverseOrn = orn;
+    inverseOrn.conjugate();
+    tempV = inverseOrn.rotatePoint(v);
+    fwdVelocity = tempV[VS_Y];
 
     // Adjust heading according to the current axis mode
     if (steering != NULL)
     {
         if (steeringMode == VS_DM_STEER_RELATIVE)
         {
-            dHeading = -(steering->getPosition()) * steeringRate * interval *
-                velocity / maxVelocity;
+            dHeading = -(steering->getPosition()) * 45.0 * interval * 
+                fwdVelocity;
         }
         else
         {
@@ -236,17 +257,25 @@ vsMatrix vsDrivingMotion::update()
         }
     }
 
+    // Update the orientation
+    dOrn.setAxisAngleRotation(steeringAxis[VS_X], steeringAxis[VS_Y],
+        steeringAxis[VS_Z], dHeading);
+    kinematics->preModifyOrientation(dOrn);
+
+    // Get the new orientation
+    orn = kinematics->getOrientation();
+
     // Handle the throttle axis
     if (throttle != NULL)
     {
         if (throttleMode == VS_DM_THROTTLE_ACCELERATION)
         {
-            velocity += throttle->getPosition() * accelerationRate *
+            fwdVelocity += throttle->getPosition() * accelerationRate *
                 interval;
         }
         else
         {
-            velocity = throttle->getPosition() * maxVelocity;
+            fwdVelocity = throttle->getPosition() * maxVelocity;
         }
     }
 
@@ -255,17 +284,17 @@ vsMatrix vsDrivingMotion::update()
     {
         if (throttleMode == VS_DM_THROTTLE_ACCELERATION)
         {
-            velocity += accelerationRate * interval;
+            fwdVelocity += accelerationRate * interval;
         }
         else
         {
             if ((decelButton != NULL) && (decelButton->isPressed()))
             {
-                velocity = 0;
+                fwdVelocity = 0;
             }
             else
             {
-                velocity = maxVelocity;
+                fwdVelocity = maxVelocity;
             }
         }
     }
@@ -274,50 +303,41 @@ vsMatrix vsDrivingMotion::update()
     {
         if (throttleMode == VS_DM_THROTTLE_ACCELERATION)
         {
-            velocity -= accelerationRate * interval;
+            fwdVelocity -= accelerationRate * interval;
         }
         else
         {
             if ((accelButton != NULL) && (accelButton->isPressed()))
             {
-                velocity = 0;
+                fwdVelocity = 0;
             }
             else
             {
-                velocity = -maxVelocity;
+                fwdVelocity = -maxVelocity;
             }
         }
     }
 
     if ((stopButton != NULL) && (stopButton->isPressed()))
     {
-        velocity = 0;
+        fwdVelocity = 0;
     }
 
     // Clamp the velocity to the maximum velocity
-    if (velocity > maxVelocity)
+    if (fwdVelocity > maxVelocity)
     {
-        velocity = maxVelocity;
-        velocity = maxVelocity;
+        fwdVelocity = maxVelocity;
     }
 
-    if (velocity < -maxVelocity)
+    if (fwdVelocity < -maxVelocity)
     {
-        velocity = -maxVelocity;
+        fwdVelocity = -maxVelocity;
     }
 
-    // Update the stored axis values
-    if (steering)
-        lastSteeringVal = steering->getPosition();
-    if (throttle)
-        lastThrottleVal = throttle->getPosition();
+    // Factor in the adjusted velocity
+    tempV[VS_Y] = fwdVelocity;
+    v = orn.rotatePoint(tempV);
 
-    // Update the orientation
-    dOrn.setAxisAngleRotation(0, 0, 1, dHeading);
-    rotMat.setQuatRotation(dOrn);
-
-    // Update the position
-    transMat.setTranslation(0.0, velocity * interval, 0.0);
-
-    return rotMat * transMat;
+    // Modify the kinematics velocity
+    kinematics->setVelocity(v);
 }

@@ -10,6 +10,7 @@
 // steering have separate scaling factors to scale the input values received.
 
 #include "vsMotionModel.h++"
+#include "vsKinematics.h++"
 #include "vsMouse.h++"
 
 enum vsDMThrottleMode
@@ -34,6 +35,9 @@ class vsDrivingMotion : public vsMotionModel
 {
 protected:
 
+     // Kinematics object (current motion state)
+     vsKinematics        *kinematics;
+
      // Throttle control (either a single axis or a collection of buttons)
      vsInputAxis         *throttle;
 
@@ -43,7 +47,6 @@ protected:
 
      // Throttle parameters
      vsDMThrottleMode    throttleMode;
-     double              velocity;
      double              maxVelocity;
      double              accelerationRate;
      double              lastThrottleVal;
@@ -59,19 +62,22 @@ protected:
 public:
 
                         vsDrivingMotion(vsInputAxis *steeringAxis,
-                                        vsInputAxis *throttleAxis);
+                                        vsInputAxis *throttleAxis,
+                                        vsKinematics *kin);
 
                         vsDrivingMotion(vsInputAxis *steeringAxis,
                                         vsInputButton *accelButton,
                                         vsInputButton *decelButton,
-                                        vsInputButton *stopButton);
+                                        vsInputButton *stopButton,
+                                        vsKinematics *kin);
 
-                        vsDrivingMotion(vsMouse *mouse);
+                        vsDrivingMotion(vsMouse *mouse, vsKinematics *kin);
 
                         vsDrivingMotion(vsMouse *mouse, 
                                         int accelButtonIndex,
                                         int decelButtonIndex, 
-                                        int stopButtonIndex);
+                                        int stopButtonIndex,
+                                        vsKinematics *kin);
 
                         ~vsDrivingMotion();
 
@@ -87,7 +93,7 @@ public:
     double              getSteeringRate();
     void                setSteeringRate(double rate);
 
-    virtual vsMatrix    update();
+    virtual void    update();
 };
 
 #endif
