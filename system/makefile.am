@@ -20,6 +20,7 @@ include_HEADERS = \
 INCLUDES = \
            -I. \
            -Icommon \
+           -I@SG@ \
            -I../avatar/common \
 	   -I../motion/common \
 	   -I../io/common \
