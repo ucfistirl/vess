@@ -34,11 +34,15 @@ vsSoundManager *vsSoundManager::instance = NULL;
 // ------------------------------------------------------------------------
 vsSoundManager::vsSoundManager()
 {
+    // Initialize the soundPipe pointer to NULL
+    soundPipe = NULL;
+    
     // Initialize the soundListener pointer to NULL
     soundListener = NULL;
 
-    // Inintialize the sound and sound source counters
+    // Inintialize the sound source counters and array
     numSoundSources = 0;
+    memset(soundSources, 0, sizeof(soundSources));
 }
 
 // ------------------------------------------------------------------------
