@@ -61,7 +61,7 @@ public:
 
     vsSkeleton           *getNewSkeleton();
 
-    vsSequencer          *getNewAnimation(char *name, vsSkeletonKinematics
+    vsPathMotionManager  *getNewAnimation(char *name, vsSkeletonKinematics
                                           *skeletonKinematics);
 };
 

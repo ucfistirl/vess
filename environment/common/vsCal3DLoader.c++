@@ -287,13 +287,14 @@ vsSkeleton *vsCal3DLoader::getNewSkeleton()
 }
 
 //------------------------------------------------------------------------
-// Return a new vsSequencer with all vsPathMotions for the specified
+// Return a new vsPathMotionManager with all vsPathMotions for the specified
 // animation file.
 //------------------------------------------------------------------------
-vsSequencer *vsCal3DLoader::getNewAnimation(char *name, vsSkeletonKinematics
-                                            *skeletonKinematics)
+vsPathMotionManager *vsCal3DLoader::getNewAnimation(char *name,
+                                                    vsSkeletonKinematics
+                                                    *skeletonKinematics)
 {
-    vsSequencer *animation;
+    vsPathMotionManager *animation;
     char *filename;
     char *animationName;
     int index;

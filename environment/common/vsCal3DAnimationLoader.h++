@@ -23,7 +23,7 @@
 #define VS_CAL3D_ANIMATION_LOADER
 
 #include "vsObject.h++"
-#include "vsSequencer.h++"
+#include "vsPathMotionManager.h++"
 #include "vsSkeletonKinematics.h++"
 
 // Tags used to enclose the entire file, needed for the xml library
@@ -35,20 +35,20 @@ class VS_ENVIRONMENT_DLL vsCal3DAnimationLoader : public vsObject
 {
 private:
 
-    vsSequencer         *parseXML(char *filename,
-                                  vsSkeletonKinematics *skeletonKinematics);
+    vsPathMotionManager    *parseXML(char *filename,
+                                     vsSkeletonKinematics *skeletonKinematics);
 
 VS_INTERNAL:
 
 public:
 
-                        vsCal3DAnimationLoader();
-    virtual             ~vsCal3DAnimationLoader();
+                           vsCal3DAnimationLoader();
+    virtual                ~vsCal3DAnimationLoader();
 
-    virtual const char  *getClassName();
+    virtual const char     *getClassName();
 
-    vsSequencer         *loadAnimation(char *filename, vsSkeletonKinematics
-                                       *skeletonKinematics);
+    vsPathMotionManager    *loadAnimation(char *filename, vsSkeletonKinematics
+                                          *skeletonKinematics);
 };
 
 #endif

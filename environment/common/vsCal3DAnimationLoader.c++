@@ -46,9 +46,9 @@ vsCal3DAnimationLoader::~vsCal3DAnimationLoader()
 // ------------------------------------------------------------------------
 // This function performs the actual XML parsing of the animation file.
 // It builds up vsPathMotions for each bone's motion and returns the list
-// of these vsPathMotions in a vsSequencer.
+// of these vsPathMotions in a vsPathMotionManager.
 // ------------------------------------------------------------------------
-vsSequencer *vsCal3DAnimationLoader::parseXML(char *filename,
+vsPathMotionManager *vsCal3DAnimationLoader::parseXML(char *filename,
     vsSkeletonKinematics *skeletonKinematics)
 {
     FILE                    *filePointer;
@@ -72,7 +72,7 @@ vsSequencer *vsCal3DAnimationLoader::parseXML(char *filename,
     double                  keyframeTime;
     double                  x, y, z, w;
     char                    *tempString;
-    vsSequencer             *sequencer;
+    vsPathMotionManager     *pathMotionManager;
     vsPathMotion            *bonePathMotion;
     vsKinematics            *boneKinematics;
     vsQuat                  rotation;
@@ -260,9 +260,9 @@ vsSequencer *vsCal3DAnimationLoader::parseXML(char *filename,
         return NULL;
     }
 
-    // So far everything is proper, go ahead and make sequencer to store all
-    // the vsPathMotion objects.
-    sequencer = new vsSequencer();
+    // So far everything is proper, go ahead and make vsPathMotionManager to
+    // store all the vsPathMotion objects.
+    pathMotionManager = new vsPathMotionManager();
 
     // Process all if the ANIMATION's children, the TRACKs.
     current = current->children;
@@ -334,8 +334,8 @@ vsSequencer *vsCal3DAnimationLoader::parseXML(char *filename,
                 // Set the number of frames.
                 bonePathMotion->setPointListSize(keyframeCount);
 
-                // Add the PathMotion to the sequencer.
-                sequencer->addUpdatable(bonePathMotion, (char *)
+                // Add the vsPathMotion to the vsPathMotionManager.
+                pathMotionManager->addPathMotion(bonePathMotion, (char *)
                     boneKinematics->getComponent()->getName());
             }
 
@@ -471,7 +471,7 @@ vsSequencer *vsCal3DAnimationLoader::parseXML(char *filename,
             "processing error!\n");
         xmlFreeDoc(document);
         delete [] fileBuffer;
-        delete sequencer;
+        delete pathMotionManager;
 
         return NULL;
     }
@@ -480,7 +480,7 @@ vsSequencer *vsCal3DAnimationLoader::parseXML(char *filename,
     xmlFreeDoc(document);
     delete [] fileBuffer;
 
-    return sequencer;
+    return pathMotionManager;
 }
 
 // ------------------------------------------------------------------------
@@ -492,10 +492,10 @@ const char *vsCal3DAnimationLoader::getClassName()
 }
 
 // ------------------------------------------------------------------------
-// Call to attempt to load a Cal3D animation file.  Returns the vsSequencer
-// created with the set of vsPathMoitions.
+// Call to attempt to load a Cal3D animation file.  Returns the
+// vsPathMotionManager created with the set of vsPathMoitions.
 // ------------------------------------------------------------------------
-vsSequencer *vsCal3DAnimationLoader::loadAnimation(char *filename,
+vsPathMotionManager *vsCal3DAnimationLoader::loadAnimation(char *filename,
     vsSkeletonKinematics *skeletonKinematics)
 {
     int    nameLength;
