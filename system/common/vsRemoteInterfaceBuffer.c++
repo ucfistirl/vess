@@ -323,6 +323,12 @@ void vsRemoteInterfaceBuffer::processXMLDocument()
         {
             processSetKinematics(doc, current);
         }
+        else if (xmlStrcmp(current->name, 
+                           (const xmlChar *) "setsequence") == 0)
+        {
+            processSetSequence(doc, current, 
+                               vsSystem::systemObject->getSequencer());
+        }
         else if (xmlStrcmp(current->name, (const xmlChar *) "stats") == 0)
         {
             processStats(doc, current);
@@ -427,16 +433,13 @@ void vsRemoteInterfaceBuffer::processQuerySequence(xmlDocPtr doc,
                                                    xmlNodePtr current)
 {
     vsSequencer   *rootSequencer;
-    char          *treeBuffer;
-
-    // Allocate some space
-    treeBuffer = (char *) calloc(1024, sizeof(char));
+    char          treeBuffer[1024];
 
     // Get the "root" sequencer
     rootSequencer = vsSystem::systemObject->getSequencer();
 
     // Initialize the buffer for the response
-    sprintf(treeBuffer, "<sequence>");
+    strcpy(treeBuffer, "<sequence>");
 
     // Go through and collect the state of the sequencer
     getSequenceTree(rootSequencer, treeBuffer);
@@ -529,6 +532,61 @@ void vsRemoteInterfaceBuffer::processSetKinematics(xmlDocPtr doc,
 
 
 // ------------------------------------------------------------------------
+// Set the root sequencer to the sequence listed in the XML document
+// ------------------------------------------------------------------------
+void vsRemoteInterfaceBuffer::processSetSequence(xmlDocPtr doc, 
+                                                 xmlNodePtr current,
+                                                 vsSequencer *currentSequencer)
+{
+    u_long         numUpdatable;
+    char           *updatableName;
+    vsUpdatable    *updatable;
+
+    // Initialize count
+    numUpdatable = 0;
+
+    // Go through the children and see what updatables are there
+    current = current->xmlChildrenNode;
+    while (current != NULL)
+    {
+        // Process accordingly whether it's an "updatable" or a "sequence"
+        // Note that updatables not in the XML list will be moved to the
+        // end of the list (not deleted)
+        if ( (xmlStrcmp(current->name, (const xmlChar *) "updatable") == 0) ||
+             (xmlStrcmp(current->name, (const xmlChar *) "sequence") == 0) )
+        {
+            // Look for the required attribute
+            updatableName = (char *) xmlGetProp(current, 
+                                                (const xmlChar *) "name");
+
+            // Find the updatable in the sequencer's list
+            updatable = currentSequencer->getUpdatableByName(updatableName);
+
+            // Set the position of this updatable (assuming we found it)
+            if (updatable != NULL)
+            {
+                // Place the updatable and the relative position we want
+                currentSequencer->setUpdatablePosition(updatable, numUpdatable);
+
+                // Move to the next relative position
+                numUpdatable++;
+            }
+
+            // Then, see if this updatable is actually a sequence (hierarchical)
+            if (xmlStrcmp(current->name, (const xmlChar *) "sequence") == 0)
+            {
+                // It is so call recursively
+                processSetSequence(doc, current, (vsSequencer *) updatable);
+            }
+        }
+
+        // Get the next child of the element
+        current = current->next;
+    }
+}
+
+
+// ------------------------------------------------------------------------
 // Get the data out of the showstats XML document and enable/disable
 // the display of stats on that pane accordingly
 // ------------------------------------------------------------------------
@@ -600,14 +658,14 @@ u_char *vsRemoteInterfaceBuffer::processBuffer(u_char *buffer, int lengthRead)
     // Make a string out of the buffer
     buffer[lengthRead] = '\0';
 
+    // Initialize the responses buffer (we will collect any responses
+    // from the XML elements into this buffer and send them back)
+    xmlResponses[0] = '\0';
+
     // Check if we see the ending "</vessxml>"
     endTag = (u_char *) strstr((const char *) buffer, "</vessxml>");
     if (endTag != NULL)
     {
-        // Initialize the responses buffer (we will collect any responses
-        // from the XML elements into this buffer and send them back)
-        xmlResponses[0] = '\0';
-
         // We need to loop in case there are multiple documents within 
         // the buffer
         while (endTag != NULL)
@@ -675,9 +733,9 @@ u_char *vsRemoteInterfaceBuffer::processBuffer(u_char *buffer, int lengthRead)
         sprintf(header, "<?xml version=\"1.0\"?><vessxml version=\"%s\">",
                 VS_VESS_XML_VERSION);
 
-        // Move the responses over to make room for the header
+        // Move the responses over to make room for the header (+1 for NULL)
         memmove(&xmlResponses[strlen(header)], &xmlResponses[0], 
-                strlen(header));
+                strlen((char *) xmlResponses)+1);
 
         // Copy the header in
         memcpy(&xmlResponses[0], header, strlen(header));

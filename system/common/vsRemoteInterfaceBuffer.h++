@@ -35,6 +35,9 @@ protected:
                                                   xmlNodePtr current);
     void                     processSetKinematics(xmlDocPtr doc, 
                                                   xmlNodePtr current);
+    void                     processSetSequence(xmlDocPtr doc, 
+                                                xmlNodePtr current,
+                                                vsSequencer *currentSequencer);
     void                     processStats(xmlDocPtr doc, xmlNodePtr current);
 
 public:
