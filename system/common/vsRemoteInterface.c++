@@ -5,7 +5,7 @@
 #include "vsWindow.h++"
 #include "vsPane.h++"
 
-#define VESS_RI_MAX_BUFFER_SIZE   65536
+#define VS_RI_MAX_BUFFER_SIZE   65536
 
 vsRemoteInterface::vsRemoteInterface()
 {
@@ -18,12 +18,9 @@ vsRemoteInterface::vsRemoteInterface()
     xmlBufferSize = 0;
 
     // Open the TCP connection and listen for clients
-    tcpInterface = new vsTCPNetworkInterface(VESS_RI_DEFAULT_CONTROL_PORT);
-    tcpInterface->allowConnections(0);
+    tcpInterface = new vsTCPNetworkInterface(VS_RI_DEFAULT_CONTROL_PORT);
+    tcpInterface->allowConnections(1);
     tcpInterface->disableBlocking();
-
-    // Open the UDP connection and listen
-    udpInterface = new vsUDPNetworkInterface(VESS_RI_DEFAULT_CONTROL_PORT);
 
     // Initialize the client ID
     tcpClientID = -1;
@@ -46,12 +43,12 @@ vsRemoteInterface::vsRemoteInterface(char *dtdFilename)
     xmlContext.warning = (xmlValidityWarningFunc ) fprintf;
 
     // Open the TCP connection and listen for clients
-    tcpInterface = new vsTCPNetworkInterface(VESS_RI_DEFAULT_CONTROL_PORT);
+    tcpInterface = new vsTCPNetworkInterface(VS_RI_DEFAULT_CONTROL_PORT);
     tcpInterface->allowConnections(1);
     tcpInterface->disableBlocking();
 
-    // Open the UDP connection and listen
-    udpInterface = new vsUDPNetworkInterface(VESS_RI_DEFAULT_CONTROL_PORT);
+    // Initialize the client ID
+    tcpClientID = -1;
 }
 
 
@@ -70,8 +67,8 @@ vsRemoteInterface::vsRemoteInterface(short port)
     tcpInterface->allowConnections(1);
     tcpInterface->disableBlocking();
 
-    // Open the UDP connection and listen
-    udpInterface = new vsUDPNetworkInterface(VESS_RI_DEFAULT_CONTROL_PORT);
+    // Initialize the client ID
+    tcpClientID = -1;
 }
 
 
@@ -95,8 +92,8 @@ vsRemoteInterface::vsRemoteInterface(char *dtdFilename, short port)
     tcpInterface->allowConnections(1);
     tcpInterface->disableBlocking();
 
-    // Open the UDP connection and listen
-    udpInterface = new vsUDPNetworkInterface(VESS_RI_DEFAULT_CONTROL_PORT);
+    // Initialize the client ID
+    tcpClientID = -1;
 }
 
 
@@ -106,17 +103,13 @@ vsRemoteInterface::~vsRemoteInterface()
    if (tcpInterface != NULL)
       delete tcpInterface;
 
-   // Close up the network interface (we check pointer just for safety)
-   if (udpInterface != NULL)
-      delete udpInterface;
-
    // Free up the DTD if we created it
    if (xmlDTD != NULL)
       xmlFreeDtd(xmlDTD);
 }
 
 
-void vsRemoteInterface::processBuffer()
+void vsRemoteInterface::processXMLDocument()
 {
     xmlDocPtr    doc;
     xmlNodePtr   current;
@@ -234,8 +227,9 @@ void vsRemoteInterface::processStats(xmlDocPtr doc, xmlNodePtr current)
 void vsRemoteInterface::update()
 {
     int      tempClientID;
+    u_long   i;
     int      lengthRead;
-    u_char   buffer[VESS_RI_MAX_XML_DOCUMENT_SIZE + VESS_RI_MAX_BUFFER_SIZE];
+    u_char   buffer[VS_RI_MAX_XML_DOCUMENT_SIZE + VS_RI_MAX_BUFFER_SIZE];
     u_char   *nextNull;
     u_char   *endTag;
     u_long   partialChunkSize;
@@ -247,8 +241,13 @@ void vsRemoteInterface::update()
     {
         // Somebody connected
         printf("Accepted connection.\n");
+
+        // Set the new socket to be non-blocking (we don't want to get stuck
+        // reading later)
+        tcpInterface->disableBlockingOnClient(tempClientID);
+
+        // Store the client ID
         tcpClientID = tempClientID;
-        tcpInterface->disableBlockingOnClient(tcpClientID);
     }
 
     // Bail out if we don't have a client yet
@@ -316,7 +315,7 @@ void vsRemoteInterface::update()
                 }
 
                 // Process the document
-                processBuffer();
+                processXMLDocument();
 
                 // Clear the internal xml buffer
                 xmlBufferSize = 0;
