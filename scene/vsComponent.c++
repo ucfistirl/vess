@@ -320,6 +320,7 @@ vsNode *vsComponent::cloneTree()
     // be taken care of automatically)
     result->setName(getName());
     result->setIntersectValue(getIntersectValue());
+    result->setVisibilityValue(getVisibilityValue());
    
     // Clone the children of this component and add them to the new
     // component
