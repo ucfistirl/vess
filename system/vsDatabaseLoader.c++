@@ -213,7 +213,8 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
     performerGraph = pfdLoadFile(databaseFilename);
     if (!performerGraph)
     {
-        printf("vsDatabaseLoader::loadDatabase: Load failed\n");
+        printf("vsDatabaseLoader::loadDatabase: Load of '%s' failed\n",
+	    databaseFilename);
         return NULL;
     }
 
@@ -459,10 +460,11 @@ void vsDatabaseLoader::replaceBillboards(pfNode *targetGraph)
 }
 
 // ------------------------------------------------------------------------
-// VESS internal function - Called by the vsSystem object's constructor
-// Further initializes the loader by initializing the loader DSO's for
-// each file type the program is to be able to handle. Once this function
-// is called the loader cannot accept any more filename extensions.
+// VESS internal function
+// Signals to the loader that the system object is being initialized and
+// that it should not accept any more requests to initialize file
+// extensions. This is done because Performer requires loader
+// initializations to be completed before any processes fork.
 // ------------------------------------------------------------------------
 void vsDatabaseLoader::init()
 {
