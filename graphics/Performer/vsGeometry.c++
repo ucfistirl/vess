@@ -105,7 +105,6 @@ vsGeometry::~vsGeometry()
 {
     vsAttribute *attr;
     vsNode *parent;
-    int loop;
 
     // Remove all attached attributes; destroy those that aren't being
     // used by other nodes.
