@@ -17,7 +17,7 @@ all clean dep:
 			echo "Skipping $$i; No such directory"; \
 		else \
 			echo "Making $$i ($@) for ${OS}"; \
-			cd $$i; ${MAKE} -P -f makefile.${OS} $@; cd ..; \
+			cd $$i; ${MAKE} -f makefile.${OS} $@; cd ..; \
 		fi \
 	done
 
