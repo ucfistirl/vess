@@ -88,6 +88,7 @@ void vsStateAttribute::attach(vsNode *theNode)
 {
     ownerList[ownerCount] = theNode;
     ownerCount++;
+    theNode->ref();
     theNode->dirty();
     
     vsAttribute::attach(theNode);
@@ -108,6 +109,7 @@ void vsStateAttribute::detach(vsNode *theNode)
         {
             ownerList[loop] = ownerList[ownerCount-1];
             ownerCount--;
+            theNode->unref();
             theNode->dirty();
 
             vsAttribute::detach(theNode);
