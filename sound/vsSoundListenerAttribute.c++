@@ -150,6 +150,17 @@ void vsSoundListenerAttribute::detach(vsNode *theNode)
 }
 
 // ------------------------------------------------------------------------
+// VESS internal function
+// Intended to attach a duplicate of this attribute to the given node. This
+// operation is not possible for this type of attribute because there can
+// only be a single listener per application, and thus one container on the 
+// tree.
+// ------------------------------------------------------------------------
+void vsSoundListenerAttribute::attachDuplicate(vsNode *theNode)
+{
+}
+
+// ------------------------------------------------------------------------
 // Sets the offset matrix for this attribute. The offset matrix is
 // multiplied into the overall transform matrix before it is sent to the 
 // OpenAL sound source.

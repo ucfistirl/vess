@@ -57,8 +57,10 @@ protected:
 
 VS_INTERNAL:
 
-    void        attach(vsNode *theNode);
-    void        detach(vsNode *theNode);
+    virtual void    attach(vsNode *theNode);
+    virtual void    detach(vsNode *theNode);
+
+    virtual void    attachDuplicate(vsNode *theNode);
 
 public:
 

@@ -210,6 +210,20 @@ void vsSoundSourceAttribute::detach(vsNode *theNode)
 }
 
 // ------------------------------------------------------------------------
+// VESS internal function
+// Attaches a duplicate of this attribute to the given node
+// ------------------------------------------------------------------------
+void vsSoundSourceAttribute::attachDuplicate(vsNode *theNode)
+{
+    vsSoundSourceAttribute *source;
+
+    source = new vsSoundSourceAttribute((vsSoundSample *)soundBuffer, 
+        loopSource);
+
+    theNode->addAttribute(source);
+}
+
+// ------------------------------------------------------------------------
 // Retrieves the type of this attribute
 // ------------------------------------------------------------------------
 int vsSoundSourceAttribute::getAttributeType()
