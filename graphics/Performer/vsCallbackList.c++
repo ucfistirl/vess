@@ -689,20 +689,29 @@ void vsCallbackList::drawCallback(pfChannel *chan, void *userData)
     vsCallbackNode *currentNode;
     int            clearMask;
 
-    // Grab the pointer to the current callback node
-    currentNode = (vsCallbackNode *)userData;
+    // See if pfEarthSky is enabled on this pane
+    if (chan->getESky()->getMode(PFES_BUFFER_CLEAR) == PFES_SKY_GRND)
+    {
+        // The entire channel must be cleared for EarthSky to function properly
+        chan->clear();
+    }
+    else
+    {
+        // Grab the pointer to the current callback node
+        currentNode = (vsCallbackNode *)userData;
 
-    // Acquire the semaphore for the clear mask
-    uspsema(currentNode->sema);
+        // Acquire the semaphore for the clear mask
+        uspsema(currentNode->sema);
 
-    // Get the value of the clear mask
-    clearMask = *((int *)currentNode->data);
+        // Get the value of the clear mask
+        clearMask = *((int *)currentNode->data);
 
-    // Release the clear mask semaphore
-    usvsema(currentNode->sema);
+        // Release the clear mask semaphore
+        usvsema(currentNode->sema);
 
-    // Clear the channel according to the user data clear mask
-    glClear(clearMask);
+        // Clear the channel according to the user data clear mask
+        glClear(clearMask);
+    }
 
     // Draw the scene
     pfDraw();
