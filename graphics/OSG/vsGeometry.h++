@@ -66,6 +66,8 @@ enum vsGeometryBinSortMode
     VS_GEOMETRY_SORT_DEPTH
 };
 
+#define VS_GEOMETRY_MAX_LIST_INDEX 1000000
+
 class vsGeometry : public vsNode
 {
 private:
