@@ -42,7 +42,7 @@ protected:
 
     // Previous location/orientation
     vsVector       lastPos;
-    vsVector       lastOrn;
+    vsQuat         lastOrn;
 
     // Coordinate conversion quaternions
     vsQuat         coordXform;
@@ -54,6 +54,9 @@ VS_INTERNAL:
     virtual void    detach(vsNode *theNode);
 
     virtual void    attachDuplicate(vsNode *theNode);
+
+    vsVector        getLastPosition();
+    vsQuat          getLastOrientation();
 
 public:
 

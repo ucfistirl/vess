@@ -43,6 +43,13 @@ vsSoundSample::vsSoundSample(char *fileName)
 
     // Generate a single OpenAL sound buffer for the audio data
     alGenBuffers(1, &bufferID);
+    
+    // See if the buffer was generated properly
+    if (alGetError() != AL_NO_ERROR)
+    {
+        printf("vsSoundSample::vsSoundSample:");
+        printf("  Error generating sound buffer!\n");        
+    }
 
     // Load the WAV file, keep track of the data format parameters as well
     alutLoadWAVFile((ALbyte *)fileName, &format, &soundData, &size, &freq, 

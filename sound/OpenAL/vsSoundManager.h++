@@ -28,22 +28,37 @@
 #include "vsSoundSourceAttribute.h++"
 #include "vsSoundListenerAttribute.h++"
 
-#define VS_SDM_MAX_SOUNDS 512
+#define VS_SDM_MAX_SOUNDS          512
+#define VS_SDM_DEFAULT_VOICE_LIMIT 32
+#define VS_SDM_MAX_VOICES          128
 
-class vsSoundManager : public vsUpdatable
+struct vsSoundSourceListItem
+{
+    vsSoundSourceAttribute *source;
+    double                 gain;
+};
+
+class VS_SOUND_DLL vsSoundManager : public vsUpdatable
 {
 protected:
 
-    static vsSoundManager       *instance;
+    static vsSoundManager          *instance;
 
-    vsSoundPipe                 *soundPipe;
+    vsSoundPipe                    *soundPipe;
 
-    vsSoundSourceAttribute      *soundSources[VS_SDM_MAX_SOUNDS];
-    int                         numSoundSources;
+    vsSoundSourceListItem          *soundSources[VS_SDM_MAX_SOUNDS];
+    int                            numSoundSources;
 
-    vsSoundListenerAttribute    *soundListener;
+    int                            voiceLimit;
+    int                            hardwareVoiceLimit;
+    int                            numVoices;
+    int                            voices[VS_SDM_MAX_VOICES];
 
-                                vsSoundManager(); 
+    vsSoundListenerAttribute       *soundListener;
+
+                                   vsSoundManager();
+
+    void                           sortSources();
 
 VS_INTERNAL:
 
@@ -61,6 +76,9 @@ public:
     virtual const char       *getClassName();
 
     static vsSoundManager    *getInstance();
+
+    void                     setVoiceLimit(int newLimit);
+    int                      getVoiceLimit();
 
     void                     update();
 }; 

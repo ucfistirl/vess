@@ -43,6 +43,7 @@ protected:
 
 public:
 
+                vsSoundPipe(char *deviceSpec, int freq);
                 vsSoundPipe(int freq);
                 vsSoundPipe();
     virtual     ~vsSoundPipe();

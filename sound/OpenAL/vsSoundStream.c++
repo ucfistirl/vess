@@ -20,11 +20,19 @@ vsSoundStream::vsSoundStream(int bufSize, int bufFormat, int bufFreq)
     // Generate the buffers
     alGenBuffers(1, &frontBuffer);
     alGenBuffers(1, &backBuffer);
+    
+    // See if the buffer was generated properly
+    if (alGetError() != AL_NO_ERROR)
+    {
+        printf("vsSoundSample::vsSoundSample:");
+        printf("  Error generating sound buffers!\n");        
+    }
 
     // Initialize
     frontBufferEmpty = true;
     backBufferEmpty = true;
-    sourceID = 0xFFFFFFFF;
+    sourceID = 0;
+    sourceValid = false;
 }
 
 // ------------------------------------------------------------------------
@@ -65,9 +73,30 @@ ALuint vsSoundStream::getBackBufferID()
 // VESS internal function -- Informs this object of which sound source 
 // object it will be streaming to
 // ------------------------------------------------------------------------
-void vsSoundStream::setSourceID(int sid)
+void vsSoundStream::assignSource(int sid)
 {
+    // Remember the source ID and mark it valid
     sourceID = sid;
+    sourceValid = true;
+    
+    // Queue the stream buffers on the source, if they are ready
+    if (alIsSource(sourceID))
+    {
+        if (!frontBufferEmpty)
+            alSourceQueueBuffers(sourceID, 1, &frontBuffer);
+        if (!backBufferEmpty)
+            alSourceQueueBuffers(sourceID, 1, &backBuffer);
+    }
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function -- Informs this object that the source it was
+// streaming to is no longer valid
+// ------------------------------------------------------------------------
+void vsSoundStream::revokeSource()
+{
+    sourceID = 0;
+    sourceValid = false;
 }
 
 // ------------------------------------------------------------------------
@@ -152,16 +181,6 @@ bool vsSoundStream::isBufferReady()
 // ------------------------------------------------------------------------
 bool vsSoundStream::queueBuffer(void *audioData)
 {
-    // Make sure we are bound to a valid OpenAL source
-    if (!alIsSource(sourceID))
-    {
-        printf("vsSoundStream::queueBuffer:  no vsSoundSourceAttribute"
-            " to stream to\n");
-
-        // Return false to indicate the queue operation failed
-        return false;
-    }
-
     // Fill the front buffer if it's empty
     if (frontBufferEmpty)
     {
@@ -169,7 +188,10 @@ bool vsSoundStream::queueBuffer(void *audioData)
         // in the constructor
         alBufferData(frontBuffer, bufferFormat, audioData, bufferSize,
             bufferFrequency);
-        alSourceQueueBuffers(sourceID, 1, &frontBuffer);
+            
+        // Queue the buffer on the source if the source is valid
+        if (alIsSource(sourceID) && sourceValid)
+            alSourceQueueBuffers(sourceID, 1, &frontBuffer);
 
         // Mark the front buffer as full
         frontBufferEmpty = false;
@@ -181,11 +203,14 @@ bool vsSoundStream::queueBuffer(void *audioData)
     // Otherwise, fill the back buffer if it's empty
     if (backBufferEmpty)
     {
-        // Put the audio data in the front buffer using the format specified
+        // Put the audio data in the back buffer using the format specified
         // in the constructor
         alBufferData(backBuffer, bufferFormat, audioData, bufferSize,
             bufferFrequency);
-        alSourceQueueBuffers(sourceID, 1, &backBuffer);
+            
+        // Queue the buffer on the source if the source is valid
+        if (alIsSource(sourceID) && sourceValid)
+            alSourceQueueBuffers(sourceID, 1, &backBuffer);
 
         // Mark the back buffer as full
         backBufferEmpty = false;

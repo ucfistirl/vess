@@ -31,6 +31,16 @@
 #include "vsVector.h++"
 #include "vsMatrix.h++"
 #include "vsQuat.h++"
+#include "vsTimer.h++"
+ 
+// Sound source priorities, used for voice management
+enum
+{
+    VS_SSRC_PRIORITY_LOW,
+    VS_SSRC_PRIORITY_NORMAL,
+    VS_SSRC_PRIORITY_HIGH,
+    VS_SSRC_PRIORITY_ALWAYS_ON
+};
 
 class VS_SOUND_DLL vsSoundSourceAttribute : public vsAttribute
 {
@@ -41,8 +51,10 @@ protected:
     bool             loopSource;
     bool             streamingSource;
 
-    // Our alSource ID number
+    // Our alSource ID number, and a flag to indicate whether or not
+    // the ID number is valid
     ALuint           sourceID;
+    bool             sourceValid;
 
     // Offset transform from the component to the sound listener
     vsMatrix         offsetMatrix;
@@ -53,13 +65,34 @@ protected:
     // The vsComponent we're attached to
     vsComponent      *parentComponent;
 
-    // Previous location/orientation
+    // Previous location/direction
     vsVector         lastPos;
-    vsVector         lastOrn;
+    vsVector         lastDir;
 
     // Coordinate conversion quaternions
     vsQuat           coordXform;
     vsQuat           coordXformInv;
+
+    // Playing state of the source
+    int              playState;
+
+    // Playback timer
+    vsTimer          *playTimer;
+
+    // Source parameters
+    double           gain;
+    double           maxGain;
+    double           minGain; 
+    double           refDistance;
+    double           maxDistance;
+    double           rolloffFactor;
+    double           pitch;
+    double           innerConeAngle;
+    double           outerConeAngle;
+    double           outerConeGain;
+
+    // Priority of this source
+    int              priority;
 
 VS_INTERNAL:
 
@@ -67,6 +100,14 @@ VS_INTERNAL:
     virtual void    detach(vsNode *theNode);
 
     virtual void    attachDuplicate(vsNode *theNode);
+
+    bool            isActive();
+    void            assignVoice(int voiceID);
+    void            revokeVoice();
+    int             getVoiceID();
+
+    double          getEffectiveGain(vsVector listenerPos);
+    vsVector        getLastPosition();
 
 public:
 
@@ -109,7 +150,7 @@ public:
 
     // Loop control
     bool                  isLooping();
-    void                  setLooping(int looping);
+    void                  setLooping(bool looping);
 
     // Volume and distance attenuation parameters
     double                getGain();
@@ -139,6 +180,10 @@ public:
     void                  setOuterConeAngle(double angle);
     double                getOuterConeGain();
     void                  setOuterConeGain(double gain);
+
+    // Priority control
+    void                  setPriority(int newPriority);
+    int                   getPriority();
     
     ALuint                getBaseLibraryObject();
 };

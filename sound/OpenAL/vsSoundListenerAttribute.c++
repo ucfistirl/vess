@@ -41,7 +41,8 @@ vsSoundListenerAttribute::vsSoundListenerAttribute()
     parentComponent = NULL;
 
     // Initialize the vector holding the last position of the listener
-    lastPos.clear();
+    lastPos.set(0.0, 0.0, 0.0);
+    lastOrn.set(0.0, 0.0, 0.0, 1.0);
 
     // Set up a coordinate conversion quaternion
     coordXform.setAxisAngleRotation(1, 0, 0, -90.0);
@@ -96,7 +97,7 @@ int vsSoundListenerAttribute::getAttributeType()
 // ------------------------------------------------------------------------
 int vsSoundListenerAttribute::getAttributeCategory()
 {
-    return VS_ATTRIBUTE_CATEGORY_OTHER;
+    return VS_ATTRIBUTE_CATEGORY_CONTAINER;
 }
 
 // ------------------------------------------------------------------------
@@ -163,6 +164,26 @@ void vsSoundListenerAttribute::attachDuplicate(vsNode *theNode)
 }
 
 // ------------------------------------------------------------------------
+// VESS internal function
+// Returns the effective position of the listener, after applying global
+// transform and offset matrices
+// ------------------------------------------------------------------------
+vsVector vsSoundListenerAttribute::getLastPosition()
+{
+    return lastPos;
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Returns the effective orientation of the listener, after applying global
+// transform and offset matrices
+// ------------------------------------------------------------------------
+vsQuat vsSoundListenerAttribute::getLastOrientation()
+{
+    return lastOrn;
+}
+
+// ------------------------------------------------------------------------
 // Sets the offset matrix for this attribute. The offset matrix is
 // multiplied into the overall transform matrix before it is sent to the 
 // OpenAL sound source.
@@ -206,6 +227,7 @@ void vsSoundListenerAttribute::update()
     result = result * offsetMatrix;
     
     // Apply the VESS-to-OpenAL coordinate conversion
+    tempVec.setSize(3);
     tempVec[VS_X] = result[0][3];
     tempVec[VS_Y] = result[1][3];
     tempVec[VS_Z] = result[2][3];
@@ -216,6 +238,7 @@ void vsSoundListenerAttribute::update()
         (float)tempVec[VS_Z]); 
 
     // Update the velocity (based on the last frame's position)
+    deltaVec.setSize(3);
     deltaVec = tempVec - lastPos;
     interval = vsTimer::getSystemTimer()->getInterval();
 
@@ -242,6 +265,10 @@ void vsSoundListenerAttribute::update()
     // In OpenAL (like OpenGL) -Z is forward (at) and +Y is up
     atVec.set(0.0, 0.0, -1.0);
     upVec.set(0.0, 1.0, 0.0);
+
+    // Save the orientation, in case someone (like the sound manager) 
+    // needs it
+    lastOrn = tempQuat;
 
     // Rotate the vectors by tempQuat
     atVec = tempQuat.rotatePoint(atVec);

@@ -27,8 +27,10 @@ protected:
     ALuint    frontBuffer;
     ALuint    backBuffer;
 
-    // Handle of our associated source object (for OpenAL)
+    // Handle of our associated source object (for OpenAL) and a flag to
+    // indicate whether it is valid or not
     ALuint    sourceID;
+    bool      sourceValid;
 
     // Maintains whether each buffer is empty and ready for data or not.
     bool      frontBufferEmpty;
@@ -40,8 +42,9 @@ VS_INTERNAL:
     ALuint    getFrontBufferID();
     ALuint    getBackBufferID();
 
-    // Sets the OpenAL source to which we're streaming
-    void      setSourceID(int sid);
+    // Sets or revokes the OpenAL source to which we're streaming
+    void      assignSource(int sid);
+    void      revokeSource();
 
     // Marks both buffers as empty
     void      flushBuffers();

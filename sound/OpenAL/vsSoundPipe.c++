@@ -26,7 +26,45 @@
 #include <stdio.h>
 
 // ------------------------------------------------------------------------
-// Creates a vsSoundPipe with the given internal buffer frequency
+// Creates a vsSoundPipe using the specified audio device (from .openalrc
+// [Linux] or the device enumeration extension [Windows]) and the given
+// internal buffer frequency
+// ------------------------------------------------------------------------
+vsSoundPipe::vsSoundPipe(char *deviceSpec, int freq)
+{
+    int attrList[3];
+
+    // Open the audio device
+    deviceHandle = alcOpenDevice((ALubyte *)deviceSpec);
+    
+    // Check the handle returned, if it's NULL, print an error and try the
+    // default device instead
+    if (deviceHandle == NULL)
+    {
+        printf("vsSoundPipe::vsSoundPipe:  Unable to open the specified\n");
+        printf("    device (%s).  Switching to default device\n", deviceSpec);
+        
+        deviceHandle = alcOpenDevice(NULL);
+    }
+
+    // Create an attribute list for the frequency argument
+    attrList[0] = ALC_FREQUENCY;
+    attrList[1] = freq;
+    attrList[2] = 0;
+
+    // Create an audio context using the specified mixing frequency
+    pipeHandle = alcCreateContext(deviceHandle, attrList);
+
+    // Initialize the audio context
+    alcMakeContextCurrent(pipeHandle);
+
+    // Register with the sound manager
+    vsSoundManager::getInstance()->setSoundPipe(this);
+}
+
+// ------------------------------------------------------------------------
+// Creates a vsSoundPipe on the default device with the given internal 
+// buffer frequency
 // ------------------------------------------------------------------------
 vsSoundPipe::vsSoundPipe(int freq)
 {
