@@ -575,7 +575,7 @@ vsSkeleton *vsCal3DBoneLoader::loadSkeleton(char *filename)
     if (nameLength < 5)
     {
         fprintf(stderr,
-            "vsCal3DBoneLoader::loadDatabase: Load of '%s' failed\n", filename);
+            "vsCal3DBoneLoader::loadSkeleton: Load of '%s' failed\n", filename);
         return NULL;
     }
 
