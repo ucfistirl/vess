@@ -29,6 +29,7 @@
 #include "vsFastrak.h++"
 #include "vsIS600.h++"
 #include "vsEthernetMotionStar.h++"
+#include "vsPolaris.h++"
 #include "vsPinchGloveBox.h++"
 #include "vsCyberGloveBox.h++"
 #include "vs3TrackerArm.h++"
@@ -388,6 +389,8 @@ void *vsAvatar::createObject(char *idString)
         return makeVsIS600();
     else if (!strcmp(idString, "vsEthernetMotionStar"))
         return makeVsEthernetMotionStar();
+    else if (!strcmp(idString, "vsPolaris"))
+        return makeVsPolaris();
 #if defined(__linux__) || defined(IRIX)
     else if (!strcmp(idString, "vsWSSpaceball"))
         return makeVsWSSpaceball();
@@ -1690,6 +1693,99 @@ void *vsAvatar::makeVsEthernetMotionStar()
     // Set the hemisphere on all the trackers if a hemisphere was specified
     if (hemisphere != -1)
         result->setActiveHemisphere(VS_MSTAR_ALL_TRACKERS, hemisphere);
+
+    // Fork the process if so configured
+    if (forkFlag)
+        result->forkTracking();
+
+    // Return the created motion star object
+    return result;
+}
+
+// ------------------------------------------------------------------------
+// Protected function
+// Creates a vsPolaris from data in the configuration file, and returns a 
+// pointer to it.
+// ------------------------------------------------------------------------
+void *vsAvatar::makeVsPolaris()
+{
+    char cfgLine[256];
+    char token[256];
+    int lineType = 0;
+    char strValue[256];
+    long baudRate = 9600;
+    int portNumber = -1;
+    int nTrackers = 0;
+    bool refSet = false;
+    double h, p, r;
+    int intValue;
+    bool forkFlag = false;
+    vsPolaris *result;
+    
+    // Read all the parameters for this object
+    while (lineType != VS_AVT_LINE_END)
+    {
+        // Get the next line from the config file
+        lineType = readCfgLine(cfgLine);
+        if (lineType != VS_AVT_LINE_PARAM)
+            continue;
+
+        // Read the first token on the config line
+        sscanf(cfgLine, "%s", token);
+        
+        // Interpret the first token
+        if (!strcmp(token, "port"))
+        {
+            // Set the serial port number used by the system
+            sscanf(cfgLine, "%*s %d", &portNumber);
+        }
+        else if (!strcmp(token, "baud"))
+        {
+            // Set the baud rate used to communicate
+            sscanf(cfgLine, "%*s %d", &baudRate);
+        }
+        else if (!strcmp(token, "trackers"))
+        {
+            // Set the number of trackers in the system
+            sscanf(cfgLine, "%*s %d", &nTrackers);
+        }
+        else if (!strcmp(token, "refFrame"))
+        {
+            // Set the reference frame of the camera box
+            sscanf(cfgLine, "%*s %lf %lf %lf", &nTrackers, &h, &p, &r);
+            refSet = true;
+        }
+        else if (!strcmp(token, "fork"))
+        {
+            // Set whether this object should be run from a forked process
+            sscanf(cfgLine, "%*s %d", &intValue);
+
+            if (intValue == 0)
+                forkFlag = false;
+            else
+                forkFlag = true;
+        }
+        else
+            printf("vsAvatar::makeVsEthernetMotionStar: Unrecognized "
+                "token '%s'\n", token);
+    }
+
+    // Make sure the serial port number is set
+    if (portNumber == -1)
+    {
+        printf("vsAvatar::makeVsPolaris: No port number specified\n");
+        return NULL;
+    }
+
+    // Construct the object
+    result = new vsPolaris(portNumber, baudRate, nTrackers);
+
+    // See if the reference frame was altered
+    if (refSet)
+    {
+        // Adjust the reference frame according to the given parameters
+        result->setReferenceFrame(h, p, r);
+    }
 
     // Fork the process if so configured
     if (forkFlag)

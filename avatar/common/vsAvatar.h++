@@ -75,6 +75,7 @@ protected:
     void               *makeVsFastrak();
     void               *makeVsIS600();
     void               *makeVsEthernetMotionStar();
+    void               *makeVsPolaris();
     
     void               *makeVsWSSpaceball();
     void               *makeVsPinchGloveBox();
