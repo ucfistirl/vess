@@ -40,6 +40,9 @@ vsIntersect::vsIntersect()
         sectPath[loop] = NULL;
 
     facingMode = VS_INTERSECT_IGNORE_NONE;
+    switchMode = VS_INTERSECT_SWITCH_CURRENT;
+    seqMode = VS_INTERSECT_SEQUENCE_CURRENT;
+    lodMode = VS_INTERSECT_LOD_FIRST;
     
     performerSegSet.mode = PFTRAV_IS_PRIM | PFTRAV_IS_NORM;
     performerSegSet.userData = NULL;
@@ -371,6 +374,60 @@ int vsIntersect::getFacingMode()
 }
 
 // ------------------------------------------------------------------------
+// Sets the switch traversal mode for the intersection object. This mode
+// tells the object which of components' children should be used in the
+// the intersection test when the component has a switch attribute.
+// ------------------------------------------------------------------------
+void vsIntersect::setSwitchTravMode(int newMode)
+{
+    switchMode = newMode;
+}
+
+// ------------------------------------------------------------------------
+// Gets the switch traversal mode for the intersection object
+// ------------------------------------------------------------------------
+int vsIntersect::getSwitchTravMode()
+{
+    return switchMode;
+}
+
+// ------------------------------------------------------------------------
+// Sets the sequence traversal mode for the intersection object. This mode
+// tells the object which of components' children should be used in the
+// the intersection test when the component has a sequence attribute.
+// ------------------------------------------------------------------------
+void vsIntersect::setSequenceTravMode(int newMode)
+{
+    seqMode = newMode;
+}
+
+// ------------------------------------------------------------------------
+// Gets the sequence traversal mode for the intersection object
+// ------------------------------------------------------------------------
+int vsIntersect::getSequenceTravMode()
+{
+    return seqMode;
+}
+
+// ------------------------------------------------------------------------
+// Sets the level-of-detail traversal mode for the intersection object.
+// This mode tells the object which of components' children should be used
+// in the the intersection test when the component has an LOD attribute.
+// ------------------------------------------------------------------------
+void vsIntersect::setLODTravMode(int newMode)
+{
+    lodMode = newMode;
+}
+
+// ------------------------------------------------------------------------
+// Gets the level-of-detail traversal mode for the intersection object
+// ------------------------------------------------------------------------
+int vsIntersect::getLODTravMode()
+{
+    return lodMode;
+}
+
+// ------------------------------------------------------------------------
 // Initiates an intersection traversal over the indicated geometry tree.
 // The results of the traversal are stored and can be retrieved with the
 // getIsect* functions.
@@ -409,17 +466,39 @@ void vsIntersect::intersect(vsNode *targetNode)
     else if (targetNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
         performerNode = ((vsComponent *)targetNode)->getBaseLibraryObject();
 
-    // Set the intersection run to calculate paths or not depending on
-    // if path generation is enabled for this object
-    if (pathsEnabled)
-        performerSegSet.mode = PFTRAV_IS_PRIM | PFTRAV_IS_NORM | PFTRAV_IS_PATH;
-    else
-        performerSegSet.mode = PFTRAV_IS_PRIM | PFTRAV_IS_NORM;
+    // Compute the intersection mode for the segSet based on the
+    // user's preferences
+    
+    // Always intersect to primitive level and calculate normals
+    performerSegSet.mode = PFTRAV_IS_PRIM | PFTRAV_IS_NORM;
 
+    // Compute intersection paths?
+    if (pathsEnabled)
+        performerSegSet.mode |= PFTRAV_IS_PATH;
+
+    // Front/back face mode?
     if (facingMode == VS_INTERSECT_IGNORE_FRONTFACE)
-	performerSegSet.mode |= PFTRAV_IS_CULL_FRONT;
+        performerSegSet.mode |= PFTRAV_IS_CULL_FRONT;
     else if (facingMode == VS_INTERSECT_IGNORE_BACKFACE)
-	performerSegSet.mode |= PFTRAV_IS_CULL_BACK;
+        performerSegSet.mode |= PFTRAV_IS_CULL_BACK;
+
+    // Switch traversal mode?
+    if (switchMode == VS_INTERSECT_SWITCH_NONE)
+        performerSegSet.mode |= PFTRAV_SW_NONE;
+    else if (switchMode == VS_INTERSECT_SWITCH_ALL)
+        performerSegSet.mode |= PFTRAV_SW_ALL;
+
+    // Sequence traversal mode?
+    if (seqMode == VS_INTERSECT_SEQUENCE_NONE)
+        performerSegSet.mode |= PFTRAV_SEQ_NONE;
+    else if (seqMode == VS_INTERSECT_SEQUENCE_ALL)
+        performerSegSet.mode |= PFTRAV_SEQ_ALL;
+
+    // LOD traversal mode?
+    if (lodMode == VS_INTERSECT_LOD_NONE)
+        performerSegSet.mode |= PFTRAV_LOD_NONE;
+    else if (lodMode == VS_INTERSECT_LOD_ALL)
+        performerSegSet.mode |= PFTRAV_LOD_ALL;
 
     // Run the intersection traversal
     performerNode->isect(&performerSegSet, hits);
@@ -616,6 +695,8 @@ void vsIntersect::intersect(vsNode *targetNode)
                 
                 // Terminate the path with a NULL
                 (sectPath[loop])->setData(arraySize, NULL);
+                
+                delete performerPath;
             }
             else
                 printf("vsIntersect::intersect: Performer path object "

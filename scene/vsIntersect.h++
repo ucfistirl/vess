@@ -43,6 +43,27 @@ enum vsIntersectFacingMode
     VS_INTERSECT_IGNORE_BACKFACE
 };
 
+enum vsIntersectSwitchTraversalMode
+{
+    VS_INTERSECT_SWITCH_NONE,
+    VS_INTERSECT_SWITCH_CURRENT,
+    VS_INTERSECT_SWITCH_ALL
+};
+
+enum vsIntersectSequenceTraversalMode
+{
+    VS_INTERSECT_SEQUENCE_NONE,
+    VS_INTERSECT_SEQUENCE_CURRENT,
+    VS_INTERSECT_SEQUENCE_ALL
+};
+
+enum vsIntersectLODTraversalMode
+{
+    VS_INTERSECT_LOD_NONE,
+    VS_INTERSECT_LOD_FIRST,
+    VS_INTERSECT_LOD_ALL
+};
+
 class vsIntersect
 {
 private:
@@ -52,6 +73,9 @@ private:
 
     int                pathsEnabled;
     int                facingMode;
+    int                switchMode;
+    int                seqMode;
+    int                lodMode;
 
     // Intersection results
     int                validFlag[VS_INTERSECT_SEGS_MAX];
@@ -89,6 +113,15 @@ public:
     
     void               setFacingMode(int newMode);
     int                getFacingMode();
+    
+    void               setSwitchTravMode(int newMode);
+    int                getSwitchTravMode();
+    
+    void               setSequenceTravMode(int newMode);
+    int                getSequenceTravMode();
+    
+    void               setLODTravMode(int newMode);
+    int                getLODTravMode();
 
     void               intersect(vsNode *targetNode);
 
