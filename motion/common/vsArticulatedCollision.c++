@@ -83,6 +83,8 @@ void vsArticulatedCollision::update()
     vsVector segOffsetVec;
     double isectDist, tempDist;
     vsVector isectPt, tempPt;
+    int isectIdx;
+    bool done;
 
     // For each segment of the articulated object, determine if that segment
     // intersects anything in the associated scene.
@@ -157,12 +159,13 @@ void vsArticulatedCollision::update()
                 if (hitSomething)
                 {
                     // This isn't our first intersection; only record the point
-                    // and the distance if this intersection is closed than any
+                    // and the distance if this intersection is closer than any
                     // previous one
                     if (tempDist < isectDist)
                     {
                         isectDist = tempDist;
                         isectPt = tempPt;
+                        isectIdx = sloop;
                     }
                 }
                 else
@@ -171,18 +174,21 @@ void vsArticulatedCollision::update()
                     // intersection and the distance
                     isectDist = tempDist;
                     isectPt = tempPt;
+                    isectIdx = sloop;
                     hitSomething = true;
                 }
             }
         }
 
-        // If there were any intersections, then we've collided with something.
-        // Handle the collision by calling the inverse kinematics object to
-        // reposition the joint chain, and return.
+        // If there were any intersections, then we've collided with something
         if (hitSomething)
         {
-            invKinematics->reachForPoint(isectPt);
-            return;
+            // Handle the collision by calling the collision handler function
+            done = processCollision(isectPt, loop, isectIdx);
+
+            // If the collision was processed successfully, then we're done
+            if (done)
+                return;
         }
     }
 }
@@ -219,4 +225,20 @@ vsInverseKinematics *vsArticulatedCollision::getInverseKinematics()
 vsIntersect *vsArticulatedCollision::getIntersectionObject()
 {
     return intersect;
+}
+
+// ------------------------------------------------------------------------
+// Protected virtual function
+// Process a collision between the articulated object and the surrounding
+// environment
+// ------------------------------------------------------------------------
+bool vsArticulatedCollision::processCollision(vsVector collisionPoint,
+    int jointSegmentIdx, int isectSegmentIdx)
+{
+    // Call the interverse kinematics object to reposition the end effector of
+    // the kinematics chain to the point of intersection
+    invKinematics->reachForPoint(collisionPoint);
+
+    // Return that the collision was processed successfully
+    return true;
 }

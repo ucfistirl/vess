@@ -29,13 +29,19 @@
 
 class VS_MOTION_DLL vsArticulatedCollision : public vsMotionModel
 {
-private:
+protected:
 
     vsInverseKinematics    *invKinematics;
 
     vsIntersect            *intersect;
     vsNode                 *scene;
     double                 segmentRadius;
+
+    // * Subclass and override THIS function if you want to modify how * 
+    // * the object handles collisions                                 *
+    virtual bool           processCollision(vsVector collisionPoint,
+                                            int jointSegmentIdx,
+                                            int isectSegmentIdx);
 
 public:
 
@@ -57,7 +63,6 @@ public:
     // Retrieve helper objects
     vsInverseKinematics    *getInverseKinematics();
     vsIntersect            *getIntersectionObject();
-
 };
 
 #endif
