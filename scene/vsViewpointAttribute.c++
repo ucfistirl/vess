@@ -154,10 +154,8 @@ void vsViewpointAttribute::update()
         for (sloop = 0; sloop < 4; sloop++)
             result[loop][sloop] = xform[sloop][loop];
 
-    result = offsetMatrix * result;
+    result = result * offsetMatrix;
     
     viewObject->setViewpoint(result[0][3], result[1][3], result[2][3]);
-    tempQuat.setMatrixRotation(result);
-    result.setQuatRotation(tempQuat);
     viewObject->setDirectionFromRotation(result);
 }
