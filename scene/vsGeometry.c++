@@ -1191,20 +1191,20 @@ vsMatrix vsGeometry::getGlobalXform()
 }
 
 // ------------------------------------------------------------------------
-// Sets the intersection mask for this geometry. During an intersection
+// Sets the intersection value for this geometry. During an intersection
 // run, at each geometry object a bitwise AND of the intersection's mask
-// and the geometry's mask is performed; if the result of the AND is zero,
+// and the geometry's value is performed; if the result of the AND is zero,
 // the intersection ignores the geometry.
 // ------------------------------------------------------------------------
-void vsGeometry::setIntersectMask(unsigned int newMask)
+void vsGeometry::setIntersectValue(unsigned int newValue)
 {
-    performerGeode->setTravMask(PFTRAV_ISECT, newMask, PFTRAV_SELF, PF_SET);
+    performerGeode->setTravMask(PFTRAV_ISECT, newValue, PFTRAV_SELF, PF_SET);
 }
 
 // ------------------------------------------------------------------------
-// Retrieves the intersection mask for this geometry.
+// Retrieves the intersection value for this geometry.
 // ------------------------------------------------------------------------
-unsigned int vsGeometry::getIntersectMask()
+unsigned int vsGeometry::getIntersectValue()
 {
     return (performerGeode->getTravMask(PFTRAV_ISECT));
 }

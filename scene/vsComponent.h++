@@ -56,8 +56,8 @@ public:
     virtual void        getBoundSphere(vsVector *centerPoint, double *radius);
     virtual vsMatrix    getGlobalXform();
 
-    virtual void            setIntersectMask(unsigned int newMask);
-    virtual unsigned int    getIntersectMask();
+    virtual void            setIntersectValue(unsigned int newValue);
+    virtual unsigned int    getIntersectValue();
 
     virtual void        addAttribute(vsAttribute *newAttribute);
 

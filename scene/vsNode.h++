@@ -64,8 +64,8 @@ public:
                                        double *radius) = 0;
     virtual vsMatrix    getGlobalXform() = 0;
     
-    virtual void            setIntersectMask(unsigned int newMask) = 0;
-    virtual unsigned int    getIntersectMask() = 0;
+    virtual void            setIntersectValue(unsigned int newValue) = 0;
+    virtual unsigned int    getIntersectValue() = 0;
 
     virtual void    addAttribute(vsAttribute *newAttribute);
     virtual void    removeAttribute(vsAttribute *targetAttribute);

@@ -565,20 +565,20 @@ vsMatrix vsComponent::getGlobalXform()
 }
 
 // ------------------------------------------------------------------------
-// Sets the intersection mask for this component. During an intersection
+// Sets the intersection value for this component. During an intersection
 // run, at each component a bitwise AND of the intersection's mask and the
-// component's mask is performed; if the result of the AND is zero, the
+// component's value is performed; if the result of the AND is zero, the
 // intersection ignores this component and all of its children.
 // ------------------------------------------------------------------------
-void vsComponent::setIntersectMask(unsigned int newMask)
+void vsComponent::setIntersectValue(unsigned int newValue)
 {
-    topGroup->setTravMask(PFTRAV_ISECT, newMask, PFTRAV_SELF, PF_SET);
+    topGroup->setTravMask(PFTRAV_ISECT, newValue, PFTRAV_SELF, PF_SET);
 }
 
 // ------------------------------------------------------------------------
-// Retrieves the intersection mask for this component.
+// Retrieves the intersection value for this component.
 // ------------------------------------------------------------------------
-unsigned int vsComponent::getIntersectMask()
+unsigned int vsComponent::getIntersectValue()
 {
     return (topGroup->getTravMask(PFTRAV_ISECT));
 }
