@@ -653,7 +653,9 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     osg::Vec2 osgVec2;
     osg::Vec3 osgVec3;
     osg::Vec4 osgVec4;
-    int normalMark, colorMark, texCoordMark;
+    int normalMark, colorMark; 
+    int texCoordMark[VS_MAXIMUM_TEXTURE_UNITS];
+    int unit;
 
     bool needsDecal;
     osg::StateSet *osgStateSet;
@@ -760,7 +762,8 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
             // Start at the beginning of each data list
             normalMark = 0;
             colorMark = 0;
-            texCoordMark = 0;
+            for (sloop = 0; sloop < VS_MAXIMUM_TEXTURE_UNITS; sloop++)
+                texCoordMark[sloop] = 0;
         
             // For each primitive set on the Geometry, create a vsGeometry
             // that contains the same information
@@ -864,11 +867,21 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
                     osgGeometry->getColorIndices());
 
                 // * Texture Coordinates
-                texCoordMark += copyData(geometry, VS_GEOMETRY_TEXTURE_COORDS,
-                    texCoordMark, osgPrimitiveSet,
-                    osg::Geometry::BIND_PER_VERTEX,
-                    osgGeometry->getTexCoordArray(0), 
-                    osgGeometry->getTexCoordIndices(0));
+                for (unit = 0; unit < VS_MAXIMUM_TEXTURE_UNITS; unit++)
+                {
+                    // If the osg::Geometry object contains a texture 
+                    // coordinate array on this texture unit, copy it to
+                    // the vsGeometry
+                    if (osgGeometry->getTexCoordArray(unit) != NULL)
+                    {
+                        texCoordMark[unit] += copyData(geometry, 
+                            VS_GEOMETRY_TEXTURE0_COORDS + unit,
+                            texCoordMark[unit], osgPrimitiveSet,
+                            osg::Geometry::BIND_PER_VERTEX,
+                            osgGeometry->getTexCoordArray(unit), 
+                            osgGeometry->getTexCoordIndices(unit));
+                    }
+                }
                 
                 // Add the new vsGeometry object to the OSG Geometry's 
                 // vsComponent
