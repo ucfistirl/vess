@@ -1,3 +1,4 @@
+
 //------------------------------------------------------------------------
 //
 //    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
@@ -36,11 +37,9 @@ vsUDPNetworkInterface::vsUDPNetworkInterface(char *address, u_short port)
     if ( (socketValue = socket(AF_INET, SOCK_DGRAM, 0)) < 0 )
         printf("Unable to open socket for communication.\n");
 
-    // Get information about this host and initialize the read name field
-    gethostname(hostname, sizeof(hostname));
-    host = gethostbyname(hostname);
+    // Initialize the read name field
     readName.sin_family = AF_INET;
-    memcpy(&readName.sin_addr.s_addr, host->h_addr_list[0], host->h_length);
+    readName.sin_addr.s_addr = htonl(INADDR_ANY);
     readName.sin_port = htons(port);
 
     // Get information about remote host and initialize the write name field
