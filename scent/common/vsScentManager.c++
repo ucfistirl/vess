@@ -106,12 +106,12 @@ void vsScentManager::removeScent(vsScent *scent)
     // into its place
     if (scentIndex < numScents)
     {
-        for (i = scentIndex; i < numScents; i++)
-            scents[i+1] = scents[i];
-    }
+        // Decrement the number of scents
+        numScents--;
 
-    // Decrement the number of scents
-    numScents--;
+        for (i = scentIndex; i < numScents; i++)
+            scents[i] = scents[i+1];
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -145,12 +145,12 @@ void vsScentManager::removeScentSource(vsScentSourceAttribute *attr)
     // into its place
     if (attrIndex < numScentSources)
     {
-        for (i = attrIndex; i < numScentSources; i++)
-            scentSources[i+1] = scentSources[i];
-    }
+        // Decrement the number of sources
+        numScentSources--;
 
-    // Decrement the number of sources
-    numScentSources--;
+        for (i = attrIndex; i < numScentSources; i++)
+            scentSources[i] = scentSources[i+1];
+    }
 }
 
 // ------------------------------------------------------------------------
