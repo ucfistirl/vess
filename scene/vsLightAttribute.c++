@@ -166,8 +166,8 @@ void vsLightAttribute::getSpecularColor(double *r, double *g, double *b)
 void vsLightAttribute::setAttenuationVals(double quadratic, double linear, 
                                           double constant)
 {
-    lightNode->setAtten(quadratic, linear, constant);
-    lightObject->setAtten(quadratic, linear, constant);
+    lightNode->setAtten(constant, linear, quadratic);
+    lightObject->setAtten(constant, linear, quadratic);
 }
 
 // ------------------------------------------------------------------------
@@ -177,16 +177,16 @@ void vsLightAttribute::setAttenuationVals(double quadratic, double linear,
 void vsLightAttribute::getAttenuationVals(double *quadratic, double *linear,
                                           double *constant)
 {
-    float aVal, bVal, cVal;
+    float quadVal, linVal, constVal;
     
-    lightNode->getAtten(&aVal, &bVal, &cVal);
+    lightNode->getAtten(&constVal, &linVal, &quadVal);
     
     if (quadratic)
-        *quadratic = aVal;
+        *quadratic = quadVal;
     if (linear)
-        *linear = bVal;
+        *linear = linVal;
     if (constant)
-        *constant = cVal;
+        *constant = constVal;
 }
 
 // ------------------------------------------------------------------------
