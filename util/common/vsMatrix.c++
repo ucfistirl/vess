@@ -385,20 +385,11 @@ void vsMatrix::invert()
 vsMatrix vsMatrix::getInverse() const
 {
     vsMatrix result;
-    
-    // If the determinant of the matrix is zero (or so close that it might
-    // as well be zero), then the matrix can't be inverted
-    if (fabs(getDeterminant()) < VS_DEFAULT_TOLERANCE)
-    {
-        result.clear();
-    }
-    else
-    {
-        // Cheat: call the other version of the inverse function
-        result = (*this);
-        result.invert();
-    }
-    
+
+    // Cheat: call the other version of the inverse function
+    result = (*this);
+    result.invert();
+
     // Return the inverted matrix
     return result;
 }
