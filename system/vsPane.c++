@@ -576,20 +576,6 @@ void vsPane::updateView()
 
 // ------------------------------------------------------------------------
 // static VESS internal function - Performer callback
-// When Performer is just starting to render the scene, it first calls
-// this function, which is set as the callback function for the pfGeoState
-// attached to the pfScene. This function clears the VESS internal graphics
-// state.
-// ------------------------------------------------------------------------
-int vsPane::gstateCallback(pfGeoState *gstate, void *userData)
-{
-    (vsSystem::systemObject)->getGraphicsState()->clearState();
-    
-    return 0;
-}
-
-// ------------------------------------------------------------------------
-// static VESS internal function - Performer callback
 // Pre-DRAW callback to select which OpenGL buffer to draw the scene into
 // prior to actually drawing the scene.  Note that this function is not
 // called unless a VS_PANE_BUFFER_STEREO_* buffer mode is set (via

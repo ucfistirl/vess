@@ -90,8 +90,6 @@ VS_INTERNAL:
 
     void           updateView();
 
-    static int     gstateCallback(pfGeoState *gstate, void *userData);
-
     static void    drawPane(pfChannel *chan, void *userData);
 
 public:
