@@ -380,6 +380,40 @@ unsigned long vsSequencer::getUpdatablePosition(vsUpdatable *updatable)
 }
 
 // ------------------------------------------------------------------------
+// Return the ith updatable this sequencer has.  NULL if not found.
+// ------------------------------------------------------------------------
+vsUpdatable *vsSequencer::getUpdatable(unsigned long i)
+{
+    UpdatableEntry  *tempEntry;
+    unsigned long   currentPosition;
+
+    // Go through the list, starting at the head.
+    tempEntry = updatableListHead;
+    currentPosition = 0;
+
+    // Make sure the requested updatable is in the list
+    if (i >= updatableCount)
+    {
+        // We don't have enough entries so print that and return NULL
+        printf("vsSequencer::getUpdatable: Updatable not found!\n");
+        return NULL;
+    }
+    else
+    {
+        // Go through the list until the ith position
+        while ((tempEntry) && (currentPosition < i))
+        {
+            // Advance to the next updatable entry and increment the count
+            tempEntry = tempEntry->next;
+            currentPosition++;
+        }
+
+        // Return the updatable
+        return tempEntry->updatable;
+    }
+}
+
+// ------------------------------------------------------------------------
 // Return how many updatables this sequencer has.
 // ------------------------------------------------------------------------
 unsigned long vsSequencer::getUpdatableCount(void)

@@ -65,6 +65,7 @@ public:
     unsigned long   getUpdatablePosition(vsUpdatable *updatable);
 
     unsigned long   getUpdatableCount(void);
+    vsUpdatable     *getUpdatable(unsigned long i);
 
     virtual void    update(void);
 };
