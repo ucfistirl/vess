@@ -107,10 +107,9 @@
 #define VS_IS_CMD_CANCEL_CONFIG    'x'
 
 // Synchronization modes
-#define VS_IS_GEN_OFF             0
-#define VS_IS_GEN_EXTERNAL_AUTO   1
-#define VS_IS_GEN_EXTERNAL_MANUAL 2
-#define VS_IS_GEN_INTERNAL        3
+#define VS_IS_SYNC_INTERNAL 0
+#define VS_IS_SYNC_EXTERNAL 1
+#define VS_IS_SYNC_VIDEO    2
 
 // Output format
 enum
@@ -236,13 +235,13 @@ public:
                                             vsVector positiveX, 
                                             vsVector positiveY);
     void                       resetAlignment(int station);
+    void                       setMountingFrame(int station, 
+                                   vsVector orientation);
     void                       setGenlock(int syncMode, int rate);
     void                       setGenlockPhase(int phase);
     void                       setOutputFormat(int newFormat[], 
                                                int newFormatNum);
     void                       setUnits(int units);
-    void                       saveConfig();
-    void                       resetConfig();
 
     // Tracker functions
     virtual int                getNumTrackers();

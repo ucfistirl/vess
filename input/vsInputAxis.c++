@@ -39,8 +39,12 @@ vsInputAxis::vsInputAxis(double minPos, double maxPos)
     }
     else
     {
-        printf("vsInputAxis::vsInputAxis:  Invalid axis range specfied.\n");
-        printf("vsInputAxis::vsInputAxis:  Using non-normalized mode.\n");
+        sprintf(errStr, "vsInputAxis::vsInputAxis:  Invalid axis range");
+        strcat(errStr, "specfied.");
+        puts(errStr);
+        sprintf(errStr, "vsInputAxis::vsInputAxis:  Using non-normalized");
+        strcat(errStr, "mode.");
+        puts(errStr);
 
         // Initialize variables
         axisMin = 0.0;
@@ -138,9 +142,12 @@ void vsInputAxis::setNormalized(int normOn)
         // Check for valid extents
         if ((axisMin >= axisMax) || (offset < axisMin) || (offset > axisMax))
         {
-            printf("vsInputAxis::setNormalized:  Invalid range and/or offset"
-                " values\n");
-            printf("vsInputAxis::setNormalized:  Using non-normalized mode.\n");
+            sprintf(errMsg, "vsInputAxis::setNormalized:  ");
+            strcat(errMsg, "Invalid range and/or offset values\n");
+            puts(errMsg);
+            sprintf(errMsg, "vsInputAxis::setNormalized:  ");
+            strcat(errMsg, "Using non-normalized mode.\n");
+            puts(errMsg);
 
             normalized = VS_FALSE;
         }

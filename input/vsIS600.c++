@@ -41,8 +41,8 @@ vsIS600::vsIS600(int portNumber, long baud, int nTrackers)
     forked = VS_FALSE;
     serverPID = 0;
 
-    quat1.setAxisAngleRotation(0, 1, 0, 180);
-    quat2.setAxisAngleRotation(0, 0, 1, 90);
+    quat1.setAxisAngleRotation(0, 0, 1, 90);
+    quat2.setAxisAngleRotation(0, 1, 0, 180);
     coordXform = quat2 * quat1;
 
     for (i = 0; i < VS_IS_MAX_TRACKERS; i++)
@@ -122,7 +122,7 @@ vsIS600::~vsIS600()
         printf("vsIS600::~vsIS600:  Shutting down IS-600\n");
 
         // Reset the IS-600
-        buf = VS_IS_CMD_REINIT_SYSTEM;
+        buf = VS_IS_CMD_STOP_CONTINUOUS;
         port->writePacket(&buf, 1);
         sleep(1);
         port->flushPort();
@@ -181,7 +181,7 @@ void vsIS600::serverLoop()
         printf("vsIS600::serverLoop:  Shutting down IS-600\n");
 
         // Reset the IS-600
-        buf = VS_IS_CMD_REINIT_SYSTEM;
+        buf = VS_IS_CMD_STOP_CONTINUOUS;
         port->writePacket(&buf, 1);
         sleep(1);
         port->flushPort();
@@ -764,6 +764,7 @@ void vsIS600::clearStation(int stationNum)
 void vsIS600::clearConstellation()
 {
     unsigned char buf[4];
+    int           index;
 
     buf[0] = VS_IS_CMD_MFR_SPECIFIC;
     buf[1] = VS_IS_CMD_CONFIGURE;
@@ -833,8 +834,8 @@ void vsIS600::addSoniDisc(int stationNum, int discNum, vsVector pos,
     index += sprintf((char *)&buf[index], "%0.4lf,%0.4lf,%0.4lf,", pos[VS_X],
                      pos[VS_Y], pos[VS_Z]);
 
-    index += sprintf((char *)&buf[index], "%0.4lf,%0.4lf,%0.4lf,", 
-                     normal[VS_X], normal[VS_Y], normal[VS_Z]);
+    index += sprintf((char *)&buf[index], "%0.4lf,0.4lf,0.4lf,", normal[VS_X],
+                     normal[VS_Y], normal[VS_Z]);
 
     index += sprintf((char *)&buf[index], "%d\r", discID);
 
@@ -902,7 +903,7 @@ void vsIS600::removeReceiverPod(int podNum, int podID)
 
     index = 3;
 
-    index += sprintf((char *)&buf[index], "%d,%d\r", podNum, podID);
+    index += sprintf((char *)&buf[index], "%d,%d\r", podNum);
 
     port->writePacket(buf, index);
 }
@@ -1187,29 +1188,6 @@ void vsIS600::setUnits(int units)
     else
         buf = VS_IS_CMD_UNITS_INCHES;
 
-    port->writePacket(&buf, 1);
-}
-
-// ------------------------------------------------------------------------
-// Saves the current configuration to non-volatile memory
-// ------------------------------------------------------------------------
-void vsIS600::saveConfig()
-{   
-    unsigned char buf;
-
-    buf = VS_FT_CMD_SAVE_CONFIG;
-    port->writePacket(&buf, 1);
-}
-
-// ------------------------------------------------------------------------
-// Restores the factory default settings.  The current configuration is
-// lost.  USE WITH CARE
-// ------------------------------------------------------------------------
-void vsIS600::resetConfig()
-{
-    unsigned char buf;
-
-    buf = VS_FT_CMD_FACTORY_DEFAULTS;
     port->writePacket(&buf, 1);
 }
 

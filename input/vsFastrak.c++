@@ -41,8 +41,8 @@ vsFastrak::vsFastrak(int portNumber, long baud, int nTrackers)
     forked = VS_FALSE;
     serverPID = 0;
 
-    quat1.setAxisAngleRotation(0, 1, 0, 180);
-    quat2.setAxisAngleRotation(0, 0, 1, 90);
+    quat1.setAxisAngleRotation(0, 0, 1, 90);
+    quat2.setAxisAngleRotation(0, 1, 0, 180);
     coordXform = quat2 * quat1;
 
     for (i = 0; i < VS_FT_MAX_TRACKERS; i++)
@@ -1024,29 +1024,6 @@ void vsFastrak::setUnits(int units)
     else
         buf = VS_FT_CMD_UNITS_INCHES;
 
-    port->writePacket(&buf, 1);
-}
-
-// ------------------------------------------------------------------------
-// Saves the current configuration to non-volatile memory
-// ------------------------------------------------------------------------
-void vsFastrak::saveConfig()
-{
-    unsigned char buf;
-
-    buf = VS_FT_CMD_SAVE_CONFIG;
-    port->writePacket(&buf, 1);
-}
-
-// ------------------------------------------------------------------------
-// Restores the factory default settings.  The current configuration is
-// lost.  USE WITH CARE
-// ------------------------------------------------------------------------
-void vsFastrak::resetConfig()
-{
-    unsigned char buf;
-
-    buf = VS_FT_CMD_FACTORY_DEFAULTS;
     port->writePacket(&buf, 1);
 }
 

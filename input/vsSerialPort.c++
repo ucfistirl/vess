@@ -186,8 +186,6 @@ void vsSerialPort::setBaudRate(long baudRate)
         case 57600:
             flags = B57600;
             break;
-#endif
-#ifdef B115200
         case 115200:
             flags = B115200;
             break;

@@ -195,8 +195,6 @@ public:
     void                       setOutputFormat(int newFormat[], 
                                                int newFormatNum);
     void                       setUnits(int units);
-    void                       saveConfig();
-    void                       resetConfig();
 
     // Tracker functions
     virtual int                getNumTrackers();
