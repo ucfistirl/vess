@@ -24,6 +24,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <time.h>
 
 #include "vsSerialPort.h++"
 
@@ -59,7 +60,7 @@ vsSerialPort::vsSerialPort(char *deviceName, long baud,
         printf("vsSerialPort:  Error opening port %s\n", deviceName);
         return;
     }
-   
+
     tcgetattr(portDescriptor, &oldAttributes);
     currentAttributes = oldAttributes;
    
@@ -140,6 +141,8 @@ int vsSerialPort::readPacket(unsigned char *packet, int length)
     int bytesRead;
     int timeoutCounter;
 
+    struct timespec ts;
+
     bytesRead = 0;
     timeoutCounter = VS_SERIAL_NUM_READ_RETRYS;
 
@@ -150,9 +153,6 @@ int vsSerialPort::readPacket(unsigned char *packet, int length)
 
         if (result > 0)
             bytesRead += result;
-
-        // Wait a VERY brief amount of time
-        usleep(1);
 
         // Decrement timeout counter
         timeoutCounter--;
