@@ -63,7 +63,10 @@ vsGraphicsState *vsGraphicsState::getInstance()
 {
     // Create the singleton instance if necessary
     if (!classInstance)
+    {
         classInstance = new vsGraphicsState();
+        classInstance->ref();
+    }
 
     // Return the vsGraphicsState instance
     return classInstance;
@@ -79,7 +82,7 @@ void vsGraphicsState::deleteInstance()
     // pointer to NULL
     if (classInstance)
     {
-        delete classInstance;
+        vsObject::unrefDelete(classInstance);
         classInstance = NULL;
     }
 }
