@@ -79,6 +79,8 @@ int vsDecalAttribute::getAttributeCategory()
 // ------------------------------------------------------------------------
 int vsDecalAttribute::canAttach()
 {
+    // This attribute is not available to be attached if it is already
+    // attached to another node
     if (attachedFlag)
         return VS_FALSE;
 
@@ -92,6 +94,7 @@ int vsDecalAttribute::canAttach()
 // ------------------------------------------------------------------------
 void vsDecalAttribute::attach(vsNode *theNode)
 {
+    // Verify that we're not already attached to something
     if (attachedFlag)
     {
         printf("vsDecalAttribute::attach: Attribute is already attached\n");
@@ -111,6 +114,7 @@ void vsDecalAttribute::attach(vsNode *theNode)
     bottomGroup->ref();
     bottomGroup->setCullCallback(decalCallback);
 
+    // Mark this attribute as attached
     attachedFlag = 1;
 }
 
@@ -121,9 +125,10 @@ void vsDecalAttribute::attach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsDecalAttribute::detach(vsNode *theNode)
 {
+    // Can't detach an unattached attribute
     if (!attachedFlag)
     {
-        printf("vsDecalAttribute::attach: Attribute is not attached\n");
+        printf("vsDecalAttribute::detach: Attribute is not attached\n");
         return;
     }
     
@@ -145,7 +150,9 @@ void vsDecalAttribute::attachDuplicate(vsNode *theNode)
 {
     vsDecalAttribute *newAttrib;
 
+    // Create a duplicate decal attribute
     newAttrib = new vsDecalAttribute();
 
+    // Attach the duplicate attribute to the specified node
     theNode->addAttribute(newAttrib);
 }
