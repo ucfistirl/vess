@@ -16,7 +16,7 @@
 //    Description:  Class for performing intersection tests between line
 //                  segments and a whole or part of a VESS scene graph
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Jason Daly
 //
 //------------------------------------------------------------------------
 
@@ -80,7 +80,6 @@ vsIntersect::~vsIntersect()
 void vsIntersect::setSegListSize(int newSize)
 {
     int loop;
-    unsigned int result;
 
     // Make sure we don't exceed the maximum list size
     if (newSize > VS_INTERSECT_SEGS_MAX)
@@ -128,7 +127,6 @@ int vsIntersect::getSegListSize()
 // ------------------------------------------------------------------------
 void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector endPt)
 {
-    int loop;
     vsVector start, end;
     osg::Vec3 pstart, pend;
 
@@ -168,7 +166,6 @@ void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector endPt)
 void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector directionVec,
                          double length)
 {
-    int loop;
     vsVector start, dir;
     osg::Vec3 pstart, pdir;
 
@@ -211,7 +208,6 @@ void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector directionVec,
 // ------------------------------------------------------------------------
 vsVector vsIntersect::getSegStartPt(int segNum)
 {
-    int loop;
     osg::Vec3 segStart;
     vsVector result;
     
@@ -238,7 +234,6 @@ vsVector vsIntersect::getSegStartPt(int segNum)
 // ------------------------------------------------------------------------
 vsVector vsIntersect::getSegEndPt(int segNum)
 {
-    int loop;
     osg::Vec3 segEnd;
     vsVector result;
     
@@ -266,7 +261,6 @@ vsVector vsIntersect::getSegEndPt(int segNum)
 // ------------------------------------------------------------------------
 vsVector vsIntersect::getSegDirection(int segNum)
 {
-    int loop;
     osg::Vec3 start, end;
     vsVector startPt, endPt;
     vsVector dir;
