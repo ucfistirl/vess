@@ -25,10 +25,11 @@
 // ------------------------------------------------------------------------
 // Constructor - Clears the node's name
 // ------------------------------------------------------------------------
-vsNode::vsNode() : parentList(1, 5)
+vsNode::vsNode() : parentList(1, 5), attributeList(10, 5)
 {
     nodeName[0] = 0;
     parentCount = 0;
+    attributeCount = 0;
     dirtyFlag = VS_TRUE;
 }
 
@@ -109,7 +110,9 @@ const char *vsNode::getName()
 // ------------------------------------------------------------------------
 void vsNode::addAttribute(vsAttribute *newAttribute)
 {
-    vsAttributeList::addAttribute(newAttribute);
+    attributeList[attributeCount] = newAttribute;
+    attributeCount++;
+
     newAttribute->attach(this);
 }
 
@@ -119,8 +122,102 @@ void vsNode::addAttribute(vsAttribute *newAttribute)
 // ------------------------------------------------------------------------
 void vsNode::removeAttribute(vsAttribute *targetAttribute)
 {
+    int loop, sloop;
+
     targetAttribute->detach(this);
-    vsAttributeList::removeAttribute(targetAttribute);
+
+    for (loop = 0; loop < attributeCount; loop++)
+        if (attributeList[loop] == targetAttribute)
+        {
+            for (sloop = loop; sloop < attributeCount-1; sloop++)
+                attributeList[sloop] = attributeList[sloop+1];
+            attributeCount--;
+            return;
+        }
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the number of attributes currently in this list
+// ------------------------------------------------------------------------
+int vsNode::getAttributeCount()
+{
+    return attributeCount;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the attribute specified by index from the list. The index of
+// the first attribute is 0.
+// ------------------------------------------------------------------------
+vsAttribute *vsNode::getAttribute(int index)
+{
+    if ((index < 0) || (index >= attributeCount))
+    {
+        printf("vsNode::getAttribute: Index out of bounds\n");
+        return NULL;
+    }
+    
+    return (vsAttribute *)(attributeList[index]);
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the attribute specified by the attribute type attribType and
+// index from the list. The index of the first attribute of the given
+// type in the list is 0.
+// ------------------------------------------------------------------------
+vsAttribute *vsNode::getTypedAttribute(int attribType, int index)
+{
+    int loop, count;
+    
+    count = 0;
+    for (loop = 0; loop < attributeCount; loop++)
+        if (attribType ==
+            ((vsAttribute *)(attributeList[loop]))->getAttributeType())
+        {
+            if (index == count)
+                return (vsAttribute *)(attributeList[loop]);
+            else
+                count++;
+        }
+
+    return NULL;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the attribute specified by the attribute category
+// attribCategory and index from the list. The index of the first attribute
+// of the given category in the list is 0.
+// ------------------------------------------------------------------------
+vsAttribute *vsNode::getCategoryAttribute(int attribCategory, int index)
+{
+    int loop, count;
+    
+    count = 0;
+    for (loop = 0; loop < attributeCount; loop++)
+        if (attribCategory ==
+            ((vsAttribute *)(attributeList[loop]))->getAttributeCategory())
+        {
+            if (index == count)
+                return (vsAttribute *)(attributeList[loop]);
+            else
+                count++;
+        }
+
+    return NULL;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the attribute with the given name from the list
+// ------------------------------------------------------------------------
+vsAttribute *vsNode::getNamedAttribute(char *attribName)
+{
+    int loop;
+    
+    for (loop = 0; loop < attributeCount; loop++)
+        if (!strcmp(attribName,
+            ((vsAttribute *)(attributeList[loop]))->getName()))
+            return (vsAttribute *)(attributeList[loop]);
+    
+    return NULL;
 }
 
 // ------------------------------------------------------------------------

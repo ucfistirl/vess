@@ -102,7 +102,9 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
     {
         xformAttrib = new vsTransformAttribute((pfSCS *)currentNode,
             this, nameDirectory);
-        vsAttributeList::addAttribute(xformAttrib);
+
+	attributeList[attributeCount++] = xformAttrib;
+	
         while (currentNode->isOfType(pfSCS::getClassType()))
         {
             previousGroup = (pfGroup *)currentNode;
@@ -154,28 +156,28 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
         {
             // Switch attribute
             switchAttrib = new vsSwitchAttribute((pfSwitch *)currentNode);
-            vsAttributeList::addAttribute(switchAttrib);
+	    attributeList[attributeCount++] = switchAttrib;
             bottomGroup = (pfGroup *)currentNode;
         }
         else if (currentNode->isOfType(pfSequence::getClassType()))
         {
             // Sequence attribute
             seqAttrib = new vsSequenceAttribute((pfSequence *)currentNode);
-            vsAttributeList::addAttribute(seqAttrib);
+	    attributeList[attributeCount++] = seqAttrib;
             bottomGroup = (pfGroup *)currentNode;
         }
         else if (currentNode->isOfType(pfLOD::getClassType()))
         {
             // LOD attribute
             detailAttrib = new vsLODAttribute((pfLOD *)currentNode);
-            vsAttributeList::addAttribute(detailAttrib);
+	    attributeList[attributeCount++] = detailAttrib;
             bottomGroup = (pfGroup *)currentNode;
         }
         else if (currentNode->isOfType(pfLayer::getClassType()))
         {
             // Decal attribute
             decalAttrib = new vsDecalAttribute((pfLayer *)currentNode);
-            vsAttributeList::addAttribute(decalAttrib);
+	    attributeList[attributeCount++] = decalAttrib;
             bottomGroup = (pfGroup *)currentNode;
         }
         else
@@ -713,8 +715,7 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
     }
 
     // If we made it this far, it must be okay to add the attribute in
-    vsAttributeList::addAttribute(newAttribute);
-    newAttribute->attach(this);
+    vsNode::addAttribute(newAttribute);
 }
 
 // ------------------------------------------------------------------------

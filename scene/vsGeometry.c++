@@ -1237,8 +1237,7 @@ void vsGeometry::addAttribute(vsAttribute *newAttribute)
         }
 
     // If we made it this far, it must be okay to add the attribute in
-    vsAttributeList::addAttribute(newAttribute);
-    newAttribute->attach(this);
+    vsNode::addAttribute(newAttribute);
 }
 
 // ------------------------------------------------------------------------

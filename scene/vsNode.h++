@@ -25,7 +25,7 @@
 
 #include <Performer/pf/pfNode.h>
 #include "vsGrowableArray.h++"
-#include "vsAttributeList.h++"
+#include "vsAttribute.h++"
 #include "vsVector.h++"
 #include "vsMatrix.h++"
 
@@ -39,7 +39,7 @@ enum vsNodeType
     VS_NODE_TYPE_GEOMETRY
 };
 
-class vsNode : public vsAttributeList
+class vsNode
 {
 protected:
 
@@ -48,6 +48,9 @@ protected:
 
     char               nodeName[VS_NODE_NAME_MAX_LENGTH];
     
+    vsGrowableArray    attributeList;
+    int                attributeCount;
+
     int                dirtyFlag;
 
 VS_INTERNAL:
@@ -89,8 +92,14 @@ public:
     virtual void            setIntersectValue(unsigned int newValue) = 0;
     virtual unsigned int    getIntersectValue() = 0;
 
-    virtual void    addAttribute(vsAttribute *newAttribute);
-    virtual void    removeAttribute(vsAttribute *targetAttribute);
+    virtual void        addAttribute(vsAttribute *newAttribute);
+    virtual void        removeAttribute(vsAttribute *targetAttribute);
+
+    int                 getAttributeCount();
+    vsAttribute         *getAttribute(int index);
+    vsAttribute         *getTypedAttribute(int attribType, int index);
+    vsAttribute         *getCategoryAttribute(int attribCategory, int index);
+    vsAttribute         *getNamedAttribute(char *attribName);
 };
 
 #endif
