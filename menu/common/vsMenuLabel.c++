@@ -54,7 +54,10 @@ vsMenuLabel::vsMenuLabel(vsTextBuilder *newTextBuilder, char *text)
     // Initialize the label text variable to NULL before attempting to set it
     labelText = NULL;
     textComponent = NULL;
-    setText(text);
+
+    // Only attempt to set the text string if the text builder is valid
+    if (textBuilder)
+        setText(text);
 }
 
 // ------------------------------------------------------------------------
@@ -180,12 +183,22 @@ void vsMenuLabel::setText(char *text)
         }
         else
         {
+            // Free the old text variable if it existed
+            if (labelText)
+                free(labelText);
+
+            // Set these values to NULL as they are no longer valid
             labelText = NULL;
             textComponent = NULL;
         }
     }
     else
     {
+        // Free the old text variable if it existed
+        if (labelText)
+            free(labelText);
+
+        // Set these values to NULL as they are no longer valid
         labelText = NULL;
         textComponent = NULL;
 
