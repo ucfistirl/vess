@@ -684,7 +684,7 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
                     // error and return.
                     if (textureUnit == newTextureUnit)
                     {
-                        printf("vsGeometry::addAttribute: Geometry node "
+                        printf("vsComponent::addAttribute: Geometry node "
                             "already contains a texture attribute on unit %d\n",
                             textureUnit);
                         return;
