@@ -18,13 +18,14 @@ vsSoundStream::vsSoundStream(int bufSize, int bufFormat, int bufFreq)
     bufferFrequency = bufFreq;
 
     // Generate the buffers
+    alGetError();
     alGenBuffers(1, &frontBuffer);
     alGenBuffers(1, &backBuffer);
     
     // See if the buffer was generated properly
     if (alGetError() != AL_NO_ERROR)
     {
-        printf("vsSoundSample::vsSoundSample:");
+        printf("vsSoundStream::vsSoundStream:");
         printf("  Error generating sound buffers!\n");        
     }
 
