@@ -146,18 +146,18 @@ void vsSystem::setMultiprocessMode(int mpMode)
     // Interpret the multiprocess constant
     switch (mpMode)
     {
-	case VS_MPROC_DEFAULT:
-	    // Let Performer decide
-	    pfMultiprocess(PFMP_DEFAULT);
-	    break;
-	case VS_MPROC_SINGLE:
-	    // One process only
-	    pfMultiprocess(PFMP_APPCULLDRAW);
-	    break;
-	case VS_MPROC_MULTI:
-	    // Split into three processes
-	    pfMultiprocess(PFMP_APP_CULL_DRAW);
-	    break;
+    case VS_MPROC_DEFAULT:
+        // Let Performer decide
+        pfMultiprocess(PFMP_DEFAULT);
+        break;
+    case VS_MPROC_SINGLE:
+        // One process only
+        pfMultiprocess(PFMP_APPCULLDRAW);
+        break;
+    case VS_MPROC_MULTI:
+        // Split into three processes
+        pfMultiprocess(PFMP_APP_CULL_DRAW);
+        break;
     }
 }
 
@@ -170,19 +170,19 @@ void vsSystem::setMultiprocessMode(int mpMode)
 void vsSystem::addExtension(char *fileExtension)
 {
     if (!validObject)
-	return;
+    return;
 
     if (isInitted)
     {
         printf("vsSystem::addExtension: Can't add extensions after "
-	    "initialization of vsSystem object\n");
+        "initialization of vsSystem object\n");
         return;
     }
 
     if (!pfdInitConverter(fileExtension))
     {
         printf("vsSystem::addExtension: Unable to initialize '%s' loader\n",
-	    fileExtension);
+        fileExtension);
         return;
     }
 }
@@ -195,13 +195,13 @@ void vsSystem::init()
 {
     // Do nothing if this isn't a real system object
     if (!validObject)
-	return;
+    return;
 
     // Do nothing if this object has already been initialized
     if (isInitted)
     {
-	printf("vsSystem::init: vsSystem object is already initialized\n");
-	return;
+    printf("vsSystem::init: vsSystem object is already initialized\n");
+    return;
     }
 
     // * This call can potentially fork new processes, so every object
@@ -226,8 +226,8 @@ void vsSystem::init()
 // may be specified for undesired return values.
 // ------------------------------------------------------------------------
 void vsSystem::simpleInit(char *databaseFilename, char *windowName,
-			  bool fullScreen, vsNode **sceneGraph,
-			  vsView **viewpoint, vsWindow **window)
+              bool fullScreen, vsNode **sceneGraph,
+              vsView **viewpoint, vsWindow **window)
 {
     vsWindow *defaultWindow;
     vsPane *defaultPane;
@@ -243,13 +243,13 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
 
     // Do nothing if this isn't a real system object
     if (!validObject)
-	return;
+    return;
 
     // Do nothing if this object has already been initialized
     if (isInitted)
     {
-	printf("vsSystem::init: vsSystem object is already initialized\n");
-	return;
+    printf("vsSystem::init: vsSystem object is already initialized\n");
+    return;
     }
 
     // Configure the system for the type of database being loaded
@@ -294,7 +294,7 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
     defaultView = new vsView();
     scene->getBoundSphere(&dbCenter, &dbRadius);
     defaultView->setViewpoint(dbCenter[0], dbCenter[1] + dbRadius,
-	dbCenter[2] + dbRadius);
+    dbCenter[2] + dbRadius);
     upDir.set(0.0, 0.0, 1.0);
     defaultView->lookAtPoint(dbCenter, upDir);
     defaultPane->setView(defaultView);
@@ -395,8 +395,8 @@ void vsSystem::drawFrame()
     // Do nothing if the object hasn't been initialized
     if (!isInitted)
     {
-	printf("vsSystem::drawFrame: System object is not initialized\n");
-	return;
+    printf("vsSystem::drawFrame: System object is not initialized\n");
+    return;
     }
 
     // Tell the "root" sequencer to update itself and everything attached
@@ -495,11 +495,11 @@ void vsSystem::drawFrame()
 
                 // Run a VESS traversal over the pane's scene
                 scene = targetPane->getScene();
-		if (scene)
-		{
-		    (vsGraphicsState::getInstance())->clearState();
-		    preFrameTraverse(scene);
-		}
+                if (scene)
+                {
+                    (vsGraphicsState::getInstance())->clearState();
+                    preFrameTraverse(scene);
+                }
 
                 // See if stats are enabled on the pane, and call
                 // pfChannel::drawStats to draw them if so
