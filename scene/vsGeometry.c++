@@ -385,8 +385,19 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
 // ------------------------------------------------------------------------
 vsGeometry::~vsGeometry()
 {
+    vsAttribute *attr;
     vsComponent *parent;
 
+    // Remove all attached attributes; destroy those that aren't being
+    // used by other nodes.
+    while (getAttributeCount() > 0)
+    {
+        attr = getAttribute(0);
+        removeAttribute(attr);
+        if (!(attr->isAttached()))
+            delete attr;
+    }
+ 
     // Remove this node from its parents
     while (getParentCount() > 0)
     {
@@ -456,6 +467,7 @@ void vsGeometry::setPrimitiveType(int newType)
         case VS_GEOMETRY_TYPE_LINE_LOOPS:
             printf("vsGeometry::setPrimitiveType: VS_GEOMETRY_TYPE_LINE_LOOPS "
                 "type not supported under Performer operation\n");
+            performerGeoset->setPrimType(PFGS_LINESTRIPS);
             break;
         case VS_GEOMETRY_TYPE_TRIS:
             performerGeoset->setPrimType(PFGS_TRIS);
@@ -472,6 +484,7 @@ void vsGeometry::setPrimitiveType(int newType)
         case VS_GEOMETRY_TYPE_QUAD_STRIPS:
             printf("vsGeometry::setPrimitiveType: VS_GEOMETRY_TYPE_QUAD_STRIPS "
                 "type not supported under Performer operation\n");
+            performerGeoset->setPrimType(PFGS_QUADS);
             break;
         case VS_GEOMETRY_TYPE_POLYS:
             performerGeoset->setPrimType(PFGS_POLYS);
