@@ -101,7 +101,7 @@ int vsSoundListenerAttribute::getAttributeCategory()
 void vsSoundListenerAttribute::attach(vsNode *theNode)
 {
     // Make sure we're not already attached
-    if (attachedFlag)
+    if (attachedCount)
     {
         printf("vsSoundListenerAttribute::attach: Attribute is already "
             "attached\n");
@@ -113,7 +113,7 @@ void vsSoundListenerAttribute::attach(vsNode *theNode)
     if (theNode->getNodeType() != VS_NODE_TYPE_COMPONENT)
     {
         printf("vsSoundListenerAttribute::attach: Can only attach sound "
-	    "listener attributes to vsComponents\n");
+            "listener attributes to vsComponents\n");
         return;
     }
 
@@ -121,7 +121,7 @@ void vsSoundListenerAttribute::attach(vsNode *theNode)
     parentComponent = ((vsComponent *)theNode);
     
     // Flag this attribute as attached to a component
-    attachedFlag = 1;
+    attachedCount = 1;
 }
 
 // ------------------------------------------------------------------------
@@ -132,7 +132,7 @@ void vsSoundListenerAttribute::attach(vsNode *theNode)
 void vsSoundListenerAttribute::detach(vsNode *theNode)
 {
     // Make sure we're actually attached to the node
-    if (!attachedFlag)
+    if (!attachedCount)
     {
         printf("vsSoundListenerAttribute::detach: Attribute is not attached\n");
         return;
@@ -142,7 +142,7 @@ void vsSoundListenerAttribute::detach(vsNode *theNode)
     parentComponent = NULL;
 
     // Flag this attribute as not attached to any component
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -190,7 +190,7 @@ void vsSoundListenerAttribute::update()
 
     // If the attribute is not attached to a component, we have nothing
     // to do.  Simply return
-    if (!attachedFlag)
+    if (!attachedCount)
         return;
 
     // Get the component's global transform
