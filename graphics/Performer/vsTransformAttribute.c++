@@ -489,3 +489,14 @@ void vsTransformAttribute::attachDuplicate(vsNode *theNode)
     // Attach the duplicate attribute to the specified node
     theNode->addAttribute(newAttrib);
 }
+
+// ------------------------------------------------------------------------
+// Internal function
+// Returns the combined transform matrix (pre/dynamic/post).  Under 
+// Performer, this simply multiplies the three component matrices and 
+// returns them.
+// ------------------------------------------------------------------------
+vsMatrix vsTransformAttribute::getCombinedTransform()
+{
+    return postMatrix * dynMatrix * preMatrix;
+}

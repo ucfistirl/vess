@@ -52,6 +52,8 @@ VS_INTERNAL:
 
     virtual void    attachDuplicate(vsNode *theNode);
 
+    vsMatrix        getCombinedTransform();
+
 public:
 
                           vsTransformAttribute();

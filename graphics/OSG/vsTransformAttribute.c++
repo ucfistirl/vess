@@ -166,7 +166,7 @@ void vsTransformAttribute::applyTransformations()
     if (!(postMatrix == identityMatrix))
         productMatrix = productMatrix * postMatrix;
 
-    // Yes, the index order is reversed. Performer does its
+    // Yes, the index order is reversed. OSG does its
     // multiplication the opposite of the way we do.
     for (loop = 0; loop < 4; loop++)
         for (sloop = 0; sloop < 4; sloop++)
@@ -285,4 +285,26 @@ void vsTransformAttribute::attachDuplicate(vsNode *theNode)
 
     // Attach it.
     theNode->addAttribute(newAttrib);
+}
+
+// ------------------------------------------------------------------------
+// Internal function
+// Returns the combined transform matrix (pre/dynamic/post).  Useful to
+// obtain the entire transform without multiplying the three parts.
+// ------------------------------------------------------------------------
+vsMatrix vsTransformAttribute::getCombinedTransform()
+{
+    int loop, sloop;
+    osg::Matrix osgMatrix;
+    vsMatrix resultMatrix;
+
+    // Update the osg MatrixTransform with the new value.
+    osgMatrix = transform->getMatrix();
+
+    // Transpose the matrix to the VESS standard and return it
+    for (loop = 0; loop < 4; loop++)
+        for (sloop = 0; sloop < 4; sloop++)
+            resultMatrix[sloop][loop] = osgMatrix(loop, sloop);
+
+    return resultMatrix;
 }
