@@ -282,6 +282,7 @@ void vsPane::updateView()
     pfMatrix performerMatrix;
     int loop, sloop;
     vsVector viewPos;
+    double near, far;
     
     if (sceneView == NULL)
         return;
@@ -293,15 +294,14 @@ void vsPane::updateView()
     for (loop = 0; loop < 3; loop++)
         viewMatrix[loop][3] = viewPos[loop];
 
-//    xformMatrix = (vsSystem::systemObject)->getCoordinateXform();
-//    xformMatrix.invert();
-//    viewMatrix = xformMatrix * viewMatrix;
-
     for (loop = 0; loop < 4; loop++)
         for (sloop = 0; sloop < 4; sloop++)
             performerMatrix[loop][sloop] = viewMatrix[sloop][loop];
 
     performerChannel->setViewMat(performerMatrix);
+
+    sceneView->getClipDistances(&near, &far);
+    performerChannel->setNearFar(near, far);
 }
 
 // ------------------------------------------------------------------------
