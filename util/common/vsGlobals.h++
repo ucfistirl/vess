@@ -45,8 +45,6 @@ enum
 
 #define VS_DEFAULT_TOLERANCE    (1E-12)
 
-#define VS_MAXIMUM_TEXTURE_UNITS 8
-
 // Various useful macros
 
 #define VS_SQR(x)  ( (x) * (x) )
