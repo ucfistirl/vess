@@ -7,6 +7,7 @@
 #include "vsScreen.h++"
 #include "vsDatabaseLoader.h++"
 #include "vsObjectMap.h++"
+#include "vsLightAttribute.h++"
 #include "vsMatrix.h++"
 
 #define MAX_PIPE_COUNT 10
@@ -25,8 +26,6 @@ private:
     vsDatabaseLoader    *databaseLoader;
     
     vsObjectMap         *nodeMap;
-    
-    vsMatrix            coordSystemXform;
 
 VS_INTERNAL:
 
@@ -37,6 +36,10 @@ VS_INTERNAL:
 public:
 
                         vsSystem(vsDatabaseLoader *fileLoader);
+			vsSystem(char *databaseFilename, char **nameList,
+				 char *windowTitle, int fullScreen,
+				 vsNode **sceneGraph, vsView **viewpoint,
+				 vsWindow **window);
                         ~vsSystem();
 
     vsPipe              *getPipe(int index);
@@ -46,9 +49,6 @@ public:
     vsNode              *loadDatabase(char *databaseFilename);
     
     void                drawFrame();
-
-    void                setCoordinateXform(vsMatrix newXform);
-    vsMatrix            getCoordinateXform();
 };
 
 #endif
