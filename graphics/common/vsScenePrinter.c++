@@ -104,7 +104,6 @@ void vsScenePrinter::writeBlanks(FILE *outfile, int count)
 void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
     int treeDepth, int *countArray)
 {
-    vsComponent *component;
     vsGeometry *geometry;
     vsAttribute *attribute;
     int loop, sloop;

@@ -339,7 +339,7 @@ void vsOptimizer::mergeDecals(vsComponent *componentNode)
 }
 
 // ------------------------------------------------------------------------
-// Attempts to merge geometry under components with decal attributes that
+// Attempts to merge geometry under components with LOD attributes that
 // are children of this component
 // ------------------------------------------------------------------------
 void vsOptimizer::mergeLODs(vsComponent *componentNode)
@@ -352,7 +352,7 @@ void vsOptimizer::mergeLODs(vsComponent *componentNode)
     int lodChildCount;
     vsLODAttribute *lodAttr, *newLODAttr;
     double tempDouble, midpoint;
-    vsComponent *newLODComponent, *newChildComponent;
+    vsComponent *newLODComponent;
     double rangeStart, rangeEnd;
 
     if (componentNode->getCategoryAttribute(VS_ATTRIBUTE_CATEGORY_GROUPING, 0))
