@@ -174,7 +174,7 @@ void vsWalkInPlace::setSideStepThreshold(double threshold)
 // ------------------------------------------------------------------------
 // Updates the motion model
 // ------------------------------------------------------------------------
-void vsWalkInPlace::update()
+vsMatrix vsWalkInPlace::update()
 {
     vsVector             backOrient;
     vsVector             leftFoot, rightFoot;
@@ -186,6 +186,7 @@ void vsWalkInPlace::update()
     double               deltaTime;
     vsVector             transVec;
     int                  motionFlag;
+    double               moveDistance;
     vsMatrix             newTranslation;
     vsMatrix             newRotation;
 
@@ -232,9 +233,9 @@ void vsWalkInPlace::update()
         // to travel, i.e if the right foot is in front of the left, we 
         // should sidestep left)
         if (deltaY < 0)
-            transVec.setTranslation(moveDistance, 0.0, 0.0);
+            transVec.set(moveDistance, 0.0, 0.0);
         else
-            transVec.setTranslation(-moveDistance, 0.0, 0.0);
+            transVec.set(-moveDistance, 0.0, 0.0);
 
         motionFlag = VS_TRUE;
     }
