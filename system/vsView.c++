@@ -101,7 +101,7 @@ void vsView::setDirectionFromVector(vsVector direction, vsVector upDirection)
     directionVec.normalize();
     rotAxisVec = forwardVec.getCrossProduct(directionVec);
     if (fabs(rotAxisVec.getMagnitude()) < 1E-6)
-        rotAxisVec.set(0.0, 1.0, 0.0);
+        rotAxisVec.set(0.0, 0.0, 1.0);
     rotDegrees = forwardVec.getAngleBetween(directionVec);
     dirRotQuat.setAxisAngleRotation(rotAxisVec[VS_X], rotAxisVec[VS_Y],
         rotAxisVec[VS_Z], rotDegrees);
@@ -219,7 +219,7 @@ vsVector vsView::getUpDirection()
 }
 
 // ------------------------------------------------------------------------
-// Retrieves the current view rotation matrix
+// Retrieves the current view rotation quaternion
 // ------------------------------------------------------------------------
 vsMatrix vsView::getRotationMat()
 {
