@@ -29,6 +29,7 @@ class vsIntersect;
 #include "vsGeometry.h++"
 #include "vsGrowableArray.h++"
 #include "vsPane.h++"
+#include "vsIntersectTraverser.h++"
 #include <osgUtil/IntersectVisitor>
 
 #define VS_INTERSECT_SEGS_MAX 32
@@ -38,13 +39,6 @@ enum vsIntersectFacingMode
     VS_INTERSECT_IGNORE_NONE,
     VS_INTERSECT_IGNORE_FRONTFACE,
     VS_INTERSECT_IGNORE_BACKFACE
-};
-
-enum vsIntersectTraversalMode
-{
-    VS_INTERSECT_TRAVERSE_NONE,
-    VS_INTERSECT_TRAVERSE_CURRENT,
-    VS_INTERSECT_TRAVERSE_ALL
 };
 
 struct vsIntersectSegment
@@ -58,6 +52,7 @@ class vsIntersect
 private:
 
     osgUtil::IntersectVisitor    *osgIntersect;
+    vsIntersectTraverser         *traverser;
 
     vsGrowableArray              segList;
     int                          segListSize;
@@ -103,8 +98,14 @@ public:
     void               setFacingMode(int newMode);
     int                getFacingMode();
     
-    void               setTraversalMode(int newMode);
-    int                getTraversalMode();
+    void               setSequenceTravMode(int newMode);
+    int                getSequenceTravMode();
+    
+    void               setSwitchTravMode(int newMode);
+    int                getSwitchTravMode();
+    
+    void               setLODTravMode(int newMode);
+    int                getLODTravMode();
     
     void               intersect(vsNode *targetNode);
 

@@ -44,8 +44,15 @@ vsIntersect::vsIntersect() : segList(5, 10)
     for (loop = 0; loop < VS_INTERSECT_SEGS_MAX; loop++)
         sectPath[loop] = NULL;
 
-    // Initialize traversal mode
-    travMode = VS_INTERSECT_TRAVERSE_CURRENT;
+    // Create the auxiliary visitor for the IntersectVisitor that will
+    // control traversals.  This will handle the special traversal
+    // modes for sequence, switches, and LOD's
+    traverser = new vsIntersectTraverser(osgIntersect);
+    traverser->ref();
+
+    // Instruct the IntersectVisitor to use the vsIntersectTraverser to
+    // handle the traversal
+    osgIntersect->setTraversalVisitor(traverser);
 }
 
 // ------------------------------------------------------------------------
@@ -59,6 +66,9 @@ vsIntersect::~vsIntersect()
     for (loop = 0; loop < VS_INTERSECT_SEGS_MAX; loop++)
         if (sectPath[loop] != NULL)
             delete (sectPath[loop]);
+
+    // Unreference the vsIntersectTraverser
+    traverser->unref();
 
     // Unreference the OSG IntersectVisitor
     osgIntersect->unref();
@@ -423,41 +433,57 @@ int vsIntersect::getFacingMode()
 }
 
 // ------------------------------------------------------------------------
-// Sets the traversal mode for the intersection object. This mode
+// Sets the switch traversal mode for the intersection object. This mode
 // tells the object which of components' children should be used in the
-// the intersection test.  NONE means no children, ALL means all children,
-// CURRENT means the currently active child of a component with a switch, 
-// sequence, or LOD attribute.  For simple components (i.e.: those without
-// grouping attributes), all children are considered current.
+// the intersection test when the component has a switch attribute.
 // ------------------------------------------------------------------------
-void vsIntersect::setTraversalMode(int newMode)
+void vsIntersect::setSwitchTravMode(int newMode)
 {
-    travMode = newMode;
+    traverser->setSwitchTravMode(newMode);
 }
 
 // ------------------------------------------------------------------------
 // Gets the switch traversal mode for the intersection object
 // ------------------------------------------------------------------------
-int vsIntersect::getTraversalMode()
+int vsIntersect::getSwitchTravMode()
 {
-    osg::NodeVisitor::TraversalMode mode;
+    return traverser->getSwitchTravMode();
+}
 
-    // Get the mode from the OSG IntersectVisitor
-    mode = osgIntersect->getTraversalMode();
+// ------------------------------------------------------------------------
+// Sets the sequence traversal mode for the intersection object. This mode
+// tells the object which of components' children should be used in the
+// the intersection test when the component has a sequence attribute.
+// ------------------------------------------------------------------------
+void vsIntersect::setSequenceTravMode(int newMode)
+{
+    traverser->setSequenceTravMode(newMode);
+}
 
-    // Return the corresponding vsIntersect mode
-    switch (mode)
-    {
-        case osg::NodeVisitor::TRAVERSE_NONE:
-            return VS_INTERSECT_TRAVERSE_NONE;
-        case osg::NodeVisitor::TRAVERSE_ALL_CHILDREN:
-            return VS_INTERSECT_TRAVERSE_ALL;
-        case osg::NodeVisitor::TRAVERSE_ACTIVE_CHILDREN:
-            return VS_INTERSECT_TRAVERSE_CURRENT;
-    }
+// ------------------------------------------------------------------------
+// Gets the sequence traversal mode for the intersection object
+// ------------------------------------------------------------------------
+int vsIntersect::getSequenceTravMode()
+{
+    return traverser->getSequenceTravMode();
+}
 
-    // An unrecognized mode is set
-    return -1;
+// ------------------------------------------------------------------------
+// Sets the level-of-detail traversal mode for the intersection object.
+// This mode tells the object which of components' children should be used
+// in the the intersection test when the component has an LOD attribute.
+// ------------------------------------------------------------------------
+void vsIntersect::setLODTravMode(int newMode)
+{
+    traverser->setLODTravMode(newMode);
+}
+
+// ------------------------------------------------------------------------
+// Gets the level-of-detail traversal mode for the intersection object
+// ------------------------------------------------------------------------
+int vsIntersect::getLODTravMode()
+{
+    return traverser->getLODTravMode();
 }
 
 // ------------------------------------------------------------------------
