@@ -17,7 +17,7 @@
 //                  graph. Stores geometry data such as vertex and texture
 //                  coordinates, colors, and face normals.
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Duvan Cope
 //
 //------------------------------------------------------------------------
 
@@ -46,6 +46,10 @@ enum VS_GRAPHICS_DLL vsGeometryPrimType
 
 enum VS_GRAPHICS_DLL vsGeometryDataType
 {
+    VS_GEOMETRY_SKIN_VERTEX_COORDS,
+    VS_GEOMETRY_SKIN_NORMALS,
+    VS_GEOMETRY_VERTEX_WEIGHTS,
+    VS_GEOMETRY_BONE_INDICES,
     VS_GEOMETRY_VERTEX_COORDS,
     VS_GEOMETRY_NORMALS,
     VS_GEOMETRY_COLORS,
@@ -73,6 +77,9 @@ enum VS_GRAPHICS_DLL vsGeometryBinSortMode
     VS_GEOMETRY_SORT_STATE,
     VS_GEOMETRY_SORT_DEPTH
 };
+
+// The maximum texture units that VESS can support.
+#define VS_MAXIMUM_TEXTURE_UNITS PFGS_MAX_TEXTURES
 
 class VS_GRAPHICS_DLL vsGeometry : public vsNode
 {
