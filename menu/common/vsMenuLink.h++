@@ -29,7 +29,7 @@
 #include "vsGlobals.h++"
 #include "vsKinematics.h++"
 #include "vsMenuFrame.h++"
-#include "vsMenuButton.h++"
+#include "vsMenuObject.h++"
 
 enum VS_SYSTEM_DLL vsMenuLinkMode
 {
@@ -37,7 +37,7 @@ enum VS_SYSTEM_DLL vsMenuLinkMode
     VS_MENU_LINK_MODE_ABSOLUTE
 };
 
-class VS_SYSTEM_DLL vsMenuLink : public vsMenuButton
+class VS_SYSTEM_DLL vsMenuLink : public vsMenuObject
 {
 private:
 

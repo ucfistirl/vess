@@ -121,9 +121,6 @@ void vsMenuLink::update(vsMenuSignal signal, vsMenuFrame *frame)
         // The idle signal updates the kinematics object, if it exists
         case VS_MENU_SIGNAL_IDLE:
         {
-            // Mark the press state as false on this idle signal
-            pressedState = false;
-
             if (menuKinematics)
                 menuKinematics->update();
         }
@@ -133,10 +130,6 @@ void vsMenuLink::update(vsMenuSignal signal, vsMenuFrame *frame)
         // by the internally-stored destination menu frame
         case VS_MENU_SIGNAL_ACTIVATE:
         {
-            // Mark the link as pressed to signal the application
-            // of a transition
-            pressedState = true;
-
             // Check whether the link mode is relative or absolute
             if (linkMode == VS_MENU_LINK_MODE_ABSOLUTE)
             {
