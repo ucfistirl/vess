@@ -151,6 +151,10 @@ int vsSerialPort::readPacket(unsigned char *packet, int length)
         if (result > 0)
             bytesRead += result;
 
+        // Wait a VERY brief amount of time
+        usleep(1);
+
+        // Decrement timeout counter
         timeoutCounter--;
     }
 
