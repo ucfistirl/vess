@@ -25,7 +25,7 @@
 #include <termios.h>
 #include <unistd.h>
 
-#define VS_SERIAL_NUM_READ_RETRYS  32000
+#define VS_SERIAL_NUM_READ_RETRYS  64000
 
 class vsSerialPort
 {
