@@ -24,18 +24,20 @@ SRCS = \
        vsFlyingMotion.c++ \
        vsMotionModel.c++ \
        vsTrackballMotion.c++ \
-       vsTrackedMotion.c++
+       vsTrackedMotion.c++ \
+       vsWalkInPlace.c++
 
 OBJS = \
        vsFlyingMotion.o \
        vsMotionModel.o \
        vsTrackballMotion.o \
-       vsTrackedMotion.o
+       vsTrackedMotion.o \
+       vsWalkInPlace.o
 
 #----------------------------------------------------------------------
 #			Misc. settings
 #----------------------------------------------------------------------
-OS = IRIX64
+OS = IRIX
 
 #----------------------------------------------------------------------
 #			Compiler settings
