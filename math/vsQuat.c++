@@ -858,7 +858,7 @@ int vsQuat::operator==(vsQuat operand)
     int loop;
     
     for (loop = 0; loop < 4; loop++)
-        if (fabs(data[loop] - operand[loop]) < VS_MATH_DEFAULT_TOLERANCE)
+        if (fabs(data[loop] - operand[loop]) > VS_MATH_DEFAULT_TOLERANCE)
             return VS_FALSE;
 
     return VS_TRUE;

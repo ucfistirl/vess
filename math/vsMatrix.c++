@@ -957,7 +957,7 @@ int vsMatrix::operator==(vsMatrix operand)
 
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
-            if (fabs(data[i][j] - operand[i][j]) < VS_MATH_DEFAULT_TOLERANCE)
+            if (fabs(data[i][j] - operand[i][j]) > VS_MATH_DEFAULT_TOLERANCE)
                 return VS_FALSE;
 
     return VS_TRUE;
