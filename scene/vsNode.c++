@@ -42,7 +42,7 @@ int vsNode::getParentCount()
 // Retrieves one of the parent components of this node, specified by index.
 // The index of the first parent is 0.
 // ------------------------------------------------------------------------
-vsNode *vsNode::getParent(int index)
+vsComponent *vsNode::getParent(int index)
 {
     if ((index < 0) || (index >= parentCount))
     {
@@ -50,7 +50,7 @@ vsNode *vsNode::getParent(int index)
         return NULL;
     }
     
-    return (vsNode *)(parentList[index]);
+    return (vsComponent *)(parentList[index]);
 }
 
 // ------------------------------------------------------------------------
@@ -74,7 +74,7 @@ const char *vsNode::getName()
 // VESS internal function
 // Adds a node to this node's list of parent nodes
 // ------------------------------------------------------------------------
-void vsNode::addParent(vsNode *newParent)
+void vsNode::addParent(vsComponent *newParent)
 {
     parentList[parentCount++] = newParent;
 }
@@ -83,7 +83,7 @@ void vsNode::addParent(vsNode *newParent)
 // VESS internal function
 // Removes a node from this node's list of parent nodes
 // ------------------------------------------------------------------------
-void vsNode::removeParent(vsNode *targetParent)
+void vsNode::removeParent(vsComponent *targetParent)
 {
     int loop, sloop;
     

@@ -156,7 +156,7 @@ void vsOptimizer::zapComponent(vsComponent *targetComponent)
 
     while (targetComponent->getParentCount() > 0)
     {
-	parentComponent = (vsComponent *)(targetComponent->getParent(0));
+	parentComponent = targetComponent->getParent(0);
 	parentComponent->replaceChild(targetComponent, childNode);
     }
     
@@ -264,7 +264,7 @@ void vsOptimizer::mergeGeometry(vsComponent *componentNode)
                 {
 		    while (secondGeo->getParentCount() > 0)
 		    {
-			parent = (vsComponent *)(secondGeo->getParent(0));
+			parent = secondGeo->getParent(0);
 			parent->removeChild(secondGeo);
 		    }
                     addGeometry(firstGeo, secondGeo);
@@ -542,7 +542,8 @@ void vsOptimizer::optimizeAttributes(vsComponent *componentNode,
     int attributeType, int (*cmpFunc)(vsAttribute *, vsAttribute *))
 {
     int loop, sloop;
-    vsNode *childNode, *parentNode;
+    vsNode *childNode;
+    vsComponent *parentNode;
     vsAttribute *attrArray[1000];
     int attrHitCounts[1000];
     int attrCount;

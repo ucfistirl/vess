@@ -254,7 +254,7 @@ vsComponent::~vsComponent()
     // Remove this node from its parents
     while (getParentCount() > 0)
     {
-        parent = (vsComponent *)(getParent(0));
+        parent = getParent(0);
         parent->removeChild(this);
     }
 

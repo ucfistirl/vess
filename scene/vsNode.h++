@@ -11,6 +11,8 @@
 
 #define VS_NODE_NAME_MAX_LENGTH 80
 
+class vsComponent;
+
 enum vsNodeType
 {
     VS_NODE_TYPE_COMPONENT,
@@ -30,8 +32,8 @@ protected:
 
 VS_INTERNAL:
 
-    void            addParent(vsNode *newParent);
-    void            removeParent(vsNode *targetParent);
+    void            addParent(vsComponent *newParent);
+    void            removeParent(vsComponent *targetParent);
 
     virtual void    saveCurrentAttributes();
     virtual void    applyAttributes();
@@ -52,7 +54,7 @@ public:
     virtual int         getNodeType() = 0;
 
     int                 getParentCount();
-    vsNode              *getParent(int index);
+    vsComponent         *getParent(int index);
     
     void                setName(const char *newName);
     const char          *getName();
