@@ -26,12 +26,13 @@
 #include <stdio.h>
 #include <string.h>
 
+vsClusterManager *vsClusterManager::clusterManagerObject = NULL;
+
 // ------------------------------------------------------------------------
 // Constructor - Initializes variables and identifies the slaves to which
 // the master should connect
 // ------------------------------------------------------------------------
-
-vsClusterManager::vsClusterManager(const int slaveCount, const char **newSlaves)
+vsClusterManager::vsClusterManager(const int slaveCount, char **newSlaves)
 {
     int i;
     
@@ -73,6 +74,53 @@ vsClusterManager::vsClusterManager(const int slaveCount, const char **newSlaves)
 }
 
 // ------------------------------------------------------------------------
+// Constructor - Initializes variables and identifies the slaves to which
+// the master should connect. The port which we should use to connect is 
+// specified
+// ------------------------------------------------------------------------
+vsClusterManager::vsClusterManager(const int slaveCount, char **newSlaves,
+        int port)
+{
+    int i;
+    
+    legitimate = 0;
+    
+    // There can exist only one cluster manager
+    if (clusterManagerObject)
+    {
+        printf("vsClusterManager::vsClusterManager: Only one vsClusterObject "
+               "can be in existence at a time\n");
+        return;
+    }
+    
+    // When the program begins, there haven't yet been any calls generated
+    // internally by VESS   
+    stackDepth = 0;
+ 
+    // Prepare space for slave addresses
+    numOfSlaves = slaveCount;
+    
+    // Make space for interfaces with slaves
+    slaves = (vsTCPNetworkInterface**)calloc(numOfSlaves, 
+            sizeof(vsTCPNetworkInterface *));
+        
+    // Connect to each slave
+    for (i = 0; i < numOfSlaves; i++)
+    {   
+        // Now try to connect
+        slaves[i] = new vsTCPNetworkInterface(newSlaves[i], port);
+        while (slaves[i]->makeConnection() < 0);
+        slaves[i]->disableBlocking();
+    }
+
+    
+    // A cluster configuration is valid only if all addresses are valid
+    legitimate = 1;
+    clusterManagerObject = this;
+}
+
+
+// ------------------------------------------------------------------------
 // Destructor - Frees memory used to store addresses
 // ------------------------------------------------------------------------
 vsClusterManager::~vsClusterManager(void)
@@ -108,7 +156,7 @@ bool vsClusterManager::isValid(void)
 // ------------------------------------------------------------------------
 // Returns a pointer to the specified slave
 // ------------------------------------------------------------------------
-const vsTCPNetworInterface *vsClusterManager::getSlave(int slaveIndex)
+const vsTCPNetworkInterface *vsClusterManager::getSlave(int slaveIndex)
 {
     // Check to see that the index is within range
     if (slaveIndex >= 0 && slaveIndex < numOfSlaves)
@@ -161,7 +209,7 @@ void vsClusterManager::sync()
     while (numSlavesReportedIn < numOfSlaves)
     {
         // Collect messages from each slave
-        for (i = 0; i < numSlaves; i++)
+        for (i = 0; i < numOfSlaves; i++)
         {
             slaves[i]->read((u_char *) commStr, 1024);
             

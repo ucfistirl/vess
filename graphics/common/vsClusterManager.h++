@@ -11,7 +11,7 @@
 //
 // ------------------------------------------------------------------------
 //
-//    VESS Module:  vsClusterManager.c++
+//    VESS Module:  vsClusterManager.h++
 //
 //    Description:  Contains a listing of the IP addresses of machines in a
 //                  cluster.
@@ -25,6 +25,10 @@
 
 #include "vsTCPNetworkInterface.h++"
 
+//This belongs in vsRemoteInterface.h++, but since we can't access that from
+//the graphics library, we have to define it here, too.
+#define VS_RI_DEFAULT_CONTROL_PORT 32816
+
 class vsClusterManager
 {
 private:
@@ -33,7 +37,7 @@ private:
     vsTCPNetworkInterface   **slaves;
 
     bool                    legitimate;
-    int                     stackDepth; 
+    int                     stackDepth;
    
 VS_INTERNAL:
 
@@ -47,7 +51,9 @@ public:
     static vsClusterManager         *clusterManagerObject;    
 
                                     vsClusterManager(const int slaveCount, 
-                                            const char **newSlaves);
+                                            char **newSlaves);
+                                    vsClusterManager(const int slaveCount,
+                                            char **newSlaves, int port);
                                     ~vsClusterManager();
 
     bool                            isValid();
