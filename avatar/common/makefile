@@ -127,11 +127,11 @@ vsAvatar.o: ../../io/common/vsISTJoystickBox.h++
 vsAvatar.o: ../../io/common/vsJoystick.h++ ../../io/common/vsInputDevice.h++
 vsAvatar.o: ../../io/common/vsInputAxis.h++ ../../io/common/vsInputButton.h++
 vsAvatar.o: ../../io/common/vsJoystickBox.h++
-vsAvatar.o: ../../io/common/vsInputSystem.h++ ../../io/X/vsSerialPort.h++
+vsAvatar.o: ../../io/common/vsInputSystem.h++ ../../io/Linux/vsSerialPort.h++
 vsAvatar.o: /usr/include/termios.h /usr/include/bits/termios.h
 vsAvatar.o: /usr/include/sys/ttydefaults.h ../../io/common/vsUnwinder.h++
 vsAvatar.o: ../../io/common/vsFlockOfBirds.h++
-vsAvatar.o: ../../io/X/vsAscensionSerialTrackingSystem.h++
+vsAvatar.o: ../../io/Linux/vsAscensionSerialTrackingSystem.h++
 vsAvatar.o: ../../io/common/vsMotionTracker.h++
 vsAvatar.o: ../../io/common/vs6DInputDevice.h++
 vsAvatar.o: ../../io/common/vsTrackingSystem.h++
@@ -139,8 +139,8 @@ vsAvatar.o: ../../io/common/vsSharedInputData.h++ /usr/include/sys/ipc.h
 vsAvatar.o: /usr/include/bits/ipc.h /usr/include/sys/shm.h
 vsAvatar.o: /usr/include/bits/shm.h /usr/include/sys/sem.h
 vsAvatar.o: /usr/include/bits/sem.h ../../io/common/vsSerialMotionStar.h++
-vsAvatar.o: ../../io/X/vsFastrak.h++ ../../io/X/vsIS600.h++
-vsAvatar.o: ../../io/X/vsEthernetMotionStar.h++
+vsAvatar.o: ../../io/Linux/vsFastrak.h++ ../../io/Linux/vsIS600.h++
+vsAvatar.o: ../../io/Linux/vsEthernetMotionStar.h++
 vsAvatar.o: ../../io/common/vsUDPUnicastNetworkInterface.h++
 vsAvatar.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
 vsAvatar.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
@@ -185,6 +185,7 @@ vsAvatar.o: ../../motion/common/vsKinematics.h++
 vsAvatar.o: ../../graphics/Performer/vsTransformAttribute.h++
 vsAvatar.o: /usr/include/Performer/pf/pfDCS.h
 vsAvatar.o: /usr/include/Performer/pf/pfSCS.h
+vsAvatar.o: ../../motion/common/vsAxisRotation.h++
 vsAvatar.o: ../../motion/common/vsCollision.h++
 vsAvatar.o: ../../graphics/Performer/vsIntersect.h++
 vsAvatar.o: ../../motion/common/vsDrivingMotion.h++
