@@ -46,6 +46,7 @@ bool vsGeometry::binModesChanged = false;
 vsGeometry::vsGeometry() : parentList(5, 5)
 {
     unsigned int unit;
+    int loop;
 
     // Initialize the number of parents to zero
     parentCount = 0;
@@ -59,33 +60,9 @@ vsGeometry::vsGeometry() : parentList(5, 5)
     osgGeometry->ref();
     osgGeode->addDrawable(osgGeometry);
 
-    // Create the color array
-    colorList = new osg::Vec4Array();
-    colorList->ref();
-    colorListSize = 0;
-    osgGeometry->setColorArray(colorList);
-
-    // Create the normal array
-    normalList = new osg::Vec3Array();
-    normalList->ref();
-    normalListSize = 0;
-    osgGeometry->setNormalArray(normalList);
-
-    for (unit = 0; unit < VS_MAXIMUM_TEXTURE_UNITS; unit++)
-    {
-        // Create the texture coordinate array
-        texCoordList[unit] = new osg::Vec2Array();
-        texCoordList[unit]->ref();
-        texCoordListSize[unit] = 0;
-        osgGeometry->setTexCoordArray(unit, NULL);
-        textureBinding[unit] = VS_GEOMETRY_BIND_NONE;
-    }
-
-    // Create the vertex array
-    vertexList = new osg::Vec3Array();
-    vertexList->ref();
-    vertexListSize = 0;
-    osgGeometry->setVertexArray(vertexList);
+    // Create the various data arrays
+    for (loop = 0; loop < VS_GEOMETRY_LIST_COUNT; loop++)
+        allocateDataArray(loop);
 
     // Initialize other values
     lengthsList = NULL;
@@ -105,7 +82,8 @@ vsGeometry::vsGeometry() : parentList(5, 5)
 // ------------------------------------------------------------------------
 vsGeometry::~vsGeometry()
 {
-    unsigned int unit;
+//    unsigned int unit;
+    int loop;
 
     // Remove all parents
     detachFromParents();
@@ -114,11 +92,8 @@ vsGeometry::~vsGeometry()
     deleteAttributes();
 
     // Unlink and destroy the OSG objects
-    colorList->unref();
-    normalList->unref();
-    for (unit = 0; unit < VS_MAXIMUM_TEXTURE_UNITS; unit++)
-        texCoordList[unit]->unref();
-    vertexList->unref();
+    for (loop = 0; loop < VS_GEOMETRY_LIST_COUNT; loop++)
+        dataList[loop]->unref();
     osgGeometry->unref();
     osgGeode->unref();
     
@@ -381,6 +356,12 @@ void vsGeometry::setBinding(int whichData, int binding)
             }
             break;
 
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            // There is no 'standard' binding for vertex weights; use the
+            // generic attribute binding.
+            osgGeometry->setVertexAttribBinding(whichData, osgBinding);
+            break;
+
         case VS_GEOMETRY_NORMALS:
             // Set the normal binding to the new value
             osgGeometry->setNormalBinding(osgBinding);
@@ -389,6 +370,23 @@ void vsGeometry::setBinding(int whichData, int binding)
         case VS_GEOMETRY_COLORS:
             // Set the color binding to the new value
             osgGeometry->setColorBinding(osgBinding);
+            break;
+
+        case VS_GEOMETRY_ALT_COLORS:
+            // Set the secondary color binding to the new value
+            osgGeometry->setSecondaryColorBinding(osgBinding);
+            break;
+
+        case VS_GEOMETRY_FOG_COORDS:
+            // Set the fog coordinate binding to the new value
+            osgGeometry->setFogCoordBinding(osgBinding);
+            break;
+
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+            // There is no 'standard' binding for this data; use the
+            // generic attribute binding.
+            osgGeometry->setVertexAttribBinding(whichData, osgBinding);
             break;
 
         case VS_GEOMETRY_TEXTURE0_COORDS:
@@ -420,10 +418,31 @@ void vsGeometry::setBinding(int whichData, int binding)
             if (binding == VS_GEOMETRY_BIND_NONE)
                 osgGeometry->setTexCoordArray(unit, NULL);
             else
-                osgGeometry->setTexCoordArray(unit, texCoordList[unit]);
+                osgGeometry->setTexCoordArray(unit, dataList[whichData]);
 
             // Store the binding value in this object
             textureBinding[unit] = binding;
+            break;
+
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            // Set the generic attribute binding to the new value
+            osgGeometry->setVertexAttribBinding(
+                whichData - VS_GEOMETRY_LIST_COUNT, osgBinding);
             break;
 
         default:
@@ -450,11 +469,24 @@ int vsGeometry::getBinding(int whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
             return VS_GEOMETRY_BIND_PER_VERTEX;
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            result = osgGeometry->getVertexAttribBinding(whichData);
+            break;
         case VS_GEOMETRY_NORMALS:
             result = osgGeometry->getNormalBinding();
             break;
         case VS_GEOMETRY_COLORS:
             result = osgGeometry->getColorBinding();
+            break;
+        case VS_GEOMETRY_ALT_COLORS:
+            result = osgGeometry->getSecondaryColorBinding();
+            break;
+        case VS_GEOMETRY_FOG_COORDS:
+            result = osgGeometry->getFogCoordBinding();
+            break;
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+            result = osgGeometry->getVertexAttribBinding(whichData);
             break;
         case VS_GEOMETRY_TEXTURE0_COORDS:
         case VS_GEOMETRY_TEXTURE1_COORDS:
@@ -468,6 +500,25 @@ int vsGeometry::getBinding(int whichData)
             unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
 
             return textureBinding[unit];
+            break;
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            result = osgGeometry->getVertexAttribBinding(
+                whichData - VS_GEOMETRY_LIST_COUNT);
             break;
         default:
             printf("vsGeometry::getBinding: Unrecognized data value\n");
@@ -501,127 +552,100 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
 {
     unsigned int unit;
     int loop;
+    int slotNum;
+    int dataSize;
 
-    // Make sure the index is not negative
-    if (dataIndex < 0)
+    // Determine the minimum required number of entries that should be in the
+    // data parameter. A value of 0 here means that it doesn't matter. This
+    // also doubles as a check to make sure that we recognize the specified
+    // constant.
+    dataSize = getDataElementCount(whichData);
+    if (dataSize == -1)
+    {
+        printf("vsGeometry::setData: Unrecognized data type\n");
+        return;
+    }
+
+    // Calculate which entry in the data arrays corresponds to the given
+    // constant
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+        slotNum = whichData;
+    else
+        slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+
+    // Bounds checking; make sure the index is valid, given the list size.
+    if ((dataIndex < 0) || (dataIndex >= dataListSize[slotNum]))
     {
         printf("vsGeometry::setData: Index out of bounds\n");
         return;
     }
-    
-    // Select the appropriate data list
-    switch (whichData)
+
+    // Make sure that the input vector has enough data
+    if (data.getSize() < dataSize)
     {
-        case VS_GEOMETRY_VERTEX_COORDS:
-            // Make sure the index is valid, given the list size
-            if (dataIndex >= vertexListSize)
-            {
-                printf("vsGeometry::setData: Index out of bounds\n");
-                return;
-            }
-
-            // Make sure the vector size is correct
-            if (data.getSize() < 3)
-            {
-                printf("vsGeometry::setData: Insufficient data (vertex "
-                    "coordinates require 3 values)\n");
-                return;
-            }
-
-            // Copy the vector data to the data list at the given index
-            for (loop = 0; loop < 3; loop++)
-                ((*vertexList)[dataIndex])[loop] = data[loop];
-
-            // Set the OSG vertex array with the new data
-            osgGeometry->setVertexArray(vertexList);
-            break;
-
-        case VS_GEOMETRY_NORMALS:
-            // Make sure the index is valid, given the list size
-            if (dataIndex >= normalListSize)
-            {
-                printf("vsGeometry::setData: Index out of bounds\n");
-                return;
-            }
-
-            // Make sure the vector size is correct
-            if (data.getSize() < 3)
-            {
-                printf("vsGeometry::setData: Insufficient data (vertex "
-                    "normals require 3 values)\n");
-                return;
-            }
-
-            // Copy the vector data to the data list at the given index
-            for (loop = 0; loop < 3; loop++)
-                ((*normalList)[dataIndex])[loop] = data[loop];
-
-            // Set the OSG normal array with the new data
-            osgGeometry->setNormalArray(normalList);
-            break;
-
-        case VS_GEOMETRY_COLORS:
-            // Make sure the index is valid, given the list size
-            if (dataIndex >= colorListSize)
-            {
-                printf("vsGeometry::setData: Index out of bounds\n");
-                return;
-            }
-
-            // Make sure the vector size is correct
-            if (data.getSize() < 4)
-            {
-                printf("vsGeometry::setData: Insufficient data (colors "
-                    "require 4 values)\n");
-                return;
-            }
-
-            // Copy the vector data to the data list at the given index
-            for (loop = 0; loop < 4; loop++)
-                ((*colorList)[dataIndex])[loop] = data[loop];
-
-            // Set the OSG color array with the new data
-            osgGeometry->setColorArray(colorList);
-            break;
-
-        case VS_GEOMETRY_TEXTURE0_COORDS:
-        case VS_GEOMETRY_TEXTURE1_COORDS:
-        case VS_GEOMETRY_TEXTURE2_COORDS:
-        case VS_GEOMETRY_TEXTURE3_COORDS:
-        case VS_GEOMETRY_TEXTURE4_COORDS:
-        case VS_GEOMETRY_TEXTURE5_COORDS:
-        case VS_GEOMETRY_TEXTURE6_COORDS:
-        case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-
-            // Make sure the index is valid, given the list size
-            if (dataIndex >= texCoordListSize[unit])
-            {
-                printf("vsGeometry::setData: Index out of bounds\n");
-                return;
-            }
-
-            // Make sure the vector size is correct
-            if (data.getSize() < 2)
-            {
-                printf("vsGeometry::setData: Insufficient data (texture "
-                    "coordinates require 2 values)\n");
-                return;
-            }
-
-            // Copy the vector data to the data list at the given index
-            for (loop = 0; loop < 2; loop++)
-                ((*texCoordList[unit])[dataIndex])[loop] = data[loop];
-
-            // Set the OSG texture coordinate array with the new data
-            osgGeometry->setTexCoordArray(unit, texCoordList[unit]);
-            break;
-
-        default:
-            printf("vsGeometry::setData: Unrecognized data type\n");
-            return;
+        printf("vsGeometry::setData: Insufficient data (data of the given "
+            "type requires at least %d values)\n", dataSize);
+        return;
     }
+
+    // If a conventional attribute is specified, then make sure we're not
+    // already using the generic attribute, and vice versa.
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+    {
+        // Conventional data specified
+        if (dataIsGeneric[slotNum])
+        {
+            printf("vsGeometry::setData: Cannot use conventional data type "
+                "when corresponding generic attribute is in use\n");
+            return;
+        }
+    }
+    else
+    {
+        // Generic attribute specified
+        if (!(dataIsGeneric[slotNum]))
+        {
+            printf("vsGeometry::setData: Cannot use generic attribute type "
+                "when corresponding conventional data is in use\n");
+            return;
+        }
+    }
+    
+    // Copy the data from the vector to the data list at the given index
+    switch (dataSize)
+    {
+        case 1:
+            ((*((osg::FloatArray *)(dataList[slotNum])))[dataIndex]) =
+                data[0];
+            break;
+
+        case 2:
+            for (loop = 0; loop < 2; loop++)
+                ((*((osg::Vec2Array *)(dataList[slotNum])))[dataIndex])[loop]
+                    = data[loop];
+            break;
+
+        case 3:
+            for (loop = 0; loop < 3; loop++)
+                ((*((osg::Vec3Array *)(dataList[slotNum])))[dataIndex])[loop]
+                    = data[loop];
+            break;
+
+        case 4:
+            for (loop = 0; loop < 4; loop++)
+                ((*((osg::Vec4Array *)(dataList[slotNum])))[dataIndex])[loop]
+                    = data[loop];
+            break;
+
+        case 0:
+            for (loop = 0; loop < data.getSize(); loop++)
+                ((*((osg::Vec4Array *)(dataList[slotNum])))[dataIndex])[loop]
+                    = data[loop];
+            break;
+    }
+
+    // Let the appropriate OSG data array know that it's data has changed
+    notifyOSGDataChanged(whichData);
 }
 
 // ------------------------------------------------------------------------
@@ -635,100 +659,92 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
     vsVector result;
     unsigned int unit;
     int loop;
+    int slotNum;
+    int dataSize;
 
-    // Make sure the index is not negative
-    if (dataIndex < 0)
+    // Determine the minimum required number of entries that should be in the
+    // data parameter. A value of 0 here means that it doesn't matter. This
+    // also doubles as a check to make sure that we recognize the specified
+    // constant.
+    dataSize = getDataElementCount(whichData);
+    if (dataSize == -1)
     {
-        printf("vsGeometry::getData: Index out of bounds (dataIndex = %d)\n",
-            dataIndex);
+        printf("vsGeometry::getData: Unrecognized data type\n");
         return result;
     }
-    
-    // Select the appropriate data list
-    switch (whichData)
+
+    // Calculate which entry in the data arrays corresponds to the given
+    // constant
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+        slotNum = whichData;
+    else
+        slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+
+    // Bounds checking; make sure the index is valid, given the list size.
+    if ((dataIndex < 0) || (dataIndex >= dataListSize[slotNum]))
     {
-        case VS_GEOMETRY_VERTEX_COORDS:
-            // Make sure the index is valid, given the list size
-            if (dataIndex >= vertexListSize)
-            {
-                printf("vsGeometry::getData: Index out of bounds "
-                    "(list = VERTEX_COORDS, dataIndex = %d, listSize = %d)\n",
-                    dataIndex, vertexListSize);
-                return result;
-            }
+        printf("vsGeometry::getData: Index out of bounds\n");
+        return result;
+    }
 
-            // Set the result vector to the appropriate size, and copy
-            // the requested data
-            result.setSize(3);
-            for (loop = 0; loop < 3; loop++)
-                result[loop] = ((*vertexList)[dataIndex])[loop];
-            break;
-
-        case VS_GEOMETRY_NORMALS:
-            // Make sure the index is valid, given the list size
-            if (dataIndex >= normalListSize)
-            {
-                printf("vsGeometry::getData: Index out of bounds "
-                    "(list = NORMALS, dataIndex = %d, listSize = %d)\n",
-                    dataIndex, normalListSize);
-                return result;
-            }
-
-            // Set the result vector to the appropriate size, and copy
-            // the requested data
-            result.setSize(3);
-            for (loop = 0; loop < 3; loop++)
-                result[loop] = ((*normalList)[dataIndex])[loop];
-            break;
-
-        case VS_GEOMETRY_COLORS:
-            // Make sure the index is valid, given the list size
-            if (dataIndex >= colorListSize)
-            {
-                printf("vsGeometry::getData: Index out of bounds "
-                    "(list = COLORS, dataIndex = %d, listSize = %d)\n",
-                    dataIndex, colorListSize);
-                return result;
-            }
-
-            // Set the result vector to the appropriate size, and copy
-            // the requested data
-            result.setSize(4);
-            for (loop = 0; loop < 4; loop++)
-                result[loop] = ((*colorList)[dataIndex])[loop];
-            break;
-
-        case VS_GEOMETRY_TEXTURE0_COORDS:
-        case VS_GEOMETRY_TEXTURE1_COORDS:
-        case VS_GEOMETRY_TEXTURE2_COORDS:
-        case VS_GEOMETRY_TEXTURE3_COORDS:
-        case VS_GEOMETRY_TEXTURE4_COORDS:
-        case VS_GEOMETRY_TEXTURE5_COORDS:
-        case VS_GEOMETRY_TEXTURE6_COORDS:
-        case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-
-            // Make sure the index is valid, given the list size
-            if (dataIndex >= texCoordListSize[unit])
-            {
-                printf("vsGeometry::getData: Index out of bounds "
-                    "(list = TEXTURE%d_COORDS, dataIndex = %d, "
-                    "listSize = %d)\n", unit, dataIndex,
-                    texCoordListSize[unit]);
-                return result;
-            }
-
-            // Set the result vector to the appropriate size, and copy
-            // the requested data
-            result.setSize(2);
-            for (loop = 0; loop < 2; loop++)
-                result[loop] = ((*texCoordList[unit])[dataIndex])[loop];
-            break;
-
-        default:
-            printf("vsGeometry::getData: Unrecognized data type\n");
+    // If a conventional attribute is specified, then make sure we're not
+    // already using the generic attribute, and vice versa.
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+    {
+        // Conventional data specified
+        if (dataIsGeneric[slotNum])
+        {
+            printf("vsGeometry::getData: Cannot use conventional data type "
+                "when corresponding generic attribute is in use\n");
             return result;
+        }
+    }
+    else
+    {
+        // Generic attribute specified
+        if (!(dataIsGeneric[slotNum]))
+        {
+            printf("vsGeometry::getData: Cannot use generic attribute type "
+                "when corresponding conventional data is in use\n");
+            return result;
+        }
+    }
+
+    // Set the result vector to the appropriate size, and copy
+    // the requested data
+    if (dataSize == 0)
+        result.setSize(4);
+    else
+        result.setSize(dataSize);
+
+    switch (dataSize)
+    {
+        case 1:
+            result[0] =
+                ((*((osg::FloatArray *)(dataList[slotNum])))[dataIndex]);
+            break;
+
+        case 2:
+            for (loop = 0; loop < 2; loop++)
+                result[loop] =
+                    (( *((osg::Vec2Array *)(dataList[slotNum])) )
+                        [dataIndex])[loop];
+            break;
+
+        case 3:
+            for (loop = 0; loop < 3; loop++)
+                result[loop] =
+                    (( *((osg::Vec3Array *)(dataList[slotNum])) )
+                        [dataIndex])[loop];
+            break;
+
+        case 0:
+        case 4:
+            for (loop = 0; loop < 4; loop++)
+                result[loop] =
+                    (( *((osg::Vec4Array *)(dataList[slotNum])) )
+                        [dataIndex])[loop];
+            break;
     }
     
     // Return the result vector
@@ -740,68 +756,94 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
 // to the values in dataList. The dataList array must be at least as large
 // as the size of particular list in question.
 // ------------------------------------------------------------------------
-void vsGeometry::setDataList(int whichData, vsVector *dataList)
+void vsGeometry::setDataList(int whichData, vsVector *dataBuffer)
 {
     unsigned int unit;
     int loop, sloop;
-    
-    // Select the appropriate data list
-    switch (whichData)
+    int slotNum;
+    int dataSize;
+
+    // Determine the minimum required number of entries that should be in the
+    // data parameters. A value of 0 here means that it doesn't matter. This
+    // also doubles as a check to make sure that we recognize the specified
+    // constant.
+    dataSize = getDataElementCount(whichData);
+    if (dataSize == -1)
     {
-        case VS_GEOMETRY_VERTEX_COORDS:
-            // Copy the data list into the vertex array
-            for (loop = 0; loop < vertexListSize; loop++)
-                for (sloop = 0; sloop < 3; sloop++)
-                    (*vertexList)[loop][sloop] = dataList[loop][sloop];
-
-            // Set the OSG vertex array with the new data
-            osgGeometry->setVertexArray(vertexList);
-            break;
-
-        case VS_GEOMETRY_NORMALS:
-            // Copy the data list into the normal array
-            for (loop = 0; loop < normalListSize; loop++)
-                for (sloop = 0; sloop < 3; sloop++)
-                    (*normalList)[loop][sloop] = dataList[loop][sloop];
-
-            // Set the OSG normal array with the new data
-            osgGeometry->setNormalArray(normalList);
-            break;
-
-        case VS_GEOMETRY_COLORS:
-            // Copy the data list into the color array
-            for (loop = 0; loop < colorListSize; loop++)
-                for (sloop = 0; sloop < 4; sloop++)
-                    (*colorList)[loop][sloop] = dataList[loop][sloop];
-
-            // Set the OSG color array with the new data
-            osgGeometry->setColorArray(colorList);
-            break;
-
-        case VS_GEOMETRY_TEXTURE0_COORDS:
-        case VS_GEOMETRY_TEXTURE1_COORDS:
-        case VS_GEOMETRY_TEXTURE2_COORDS:
-        case VS_GEOMETRY_TEXTURE3_COORDS:
-        case VS_GEOMETRY_TEXTURE4_COORDS:
-        case VS_GEOMETRY_TEXTURE5_COORDS:
-        case VS_GEOMETRY_TEXTURE6_COORDS:
-        case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-
-            // Copy the data list into the texture coordinate array
-            for (loop = 0; loop < texCoordListSize[unit]; loop++)
-                for (sloop = 0; sloop < 2; sloop++)
-                    (*texCoordList[unit])[loop][sloop] = dataList[loop][sloop];
-
-            // Set the OSG texture coordinate array with the new data
-            osgGeometry->setTexCoordArray(unit, texCoordList[unit]);
-            break;
-
-        default:
-            printf("vsGeometry::setDataList: Unrecognized data type\n");
-            return;
+        printf("vsGeometry::setDataList: Unrecognized data type\n");
+        return;
     }
+
+    // Calculate which entry in the data arrays corresponds to the given
+    // constant
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+        slotNum = whichData;
+    else
+        slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+
+    // If a conventional attribute is specified, then make sure we're not
+    // already using the generic attribute, and vice versa.
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+    {
+        // Conventional data specified
+        if (dataIsGeneric[slotNum])
+        {
+            printf("vsGeometry::setDataList: Cannot use conventional data "
+                "type when corresponding generic attribute is in use\n");
+            return;
+        }
+    }
+    else
+    {
+        // Generic attribute specified
+        if (!(dataIsGeneric[slotNum]))
+        {
+            printf("vsGeometry::setDataList: Cannot use generic attribute "
+                "type when corresponding conventional data is in use\n");
+            return;
+        }
+    }
+    
+    // Copy the data from the vector to the data list at the given index
+    switch (dataSize)
+    {
+        case 1:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
+                ((*((osg::FloatArray *)(dataList[slotNum])))[loop])
+                    = dataBuffer[loop][0];
+            break;
+
+        case 2:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
+                for (sloop = 0; sloop < 2; sloop++)
+                    ((*((osg::Vec2Array *)(dataList[slotNum])))[loop])[sloop]
+                        = dataBuffer[loop][sloop];
+            break;
+
+        case 3:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
+                for (sloop = 0; sloop < 3; sloop++)
+                    ((*((osg::Vec3Array *)(dataList[slotNum])))[loop])[sloop]
+                        = dataBuffer[loop][sloop];
+            break;
+
+        case 4:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
+                for (sloop = 0; sloop < 4; sloop++)
+                    ((*((osg::Vec4Array *)(dataList[slotNum])))[loop])[sloop]
+                        = dataBuffer[loop][sloop];
+            break;
+
+        case 0:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
+                for (sloop = 0; sloop < dataBuffer[loop].getSize(); sloop++)
+                    ((*((osg::Vec4Array *)(dataList[slotNum])))[loop])[sloop]
+                        = dataBuffer[loop][sloop];
+            break;
+    }
+
+    // Let the appropriate OSG data array know that it's data has changed
+    notifyOSGDataChanged(whichData);
 }
 
 // ------------------------------------------------------------------------
@@ -814,64 +856,95 @@ void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
 {
     unsigned int unit;
     int loop, sloop;
-    
-    // Copy the appropriate data list into the buffer provided
-    switch (whichData)
+    int slotNum;
+    int dataSize;
+
+    // Determine the minimum required number of entries that should be in the
+    // data parameter. A value of 0 here means that it doesn't matter. This
+    // also doubles as a check to make sure that we recognize the specified
+    // constant.
+    dataSize = getDataElementCount(whichData);
+    if (dataSize == -1)
     {
-        case VS_GEOMETRY_VERTEX_COORDS:
-            for (loop = 0; loop < vertexListSize; loop++)
+        printf("vsGeometry::getDataList: Unrecognized data type\n");
+        return;
+    }
+
+    // Calculate which entry in the data arrays corresponds to the given
+    // constant
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+        slotNum = whichData;
+    else
+        slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+
+    // If a conventional attribute is specified, then make sure we're not
+    // already using the generic attribute, and vice versa.
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+    {
+        // Conventional data specified
+        if (dataIsGeneric[slotNum])
+        {
+            printf("vsGeometry::getDataList: Cannot use conventional data "
+                "type when corresponding generic attribute is in use\n");
+            return;
+        }
+    }
+    else
+    {
+        // Generic attribute specified
+        if (!(dataIsGeneric[slotNum]))
+        {
+            printf("vsGeometry::getDataList: Cannot use generic attribute "
+                "type when corresponding conventional data is in use\n");
+            return;
+        }
+    }
+
+    // Copy the requested data to the output buffer
+    switch (dataSize)
+    {
+        case 1:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
             {
-                // Copy the data to the vector buffer
-                dataBuffer[loop].setSize(3);
-                for (sloop = 0; sloop < 3; sloop++)
-                    dataBuffer[loop][sloop] = (*vertexList)[loop][sloop];
+                dataBuffer[loop].setSize(1);
+                dataBuffer[loop][0] =
+                    ((*((osg::FloatArray *)(dataList[slotNum])))[loop]);
             }
             break;
 
-        case VS_GEOMETRY_NORMALS:
-            for (loop = 0; loop < normalListSize; loop++)
+        case 2:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
             {
-                // Copy the data to the vector buffer
-                dataBuffer[loop].setSize(3);
-                for (sloop = 0; sloop < 3; sloop++)
-                    dataBuffer[loop][sloop] = (*normalList)[loop][sloop];
-            }
-            break;
-
-        case VS_GEOMETRY_COLORS:
-            for (loop = 0; loop < colorListSize; loop++)
-            {
-                // Copy the data to the vector buffer
-                dataBuffer[loop].setSize(4);
-                for (sloop = 0; sloop < 4; sloop++)
-                    dataBuffer[loop][sloop] = (*colorList)[loop][sloop];
-            }
-            break;
-
-        case VS_GEOMETRY_TEXTURE0_COORDS:
-        case VS_GEOMETRY_TEXTURE1_COORDS:
-        case VS_GEOMETRY_TEXTURE2_COORDS:
-        case VS_GEOMETRY_TEXTURE3_COORDS:
-        case VS_GEOMETRY_TEXTURE4_COORDS:
-        case VS_GEOMETRY_TEXTURE5_COORDS:
-        case VS_GEOMETRY_TEXTURE6_COORDS:
-        case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-
-            for (loop = 0; loop < texCoordListSize[unit]; loop++)
-            {
-                // Copy the data to the vector buffer
                 dataBuffer[loop].setSize(2);
                 for (sloop = 0; sloop < 2; sloop++)
                     dataBuffer[loop][sloop] =
-                        (*texCoordList[unit])[loop][sloop];
+                        (( *((osg::Vec2Array *)(dataList[slotNum])) )
+                            [loop])[sloop];
             }
             break;
 
-        default:
-            printf("vsGeometry::getDataList: Unrecognized data type\n");
-            return;
+        case 3:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
+            {
+                dataBuffer[loop].setSize(3);
+                for (sloop = 0; sloop < 3; sloop++)
+                    dataBuffer[loop][sloop] =
+                        (( *((osg::Vec3Array *)(dataList[slotNum])) )
+                            [loop])[sloop];
+            }
+            break;
+
+        case 0:
+        case 4:
+            for (loop = 0; loop < dataListSize[slotNum]; loop++)
+            {
+                dataBuffer[loop].setSize(4);
+                for (sloop = 0; sloop < 4; sloop++)
+                    dataBuffer[loop][sloop] =
+                        (( *((osg::Vec4Array *)(dataList[slotNum])) )
+                            [loop])[sloop];
+            }
+            break;
     }
 }
 
@@ -883,6 +956,19 @@ void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
 void vsGeometry::setDataListSize(int whichData, int newSize)
 {
     unsigned int unit;
+    int slotNum;
+    int dataSize;
+
+    // Determine the type of the data array associated with the specified
+    // data parameter. A value of 0 here means that we are using Vec4s. This
+    // also doubles as a check to make sure that we recognize the specified
+    // constant.
+    dataSize = getDataElementCount(whichData);
+    if (dataSize == -1)
+    {
+        printf("vsGeometry::setDataListSize: Unrecognized data type\n");
+        return;
+    }
 
     // Sanity check, primarily to avoid memory corruption
     if ((newSize < 0) || (newSize > VS_GEOMETRY_MAX_LIST_INDEX))
@@ -892,57 +978,98 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
         return;
     }
 
-    // Resize the appropriate data list 
-    switch (whichData)
+    // Calculate which entry in the data arrays corresponds to the given
+    // constant
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+        slotNum = whichData;
+    else
+        slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+
+    // If a conventional attribute is specified, then make sure we're not
+    // already using the generic attribute, and vice versa. The only exception
+    // to this rule is if the existing list size is zero; that's the only way
+    // to switch from one type to the other.
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
     {
-        case VS_GEOMETRY_VERTEX_COORDS:
-            vertexList->resize(newSize);
-            osgGeometry->setVertexArray(vertexList);
-            vertexListSize = newSize;
-
-            // Rebuild the osg::PrimitiveSet with the new settings
-            rebuildPrimitives();
-            break;
-
-        case VS_GEOMETRY_NORMALS:
-            normalList->resize(newSize);
-            osgGeometry->setNormalArray(normalList);
-            normalListSize = newSize;
-            break;
-
-        case VS_GEOMETRY_COLORS:
-            colorList->resize(newSize);
-            osgGeometry->setColorArray(colorList);
-            colorListSize = newSize;
-            break;
-
-        case VS_GEOMETRY_TEXTURE0_COORDS:
-        case VS_GEOMETRY_TEXTURE1_COORDS:
-        case VS_GEOMETRY_TEXTURE2_COORDS:
-        case VS_GEOMETRY_TEXTURE3_COORDS:
-        case VS_GEOMETRY_TEXTURE4_COORDS:
-        case VS_GEOMETRY_TEXTURE5_COORDS:
-        case VS_GEOMETRY_TEXTURE6_COORDS:
-        case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-
-            texCoordList[unit]->resize(newSize);
-            texCoordListSize[unit] = newSize;
-
-            // If the texture coordinate binding is OFF, then the pointer
-            // to the coordinate list should be NULL so that OSG knows not
-            // to use texture coordinates at all.
-            if (textureBinding[unit] == VS_GEOMETRY_BIND_NONE)
-                osgGeometry->setTexCoordArray(unit, NULL);
-            else
-                osgGeometry->setTexCoordArray(unit, texCoordList[unit]);
-            break;
-
-        default:
-            printf("vsGeometry::setDataListSize: Unrecognized data value\n");
+        // Conventional data specified
+        if (dataIsGeneric[slotNum] && (dataListSize[slotNum] > 0))
+        {
+            printf("vsGeometry::setDataListSize: Cannot use conventional "
+                "data type when corresponding generic attribute is in use\n");
             return;
+        }
     }
+    else
+    {
+        // Generic attribute specified
+        if ((!dataIsGeneric[slotNum]) && (dataListSize[slotNum] > 0))
+        {
+            printf("vsGeometry::setDataListSize: Cannot use generic "
+                "attribute type when corresponding conventional data is in "
+                "use\n");
+            return;
+        }
+    }
+
+    // If we are changing from one attribute type to the other, then we'll
+    // need to reallocate the data array, as it's type could change.
+    if ((whichData < VS_GEOMETRY_LIST_COUNT) && (dataIsGeneric[slotNum]))
+    {
+        // Switching from generic to conventional
+
+        // Delete the old list
+        dataList[slotNum]->unref();
+
+        // Create the new list; we have a helper function to do this for us
+        allocateDataArray(whichData);
+
+        // Note that we're now using a conventional attribute
+        dataIsGeneric[slotNum] = false;
+    }
+    else if ((whichData >= VS_GEOMETRY_LIST_COUNT) &&
+        (!dataIsGeneric[slotNum]))
+    {
+        // Switching from conventional to generic
+
+        // Delete the old list
+        dataList[slotNum]->unref();
+
+        // Create the new list; we have a helper function to do this for us
+        allocateDataArray(whichData);
+
+        // Note that we're now using a generic attribute
+        dataIsGeneric[slotNum] = true;
+    }
+
+    // Resize the data list
+    switch (dataSize)
+    {
+        case 1:
+            ((osg::FloatArray *)(dataList[slotNum]))->resize(newSize);
+            break;
+        case 2:
+            ((osg::Vec2Array *)(dataList[slotNum]))->resize(newSize);
+            break;
+        case 3:
+            ((osg::Vec3Array *)(dataList[slotNum]))->resize(newSize);
+            break;
+        case 0:
+        case 4:
+            ((osg::Vec4Array *)(dataList[slotNum]))->resize(newSize);
+            break;
+    }
+    dataListSize[slotNum] = newSize;
+
+    // Let the appropriate OSG data array know that it's data has changed
+    notifyOSGDataChanged(whichData);
+
+    // If we're dealing with vertex coordinates, then we have to reconstruct
+    // OSG's primitive set as well. (We do this with generic attribute #0 as
+    // well because generic 0 is always considered to contain vertex
+    // coordinates.)
+    if ((whichData == VS_GEOMETRY_VERTEX_COORDS) ||
+        (whichData == VS_GEOMETRY_GENERIC_0))
+        rebuildPrimitives();
 }
 
 // ------------------------------------------------------------------------
@@ -951,34 +1078,31 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
 int vsGeometry::getDataListSize(int whichData)
 {
     unsigned int unit;
+    int slotNum;
 
-    // Return the size of the appropriate data list
-    switch (whichData)
+    // Bounds checking
+    if ((whichData < 0) || (whichData > (VS_GEOMETRY_LIST_COUNT * 2)))
     {
-        case VS_GEOMETRY_VERTEX_COORDS:
-            return vertexListSize;
-        case VS_GEOMETRY_NORMALS:
-            return normalListSize;
-        case VS_GEOMETRY_COLORS:
-            return colorListSize;
-        case VS_GEOMETRY_TEXTURE0_COORDS:
-        case VS_GEOMETRY_TEXTURE1_COORDS:
-        case VS_GEOMETRY_TEXTURE2_COORDS:
-        case VS_GEOMETRY_TEXTURE3_COORDS:
-        case VS_GEOMETRY_TEXTURE4_COORDS:
-        case VS_GEOMETRY_TEXTURE5_COORDS:
-        case VS_GEOMETRY_TEXTURE6_COORDS:
-        case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-
-            return texCoordListSize[unit];
-        default:
-            printf("vsGeometry::getDataListSize: Unrecognized data value\n");
+        printf("vsGeometry::getDataListSize: Unrecognized data value\n");
+        return -1;
     }
 
-    // If the whichData constant is unrecognized, return an error value
-    return -1;
+    // Calculate which entry in the data arrays corresponds to the given
+    // constant
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+        slotNum = whichData;
+    else
+        slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+
+    // Determine if the type of the data (conventional or generic) is the same
+    // as what is currently in the specified array. If the types don't match,
+    // then the user is asking for an array which (virtually) doesn't exist;
+    // return a zero size in this case.
+    if (dataIsGeneric[slotNum] != (whichData >= VS_GEOMETRY_LIST_COUNT))
+        return 0;
+
+    // Return the size of the specified list
+    return dataListSize[slotNum];
 }
 
 // ------------------------------------------------------------------------
@@ -1338,19 +1462,19 @@ void vsGeometry::rebuildPrimitives()
         {
             case VS_GEOMETRY_TYPE_POINTS:
                 osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::POINTS, 0, vertexListSize);
+                    osg::PrimitiveSet::POINTS, 0, dataListSize[0]);
                 break;
             case VS_GEOMETRY_TYPE_LINES:
                 osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::LINES, 0, vertexListSize);
+                    osg::PrimitiveSet::LINES, 0, dataListSize[0]);
                 break;
             case VS_GEOMETRY_TYPE_TRIS:
                 osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::TRIANGLES, 0, vertexListSize);
+                    osg::PrimitiveSet::TRIANGLES, 0, dataListSize[0]);
                 break;
             case VS_GEOMETRY_TYPE_QUADS:
                 osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::QUADS, 0, vertexListSize);
+                    osg::PrimitiveSet::QUADS, 0, dataListSize[0]);
                 break;
         }
         
@@ -1405,6 +1529,262 @@ void vsGeometry::rebuildPrimitives()
         // Geometry
         if (osgDrawArrayLengths)
             osgGeometry->addPrimitiveSet(osgDrawArrayLengths);
+    }
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Gets the number of elements in the vectors for the specified data type.
+// A return value of 0 is a 'don't care' value; although these types
+// typically have 4-element vectors allocated to them, it is not required
+// to complete fill all 4 values. A return value of -1 indicates an error.
+// ------------------------------------------------------------------------
+int vsGeometry::getDataElementCount(int whichData)
+{
+    // Simple switch on the data type
+    switch (whichData)
+    {
+        case VS_GEOMETRY_FOG_COORDS:
+            return 1;
+
+        case VS_GEOMETRY_TEXTURE0_COORDS:
+        case VS_GEOMETRY_TEXTURE1_COORDS:
+        case VS_GEOMETRY_TEXTURE2_COORDS:
+        case VS_GEOMETRY_TEXTURE3_COORDS:
+        case VS_GEOMETRY_TEXTURE4_COORDS:
+        case VS_GEOMETRY_TEXTURE5_COORDS:
+        case VS_GEOMETRY_TEXTURE6_COORDS:
+        case VS_GEOMETRY_TEXTURE7_COORDS:
+            return 2;
+
+        case VS_GEOMETRY_VERTEX_COORDS:
+        case VS_GEOMETRY_NORMALS:
+            return 3;
+
+        case VS_GEOMETRY_COLORS:
+        case VS_GEOMETRY_ALT_COLORS:
+            return 4;
+
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            return 0;
+    }
+
+    // Unrecognized constant
+    return -1;
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Allocates the correct OSG array associated with the specified data type,
+// and places it in the proper slot in the data list array.
+// ------------------------------------------------------------------------
+void vsGeometry::allocateDataArray(int whichData)
+{
+    int slotNum;
+    int unit;
+
+    // The type of array to create is based on which attribute of the
+    // geometry will be stored in it
+    slotNum = whichData;
+    switch (whichData)
+    {
+        case VS_GEOMETRY_VERTEX_COORDS:
+            // Vertex coordinates are always 3 elements
+            dataList[slotNum] = new osg::Vec3Array();
+            osgGeometry->setVertexArray(dataList[slotNum]);
+            break;
+
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            // Vertex weights aren't generally used directly by the system;
+            // they are there for a shader program to use. Hand them off as a
+            // generic attribute.
+            dataList[slotNum] = new osg::Vec4Array();
+            osgGeometry->setVertexAttribArray(whichData, dataList[slotNum]);
+            break;
+
+        case VS_GEOMETRY_NORMALS:
+            // Normals are always 3 elements
+            dataList[slotNum] = new osg::Vec3Array();
+            osgGeometry->
+                setNormalArray((osg::Vec3Array *)(dataList[slotNum]));
+            break;
+
+        case VS_GEOMETRY_COLORS:
+            // Colors are always 4 elements
+            dataList[slotNum] = new osg::Vec4Array();
+            osgGeometry->setColorArray(dataList[slotNum]);
+            break;
+
+        case VS_GEOMETRY_ALT_COLORS:
+            // Secondary colors are always 4 elements
+            dataList[slotNum] = new osg::Vec4Array();
+            osgGeometry->setSecondaryColorArray(dataList[slotNum]);
+            break;
+
+        case VS_GEOMETRY_FOG_COORDS:
+            // Fog coordinates are single elements
+            dataList[slotNum] = new osg::FloatArray();
+            osgGeometry->setFogCoordArray(dataList[slotNum]);
+            break;
+
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+            // These attributes are never used directly by the system; they
+            // only exist for use in shader programs. Always pass them through
+            // as generic attributes.
+            dataList[slotNum] = new osg::Vec4Array();
+            osgGeometry->setVertexAttribArray(whichData, dataList[slotNum]);
+            break;
+
+        case VS_GEOMETRY_TEXTURE0_COORDS:
+        case VS_GEOMETRY_TEXTURE1_COORDS:
+        case VS_GEOMETRY_TEXTURE2_COORDS:
+        case VS_GEOMETRY_TEXTURE3_COORDS:
+        case VS_GEOMETRY_TEXTURE4_COORDS:
+        case VS_GEOMETRY_TEXTURE5_COORDS:
+        case VS_GEOMETRY_TEXTURE6_COORDS:
+        case VS_GEOMETRY_TEXTURE7_COORDS:
+            // Texture coordinates are always 2 elements
+            dataList[slotNum] = new osg::Vec2Array();
+            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+            osgGeometry->setTexCoordArray(unit, NULL);
+            textureBinding[unit] = VS_GEOMETRY_BIND_NONE;
+            break;
+
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            // Since we can't know what sort of data is going into these
+            // attributes, we always assume 4 elements. These always get
+            // passed through the generic attribute mechanism.
+            slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+            dataList[slotNum] = new osg::Vec4Array();
+            osgGeometry->setVertexAttribArray(slotNum, dataList[slotNum]);
+    }
+
+    // * Perform other initialization that is common to all of the lists
+
+    // Make sure than OSG won't delete the array on us
+    dataList[slotNum]->ref();
+
+    // Mark that the list is currently empty
+    dataListSize[slotNum] = 0;
+
+    // Mark if the attribute is a conventional one or a generic one
+    if (whichData == slotNum)
+        dataIsGeneric[slotNum] = false;
+    else
+        dataIsGeneric[slotNum] = true;
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Notifies OSG that the data in one of its data arrays has been changed;
+// this allows OSG to preform housekeeping chores such as rebuilding GL
+// display lists.
+// ------------------------------------------------------------------------
+void vsGeometry::notifyOSGDataChanged(int whichData)
+{
+    int slotNum;
+    int unit;
+
+    // Calculate which entry in the data arrays corresponds to the given
+    // constant
+    if (whichData < VS_GEOMETRY_LIST_COUNT)
+        slotNum = whichData;
+    else
+        slotNum = whichData - VS_GEOMETRY_LIST_COUNT;
+
+    // Let the appropriate OSG data array know that it's data has changed
+    switch (whichData)
+    {
+        case VS_GEOMETRY_VERTEX_COORDS:
+            osgGeometry->setVertexArray(dataList[slotNum]);
+            break;
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            osgGeometry->setVertexAttribArray(slotNum, dataList[slotNum]);
+            break;
+        case VS_GEOMETRY_NORMALS:
+            osgGeometry->setNormalArray((osg::Vec3Array *)(dataList[slotNum]));
+            break;
+        case VS_GEOMETRY_COLORS:
+            osgGeometry->setColorArray(dataList[slotNum]);
+            break;
+        case VS_GEOMETRY_ALT_COLORS:
+            osgGeometry->setSecondaryColorArray(dataList[slotNum]);
+            break;
+        case VS_GEOMETRY_FOG_COORDS:
+            osgGeometry->setFogCoordArray(dataList[slotNum]);
+            break;
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+            osgGeometry->setVertexAttribArray(slotNum, dataList[slotNum]);
+            break;
+        case VS_GEOMETRY_TEXTURE0_COORDS:
+        case VS_GEOMETRY_TEXTURE1_COORDS:
+        case VS_GEOMETRY_TEXTURE2_COORDS:
+        case VS_GEOMETRY_TEXTURE3_COORDS:
+        case VS_GEOMETRY_TEXTURE4_COORDS:
+        case VS_GEOMETRY_TEXTURE5_COORDS:
+        case VS_GEOMETRY_TEXTURE6_COORDS:
+        case VS_GEOMETRY_TEXTURE7_COORDS:
+            // Calculate the texture unit we are working with.
+            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+
+            // Set the OSG texture coordinate array with the new data
+            if (textureBinding[unit] == VS_GEOMETRY_BIND_PER_VERTEX)
+                osgGeometry->setTexCoordArray(unit, dataList[slotNum]);
+
+            break;
+        case VS_GEOMETRY_GENERIC_0:
+        case VS_GEOMETRY_GENERIC_1:
+        case VS_GEOMETRY_GENERIC_2:
+        case VS_GEOMETRY_GENERIC_3:
+        case VS_GEOMETRY_GENERIC_4:
+        case VS_GEOMETRY_GENERIC_5:
+        case VS_GEOMETRY_GENERIC_6:
+        case VS_GEOMETRY_GENERIC_7:
+        case VS_GEOMETRY_GENERIC_8:
+        case VS_GEOMETRY_GENERIC_9:
+        case VS_GEOMETRY_GENERIC_10:
+        case VS_GEOMETRY_GENERIC_11:
+        case VS_GEOMETRY_GENERIC_12:
+        case VS_GEOMETRY_GENERIC_13:
+        case VS_GEOMETRY_GENERIC_14:
+        case VS_GEOMETRY_GENERIC_15:
+            osgGeometry->setVertexAttribArray(slotNum, dataList[slotNum]);
+            break;
     }
 }
 

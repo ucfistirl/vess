@@ -44,23 +44,81 @@ enum VS_GRAPHICS_DLL vsGeometryPrimType
     VS_GEOMETRY_TYPE_POLYS
 };
 
+// Within this enum, each pair of values actually represents the same data
+// area; vertex coordinates use up the same space as generic attribute #0
+// does, and so on. However, to prevent accidentally clobbering existing data,
+// only one constant out of each pair may be used at a time. For example, if a
+// geometry object already has vertex coordinates, then any attempt to read
+// from or write to generic attribute #0 will fail. In order to use the other
+// constant for the pair, the currently existing list must be emptied (by
+// using the setDataListSize() method to set its size to zero). After that the
+// new list, using the other constant, can be initialized by calling
+// setDataListSize() with that constant. Following the example again, to
+// switch from using conventional vertex coordinates to generic attribute #0,
+// you would call:
+//
+//      setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 0);
+//
+// And then follow it with:
+//
+//      setDataListSize(VS_GEOMETRY_GENERIC_0, newSize);
+//
+// The reason for this weirdness is mostly because of how OpenGL handles
+// generic attributes. (If you don't know what those are, then you probably
+// won't need to use them.) For more information, try looking in the OpenGL
+// Extensions Registry documentation for ARB_vertex_program here:
+//
+//  http://oss.sgi.com/projects/ogl-sample/registry/ARB/vertex_program.txt
+
 enum VS_GRAPHICS_DLL vsGeometryDataType
 {
-    VS_GEOMETRY_VERTEX_COORDS,
-    VS_GEOMETRY_NORMALS,
-    VS_GEOMETRY_COLORS,
-    VS_GEOMETRY_TEXTURE0_COORDS,
-    VS_GEOMETRY_TEXTURE1_COORDS,
-    VS_GEOMETRY_TEXTURE2_COORDS,
-    VS_GEOMETRY_TEXTURE3_COORDS,
-    VS_GEOMETRY_TEXTURE4_COORDS,
-    VS_GEOMETRY_TEXTURE5_COORDS,
-    VS_GEOMETRY_TEXTURE6_COORDS,
-    VS_GEOMETRY_TEXTURE7_COORDS,
-    VS_GEOMETRY_SKIN_VERTEX_COORDS,
-    VS_GEOMETRY_SKIN_NORMALS,
-    VS_GEOMETRY_VERTEX_WEIGHTS,
-    VS_GEOMETRY_BONE_INDICES
+    VS_GEOMETRY_VERTEX_COORDS   = 0,
+    VS_GEOMETRY_GENERIC_0       = 16,
+
+    VS_GEOMETRY_VERTEX_WEIGHTS  = 1,
+    VS_GEOMETRY_GENERIC_1       = 17,
+
+    VS_GEOMETRY_NORMALS         = 2,
+    VS_GEOMETRY_GENERIC_2       = 18,
+
+    VS_GEOMETRY_COLORS          = 3,
+    VS_GEOMETRY_GENERIC_3       = 19,
+
+    VS_GEOMETRY_ALT_COLORS      = 4,
+    VS_GEOMETRY_GENERIC_4       = 20,
+
+    VS_GEOMETRY_FOG_COORDS      = 5,
+    VS_GEOMETRY_GENERIC_5       = 21,
+
+    VS_GEOMETRY_USER_DATA0      = 6,
+    VS_GEOMETRY_GENERIC_6       = 22,
+
+    VS_GEOMETRY_USER_DATA1      = 7,
+    VS_GEOMETRY_GENERIC_7       = 23,
+
+    VS_GEOMETRY_TEXTURE0_COORDS = 8,
+    VS_GEOMETRY_GENERIC_8       = 24,
+
+    VS_GEOMETRY_TEXTURE1_COORDS = 9,
+    VS_GEOMETRY_GENERIC_9       = 25,
+
+    VS_GEOMETRY_TEXTURE2_COORDS = 10,
+    VS_GEOMETRY_GENERIC_10      = 26,
+
+    VS_GEOMETRY_TEXTURE3_COORDS = 11,
+    VS_GEOMETRY_GENERIC_11      = 27,
+
+    VS_GEOMETRY_TEXTURE4_COORDS = 12,
+    VS_GEOMETRY_GENERIC_12      = 28,
+
+    VS_GEOMETRY_TEXTURE5_COORDS = 13,
+    VS_GEOMETRY_GENERIC_13      = 29,
+
+    VS_GEOMETRY_TEXTURE6_COORDS = 14,
+    VS_GEOMETRY_GENERIC_14      = 30,
+
+    VS_GEOMETRY_TEXTURE7_COORDS = 15,
+    VS_GEOMETRY_GENERIC_15      = 31,
 };
 
 // Set the default texture unit to the zeroth unit.  For convenience and
@@ -86,6 +144,8 @@ enum VS_GRAPHICS_DLL vsGeometryBinSortMode
 // The maximum texture units that VESS can support.
 #define VS_MAXIMUM_TEXTURE_UNITS 8
 
+#define VS_GEOMETRY_LIST_COUNT 16
+
 class VS_GRAPHICS_DLL vsGeometry : public vsNode
 {
 private:
@@ -96,14 +156,9 @@ private:
     osg::Geode          *osgGeode;
     osg::Geometry       *osgGeometry;
 
-    osg::Vec4Array      *colorList;
-    int                 colorListSize;
-    osg::Vec3Array      *normalList;
-    int                 normalListSize;
-    osg::Vec2Array      *texCoordList[VS_MAXIMUM_TEXTURE_UNITS];
-    int                 texCoordListSize[VS_MAXIMUM_TEXTURE_UNITS];
-    osg::Vec3Array      *vertexList;
-    int                 vertexListSize;
+    osg::Array          *dataList[VS_GEOMETRY_LIST_COUNT];
+    int                 dataListSize[VS_GEOMETRY_LIST_COUNT];
+    bool                dataIsGeneric[VS_GEOMETRY_LIST_COUNT];
 
     int                 textureBinding[VS_MAXIMUM_TEXTURE_UNITS];
 
@@ -117,6 +172,10 @@ private:
     int                 renderBin;
 
     void                rebuildPrimitives();
+
+    int                 getDataElementCount(int whichData);
+    void                allocateDataArray(int whichData);
+    void                notifyOSGDataChanged(int whichData);
 
 VS_INTERNAL:
 
@@ -155,7 +214,7 @@ public:
 
     void                  setData(int whichData, int dataIndex, vsVector data);
     vsVector              getData(int whichData, int dataIndex);
-    void                  setDataList(int whichData, vsVector *dataList);
+    void                  setDataList(int whichData, vsVector *dataBuffer);
     void                  getDataList(int whichData, vsVector *dataBuffer);
     void                  setDataListSize(int whichData, int newSize);
     int                   getDataListSize(int whichData);
