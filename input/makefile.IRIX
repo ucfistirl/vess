@@ -96,7 +96,7 @@ ARFLAGS = -rulc
 #			Include file directories
 #----------------------------------------------------------------------
 INCS = \
-       -I../corelib \
+       -I../system \
        -I../scene \
        -I../math
 

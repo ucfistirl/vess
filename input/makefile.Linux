@@ -99,7 +99,7 @@ INCS = \
        -I.. \
        -I../math \
        -I../scene \
-       -I../corelib \
+       -I../system \
        -I/usr/X11R6/include \
        -I/usr/include/g++-2 \
        -I/ist/projects/vr2/tools/services/abstractService2.2.5
