@@ -354,5 +354,7 @@ void vsRemoteInterface::update()
 
 void vsRemoteInterface::send(u_char *buffer, u_long bufferLen)
 {
+    // Write out the buffer to the network
+    tcpInterface->write(buffer, bufferLen);
 }
 
