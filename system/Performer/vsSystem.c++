@@ -77,6 +77,7 @@ vsSystem::vsSystem()
     if (screenCount > 1)
         pfMultipipe(screenCount);
     
+    // Disable cluster rendering since we are running in standard mode
     cluster = NULL;
     slaves = NULL;
     isSlave = false;
@@ -135,34 +136,48 @@ vsSystem::vsSystem(vsClusterConfig *config)
     // Activate multipipe mode if appropriate
     if (screenCount > 1)
         pfMultipipe(screenCount);
-    
+   
+    // Prepare the cluster master if appropriate 
     if ((config) && (config->isValid()))
     {
         cluster = config;
+
+        // Make spave for interfaces with slaves
         slaves = (vsTCPNetworkInterface**)calloc(cluster->numSlaves(),
                 sizeof(vsTCPNetworkInterface *));
         numSlaves = cluster->numSlaves();
+
+        // Connect to each slave
         for(i=0;i < numSlaves;i++)
         {
+            //Locate the slave
             slaveAddr = cluster->getSlave(i);
             sprintf(slaveName,"%d.%d.%d.%d",(int)slaveAddr[0],(int)slaveAddr[1],
                    (int)slaveAddr[2],(int)slaveAddr[3]);
+
+            // Now try to connect
             slaves[i] = new vsTCPNetworkInterface(slaveName, 
                     VS_RI_DEFAULT_CONTROL_PORT);
             while (slaves[i]->makeConnection() < 0);
             slaves[i]->disableBlocking();
         }
+
+        //Since we're the master, we aren't a slave
         isSlave = false;
     }
+    // Prepare a cluster slave if appropriate
     else if(config == NULL)
     {
         cluster = NULL;
         slaves = NULL;
         isSlave = true;
     }
+    // In the event of a faulty configuration, we can't continue
     else
     {
         printf("vsSystem::vsSystem: Cluster rendering failure\n");
+        
+        //If cluster rendering has failed, then everything is meaningless
         validObject = 0;
         cluster = NULL;
         slaves = NULL;
@@ -222,6 +237,7 @@ vsSystem::~vsSystem()
     vsObject::deleteObjectList();
 #endif
     
+    // Delete objects associated with cluster rendering
     if(cluster)
         delete cluster;
     if(slaves)
@@ -608,14 +624,17 @@ void vsSystem::drawFrame()
     }
     
     // Perform cluster rendering
+    
+    // If we're the master
     if (slaves != NULL && !isSlave)
     {
         // Send out relevant info to clients
-        
+
         // Block until all clients acknowledge
         numSlavesReportedIn = 0;
         while (numSlavesReportedIn < numSlaves)
         {
+            // Collect messages from each slave
             for (i=0; i<numSlaves; i++)
             {
                 slaves[i]->read((u_char *)commStr, 256);
@@ -625,6 +644,7 @@ void vsSystem::drawFrame()
                         "</readytosync>\n"
                         "</vessxml>"))
                 {
+                    // Mark down that we've gotten a message
                     numSlavesReportedIn++;
                     commStr[0]='\0';
                 }
@@ -639,9 +659,11 @@ void vsSystem::drawFrame()
                 "</vessxml>");
         for (i=0; i<numSlaves; i++)
         {
+            // Send the signal to everyone
             slaves[i]->write((u_char *)commStr, strlen(commStr)+1);
         }
     }
+    // If we're a slave
     else if (isSlave && !readyToTerminate)
     {
         // Collect info
@@ -693,9 +715,10 @@ void vsSystem::terminateCluster(void)
     
     readyToTerminate = true;
     
-    // Send termination signal to all clients
+    // Send termination signal to all slaves
     if (slaves)
     {
+        // Prepare the termination message
         strcpy(commStr,"<?xml version=\"1.0\"?>\n"
                 "<vessxml version=\"1.0\">\n"
                 "<terminatecluster>\n"
@@ -703,6 +726,7 @@ void vsSystem::terminateCluster(void)
                 "</vessxml>");
         for (i=0; i<numSlaves; i++)
         {
+            // Send the termination message
             slaves[i]->write((u_char *)commStr, strlen(commStr)+1);
         }
     }
@@ -714,4 +738,20 @@ void vsSystem::terminateCluster(void)
 bool vsSystem::hasBeenTerminated(void)
 {
     return readyToTerminate;
-}  
+} 
+
+// ------------------------------------------------------------------------
+// Returns, as one might expect, true if we are the master
+// ------------------------------------------------------------------------
+bool vsSystem::inMasterMode(void)
+{
+    return (slaves);
+}
+
+// ------------------------------------------------------------------------
+// Returns true if we are a slave
+// ------------------------------------------------------------------------
+bool vsSystem::inSlaveMode(void)
+{
+    return isSlave;
+}

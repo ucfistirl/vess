@@ -94,6 +94,9 @@ public:
     void                releaseSync();
     void                terminateCluster();
     bool                hasBeenTerminated();
+
+    bool                inMasterMode();
+    bool                inSlaveMode();
 };
 
 #endif

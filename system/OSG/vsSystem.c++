@@ -72,9 +72,10 @@ vsSystem::vsSystem()
     // point to this instance
     validObject = true;
     systemObject = this;
+    
+    // Disable cluster rendering since we are running in standard mode 
     cluster = NULL;
     slaves = NULL;
-//    master = NULL;
     isSlave = false;
     readyToTerminate = false;
     
@@ -122,43 +123,51 @@ vsSystem::vsSystem(vsClusterConfig *config)
     // point to this instance
     validObject = 1;
     systemObject = this;
-    //printf("Confirmed: I am getting at least this far\n");
+    
+    // Prepare the cluster master if appropriate
     if(config && config->isValid())
     {
         cluster = config;
+        
+        // Make space for interfaces with slaves
         slaves = (vsTCPNetworkInterface**)calloc(cluster->numSlaves(),
                 sizeof(vsTCPNetworkInterface *));
         numSlaves = cluster->numSlaves();
+        
+        // Connect to each slave
         for(i=0;i < numSlaves;i++)
-        {
+        {   
+            // Locate the slave
             slaveAddr = cluster->getSlave(i);
             sprintf(slaveName,"%d.%d.%d.%d",(int)slaveAddr[0],(int)slaveAddr[1],
                    (int)slaveAddr[2],(int)slaveAddr[3]);
+
+            // Now try to connect
             slaves[i] = new vsTCPNetworkInterface(slaveName, 
                     VS_RI_DEFAULT_CONTROL_PORT);
-            //slaves[i]->enableBlocking();
-            //int x;
             while(slaves[i]->makeConnection() < 0);
-            //printf("%d\n",x);
             slaves[i]->disableBlocking();
         }
-        //master = NULL;
+
+        // Since we're the master, we aren't a slave
         isSlave = false;
     }
+    // Prepare a cluster slave if appropriate
     else if(config == NULL)
     {
         cluster = NULL;
         slaves = NULL;
-        //master = new vsRemoteInterface(VS_RI_DEFAULT_CONTROL_PORT);
         isSlave = true;
     }
+    // In the event of a faulty configuration, we can't continue
     else
     {
         printf("vsSystem::vsSystem: Cluster rendering failure\n");
+        
+        // If cluster rendering has failed, then everything is meaningless
         validObject = 0;
         cluster = NULL;
         slaves = NULL;
-  //      master = NULL;
         isSlave = false;
     }
     
@@ -221,6 +230,8 @@ vsSystem::~vsSystem()
         
     // Clear the static class member to NULL
     systemObject = NULL;
+    
+    // Delete objects associated with cluster rendering
     if(cluster)
         delete cluster;
     if(slaves)
@@ -649,13 +660,17 @@ void vsSystem::drawFrame()
     }
     
     // Perform cluster rendering
+
+    // If we're the master
     if (slaves != NULL && !isSlave)
     {
-        // Send out relevant info to clients
+        // Send out relevant info to slaves
+
         // Block until all clients acknowledge
         numSlavesReportedIn = 0;
         while (numSlavesReportedIn < numSlaves)
         {
+            // Collect messages from each slave
             for (i=0; i<numSlaves; i++)
             {
                 slaves[i]->read((u_char *)commStr, 256);
@@ -665,6 +680,7 @@ void vsSystem::drawFrame()
                         "</readytosync>\n"
                         "</vessxml>"))
                 {
+                    // Mark down that we've gotten a message from a client
                     numSlavesReportedIn++;
                     commStr[0]='\0';
                 }
@@ -679,9 +695,11 @@ void vsSystem::drawFrame()
                 "</vessxml>");
         for (i=0; i<numSlaves; i++)
         {
+            // Send the signal to everyone
             slaves[i]->write((u_char *)commStr, strlen(commStr)+1);
         }
     }
+    // If we're a slave
     else if (isSlave && !readyToTerminate)
     {
         // Collect info
@@ -785,9 +803,10 @@ void vsSystem::terminateCluster(void)
     
     readyToTerminate = true;
     
-    // Send termination signal to all clients
+    // Send termination signal to all slaves
     if (slaves)
     {
+        // Prepare the termination message
         strcpy(commStr,"<?xml version=\"1.0\"?>\n"
                 "<vessxml version=\"1.0\">\n"
                 "<terminatecluster>\n"
@@ -795,6 +814,7 @@ void vsSystem::terminateCluster(void)
                 "</vessxml>");
         for (i=0; i<numSlaves; i++)
         {
+            //Send the termination message
             slaves[i]->write((u_char *)commStr, strlen(commStr)+1);
         }
     }
@@ -806,4 +826,20 @@ void vsSystem::terminateCluster(void)
 bool vsSystem::hasBeenTerminated(void)
 {
     return readyToTerminate;
-}  
+}
+
+// ------------------------------------------------------------------------
+// Returns, as one might expect, true if we are the master
+// ------------------------------------------------------------------------
+bool vsSystem::inMasterMode(void)
+{
+    return (slaves);
+}
+
+// ------------------------------------------------------------------------
+// Returns true if we are a slave
+// ------------------------------------------------------------------------
+bool vsSystem::inSlaveMode(void)
+{
+    return isSlave;
+}
