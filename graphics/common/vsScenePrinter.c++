@@ -1192,7 +1192,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                         ((vsLightAttribute *)attribute)->
                             getSpotlightValues(&exponent, &angle);
                         writeBlanks(outfile, (treeDepth * 2) + 7);
-                        fprintf(outfile,"Exponent:      %0.2lf\n", exp);
+                        fprintf(outfile,"Exponent:      %0.2lf\n", exponent);
                         writeBlanks(outfile, (treeDepth * 2) + 7);
                         fprintf(outfile,"Cutoff angle:  %0.2lf\n", angle);
                     }
