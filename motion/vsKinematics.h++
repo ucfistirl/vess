@@ -23,12 +23,13 @@
 #ifndef VS_KINEMATICS_HPP
 #define VS_KINEMATICS_HPP
 
+#include "vsUpdatable.h++"
 #include "vsComponent.h++"
 #include "vsTransformAttribute.h++"
 #include "vsVector.h++"
 #include "vsQuat.h++"
 
-class vsKinematics
+class vsKinematics : public vsUpdatable
 {
 private:
 
