@@ -75,6 +75,14 @@ vsIntersect::~vsIntersect()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsIntersect::getClassName()
+{
+    return "vsIntersect";
+}
+
+// ------------------------------------------------------------------------
 // Sets the number of segments to be intersected with
 // ------------------------------------------------------------------------
 void vsIntersect::setSegListSize(int newSize)

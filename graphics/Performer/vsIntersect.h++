@@ -63,7 +63,7 @@ enum vsIntersectLODTraversalMode
     VS_INTERSECT_LOD_ALL
 };
 
-class vsIntersect
+class vsIntersect : public vsObject
 {
 private:
 
@@ -89,6 +89,8 @@ public:
 
                        vsIntersect();
                        ~vsIntersect();
+
+    virtual const char *getClassName();
 
     void               setSegListSize(int newSize);
     int                getSegListSize();
