@@ -29,12 +29,10 @@
 #include <libxml/parser.h>
 #include "vsSkeletonMeshGeometry.h++"
 #include "vsTransformAttribute.h++"
-#include "vsTextureAttribute.h++"
 #include "vsMaterialAttribute.h++"
 
 // ------------------------------------------------------------------------
-// Constructor - Adds the given file extension as the first in the loader's
-// list of file extensions. Initializes the list of important node names.
+// Constructor
 // ------------------------------------------------------------------------
 vsCal3DMeshLoader::vsCal3DMeshLoader()
 {
@@ -225,7 +223,7 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
             materialData->textureCount = VS_MAXIMUM_TEXTURE_UNITS;
     }
 
-    // Process all if the MATERIAL's children.
+    // Process all of the MATERIAL's children.
     current = current->children;
     while (current)
     {
@@ -527,7 +525,7 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
         // Insure the child is a SUBMESH to perform further processing.
         if (xmlStrcmp(current->name, (const xmlChar *) "SUBMESH") == 0)
         {
-            // Process all if the SUBMESH's properties.
+            // Process all of the SUBMESH's properties.
             attribute = current->properties;
             while (attribute != NULL)
             {
@@ -584,7 +582,7 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                 if (xmlStrcmp(currentSubMeshChild->name,
                     (const xmlChar *) "VERTEX") == 0)
                 {
-                    // Process all if the VERTEX's properties.
+                    // Process all of the VERTEX's properties.
                     attribute = currentSubMeshChild->properties;
                     while (attribute != NULL)
                     {
@@ -637,7 +635,7 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                     memset(vertexData, 0, sizeof(vsSkinVertexData));
                     vertexDataArray->setData(vertexID, vertexData);
 
-                    // Process all if the VERTEX's children.
+                    // Process all of the VERTEX's children.
                     currentVertexChild = currentSubMeshChild->children;
                     while (currentVertexChild != NULL)
                     {

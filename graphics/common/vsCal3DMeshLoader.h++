@@ -22,6 +22,7 @@
 #ifndef VS_CAL3D_MESH_LOADER_HPP
 #define VS_CAL3D_MESH_LOADER_HPP
 
+#include "vsObject.h++"
 #include "vsGrowableArray.h++"
 #include "vsComponent.h++"
 #include "vsTextureAttribute.h++"
