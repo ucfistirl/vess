@@ -107,8 +107,8 @@ public:
     void                  setDataListSize(int whichData, int newSize);
     int                   getDataListSize(int whichData);
     
-    void                  enableLighting();
-    void                  disableLighting();
+    virtual void          enableLighting();
+    virtual void          disableLighting();
     bool                  isLightingEnabled();
     
     void                  setRenderBin(int binNum);
