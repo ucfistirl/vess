@@ -32,8 +32,6 @@ vsSkeleton::vsSkeleton(vsGrowableArray *componentList,
                        vsGrowableArray *boneSpaceMatrixList, int listLength,
                        vsComponent *root)
 {
-    int index;
-
     // Keep a reference to the component map.
     skeletonComponentMap = componentList;
 
