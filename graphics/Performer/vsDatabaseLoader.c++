@@ -425,6 +425,27 @@ vsNode *vsDatabaseLoader::convertNode(pfNode *node, vsObjectMap *nodeMap,
     vsNode *child;
     int loop, sloop;
 
+    pfLOD *lodGroup;
+    vsLODAttribute *lodAttr;
+
+    pfSequence *sequenceGroup;
+    vsSequenceAttribute *sequenceAttr;
+    float speed;
+    int nReps;
+    int loopMode;
+    int begin, end;
+        
+    pfSwitch *switchGroup;
+    vsSwitchAttribute *switchAttr;
+
+    vsDecalAttribute *decalAttr;
+
+    pfSCS *scsGroup = (pfSCS *)node;
+    pfMatrix performerMatrix;
+    vsMatrix vessMatrix;
+    pfDCS *dcsGroup;
+    vsdbMatrixBlock *matrixBlock; 
+
     // First, make sure the node is valid
     if (node == NULL)
         return NULL;
@@ -443,6 +464,7 @@ vsNode *vsDatabaseLoader::convertNode(pfNode *node, vsObjectMap *nodeMap,
     }
     else if (node->isOfType(pfGroup::getClassType()))
     {
+        // Cast the pfNode to a pfGroup
         performerGroup = (pfGroup *)node;
 
         // This is a pfGroup (or a subclass of it), start with a new
@@ -464,8 +486,9 @@ vsNode *vsDatabaseLoader::convertNode(pfNode *node, vsObjectMap *nodeMap,
         // add the appropriate attribute(s).
         if (node->isOfType(pfLOD::getClassType()))
         {
-            pfLOD *lodGroup = (pfLOD *)node;
-            vsLODAttribute *lodAttr = new vsLODAttribute();
+            // LOD node, cast the node to a pfLOD and create a vsLODAttribute
+            lodGroup = (pfLOD *)node;
+            lodAttr = new vsLODAttribute();
 
             // Add the attribute before setting its data, because the 
             // attribute needs to check the number of children on the 
@@ -480,12 +503,10 @@ vsNode *vsDatabaseLoader::convertNode(pfNode *node, vsObjectMap *nodeMap,
         }
         else if (node->isOfType(pfSequence::getClassType()))
         {
-            pfSequence *sequenceGroup = (pfSequence *)node;
-            vsSequenceAttribute *sequenceAttr = new vsSequenceAttribute();
-            float speed;
-            int nReps;
-            int loopMode;
-            int begin, end;
+            // Sequence node, cast the node to a pfSequence and create 
+            // a vsSequenceAttribute
+            sequenceGroup = (pfSequence *)node;
+            sequenceAttr = new vsSequenceAttribute();
         
             // Add the attribute before setting its data, because the 
             // attribute needs to check the number of children on the 
@@ -512,8 +533,10 @@ vsNode *vsDatabaseLoader::convertNode(pfNode *node, vsObjectMap *nodeMap,
         }
         else if (node->isOfType(pfSwitch::getClassType()))
         {
-            pfSwitch *switchGroup = (pfSwitch *)node;
-            vsSwitchAttribute *switchAttr = new vsSwitchAttribute();
+            // Sequence node, cast the node to a pfSwitch and create 
+            // a vsSwitchAttribute
+            switchGroup = (pfSwitch *)node;
+            switchAttr = new vsSwitchAttribute();
 
             // Add the attribute before setting its data, because the 
             // attribute needs to check the number of children on the 
@@ -532,18 +555,17 @@ vsNode *vsDatabaseLoader::convertNode(pfNode *node, vsObjectMap *nodeMap,
         }
         else if (node->isOfType(pfLayer::getClassType()))
         {
-            vsDecalAttribute *decalAttr = new vsDecalAttribute();
+            // Layer (decal) node, create a vsDecalAttribute
+            decalAttr = new vsDecalAttribute();
 
-            // Add the attribute before setting its data, because the attribute
-            // needs to number of children on the component to properly
-            // configure itself
+            // Add the attribute and just use the default settings (no data 
+            // to copy from the pfLayer)
             newComponent->addAttribute(decalAttr);
         }
         else if (node->isOfType(pfSCS::getClassType()))
         {
-            pfSCS *scsGroup = (pfSCS *)node;
-            pfMatrix performerMatrix;
-            vsMatrix vessMatrix;
+            // SCS (transform) node, cast the node to a pfSCS
+            scsGroup = (pfSCS *)node;
 
             // Create a transform attribute
             vsTransformAttribute *transformAttr = new vsTransformAttribute();
@@ -554,11 +576,12 @@ vsNode *vsDatabaseLoader::convertNode(pfNode *node, vsObjectMap *nodeMap,
             // Check if this is a DCS, if so we may have extra work to do
             if (node->isOfType(pfDCS::getClassType()))
             {
-                pfDCS *dcsGroup = (pfDCS *)node;
-                vsdbMatrixBlock *matrixBlock; 
+                // Cast the node to a pfDCS instead
+                dcsGroup = (pfDCS *)node;
 
-                // Check for extra data attached by our OpenFlight loader
-                // callback
+                // Check for extra pre- and post-transform data attached 
+                // by our OpenFlight loader callback.  These data come from
+                // OpenFlight DOF beads.
                 matrixBlock = (vsdbMatrixBlock *)(dcsGroup->getUserData());
                 if ((matrixBlock != NULL) &&
                     (strcmp(matrixBlock->magicString, "DOF") == 0))
@@ -629,9 +652,7 @@ vsNode *vsDatabaseLoader::convertNode(pfNode *node, vsObjectMap *nodeMap,
     
     // Only copy the node name if the node is 'important'
     if ((importanceCheck(node)) && (node->getName() != NULL))
-{
         result->setName(node->getName());
-}
 
     // Set the node's intersect value
     result->setIntersectValue(node->getTravMask(PFTRAV_ISECT));
