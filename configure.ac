@@ -479,7 +479,7 @@ XML_LIB="-lxml2"
 dnl Provide the option to specify the location of the XML library.
 AC_ARG_WITH(libxml2,
 [[  --with-libxml2=PREFIX   Specify the location of libxml2 [/usr]]],, with_libxml2=/usr)
-if test x$with_libxml2 != x/usr; then
+if test "x$with_libxml2" != "x/usr"; then
    XML_INCLUDE_DIR="-I$with_libxml2/include/libxml2"
    XML_LIB_DIR="-L$with_libxml2/lib"
    XML_LIB="-lxml2"
@@ -508,10 +508,10 @@ dnl JPEG options**************************************************************
 
 dnl Provide the option to specify the location of the JPEG library.
 AC_ARG_WITH(jpeg,
-[[  --with-jpeg=PREFIX   Specify the location of libjpeg [/usr]]],, with_libjpeg=/usr)
-if test x$with_libjpeg != x/usr; then
-   GFX_INCLUDE_DIR="$GFX_LIB_DIR -I$with_libjpeg/include"
-   GFX_LIB_DIR="$GFX_LIB_DIR -L$with_libjpeg/lib"
+[[  --with-jpeg=PREFIX      Specify the location of libjpeg [/usr]]],, with_jpeg=/usr)
+if test "x$with_jpeg" != "x/usr"; then
+   GFX_INCLUDE_DIR="$GFX_INCLUDE_DIR -I$with_jpeg/include"
+   GFX_LIB_DIR="$GFX_LIB_DIR -L$with_jpeg/lib"
 fi
 GFX_LIB="$GFX_LIB -ljpeg"
 
