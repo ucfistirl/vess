@@ -1,10 +1,7 @@
 #!/bin/make
 
-include ../libpaths.IRIX64
-
 INCDIRS = -I../system -I../scene -I../math -I../input -I../motion $(EXTRA_INCS)
-TYPE = -n32 -mips3
-FLAGS = $(TYPE) -g -xansi -DSGI -DPF_CPLUSPLUS_API=1 -woff 1681 $(INCDIRS)
+FLAGS = -g -O -ansi -D__linux__ -D_XOPEN_SOURCE -D_BSD_SOURCE -D_MISC_SOURCE -DPF_CPLUSPLUS_API=1 $(INCDIRS)
 
 LIBSRCS = \
           vsAvatar.c++
@@ -19,16 +16,19 @@ all: $(LIBNAME)
 $(LIBNAME): $(LIBOBJS)
 	ar -rc $(LIBNAME) $(LIBOBJS)
 
+.SUFFIXES: .c .c++ .o .h .h++
+
 dep: depend
 depend:
-	makedepend -f makefile.IRIX64 -- $(FLAGS) -- $(LIBSRCS)
+	makedepend -f makefile.Linux -- $(FLAGS) -- $(LIBSRCS)
 
 clean:
-	rm -f *.o core $(LIBNAME) makefile.*.bak
+	rm -f *.o *.a core $(LIBNAME) makefile.*.bak
 
 
 .c++.o:
-	CC $(FLAGS) -c $< -o ./$*.o
+	g++ $(FLAGS) -c $< -o ./$*.o
 
 .c.o:
-	CC $(FLAGS) -c $< -o ./$*.o
+	g++ $(FLAGS) -c $< -o ./$*.o
+

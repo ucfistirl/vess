@@ -1,12 +1,16 @@
 #!/bin/make
 
-INCDIRS = -I../system -I../scene -I../math -I../input -I../motion
+include ../libpaths.IRIX
+
+INCDIRS = -I../system -I../scene -I../math -I../input -I../motion $(EXTRA_INCS)
 TYPE = -n32 -mips3
 FLAGS = $(TYPE) -g -xansi -DSGI -DPF_CPLUSPLUS_API=1 -woff 1681 $(INCDIRS)
 
-LIBSRCS = vsAvatar.c++
+LIBSRCS = \
+          vsAvatar.c++
 
-LIBOBJS = vsAvatar.o
+LIBOBJS = \
+          vsAvatar.o
 
 LIBNAME = libvsAvatar.a
 
