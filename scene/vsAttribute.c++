@@ -97,6 +97,15 @@ void vsAttribute::detach(vsNode *theNode)
 
 // ------------------------------------------------------------------------
 // VESS internal function
+// Attempts to attach a copy of this attribute to the specified node. The
+// default action for this function is to do nothing.
+// ------------------------------------------------------------------------
+void vsAttribute::attachDuplicate(vsNode *theNode)
+{
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
 // Empty virtual base function
 // ------------------------------------------------------------------------
 void vsAttribute::saveCurrent()

@@ -82,6 +82,24 @@ int vsTransparencyAttribute::isEnabled()
 
 // ------------------------------------------------------------------------
 // VESS internal function
+// Attaches a duplicate of this attribute to the given node
+// ------------------------------------------------------------------------
+void vsTransparencyAttribute::attachDuplicate(vsNode *theNode)
+{
+    vsTransparencyAttribute *newAttrib;
+    
+    newAttrib = new vsTransparencyAttribute();
+    
+    if (isEnabled())
+        newAttrib->enable();
+    else
+        newAttrib->disable();
+
+    theNode->addAttribute(newAttrib);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
 // Saves the current attribute
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::saveCurrent()

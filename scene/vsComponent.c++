@@ -300,6 +300,39 @@ vsComponent::~vsComponent()
 }
 
 // ------------------------------------------------------------------------
+// 'Clones' the tree rooted at this node, duplicating the portion of the
+// scene graph rooted at this node, down to but not including leaf nodes.
+// (Leaf nodes are instanced instead.)
+// ------------------------------------------------------------------------
+vsNode *vsComponent::cloneTree()
+{
+    vsComponent *result;
+    vsNode *childClone;
+    vsAttribute *attr;
+    int loop;
+    
+    result = new vsComponent();
+    
+    // Clone the children of this component and add them to the new
+    // component
+    for (loop = 0; loop < getChildCount(); loop++)
+    {
+        childClone = getChild(loop)->cloneTree();
+        result->addChild(childClone);
+    }
+    
+    // Replicate the attributes on this component and add them to the
+    // new component as well
+    for (loop = 0; loop < getAttributeCount(); loop++)
+    {
+        attr = getAttribute(loop);
+        attr->attachDuplicate(result);
+    }
+    
+    return result;
+}
+
+// ------------------------------------------------------------------------
 // Destroys the entire scene graph rooted at this component, up to but not
 // including this component itself. Won't delete instanced nodes unless all
 // of the parents of the node are being deleted as well.
@@ -312,19 +345,19 @@ void vsComponent::deleteTree()
     
     for (loop = 0; loop < getChildCount(); loop++)
     {
-	node = getChild(0);
-	if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
-	{
-	    component = (vsComponent *)node;
-	    component->deleteTree();
-	}
+        node = getChild(0);
+        if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
+        {
+            component = (vsComponent *)node;
+            component->deleteTree();
+        }
 
-	removeChild(node);
-	if (node->getParentCount() == 0)
-	{
-	    delete node;
-	    loop--;
-	}
+        removeChild(node);
+        if (node->getParentCount() == 0)
+        {
+            delete node;
+            loop--;
+        }
     }
 }
 

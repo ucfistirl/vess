@@ -489,3 +489,21 @@ void vsTransformAttribute::detach(vsNode *theNode)
     componentTop = NULL;
     attachedFlag = 0;
 }
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Attaches a duplicate of this attribute to the given node
+// ------------------------------------------------------------------------
+void vsTransformAttribute::attachDuplicate(vsNode *theNode)
+{
+    vsTransformAttribute *newAttrib;
+    vsMatrix xformMat;
+    
+    newAttrib = new vsTransformAttribute();
+    
+    newAttrib->setPreTransform(getPreTransform());
+    newAttrib->setDynamicTransform(getDynamicTransform());
+    newAttrib->setPostTransform(getPostTransform());
+
+    theNode->addAttribute(newAttrib);
+}

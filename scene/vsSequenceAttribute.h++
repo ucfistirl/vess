@@ -54,11 +54,13 @@ private:
 
 VS_INTERNAL:
 
-                vsSequenceAttribute(pfSequence *sequenceGroup);
+                    vsSequenceAttribute(pfSequence *sequenceGroup);
 
-    int         canAttach();
-    void        attach(vsNode *theNode);
-    void        detach(vsNode *theNode);
+    virtual int     canAttach();
+    virtual void    attach(vsNode *theNode);
+    virtual void    detach(vsNode *theNode);
+
+    virtual void    attachDuplicate(vsNode *theNode);
 
 public:
 

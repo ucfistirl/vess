@@ -55,12 +55,14 @@ class vsMaterialAttribute : public vsStateAttribute
 {
 private:
 
-    pfMaterial         *frontMaterial;
-    pfMaterial         *backMaterial;
+    pfMaterial    *frontMaterial;
+    pfMaterial    *backMaterial;
 
 VS_INTERNAL:
 
                     vsMaterialAttribute(pfMaterial *front, pfMaterial *back);
+
+    virtual void    attachDuplicate(vsNode *theNode);
 
     virtual void    saveCurrent();
     virtual void    apply();

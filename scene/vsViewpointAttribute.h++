@@ -41,11 +41,13 @@ private:
 
 VS_INTERNAL:
 
-    int         canAttach();
-    void        attach(vsNode *theNode);
-    void        detach(vsNode *theNode);
+    virtual int     canAttach();
+    virtual void    attach(vsNode *theNode);
+    virtual void    detach(vsNode *theNode);
     
-    void        update();
+    virtual void    attachDuplicate(vsNode *theNode);
+
+    void            update();
 
 public:
 

@@ -76,6 +76,8 @@ VS_INTERNAL:
     virtual int     canAttach();
     virtual void    attach(vsNode *theNode);
     virtual void    detach(vsNode *theNode);
+    
+    virtual void    attachDuplicate(vsNode *theNode);
 
     virtual void    saveCurrent();
     virtual void    apply();

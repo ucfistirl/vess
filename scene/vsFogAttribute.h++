@@ -36,11 +36,13 @@ class vsFogAttribute : public vsStateAttribute
 {
 private:
 
-    pfFog              *performerFog;
+    pfFog       *performerFog;
 
 VS_INTERNAL:
 
                     vsFogAttribute(pfFog *fogObject);
+
+    virtual void    attachDuplicate(vsNode *theNode);
 
     virtual void    saveCurrent();
     virtual void    apply();

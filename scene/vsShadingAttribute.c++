@@ -68,6 +68,20 @@ int vsShadingAttribute::getShading()
 
 // ------------------------------------------------------------------------
 // VESS internal function
+// Attaches a duplicate of this attribute to the given node
+// ------------------------------------------------------------------------
+void vsShadingAttribute::attachDuplicate(vsNode *theNode)
+{
+    vsShadingAttribute *newAttrib;
+    
+    newAttrib = new vsShadingAttribute();
+    newAttrib->setShading(getShading());
+
+    theNode->addAttribute(newAttrib);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
 // Saves the current attribute
 // ------------------------------------------------------------------------
 void vsShadingAttribute::saveCurrent()

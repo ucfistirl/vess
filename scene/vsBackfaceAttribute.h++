@@ -29,10 +29,12 @@ class vsBackfaceAttribute : public vsStateAttribute
 {
 private:
 
-    pfLightModel       *lightModel;
-    int                cullfaceVal;
+    pfLightModel    *lightModel;
+    int             cullfaceVal;
 
 VS_INTERNAL:
+
+    virtual void    attachDuplicate(vsNode *theNode);
 
     virtual void    saveCurrent();
     virtual void    apply();

@@ -131,3 +131,16 @@ void vsDecalAttribute::detach(vsNode *theNode)
     
     attachedFlag = 0;
 }
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Attaches a duplicate of this attribute to the given node
+// ------------------------------------------------------------------------
+void vsDecalAttribute::attachDuplicate(vsNode *theNode)
+{
+    vsDecalAttribute *newAttrib;
+
+    newAttrib = new vsDecalAttribute();
+
+    theNode->addAttribute(newAttrib);
+}

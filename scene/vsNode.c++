@@ -51,6 +51,19 @@ vsNode::~vsNode()
 }
 
 // ------------------------------------------------------------------------
+// 'Clones' the tree rooted at this node, duplicating the portion of the
+// scene graph rooted at this node, down to but not including leaf nodes.
+// (Leaf nodes are instanced instead.)
+// In this case, we assume that this version of the function will be called
+// by default on leaf node subtypes, meaning that no duplication takes
+// place; return the original node.
+// ------------------------------------------------------------------------
+vsNode *vsNode::cloneTree()
+{
+    return this;
+}
+
+// ------------------------------------------------------------------------
 // Retrieves the number of parent components for this node
 // ------------------------------------------------------------------------
 int vsNode::getParentCount()

@@ -330,6 +330,26 @@ int vsTextureAttribute::getMinFilter()
 
 // ------------------------------------------------------------------------
 // VESS internal function
+// Attaches a duplicate of this attribute to the given node
+// ------------------------------------------------------------------------
+void vsTextureAttribute::attachDuplicate(vsNode *theNode)
+{
+    vsTextureAttribute *newAttrib;
+    pfTexture *newTex;
+    pfTexEnv *newTexEnv;
+    
+    newTex = new pfTexture();
+    newTex->copy(performerTexture);
+    newTexEnv = new pfTexEnv();
+    newTexEnv->copy(performerTexEnv);
+    
+    newAttrib = new vsTextureAttribute(newTex, newTexEnv);
+
+    theNode->addAttribute(newAttrib);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
 // Saves the current attribute
 // ------------------------------------------------------------------------
 void vsTextureAttribute::saveCurrent()

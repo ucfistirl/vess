@@ -394,6 +394,41 @@ void vsLightAttribute::detach(vsNode *theNode)
 
 // ------------------------------------------------------------------------
 // VESS internal function
+// Attaches a duplicate of this attribute to the given node
+// ------------------------------------------------------------------------
+void vsLightAttribute::attachDuplicate(vsNode *theNode)
+{
+    vsLightAttribute *newAttrib;
+    double p1, p2, p3, p4;
+    
+    newAttrib = new vsLightAttribute();
+    
+    getAmbientColor(&p1, &p2, &p3);
+    newAttrib->setAmbientColor(p1, p2, p3);
+    getDiffuseColor(&p1, &p2, &p3);
+    newAttrib->setDiffuseColor(p1, p2, p3);
+    getSpecularColor(&p1, &p2, &p3);
+    newAttrib->setSpecularColor(p1, p2, p3);
+    getAttenuationVals(&p1, &p2, &p3);
+    newAttrib->setAttenuationVals(p1, p2, p3);
+    getPosition(&p1, &p2, &p3, &p4);
+    newAttrib->setPosition(p1, p2, p3, p4);
+    getSpotlightDirection(&p1, &p2, &p3);
+    newAttrib->setSpotlightDirection(p1, p2, p3);
+    getSpotlightValues(&p1, &p2);
+    newAttrib->setSpotlightValues(p1, p2);
+    newAttrib->setScope(getScope());
+    
+    if (isOn())
+        newAttrib->on();
+    else
+        newAttrib->off();
+
+    theNode->addAttribute(newAttrib);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
 // Turns this light on if it is a local light source
 // ------------------------------------------------------------------------
 void vsLightAttribute::apply()

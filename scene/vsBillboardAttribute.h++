@@ -51,14 +51,16 @@ private:
 
 VS_INTERNAL:
 
-                  vsBillboardAttribute(pfBillboard *billboard);
+                    vsBillboardAttribute(pfBillboard *billboard);
 
-    int           canAttach();
-    void          attach(vsNode *theNode);
-    void          detach(vsNode *theNode);
+    virtual int     canAttach();
+    virtual void    attach(vsNode *theNode);
+    virtual void    detach(vsNode *theNode);
     
-    static int    travCallback(pfTraverser *_trav, void *_userData);
-    void          adjustTransform(vsMatrix viewMatrix, vsMatrix currentXform);
+    virtual void    attachDuplicate(vsNode *theNode);
+
+    static int      travCallback(pfTraverser *_trav, void *_userData);
+    void            adjustTransform(vsMatrix viewMatrix, vsMatrix currentXform);
     
 public:
 

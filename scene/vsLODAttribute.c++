@@ -190,3 +190,26 @@ void vsLODAttribute::detach(vsNode *theNode)
     
     attachedFlag = 0;
 }
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Attaches a duplicate of this attribute to the given node
+// ------------------------------------------------------------------------
+void vsLODAttribute::attachDuplicate(vsNode *theNode)
+{
+    vsLODAttribute *newAttrib;
+    int loop;
+    vsComponent *theComponent;
+    
+    if (theNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
+        theComponent = (vsComponent *)theNode;
+    else
+        return;
+
+    newAttrib = new vsLODAttribute(performerLOD);
+
+    theNode->addAttribute(newAttrib);
+
+    for (loop = 0; loop < theComponent->getChildCount(); loop++)
+        newAttrib->setRangeEnd(loop, getRangeEnd(loop));
+}

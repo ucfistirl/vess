@@ -62,7 +62,8 @@ public:
                         vsComponent();
     virtual             ~vsComponent();
 
-    void		deleteTree();
+    virtual vsNode      *cloneTree();
+    void                deleteTree();
 
     virtual int         getNodeType();
     virtual vsNode      *findNodeByName(const char *targetName);

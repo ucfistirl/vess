@@ -254,6 +254,24 @@ void vsBillboardAttribute::detach(vsNode *theNode)
 }
 
 // ------------------------------------------------------------------------
+// VESS internal function
+// Attaches a duplicate of this attribute to the given node
+// ------------------------------------------------------------------------
+void vsBillboardAttribute::attachDuplicate(vsNode *theNode)
+{
+    vsBillboardAttribute *newAttrib;
+    
+    newAttrib = new vsBillboardAttribute();
+    
+    newAttrib->setMode(getMode());
+    newAttrib->setCenterPoint(getCenterPoint());
+    newAttrib->setFrontDirection(getFrontDirection());
+    newAttrib->setAxis(getAxis());
+    
+    theNode->addAttribute(newAttrib);
+}
+
+// ------------------------------------------------------------------------
 // static VESS internal function - Passed to Performer as a callback
 // During Performer's APP traversal, determines the viewpoint and directs
 // the billboard object to face the viewer.

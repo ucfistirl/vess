@@ -52,6 +52,8 @@ VS_INTERNAL:
     virtual void    attach(vsNode *theNode);
     virtual void    detach(vsNode *theNode);
 
+    virtual void    attachDuplicate(vsNode *theNode);
+
     virtual void    apply();
     virtual void    restoreSaved();
     virtual void    setState(pfGeoState *state);

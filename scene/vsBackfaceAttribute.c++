@@ -93,6 +93,24 @@ int vsBackfaceAttribute::isEnabled()
 
 // ------------------------------------------------------------------------
 // VESS internal function
+// Attaches a duplicate of this attribute to the given node
+// ------------------------------------------------------------------------
+void vsBackfaceAttribute::attachDuplicate(vsNode *theNode)
+{
+    vsBackfaceAttribute *newAttrib;
+    
+    newAttrib = new vsBackfaceAttribute();
+    
+    if (isEnabled())
+        newAttrib->enable();
+    else
+        newAttrib->disable();
+
+    theNode->addAttribute(newAttrib);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
 // Saves the current attribute
 // ------------------------------------------------------------------------
 void vsBackfaceAttribute::saveCurrent()

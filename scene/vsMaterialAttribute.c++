@@ -331,6 +331,25 @@ int vsMaterialAttribute::getColorMode(int side)
 
 // ------------------------------------------------------------------------
 // VESS internal function
+// Attaches a duplicate of this attribute to the given node
+// ------------------------------------------------------------------------
+void vsMaterialAttribute::attachDuplicate(vsNode *theNode)
+{
+    vsMaterialAttribute *newAttrib;
+    pfMaterial *newFront, *newBack;
+    
+    newFront = new pfMaterial();
+    newFront->copy(frontMaterial);
+    newBack = new pfMaterial();
+    newBack->copy(backMaterial);
+    
+    newAttrib = new vsMaterialAttribute(frontMaterial, backMaterial);
+
+    theNode->addAttribute(newAttrib);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
 // Saves the current attribute
 // ------------------------------------------------------------------------
 void vsMaterialAttribute::saveCurrent()

@@ -231,3 +231,31 @@ void vsSwitchAttribute::detach(vsNode *theNode)
     
     attachedFlag = 0;
 }
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Attaches a duplicate of this attribute to the given node
+// ------------------------------------------------------------------------
+void vsSwitchAttribute::attachDuplicate(vsNode *theNode)
+{
+    vsSwitchAttribute *newAttrib;
+    int switchVal;
+
+    newAttrib = new vsSwitchAttribute();
+
+    theNode->addAttribute(newAttrib);
+    
+    switchVal = performerSwitch->getVal();
+    switch (switchVal)
+    {
+        case PFSWITCH_ON:
+            newAttrib->enableAll();
+            break;
+        case PFSWITCH_OFF:
+            newAttrib->disableAll();
+            break;
+        default:
+            newAttrib->enableOne(switchVal);
+            break;
+    }
+}

@@ -163,6 +163,23 @@ void vsFogAttribute::getRanges(double *near, double *far)
 
 // ------------------------------------------------------------------------
 // VESS internal function
+// Attaches a duplicate of this attribute to the given node
+// ------------------------------------------------------------------------
+void vsFogAttribute::attachDuplicate(vsNode *theNode)
+{
+    vsFogAttribute *newAttrib;
+    pfFog *newFog;
+    
+    newFog = new pfFog();
+    newFog->copy(performerFog);
+    
+    newAttrib = new vsFogAttribute(newFog);
+
+    theNode->addAttribute(newAttrib);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
 // Saves the current attribute
 // ------------------------------------------------------------------------
 void vsFogAttribute::saveCurrent()

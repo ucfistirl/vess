@@ -34,6 +34,8 @@ private:
 
 VS_INTERNAL:
 
+    virtual void    attachDuplicate(vsNode *theNode);
+
     virtual void    saveCurrent();
     virtual void    apply();
     virtual void    restoreSaved();

@@ -70,6 +70,8 @@ public:
 
                         vsNode();
     virtual             ~vsNode();
+    
+    virtual vsNode      *cloneTree();
 
     virtual int         getNodeType() = 0;
 

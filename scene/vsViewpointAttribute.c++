@@ -140,6 +140,17 @@ void vsViewpointAttribute::detach(vsNode *theNode)
 
 // ------------------------------------------------------------------------
 // VESS internal function
+// Intended to attach a duplicate of this attribute to the given node. This
+// operation is not possible for this type of attribute because the
+// contained object (vsView) can only conceptually have one location and
+// thus one container on the tree.
+// ------------------------------------------------------------------------
+void vsViewpointAttribute::attachDuplicate(vsNode *theNode)
+{
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
 // Causes the attribute to calculate the total transform to its parent
 // node, and assign that data to its associated view object.
 // ------------------------------------------------------------------------
