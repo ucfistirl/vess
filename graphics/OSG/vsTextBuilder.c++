@@ -198,7 +198,7 @@ void vsTextBuilder::setFont(char *newFont)
     if (!face.Open(newFont))
     {
         // Print an error message to indicate the font was not loaded.
-        fprintf(stderr, "Unable to Open font: %s\n", newFont);
+        printf("vsTextBuilder::setFont: Unable to Open font: %s\n", newFont);
 
         // Set this object to not initialized, which means it cannot build
         // text.
@@ -249,10 +249,8 @@ void vsTextBuilder::setSize(unsigned int newPointSize,
         if (face.Error())
         {
             // Print an error message. 
-            fprintf(stderr,
-                "Error occured after trying to set font size to: %d, %d\n",
-                 pointSize, resolution);
-            fflush(stderr);
+            printf("vsTextBuilder::setSize: Error occured after trying to set
+                font size to: %d, %d\n", pointSize, resolution);
 
             // Set this object to not initialized, which means it cannot build
             // text.  Specify there was an error as well.
@@ -293,7 +291,8 @@ void vsTextBuilder::setJustification(int newJustification)
             justification = newJustification;
             break;
         default:
-            fprintf(stderr, "Unknown justification mode.\n");
+            printf("void vsTextBuilder::setJustification: Unknown justification
+                mode.\n");
             break;
     }
 }
@@ -342,9 +341,8 @@ vsComponent *vsTextBuilder::buildText(char *text)
         // If there was any error with the face, print error.
         if (face.Error())
         {
-            fprintf(stderr, "Error occured trying to get glyph: %d\n",
-                charIndex);
-            fflush(stderr);
+            printf("vsTextBuilder::buildText: Error occured trying to get
+                glyph: %d\n", charIndex);
         }
         // Else tesselate the glyph.
         else
@@ -398,9 +396,8 @@ vsComponent *vsTextBuilder::buildText(char *text)
         // If there was any error with the face, print error.
         if (face.Error())
         {
-            fprintf(stderr, "Error occured trying to get glyph: %d\n",
-                charIndex);
-            fflush(stderr);
+            printf("vsTextBuilder::buildText: Error occured trying to get
+                glyph: %d\n", charIndex);
         }
         // Else tesselate the glyph.
         else
@@ -451,8 +448,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
 // ------------------------------------------------------------------------
 void CALLBACK vsTextBuilder::tesselateError(GLenum type)
 {
-    fprintf(stderr, "vsTextComponent::tesselateError: %d\n", type);
-    fflush(stderr);
+    printf("vsTextComponent::tesselateError: %d\n", type);
 }
 
 // ------------------------------------------------------------------------
