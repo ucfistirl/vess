@@ -1101,7 +1101,6 @@ void vsDynamicGeometry::rebuildPrimitives()
 int vsDynamicGeometry::addParent(vsNode *newParent)
 {
     parentList[parentCount++] = newParent;
-    newParent->ref();
     
     return VS_TRUE;
 }
@@ -1119,7 +1118,6 @@ int vsDynamicGeometry::removeParent(vsNode *targetParent)
         {
             for (sloop = loop; sloop < parentCount-1; sloop++)
                 parentList[sloop] = parentList[sloop+1];
-            targetParent->unref();
             parentCount--;
             return VS_TRUE;
         }

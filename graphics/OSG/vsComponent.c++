@@ -770,7 +770,6 @@ int vsComponent::addParent(vsNode *newParent)
 
     // Add the parent and return success
     parentNode = newParent;
-    parentNode->ref();
     return VS_TRUE;
 }
 
@@ -785,7 +784,6 @@ int vsComponent::removeParent(vsNode *targetParent)
 	return VS_FALSE;
 
     // Remove the parent and return success
-    parentNode->unref();
     parentNode = NULL;
     return VS_TRUE;
 }

@@ -1391,7 +1391,6 @@ int vsDynamicGeometry::addParent(vsNode *newParent)
 {
     // Add the given node to the parent list and reference it
     parentList[parentCount++] = newParent;
-    newParent->ref();
 
     // Return success
     return VS_TRUE;
@@ -1416,9 +1415,6 @@ int vsDynamicGeometry::removeParent(vsNode *targetParent)
             // down by one
             for (sloop = loop; sloop < parentCount-1; sloop++)
                 parentList[sloop] = parentList[sloop+1];
-
-            // Unreference the target parent
-            targetParent->unref();
 
             // Decrement the parent count
             parentCount--;

@@ -1320,9 +1320,6 @@ int vsGeometry::addParent(vsNode *newParent)
     // Add the parent to the list and increment the parent count
     parentList[parentCount++] = newParent;
 
-    // Reference the new parent
-    newParent->ref();
-
     // Return success
     return VS_TRUE;
 }
@@ -1344,9 +1341,6 @@ int vsGeometry::removeParent(vsNode *targetParent)
             // Slide the remaining parents in the list down by one
             for (sloop = loop; sloop < parentCount-1; sloop++)
                 parentList[sloop] = parentList[sloop+1];
-
-            // Unreference the target parent
-            targetParent->unref();
 
             // Decrement the parent count
             parentCount--;
