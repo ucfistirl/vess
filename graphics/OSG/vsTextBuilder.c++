@@ -307,6 +307,14 @@ void vsTextBuilder::setJustification(int newJustification)
 }
 
 // ------------------------------------------------------------------------
+// Return the justification mode in use by this text builder
+// ------------------------------------------------------------------------
+int vsTextBuilder::getJustification()
+{
+    return fontJustification;
+}
+
+// ------------------------------------------------------------------------
 // Create and return a subgraph that describes how to draw the given text
 // with the specified font, color, and size.
 // ------------------------------------------------------------------------
