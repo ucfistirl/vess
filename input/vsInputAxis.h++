@@ -52,6 +52,9 @@ protected:
     double       axisMin;
     double       axisMax;
 
+    // Threshold value (axis values below this are reported as zero)
+    double       threshold;
+
     // Indicates whether or not passive calibration is enabled
     int          passiveCalibration;
 
@@ -79,6 +82,10 @@ public:
     void         setIdlePosition();
     void         setIdlePosition(double newOffset);
     double       getIdlePosition();
+
+    // Threshold functions
+    void         setThreshold(double newThreshold);
+    double       getThreshold();
 
     void         passiveCalibrate(int enable);
 };

@@ -155,3 +155,16 @@ void vsJoystick::setIdlePosition()
         axis[i]->setIdlePosition();
     }
 }
+
+// ------------------------------------------------------------------------
+// Sets the axis threshold for all axes of this joystick
+// ------------------------------------------------------------------------
+void vsJoystick::setThreshold(double newThreshold)
+{
+    int i;
+
+    for (i = 0; i < numAxes; i++)
+    {
+        axis[i]->setThreshold(newThreshold);
+    }
+}

@@ -57,6 +57,7 @@ vsInputAxis::vsInputAxis(double minPos, double maxPos)
         offset = position;
         axisMin = minPos;
         axisMax = maxPos;
+        threshold = 0.0;
         normalized = VS_TRUE;
         inverted = VS_FALSE;
         passiveCalibration = VS_FALSE;
@@ -75,6 +76,7 @@ vsInputAxis::vsInputAxis(double minPos, double maxPos)
         axisMax = 0.0;
         position = 0.0;
         offset = 0.0;
+        threshold = 0.0;
         normalized = VS_FALSE;
         inverted = VS_FALSE;
     }
@@ -125,36 +127,67 @@ void vsInputAxis::setPosition(double rawPos)
 double vsInputAxis::getPosition(void)
 {
     double temp1, temp2;
+    double normalizedPos;
 
     if (normalized)
     { 
-        // Do the necessary math
+        // Determine if the axis position is on the negative or positive
+        // side of the idle position
         temp1 = position - offset;
    
         if (temp1 < 0) 
         {
+            // Normalize the axis to a value between the minimum extent 
+            // and the idle position of the axis
             temp2 = offset - axisMin;
 
+            // Avoid dividing by zero
             if (fabs(temp2) > 1E-6)
-                return (temp1 / temp2);
+            {
+                // Calculate the normalized position
+                normalizedPos = temp1 / temp2;
+
+                // Check the value vs. the threshold and return zero
+                // or the normalized position accordingly
+                if (normalizedPos < -threshold)
+                    return normalizedPos;
+                else
+                    return 0.0;
+            }
             else
                 return 0.0;
         }
         else
         {
+            // Normalize the axis to a value between the maximum extent 
+            // and the idle position of the axis
             temp2 = axisMax - offset;
 
-            // Return the normalized position
+            // Avoid dividing by zero
             if (fabs(temp2) > 1E-6)
-                return (temp1 / temp2);
+            {
+                // Calculate the normalized position
+                normalizedPos = temp1 / temp2;
+ 
+                // Check the value vs. the threshold and return zero
+                // or the normalized position accordingly
+                if (normalizedPos > threshold)
+                    return normalizedPos;
+                else
+                    return 0.0;
+            }
             else
                 return 0.0;
         }
     }
     else
     {
-        // Return the raw position
-        return position;
+        // Check the raw position against the threshold and return
+        // the position or zero accordingly
+        if (fabs(position - offset) > threshold)
+            return position;
+        else
+            return 0.0;
     }
 }
 
@@ -286,6 +319,24 @@ void vsInputAxis::setIdlePosition(double newOffset)
 double vsInputAxis::getIdlePosition()
 {
     return offset;
+}
+
+// ------------------------------------------------------------------------
+// Sets the threshold for this axis.  Any subsequent getPosition() calls
+// that would normally return a value whose absolute value is less than the 
+// threshold will instead be reported as 0.0.  
+// ------------------------------------------------------------------------
+void vsInputAxis::setThreshold(double newThreshold)
+{
+    threshold = newThreshold;
+}
+
+// ------------------------------------------------------------------------
+// Returns the current
+// ------------------------------------------------------------------------
+double vsInputAxis::getThreshold()
+{
+    return threshold;
 }
 
 // ------------------------------------------------------------------------

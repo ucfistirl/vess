@@ -64,6 +64,10 @@ public:
 
     // Simple calibration routine
     void        setIdlePosition();
+
+    // Sets up a "sweet spot" at the joystick center by setting
+    // the threshold value for all axes
+    void        setThreshold(double newThreshold);
 };
 
 #endif
