@@ -26,6 +26,8 @@
 #include "vsScentAirSystem.h++"
 #include "vsScent.h++"
 
+#define VS_SASCENT_DEFAULT_CYCLE_TIME 10.0
+
 class vsScentAirScent : public vsScent
 {
 protected:
@@ -34,6 +36,8 @@ protected:
     int                 scentChannel;
     double              strength;
 
+    double              cycleTime;
+
 public:
 
                           vsScentAirScent(vsScentAirSystem *system, 
@@ -41,6 +45,9 @@ public:
                           ~vsScentAirScent();
 
     virtual const char    *getClassName();
+
+    void                  setCycleTime(double newTime);
+    double                getCycleTime();
 
     virtual double        getStrength();
     virtual void          setStrength(double newStrength);

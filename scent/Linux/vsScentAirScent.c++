@@ -31,6 +31,9 @@ vsScentAirScent::vsScentAirScent(vsScentAirSystem *system, int channel)
     // Save the system and scent channel
     scentAir = system;
     scentChannel = channel;
+
+    // Initialize the cycle time to default
+    cycleTime = VS_SASCENT_DEFAULT_CYCLE_TIME;
 }
 
 // ------------------------------------------------------------------------
@@ -49,6 +52,32 @@ const char *vsScentAirScent::getClassName()
 }
 
 // ------------------------------------------------------------------------
+// Sets the cycle time for the on-off pulsing of the ScentAir device for
+// this scent.  To control scent strength, the ScentAir device must pulse 
+// the scent channel on and off an amount proportional to the strength
+// parameter.  This parameter controls the total length of the on/off 
+// pulse in seconds.
+// ------------------------------------------------------------------------
+void vsScentAirScent::setCycleTime(double newTime)
+{
+    // Set the new cycle time, if the given time is greater than zero
+    if (cycleTime > 0.0)
+        cycleTime = newTime;
+    else
+        printf("vsScentAirScent::setCycleTime:  Cycle time must be a positive "
+            "number!\n");
+}
+
+// ------------------------------------------------------------------------
+// Returns the current scent cycle time
+// ------------------------------------------------------------------------
+double vsScentAirScent::getCycleTime()
+{
+    return cycleTime;
+}
+
+
+// ------------------------------------------------------------------------
 // Returns the current scent strength
 // ------------------------------------------------------------------------
 double vsScentAirScent::getStrength()
@@ -61,6 +90,8 @@ double vsScentAirScent::getStrength()
 // ------------------------------------------------------------------------
 void vsScentAirScent::setStrength(double newStrength)
 {
+    double onTime;
+
     // Store the new strength (in case someone asks for it)
     strength = newStrength;
     
@@ -82,8 +113,8 @@ void vsScentAirScent::setStrength(double newStrength)
         // Note that most scents are much too strong at the maximum strength.
         // The scent scale on the vsScentSourceAttribute is a good place to
         // adjust this.  
-        scentAir->setPulseRate(scentChannel, strength*10.0,
-            10.0 - strength*10.0);
+        onTime = strength * cycleTime;
+        scentAir->setPulseRate(scentChannel, onTime, cycleTime - onTime);
 	scentAir->setChannelState(scentChannel, true);
     }
     else
