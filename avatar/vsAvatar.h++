@@ -68,7 +68,6 @@ protected:
     // input objects
     void               *makeVsISTJoystickBox();
     void               *makeVsUnwinder();
-    void               *makeVsLinuxJoystickSystem();
     void               *makeVsFlockOfBirds();
     void               *makeVsSerialMotionStar();
     void               *makeVsFastrak();
@@ -78,6 +77,10 @@ protected:
     void               *makeVsWSSpaceball();
     void               *makeVsPinchGloveBox();
     void               *makeVsCyberGloveBox();
+
+#ifdef __linux__
+    void               *makeVsLinuxJoystickSystem();
+#endif
 
     // motion model objects
     void               *makeVsKinematics();

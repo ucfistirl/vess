@@ -24,7 +24,6 @@
 #include <string.h>
 #include "vsISTJoystickBox.h++"
 #include "vsUnwinder.h++"
-#include "vsLinuxJoystickSystem.h++"
 #include "vsFlockOfBirds.h++"
 #include "vsSerialMotionStar.h++"
 #include "vsFastrak.h++"
@@ -43,6 +42,10 @@
 #include "vsTrackedMotion.h++"
 #include "vsWalkArticulation.h++"
 #include "vsWalkInPlace.h++"
+
+#ifdef __linux__
+#include "vsLinuxJoystickSystem.h++"
+#endif
 
 // ------------------------------------------------------------------------
 // Constructor
@@ -310,8 +313,6 @@ void *vsAvatar::createObject(char *idString)
         return makeVsISTJoystickBox();
     else if (!strcmp(idString, "vsUnwinder"))
         return makeVsUnwinder();
-    else if (!strcmp(idString, "vsLinuxJoystickSystem"))
-        return makeVsLinuxJoystickSystem();
     else if (!strcmp(idString, "vsFlockOfBirds"))
         return makeVsFlockOfBirds();
     else if (!strcmp(idString, "vsSerialMotionStar"))
@@ -350,6 +351,10 @@ void *vsAvatar::createObject(char *idString)
         return makeVsWalkArticulation();
     else if (!strcmp(idString, "vsWalkInPlace"))
         return makeVsWalkInPlace();
+#ifdef __linux__
+    else if (!strcmp(idString, "vsLinuxJoystickSystem"))
+        return makeVsLinuxJoystickSystem();
+#endif
     
     return NULL;
 }
@@ -460,7 +465,7 @@ void *vsAvatar::makeGeometry()
     }
 
     if (emptyFlag)
-	result = new vsComponent();
+        result = new vsComponent();
     else if (strlen(dbName) > 0)
     {
         result = dbLoader->loadDatabase(dbName);
@@ -521,14 +526,14 @@ void *vsAvatar::makeViewpoint()
         if (!strcmp(token, "geometry"))
         {
             lineLen = sscanf(cfgLine, "%*s %s %s", geoObjectName, nodeName);
-	    if (lineLen < 2)
-		geom = (vsComponent *)(findObject(geoObjectName));
-	    else
-	    {
-		root = (vsComponent *)(findObject(geoObjectName));
-		if (root)
-		    geom = (vsComponent *)(root->findNodeByName(nodeName));
-	    }
+            if (lineLen < 2)
+                geom = (vsComponent *)(findObject(geoObjectName));
+            else
+            {
+                root = (vsComponent *)(findObject(geoObjectName));
+                if (root)
+                    geom = (vsComponent *)(root->findNodeByName(nodeName));
+            }
         }
         else if (!strcmp(token, "pane"))
         {
@@ -590,7 +595,6 @@ void *vsAvatar::makeInputDevice()
     char objName[256];
     int objNum;
     vsJoystickBox *joyBox;
-    vsLinuxJoystickSystem *joySys;
     vsTrackingSystem *trackSys;
     vsPinchGloveBox *pinchBox;
     vsScreen *screen;
@@ -599,6 +603,10 @@ void *vsAvatar::makeInputDevice()
     int screenIdx, windowIdx;
     vsWSSpaceball *wsSpaceball;
     vsCyberGloveBox *cyberBox;
+
+#ifdef __linux__
+    vsLinuxJoystickSystem *joySys;
+#endif
 
     while (lineType != -1)
     {
@@ -615,6 +623,7 @@ void *vsAvatar::makeInputDevice()
             if (joyBox)
                 result = joyBox->getJoystick(objNum);
         }
+#ifdef __linux__
         else if (!strcmp(token, "linuxJoystickSystem"))
         {
             sscanf(cfgLine, "%*s %s", objName);
@@ -622,6 +631,7 @@ void *vsAvatar::makeInputDevice()
             if (joySys)
                 result = joySys->getJoystick();
         }
+#endif
         else if (!strcmp(token, "trackingSystem"))
         {
             sscanf(cfgLine, "%*s %s %d", objName, &objNum);
@@ -766,6 +776,7 @@ void *vsAvatar::makeVsUnwinder()
     return (new vsUnwinder(portNumber, joy1, joy2));
 }
 
+#ifdef __linux__
 // ------------------------------------------------------------------------
 // Protected function
 // Creates a vsLinuxJoystickSystem from data in the configuration file, and
@@ -802,6 +813,7 @@ void *vsAvatar::makeVsLinuxJoystickSystem()
 
     return (new vsLinuxJoystickSystem(portName));
 }
+#endif
 
 // ------------------------------------------------------------------------
 // Protected function
@@ -1445,14 +1457,14 @@ void *vsAvatar::makeVsKinematics()
         if (!strcmp(token, "geometry"))
         {
             lineLen = sscanf(cfgLine, "%*s %s %s", geoObjectName, nodeName);
-	    if (lineLen < 2)
-		geom = (vsComponent *)(findObject(geoObjectName));
-	    else
-	    {
-		root = (vsComponent *)(findObject(geoObjectName));
-		if (root)
-		    geom = (vsComponent *)(root->findNodeByName(nodeName));
-	    }
+            if (lineLen < 2)
+                geom = (vsComponent *)(findObject(geoObjectName));
+            else
+            {
+                root = (vsComponent *)(findObject(geoObjectName));
+                if (root)
+                    geom = (vsComponent *)(root->findNodeByName(nodeName));
+            }
         }
         else if (!strcmp(token, "inertia"))
             sscanf(cfgLine, "%*s %d", &inertia);
