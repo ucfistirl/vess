@@ -61,7 +61,7 @@ void vsOptimizer::optimizeNode(vsNode *node)
         componentNode = (vsComponent *)node;
 
         if (passMask & VS_OPTIMIZER_CLEAN_TREE)
-	    cleanChildren(componentNode);
+            cleanChildren(componentNode);
 
         if (passMask & VS_OPTIMIZER_MERGE_DECALS)
             mergeDecals(componentNode);
@@ -71,7 +71,7 @@ void vsOptimizer::optimizeNode(vsNode *node)
             optimizeNode(componentNode->getChild(loop));
 
         if (passMask & VS_OPTIMIZER_CLEAN_TREE)
-	    cleanChildren(componentNode);
+            cleanChildren(componentNode);
 
         if (passMask & VS_OPTIMIZER_PROMOTE_ATTRIBUTES)
         {
@@ -93,7 +93,7 @@ void vsOptimizer::optimizeNode(vsNode *node)
             mergeGeometry(componentNode);
 
         if (passMask & VS_OPTIMIZER_CLEAN_TREE)
-	    cleanChildren(componentNode);
+            cleanChildren(componentNode);
 
         if (passMask & VS_OPTIMIZER_SORT_CHILDREN)
         {
@@ -107,8 +107,8 @@ void vsOptimizer::optimizeNode(vsNode *node)
 
 // ------------------------------------------------------------------------
 // For each child of this component, check to see if that child is also
-// a component, and if so, if that component only has one child of its
-// own. If so, then that component isn't really needed and is a
+// a component, and if so, if that component has zero or one children of
+// its own. If so, then that component isn't really needed and is a
 // candidate to be removed.
 // ------------------------------------------------------------------------
 void vsOptimizer::cleanChildren(vsComponent *componentNode)
@@ -119,45 +119,56 @@ void vsOptimizer::cleanChildren(vsComponent *componentNode)
     
     for (loop = 0; loop < componentNode->getChildCount(); loop++)
     {
-	childNode = componentNode->getChild(loop);
-	if (childNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
-	{
-	    targetComponent = (vsComponent *)childNode;
+        childNode = componentNode->getChild(loop);
+        if (childNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
+        {
+            targetComponent = (vsComponent *)childNode;
 
-	    // If the component has more than one child, has any attributes,
-	    // or has a name, then we don't want to remove it.
-	    if (targetComponent->getChildCount() != 1)
-		continue;
-	    if (targetComponent->getAttributeCount() > 0)
-		continue;
-	    if (strlen(targetComponent->getName()) > 0)
-		continue;
+            // If the component has more than one child, has any attributes,
+            // or has a name, then we don't want to remove it.
+            if (targetComponent->getChildCount() > 1)
+                continue;
+            if (targetComponent->getAttributeCount() > 0)
+                continue;
+            if (strlen(targetComponent->getName()) > 0)
+                continue;
 
-	    // If we've made it this far, then it should be okay to remove
-	    // the component
-	    zapComponent(targetComponent);
-	}
+            // If we've made it this far, then it should be okay to remove
+            // the component
+            zapComponent(targetComponent);
+        }
     }
 }
 
 // ------------------------------------------------------------------------
 // Remove this component from the scene, assigning the child of this
 // component to each of the component's parents instead. Assumes that the
-// component to be removed has only one child. Also deletes the component
-// when finished.
+// component to be removed has no more than one child. Also deletes the
+// component when finished.
 // ------------------------------------------------------------------------
 void vsOptimizer::zapComponent(vsComponent *targetComponent)
 {
     vsComponent *parentComponent;
     vsNode *childNode;
     
-    childNode = targetComponent->getChild(0);
-    targetComponent->removeChild(childNode);
-
-    while (targetComponent->getParentCount() > 0)
+    if (targetComponent->getChildCount() == 0)
     {
-	parentComponent = targetComponent->getParent(0);
-	parentComponent->replaceChild(targetComponent, childNode);
+        while (targetComponent->getParentCount() > 0)
+        {
+            parentComponent = targetComponent->getParent(0);
+            parentComponent->removeChild(targetComponent);
+        }
+    }
+    else
+    {
+        childNode = targetComponent->getChild(0);
+        targetComponent->removeChild(childNode);
+
+        while (targetComponent->getParentCount() > 0)
+        {
+            parentComponent = targetComponent->getParent(0);
+            parentComponent->replaceChild(targetComponent, childNode);
+        }
     }
     
     delete targetComponent;
@@ -262,11 +273,11 @@ void vsOptimizer::mergeGeometry(vsComponent *componentNode)
                 secondGeo = (vsGeometry *)secondNode;
                 if (isSimilarGeometry(firstGeo, secondGeo))
                 {
-		    while (secondGeo->getParentCount() > 0)
-		    {
-			parent = secondGeo->getParent(0);
-			parent->removeChild(secondGeo);
-		    }
+                    while (secondGeo->getParentCount() > 0)
+                    {
+                        parent = secondGeo->getParent(0);
+                        parent->removeChild(secondGeo);
+                    }
                     addGeometry(firstGeo, secondGeo);
                     delete secondGeo;
                     sloop--;
@@ -296,9 +307,9 @@ int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
 
     // If either geometry node is named, return false
     if (strlen(firstGeo->getName()) > 0)
-	return VS_FALSE;
+        return VS_FALSE;
     if (strlen(secondGeo->getName()) > 0)
-	return VS_FALSE;
+        return VS_FALSE;
 
     // Compare primitive types
     firstVal = firstGeo->getPrimitiveType();
@@ -314,19 +325,19 @@ int vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
 
     // Check to make sure that both geometry nodes have the same parent(s)
     if (firstGeo->getParentCount() != secondGeo->getParentCount())
-	return VS_FALSE;
+        return VS_FALSE;
     for (loop = 0; loop < firstGeo->getParentCount(); loop++)
     {
-	matchFlag = 0;
-	for (sloop = 0; sloop < secondGeo->getParentCount(); sloop++)
-	    if (firstGeo->getParent(loop) == secondGeo->getParent(sloop))
-	    {
-		matchFlag = 1;
-		break;
-	    }
-	
-	if (!matchFlag)
-	    return VS_FALSE;
+        matchFlag = 0;
+        for (sloop = 0; sloop < secondGeo->getParentCount(); sloop++)
+            if (firstGeo->getParent(loop) == secondGeo->getParent(sloop))
+            {
+                matchFlag = 1;
+                break;
+            }
+        
+        if (!matchFlag)
+            return VS_FALSE;
     }
 
     // Compare attributes
@@ -568,27 +579,27 @@ void vsOptimizer::optimizeAttributes(vsComponent *componentNode,
                 emptyFlag = 1;
                 break;
             }
-	    
+            
             // Determine if we've seen a similar attribute before; either
-	    // mark the similar one if we have or add this one in as new if
-	    // we haven't. The attributes of instanced nodes don't count.
-	    if (childNode->getParentCount() < 2)
-	    {
-		matchFlag = 0;
-		for (sloop = 0; sloop < attrCount; sloop++)
-		    if (cmpFunc(childAttr, attrArray[sloop]))
-		    {
-			attrHitCounts[sloop]++;
-			matchFlag = 1;
-			break;
-		    }
-		if (!matchFlag)
-		{
-		    attrArray[attrCount] = childAttr;
-		    attrHitCounts[attrCount] = 1;
-		    attrCount++;
-		}
-	    }
+            // mark the similar one if we have or add this one in as new if
+            // we haven't. The attributes of instanced nodes don't count.
+            if (childNode->getParentCount() < 2)
+            {
+                matchFlag = 0;
+                for (sloop = 0; sloop < attrCount; sloop++)
+                    if (cmpFunc(childAttr, attrArray[sloop]))
+                    {
+                        attrHitCounts[sloop]++;
+                        matchFlag = 1;
+                        break;
+                    }
+                if (!matchFlag)
+                {
+                    attrArray[attrCount] = childAttr;
+                    attrHitCounts[attrCount] = 1;
+                    attrCount++;
+                }
+            }
         }
         
         if (attrCount && !emptyFlag)
