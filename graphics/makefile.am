@@ -4,7 +4,6 @@ lib_LIBRARIES = libvsGraphics.a libvsGraphics.so
 # Sources for libvsGraphics.a
 libvsGraphics_a_SOURCES = \
                           common/vsCal3DBoneLoader.c++ \
-                          common/vsCal3DLoader.c++ \
                           common/vsCal3DMeshLoader.c++ \
                           common/vsOptimizer.c++ \
                           common/vsScenePrinter.c++ \
@@ -75,7 +74,6 @@ EXTRA_libvsGraphics_so_SOURCES = $(EXTRA_libvsGraphics_a_SOURCES)
 # Header files
 include_HEADERS = \
                   common/vsCal3DBoneLoader.h++ \
-                  common/vsCal3DLoader.h++ \
                   common/vsCal3DMeshLoader.h++ \
                   common/vsOptimizer.h++ \
                   common/vsScenePrinter.h++ \
