@@ -25,13 +25,17 @@
 #include <osgDB/ReadFile>
 #include "vsTextureRectangleAttribute.h++"
 #include "vsNode.h++"
+#include "vsGeometry.h++"
 
 // ------------------------------------------------------------------------
-// Default Constructor - Creates the Performer texture objects and
+// Default Constructor - Creates the OSG texture objects for unit 0 and
 // initializes default settings
 // ------------------------------------------------------------------------
 vsTextureRectangleAttribute::vsTextureRectangleAttribute()
 {
+    // Default unit is 0, the first texture.
+    textureUnit = 0;
+
     // Create and reference new OSG TextureRectangle and TexEnv objects
     osgTexture = new osg::TextureRectangle();
     osgTexture->ref();
@@ -55,13 +59,62 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute()
 }
 
 // ------------------------------------------------------------------------
+// Constructor - Creates the OSG texture objects for the specified unit
+// and initializes default settings
+// ------------------------------------------------------------------------
+vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit)
+{
+    // Set to the specified texture unit.
+    if ((unit >= 0) && (unit < VS_MAXIMUM_TEXTURE_UNITS))
+        textureUnit = unit;
+    else
+    {
+        printf("vsTextureRectangleAttribute::vsTextureRectangleAttribute: "
+            "Invalid texture unit, using default of 0\n");
+        textureUnit = 0;
+    }
+
+    // Create and reference new OSG TextureRectangle and TexEnv objects
+    osgTexture = new osg::TextureRectangle();
+    osgTexture->ref();
+    osgTexEnv = new osg::TexEnv();
+    osgTexEnv->ref();
+    osgTexGen = NULL;
+
+    // Initialize the TexGen remove flag to false.
+    removeTexGen = false;
+
+    // Start with no image data
+    osgTexImage = NULL;
+
+    //Initialize the osg::TextureRectangle
+    osgTexture->setBorderColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
+    osgTexture->setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
+
+    // Initialize the texture attribute
+    setBoundaryMode(VS_TEXTURE_DIRECTION_ALL, VS_TEXTURE_BOUNDARY_CLAMP);
+    setApplyMode(VS_TEXTURE_APPLY_DECAL);
+}
+
+
+// ------------------------------------------------------------------------
 // Internal function
 // Constructor - Sets the texture attribute up as already attached
 // ------------------------------------------------------------------------
-vsTextureRectangleAttribute::vsTextureRectangleAttribute(
+vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit,
     osg::TextureRectangle *texObject, osg::TexEnv *texEnvObject,
     osg::TexGen *texGenObject)
 {
+    // Set to the specified texture unit.
+    if ((unit >= 0) && (unit < VS_MAXIMUM_TEXTURE_UNITS))
+        textureUnit = unit;
+    else
+    {
+        printf("vsTextureAttribute::vsTextureAttribute: Invalid texture unit, "
+            "using default of 0\n");
+        textureUnit = 0;
+    }
+
     // Save and reference the TextureRectangle and TexEnv objects
     osgTexture = texObject;
     osgTexture->ref();
@@ -455,6 +508,14 @@ int vsTextureRectangleAttribute::getGenMode()
 }
 
 // ------------------------------------------------------------------------
+// Return the texture unit for this texture attribute
+// ------------------------------------------------------------------------
+unsigned int vsTextureRectangleAttribute::getTextureUnit()
+{
+    return textureUnit;
+}
+
+// ------------------------------------------------------------------------
 // Private function
 // Sets the modes on the StateSet of this node's OSG node to reflect the
 // settings of this attribute
@@ -477,20 +538,21 @@ void vsTextureRectangleAttribute::setOSGAttrModes(vsNode *node)
 
     // Set the Texture and TexEnv attributes and the StateAttribute mode
     // on the node's StateSet
-    osgStateSet->setTextureAttributeAndModes(0, osgTexture, attrMode);
-    osgStateSet->setTextureAttributeAndModes(0, osgTexEnv, attrMode);
+    osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexture, attrMode);
+    osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexEnv, attrMode);
     if (osgTexGen)
     {
         if (removeTexGen)
         {
-            osgStateSet->setTextureAttributeAndModes(0, osgTexGen,
+            osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexGen,
                 osg::StateAttribute::INHERIT);
             osgTexGen->unref();
             osgTexGen = NULL;
             removeTexGen = false;
         }
         else
-            osgStateSet->setTextureAttributeAndModes(0, osgTexGen, attrMode);
+            osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexGen,
+                attrMode);
     }
 }
 
@@ -521,12 +583,12 @@ void vsTextureRectangleAttribute::detach(vsNode *node)
     osgStateSet = getOSGStateSet(node);
 
     // Reset the Texture and TexEnv states to INHERIT
-    osgStateSet->setTextureAttributeAndModes(0, osgTexture,
+    osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexture,
         osg::StateAttribute::INHERIT);
-    osgStateSet->setTextureAttributeAndModes(0, osgTexEnv,
+    osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexEnv,
         osg::StateAttribute::INHERIT);
     if (osgTexGen)
-        osgStateSet->setTextureAttributeAndModes(0, osgTexGen,
+        osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexGen,
             osg::StateAttribute::INHERIT);
 
     // Finish with standard StateAttribute detaching
