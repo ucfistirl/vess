@@ -39,12 +39,48 @@ vsMenuObject::vsMenuObject()
 }
 
 // ------------------------------------------------------------------------
+// Constructor - This constructor initializes a button with the given menu
+// component and kinematics object. The kinematics object may be null if
+// you do not want the component manipulated automatically on updates.
+// ------------------------------------------------------------------------
+vsMenuObject::vsMenuObject(vsComponent *component, vsKinematics *kinematics)
+{
+    // Store the component and kinematics for later use
+    menuComponent = component;
+    menuKinematics = kinematics;
+
+    // Reference the component and kinematics objects so they won't be
+    // accidentally deleted
+    if (menuComponent)
+        menuComponent->ref();
+    if (menuKinematics)
+        menuKinematics->ref();
+
+    objectName = NULL;
+    inputAccel = NULL;
+    selectable = true;
+    enabled = true;
+}
+
+// ------------------------------------------------------------------------
 // Destructor - The destructor frees the memory used by the object name
 // ------------------------------------------------------------------------
 vsMenuObject::~vsMenuObject()
 {
     if (objectName)
         free(objectName);
+
+    if (menuComponent)
+    {
+        vsObject::unrefDelete(menuComponent);
+        menuComponent = NULL;
+    }
+
+    if (menuKinematics)
+    {
+        vsObject::unrefDelete(menuKinematics);
+        menuKinematics = NULL;
+    }
 }
 
 // ------------------------------------------------------------------------

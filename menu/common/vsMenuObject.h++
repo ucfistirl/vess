@@ -56,6 +56,8 @@ protected:
 public:
 
                           vsMenuObject();
+                          vsMenuObject(vsComponent *component,
+                              vsKinematics *kinematics);
     virtual               ~vsMenuObject();
 
     virtual const char    *getClassName();
