@@ -16,6 +16,7 @@ libvsMotion_a_SOURCES = \
                         common/vsKinematics.c++ \
                         common/vsMotionModel.c++ \
                         common/vsPathMotion.c++ \
+                        common/vsPathMotionManager.c++ \
                         common/vsRelativeMouseMotion.c++ \
                         common/vsRelativeObjectMotion.c++ \
                         common/vsSkeletonKinematics.c++ \
@@ -46,6 +47,7 @@ include_HEADERS = \
                   common/vsInverseKinematics.h++ \
                   common/vsMotionModel.h++ \
                   common/vsPathMotion.h++ \
+                  common/vsPathMotionManager.h++ \
                   common/vsRelativeMouseMotion.h++ \
                   common/vsRelativeObjectMotion.h++ \
                   common/vsSkeletonKinematics.h++ \
