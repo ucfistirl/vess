@@ -90,7 +90,7 @@ public:
     virtual int         removeChild(vsNode *targetChild);
     virtual int         replaceChild(vsNode *targetChild, vsNode *newChild);
 
-    int                 getParentCount();
+    virtual int         getParentCount();
     virtual vsNode      *getParent(int index);
     virtual int         getChildCount();
     virtual vsNode      *getChild(int index);
