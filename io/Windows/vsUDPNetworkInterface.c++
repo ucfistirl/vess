@@ -106,14 +106,6 @@ const char *vsUDPNetworkInterface::getClassName()
 }
 
 // ------------------------------------------------------------------------
-// Gets a string representation of this object's class name
-// ------------------------------------------------------------------------
-const char *vsUDPNetworkInterface::getClassName()
-{
-    return "vsUDPNetworkInterface";
-}
-
-// ------------------------------------------------------------------------
 // Reads up to maxSize bytes from the socket into the buffer and returns
 // the actual number of bytes read
 // ------------------------------------------------------------------------
