@@ -590,3 +590,11 @@ void vsTextureAttribute::setOSGImage(osg::Image *osgImage)
     // Instruct the OSG texture object to use the new image
     osgTexture->setImage(osgTexImage);
 }
+
+// ------------------------------------------------------------------------
+// Return the base OSG object used to represent this texture.
+// ------------------------------------------------------------------------
+osg::Texture *vsTextureAttribute::getBaseLibraryObject()
+{
+    return osgTexture;
+}

@@ -24,6 +24,7 @@
 #define VS_TEXTURE_ATTRIBUTE_HPP
 
 #include <osg/Texture2D>
+#include <osg/Texture>
 #include <osg/TexEnv>
 #include <osg/Image>
 #include "vsStateAttribute.h++"
@@ -93,6 +94,8 @@ VS_INTERNAL:
     virtual bool    isEquivalent(vsAttribute *attribute);
 
     void            setOSGImage(osg::Image *osgImage);
+
+    osg::Texture    *getBaseLibraryObject();
 
 public:
 
