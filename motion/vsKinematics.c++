@@ -288,6 +288,14 @@ vsVector vsKinematics::getCenterOfMass()
 }
 
 // ------------------------------------------------------------------------
+// Retrieves the component for this object
+// ------------------------------------------------------------------------
+vsComponent *vsKinematics::getComponent()
+{
+    return component;
+}
+
+// ------------------------------------------------------------------------
 // Updates the kinematics by computing the time since the last update, and
 // using that time value and the current positional and angular velocities
 // to modify the current position and orientation
