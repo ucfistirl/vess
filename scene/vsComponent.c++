@@ -246,8 +246,8 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
                 bottomGroup->removeChild(currentNode);
                 loop--;
                 printf("vsComponent::vsComponent (conversion constructor): Discarding unrecognized "
-                	"Performer node of type '%s'\n",
-                	((pfObject *)(currentNode))->getType()->getName());
+                        "Performer node of type '%s'\n",
+                        ((pfObject *)(currentNode))->getType()->getName());
                 pfDelete(currentNode);
                 continue;
             }
@@ -256,6 +256,7 @@ vsComponent::vsComponent(pfGroup *targetGraph, vsDatabaseLoader *nameDirectory)
         // Parent and child are already connected in the Performer scene;
         // make new connections only in our own objects.
         childList[childCount++] = myNode;
+        myNode->ref();
         myNode->addParent(this);
     }
 
@@ -413,6 +414,7 @@ void vsComponent::addChild(vsNode *newChild)
 
     // Then make the connection in the VESS nodes
     childList[childCount++] = newChild;
+    newChild->ref();
     
     newChild->addParent(this);
     
@@ -470,6 +472,7 @@ void vsComponent::insertChild(vsNode *newChild, int index)
         childList[loop] = childList[loop-1];
     childList[index] = newChild;
     childCount++;
+    newChild->ref();
     
     newChild->addParent(this);
     
@@ -524,6 +527,7 @@ void vsComponent::removeChild(vsNode *targetChild)
         
             // Finish the VESS detachment
             childCount--;
+            targetChild->unref();
             targetChild->removeParent(this);
             return;
         }
@@ -589,6 +593,9 @@ void vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
             
             // Change the connection in the VESS nodes
             childList[loop] = newChild;
+            
+            targetChild->unref();
+            newChild->ref();
 
             targetChild->removeParent(this);
             newChild->addParent(this);
@@ -784,10 +791,10 @@ vsNode *vsComponent::nodeSearch(const char *name, int *idx)
 
     if (!strcmp(name, getName()))
     {
-	if ((*idx) > 0)
-	    (*idx)--;
-	else
-	    return this;
+        if ((*idx) > 0)
+            (*idx)--;
+        else
+            return this;
     }
 
     for (loop = 0; loop < childCount; loop++)
