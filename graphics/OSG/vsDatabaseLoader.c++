@@ -149,7 +149,15 @@ void vsDatabaseLoader::addPath(char *filePath)
     // Create the new file path, which is the old path plus the new
     // directory, separated by the path separator character
     strcpy(fullPath, loaderFilePath);
-    strcat(fullPath, ":");
+    
+    // Path separator varies by platform
+    #ifdef WIN32
+        strcat(fullPath, ";");
+    #else
+        strcat(fullPath, ":");
+    #endif
+    
+    // Add the new path
     strcat(fullPath, filePath);
     
     // Delete the old path string and store the new one
