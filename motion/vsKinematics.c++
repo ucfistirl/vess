@@ -339,29 +339,39 @@ vsComponent *vsKinematics::getComponent()
 }
 
 // ------------------------------------------------------------------------
-// Updates the kinematics by computing the time since the last update, and
-// using that time value and the current positional and angular velocities
-// to modify the current position and orientation
+// Updates the kinematics using the system frame time for the time interval
 // ------------------------------------------------------------------------
 void vsKinematics::update()
 {
     double deltaTime;
-    vsQuat deltaOrient;
-    double degrees;
-
-    vsVector ornVec;
 
     // Get the time elapsed since the last call
     deltaTime = vsSystem::systemObject->getFrameTime();
+
+    // Constrain the time to a maximum of one second to try to maintain
+    // interactivity when the frame rate drops very low
+    if (deltaTime > 1.0)
+        deltaTime = 1.0;
+
+    // Update the kinematics using this interval
+    update(deltaTime);
+}
+
+// ------------------------------------------------------------------------
+// Updates the kinematics by using the specified time interval and the 
+// current positional and angular velocities to modify the current position 
+// and orientation.  This form of update() is useful for non-realtime 
+// applications.
+// ------------------------------------------------------------------------
+void vsKinematics::update(double deltaTime)
+{
+    vsQuat deltaOrient;
+    double degrees;
 
     // Make sure we have a valid deltaTime
     if (deltaTime <= 0.0)
         return;
     
-    // Maximum frame time of one second for motion purposes
-    if (deltaTime > 1.0)
-        deltaTime = 1.0;
-
     // Update the position and orientation from the velocity and angular
     // velocity, respectively.
     modifyPosition(velocity.getScaled(deltaTime));
@@ -371,14 +381,10 @@ void vsKinematics::update()
         angularVelocity[2], degrees);
     postModifyOrientation(deltaOrient);
 
-    orientation.getEulerRotation(VS_EULER_ANGLES_ZXY_R, &ornVec[VS_H],
-        &ornVec[VS_P], &ornVec[VS_R]);
-
     // Clear velocities if in inertialess mode
     if (!inertia)
     {
         velocity.clear();
         angularVelocity.clear();
     }
-
 }

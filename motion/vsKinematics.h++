@@ -91,6 +91,10 @@ public:
     // Compute new position/orientation based on current velocities and
     // elapsed time
     void	   update();
+
+    // Compute new position/orientation based on current velocities and
+    // specified time interval
+    void	   update(double deltaTime);
 };
 
 #endif
