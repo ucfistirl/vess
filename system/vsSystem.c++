@@ -678,6 +678,15 @@ void vsSystem::writeScene(vsNode *targetNode, FILE *outfile, int treeDepth,
                 else
                     fprintf(outfile, "SHADING (gouraud)\n");
                 break;
+            case VS_ATTRIBUTE_TYPE_SOUND_SOURCE:
+                fprintf(outfile, "SOUND_SOURCE\n");
+                break;
+            case VS_ATTRIBUTE_TYPE_SOUND_LISTENER:
+                fprintf(outfile, "SOUND_LISTENER\n");
+                break;
+            default:
+                fprintf(outfile, "<unknown type>\n");
+                break;
         }
     }
     
