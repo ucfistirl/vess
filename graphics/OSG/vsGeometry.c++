@@ -100,7 +100,6 @@ vsGeometry::~vsGeometry()
 {
     vsAttribute *attr;
     vsNode *parent;
-    int loop;
 
     // Remove all attached attributes; destroy those that aren't being
     // used by other nodes.
@@ -1134,6 +1133,22 @@ void vsGeometry::addAttribute(vsAttribute *newAttribute)
 
     // If we made it this far, it must be okay to add the attribute in
     vsNode::addAttribute(newAttribute);
+}
+
+// ------------------------------------------------------------------------
+// Enables culling on this node and its children
+// ------------------------------------------------------------------------
+void vsGeometry::enableCull()
+{
+    osgGeode->setCullingActive(true);
+}
+
+// ------------------------------------------------------------------------
+// Disables culling on this node and its children
+// ------------------------------------------------------------------------
+void vsGeometry::disableCull()
+{
+    osgGeode->setCullingActive(false);
 }
 
 // ------------------------------------------------------------------------

@@ -82,6 +82,9 @@ public:
 
     virtual void          addAttribute(vsAttribute *newAttribute);
 
+    virtual void          enableCull();
+    virtual void          disableCull();
+
     osg::Group            *getBaseLibraryObject();
 };
 

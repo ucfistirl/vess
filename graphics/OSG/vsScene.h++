@@ -74,6 +74,9 @@ public:
     virtual unsigned int    getIntersectValue();
 
     virtual void            addAttribute(vsAttribute *newAttribute);
+
+    virtual void            enableCull();
+    virtual void            disableCull();
     
     osg::Group              *getBaseLibraryObject();
 };

@@ -98,7 +98,6 @@ vsDynamicGeometry::~vsDynamicGeometry()
 {
     vsAttribute *attr;
     vsNode *parent;
-    int loop;
 
     // Remove all attached attributes; destroy those that aren't being
     // used by other nodes.
@@ -970,6 +969,22 @@ void vsDynamicGeometry::addAttribute(vsAttribute *newAttribute)
 
     // If we made it this far, it must be okay to add the attribute in
     vsNode::addAttribute(newAttribute);
+}
+
+// ------------------------------------------------------------------------
+// Enables culling on this node and its children
+// ------------------------------------------------------------------------
+void vsDynamicGeometry::enableCull()
+{
+    osgGeode->setCullingActive(true);
+}
+
+// ------------------------------------------------------------------------
+// Disables culling on this node and its children
+// ------------------------------------------------------------------------
+void vsDynamicGeometry::disableCull()
+{
+    osgGeode->setCullingActive(false);
 }
 
 // ------------------------------------------------------------------------
