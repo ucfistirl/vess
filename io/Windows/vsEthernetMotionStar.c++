@@ -34,7 +34,7 @@
 // responsible for controlling the MotionStar.
 // ------------------------------------------------------------------------
 vsEthernetMotionStar::vsEthernetMotionStar(char *serverName, int port, 
-    int nTrackers, int masterFlag, int dFormat)
+    int nTrackers, bool masterFlag, int dFormat)
     : vsTrackingSystem()
 {
     int      i;
@@ -47,11 +47,11 @@ vsEthernetMotionStar::vsEthernetMotionStar(char *serverName, int port,
     // Initialize state variables
     addressMode = 0;
     numTrackers = 0;
-    forked = VS_FALSE;
+    forked = false;
     serverThreadID = 0;
     master = masterFlag;
-    streaming = VS_FALSE;
-    configured = VS_FALSE;
+    streaming = false;
+    configured = false;
     posScale = VS_MSTAR_SCALE_DEFAULT_POS;
     xmtrAddress = 0;
 
@@ -109,7 +109,7 @@ vsEthernetMotionStar::vsEthernetMotionStar(char *serverName, int port,
     
             // Print a message indicating whether or not we've properly
             // configured everything
-            if (result != VS_FALSE)
+            if (result != false)
             {
                 printf("vsEthernetMotionStar::vsEthernetMotionStar:\n");
                 printf("   MotionStar running on %s:%d with %d sensors\n", 
@@ -158,7 +158,7 @@ vsEthernetMotionStar::~vsEthernetMotionStar()
     if (forked)
     {
         // Signal the thread to quit
-        serverDone = VS_TRUE;
+        serverDone = true;
     }
 
     // Shut down the MotionStar (the server thread will do this if we've
@@ -202,7 +202,7 @@ DWORD WINAPI vsEthernetMotionStar::serverLoop(void *parameter)
     instance = (vsEthernetMotionStar *)parameter;
 
     // Initialize the done flag to false
-    instance->serverDone = VS_FALSE;
+    instance->serverDone = false;
 
     // Start streaming data
     if (instance->master)
@@ -244,8 +244,8 @@ DWORD WINAPI vsEthernetMotionStar::serverLoop(void *parameter)
 
 // ------------------------------------------------------------------------
 // Package the given command into a MotionStar-friendly packet and send it
-// Returns VS_TRUE if a valid response is available in the response 
-// parameter, otherwise VS_FALSE is returned.
+// Returns true if a valid response is available in the response parameter,
+// otherwise false is returned.
 // ------------------------------------------------------------------------
 int vsEthernetMotionStar::sendCommand(unsigned char command, 
                                       unsigned char xtype, 
@@ -268,8 +268,8 @@ int vsEthernetMotionStar::sendCommand(unsigned char command,
 
 // ------------------------------------------------------------------------
 // Send the given packet to the MotionStar and check for the proper 
-// response.  Returns VS_TRUE if a valid response is available in the
-// response parameter, otherwise VS_FALSE is returned.
+// response.  Returns true if a valid response is available in the response
+// parameter, otherwise false is returned.
 // ------------------------------------------------------------------------
 int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength, 
                                      vsBirdnetPacket *response)
@@ -277,13 +277,13 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
     unsigned short  commandType;
     int             packetLength;
     int             result;
-    int             responseRequired;
-    int             responseReceived;
+    bool            responseRequired;
+    bool            responseReceived;
     vsBirdnetPacket responsePacket;
 
     // Initialize the response flags
-    responseRequired = VS_TRUE;
-    responseReceived = VS_FALSE;
+    responseRequired = true;
+    responseReceived = false;
 
     // If the packet length is specified, use this value, otherwise
     // use the size of the packet in memory
@@ -320,8 +320,8 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
         if ((commandType == VS_BN_MSG_SHUT_DOWN) || 
             (commandType == VS_BN_MSG_SINGLE_SHOT))
         {
-            responseRequired = VS_FALSE;
-            responseReceived = VS_FALSE;
+            responseRequired = false;
+            responseReceived = false;
         }
 
         // If after the above check we still need a response, try to 
@@ -337,8 +337,8 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
             if ((result >= sizeof(vsBirdnetHeader)) &&
                 (responsePacket.header.type != VS_BN_DATA_PACKET_MULTI))
             {
-                responseRequired = VS_FALSE;
-                responseReceived = VS_TRUE;
+                responseRequired = false;
+                responseReceived = true;
             }
         }
     }
@@ -358,12 +358,12 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
             case VS_BN_RSP_ILLEGAL:
                 printf("vsEthernetMotionStar::sendPacket:  "
                     "Packet type sent at the wrong time.\n");
-                return VS_FALSE;
+                return false;
 
             case VS_BN_RSP_UNKNOWN:
                 printf("vsEthernetMotionStar::sendPacket:  "
                     "Unknown command sent.\n");
-                return VS_FALSE;
+                return false;
 
             case VS_BN_RSP_WAKE_UP:
                 // Make sure we get the proper response
@@ -381,7 +381,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                             ntohs(responsePacket.header.numBytes));
                     }
     
-                    return VS_TRUE;
+                    return true;
                 }
                 else
                 {
@@ -389,7 +389,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                         "Invalid response received: %d\n", 
                         responsePacket.header.type);
     
-                    return VS_FALSE;
+                    return false;
                 }
 
             case VS_BN_RSP_SHUT_DOWN:
@@ -408,7 +408,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                             ntohs(responsePacket.header.numBytes));
                     }
     
-                    return VS_TRUE;
+                    return true;
                 }
                 else
                 {
@@ -416,7 +416,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                         "Invalid response received: %d\n",
                         responsePacket.header.type);
     
-                    return VS_FALSE;
+                    return false;
                 }
 
             case VS_BN_RSP_GET_STATUS:
@@ -435,7 +435,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                             ntohs(responsePacket.header.numBytes));
                     }
     
-                    return VS_TRUE;
+                    return true;
                 }
                 else
                 {
@@ -443,7 +443,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                         "Invalid response received: %d\n",
                         responsePacket.header.type);
     
-                    return VS_FALSE;
+                    return false;
                 }
 
             case VS_BN_RSP_SEND_SETUP:
@@ -462,7 +462,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                             ntohs(responsePacket.header.numBytes));
                     }
     
-                    return VS_TRUE;
+                    return true;
                 }
                 else
                 {
@@ -470,7 +470,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                         "Invalid response received: %d\n",
                         responsePacket.header.type);
     
-                    return VS_FALSE;
+                    return false;
                 }
 
             case VS_BN_RSP_RUN_CONTINUOUS:
@@ -489,7 +489,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                             ntohs(responsePacket.header.numBytes));
                     }
     
-                    return VS_TRUE;
+                    return true;
                 }
                 else
                 {
@@ -497,7 +497,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                         "Invalid response received: %d\n",
                         responsePacket.header.type);
     
-                    return VS_FALSE;
+                    return false;
                 }
 
             case VS_BN_RSP_STOP_DATA:
@@ -516,7 +516,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                             ntohs(responsePacket.header.numBytes));
                     }
     
-                    return VS_TRUE;
+                    return true;
                 }
                 else
                 {
@@ -524,7 +524,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                         "Invalid response received: %d\n",
                         responsePacket.header.type);
     
-                    return VS_FALSE;
+                    return false;
                 }
 
             case VS_BN_RSP_SEND_DATA:
@@ -543,7 +543,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                             ntohs(responsePacket.header.numBytes));
                     }
     
-                    return VS_TRUE;
+                    return true;
                 }
                 else
                 {
@@ -556,7 +556,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                             responsePacket.header.type);
                     }
     
-                    return VS_FALSE;
+                    return false;
                 }
 
             case VS_BN_RSP_SYNC_SEQUENCE:
@@ -575,7 +575,7 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                             ntohs(responsePacket.header.numBytes));
                     }
 
-                    return VS_TRUE;
+                    return true;
                 }
                 else
                 {
@@ -583,27 +583,27 @@ int vsEthernetMotionStar::sendPacket(vsBirdnetPacket *packet, int pktLength,
                         "Invalid response received: %d\n",
                         responsePacket.header.type);
     
-                    return VS_FALSE;
+                    return false;
                 }
 
             case VS_BN_DATA_PACKET_MULTI:
                 // This is never a valid command response
-                return VS_FALSE;
+                return false;
 
             case VS_BN_DATA_PACKET_SINGLE:
                 // This is never a valid command response
-                return VS_FALSE;
+                return false;
 
             default:
                 printf("vsEthernetMotionStar::sendPacket:  "
                     "Unknown response received: %d\n",
                     responsePacket.header.type);
-                return VS_FALSE;
+                return false;
         }
     }
 
     // No response received (whether by error or by design)
-    return VS_FALSE;
+    return false;
 }
     
 // ------------------------------------------------------------------------
@@ -677,14 +677,14 @@ int vsEthernetMotionStar::configureSystem()
         // Create vsMotionTrackers for the devices with receivers
         enumerateTrackers(&status);
 
-        return VS_TRUE;
+        return true;
     }
     else 
     {
         printf("  Error reading the MotionStar's status\n");
     }
 
-    return VS_FALSE;
+    return false;
 }
 
 // ------------------------------------------------------------------------
@@ -826,7 +826,7 @@ void vsEthernetMotionStar::enumerateTrackers(
 // ------------------------------------------------------------------------
 void vsEthernetMotionStar::updateConfiguration()
 {
-    int                         stoppedStream;
+    bool                        stoppedStream;
     int                         index;
     int                         result;
     vsBirdnetPacket             response;
@@ -838,12 +838,12 @@ void vsEthernetMotionStar::updateConfiguration()
     if (streaming)
     {
         stopStream();
-        stoppedStream = VS_TRUE;
+        stoppedStream = true;
     }
     else
     {
         // Set this to false so we know not to start streaming again
-        stoppedStream = VS_FALSE;
+        stoppedStream = false;
     }
 
     // Talk to each tracker and send the new configuration info
@@ -897,7 +897,7 @@ void vsEthernetMotionStar::updateConfiguration()
 
     // Pause for a bit
     Sleep(100);
-    configured = VS_TRUE;
+    configured = true;
 
     // Restart the data stream if we stopped it
     if (stoppedStream)
@@ -1280,7 +1280,7 @@ void vsEthernetMotionStar::updateSystem()
     int             dataBytes;
     int             currentByte;
     int             birdDataFormat;
-    int             birdButtonFlag;
+    bool            birdButtonFlag;
     int             birdDataSize;
     short           birdData[30];
     short           tempWord;
@@ -1422,7 +1422,7 @@ void vsEthernetMotionStar::startStream()
         sendCommand(VS_BN_MSG_RUN_CONTINUOUS, 0, NULL);
 
         // Set the streaming flag so we know we're now in streaming mode
-        streaming = VS_TRUE;
+        streaming = true;
     }
 }
 
@@ -1470,7 +1470,7 @@ void vsEthernetMotionStar::stopStream()
                 // Check the result
                 if (result)
                 {
-                    streaming = VS_FALSE;
+                    streaming = false;
                     printf("success!!\n");
                 }
                 else
@@ -1499,7 +1499,7 @@ void vsEthernetMotionStar::setDataFormat(int trackerNum, int format)
     if (master)
     {
         // Indicate we have changed the configuration
-        configured = VS_FALSE;
+        configured = false;
 
         // Set the data format to the requested format.  The most significant
         // nybble indicates the data size, and the least significant nybble
@@ -1588,7 +1588,7 @@ void vsEthernetMotionStar::setActiveHemisphere(int trackerNum, short hSphere)
     if ((master) && (hSphere >= 0) && (hSphere <= 5))
     {
         // Indicate the configuration has changed
-        configured = VS_FALSE;
+        configured = false;
 
         // Change the configuration for the appropriate bird(s)
         if (trackerNum == VS_MSTAR_ALL_TRACKERS)
@@ -1631,7 +1631,7 @@ void vsEthernetMotionStar::setReferenceFrame(int trackerNum, float h, float p,
             (r >= -180.0) && (r <= 179.99)) 
         {
             // Indicate we've changed the configuration
-            configured = VS_FALSE;
+            configured = false;
 
             // Convert the angles to Ascension-friendly format
             az = (short)(h / VS_MSTAR_SCALE_ANGLE);

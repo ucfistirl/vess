@@ -148,7 +148,7 @@ protected:
     char             lastCommand[VS_KB_COMMAND_LENGTH];
 
     // Flag to indicate when a command is ready to be retrieved
-    int              commandReady;
+    bool             commandReady;
 
     // The input mode
     int              mode;
@@ -158,7 +158,7 @@ protected:
 
     // Flag to indicate whether the mode has been toggled by the 
     // "command" key
-    int              modeToggled;
+    bool             modeToggled;
 
     // Keyboard-specific mapping functions
     int              mapToButton(unsigned virtKey, unsigned flags);
@@ -191,7 +191,7 @@ public:
     vsInputButton         *getButton(int index);
 
     // Retrieve the current command string
-    int                   isCommandReady();
+    bool                  isCommandReady();
     char                  *getCommand();
 
     // Set/get the operational mode

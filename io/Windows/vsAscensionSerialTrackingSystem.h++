@@ -205,7 +205,7 @@ class VS_IO_DLL vsAscensionSerialTrackingSystem : public vsTrackingSystem
 protected:
    
     // Flag to indicate whether multiple serial ports are being used
-    int                    multiSerial;
+    bool                   multiSerial;
 
     // Pointer name for the serial port object(s)
     vsSerialPort           *port[VS_AS_MAX_TRACKERS];
@@ -217,10 +217,10 @@ protected:
     // For multithreading, private copy of tracker data, thread 
     // state variables, and synchronization structures
     vsMotionTracker        *privateTracker[VS_AS_MAX_TRACKERS];
-    int                    forked;
+    bool                   forked;
     HANDLE                 serverThread;
     DWORD                  serverThreadID;
-    int                    serverDone;
+    bool                   serverDone;
     CRITICAL_SECTION       criticalSection;
 
     // Flock parameters
@@ -228,7 +228,7 @@ protected:
     int                    addressMode;
     int                    ercAddress;
     int                    dataFormat;
-    int                    streaming;
+    bool                   streaming;
     double                 posScale;
     int                    ornScale;
 

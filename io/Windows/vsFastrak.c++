@@ -61,9 +61,9 @@ vsFastrak::vsFastrak(int portNumber, long baud, int nTrackers)
     // Initialize variables
     port = NULL;
     numTrackers = 0;
-    forked = VS_FALSE;
+    forked = false;
     serverThreadID = 0;
-    streaming = VS_FALSE;
+    streaming = false;
 
     // Set up a coordinate conversion quaternion that will convert
     // Polhemus coordinates to VESS coordinates
@@ -148,7 +148,7 @@ vsFastrak::~vsFastrak()
     if (forked)
     {
         printf("vsFastrak::~vsFastrak:  Notifying server thread to quit\n");
-        serverDone = VS_TRUE;
+        serverDone = true;
         
         // Wait (up to 3 seconds) for the thread to quit
         GetExitCodeThread(serverThread, &exitCode);
@@ -204,7 +204,7 @@ DWORD WINAPI vsFastrak::serverLoop(void *parameter)
     instance = (vsFastrak *)parameter;
 
     // Initialize the done flag
-    instance->serverDone = VS_FALSE;
+    instance->serverDone = false;
 
     // Start streaming data
     instance->startStream();
@@ -427,7 +427,7 @@ void vsFastrak::initOutputFormat()
 // From Harbinson&Steele.  Determines whether this machine is big- or
 // little-endian.
 // ------------------------------------------------------------------------
-int vsFastrak::isBigEndian()
+bool vsFastrak::isBigEndian()
 {
     // Union of a long and four bytes used to perform the test
     union
@@ -998,7 +998,7 @@ void vsFastrak::forkTracking()
     printf("    Server Thread ID is %d\n", serverThreadID);
     
     // Set the forked flag to indicate we've started running multithreaded
-    forked = VS_TRUE;
+    forked = true;
 }
 
 // ------------------------------------------------------------------------
@@ -1014,7 +1014,7 @@ void vsFastrak::startStream()
 
     // Set the streaming flag to true, so we know the FASTRAK is now 
     // streaming data
-    streaming = VS_TRUE;
+    streaming = true;
 }
 
 // ------------------------------------------------------------------------
@@ -1030,7 +1030,7 @@ void vsFastrak::stopStream()
 
     // Clear the streaming flag, so we know that the FASTRAK is not
     // streaming data
-    streaming = VS_FALSE;
+    streaming = false;
 }
 
 // ------------------------------------------------------------------------
@@ -1316,7 +1316,7 @@ void vsFastrak::setBaudRate(long baud)
     char buf[20];
     int  baudCode;
     int  length;
-    int  wasStreaming;
+    bool  wasStreaming;
 
     // Remember if we were streaming data
     wasStreaming = streaming;

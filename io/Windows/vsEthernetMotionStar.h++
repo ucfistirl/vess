@@ -349,19 +349,19 @@ protected:
     // For multithreading, private copy of tracker data, thread 
     // state variables, and synchronization structures
     vsMotionTracker        *privateTracker[VS_MSTAR_MAX_TRACKERS];
-    int                    forked;
+    bool                   forked;
     HANDLE                 serverThread;
     DWORD                  serverThreadID;
-    int                    serverDone;
+    bool                   serverDone;
     CRITICAL_SECTION       criticalSection;
 
     // MotionStar parameters
     int                     numChassis;
     int                     addressMode;
-    int                     master;
+    bool                    master;
     int                     xmtrAddress;
-    int                     streaming;
-    int                     configured;
+    bool                    streaming;
+    bool                    configured;
     double                  posScale;
     int                     ornScale;
 
@@ -403,7 +403,7 @@ public:
 
                                vsEthernetMotionStar(char *serverName, int port,
                                                     int nTrackers, 
-                                                    int masterFlag, 
+                                                    bool masterFlag, 
                                                     int dataFormat);
     virtual                    ~vsEthernetMotionStar();
 

@@ -180,10 +180,10 @@ protected:
     // For multithreading, private copy of tracker data, thread 
     // state variables, and synchronization structures
     vsMotionTracker        *privateTracker[VS_IS_MAX_TRACKERS];
-    int                    forked;
+    bool                   forked;
     HANDLE                 serverThread;
     DWORD                  serverThreadID;
-    int                    serverDone;
+    bool                   serverDone;
     CRITICAL_SECTION       criticalSection;
 
     // Array representing the current output format
@@ -191,13 +191,13 @@ protected:
     int                    formatNum;
 
      // Indicates whether or not this machine is big-endian
-    int                    bigEndian;
+    bool                   bigEndian;
 
     // Size of the output record (for each tracker)
     int                    outputSize;
 
     // Indicates whether or not we're streaming data 
-    int                    streaming;
+    bool                   streaming;
 
     // Units for positional output
     int                    outputUnits;
@@ -208,7 +208,7 @@ protected:
     // Utility functions
     void                   enumerateTrackers();
     void                   initOutputFormat();
-    int                    isBigEndian();
+    bool                   isBigEndian();
     void                   endianSwap(float *inFloat, float *outFloat);
     void                   setBinaryOutput();
 

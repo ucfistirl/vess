@@ -61,9 +61,9 @@ vsIS600::vsIS600(int portNumber, long baud, int nTrackers)
     // Initialize variables
     port = NULL;
     numTrackers = 0;
-    forked = VS_FALSE;
+    forked = false;
     serverThreadID = 0;
-    streaming = VS_FALSE;
+    streaming = false;
 
     // Set up a coordinate conversion quaternion that will convert
     // Polhemus (Intersense) coordinates to VESS coordinates
@@ -146,7 +146,7 @@ vsIS600::~vsIS600()
     if (forked)
     {
         printf("vsIS600::~vsIS600:  Notifying server thread to quit\n");
-        serverDone = VS_TRUE;
+        serverDone = true;
     }
 
     // Shut down the IS-600 if we're not forked (the server thread will
@@ -188,7 +188,7 @@ DWORD WINAPI vsIS600::serverLoop(void *parameter)
     instance = (vsIS600 *)parameter;
     
     // Initialize the done flag
-    instance->serverDone = VS_FALSE;
+    instance->serverDone = false;
 
     // Start streaming data
     instance->startStream();
@@ -359,7 +359,7 @@ void vsIS600::initOutputFormat()
 // From Harbinson&Steele.  Determines whether this machine is big- or
 // little-endian.
 // ------------------------------------------------------------------------
-int vsIS600::isBigEndian()
+bool vsIS600::isBigEndian()
 {
     // Union of a long and four bytes used to perform the test
     union
@@ -949,7 +949,7 @@ void vsIS600::startStream()
 
     // Set the streaming flag so we know that the IS-600 is now streaming 
     // data
-    streaming = VS_TRUE;
+    streaming = true;
 }
 
 // ------------------------------------------------------------------------
@@ -965,7 +965,7 @@ void vsIS600::stopStream()
 
     // Clear the streaming flag so we know that the IS-600 is not streaming 
     // data
-    streaming = VS_FALSE;
+    streaming = false;
 }
 
 // ------------------------------------------------------------------------

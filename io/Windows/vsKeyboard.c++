@@ -43,7 +43,7 @@ vsKeyboard::vsKeyboard(int kbMode)
 
     // Clear the command string
     sprintf(command, "");
-    commandReady = VS_FALSE;
+    commandReady = false;
 
     // Create a  vsInputButton for each key except the lower-case letter
     // keys.  These are mapped to the same vsInputButton as the upper-case
@@ -319,9 +319,9 @@ int vsKeyboard::mapToButton(unsigned virtKey, unsigned flags)
 // ------------------------------------------------------------------------
 int vsKeyboard::mapToChar(unsigned virtKey)
 {
-    int shifted;
+    bool shifted;
     SHORT capsState;
-    int caps;
+    bool caps;
     
     // If any modifier keys aside from SHIFT are pressed, we don't have
     // a valid character
@@ -334,16 +334,16 @@ int vsKeyboard::mapToChar(unsigned virtKey)
     // See if either shift key is pressed
     if ((button[VS_KEY_LSHIFT]->isPressed()) || 
         (button[VS_KEY_RSHIFT]->isPressed()))
-        shifted = VS_TRUE;
+        shifted = true;
     else
-        shifted = VS_FALSE;
+        shifted = false;
         
     // Check the caps lock key
     capsState = GetKeyState(VK_CAPITAL);
     if (capsState & VS_KB_FLAG_KEY_TOGGLED)
-        caps = VS_TRUE;
+        caps = true;
     else
-        caps = VS_FALSE;
+        caps = false;
         
     // Invert the caps state if shifted is true
     caps ^= shifted;
@@ -577,7 +577,7 @@ void vsKeyboard::pressKey(unsigned virtKey, unsigned flags)
                     sprintf(command, "");
 
                     // Set the command ready flag
-                    commandReady = VS_TRUE;
+                    commandReady = true;
                 }
             }
         }
@@ -587,7 +587,7 @@ void vsKeyboard::pressKey(unsigned virtKey, unsigned flags)
             if (index == commandKey)
             {
                 // Switch to terminal mode to obtain the command
-                modeToggled = VS_TRUE;
+                modeToggled = true;
                 mode = VS_KB_MODE_TERMINAL;
 
                 // Clear the command string
@@ -718,7 +718,7 @@ void vsKeyboard::update()
 // ------------------------------------------------------------------------
 // Return the state of the command string.
 // ------------------------------------------------------------------------
-int vsKeyboard::isCommandReady()
+bool vsKeyboard::isCommandReady()
 {
     return commandReady;
 }
@@ -728,13 +728,13 @@ int vsKeyboard::isCommandReady()
 // ------------------------------------------------------------------------
 char *vsKeyboard::getCommand()
 {
-    commandReady = VS_FALSE;
+    commandReady = false;
 
     // If we entered terminal mode by the command key, switch 
     // back to button mode now
     if (modeToggled)
     {
-        modeToggled = VS_FALSE;
+        modeToggled = false;
         mode = VS_KB_MODE_BUTTON;
     }
 

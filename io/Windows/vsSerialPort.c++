@@ -266,37 +266,37 @@ int vsSerialPort::readCharacter()
 // ------------------------------------------------------------------------
 bool vsSerialPort::isDataWaiting(double secondsToWait)
 {
-	COMSTAT portStatus;
-	DWORD portErrors;
-	DWORD startTime, curTime, waitTime;
-	
+    COMSTAT portStatus;
+    DWORD portErrors;
+    DWORD startTime, curTime, waitTime;
+
     // Figure out how much time to wait (our resolution is milliseconds)
-	if( fabs(secondsToWait) < 1e-6 )
-		waitTime = 0;
-	else
-		waitTime = (DWORD)(secondsToWait*1000.0);
+    if( fabs(secondsToWait) < 1e-6 )
+        waitTime = 0;
+    else
+        waitTime = (DWORD)(secondsToWait*1000.0);
 
     // Get the starting time
-	startTime = timeGetTime();
+    startTime = timeGetTime();
 
-	// Keep checking for data on the serial port for the given time	
-	do
-	{
-		if (ClearCommError(portDescriptor,&portErrors,&portStatus))
-		{
+    // Keep checking for data on the serial port for the given time
+    do
+    {
+        if (ClearCommError(portDescriptor,&portErrors,&portStatus))
+        {
             // Is there any data in the input queue?
-			if (portStatus.cbInQue > 0)
-				return true;
-		}
-		else
-			return false;
-		
-		curTime = timeGetTime();
-	}
+            if (portStatus.cbInQue > 0)
+                return true;
+        }
+        else
+            return false;
+
+        curTime = timeGetTime();
+    }
     // Loop while we still have time left
-	while ( (curTime - startTime) < waitTime );
-	
-	return false;
+    while ( (curTime - startTime) < waitTime );
+
+    return false;
 }
 
 
@@ -449,10 +449,10 @@ void vsSerialPort::setStopBits(int stopBits)
 } 
 
 // ------------------------------------------------------------------------
-// Raises (if the parameter is VS_TRUE) or lowers (if VS_FALSE) the RTS
-// line on the serial port
+// Raises (if the parameter is true) or lowers (if false) the RTS line on
+// the serial port
 // ------------------------------------------------------------------------
-void vsSerialPort::setRTS(int enable)
+void vsSerialPort::setRTS(bool enable)
 {
     // Check if we're raising or dropping RTS
     if (enable)
@@ -462,10 +462,10 @@ void vsSerialPort::setRTS(int enable)
 }
 
 // ------------------------------------------------------------------------
-// Raises (if the parameter is VS_TRUE) or lowers (if VS_FALSE) the DTR
-// line on the serial port
+// Raises (if the parameter is true) or lowers (if false) the DTR line on
+// the serial port
 // ------------------------------------------------------------------------
-void vsSerialPort::setDTR(int enable)
+void vsSerialPort::setDTR(bool enable)
 {
     // Check if we're raising or dropping DTR
     if (enable)
