@@ -32,8 +32,6 @@ class vsSerialPort : public vsObject
 {
 private:
 
-    int               portNumber;
-   
     int               portDescriptor;
     struct termios    oldAttributes;
     struct termios    currentAttributes;

@@ -32,8 +32,6 @@ class VS_IO_DLL vsSerialPort : public vsObject
 {
 private:
 
-    int               portNumber;
-   
     HANDLE            portDescriptor;
     DCB               oldAttributes;
     DCB               currentAttributes;
