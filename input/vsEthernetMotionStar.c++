@@ -1401,9 +1401,9 @@ void vsEthernetMotionStar::setReferenceFrame(int trackerNum, float h, float p,
         {
             configured = VS_FALSE;
 
-            az = h / VS_MSTAR_SCALE_ANGLE;
-            pt = p / VS_MSTAR_SCALE_ANGLE;
-            rl = r / VS_MSTAR_SCALE_ANGLE;
+            az = (short)(h / VS_MSTAR_SCALE_ANGLE);
+            pt = (short)(p / VS_MSTAR_SCALE_ANGLE);
+            rl = (short)(r / VS_MSTAR_SCALE_ANGLE);
 
             // Change the configuration for the appropriate bird(s)
             if (trackerNum == VS_MSTAR_ALL_TRACKERS)
