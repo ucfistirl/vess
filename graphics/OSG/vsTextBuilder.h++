@@ -43,8 +43,10 @@
 #define CALLBACK
 #endif
 
-#define VS_DEFAULT_FONT_POINT_SIZE  10
+#define VS_DEFAULT_FONT_POINT_SIZE  12
 #define VS_DEFAULT_FONT_RESOLUTION  72
+
+#define VS_OSG_TEXT_SCALE           0.07514f
 
 enum vsTextBuilderJustification
 {
@@ -56,7 +58,6 @@ enum vsTextBuilderJustification
 class vsTextBuilder
 {
 private:
-    // Static variables used by the glu tesselate callbacks.
     static vsVector         currentColor;
     static vsComponent      *letterComponent;
     static vsGeometry       *primitiveGeometry;
@@ -64,21 +65,18 @@ private:
     static int              primitiveLength;
     static double           letterOffset;
 
-    // Variables to describe the text this builder creates.
     FTFace                  face;
     vsVector                color;
     vsMatrix                transformMatrix;
+    vsMatrix                osgScaleMatrix;
     unsigned int            pointSize;
     unsigned int            resolution;
     int                     justification;
 
-    // Boolean variables used to insure we have all the information needed
-    // to create text.
     bool                    fontLoaded;
     bool                    error;
     bool                    initialized;
 
-    // Tesselate Callbacks.
     static void CALLBACK    tesselateError(GLenum type);
     static void CALLBACK    tesselateVertex(void *vertexData);
     static void CALLBACK    tesselateBegin(GLenum type);
@@ -88,33 +86,28 @@ private:
                                              GLfloat weight[4],
                                              void **outData);
 
-    // Tesselate the glyph and return the offset the glyph introduces.
     double                  tesselateLetter(FT_Glyph glyph);
+
+    void                    setSize(unsigned int newPointSize,
+                                    unsigned int newResolution);
 
 VS_INTERNAL:
 
     static void             deleteVertexArray();
 
 public:
-    // Constructors that accept different setup data.
     vsTextBuilder();
     vsTextBuilder(char *newFont);
-    vsTextBuilder(char *newFont, unsigned int newPointSize,
-                  unsigned int newResolution);
-    vsTextBuilder(char *newFont, unsigned int newPointSize,
-                  unsigned int newResolution, vsVector newColor);
+    vsTextBuilder(char *newFont, vsVector newColor);
+    vsTextBuilder(char *newFont, vsVector newColor, vsMatrix newTransform);
 
     ~vsTextBuilder();
 
-    // Set the font, color, and size.
     void         setFont(char *newFont);
     void         setColor(vsVector newColor);
-    void         setSize(unsigned int newPointSize,
-                         unsigned int newResolution);
     void         setTransformMatrix(vsMatrix newTransform);
     void         setJustification(int newJustification);
 
-    // Return a vsComponent that draws the given text.
     vsComponent  *buildText(char *text);
 };
 

@@ -59,6 +59,11 @@ vsTextBuilder::vsTextBuilder()
     // Initialize the transform to the identity so it does not alter
     // the appearance of the text.
     transformMatrix.setIdentity();
+
+    // Set the osg scale matrix.  This matrix attempts to scale down the text
+    // so it matches with the Performer size.
+    osgScaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
+        VS_OSG_TEXT_SCALE);
 }
 
 // ------------------------------------------------------------------------
@@ -88,44 +93,17 @@ vsTextBuilder::vsTextBuilder(char *newFont)
     // Initialize the transform to the identity so it does not alter
     // the appearance of the text.
     transformMatrix.setIdentity();
+
+    // Set the osg scale matrix.  This matrix attempts to scale down the text
+    // So it matches with the Performer size.
+    osgScaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
+        VS_OSG_TEXT_SCALE);
 }
 
 // ------------------------------------------------------------------------
-// Constructor - Loads the specified font, sets the font size to the
-// specified values, and sets the color to white.
+// Constructor - Loads the specified font and sets the color to given color.
 // ------------------------------------------------------------------------
-vsTextBuilder::vsTextBuilder(char *newFont, unsigned int newPointSize,
-                             unsigned int newResolution)
-{
-    // Initialize state variables to indicate the builder is not ready
-    // to build any text.
-    fontLoaded = false;
-    error = false;
-    initialized = false;
-
-    // Set the justification to the default centered.
-    setJustification(VS_TEXTBUILDER_JUSTIFY_CENTER);
-
-    // Set the color to the default of white.
-    setColor(vsVector(1.0, 1.0, 1.0, 1.0));
-
-    // Attempt to set the font to the given one.
-    setFont(newFont);
-
-    // Set the size to the given size.
-    setSize(newPointSize, newResolution);
-
-    // Initialize the transform to the identity so it does not alter
-    // the appearance of the text.
-    transformMatrix.setIdentity();
-}
-
-// ------------------------------------------------------------------------
-// Constructor - Loads the specified font, sets the font size to the
-// specified values, and sets the color to given color.
-// ------------------------------------------------------------------------
-vsTextBuilder::vsTextBuilder(char *newFont, unsigned int newPointSize,
-                             unsigned int newResolution, vsVector newColor)
+vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor)
 {
     // Initialize state variables to indicate the builder is not ready
     // to build any text.
@@ -142,12 +120,51 @@ vsTextBuilder::vsTextBuilder(char *newFont, unsigned int newPointSize,
     // Attempt to set the font to the given one.
     setFont(newFont);
 
-    // Set the size to the given size.
-    setSize(newPointSize, newResolution);
+    // Set the size to the defined defaults.
+    setSize(VS_DEFAULT_FONT_POINT_SIZE, VS_DEFAULT_FONT_RESOLUTION);
 
     // Initialize the transform to the identity so it does not alter
     // the appearance of the text.
     transformMatrix.setIdentity();
+
+    // Set the osg scale matrix.  This matrix attempts to scale down the text
+    // So it matches with the Performer size.
+    osgScaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
+        VS_OSG_TEXT_SCALE);
+}
+
+// ------------------------------------------------------------------------
+// Constructor - Loads the specified font and sets the color to given color.
+// Also set the transform that will be automatrically applied to the text.
+// ------------------------------------------------------------------------
+vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor,
+                             vsMatrix newTransform)
+{
+    // Initialize state variables to indicate the builder is not ready
+    // to build any text.
+    fontLoaded = false;
+    error = false;
+    initialized = false;
+
+    // Set the justification to the default centered.
+    setJustification(VS_TEXTBUILDER_JUSTIFY_CENTER);
+
+    // Set the color to the given new color.
+    setColor(newColor);
+
+    // Attempt to set the font to the given one.
+    setFont(newFont);
+
+    // Set the size to the defined defaults.
+    setSize(VS_DEFAULT_FONT_POINT_SIZE, VS_DEFAULT_FONT_RESOLUTION);
+
+    // Initialize the transform to the given matrix.
+    setTransformMatrix(newTransform);
+
+    // Set the osg scale matrix.  This matrix attempts to scale down the text
+    // So it matches with the Performer size.
+    osgScaleMatrix.setScale(VS_OSG_TEXT_SCALE, VS_OSG_TEXT_SCALE,
+        VS_OSG_TEXT_SCALE);
 }
 
 // ------------------------------------------------------------------------
@@ -408,6 +425,12 @@ vsComponent *vsTextBuilder::buildText(char *text)
     // Create and attach a transform to this text with the stored matrix.
     textTransform = new vsTransformAttribute();
     textTransform->setDynamicTransform(transformMatrix);
+
+    // Set the post transform to the osg scale matrix.  This will cause the
+    // text to be scaled after the transform is applied.
+    textTransform->setPostTransform(osgScaleMatrix);
+
+    // Give the component the transform attribute.
     textComponent->addAttribute(textTransform);
 
     // Create a root node with no attributes attached to allow for the
@@ -437,10 +460,11 @@ void CALLBACK vsTextBuilder::tesselateVertex(void *vertexData)
 {
     vsVector  *vertex;
 
-    // Create a VESS vector from the data.
+    // Create a VESS vector from the data.  Swap the y and z values so
+    // the text is on the x and z axis like Performer's text.
     vertex = new vsVector(((double *)vertexData)[0] + letterOffset,
-        ((double *)vertexData)[1],
-        ((double *)vertexData)[2]);
+        ((double *)vertexData)[2],
+        ((double *)vertexData)[1]);
 
     // Place the vertex into the vertex array.
     vertexArray->setData(primitiveLength, vertex);
