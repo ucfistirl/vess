@@ -3,15 +3,6 @@ lib_LIBRARIES = libvsSystem.a libvsSystem.so
 
 # Sources for libvsSystem.a
 libvsSystem_a_SOURCES = \
-                        common/vsMenuButton.c++ \
-                        common/vsMenuFrame.c++ \
-                        common/vsMenuIterator.c++ \
-                        common/vsMenuLabel.c++ \
-                        common/vsMenuLink.c++ \
-                        common/vsMenuObject.c++ \
-                        common/vsMenuSystem.c++ \
-                        common/vsMenuToggleButton.c++ \
-                        common/vsMenuTree.c++ \
                         common/vsRemoteInterface.c++ \
                         common/vsRemoteInterfaceBuffer.c++ \
                         @SG@/vsSystem.c++ 
@@ -21,15 +12,6 @@ libvsSystem_so_SOURCES = $(libvsSystem_a_SOURCES)
 
 # Header files
 include_HEADERS = \
-                  common/vsMenuButton.h++ \
-                  common/vsMenuFrame.h++ \
-                  common/vsMenuIterator.h++ \
-                  common/vsMenuLabel.h++ \
-                  common/vsMenuLink.h++ \
-                  common/vsMenuObject.h++ \
-                  common/vsMenuSystem.h++ \
-                  common/vsMenuToggleButton.h++ \
-                  common/vsMenuTree.h++ \
                   common/vsRemoteInterface.h++ \
                   common/vsRemoteInterfaceBuffer.h++ \
                   @SG@/vsSystem.h++
