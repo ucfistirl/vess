@@ -695,9 +695,9 @@ void vsPane::updateView()
 
     // If a viewpoint attribute is attached, update it
     viewAttr = (vsViewpointAttribute *)
-	((vsViewpointAttribute::getMap())->mapFirstToSecond(sceneView));
+        ((vsViewpointAttribute::getMap())->mapFirstToSecond(sceneView));
     if (viewAttr)
-	viewAttr->update();
+        viewAttr->update();
     
     // Get the projection values from the vsView and the size of the pane,
     // and adjust the osgSceneView and osgCamera, if necessary
@@ -705,11 +705,11 @@ void vsPane::updateView()
     getSize(&paneWidth, &paneHeight);
     sceneView->getProjectionData(&projMode, &projHval, &projVval);
     if ((curProjMode != projMode) || (curProjHval != projHval) ||
-	(curProjVval != projVval) || (curWidth != paneWidth) ||
+        (curProjVval != projVval) || (curWidth != paneWidth) ||
         (curHeight != paneHeight))
     {
         // Check the projection mode
-	if (projMode == VS_VIEW_PROJMODE_PERSP)
+        if (projMode == VS_VIEW_PROJMODE_PERSP)
         {
             // Get the size of the pane and calculate the aspect ratio.
             // If the height of the pane is zero or less, the aspect
@@ -766,48 +766,48 @@ void vsPane::updateView()
             osgCamera->setFOV(hFOV, vFOV, osgCamera->zNear(), 
                 osgCamera->zFar());
         }
-	else
-	{
+        else
+        {
             // Check the horizontal and vertical values to see if and which
             // parameters are set to default values.
-	    if ((projHval <= 0.0) && (projVval <= 0.0))
-	    {
-		// Neither specified, use default values
-		osgCamera->setOrtho(-VS_PANE_DEFAULT_ORTHO_PLANE, 
+            if ((projHval <= 0.0) && (projVval <= 0.0))
+            {
+                // Neither specified, use default values
+                osgCamera->setOrtho(-VS_PANE_DEFAULT_ORTHO_PLANE, 
                     VS_PANE_DEFAULT_ORTHO_PLANE, -VS_PANE_DEFAULT_ORTHO_PLANE, 
                     VS_PANE_DEFAULT_ORTHO_PLANE, osgCamera->zNear(), 
                     osgCamera->zFar());
-	    }
-	    else if (projHval <= 0.0)
-	    {
-		// Vertical specified, horizontal aspect match
-		getSize(&paneWidth, &paneHeight);
-		aspectMatch = (projVval / (double)paneHeight) *
-		    (double)paneWidth;
-		osgCamera->setOrtho(-aspectMatch, aspectMatch, -projVval, 
+            }
+            else if (projHval <= 0.0)
+            {
+                // Vertical specified, horizontal aspect match
+                getSize(&paneWidth, &paneHeight);
+                aspectMatch = (projVval / (double)paneHeight) *
+                    (double)paneWidth;
+                osgCamera->setOrtho(-aspectMatch, aspectMatch, -projVval, 
                     projVval, osgCamera->zNear(), osgCamera->zFar());
-	    }
-	    else if (projVval <= 0.0)
-	    {
-		// Horizontal specified, vertical aspect match
-		getSize(&paneWidth, &paneHeight);
-		aspectMatch = (projHval / (double)paneWidth) *
-		    (double)paneHeight;
-		osgCamera->setOrtho(-projHval, projHval, -aspectMatch, 
+            }
+            else if (projVval <= 0.0)
+            {
+                // Horizontal specified, vertical aspect match
+                getSize(&paneWidth, &paneHeight);
+                aspectMatch = (projHval / (double)paneWidth) *
+                    (double)paneHeight;
+                osgCamera->setOrtho(-projHval, projHval, -aspectMatch, 
                     aspectMatch, osgCamera->zNear(), osgCamera->zFar());
-	    }
-	    else
-	    {
-		// Both specified, set values explicitly
-		osgCamera->setOrtho(-projHval, projHval, -projVval, 
+            }
+            else
+            {
+                // Both specified, set values explicitly
+                osgCamera->setOrtho(-projHval, projHval, -projVval, 
                     projVval, osgCamera->zNear(), osgCamera->zFar());
-	    }
-	}
-	
+            }
+        }
+        
         // Save the new projection values
-	curProjMode = projMode;
-	curProjHval = projHval;
-	curProjVval = projVval;
+        curProjMode = projMode;
+        curProjHval = projHval;
+        curProjVval = projVval;
         curWidth = paneWidth;
         curHeight = paneHeight;
     }
