@@ -743,6 +743,41 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
 }
 
 // ------------------------------------------------------------------------
+// Enables lighting on this vsComponent. This is a recursive call, and any
+// component children and geometry children will have their lighting
+// enabled.
+// ------------------------------------------------------------------------
+void vsComponent::enableLighting()
+{
+    int loop;
+   
+    // Loop through all the children
+    for(loop = 0; loop < childCount; loop++)
+    {
+        // Enable lighting on this child
+        ((vsNode*)childList[loop])->enableLighting();
+    }
+}
+
+// ------------------------------------------------------------------------
+// Disables lighting on this vsComponent. This is a recursive call, and any
+// component children and geometry children will have their lighting
+// disabled.
+// ------------------------------------------------------------------------
+void vsComponent::disableLighting()
+{
+    int loop;
+ 
+    // Loop through all the children
+    for(loop = 0; loop < childCount; loop++)
+    {
+        // Disable lighting for this child
+        ((vsNode*)childList[loop])->disableLighting();
+    }
+}
+   
+
+// ------------------------------------------------------------------------
 // Enables culling (view frustum and otherwise) on this node
 // ------------------------------------------------------------------------
 void vsComponent::enableCull()
