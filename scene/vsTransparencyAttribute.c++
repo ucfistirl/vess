@@ -32,6 +32,7 @@
 vsTransparencyAttribute::vsTransparencyAttribute()
 {
     quality = VS_TRANSP_QUALITY_DEFAULT;
+    occlusion = VS_TRUE;
     transpValue = PFTR_ON;
 }
 
@@ -67,6 +68,9 @@ void vsTransparencyAttribute::enable()
             transpValue = PFTR_HIGH_QUALITY;
             break;
     }
+
+    if (occlusion == VS_FALSE)
+        transpValue |= PFTR_NO_OCCLUDE;
     
     markOwnersDirty();
 }
@@ -118,6 +122,28 @@ void vsTransparencyAttribute::setQuality(int newQuality)
 int vsTransparencyAttribute::getQuality()
 {
     return quality;
+}
+
+// ------------------------------------------------------------------------
+// Enables the z-buffer when drawing transparent geometry
+// ------------------------------------------------------------------------
+void vsTransparencyAttribute::enableOcclusion()
+{
+    occlusion = VS_TRUE;
+
+    if (isEnabled())
+        enable();
+}
+
+// ------------------------------------------------------------------------
+// Disables the z-buffer when drawing transparent geometry
+// ------------------------------------------------------------------------
+void vsTransparencyAttribute::disableOcclusion()
+{
+    occlusion = VS_FALSE;
+
+    if (isEnabled())
+        enable();
 }
 
 // ------------------------------------------------------------------------

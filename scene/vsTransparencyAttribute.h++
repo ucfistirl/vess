@@ -38,6 +38,7 @@ class vsTransparencyAttribute : public vsStateAttribute
 private:
 
     int         quality;
+    int         occlusion;
     int         transpValue;
 
 VS_INTERNAL:
@@ -62,6 +63,8 @@ public:
     
     void           setQuality(int newQuality);
     int            getQuality();
+    void           enableOcclusion();
+    void           disableOcclusion();
 };
 
 #endif
