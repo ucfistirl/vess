@@ -122,6 +122,15 @@ void vsPipe::done()
 
 // ------------------------------------------------------------------------
 // Internal function
+// Returns the currently open X Windows display
+// ------------------------------------------------------------------------
+Display *vsPipe::getXDisplay()
+{
+    return ((Display *) pfGetCurWSConnection());
+}
+
+// ------------------------------------------------------------------------
+// Internal function
 // Sets the screen object for this pipe object
 // ------------------------------------------------------------------------
 void vsPipe::setScreen(vsScreen *newScreen)
