@@ -23,6 +23,7 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <sys/time.h>
 
 // ------------------------------------------------------------------------
 // Constructor - Initializes the window by creating a Performer pipe window
@@ -64,7 +65,7 @@ vsWindow::vsWindow(vsScreen *parent, int hideBorder) : childPaneList(1, 1)
     while (!(performerPipeWindow->isOpen()))
     {
         pfFrame();
-	XFlush(xWindowDisplay);
+        XFlush(xWindowDisplay);
     }
 
     // Get the window that Performer thinks is topmost, and then query the
@@ -285,6 +286,139 @@ void vsWindow::setName(char *newName)
 }
 
 // ------------------------------------------------------------------------
+// Saves a copy of the image currently displayed in the window to the given
+// file (in RGB format).
+// ------------------------------------------------------------------------
+void vsWindow::saveImage(char *filename)
+{
+    Display *xWindowDisplay;
+    Drawable winDrawable;
+    Window rootWin;
+    int xpos, ypos;
+    unsigned int width, height;
+    unsigned int border, depth;
+    XImage *image;
+
+    unsigned long pixelData;
+    unsigned long redMask, greenMask, blueMask;
+    unsigned long redMax, greenMax, blueMax;
+    unsigned long redPixel, greenPixel, bluePixel;
+    int redShift, greenShift, blueShift;
+    unsigned short *redBuffer, *greenBuffer, *blueBuffer;
+    int loop, sloop;
+    IMAGE *imageOut;
+    unsigned short redVals[4096], greenVals[4096], blueVals[4096];
+    int tempInt;
+
+    // Get the connections to the X window system and to the drawable region
+    // of the window
+    xWindowDisplay = pfGetCurWSConnection();
+    winDrawable = performerPipeWindow->getWSDrawable();
+    
+    // Get the size and shape info for the window
+    XGetGeometry(xWindowDisplay, winDrawable, &rootWin, &xpos, &ypos,
+        &width, &height, &border, &depth);
+
+    // Capture the contents of the window into an X image struture
+    image = XGetImage(xWindowDisplay, winDrawable, xpos, ypos, width, height,
+        AllPlanes, ZPixmap);
+    if (!image)
+    {
+        printf("vsWindow::saveImage: Unable to access contents of window\n");
+        return;
+    }
+    
+    // * Juggle the 'mask' bits around (as given by the X image structure)
+    // to determine which color data bits occupy what space within each
+    // pixel data unit. Also construct a lookup table to allow for quick
+    // scaling from whatever is stored in the data into the 0-255 range
+    // that the RGB format wants.
+
+    // Red size and offset
+    redMax = image->red_mask;
+    redShift = 0;
+    while (!(redMax & 1))
+    {
+        redShift++;
+        redMax >>= 1;
+    }
+    redMask = image->red_mask;
+    // Red scale lookup table
+    for (loop = 0; loop <= redMax; loop++)
+        redVals[loop] = ((loop * 255) / redMax);
+
+    // Green size and offset
+    greenMax = image->green_mask;
+    greenShift = 0;
+    while (!(greenMax & 1))
+    {
+        greenShift++;
+        greenMax >>= 1;
+    }
+    greenMask = image->green_mask;
+    // Green scale lookup table
+    for (loop = 0; loop <= greenMax; loop++)
+        greenVals[loop] = ((loop * 255) / greenMax);
+
+    // Blue size and offset
+    blueMax = image->blue_mask;
+    blueShift = 0;
+    while (!(blueMax & 1))
+    {
+        blueShift++;
+        blueMax >>= 1;
+    }
+    blueMask = image->blue_mask;
+    // Blue scale lookup table
+    for (loop = 0; loop <= blueMax; loop++)
+        blueVals[loop] = ((loop * 255) / blueMax);
+
+    redBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
+    greenBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
+    blueBuffer = (unsigned short *)malloc(sizeof(unsigned short) * width);
+
+    // Open the image file
+    imageOut = iopen(filename, "w", RLE(1), 3, width, height, 3);
+    if (!imageOut)
+    {
+        printf("vsWindow::saveImage: NULL image file pointer\n");
+        return;
+    }
+
+    // Process the image, one pixel at a time
+    for (loop = 0; loop < height; loop++)
+    {
+        for (sloop = 0; sloop < width; sloop++)
+        {
+            pixelData = XGetPixel(image, sloop, loop);
+
+            redPixel = pixelData & redMask;
+            redPixel >>= redShift;
+            redBuffer[sloop] = redVals[redPixel];
+
+            greenPixel = pixelData & greenMask;
+            greenPixel >>= greenShift;
+            greenBuffer[sloop] = greenVals[greenPixel];
+
+            bluePixel = pixelData & blueMask;
+            bluePixel >>= blueShift;
+            blueBuffer[sloop] = blueVals[bluePixel];
+        }
+
+        // Dump each completed row to the image file
+        tempInt = height - loop - 1;
+        putrow(imageOut, redBuffer, tempInt, 0);
+        putrow(imageOut, greenBuffer, tempInt, 1);
+        putrow(imageOut, blueBuffer, tempInt, 2);
+    }
+
+    // Clean up
+    iclose(imageOut);
+
+    XDestroyImage(image);
+}
+
+// ------------------------------------------------------------------------
 // Returns the Performer object associated with this object
 // ------------------------------------------------------------------------
 pfPipeWindow *vsWindow::getBaseLibraryObject()
@@ -326,3 +460,4 @@ void vsWindow::removePane(vsPane *targetPane)
 
     printf("vsWindow::removePane: Specified pane not part of window\n");
 }
+

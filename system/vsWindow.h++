@@ -73,6 +73,8 @@ public:
     
     void            setName(char *newName);
 
+    void            saveImage(char *filename);
+
     pfPipeWindow    *getBaseLibraryObject();
 };
 
