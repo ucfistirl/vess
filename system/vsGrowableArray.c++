@@ -156,7 +156,7 @@ void vsGrowableArray::setMaxSize(int newMax)
 
     maxSize = newMax;
     
-    if (maxSize > currentSize)
+    if (maxSize < currentSize)
         setSize(newMax);
 }
 
