@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(vess, 2.0.0, vess@ist.ucf.edu)
+AC_INIT(vess, 4.0.0, vess@ist.ucf.edu)
 AC_CONFIG_SRCDIR(motion/common/vsDrivingMotion.c++)
 AC_CONFIG_AUX_DIR(config) 
 
@@ -785,10 +785,10 @@ dnl Configure the the makefiles to write out.  Start with the ones that
 dnl will always be used (everything except sound and test).
 AC_CONFIG_FILES([makefile avatar/makefile graphics/makefile io/makefile])
 AC_CONFIG_FILES([llio/makefile motion/makefile system/makefile util/makefile])
-AC_CONFIG_FILES([scent/makefile])
+AC_CONFIG_FILES([scent/makefile environment/makefile])
 
 dnl Configure the subdirectories to build
-DIRECTORIES="system util graphics io llio motion avatar scent"
+DIRECTORIES="system util graphics io llio motion avatar scent environment"
 
 dnl List the individual library names.  These are used as dependencies
 dnl for the monolithic libvess library.
@@ -800,6 +800,8 @@ VESS_LIBS="$VESS_LIBS motion/libvsMotion.a motion/libvsMotion.so"
 VESS_LIBS="$VESS_LIBS system/libvsSystem.a system/libvsSystem.so"
 VESS_LIBS="$VESS_LIBS util/libvsUtil.a util/libvsUtil.so"
 VESS_LIBS="$VESS_LIBS scent/libvsScent.a scent/libvsScent.so"
+VESS_LIBS="$VESS_LIBS environment/libvsEnvironment.a"
+VESS_LIBS="$VESS_LIBS environment/libvsEnvironment.so"
 
 dnl See if sound is enabled.  If so add it to the list of subdirectories,
 dnl add it to the VESS_LIBS list, and add its makefile to the output.
