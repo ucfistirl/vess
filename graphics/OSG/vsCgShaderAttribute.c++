@@ -28,6 +28,7 @@
 vsCgShaderAttribute::vsCgShaderAttribute()
 {
     cgContext = new osgNVCg::Context();
+    cgContext->ref();
     cgVertexProgram = NULL;
     cgFragmentProgram = NULL;
 }
@@ -36,8 +37,12 @@ vsCgShaderAttribute::vsCgShaderAttribute()
 // ------------------------------------------------------------------------
 vsCgShaderAttribute::~vsCgShaderAttribute()
 {
-/* How to clean up osgNVCg? */
-/* Cannot delete programs or contexts at the time of this writing. */
+    cgContext->unref();
+
+    if (cgVertexProgram)
+        cgVertexProgram->unref();
+    if (cgFragmentProgram)
+        cgFragmentProgram->unref();
 }
 
 // ------------------------------------------------------------------------
@@ -77,7 +82,7 @@ void vsCgShaderAttribute::setCgContext(osgNVCg::Context *newContext)
         cgFragmentProgram->setContext(newContext);
 
     // Cannot delete contexts at the time of this writing.
-//    delete cgContext;
+    cgContext->unref();
     cgContext = newContext;
 }
 
@@ -155,7 +160,7 @@ void vsCgShaderAttribute::attachDuplicate(vsNode *theNode)
     newAttrib->setCgFragmentEntryPoint(getCgFragmentEntryPoint());
     newAttrib->setCgFragmentProfile(getCgFragmentProfile());
 
-    /* Copy the stuff somehow. */
+    /* Copy the parameters somehow. */
 
     // Add the new attribute to the given node
     theNode->addAttribute(newAttrib);
@@ -197,7 +202,10 @@ void vsCgShaderAttribute::setCgVertexSourceFile(char *filename)
 
     // Create the program if it has not been created.
     if (cgVertexProgram == NULL)
+    {
         cgVertexProgram = new osgNVCg::Program(cgContext);
+        cgVertexProgram->ref();
+    }
 
     cgVertexProgram->setFileName(filename);
 }
@@ -213,7 +221,10 @@ void vsCgShaderAttribute::setCgFragmentSourceFile(char *filename)
 
     // Create the program if it has not been created.
     if (cgFragmentProgram == NULL)
+    {
         cgFragmentProgram = new osgNVCg::Program(cgContext);
+        cgFragmentProgram->ref();
+    }
 
     cgFragmentProgram->setFileName(filename);
 }
@@ -251,7 +262,10 @@ void vsCgShaderAttribute::setCgVertexEntryPoint(char *entry)
 
     // Create the program if it has not been created.
     if (cgVertexProgram == NULL)
+    {
         cgVertexProgram = new osgNVCg::Program(cgContext);
+        cgVertexProgram->ref();
+    }
 
     cgVertexProgram->setEntryPoint(entry);
 }
@@ -267,7 +281,10 @@ void vsCgShaderAttribute::setCgFragmentEntryPoint(char *entry)
 
     // Create the program if it has not been created.
     if (cgFragmentProgram == NULL)
+    {
         cgFragmentProgram = new osgNVCg::Program(cgContext);
+        cgFragmentProgram->ref();
+    }
 
     cgFragmentProgram->setEntryPoint(entry);
 }
@@ -307,7 +324,10 @@ void vsCgShaderAttribute::setCgVertexProfile(vsCgShaderProfile profile)
 
     // Create the program if it has not been created.
     if (cgVertexProgram == NULL)
+    {
         cgVertexProgram = new osgNVCg::Program(cgContext);
+        cgVertexProgram->ref();
+    }
 
     cgVertexProgram->setProfile((osgNVCg::Program::Profile_type) profile);
 }
@@ -323,7 +343,10 @@ void vsCgShaderAttribute::setCgFragmentProfile(vsCgShaderProfile profile)
 
     // Create the program if it has not been created.
     if (cgFragmentProgram == NULL)
+    {
         cgFragmentProgram = new osgNVCg::Program(cgContext);
+        cgFragmentProgram->ref();
+    }
 
     cgFragmentProgram->setProfile((osgNVCg::Program::Profile_type) profile);
 }

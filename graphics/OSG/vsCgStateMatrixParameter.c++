@@ -36,6 +36,7 @@ vsCgStateMatrixParameter::vsCgStateMatrixParameter(
     // Create the parameter and add it to the program.
     stateMatrixParameter =
         new osgNVCg::StateMatrixParameter(getCgProgram(), variableName);
+    stateMatrixParameter->ref();
 
     // Add the parameter to the program, in case there will not be a
     // a parameter block to handle this.
@@ -47,6 +48,8 @@ vsCgStateMatrixParameter::vsCgStateMatrixParameter(
 // ------------------------------------------------------------------------
 vsCgStateMatrixParameter::~vsCgStateMatrixParameter()
 {
+    // Unreference the OSG object.
+    stateMatrixParameter->unref();
 }
 
 // ------------------------------------------------------------------------

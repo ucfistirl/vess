@@ -35,6 +35,7 @@ vsCgVectorParameter::vsCgVectorParameter(
     // Create the parameter and add it to the program.
     vectorParameter = new osgNVCg::VectorParameter(getCgProgram(),
         variableName);
+    vectorParameter->ref();
 
     // Add the parameter to the program, in case there will not be a
     // a parameter block to handle this.
@@ -46,6 +47,8 @@ vsCgVectorParameter::vsCgVectorParameter(
 // ------------------------------------------------------------------------
 vsCgVectorParameter::~vsCgVectorParameter()
 {
+    // Unreference the OSG object.
+    vectorParameter->unref();
 }
 
 // ------------------------------------------------------------------------
