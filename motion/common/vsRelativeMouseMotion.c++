@@ -143,7 +143,6 @@ void vsRelativeMouseMotion::updateOrientation()
     // Deal with each axis separetly
     for( int axis=0; axis<NUMBER_OF_AXES; axis++ )
     {
-        double newPosition;
         double delta;
         double currentRotation[3];
         vsQuat q;
