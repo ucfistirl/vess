@@ -22,24 +22,28 @@ LIBNAME = libvsMotion.a
 #----------------------------------------------------------------------
 SRCS = \
        vs3TrackerArm.c++ \
+       vsCollision.c++ \
        vsDrivingMotion.c++ \
        vsFlyingMotion.c++ \
        vsHeadMotion.c++ \
        vsKinematics.c++ \
        vsMotionModel.c++ \
-       vsTrackedMotion.c++ \
+       vsTerrainFollow.c++ \
        vsTrackballMotion.c++ \
+       vsTrackedMotion.c++ \
        vsWalkInPlace.c++
 
 OBJS = \
        vs3TrackerArm.o \
+       vsCollision.o \
        vsDrivingMotion.o \
        vsFlyingMotion.o \
        vsHeadMotion.o \
        vsKinematics.o \
        vsMotionModel.o \
-       vsTrackedMotion.o \
+       vsTerrainFollow.o \
        vsTrackballMotion.o \
+       vsTrackedMotion.o \
        vsWalkInPlace.o
 
 #----------------------------------------------------------------------
