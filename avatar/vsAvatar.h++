@@ -40,7 +40,7 @@ protected:
     
     vsComponent     *geometryRoot;
 
-    virtual int     readCfgLine(char *buffer);
+    int             readCfgLine(char *buffer);
     
     virtual void    *createObject(char *idString);
 

@@ -73,6 +73,14 @@ void vsAvatar::init(char *configFile)
 
     isInitted = 1;
 
+    // Check to see if the user wants to go without a config file
+    if (configFile == NULL)
+    {
+        setup(&objectArray, &stringArray, 0);
+        cfgFile = NULL;
+        return;
+    }
+
     cfgFile = fopen(configFile, "r");
     if (!cfgFile)
     {
@@ -163,7 +171,6 @@ int vsAvatar::readCfgLine(char *buffer)
         // Determine if there's anything left on the line
 	if (strlen(inBuffer) == 0)
 	    continue;
-//	printf("<%s>\n", inBuffer);
 	sscanf(inBuffer, "%s", keyword);
         
         // Figure out which type of line this is
@@ -382,7 +389,7 @@ void *vsAvatar::makeVsFlockOfBirds()
     char token[256];
     char strValue[256];
     int lineType = 0;
-    int portNumbers[10];
+    int portNumbers[200];
     int whichPort;
     int nTrackers = 0;
     int dataFormat = VS_AS_DATA_POS_QUAT;
@@ -405,14 +412,11 @@ void *vsAvatar::makeVsFlockOfBirds()
         
         if (!strcmp(token, "port"))
             sscanf(cfgLine, "%*s %d", &(portNumbers[0]));
-        else if (!strncmp(token, "port", 4))
+        else if (!strcmp(token, "mport"))
         {
-            // token "port#"
-            whichPort = token[4] - '0';
-            if ((whichPort > 9) || (whichPort < 0))
-                continue;
-
-            sscanf(cfgLine, "%*s %d", &(portNumbers[whichPort]));
+            sscanf(cfgLine, "%*s %d", &whichPort);
+            sscanf(cfgLine, "%*s %*d %d", &(portNumbers[whichPort]));
+            multiFlag = 1;
         }
         else if (!strcmp(token, "trackers"))
             sscanf(cfgLine, "%*s %d", &nTrackers);
@@ -446,8 +450,6 @@ void *vsAvatar::makeVsFlockOfBirds()
             else if (!strcmp(strValue, "VS_AS_MODE_STANDALONE"))
                 mode = VS_AS_MODE_STANDALONE;
         }
-        else if (!strcmp(token, "multiserial"))
-            sscanf(cfgLine, "%*s %d", &multiFlag);
         else if (!strcmp(token, "fork"))
             sscanf(cfgLine, "%*s %d", &forkFlag);
 	else if (!strcmp(token, "hemisphere"))
@@ -499,7 +501,7 @@ void *vsAvatar::makeVsSerialMotionStar()
     char token[256];
     char strValue[256];
     int lineType = 0;
-    int portNumbers[10];
+    int portNumbers[200];
     int whichPort;
     int nTrackers = 0;
     int dataFormat = VS_AS_DATA_POS_QUAT;
@@ -521,14 +523,11 @@ void *vsAvatar::makeVsSerialMotionStar()
         
         if (!strcmp(token, "port"))
             sscanf(cfgLine, "%*s %d", &(portNumbers[0]));
-        else if (!strncmp(token, "port", 4))
+        else if (!strcmp(token, "mport"))
         {
-            // token "port#"
-            whichPort = token[4] - '0';
-            if ((whichPort > 9) || (whichPort < 0))
-                continue;
-
-            sscanf(cfgLine, "%*s %d", &(portNumbers[whichPort]));
+            sscanf(cfgLine, "%*s %d", &whichPort);
+            sscanf(cfgLine, "%*s %*d %d", &(portNumbers[whichPort]));
+            multiFlag = 1;
         }
         else if (!strcmp(token, "trackers"))
             sscanf(cfgLine, "%*s %d", &nTrackers);
@@ -553,8 +552,6 @@ void *vsAvatar::makeVsSerialMotionStar()
         }
         else if (!strcmp(token, "baud"))
             sscanf(cfgLine, "%*s %d", &baud);
-        else if (!strcmp(token, "multiserial"))
-            sscanf(cfgLine, "%*s %d", &multiFlag);
         else if (!strcmp(token, "fork"))
             sscanf(cfgLine, "%*s %d", &forkFlag);
 	else if (!strcmp(token, "hemisphere"))
@@ -628,6 +625,8 @@ void *vsAvatar::makeVsFastrak()
             sscanf(cfgLine, "%*s %d", &baud);
         else if (!strcmp(token, "trackers"))
             sscanf(cfgLine, "%*s %d", &nTrackers);
+        else if (!strcmp(token, "fork"))
+            sscanf(cfgLine, "%*s %d", &forkFlag);
 	else if (!strcmp(token, "trackerHemi"))
 	{
 	    sscanf(cfgLine, "%*s %d %lf %lf %lf", &stationNum, &hemiX,
@@ -681,6 +680,8 @@ void *vsAvatar::makeVsIS600()
             sscanf(cfgLine, "%*s %d", &baud);
         else if (!strcmp(token, "trackers"))
             sscanf(cfgLine, "%*s %d", &nTrackers);
+        else if (!strcmp(token, "fork"))
+            sscanf(cfgLine, "%*s %d", &forkFlag);
     }
     
     if (portNumber == -1)
