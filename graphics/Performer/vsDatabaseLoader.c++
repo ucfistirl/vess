@@ -253,6 +253,8 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
         return NULL;
     }
 
+    performerGraph->ref();
+
     // Create the object maps necessary for Performer-to-VESS conversion
     nodeMap = new vsObjectMap();
     attrMap = new vsObjectMap();
@@ -260,6 +262,14 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
     // Convert the OSG scene graph into a VESS scene
     dbRoot = convertNode(performerGraph, nodeMap, attrMap);
     
+    // Clean up the Performer scene graph (we don't need it any more)
+    performerGraph->unref();
+    pfMemory::checkDelete(performerGraph);
+
+    // Dispose of the object maps
+    delete nodeMap;
+    delete attrMap;
+
     // Package the resulting database into its own component and return
     result = new vsComponent();
     result->addChild(dbRoot);
