@@ -13,19 +13,21 @@
 vsGrowableArray::vsGrowableArray(int initialSize, int sizeIncrement,
     int sharedMemory)
 {
+    int startSize;
+
     if (initialSize < 0)
     {
         printf("vsGrowableArray::vsGrowableArray: Invalid initial size\n");
-        currentSize = 0;
+        startSize = 0;
     }
     else
-        currentSize = initialSize;
+        startSize = initialSize;
 
     stepSize = sizeIncrement;
 
     maxSize = 32767;
-    if (currentSize > maxSize)
-        maxSize = currentSize;
+    if (startSize > maxSize)
+        maxSize = startSize;
     
     nowhere = NULL;
     
@@ -39,17 +41,9 @@ vsGrowableArray::vsGrowableArray(int initialSize, int sizeIncrement,
     }
     
     // Allocate memory here
-    if (shared)
-        storage = (void **)(pfMemory::malloc(currentSize * sizeof(void *)));
-    else
-        storage = (void **)(malloc(currentSize * sizeof(void *)));
-    
-    if (!storage)
-    {
-        printf("vsGrowableArray::vsGrowableArray: Unable to allocate memory "
-            "for internal array\n");
-        currentSize = 0;
-    }
+    storage = NULL;
+    currentSize = 0;
+    setSize(startSize);
 }
 
 // ------------------------------------------------------------------------
@@ -71,21 +65,55 @@ vsGrowableArray::~vsGrowableArray()
 // ------------------------------------------------------------------------
 void vsGrowableArray::setSize(int newSize)
 {
-    if (shared)
-        storage = (void **)(pfMemory::realloc(storage,
-            newSize * sizeof(void *)));
-    else
-        storage = (void **)(realloc(storage, newSize * sizeof(void *)));
-
-    if (storage)
-        currentSize = newSize;
-    else
+    if (newSize < 0)
     {
-        currentSize = 0;
-        printf("vsGrowableArray::setSize: Unable to allocate memory for "
-            "internal array\n");
+	printf("vsGrowableArray::setSize: Invalid size\n");
+	return;
     }
-    
+
+    if (newSize == currentSize)
+	return;
+
+    if (newSize > 0)
+    {
+	if (currentSize > 0)
+	{
+	    // Modify
+	    if (shared)
+		storage = (void **)(pfMemory::realloc(storage,
+		    newSize * sizeof(void *)));
+	    else
+		storage = (void **)(realloc(storage, newSize * sizeof(void *)));
+	}
+	else
+	{
+	    // Create
+	    if (shared)
+		storage = (void **)(pfMemory::malloc(newSize * sizeof(void *)));
+	    else
+		storage = (void **)(malloc(newSize * sizeof(void *)));
+	}
+
+	if (storage)
+	    currentSize = newSize;
+	else
+	{
+	    currentSize = 0;
+	    printf("vsGrowableArray::setSize: Unable to allocate memory for "
+		"internal array\n");
+	}
+    }
+    else if (currentSize > 0)
+    {
+	// Destroy
+        if (shared)
+            pfMemory::free(storage);
+        else
+            free(storage);
+
+	currentSize = 0;
+	storage = NULL;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -102,6 +130,12 @@ int vsGrowableArray::getSize()
 // ------------------------------------------------------------------------
 void vsGrowableArray::setSizeIncrement(int sizeIncrement)
 {
+    if (sizeIncrement <= 0)
+    {
+	printf("vsGrowableArray::setSizeIncrement: Invalid size increment\n");
+	return;
+    }
+
     stepSize = sizeIncrement;
 }
 
@@ -120,6 +154,12 @@ int vsGrowableArray::getSizeIncrement()
 // ------------------------------------------------------------------------
 void vsGrowableArray::setMaxSize(int newMax)
 {
+    if (newMax <= 0)
+    {
+	printf("vsGrowableArray::setMaxSize: Invalid maximum size\n");
+	return;
+    }
+
     maxSize = newMax;
     
     if (maxSize > currentSize)
