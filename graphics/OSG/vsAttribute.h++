@@ -73,7 +73,7 @@ protected:
 
     char        attributeName[VS_ATTRIBUTE_NAME_MAX_LENGTH];
     
-    int         attachedFlag;
+    int         attachedCount;
 
 VS_INTERNAL:
 
@@ -96,7 +96,7 @@ public:
     virtual int    getAttributeType() = 0;
     virtual int    getAttributeCategory() = 0;
 
-    int            isAttached();
+    bool           isAttached();
 
     void           setName(char *newName);
     const char     *getName();

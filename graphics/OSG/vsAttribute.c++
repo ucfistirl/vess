@@ -33,9 +33,9 @@
 vsAttribute::vsAttribute()
 {
     // Initialize the node name to an empty string, and the attachment
-    // flag to false
+    // count to zero
     attributeName[0] = 0;
-    attachedFlag = 0;
+    attachedCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -48,9 +48,9 @@ vsAttribute::~vsAttribute()
 // ------------------------------------------------------------------------
 // Retrieves the value of the 'attached' flag for this attribute
 // ------------------------------------------------------------------------
-int vsAttribute::isAttached()
+bool vsAttribute::isAttached()
 {
-    return attachedFlag;
+    return (attachedCount > 0);
 }
 
 // ------------------------------------------------------------------------
@@ -85,7 +85,7 @@ bool vsAttribute::canAttach()
 // ------------------------------------------------------------------------
 void vsAttribute::attach(vsNode *theNode)
 {
-    attachedFlag++;
+    attachedCount++;
 }
 
 // ------------------------------------------------------------------------
@@ -94,7 +94,7 @@ void vsAttribute::attach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsAttribute::detach(vsNode *theNode)
 {
-    attachedFlag--;
+    attachedCount--;
 }
 
 // ------------------------------------------------------------------------
