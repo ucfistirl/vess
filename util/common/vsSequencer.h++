@@ -13,9 +13,9 @@
 //
 //    VESS Module:  vsSequencer.h++
 //
-//    Description:  This object is ment to handle scheduleing of
+//    Description:  This object is meant to handle scheduling of
 //                  vsUpdatables.  It will allow more control
-//                  for a various ammount of updatables, including
+//                  for a various amount of updatables, including
 //                  insertion of latencies and order of updating.
 //
 //    Author(s):    Duvan Cope
