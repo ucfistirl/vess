@@ -59,6 +59,7 @@ private:
     vsGeometry         *sectGeom[VS_SPH_ISECT_MAX_SPHERES];
     int                sectPrim[VS_SPH_ISECT_MAX_SPHERES];
     vsGrowableArray    *sectPath[VS_SPH_ISECT_MAX_SPHERES];
+    int                sectVertIndices[VS_SPH_ISECT_MAX_SPHERES][3];
 
     // Parametric coordinates used during computation of the closest point
     // on a triangle, and subsequent intersection evaluation 
@@ -121,6 +122,7 @@ public:
     vsGeometry         *getIsectGeometry(int sphNum);
     int                getIsectPrimNum(int sphNum);
     vsGrowableArray    *getIsectPath(int sphNum);
+    int                getIsectVertIndex(int sphNum, int index);
 };
 
 #endif

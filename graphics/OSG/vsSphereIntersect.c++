@@ -577,6 +577,9 @@ vsVector vsSphereIntersect::getNormal(vsGeometry *geometry, int aIndex,
             break;
     }
 
+    // Transform the normal by whatever our current transform is.
+    normal = currentXform.getVectorXform(normal);
+
     return normal;
 }
 
@@ -607,6 +610,7 @@ void vsSphereIntersect::intersectWithGeometry(int sphIndex,
     double localSqrDist;
     int closestPrim, closestTriangle;
     vsVector closestNormal;
+    int closestVertIndices[3];
     vsVector distVec;
 
     // Get the center point and radius of the sphere
@@ -789,6 +793,9 @@ void vsSphereIntersect::intersectWithGeometry(int sphIndex,
                         closestNormal = normal;
                         localSqrDist = sqrDist;
                         closestPrim = i;
+                        closestVertIndices[0] = aIndex;
+                        closestVertIndices[1] = bIndex;
+                        closestVertIndices[2] = cIndex;
                     }
                 }
                 else if (sqrDist < localSqrDist)
@@ -799,6 +806,9 @@ void vsSphereIntersect::intersectWithGeometry(int sphIndex,
                         getNormal(geometry, aIndex, bIndex, cIndex, i);
                     localSqrDist = sqrDist;
                     closestPrim = i;
+                    closestVertIndices[0] = aIndex;
+                    closestVertIndices[1] = bIndex;
+                    closestVertIndices[2] = cIndex;
                 }
             }
         }
@@ -821,6 +831,9 @@ void vsSphereIntersect::intersectWithGeometry(int sphIndex,
         sectXform[sphIndex] = currentXform;
         sectGeom[sphIndex] = geometry;
         sectPrim[sphIndex] = closestPrim;
+        sectVertIndices[sphIndex][0] = closestVertIndices[0];
+        sectVertIndices[sphIndex][1] = closestVertIndices[1];
+        sectVertIndices[sphIndex][2] = closestVertIndices[2];
 
         // Remember this distance as the closest distance for the current
         // sphere
@@ -1454,4 +1467,13 @@ vsGrowableArray *vsSphereIntersect::getIsectPath(int sphNum)
 
     // Return the intersection node path for this sphere.
     return sectPath[sphNum];
+}
+
+// ------------------------------------------------------------------------
+// Return the index into a geometry's data for the vertices of the
+// polygon where the intersection point was calculated to be.
+// ------------------------------------------------------------------------
+int vsSphereIntersect::getIsectVertIndex(int sphNum, int index)
+{
+    return sectVertIndices[sphNum][index];
 }
