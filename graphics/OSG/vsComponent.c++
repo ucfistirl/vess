@@ -102,15 +102,15 @@ vsNode *vsComponent::cloneTree()
     vsNode *childClone;
     vsAttribute *attr;
     int loop;
-    
+ 
     // Create a new component
     result = new vsComponent();
-    
+ 
     // Copy the name and intersection value (all other data members should
     // be taken care of automatically)
     result->setName(getName());
     result->setIntersectValue(getIntersectValue());
-   
+
     // Clone the children of this component and add them to the new
     // component
     for (loop = 0; loop < getChildCount(); loop++)
@@ -118,7 +118,7 @@ vsNode *vsComponent::cloneTree()
         childClone = getChild(loop)->cloneTree();
         result->addChild(childClone);
     }
-    
+
     // Replicate the attributes on this component and add them to the
     // new component as well
     for (loop = 0; loop < getAttributeCount(); loop++)
@@ -126,7 +126,7 @@ vsNode *vsComponent::cloneTree()
         attr = getAttribute(loop);
         attr->attachDuplicate(result);
     }
-    
+
     // Return the cloned tree
     return result;
 }
@@ -152,9 +152,9 @@ bool vsComponent::addChild(vsNode *newChild)
     // fail, as the child node is permitted to object to getting a parent.
     if (newChild->addParent(this) == false)
     {
-	printf("vsComponent::addChild: 'newChild' node may not have any "
-	    "more parent nodes\n");
-	return false;
+        printf("vsComponent::addChild: 'newChild' node may not have any "
+            "more parent nodes\n");
+        return false;
     }
 
     // Connect the OSG nodes together. The type can't be a vsScene, because
@@ -197,7 +197,7 @@ bool vsComponent::insertChild(vsNode *newChild, int index)
     vsDynamicGeometry *childDynamicGeometry;
     osg::Node *newNode, *displacedNode;
     int loop;
-    
+
     // Bounds check
     if (index < 0)
     {
@@ -209,9 +209,9 @@ bool vsComponent::insertChild(vsNode *newChild, int index)
     // fail, as the child node is permitted to object to getting a parent.
     if (newChild->addParent(this) == false)
     {
-	printf("vsComponent::insertChild: 'newChild' node may not have any "
-	    "more parent nodes\n");
-	return false;
+        printf("vsComponent::insertChild: 'newChild' node may not have any "
+            "more parent nodes\n");
+        return false;
     }
     
     // If the index is greater than the current number of children on this
@@ -293,7 +293,7 @@ bool vsComponent::removeChild(vsNode *targetChild)
             // Detach the OSG nodes; checks for the type of the
             // component because the getBaseLibraryObject call is
             // not virtual. The type can't be a vsScene, because
-	    // a scene node would never have a parent.
+            // a scene node would never have a parent.
             if (targetChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
             {
                 childComponent = (vsComponent *)targetChild;
@@ -321,13 +321,13 @@ bool vsComponent::removeChild(vsNode *targetChild)
             // Finish the VESS detachment
             childCount--;
             targetChild->unref();
-	    
-	    // Check for errors as we remove this component from the
-	    // child's parent list
-	    if (targetChild->removeParent(this) == false)
-		printf("vsComponent::removeChild: Scene graph inconsistency: "
-		    "child to be removed does not have this component as "
-		    "a parent\n");
+   
+            // Check for errors as we remove this component from the
+            // child's parent list
+            if (targetChild->removeParent(this) == false)
+                printf("vsComponent::removeChild: Scene graph inconsistency: "
+                    "child to be removed does not have this component as "
+                    "a parent\n");
 
             return true;
         }
@@ -352,15 +352,15 @@ bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
     for (loop = 0; loop < childCount; loop++)
         if (targetChild == childList[loop])
         {
-	    // Notify the newChild node that it is getting a new parent.
-	    // This might fail, as the child node is permitted to object to
-	    // getting a parent.
-	    if (newChild->addParent(this) == false)
-	    {
-		printf("vsComponent::replaceChild: 'newChild' node may not "
-		    "have any more parent nodes\n");
-		return false;
-	    }
+            // Notify the newChild node that it is getting a new parent.
+            // This might fail, as the child node is permitted to object to
+            // getting a parent.
+            if (newChild->addParent(this) == false)
+            {
+                printf("vsComponent::replaceChild: 'newChild' node may not "
+                    "have any more parent nodes\n");
+                return false;
+            }
 
             // Mark the entire portion of the tree that has any connection
             // to the old node as needing of an update
@@ -369,7 +369,7 @@ bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
             // Replace the OSG nodes; checks for the type of the
             // component because the getBaseLibraryObject call is
             // not virtual. The type can't be a vsScene, because
-	    // a scene node would never consent to getting a parent.
+            // a scene node would never consent to getting a parent.
             if (targetChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
             {
                 childComponent = (vsComponent *)targetChild;
@@ -418,7 +418,7 @@ bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
                 printf("vsComponent::replaceChild: Scene graph inconsistency: "
                     "child to be removed does not have this component as "
                     "a parent\n");
-            
+
             // Mark the entire portion of the tree that has any connection
             // to the new node as needing of an update
             newChild->dirty();
@@ -435,7 +435,7 @@ bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
 int vsComponent::getParentCount()
 {
     if (parentNode)
-	return 1;
+        return 1;
 
     return 0;
 }
@@ -447,7 +447,7 @@ int vsComponent::getParentCount()
 vsNode *vsComponent::getParent(int index)
 {
     if (index != 0)
-	return NULL;
+        return NULL;
 
     return parentNode;
 }
@@ -488,7 +488,7 @@ void vsComponent::getBoundSphere(vsVector *centerPoint, double *radius)
     
     // Get the bounding sphere from OSG
     boundSphere = topGroup->getBound();
-    
+
     // Copy the sphere center point to the result vector, if there is one
     if (centerPoint)
     {
@@ -525,8 +525,8 @@ vsMatrix vsComponent::getGlobalXform()
     {
         if (dynamic_cast<osg::MatrixTransform *>(nodePtr))
         {
-	    // Multiply this Transform's matrix into the accumulated
-	    // transform
+            // Multiply this Transform's matrix into the accumulated
+            // transform
             matRef = ((osg::MatrixTransform *)nodePtr)->getMatrix();
             xform.postMult(matRef);
         }
@@ -534,7 +534,7 @@ vsMatrix vsComponent::getGlobalXform()
         // Move to the node's (first) parent
         nodePtr = nodePtr->getParent(0);
     }
-    
+
     // Transpose the matrix when going from OSG to VESS
     for (loop = 0; loop < 4; loop++)
         for (sloop = 0; sloop < 4; sloop++)
@@ -588,8 +588,8 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
     switch (attrCat)
     {
         // Component may only contain one of each of these; if the new
-	// attribute is one of these categories, make sure there's not
-	// another one of the same type already
+        // attribute is one of these categories, make sure there's not
+        // another one of the same type already
         case VS_ATTRIBUTE_CATEGORY_STATE:
             for (loop = 0; loop < getAttributeCount(); loop++)
                 if ((getAttribute(loop))->getAttributeType() == attrType)
@@ -601,8 +601,8 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
             break;
 
         // Component may only contain one of any of these; if the new
-	// attribute is this category, make sure there's not another one
-	// of the same category already
+        // attribute is this category, make sure there's not another one
+        // of the same category already
         case VS_ATTRIBUTE_CATEGORY_GROUPING:
             if (getCategoryAttribute(VS_ATTRIBUTE_CATEGORY_GROUPING, 0))
             {
@@ -610,11 +610,11 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
                     "contain one grouping category attribute at a time\n");
                 return;
             }
-	    break;
+            break;
 
         // Component may only contain one of any of these; if the new
-	// attribute is this category, make sure there's not another one
-	// of the same category already
+        // attribute is this category, make sure there's not another one
+        // of the same category already
         case VS_ATTRIBUTE_CATEGORY_XFORM:
             if (getCategoryAttribute(VS_ATTRIBUTE_CATEGORY_XFORM, 0))
             {
@@ -622,7 +622,7 @@ void vsComponent::addAttribute(vsAttribute *newAttribute)
                     "contain one transform category attribute at a time\n");
                 return;
             }
-	    break;
+            break;
     }
 
     // If we made it this far, it must be okay to add the attribute in
@@ -701,7 +701,7 @@ void vsComponent::replaceBottomGroup(osg::Group *newGroup)
     // Replace bottomGroup with newGroup
     parentGroup = bottomGroup->getParent(0);
     parentGroup->replaceChild(bottomGroup, newGroup);
-    
+
     // Delete the old bottom group, and set the bottomGroup pointer to
     // point to the new one
     bottomGroup->unref();

@@ -35,7 +35,7 @@ private:
 
     int                childCount;
     vsGrowableArray    childList;
-    
+
     vsNode             *parentNode;
 
     osg::Group         *topGroup;

@@ -43,13 +43,13 @@ private:
     vsVector                centerPoint;
     vsVector                frontDirection;
     vsVector                upAxis;
-    
+
     int                     billboardMode;
-    
+
     vsMatrix                preTranslate;
     vsMatrix                postTranslate;
     osg::MatrixTransform    *billboardTransform;
-    
+ 
     vsBillboardCallback     *billboardCallback;
 
 VS_INTERNAL:
@@ -57,11 +57,11 @@ VS_INTERNAL:
     virtual bool    canAttach();
     virtual void    attach(vsNode *theNode);
     virtual void    detach(vsNode *theNode);
-    
+ 
     virtual void    attachDuplicate(vsNode *theNode);
 
     void            adjustTransform(vsMatrix viewMatrix, vsMatrix currentXform);
-    
+ 
 public:
 
                           vsBillboardAttribute();

@@ -187,10 +187,10 @@ void vsBackfaceAttribute::detach(vsNode *node)
 void vsBackfaceAttribute::attachDuplicate(vsNode *theNode)
 {
     vsBackfaceAttribute *newAttrib;
-    
+
     // Create a duplicate backface attribute
     newAttrib = new vsBackfaceAttribute();
-    
+
     // Copy the backface enable mode
     if (isEnabled())
         newAttrib->enable();
