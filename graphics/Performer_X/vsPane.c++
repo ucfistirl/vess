@@ -16,7 +16,7 @@
 //    Description:  Class that represents a portion of a window that has
 //                  a 3D image drawn into it by the rendering engine
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Casey Thurston
 //
 //------------------------------------------------------------------------
 
@@ -85,6 +85,12 @@ vsPane::vsPane(vsWindow *parent)
 
     // By default, don't draw stats
     statsEnabled = false;
+
+    // Create the callback list for the main channel
+    performerCallbackList = new vsCallbackList(performerChannel);
+
+    // The stereo callback list starts as null until used
+    stereoCallbackList = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -102,6 +108,12 @@ vsPane::~vsPane()
     
     // Remove the pane from its window
     parentWindow->removePane(this);
+
+    // Deallocate the data used for the channel traversal function list
+    delete performerCallbackList;
+
+    if (stereoCallbackList != NULL)
+        delete stereoCallbackList;
 }
 
 // ------------------------------------------------------------------------
@@ -183,6 +195,22 @@ vsScene *vsPane::getScene()
 }
 
 // ------------------------------------------------------------------------
+// Retreives the list responsible for callbacks in the main pane
+// ------------------------------------------------------------------------
+vsCallbackList *vsPane::getPerformerCallbackList()
+{
+    return performerCallbackList;
+}
+
+// ------------------------------------------------------------------------
+// Retreives the list responsible for callbacks in the stereo pane
+// ------------------------------------------------------------------------
+vsCallbackList *vsPane::getStereoCallbackList()
+{
+    return stereoCallbackList;
+}
+
+// ------------------------------------------------------------------------
 // Sets the pixel size of this pane within its parent window
 // ------------------------------------------------------------------------
 void vsPane::setSize(int width, int height)
@@ -199,7 +227,7 @@ void vsPane::setSize(int width, int height)
     parentWindow->getDrawableSize(&winWidth, &winHeight);
     widthFraction = (float)width / (float)winWidth;
     heightFraction = (float)height / (float)winHeight;
-    
+
     // Set the dimensions of the Performer channel
     performerChannel->setViewport(left, left + widthFraction,
         top - heightFraction, top);
@@ -336,9 +364,16 @@ void vsPane::setBufferMode(vsPaneBufferMode newMode)
             // Create the stereo channel (used to render the second viewpoint)
             parentPipe = parentWindow->getParentScreen()->getParentPipe();
 
+            // See if a stereo channel has already been created
             if (stereoChannel == NULL)
+            {
+                // Create the stereo channel
                 stereoChannel = 
                     new pfChannel(parentPipe->getBaseLibraryObject());
+
+                // The stereo channel needs a callback list object
+                stereoCallbackList = new vsCallbackList(stereoChannel);
+            }
 
             // Copy the scene to the stereo channel
             if (sceneRoot != NULL)
@@ -356,14 +391,19 @@ void vsPane::setBufferMode(vsPaneBufferMode newMode)
             curNearClip = -1.0;
             curFarClip = -1.0;
             curProjMode = -1;
+
+            // Make sure the mono traversal function has been removed from the
+            // main channel callback list
+            performerCallbackList->
+                removeCallback(vsPane::drawMonoChannel, NULL);
             
             // Set the DRAW process callbacks.  The normal channel will
             // be considered the left eye, and the stereo channel the
             // right eye
-            performerChannel->setTravFunc(PFTRAV_DRAW, 
-                vsPane::drawLeftChannel);
-            stereoChannel->setTravFunc(PFTRAV_DRAW, 
-                vsPane::drawRightChannel);
+            performerCallbackList->
+                prependCallback(vsPane::drawLeftChannel, (void *)NULL);
+            stereoCallbackList->
+                prependCallback(vsPane::drawRightChannel, (void *)NULL);
         }
 
         // Change the buffer mode
@@ -375,13 +415,19 @@ void vsPane::setBufferMode(vsPaneBufferMode newMode)
         // a stereo mode.
         if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
         {
-            // Switch to the mono callback on the normal channel
-            performerChannel->setTravFunc(PFTRAV_DRAW, vsPane::drawMonoChannel);
+            // Remove the stereo callbacks from the callback traversal
+            performerCallbackList->
+                removeCallback(vsPane::drawLeftChannel, NULL);
+            stereoCallbackList->
+                removeCallback(vsPane::drawRightChannel, NULL);
 
-            // Detach the channel DRAW callback for the stereo channel
-            // And tell the system not to cull or draw the stereo channel 
+            // Add a callback for switching back to single-channel drawing
+            // to the main callback list
+            performerCallbackList->
+                prependCallback(vsPane::drawMonoChannel, (void *)NULL);
+
+            // Tell the system not to cull or draw the stereo channel 
             // any longer
-            stereoChannel->setTravFunc(PFTRAV_DRAW, NULL);
             stereoChannel->setTravMode(PFTRAV_CULL, PFDRAW_OFF);
             stereoChannel->setTravMode(PFTRAV_DRAW, PFDRAW_OFF);
         }
@@ -616,11 +662,11 @@ void vsPane::updateView()
 
     // Get the view attribute from the viewObjectMap
     viewAttr = (vsViewpointAttribute *)
-	((vsViewpointAttribute::getMap())->mapFirstToSecond(sceneView));
+        ((vsViewpointAttribute::getMap())->mapFirstToSecond(sceneView));
 
     // Update the viewpoint attribute
     if (viewAttr)
-	viewAttr->update();
+        viewAttr->update();
     
     // Get the view position and orientation
     viewMatrix = sceneView->getRotationMat();
@@ -674,140 +720,126 @@ void vsPane::updateView()
     sceneView->getClipDistances(&near, &far);
     if ((curNearClip != near) || (curFarClip != far))
     {
-	performerChannel->setNearFar(near, far);
+        performerChannel->setNearFar(near, far);
 
         // Set the stereo channel as well, if we're in stereo mode
         if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
             stereoChannel->setNearFar(near, far);
 
         // Remember the new settings
-	curNearClip = near;
-	curFarClip = far;
+        curNearClip = near;
+        curFarClip = far;
     }
 
     // Get the projection data from the view object and check to see if
     // it has changed since the last time we looked.
     sceneView->getProjectionData(&projMode, &projHval, &projVval);
     if ((curProjMode != projMode) || (curProjHval != projHval) ||
-	(curProjVval != projVval))
+        (curProjVval != projVval))
     {
         // Set the new projection based on the new mode
-	if (projMode == VS_VIEW_PROJMODE_PERSP)
+        if (projMode == VS_VIEW_PROJMODE_PERSP)
         {
-	    performerChannel->setFOV(projHval, projVval);
+            performerChannel->setFOV(projHval, projVval);
 
             // Update the stereo channel as well, if we're in stereo mode
             if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
                 stereoChannel->setFOV(projHval, projVval);
         }
-	else
-	{
+        else
+        {
             // Determine which projection values are specified, and
-	    // which must be assumed
-	    if ((projHval <= 0.0) && (projVval <= 0.0))
-	    {
-		// Neither specified, default values
-		performerChannel->makeOrtho(-10.0, 10.0, -10.0, 10.0);
+            // which must be assumed
+            if ((projHval <= 0.0) && (projVval <= 0.0))
+            {
+                // Neither specified, default values
+                performerChannel->makeOrtho(-10.0, 10.0, -10.0, 10.0);
 
                 // Update the stereo channel as well, if we're in stereo mode
                 if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
-		    stereoChannel->makeOrtho(-10.0, 10.0, -10.0, 10.0);
-	    }
-	    else if (projHval <= 0.0)
-	    {
-		// Vertical specified, horizontal aspect match
+                    stereoChannel->makeOrtho(-10.0, 10.0, -10.0, 10.0);
+            }
+            else if (projHval <= 0.0)
+            {
+                // Vertical specified, horizontal aspect match
 
                 // Calculate the horizontal size from the vertical size
-		// and the dimensions of the pane
-		getSize(&paneWidth, &paneHeight);
-		aspectMatch = (projVval / (double)paneHeight) *
-		    (double)paneWidth;
+                // and the dimensions of the pane
+                getSize(&paneWidth, &paneHeight);
+                aspectMatch = (projVval / (double)paneHeight) *
+                    (double)paneWidth;
 
                 // Call Performer with the new aspect data
-		performerChannel->makeOrtho(-aspectMatch, aspectMatch,
-		    -projVval, projVval);
+                performerChannel->makeOrtho(-aspectMatch, aspectMatch,
+                    -projVval, projVval);
 
                 // Update the stereo channel as well, if we're in stereo mode
                 if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
-		    stereoChannel->makeOrtho(-aspectMatch, aspectMatch,
-		        -projVval, projVval);
-	    }
-	    else if (projVval <= 0.0)
-	    {
-		// Horizontal specified, vertical aspect match
+                    stereoChannel->makeOrtho(-aspectMatch, aspectMatch,
+                        -projVval, projVval);
+            }
+            else if (projVval <= 0.0)
+            {
+                // Horizontal specified, vertical aspect match
 
                 // Calculate the vertical size from the horizontal size
-		// and the dimensions of the pane
-		getSize(&paneWidth, &paneHeight);
-		aspectMatch = (projHval / (double)paneWidth) *
-		    (double)paneHeight;
+                // and the dimensions of the pane
+                getSize(&paneWidth, &paneHeight);
+                aspectMatch = (projHval / (double)paneWidth) *
+                    (double)paneHeight;
 
                 // Call Performer with the new aspect data
-		performerChannel->makeOrtho(-projHval, projHval, -aspectMatch,
-		    aspectMatch);
+                performerChannel->makeOrtho(-projHval, projHval, -aspectMatch,
+                    aspectMatch);
 
                 // Update the stereo channel as well, if we're in stereo mode
                 if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
                     stereoChannel->makeOrtho(-projHval, projHval, -aspectMatch,
                         aspectMatch);
-	    }
-	    else
-	    {
-		// Both specified, normal operation
+            }
+            else
+            {
+                // Both specified, normal operation
 
                 // Call Performer with the new aspect data
-		performerChannel->makeOrtho(-projHval, projHval, -projVval,
-		    projVval);
+                performerChannel->makeOrtho(-projHval, projHval, -projVval,
+                    projVval);
 
                 // Update the stereo channel as well, if we're in stereo mode
                 if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
                     stereoChannel->makeOrtho(-projHval, projHval, -projVval,
                         projVval);
-	    }
-	}
-	
+            }
+        }
+        
         // Take note of the current projection mode so we can detect
-	// if it changes again
-	curProjMode = projMode;
-	curProjHval = projHval;
-	curProjVval = projVval;
+        // if it changes again
+        curProjMode = projMode;
+        curProjHval = projHval;
+        curProjVval = projVval;
     }
 }
 
 // ------------------------------------------------------------------------
 // static VESS internal function - Performer callback
-// Pre-DRAW callback to draw the left stereo channel when in QUADBUFFER
+// Pre-DRAW callback to select the left stereo channel when in QUADBUFFER
 // stereo mode.
 // ------------------------------------------------------------------------
 void vsPane::drawLeftChannel(pfChannel *chan, void *userData)
 {
     // Select the left buffer
     glDrawBuffer(GL_BACK_LEFT);
-
-    // Clear the Performer channel
-    chan->clear();
-
-    // Call Performer's draw function.  The scene will be drawn into
-    // the buffer selected above.
-    pfDraw();
 }
 
 // ------------------------------------------------------------------------
 // static VESS internal function - Performer callback
-// Pre-DRAW callback to draw the right stereo channel when in QUADBUFFER
+// Pre-DRAW callback to select the right stereo channel when in QUADBUFFER
 // stereo mode.
 // ------------------------------------------------------------------------
 void vsPane::drawRightChannel(pfChannel *chan, void *userData)
 {
     // Select the right buffer
     glDrawBuffer(GL_BACK_RIGHT);
-
-    // Clear the Performer channel
-    chan->clear();
-
-    // Call Performer's draw function.  The scene will be drawn into
-    // the buffer selected above.
-    pfDraw();
 }
 
 // ------------------------------------------------------------------------
@@ -821,13 +853,6 @@ void vsPane::drawMonoChannel(pfChannel *chan, void *userData)
     // Select the right buffer
     glDrawBuffer(GL_BACK);
 
-    // Clear the Performer channel
-    chan->clear();
-
-    // Call Performer's draw function.  The scene will be drawn into
-    // the buffer selected above.
-    pfDraw();
-
-    // Detach from this callback for next frame
-    chan->setTravFunc(PFTRAV_DRAW, NULL);
+    // Tell this callback node to delete itself so it isn't called again
+    vsCallbackList::removeCallbackNode(userData);
 }
