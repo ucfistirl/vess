@@ -4,8 +4,7 @@
 #define VS_FOG_ATTRIBUTE_HPP
 
 #include <Performer/pr/pfFog.h>
-#include "vsAttribute.h++"
-#include "vsGrowableArray.h++"
+#include "vsStateAttribute.h++"
 
 enum vsFogEquationType
 {
@@ -14,14 +13,11 @@ enum vsFogEquationType
     VS_FOG_EQTYPE_EXP2
 };
 
-class vsFogAttribute : public vsAttribute
+class vsFogAttribute : public vsStateAttribute
 {
 private:
 
     pfFog              *performerFog;
-
-    vsGrowableArray    savedFog;
-    int                saveCount;
 
 VS_INTERNAL:
 
@@ -30,7 +26,7 @@ VS_INTERNAL:
     virtual void    saveCurrent();
     virtual void    apply();
     virtual void    restoreSaved();
-    virtual void    setState();
+    virtual void    setState(pfGeoState *state);
 
 public:
 
@@ -38,7 +34,6 @@ public:
                    ~vsFogAttribute();
 
     virtual int    getAttributeType();
-    virtual int    getAttributeCategory();
 
     void           setEquationType(int equType);
     int            getEquationType();

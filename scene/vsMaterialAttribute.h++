@@ -4,8 +4,7 @@
 #define VS_MATERIAL_ATTRIBUTE_HPP
 
 #include <Performer/pr/pfMaterial.h>
-#include "vsAttribute.h++"
-#include "vsGrowableArray.h++"
+#include "vsStateAttribute.h++"
 
 enum vsMaterialSide
 {
@@ -32,15 +31,12 @@ enum vsMaterialColorMode
     VS_MATERIAL_CMODE_NONE
 };
 
-class vsMaterialAttribute : public vsAttribute
+class vsMaterialAttribute : public vsStateAttribute
 {
 private:
 
     pfMaterial         *frontMaterial;
     pfMaterial         *backMaterial;
-    
-    vsGrowableArray    savedAttr;
-    int                saveCount;
 
 VS_INTERNAL:
 
@@ -49,7 +45,7 @@ VS_INTERNAL:
     virtual void    saveCurrent();
     virtual void    apply();
     virtual void    restoreSaved();
-    virtual void    setState();
+    virtual void    setState(pfGeoState *state);
 
 public:
 
@@ -57,7 +53,6 @@ public:
                    ~vsMaterialAttribute();
 
     virtual int    getAttributeType();
-    virtual int    getAttributeCategory();
     
     void           setColor(int side, int whichColor, double r, double g,
                             double b);

@@ -8,27 +8,9 @@
 // ------------------------------------------------------------------------
 // Default Constructor - Initializes the Performer transparency value
 // ------------------------------------------------------------------------
-vsTransparencyAttribute::vsTransparencyAttribute() : savedAttr(1, 1, 1)
+vsTransparencyAttribute::vsTransparencyAttribute()
 {
     transpValue = PFTR_BLEND_ALPHA;
-    
-    attachedFlag = 0;
-    saveCount = 0;
-}
-
-// ------------------------------------------------------------------------
-// VESS internal function
-// Constructor - Sets up the attribute as already attached to a node
-// ------------------------------------------------------------------------
-vsTransparencyAttribute::vsTransparencyAttribute(int type) : savedAttr(1, 1, 1)
-{
-    if (type == PFTR_OFF)
-        transpValue = PFTR_OFF;
-    else
-        transpValue = PFTR_BLEND_ALPHA;
-
-    attachedFlag = 1;
-    saveCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -47,19 +29,13 @@ int vsTransparencyAttribute::getAttributeType()
 }
 
 // ------------------------------------------------------------------------
-// Retrieves the category of this attribute
-// ------------------------------------------------------------------------
-int vsTransparencyAttribute::getAttributeCategory()
-{
-    return VS_ATTRIBUTE_CATEGORY_STATE;
-}
-
-// ------------------------------------------------------------------------
 // Enables transparency
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::enable()
 {
     transpValue = PFTR_BLEND_ALPHA;
+    
+    markOwnersDirty();
 }
 
 // ------------------------------------------------------------------------
@@ -68,6 +44,8 @@ void vsTransparencyAttribute::enable()
 void vsTransparencyAttribute::disable()
 {
     transpValue = PFTR_OFF;
+    
+    markOwnersDirty();
 }
 
 // ------------------------------------------------------------------------
@@ -89,7 +67,7 @@ void vsTransparencyAttribute::saveCurrent()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
-    savedAttr[saveCount++] = gState->getTransparency();
+    attrSaveList[attrSaveCount++] = gState->getTransparency();
 }
 
 // ------------------------------------------------------------------------
@@ -112,23 +90,14 @@ void vsTransparencyAttribute::restoreSaved()
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
     gState->setTransparency(
-        (vsTransparencyAttribute *)(savedAttr[--saveCount]));
+        (vsTransparencyAttribute *)(attrSaveList[--attrSaveCount]));
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
 // Applies the settings in this attribute to the graphics library
 // ------------------------------------------------------------------------
-void vsTransparencyAttribute::setState()
+void vsTransparencyAttribute::setState(pfGeoState *state)
 {
-    pfTransparency(transpValue);
-}
-
-// ------------------------------------------------------------------------
-// static VESS internal function
-// Applies default transparency settings to the graphics library
-// ------------------------------------------------------------------------
-void vsTransparencyAttribute::setDefault()
-{
-    pfTransparency(PFTR_OFF);
+    state->setMode(PFSTATE_TRANSPARENCY, transpValue);
 }

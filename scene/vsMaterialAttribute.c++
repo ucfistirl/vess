@@ -8,7 +8,7 @@
 // Default Constructor - Creates new Performer material objects and
 // initializes them
 // ------------------------------------------------------------------------
-vsMaterialAttribute::vsMaterialAttribute() : savedAttr(1, 1, 1)
+vsMaterialAttribute::vsMaterialAttribute()
 {
     frontMaterial = new pfMaterial();
     frontMaterial->setSide(PFMTL_FRONT);
@@ -17,9 +17,6 @@ vsMaterialAttribute::vsMaterialAttribute() : savedAttr(1, 1, 1)
     backMaterial = new pfMaterial();
     backMaterial->setSide(PFMTL_BACK);
     backMaterial->ref();
-    
-    attachedFlag = 0;
-    saveCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -28,7 +25,6 @@ vsMaterialAttribute::vsMaterialAttribute() : savedAttr(1, 1, 1)
 // initializes them
 // ------------------------------------------------------------------------
 vsMaterialAttribute::vsMaterialAttribute(pfMaterial *front, pfMaterial *back)
-    : savedAttr(1, 1, 1)
 {
     frontMaterial = front;
     frontMaterial->setSide(PFMTL_FRONT);
@@ -37,9 +33,6 @@ vsMaterialAttribute::vsMaterialAttribute(pfMaterial *front, pfMaterial *back)
     backMaterial = back;
     backMaterial->setSide(PFMTL_BACK);
     backMaterial->ref();
-
-    attachedFlag = 1;
-    saveCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -65,14 +58,6 @@ vsMaterialAttribute::~vsMaterialAttribute()
 int vsMaterialAttribute::getAttributeType()
 {
     return VS_ATTRIBUTE_TYPE_MATERIAL;
-}
-
-// ------------------------------------------------------------------------
-// Retrieves the category of this attribute
-// ------------------------------------------------------------------------
-int vsMaterialAttribute::getAttributeCategory()
-{
-    return VS_ATTRIBUTE_CATEGORY_STATE;
 }
 
 // ------------------------------------------------------------------------
@@ -332,7 +317,7 @@ void vsMaterialAttribute::saveCurrent()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
-    savedAttr[saveCount++] = gState->getMaterial();
+    attrSaveList[attrSaveCount++] = gState->getMaterial();
 }
 
 // ------------------------------------------------------------------------
@@ -354,15 +339,15 @@ void vsMaterialAttribute::restoreSaved()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
-    gState->setMaterial((vsMaterialAttribute *)(savedAttr[--saveCount]));
+    gState->setMaterial((vsMaterialAttribute *)(attrSaveList[--attrSaveCount]));
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
 // Applies the settings in this attribute to the graphics library
 // ------------------------------------------------------------------------
-void vsMaterialAttribute::setState()
+void vsMaterialAttribute::setState(pfGeoState *state)
 {
-    frontMaterial->apply();
-    backMaterial->apply();
+    state->setAttr(PFSTATE_FRONTMTL, frontMaterial);
+    state->setAttr(PFSTATE_BACKMTL, backMaterial);
 }

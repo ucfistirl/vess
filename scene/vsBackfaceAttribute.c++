@@ -9,23 +9,16 @@
 // ------------------------------------------------------------------------
 // Default Constructor - Initializes backfacing to false
 // ------------------------------------------------------------------------
-vsBackfaceAttribute::vsBackfaceAttribute() : backAttrSave(1, 1, 1)
+vsBackfaceAttribute::vsBackfaceAttribute()
 {
-    backfaceVal = 0;
+    // Set the attribute to the default OFF settings
+    lightModel = new pfLightModel();
+    lightModel->setLocal(PF_ON);
+    lightModel->setTwoSide(PF_OFF);
+    lightModel->setAmbient(0.0, 0.0, 0.0);
+    lightModel->ref();
     
-    saveCount = 0;
-}
-
-// ------------------------------------------------------------------------
-// VESS internal function
-// Constructor - Initializes backfacing to the given value
-// ------------------------------------------------------------------------
-vsBackfaceAttribute::vsBackfaceAttribute(int initVal) : backAttrSave(1, 1, 1)
-{
-    backfaceVal = initVal;
-
-    attachedFlag = 1;
-    saveCount = 0;
+    cullfaceVal = PFCF_BACK;
 }
 
 // ------------------------------------------------------------------------
@@ -33,6 +26,8 @@ vsBackfaceAttribute::vsBackfaceAttribute(int initVal) : backAttrSave(1, 1, 1)
 // ------------------------------------------------------------------------
 vsBackfaceAttribute::~vsBackfaceAttribute()
 {
+    lightModel->unref();
+    pfDelete(lightModel);
 }
 
 // ------------------------------------------------------------------------
@@ -44,19 +39,14 @@ int vsBackfaceAttribute::getAttributeType()
 }
 
 // ------------------------------------------------------------------------
-// Retrieves the category of this attribute
-// ------------------------------------------------------------------------
-int vsBackfaceAttribute::getAttributeCategory()
-{
-    return VS_ATTRIBUTE_CATEGORY_STATE;
-}
-
-// ------------------------------------------------------------------------
 // Enables backfacing
 // ------------------------------------------------------------------------
 void vsBackfaceAttribute::enable()
 {
-    backfaceVal = 1;
+    lightModel->setTwoSide(PF_ON);
+    cullfaceVal = PFCF_OFF;
+    
+    markOwnersDirty();
 }
 
 // ------------------------------------------------------------------------
@@ -64,7 +54,10 @@ void vsBackfaceAttribute::enable()
 // ------------------------------------------------------------------------
 void vsBackfaceAttribute::disable()
 {
-    backfaceVal = 0;
+    lightModel->setTwoSide(PF_OFF);
+    cullfaceVal = PFCF_BACK;
+
+    markOwnersDirty();
 }
 
 // ------------------------------------------------------------------------
@@ -72,7 +65,10 @@ void vsBackfaceAttribute::disable()
 // ------------------------------------------------------------------------
 int vsBackfaceAttribute::isEnabled()
 {
-    return backfaceVal;
+    if (cullfaceVal == PFCF_OFF)
+	return VS_TRUE;
+
+    return VS_FALSE;
 }
 
 // ------------------------------------------------------------------------
@@ -83,7 +79,7 @@ void vsBackfaceAttribute::saveCurrent()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
-    backAttrSave[saveCount++] = gState->getBackface();
+    attrSaveList[attrSaveCount++] = gState->getBackface();
 }
 
 // ------------------------------------------------------------------------
@@ -105,33 +101,15 @@ void vsBackfaceAttribute::restoreSaved()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
-    gState->setBackface((vsBackfaceAttribute *)(backAttrSave[--saveCount]));
+    gState->setBackface((vsBackfaceAttribute *)(attrSaveList[--attrSaveCount]));
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
 // Applies the settings in this attribute to the graphics library
 // ------------------------------------------------------------------------
-void vsBackfaceAttribute::setState()
+void vsBackfaceAttribute::setState(pfGeoState *state)
 {
-    if (backfaceVal)
-    {
-        pfCullFace(PFCF_OFF);
-        (pfGetCurLModel())->setTwoSide(PF_ON);
-    }
-    else
-    {
-        pfCullFace(PFCF_BACK);
-        (pfGetCurLModel())->setTwoSide(PF_OFF);
-    }
-}
-
-// ------------------------------------------------------------------------
-// static VESS internal function
-// Applies default backface settings to the graphics library
-// ------------------------------------------------------------------------
-void vsBackfaceAttribute::setDefault()
-{
-    pfCullFace(PFCF_BACK);
-    (pfGetCurLModel())->setTwoSide(PF_OFF);
+    state->setMode(PFSTATE_CULLFACE, cullfaceVal);
+    state->setAttr(PFSTATE_LIGHTMODEL, lightModel);
 }

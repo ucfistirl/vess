@@ -7,16 +7,13 @@
 // ------------------------------------------------------------------------
 // Default Constructor - Initializes the attribute to default values
 // ------------------------------------------------------------------------
-vsFogAttribute::vsFogAttribute() : savedFog(1, 1, 1)
+vsFogAttribute::vsFogAttribute()
 {
     performerFog = new pfFog();
     performerFog->setFogType(PFFOG_PIX_LIN);
     performerFog->setRange(0.0, 10000.0);
     
     performerFog->ref();
-    
-    attachedFlag = 0;
-    saveCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -24,7 +21,7 @@ vsFogAttribute::vsFogAttribute() : savedFog(1, 1, 1)
 // Constructor - Initializes the attribute from data contained in the
 // given Performer fog object
 // ------------------------------------------------------------------------
-vsFogAttribute::vsFogAttribute(pfFog *fogObject) : savedFog(1, 1, 1)
+vsFogAttribute::vsFogAttribute(pfFog *fogObject)
 {
     performerFog = fogObject;
     
@@ -35,9 +32,6 @@ vsFogAttribute::vsFogAttribute(pfFog *fogObject) : savedFog(1, 1, 1)
     }
     
     performerFog->ref();
-
-    attachedFlag = 1;
-    saveCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -55,14 +49,6 @@ vsFogAttribute::~vsFogAttribute()
 int vsFogAttribute::getAttributeType()
 {
     return VS_ATTRIBUTE_TYPE_FOG;
-}
-
-// ------------------------------------------------------------------------
-// Retrieves the category of this attribute
-// ------------------------------------------------------------------------
-int vsFogAttribute::getAttributeCategory()
-{
-    return VS_ATTRIBUTE_CATEGORY_STATE;
 }
 
 // ------------------------------------------------------------------------
@@ -164,7 +150,7 @@ void vsFogAttribute::saveCurrent()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
-    savedFog[saveCount++] = gState->getFog();
+    attrSaveList[attrSaveCount++] = gState->getFog();
 }
 
 // ------------------------------------------------------------------------
@@ -186,14 +172,15 @@ void vsFogAttribute::restoreSaved()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
-    gState->setFog((vsFogAttribute *)(savedFog[--saveCount]));
+    gState->setFog((vsFogAttribute *)(attrSaveList[--attrSaveCount]));
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
 // Applies the settings in this attribute to the graphics library
 // ------------------------------------------------------------------------
-void vsFogAttribute::setState()
+void vsFogAttribute::setState(pfGeoState *state)
 {
-    performerFog->apply();
+    state->setMode(PFSTATE_ENFOG, PFFOG_ON);
+    state->setAttr(PFSTATE_FOG, performerFog);
 }

@@ -4,8 +4,7 @@
 #define VS_TEXTURE_ATTRIBUTE_HPP
 
 #include <Performer/pr/pfTexture.h>
-#include "vsAttribute.h++"
-#include "vsGrowableArray.h++"
+#include "vsStateAttribute.h++"
 
 enum vsTextureDirection
 {
@@ -49,15 +48,12 @@ enum vsTextureMinificationFilter
     VS_TEXTURE_MINFILTER_MIPMAP_LINEAR
 };
 
-class vsTextureAttribute : public vsAttribute
+class vsTextureAttribute : public vsStateAttribute
 {
 private:
 
-    pfTexture          *performerTexture;
-    pfTexEnv           *performerTexEnv;
-    
-    vsGrowableArray    savedAttr;
-    int                saveCount;
+    pfTexture    *performerTexture;
+    pfTexEnv     *performerTexEnv;
 
 VS_INTERNAL:
 
@@ -67,7 +63,7 @@ VS_INTERNAL:
     virtual void    saveCurrent();
     virtual void    apply();
     virtual void    restoreSaved();
-    virtual void    setState();
+    virtual void    setState(pfGeoState *state);
 
 public:
 
@@ -75,7 +71,6 @@ public:
                    ~vsTextureAttribute();
 
     virtual int    getAttributeType();
-    virtual int    getAttributeCategory();
     
     void           setImage(unsigned char *imageData, int xSize, int ySize,
                             int dataFormat);

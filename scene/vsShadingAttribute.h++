@@ -3,8 +3,7 @@
 #ifndef VS_SHADING_ATTRIBUTE_HPP
 #define VS_SHADING_ATTRIBUTE_HPP
 
-#include "vsGrowableArray.h++"
-#include "vsAttribute.h++"
+#include "vsStateAttribute.h++"
 
 enum vsShadingMode
 {
@@ -12,25 +11,18 @@ enum vsShadingMode
     VS_SHADING_FLAT
 };
 
-class vsShadingAttribute : public vsAttribute
+class vsShadingAttribute : public vsStateAttribute
 {
 private:
 
-    int                shadeVal;
-    
-    vsGrowableArray    shadeAttrSave;
-    int                saveCount;
+    int         shadeVal;
 
 VS_INTERNAL:
-
-                    vsShadingAttribute(int performerShading);
 
     virtual void    saveCurrent();
     virtual void    apply();
     virtual void    restoreSaved();
-    virtual void    setState();
-    
-    static void     setDefault();
+    virtual void    setState(pfGeoState *state);
 
 public:
 
@@ -38,7 +30,6 @@ public:
                    ~vsShadingAttribute();
 
     virtual int    getAttributeType();
-    virtual int    getAttributeCategory();
     
     void           setShading(int shadingMode);
     int            getShading();

@@ -8,15 +8,13 @@
 // Default Constructor - Creates the Performer texture objects and
 // initializes default settings
 // ------------------------------------------------------------------------
-vsTextureAttribute::vsTextureAttribute() : savedAttr(1, 1, 1)
+vsTextureAttribute::vsTextureAttribute()
 {
     performerTexture = new pfTexture();
     performerTexture->ref();
     performerTexEnv = new pfTexEnv();
     performerTexEnv->ref();
     performerTexEnv->setMode(PFTE_DECAL);
-
-    saveCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -24,15 +22,12 @@ vsTextureAttribute::vsTextureAttribute() : savedAttr(1, 1, 1)
 // Constructor - Sets the texture attribute up as already attached
 // ------------------------------------------------------------------------
 vsTextureAttribute::vsTextureAttribute(pfTexture *texObject,
-    pfTexEnv *texEnvObject) : savedAttr(1, 1, 1)
+    pfTexEnv *texEnvObject)
 {
     performerTexture = texObject;
     performerTexture->ref();
     performerTexEnv = texEnvObject;
     performerTexEnv->ref();
-
-    attachedFlag = 1;
-    saveCount = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -58,14 +53,6 @@ vsTextureAttribute::~vsTextureAttribute()
 int vsTextureAttribute::getAttributeType()
 {
     return VS_ATTRIBUTE_TYPE_TEXTURE;
-}
-
-// ------------------------------------------------------------------------
-// Retrieves the category of the attribute
-// ------------------------------------------------------------------------
-int vsTextureAttribute::getAttributeCategory()
-{
-    return VS_ATTRIBUTE_CATEGORY_STATE;
 }
 
 // ------------------------------------------------------------------------
@@ -329,7 +316,7 @@ void vsTextureAttribute::saveCurrent()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
-    savedAttr[saveCount++] = gState->getTexture();
+    attrSaveList[attrSaveCount++] = gState->getTexture();
 }
 
 // ------------------------------------------------------------------------
@@ -351,15 +338,16 @@ void vsTextureAttribute::restoreSaved()
 {
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
-    gState->setTexture((vsTextureAttribute *)(savedAttr[--saveCount]));
+    gState->setTexture((vsTextureAttribute *)(attrSaveList[--attrSaveCount]));
 }
 
 // ------------------------------------------------------------------------
 // VESS internal function
 // Applies the settings in this attribute to the graphics library
 // ------------------------------------------------------------------------
-void vsTextureAttribute::setState()
+void vsTextureAttribute::setState(pfGeoState *state)
 {
-    performerTexture->apply();
-    performerTexEnv->apply();
+    state->setMode(PFSTATE_ENTEXTURE, PF_ON);
+    state->setAttr(PFSTATE_TEXENV, performerTexEnv);
+    state->setAttr(PFSTATE_TEXTURE, performerTexture);
 }

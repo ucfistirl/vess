@@ -3,28 +3,20 @@
 #ifndef VS_TRANSPARENCY_ATTRIBUTE_HPP
 #define VS_TRANSPARENCY_ATTRIBUTE_HPP
 
-#include "vsAttribute.h++"
-#include "vsGrowableArray.h++"
+#include "vsStateAttribute.h++"
 
-class vsTransparencyAttribute : public vsAttribute
+class vsTransparencyAttribute : public vsStateAttribute
 {
 private:
 
-    int                transpValue;
-
-    vsGrowableArray    savedAttr;
-    int                saveCount;
+    int         transpValue;
 
 VS_INTERNAL:
-
-                    vsTransparencyAttribute(int type);
 
     virtual void    saveCurrent();
     virtual void    apply();
     virtual void    restoreSaved();
-    virtual void    setState();
-
-    static void     setDefault();
+    virtual void    setState(pfGeoState *state);
 
 public:
 
@@ -32,7 +24,6 @@ public:
                    ~vsTransparencyAttribute();
 
     virtual int    getAttributeType();
-    virtual int    getAttributeCategory();
 
     void           enable();
     void           disable();
