@@ -649,7 +649,7 @@ void vsQuat::setVecsRotation(vsVector originForward, vsVector originUp,
 
     // Second, with both forward directions aligned, roll the up
     // directions to match
-    newUp = (*this).rotatePoint(startUp);
+    newUp = rotatePoint(startUp);
     if (!(newUp == endUp) && !(startDir == startUp) && !(endDir == endUp))
     {
         dotProd = endDir.getDotProduct(newUp);
