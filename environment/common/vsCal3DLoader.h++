@@ -32,7 +32,7 @@
 #include "vsComponent.h++"
 #include "vsSequencer.h++"
 
-class VS_GRAPHICS_DLL vsCal3DLoader : public vsObject
+class VS_ENVIRONMENT_DLL vsCal3DLoader : public vsObject
 {
 private:
 

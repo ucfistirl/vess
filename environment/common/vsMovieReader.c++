@@ -24,7 +24,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
+
+#ifndef WIN32
+    #include <unistd.h>
+#endif
 
 // ------------------------------------------------------------------------
 // Constructor
@@ -90,8 +93,6 @@ vsMovieReader::vsMovieReader()
 // ------------------------------------------------------------------------
 vsMovieReader::~vsMovieReader()
 {
-    AVPacket packet;
-
     // Set the playMode to QUIT to inform the threads to terminate
     playMode = VS_MOVIE_QUIT;
 
@@ -637,12 +638,9 @@ int vsMovieReader::getPlayMode()
 // ------------------------------------------------------------------------
 void vsMovieReader::readNextFrame()
 {
-    int mpegState;
     int readSize;
-    int status;
     int gotPicture;
     AVPacket moviePacket;
-    AVPacketList *packetQueueEntry;
     unsigned char *audioBufferPtr;
     int size, outputSize;
     unsigned char *dataPtr;
@@ -979,9 +977,6 @@ void *vsMovieReader::fileThreadFunc(void *readerObject)
 void *vsMovieReader::audioThreadFunc(void *readerObject)
 {
     vsMovieReader *instance;
-    AVPacket moviePacket;
-    int readStatus;
-    int currentState;
 
     // Get the instance of the reader object from the parameter
     instance = (vsMovieReader *)readerObject;
