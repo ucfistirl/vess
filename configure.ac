@@ -62,7 +62,8 @@ dnl variable, and restore them when we're done with our tests.
 OLDCFLAGS=
 OLDCXXFLAGS=
 
-dnl Additionally, we add the vsLinuxJoystickSystem class dnl when under Linux.
+dnl Additionally, we add the vsLinuxJoystickSystem, vsParallelPort, and
+dnl vsScentAirSystem classes when compiling under Linux.
 dnl Shared libraries are built differently on different systems, so we set 
 dnl up variables to handle that (since we're not using libtool).  Finally, 
 dnl we set the operating system variable (OS) to indicate the appropriate 
@@ -72,7 +73,7 @@ case "$target" in
        LIBDIR="lib"
        SO_LINK="-Wl,--whole-archive"
        SO_NO_LINK="-Wl,--no-whole-archive"
-       EXTRA_IO_OBJECTS="vsLinuxJoystickSystem.$OBJEXT"
+       EXTRA_IO_OBJECTS="vsLinuxJoystickSystem.$OBJEXT vsParallelPort.$OBJEXT vsScentAirSystem.$OBJEXT"
        OS=Linux ;;
 
    mips-sgi-irix*)
@@ -187,7 +188,7 @@ case "$SG" in
         dnl Performer can only be in one place (/usr/include).  Configure 
         dnl the include and library directories accordingly.
         GFX_INCLUDE_DIR=
-        GFX_LIB_DIR="-L/usr/$LIBDIR -L/usr/$LIBDIR/libpfdb"
+        GFX_LIB_DIR="-L$x_libraries -L/usr/$LIBDIR -L/usr/$LIBDIR/libpfdb"
         GFX_LIB="-lpf -lpfflt -lpfutil -lpfdu -lpfui -lXi -lXm -lXt -lGLU -lGL -lXext -lXmu -lX11 -ldl"
 
         dnl If we're on an IRIX box, we also need to link libimage
