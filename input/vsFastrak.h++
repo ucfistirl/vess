@@ -220,6 +220,7 @@ public:
                                                    vsVector zenithVec);
     void                       setOutputFormat(int newFormat[], 
                                                int newFormatNum);
+    void                       setBaudRate(long baud);
     void                       setUnits(int units);
 
     // Tracker functions

@@ -241,6 +241,14 @@ void vsFastrak::enumerateTrackers()
 {
     unsigned char buf[VS_FT_SIZE_CMD_PACKET];
     int           result;
+    int           i;
+
+    // Clear any garbage that might have sneaked onto the
+    // serial port
+    buf[0] = '\r';
+    port->writePacket(buf, 1);
+    usleep(100000);
+    port->flushPort();
 
     // Stop the FASTRAK from streaming (if it is)
     stopStream();
@@ -253,6 +261,8 @@ void vsFastrak::enumerateTrackers()
     buf[2] = '\r';
 
     port->writePacket(buf, 3);
+
+    sleep(1);
 
     result = port->readPacket(buf, 9);
 
@@ -1064,6 +1074,42 @@ void vsFastrak::setOutputFormat(int newFormat[], int newFormatNum)
     port->flushPort();
 
     if (!streaming)
+        ping();
+}
+
+// ------------------------------------------------------------------------
+// Adjust the baud rate of the FASTRAK
+// ------------------------------------------------------------------------
+void vsFastrak::setBaudRate(long baud)
+{
+    char buf[20];
+    int  baudCode;
+    int  length;
+    int  wasStreaming;
+
+    // Remember if we were streaming data
+    wasStreaming = streaming;
+
+    // Stop streaming
+    stopStream();
+    usleep(100000);
+    port->flushPort();
+
+    // Get the proper identifier for the baud rate
+    baudCode = baud/100;
+
+    // Send the new communications format
+    length = sprintf(buf, "o%d,N,8,0\r", baudCode);
+    port->writePacket((unsigned char *)buf, length);
+    usleep(100000);
+
+    // Set the baud rate on the serial port
+    port->setBaudRate(baud);
+
+    // Resume streaming or ping for a new packet
+    if (streaming)
+        startStream();
+    else
         ping();
 }
 
