@@ -222,6 +222,14 @@ void vsTextBuilder::setJustification(int newJustification)
 }
 
 // ------------------------------------------------------------------------
+// Return the current font justification
+// ------------------------------------------------------------------------
+void vsTextBuilder::getJustification()
+{
+    return fontJustification;
+}
+
+// ------------------------------------------------------------------------
 // Create and return a subgraph that describes how to draw the given text
 // with the specified font, color, and size.
 // ------------------------------------------------------------------------

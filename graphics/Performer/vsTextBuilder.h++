@@ -70,6 +70,8 @@ public:
     void               setColor(vsVector newColor);
     void               setTransformMatrix(vsMatrix newTransform);
     void               setJustification(int newJustification);
+
+    int                getJustification();
  
     vsComponent        *buildText(char *text);
 };
