@@ -39,7 +39,6 @@
 #include "vsViewpointAttribute.h++"
 #include "vsWindowSystem.h++"
 #include "vsTextBuilder.h++"
-#include "vsClusterConfig.h++"
 
 vsSystem *vsSystem::systemObject = NULL;
 
@@ -73,12 +72,6 @@ vsSystem::vsSystem()
     validObject = true;
     systemObject = this;
     
-    // Disable cluster rendering since we are running in standard mode 
-    cluster = NULL;
-    slaves = NULL;
-    isSlave = false;
-    readyToTerminate = false;
-    
     // Initialize the remote interface
 #ifdef VESS_DEBUG
     remoteInterface = new vsRemoteInterface("vessxml.dtd");
@@ -90,100 +83,6 @@ vsSystem::vsSystem()
     rootSequencer = new vsSequencer();
     rootSequencer->ref();
 }
-
-// ------------------------------------------------------------------------
-// Constructor - Same as the first constructor, but is enabled for cluster
-// rendering.
-// *Note: Only one of these objects may exist in a program at any one time.
-// Attemps to create more will return in a non-functional vsSystem object.
-// ------------------------------------------------------------------------
-vsSystem::vsSystem(vsClusterConfig *config)
-{
-    int i;
-    char slaveName[128];
-    const unsigned char *slaveAddr;
-    // Start out uninitialized
-    isInitted = 0;
-
-    // Singleton check
-    if (systemObject)
-    {
-        printf("vsSystem::vsSystem: Only one vsSystem object may be in "
-            "existance at any time\n");
-        validObject = 0;
-        return;
-    }
-
-    // Create an OSG FrameStamp (This is required by OSG.  It will be shared 
-    // by all panes and hence, all osgUtil::SceneView objects)
-    osgFrameStamp = new osg::FrameStamp();
-    osgFrameStamp->ref();
-    
-    // Mark this instance as valid and set the static class variable to 
-    // point to this instance
-    validObject = 1;
-    systemObject = this;
-    
-    // Prepare the cluster master if appropriate
-    if (config && config->isValid())
-    {
-        cluster = config;
-        
-        // Make space for interfaces with slaves
-        slaves = (vsTCPNetworkInterface**)calloc(cluster->numSlaves(),
-                sizeof(vsTCPNetworkInterface *));
-        numSlaves = cluster->numSlaves();
-        
-        // Connect to each slave
-        for (i=0;i < numSlaves;i++)
-        {   
-            // Locate the slave
-            slaveAddr = cluster->getSlave(i);
-            sprintf(slaveName,"%d.%d.%d.%d",(int)slaveAddr[0],(int)slaveAddr[1],
-                   (int)slaveAddr[2],(int)slaveAddr[3]);
-
-            // Now try to connect
-            slaves[i] = new vsTCPNetworkInterface(slaveName, 
-                    VS_RI_DEFAULT_CONTROL_PORT);
-            while (slaves[i]->makeConnection() < 0);
-            slaves[i]->disableBlocking();
-        }
-
-        // Since we're the master, we aren't a slave
-        isSlave = false;
-    }
-    // Prepare a cluster slave if appropriate
-    else if (config == NULL)
-    {
-        cluster = NULL;
-        slaves = NULL;
-        isSlave = true;
-    }
-    // In the event of a faulty configuration, we can't continue
-    else
-    {
-        printf("vsSystem::vsSystem: Cluster rendering failure\n");
-        
-        // If cluster rendering has failed, then everything is meaningless
-        validObject = 0;
-        cluster = NULL;
-        slaves = NULL;
-        isSlave = false;
-    }
-    
-    readyToTerminate = false;
-    // Initialize the remote interface
-#ifdef VESS_DEBUG
-    remoteInterface = new vsRemoteInterface("vessxml.dtd");
-#else
-    remoteInterface = new vsRemoteInterface();
-#endif
-
-    // Create a sequencer to act as a "root sequencer"
-    rootSequencer = new vsSequencer();
-    rootSequencer->ref();
-}
-
 
 // ------------------------------------------------------------------------
 // Destructor - Shuts down Open Scene Graph, usually resulting in the 
@@ -229,19 +128,6 @@ vsSystem::~vsSystem()
         
     // Clear the static class member to NULL
     systemObject = NULL;
-    
-    // Delete objects associated with cluster rendering
-    if(cluster)
-        delete cluster;
-    if(slaves)
-    {
-        for(i=0;i<numSlaves;i++)
-        {
-            if(slaves[i])
-                delete slaves[i];
-        }
-        free(slaves);
-    }
 }
 
 // ------------------------------------------------------------------------
@@ -659,73 +545,6 @@ void vsSystem::drawFrame()
         }
     }
     
-    // Perform cluster rendering
-
-    // If we're the master
-    if (slaves != NULL && !isSlave)
-    {
-        // Send out relevant info to slaves
-
-        // Block until all clients acknowledge
-        numSlavesReportedIn = 0;
-        while (numSlavesReportedIn < numSlaves)
-        {
-            // Collect messages from each slave
-            for (i=0; i<numSlaves; i++)
-            {
-                slaves[i]->read((u_char *)commStr, 256);
-                if (!strcmp(commStr,"<?xml version=\"1.0\"?>\n"
-                        "<vessxml version=\"1.0\">\n"
-                        "<readytosync>\n"
-                        "</readytosync>\n"
-                        "</vessxml>"))
-                {
-                    // Mark down that we've gotten a message from a client
-                    numSlavesReportedIn++;
-                    commStr[0]='\0';
-                }
-            }
-        }
-        
-        // Send relase signal
-        strcpy(commStr,"<?xml version=\"1.0\"?>\n"
-                "<vessxml version=\"1.0\">\n"
-                "<releasesync>\n"
-                "</releasesync>\n"
-                "</vessxml>");
-        for (i=0; i<numSlaves; i++)
-        {
-            // Send the signal to everyone
-            slaves[i]->write((u_char *)commStr, strlen(commStr)+1);
-        }
-    }
-    // If we're a slave
-    else if (isSlave && !readyToTerminate)
-    {
-        // Collect info
-        // Do processing on the info
-        // --------------INCOMPLETE--------------
-                
-        // Send an acknowledgement
-        strcpy(commStr,"<?xml version=\"1.0\"?>\n"
-                "<vessxml version=\"1.0\">\n"
-                "<readytosync>\n"
-                "</readytosync>\n"
-                "</vessxml>");
-        remoteInterface->send((u_char *)commStr, strlen(commStr)+1);
-        
-        
-        // Block until released by master
-        readyToSwap = false;
-        while (!readyToSwap && !readyToTerminate)
-        {
-            remoteInterface->update();
-        }
-        
-    }
-        
-
-    
     // Mark the system timer for this frame
     vsTimer::getSystemTimer()->mark();
 
@@ -759,7 +578,7 @@ void vsSystem::drawFrame()
                     setFrameStamp(osgFrameStamp);
 
                 // Do app and cull traversals
-                targetPane->getBaseLibraryObject()->update();
+                targetPane->getBaseLibraryObject()->app();
                 targetPane->getBaseLibraryObject()->cull();
 
                 // Only draw the pane if the visibility flag is true
@@ -783,63 +602,4 @@ void vsSystem::drawFrame()
         DispatchMessage(&message);
     }
 #endif
-}
-
-// ------------------------------------------------------------------------
-// Tells a cluster slave to swap now
-// ------------------------------------------------------------------------
-void vsSystem::releaseSync(void)
-{
-    readyToSwap = true;
-}
-
-// ------------------------------------------------------------------------
-// Set a flag designating that the time has come to terminate
-// ------------------------------------------------------------------------
-void vsSystem::terminateCluster(void)
-{
-    int i;
-    char commStr[256];
-    
-    readyToTerminate = true;
-    
-    // Send termination signal to all slaves
-    if (slaves)
-    {
-        // Prepare the termination message
-        strcpy(commStr,"<?xml version=\"1.0\"?>\n"
-                "<vessxml version=\"1.0\">\n"
-                "<terminatecluster>\n"
-                "</terminatecluster>\n"
-                "</vessxml>");
-        for (i=0; i<numSlaves; i++)
-        {
-            //Send the termination message
-            slaves[i]->write((u_char *)commStr, strlen(commStr)+1);
-        }
-    }
-}
-
-// ------------------------------------------------------------------------
-// Returns whether it is time to terminate
-// ------------------------------------------------------------------------
-bool vsSystem::hasBeenTerminated(void)
-{
-    return readyToTerminate;
-}
-
-// ------------------------------------------------------------------------
-// Returns, as one might expect, true if we are the master
-// ------------------------------------------------------------------------
-bool vsSystem::inMasterMode(void)
-{
-    return (slaves);
-}
-
-// ------------------------------------------------------------------------
-// Returns true if we are a slave
-// ------------------------------------------------------------------------
-bool vsSystem::inSlaveMode(void)
-{
-    return isSlave;
 }

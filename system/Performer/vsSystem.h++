@@ -27,7 +27,6 @@
 #include "vsPipe.h++"
 #include "vsScreen.h++"
 #include "vsTimer.h++"
-#include "vsClusterConfig.h++"
 #include "vsRemoteInterface.h++"
 #include "vsTCPNetworkInterface.h++"
 #include "vsSequencer.h++"
@@ -51,14 +50,6 @@ private:
     vsRemoteInterface       *remoteInterface;
     vsSequencer             *rootSequencer;
     
-    // For cluster rendering
-    vsClusterConfig         *cluster;
-    vsTCPNetworkInterface   **slaves;
-    int                     numSlaves;
-    bool                    isSlave;
-    bool                    readyToSwap;
-    bool                    readyToTerminate;
-
     void                    preFrameTraverse(vsNode *node);
 
 public:
@@ -66,7 +57,6 @@ public:
     static vsSystem     *systemObject;
 
                         vsSystem();
-                        vsSystem(vsClusterConfig *config);
                         ~vsSystem();
 
     void                setMultiprocessMode(int mpMode);
@@ -81,13 +71,6 @@ public:
     vsSequencer         *getSequencer();
 
     void                drawFrame();
-
-    void                releaseSync();
-    void                terminateCluster();
-    bool                hasBeenTerminated();
-
-    bool                inMasterMode();
-    bool                inSlaveMode();
 };
 
 #endif

@@ -30,13 +30,9 @@ protected:
                                                    xmlNodePtr current);
     void                     processQuerySequence(xmlDocPtr doc, 
                                                   xmlNodePtr current);
-    void                     processReleaseSync(xmlDocPtr doc, 
-                                                xmlNodePtr current);
     void                     processSetKinematics(xmlDocPtr doc, 
                                                   xmlNodePtr current);
     void                     processStats(xmlDocPtr doc, xmlNodePtr current);
-    void                     processTerminateCluster(xmlDocPtr doc, 
-                                                     xmlNodePtr current);
 
 public:
     vsRemoteInterfaceBuffer();

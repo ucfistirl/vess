@@ -5,7 +5,6 @@ lib_LIBRARIES = libvsSystem.a libvsSystem.so
 libvsSystem_a_SOURCES = \
                         common/vsRemoteInterface.c++ \
                         common/vsRemoteInterfaceBuffer.c++ \
-                        common/vsClusterConfig.c++ \
                         @SG@/vsSystem.c++ 
 
 # Sources for libvsSystem.so (same as libvsSystem.a)
@@ -15,7 +14,6 @@ libvsSystem_so_SOURCES = $(libvsSystem_a_SOURCES)
 include_HEADERS = \
                   common/vsRemoteInterface.h++ \
                   common/vsRemoteInterfaceBuffer.h++ \
-                  common/vsClusterConfig.h++ \
                   @SG@/vsSystem.h++
 
 # Include directives for the compiler

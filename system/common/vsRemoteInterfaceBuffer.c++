@@ -300,10 +300,6 @@ void vsRemoteInterfaceBuffer::processXMLDocument()
         {
             processQuerySequence(doc, current);
         }
-        else if (xmlStrcmp(current->name, (const xmlChar *) "releasesync") == 0)
-        {
-            processReleaseSync(doc, current);
-        }
         else if (xmlStrcmp(current->name, 
                            (const xmlChar *) "setkinematics") == 0)
         {
@@ -312,11 +308,6 @@ void vsRemoteInterfaceBuffer::processXMLDocument()
         else if (xmlStrcmp(current->name, (const xmlChar *) "stats") == 0)
         {
             processStats(doc, current);
-        }
-        else if (xmlStrcmp(current->name, 
-                           (const xmlChar *) "terminatecluster") == 0)
-        {
-            processTerminateCluster(doc, current);
         }
 
         // Get the next child of the root element
@@ -421,19 +412,6 @@ void vsRemoteInterfaceBuffer::processQuerySequence(xmlDocPtr doc,
 
     // Go through and collect the state of the sequencer
     getSequenceTree(rootSequencer);
-}
-
-
-// ------------------------------------------------------------------------
-// Get the data out of the releasesync XML document and notify the 
-// vsSystem object that a cluster release sync message was received
-// (it knows what to do)
-// ------------------------------------------------------------------------
-void vsRemoteInterfaceBuffer::processReleaseSync(xmlDocPtr doc, 
-                                                 xmlNodePtr current)
-{
-    // Release the swap locking sync on the cluster
-    vsSystem::systemObject->releaseSync();
 }
 
 
@@ -549,19 +527,6 @@ void vsRemoteInterfaceBuffer::processStats(xmlDocPtr doc, xmlNodePtr current)
         vsScreen::getScreen(screenIndex)->getChildWindow(windowIndex)->
             getChildPane(paneIndex)->disableStats();
     }
-}
-
-
-// ------------------------------------------------------------------------
-// Get the data out of the terminatecluster XML document and notify the 
-// vsSystem object that a terminate cluster sync message was received
-// (it knows what to do)
-// ------------------------------------------------------------------------
-void vsRemoteInterfaceBuffer::processTerminateCluster(xmlDocPtr doc, 
-                                                      xmlNodePtr current)
-{
-    // Tell the system object that we received the request to terminate
-    vsSystem::systemObject->terminateCluster();
 }
 
 
