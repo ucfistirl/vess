@@ -80,13 +80,13 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/motion.dll"
+				OutputFile="$(OutDir)/vsMotion.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/motion.lib"
+				ImportLibrary="$(OutDir)/vsMotion.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -112,6 +112,9 @@
 				RelativePath="..\..\motion\common\vs3TrackerArm.c++">
 			</File>
 			<File
+				RelativePath="..\..\motion\common\vsArticulatedCollision.c++">
+			</File>
+			<File
 				RelativePath="..\..\motion\common\vsAxisRotation.c++">
 			</File>
 			<File
@@ -133,6 +136,9 @@
 				RelativePath="..\..\motion\common\vsHandCollision.c++">
 			</File>
 			<File
+				RelativePath="..\..\motion\common\vsInverseKinematics.c++">
+			</File>
+			<File
 				RelativePath="..\..\motion\common\vsKinematics.c++">
 			</File>
 			<File
@@ -142,13 +148,22 @@
 				RelativePath="..\..\motion\common\vsPathMotion.c++">
 			</File>
 			<File
+				RelativePath="..\..\motion\common\vsPathMotionManager.c++">
+			</File>
+			<File
 				RelativePath="..\..\motion\common\vsPhantomCollision.c++">
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsPhantomMotion.c++">
 			</File>
 			<File
+				RelativePath="..\..\motion\common\vsRelativeMouseMotion.c++">
+			</File>
+			<File
 				RelativePath="..\..\motion\common\vsRelativeObjectMotion.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsSkeletonKinematics.c++">
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsSphericalMotion.c++">
@@ -176,6 +191,9 @@
 				RelativePath="..\..\motion\common\vs3TrackerArm.h++">
 			</File>
 			<File
+				RelativePath="..\..\motion\common\vsArticulatedCollision.h++">
+			</File>
+			<File
 				RelativePath="..\..\motion\common\vsAxisRotation.h++">
 			</File>
 			<File
@@ -197,6 +215,9 @@
 				RelativePath="..\..\motion\common\vsHandCollision.h++">
 			</File>
 			<File
+				RelativePath="..\..\motion\common\vsInverseKinematics.h++">
+			</File>
+			<File
 				RelativePath="..\..\motion\common\vsKinematics.h++">
 			</File>
 			<File
@@ -206,13 +227,22 @@
 				RelativePath="..\..\motion\common\vsPathMotion.h++">
 			</File>
 			<File
+				RelativePath="..\..\motion\common\vsPathMotionManager.h++">
+			</File>
+			<File
 				RelativePath="..\..\motion\common\vsPhantomCollision.h++">
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsPhantomMotion.h++">
 			</File>
 			<File
+				RelativePath="..\..\motion\common\vsRelativeMouseMotion.h++">
+			</File>
+			<File
 				RelativePath="..\..\motion\common\vsRelativeObjectMotion.h++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsSkeletonKinematics.h++">
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsSphericalMotion.h++">

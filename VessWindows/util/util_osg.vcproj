@@ -36,6 +36,7 @@
 				AdditionalDependencies="libjpeg.lib winmm.lib"
 				OutputFile="$(OutDir)/vsUtil.dll"
 				LinkIncremental="2"
+				IgnoreDefaultLibraryNames="LIBC"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/util.pdb"
 				SubSystem="2"
@@ -82,14 +83,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="libjpeg.lib winmm.lib"
-				OutputFile="$(OutDir)/util.dll"
+				OutputFile="$(OutDir)/vsUtil.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\lib"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/util.lib"
+				ImportLibrary="$(OutDir)/vsUtil.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>

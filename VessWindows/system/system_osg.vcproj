@@ -33,7 +33,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="osgd.lib osgDBd.lib osgUtild.lib wsock32.lib libxml2.lib"
+				AdditionalDependencies="osg.lib osgDB.lib osgUtil.lib wsock32.lib libxml2.lib"
 				OutputFile="$(OutDir)/vsSystem.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../lib"
@@ -83,14 +83,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="osg.lib osgDB.lib osgUtil.lib wsock32.lib libxml2.lib"
-				OutputFile="$(OutDir)/system.dll"
+				OutputFile="$(OutDir)/vsSystem.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\lib"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/system.lib"
+				ImportLibrary="$(OutDir)/vsSystem.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>

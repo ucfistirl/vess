@@ -83,14 +83,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="openal32.lib alut.lib "
-				OutputFile="$(OutDir)/sound.dll"
+				OutputFile="$(OutDir)/vsSound.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\lib"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/sound.lib"
+				ImportLibrary="$(OutDir)/vsSound.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>

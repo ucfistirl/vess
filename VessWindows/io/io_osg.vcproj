@@ -83,14 +83,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="wsock32.lib winmm.lib "
-				OutputFile="$(OutDir)/io.dll"
+				OutputFile="$(OutDir)/vsIO.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\lib"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/io.lib"
+				ImportLibrary="$(OutDir)/vsIO.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -120,6 +120,9 @@
 			</File>
 			<File
 				RelativePath="..\..\io\Windows\vsAscensionSerialTrackingSystem.c++">
+			</File>
+			<File
+				RelativePath="..\..\io\common\vsButtonAxis.c++">
 			</File>
 			<File
 				RelativePath="..\..\io\common\vsChordGloves.c++">
@@ -229,6 +232,9 @@
 			</File>
 			<File
 				RelativePath="..\..\io\Windows\vsAscensionSerialTrackingSystem.h++">
+			</File>
+			<File
+				RelativePath="..\..\io\common\vsButtonAxis.h++">
 			</File>
 			<File
 				RelativePath="..\..\io\common\vsChordGloves.h++">
