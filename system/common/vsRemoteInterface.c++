@@ -204,13 +204,17 @@ void vsRemoteInterface::processXMLDocument()
         // Look at the child's name and process accordingly (the name will
         // match what we think of as VESS XML commands -- "stats" for
         // example)
-        if (xmlStrcmp(current->name, (const xmlChar *) "stats") == 0)
+        if (xmlStrcmp(current->name, (const xmlChar *) "querysequence") == 0)
         {
-            processStats(doc, current);
+            processQuerySequence(doc, current);
         }
         else if (xmlStrcmp(current->name, (const xmlChar *) "releasesync") == 0)
         {
             processReleaseSync(doc, current);
+        }
+        else if (xmlStrcmp(current->name, (const xmlChar *) "stats") == 0)
+        {
+            processStats(doc, current);
         }
         else if (xmlStrcmp(current->name, 
                            (const xmlChar *) "terminatecluster") == 0)
@@ -226,6 +230,31 @@ void vsRemoteInterface::processXMLDocument()
     // free ourselves) up
     xmlFree(version);
     xmlFreeDoc(doc);
+}
+
+
+// ------------------------------------------------------------------------
+// Get the current sequence from the "root" sequencer and send it back
+// to the calling client
+// ------------------------------------------------------------------------
+void vsRemoteInterface::processQuerySequence(xmlDocPtr doc, xmlNodePtr current)
+{
+    vsSequencer   *rootSequencer;
+
+    // Get the "root" sequencer
+    rootSequencer = vsSystem::systemObject->getSequencer();
+}
+
+
+// ------------------------------------------------------------------------
+// Get the data out of the releasesync XML document and notify the 
+// vsSystem object that a cluster release sync message was received
+// (it knows what to do)
+// ------------------------------------------------------------------------
+void vsRemoteInterface::processReleaseSync(xmlDocPtr doc, xmlNodePtr current)
+{
+    // Release the swap locking sync on the cluster
+    vsSystem::systemObject->releaseSync();
 }
 
 
@@ -266,17 +295,6 @@ void vsRemoteInterface::processStats(xmlDocPtr doc, xmlNodePtr current)
 
 
 // ------------------------------------------------------------------------
-// Get the data out of the releasesync XML document and notify the 
-// vsSystem object that a cluster release sync message was received
-// (it knows what to do)
-// ------------------------------------------------------------------------
-void vsRemoteInterface::processReleaseSync(xmlDocPtr doc, xmlNodePtr current)
-{
-    vsSystem::systemObject->releaseSync();
-}
-
-
-// ------------------------------------------------------------------------
 // Get the data out of the terminatecluster XML document and notify the 
 // vsSystem object that a terminate cluster sync message was received
 // (it knows what to do)
@@ -284,6 +302,7 @@ void vsRemoteInterface::processReleaseSync(xmlDocPtr doc, xmlNodePtr current)
 void vsRemoteInterface::processTerminateCluster(xmlDocPtr doc, 
                                                 xmlNodePtr current)
 {
+    // Tell the system object that we received the request to terminate
     vsSystem::systemObject->terminateCluster();
 }
 

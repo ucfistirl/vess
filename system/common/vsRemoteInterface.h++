@@ -28,11 +28,11 @@ protected:
     int                      tcpClientIDs[VS_MAX_CONNECTIONS];
 
     void                     processXMLDocument();
-    void                     processStats(xmlDocPtr doc, xmlNodePtr current);
-    void                     processReadyToSync(xmlDocPtr doc, 
-                                                xmlNodePtr current);
+    void                     processQuerySequence(xmlDocPtr doc, 
+                                                  xmlNodePtr current);
     void                     processReleaseSync(xmlDocPtr doc, 
                                                 xmlNodePtr current);
+    void                     processStats(xmlDocPtr doc, xmlNodePtr current);
     void                     processTerminateCluster(xmlDocPtr doc, 
                                                      xmlNodePtr current);
 
