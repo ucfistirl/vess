@@ -27,7 +27,7 @@
 
 #define VS_PHANTOM_BUTTONS  1
 
-class vsPhantom: public vs6DInputDevice
+class VS_IO_DLL vsPhantom: public vs6DInputDevice
 {
 protected:
 
