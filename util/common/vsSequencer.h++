@@ -27,10 +27,16 @@
 
 #include "vsUpdatable.h++"
 
+// Maximum length of a name of a vsUpdatable in the sequencer.
+// This includes space for the \0 ending character (all names are
+// required to end in \0).
+#define VS_SEQUENCER_MAX_UPDATABLE_NAME_LENGTH   80
+
 struct UpdatableEntry
 {
     vsUpdatable     *updatable;
     double          time;
+    char            name[VS_SEQUENCER_MAX_UPDATABLE_NAME_LENGTH];
     UpdatableEntry  *prev;
     UpdatableEntry  *next;
 };
@@ -54,11 +60,16 @@ public:
 
     void            addUpdatable(vsUpdatable *updatable);
     void            addUpdatable(vsUpdatable *updatable, double time);
+    void            addUpdatable(vsUpdatable *updatable, double time,
+                                 char *name);
 
     void            removeUpdatable(vsUpdatable *updatable);
 
     double          getUpdatableTime(vsUpdatable *updatable);
     void            setUpdatableTime(vsUpdatable *updatable, double time);
+
+    void            setUpdatableName(vsUpdatable *updatable, char *name);
+    char            *getUpdatableName(vsUpdatable *updatable);
 
     void            setUpdatablePosition(vsUpdatable *updatable,
                                          unsigned long newPosition);

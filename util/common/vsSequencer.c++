@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <string.h>
 
 // ------------------------------------------------------------------------
 // Default constructor
@@ -80,7 +81,7 @@ void vsSequencer::addUpdatable(vsUpdatable *updatable)
 // Add the specified updatable to the end of this sequencer.
 // Set how much time it should take as well.
 // ------------------------------------------------------------------------
-void vsSequencer::addUpdatable(vsUpdatable *updatable, double time)
+void vsSequencer::addUpdatable(vsUpdatable *updatable, double time, char *name)
 {
     UpdatableEntry  *tempEntry;
 
@@ -101,6 +102,8 @@ void vsSequencer::addUpdatable(vsUpdatable *updatable, double time)
     // Set the structures values.
     tempEntry->updatable = updatable;
     tempEntry->time = time;
+    strncpy(tempEntry->name, name, VS_SEQUENCER_MAX_UPDATABLE_NAME_LENGTH - 1);
+    tempEntry->name[VS_SEQUENCER_MAX_UPDATABLE_NAME_LENGTH - 1] = '\0';
     tempEntry->next = NULL;
 
     // Insert it to the end of the list.
@@ -232,6 +235,77 @@ void vsSequencer::setUpdatableTime(vsUpdatable *updatable, double time)
     if (!found)
     {
         printf("vsSequencer::setUpdatableTime: Updatable not found!\n");
+    }
+}
+
+// ------------------------------------------------------------------------
+// Return the name the specified updatable is known by.
+// ------------------------------------------------------------------------
+char *vsSequencer::getUpdatableName(vsUpdatable *updatable)
+{
+    UpdatableEntry  *tempEntry;
+    bool            found;
+
+    // Go through the list, starting at the head.
+    tempEntry = updatableListHead;
+    found = false;
+    while ((tempEntry) && (!found))
+    {
+        // If this is the entry we want, stop traversing.
+        if (tempEntry->updatable == updatable)
+        {
+            found = true;
+        }
+        // Else continue down the list.
+        else
+        {
+            tempEntry = tempEntry->next;
+        }
+    }
+
+    // If it was not found, print an error.
+    if (!found)
+    {
+        printf("vsSequencer::getUpdatableName: Updatable not found!\n");
+        return (NULL);
+    }
+    else
+       return (tempEntry->name);
+}
+
+// ------------------------------------------------------------------------
+// Set the name the specified updatable should take.
+// ------------------------------------------------------------------------
+void vsSequencer::setUpdatableName(vsUpdatable *updatable, char *name)
+{
+    UpdatableEntry  *tempEntry;
+    bool            found;
+
+    // Go through the list, starting at the head.
+    tempEntry = updatableListHead;
+    found = false;
+    while ((tempEntry) && (!found))
+    {
+        // If this is the entry we want, stop traversing.
+        // Also set its name.
+        if (tempEntry->updatable == updatable)
+        {
+            strncpy(tempEntry->name, name, 
+                    VS_SEQUENCER_MAX_UPDATABLE_NAME_LENGTH - 1);
+            tempEntry->name[VS_SEQUENCER_MAX_UPDATABLE_NAME_LENGTH - 1] = '\0';
+            found = true;
+        }
+        // Else continue down the list.
+        else
+        {
+            tempEntry = tempEntry->next;
+        }
+    }
+
+    // If it was not found, print an error.
+    if (!found)
+    {
+        printf("vsSequencer::setUpdatableName: Updatable not found!\n");
     }
 }
 
