@@ -157,7 +157,7 @@ int vsPhantomCollision::getPointCount()
 // ------------------------------------------------------------------------
 void vsPhantomCollision::setPoint(int index, vsVector newOffset)
 {
-    // Boudns checking
+    // Bounds checking
     if ((index < 0) || (index >= VS_PHANTOM_COLLISION_POINTS_MAX))
     {
         printf("vsPhantomCollision::setPoint: Index out of bounds\n");
