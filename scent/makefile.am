@@ -4,7 +4,6 @@ lib_LIBRARIES = libvsScent.a libvsScent.so
 # Sources for libvsSound.a
 libvsScent_a_SOURCES = \
                        common/vsScent.c++ \
-                       common/vsScentAirScent.c++ \
                        common/vsScentManager.c++ \
                        common/vsScentSourceAttribute.c++ \
                        common/vsScentDetectorAttribute.c++
@@ -12,13 +11,30 @@ libvsScent_a_SOURCES = \
 # Sources for libvsSound.so (same as libvsSound.a)
 libvsScent_so_SOURCES = $(libvsScent_a_SOURCES)
 
+# Extra, conditionally-compiled sources
+EXTRA_libvsScent_a_SOURCES = \
+                             Linux/vsScentAirScent.c++
+
+EXTRA_libvsScent_so_SOURCES = EXTRA_libvsScent_a_SOURCES
+
 # Header files
 include_HEADERS = \
                   common/vsScent.h++ \
-                  common/vsScentAirScent.h++ \
                   common/vsScentManager.h++ \
                   common/vsScentSourceAttribute.h++ \
                   common/vsScentDetectorAttribute.h++
+
+# Extra, conditionally-compiled headers
+EXTRA_HEADERS = \
+                Linux/vsScentAirScent.h++
+
+# Extra dependencies for libvsScent.a.  This reflects the additional
+# dependencies necessary if any conditionally-compiled sources are used.
+libvsScent_a_DEPENDENCIES = @EXTRA_SCENT_OBJECTS@
+                                                                                
+# Extra dependencies for libvsGraphics.so.  This reflects the additional
+# dependencies necessary if any conditionally-compiled sources are used.
+libvsScent_so_DEPENDENCIES = $(libvsScent_a_DEPENDENCIES)
 
 # Include directives for the compiler
 INCLUDES = \
@@ -35,7 +51,13 @@ INCLUDES = \
            -I../io/@SG@_@WS@ \
            @IO_INCLUDE_DIR@ \
            -I../llio/@OS@ \
-           @SOUND_INCLUDE_DIR@
+           @SOUND_INCLUDE_DIR@ \
+           -I../scent/common \
+           -I../scent/@OS@
+
+# Extra object files.  If any conditionally-compiled sources are used, this
+# rule adds the object files to libvsIO.a.
+libvsScent_a_LIBADD = @EXTRA_SCENT_OBJECTS@
 
 # Rule to make libvsScent.so
 libvsScent.so: libvsScent.a

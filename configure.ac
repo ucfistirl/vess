@@ -75,6 +75,7 @@ case "$target" in
        SO_NO_LINK="-Wl,--no-whole-archive"
        EXTRA_LLIO_OBJECTS="vsParallelPort.$OBJEXT"
        EXTRA_IO_OBJECTS="vsLinuxJoystickSystem.$OBJEXT vsScentAirSystem.$OBJEXT"
+       EXTRA_SCENT_OBJECTS="vsScentAirScent.$OBJEXT"
        OS=Linux ;;
 
    mips-sgi-irix*)
@@ -85,6 +86,7 @@ case "$target" in
        SO_NO_LINK="-notall"
        EXTRA_LLIO_OBJECTS=
        EXTRA_IO_OBJECTS=
+       EXTRA_SCENT_OBJECTS=
        OS=IRIX
 
        dnl Save the current CFLAGS so we can fix it after we're done
@@ -135,6 +137,7 @@ esac
 dnl Export the OS-specific variables to the makefiles
 AC_SUBST(EXTRA_LLIO_OBJECTS)
 AC_SUBST(EXTRA_IO_OBJECTS)
+AC_SUBST(EXTRA_SCENT_OBJECTS)
 AC_SUBST(SO_LINK)
 AC_SUBST(SO_NO_LINK)
 
@@ -165,7 +168,7 @@ dnl to indicate Performer
 SG=Performer
 
 dnl This variable is used for any extra classes that need compiling aside
-dnl from the standard VESS classes.  OSG makes use of this.
+dnl from the standard VESS classes.
 EXTRA_GRAPHICS_OBJECTS=
 
 dnl Initialize the graphics include and library paths
@@ -192,54 +195,6 @@ AC_ARG_WITH(openthreads,
 [[  --with-openthreads=[PREFIX]     Path for OpenThreads library [/usr/local]]],
 , with_openthreads="/usr/local")
 
-dnl Provide the option to use libmpeg2, the MPEG reader library. Enables the
-dnl compilation of the vsMPEGReader class. The argument should be the path to
-dnl the library; assumes /usr/local if no argument is given.
-AC_ARG_WITH(mpeg2,
-[[  --with-mpeg2=[prefix]   Use the mpeg2 library for MPEG file reading (if
-                          necessary, the path to the library may be
-                          specified) [no]]],
-, with_mpeg2=no)
-dnl Default to /usr/local if no argument given
-if test x$with_mpeg2 = xyes ; then
-    with_mpeg2=/usr/local
-fi
-dnl Verify the mpeg2 path data if present
-if test x$with_mpeg2 != xno ; then
-    LIBS=
-    AC_CHECK_LIB(mpeg2, mpeg2_init,,MPEG_ERROR=yes,-L$with_mpeg2/lib)
-    if test x$MPEG_ERROR = xyes ; then
-        AC_MSG_ERROR([
-
-    There is a problem with the mpeg2 library. Check to make sure that it
-    is installed correctly and in the specified location. 
-
-    E-mail vess@ist.ucf.edu if you think you've received this message in
-    error.
-
-])
-    fi
-    AC_CHECK_LIB(vo, convert_rgb24,,MPEG_ERROR=yes,-L$with_mpeg2/lib)
-    if test x$MPEG_ERROR = xyes ; then
-        AC_MSG_ERROR([
-
-    There is a problem with the libvo library, which is part of the mpeg2
-    library distribution. Check to make sure that it is installed correctly 
-    and in the specified location. 
-
-    E-mail vess@ist.ucf.edu if you think you've received this message in
-    error.
-
-])
-    fi
-    dnl Add the mpeg2 path information to the variables that will eventually
-    dnl get exported to the graphics makefile.
-    EXTRA_GRAPHICS_OBJECTS="$EXTRA_GRAPHICS_OBJECTS vsMPEGReader.$OBJEXT"
-    GFX_INCLUDE_DIR="$GFX_INCLUDE_DIR -I$with_mpeg2/include"
-    GFX_LIB_DIR="$GFX_LIB_DIR -L$with_mpeg2/lib"
-    GFX_LIB="$GFX_LIB -lmpeg2 -lvo"
-fi
-
 dnl Provide the option to use osgNV for programmable shader support under
 dnl Open Scene Graph
 AC_ARG_WITH(osgnv,
@@ -254,7 +209,7 @@ case "$SG" in
 
         dnl Performer can only be in one place (/usr/include).  Configure 
         dnl the include and library directories accordingly.
-        GFX_INCLUDE_DIR="$GFX_INCLUDE_DIR"
+        GFX_INCLUDE_DIR="$GFX_INCLUDE_DIR -I$x_includes"
         GFX_LIB_DIR="$GFX_LIB_DIR -L$x_libraries -L/usr/$LIBDIR -L/usr/$LIBDIR/libpfdb"
         GFX_LIB="$GFX_LIB -lpf -lpfflt -lpfutil -lpfdu -lpfui -lXi -lXm -lXt -lGLU -lGL -lXext -lXmu -lX11 -ldl"
 
@@ -330,7 +285,7 @@ case "$SG" in
         fi
 
         dnl Set the graphics library directories
-        GFX_INCLUDE_DIR="$GFX_INCLUDE_DIR -I$OSG_PATH/include -I$OSG_PATH/src/osgText -I$with_openthreads/include"
+        GFX_INCLUDE_DIR="$GFX_INCLUDE_DIR -I$x_includes -I$OSG_PATH/include -I$OSG_PATH/src/osgText -I$with_openthreads/include"
         GFX_LIB_DIR="$GFX_LIB_DIR -L$x_libraries -L$OSG_PATH/lib -L$OSG_PATH/lib/osgPlugins -L$with_openthreads/lib"
         GFX_LIB="$GFX_LIB -lXi -lXm -lXt -lGLU -lGL -lOpenThreads -losg -losgDB -losgUtil -losgText -lfreetype -lXext -lXmu -lX11 -ldl"
 
@@ -663,6 +618,55 @@ if test x$with_raw1394 != xno ; then
 fi
 
 
+dnl Environment options******************************************************
+
+dnl This variable is used for any extra classes that need compiling aside
+dnl from the standard VESS classes.
+EXTRA_ENVIRONMENT_OBJECTS=
+
+dnl Initialize the graphics include and library paths
+ENV_INCLUDE_DIR=
+ENV_LIB_DIR=
+ENV_LIB=
+
+dnl Provide the option to use ffmpeg, the video reader library. Enables the
+dnl compilation of the vsMovieReader class. The argument should be the path to
+dnl the library; assumes /usr/local if no argument is given.
+AC_ARG_WITH(ffmpeg,
+[[  --with-ffmpeg=[prefix]   Use the ffmpeg library for video file reading (if
+                           necessary, the path to the library may be
+                           specified) [no]]],
+, with_ffmpeg=no)
+dnl Default to /usr/local if no argument given
+if test x$with_ffmpeg = xyes ; then
+    with_ffmpeg=/usr/local
+fi
+dnl Verify the ffmpeg path data if present
+if test x$with_ffmpeg != xno ; then
+    LIBS=
+    AC_CHECK_LIB(avcodec, avcodec_open,,VIDEO_ERROR=yes,-L$with_ffmpeg/lib)
+    AC_CHECK_LIB(avformat, av_register_all,,VIDEO_ERROR=yes,-L$with_ffmpeg/lib)
+    if test x$VIDEO_ERROR = xyes ; then
+        AC_MSG_ERROR([
+
+    There is a problem with the ffmpeg library. Check to make sure that it
+    is installed correctly and in the specified location. 
+
+    E-mail vess@ist.ucf.edu if you think you've received this message in
+    error.
+
+])
+    fi
+    dnl Add the ffmpeg path information to the variables that will eventually
+    dnl get exported to the graphics makefile.
+    EXTRA_ENVIRONMENT_OBJECTS="$EXTRA_ENVIRONMENT_OBJECTS vsMovieReader.$OBJEXT"
+    ENV_INCLUDE_DIR="$ENV_INCLUDE_DIR -I$with_ffmpeg/include"
+    ENV_LIB_DIR="$ENV_LIB_DIR -L$with_ffmpeg/lib"
+    ENV_LIB="$ENV_LIB -lavcodec -lavformat"
+fi
+
+dnl Export the EXTRA_ENVIRONMENT_OBJECTS variable to the makefile
+AC_SUBST(EXTRA_ENVIRONMENT_OBJECTS)
 
 dnl XML options**************************************************************
 XML_INCLUDE_DIR="-I/usr/include/libxml2"
@@ -738,6 +742,9 @@ AC_SUBST(SOUND_LIB)
 AC_SUBST(IO_INCLUDE_DIR)
 AC_SUBST(IO_LIB_DIR)
 AC_SUBST(IO_LIB)
+AC_SUBST(ENV_INCLUDE_DIR)
+AC_SUBST(ENV_LIB_DIR)
+AC_SUBST(ENV_LIB)
 AC_SUBST(XML_INCLUDE_DIR)
 AC_SUBST(XML_LIB_DIR)
 AC_SUBST(XML_LIB)
