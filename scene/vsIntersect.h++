@@ -23,13 +23,16 @@
 #ifndef VS_INTERSECT_HPP
 #define VS_INTERSECT_HPP
 
+class vsIntersect;
+
 #include <Performer/pr/pfGeoSet.h>
 #include <Performer/pf/pfNode.h>
 #include "vsVector.h++"
 #include "vsComponent.h++"
 #include "vsGeometry.h++"
 #include "vsGrowableArray.h++"
-#include "vsSystem.h++"
+#include "vsMouse.h++"
+#include "vsPane.h++"
 
 #define VS_INTERSECT_SEGS_MAX 32
 
@@ -66,6 +69,9 @@ public:
     vsVector           getSegEndPt(int segNum);
     vsVector           getSegDirection(int segNum);
     double             getSegLength(int segNum);
+    
+    void               setPickSeg(int segNum, vsPane *pane, vsMouse *mousePos);
+    void               setPickSeg(int segNum, vsPane *pane, double x, double y);
 
     void               setMask(unsigned int newMask);
     unsigned int       getMask();

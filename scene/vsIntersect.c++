@@ -236,6 +236,92 @@ double vsIntersect::getSegLength(int segNum)
 }
 
 // ------------------------------------------------------------------------
+// Sets up the specified segment within the intersect object for a picking
+// intersection. (Picking indicates choosing an object visible within a
+// pane, often by clicking it with the mouse.)  The projection and
+// viewpoint of the specified pane's view object, as well as the current
+// position of the mouse as specified by the vsMouse object, are used in
+// the pick segment determination. The number of the first segment is 0.
+// ------------------------------------------------------------------------
+void vsIntersect::setPickSeg(int segNum, vsPane *pane, vsMouse *mousePos)
+{
+    float xval, yval;
+
+    if ((segNum < 0) || (segNum >= segListSize))
+    {
+        printf("vsIntersect::setPickSeg: Segment number out of bounds\n");
+        return;
+    }
+
+    xval = mousePos->getAxis(PF_X)->getPosition();
+    yval = mousePos->getAxis(PF_Y)->getPosition();
+    setPickSeg(segNum, pane, xval, yval);
+}
+
+// ------------------------------------------------------------------------
+// Sets up the specified segment within the intersect object for a picking
+// intersection. The projection and viewpoint of the specified pane's view
+// object, as well as the current position of the mouse as specified by the
+// x and y parameters, are used in the pick segment determination. x and y
+// should be in the range [-1.0, 1.0] to indicate the scene visible in the
+// pane (the center of the pane is (0, 0) for this purpose); it is not an
+// error to specify values outside of this range. The number of the first
+// segment is 0.
+// ------------------------------------------------------------------------
+void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
+{
+    pfChannel *paneChannel;
+    pfVec3 ll, lr, ul, ur;
+    vsVector upperLeft, upperRight, lowerLeft;
+    vsVector rightDirection, downDirection;
+    vsVector nearPt, farPt;
+    vsView *paneView;
+    vsMatrix viewRot;
+    vsVector viewPos;
+
+    if ((segNum < 0) || (segNum >= segListSize))
+    {
+        printf("vsIntersect::setPickSeg: Segment number out of bounds\n");
+        return;
+    }
+    
+    paneChannel = pane->getBaseLibraryObject();
+    
+    // Calculate the pick point on the near clipping plane
+    paneChannel->getNear(ll, lr, ul, ur);
+    upperLeft.set(ul[0], ul[1], ul[2]);
+    upperRight.set(ur[0], ur[1], ur[2]);
+    lowerLeft.set(ll[0], ll[1], ll[2]);
+
+    rightDirection = upperRight - upperLeft;
+    downDirection = lowerLeft - upperLeft;
+    
+    nearPt = upperLeft + rightDirection.getScaled((x + 1.0) / 2.0) +
+        downDirection.getScaled((y + 1.0) / 2.0);
+    
+    // Calculate the pick point on the far clipping plane
+    paneChannel->getFar(ll, lr, ul, ur);
+    upperLeft.set(ul[0], ul[1], ul[2]);
+    upperRight.set(ur[0], ur[1], ur[2]);
+    lowerLeft.set(ll[0], ll[1], ll[2]);
+
+    rightDirection = upperRight - upperLeft;
+    downDirection = lowerLeft - upperLeft;
+    
+    farPt = upperLeft + rightDirection.getScaled((x + 1.0) / 2.0) +
+        downDirection.getScaled((y + 1.0) / 2.0);
+
+    // Transform the two points by the current view parameters
+    paneView = pane->getView();
+    viewRot = paneView->getRotationMat();
+    viewPos = paneView->getViewpoint();
+
+    // Add the newly-build segment to the list using one of the other
+    // segment setting calls
+    setSeg(segNum, nearPt, farPt);
+}
+
+// ------------------------------------------------------------------------
 // Sets the intersection mask
 // ------------------------------------------------------------------------
 void vsIntersect::setMask(unsigned int newMask)
@@ -276,9 +362,11 @@ void vsIntersect::disablePaths()
 // ------------------------------------------------------------------------
 void vsIntersect::intersect(vsNode *targetNode)
 {
-    pfNode *performerNode, *geoNode, *pathNode;
+    pfNode *performerNode, *geoNode;
+    pfNode *pathNode;
     pfHit **hits[PFIS_MAX_SEGS];
-    int loop, sloop, tloop, arraySize;
+    int loop, sloop, tloop;
+    int arraySize;
     int flags;
     pfVec3 hitPoint, polyNormal;
     pfMatrix xformMat;
@@ -377,6 +465,7 @@ void vsIntersect::intersect(vsNode *targetNode)
             delete (sectPath[loop]);
             sectPath[loop] = NULL;
         }
+
     }
 }
 
