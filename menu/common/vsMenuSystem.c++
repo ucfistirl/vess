@@ -352,7 +352,8 @@ void vsMenuSystem::setRepeatable(vsMenuAction action, bool repeatable)
 // ------------------------------------------------------------------------
 void vsMenuSystem::hide()
 {
-    menuPane->hidePane();
+    if (menuPane)
+        menuPane->hidePane();
 }
 
 // ------------------------------------------------------------------------
@@ -360,7 +361,8 @@ void vsMenuSystem::hide()
 // ------------------------------------------------------------------------
 void vsMenuSystem::show()
 {
-    menuPane->showPane();
+    if (menuPane)
+        menuPane->showPane();
 }
 
 // ------------------------------------------------------------------------
@@ -402,7 +404,8 @@ void vsMenuSystem::update()
         curObj->update(VS_MENU_SIGNAL_IDLE, curFrame);
 
         // If the window system uses a cursor, intersect with this object
-        if (hasCursor && curObj->getComponent() && curObj->isSelectable())
+        if (menuPane && hasCursor && curObj->getComponent() &&
+            curObj->isSelectable())
         {
             isectObject->setPickSeg(0, menuPane, xAxis->getPosition(),
                 yAxis->getPosition());
