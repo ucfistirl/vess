@@ -45,6 +45,14 @@ vsNetworkInterface::~vsNetworkInterface()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsNetworkInterface::getClassName()
+{
+    return "vsNetworkInterface";
+}
+
+// ------------------------------------------------------------------------
 // Enables blocking on the socket for reads and writes
 // ------------------------------------------------------------------------
 void vsNetworkInterface::enableBlocking()
