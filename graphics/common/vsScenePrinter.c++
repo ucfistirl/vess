@@ -61,7 +61,7 @@ void vsScenePrinter::printScene(vsNode *targetNode, char *outputFileName)
 {
     FILE *outfile;
     int counts[256];
-    
+
     // Open the output file
     outfile = fopen(outputFileName, "w");
     if (!outfile)
@@ -358,7 +358,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
     {
         attribute = targetNode->getAttribute(loop);
         writeBlanks(outfile, (treeDepth * 2) + 1);
-        fprintf(outfile, "Attribute: address %p, references %d, type ",
+        fprintf(outfile, "Attribute: address %p, attached? %d, type ",
             attribute, attribute->isAttached());
         switch (attribute->getAttributeType())
         {
