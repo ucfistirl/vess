@@ -166,7 +166,7 @@ void vsWSSpaceball::update()
                 tempVec[VS_P] = (float)sbData[4] / 32767.0f;
                 tempVec[VS_R] = (float)sbData[5] / 32767.0f;
 
-                spaceball->setOrientation(tempVec);
+                spaceball->setOrientation(tempVec, VS_EULER_ANGLES_ZXY_R);
             }
         }
     }
