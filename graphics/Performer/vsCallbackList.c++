@@ -33,6 +33,10 @@ vsCallbackList::vsCallbackList(pfChannel *callbackChannel)
     // Store the callback channel
     channel = callbackChannel;
 
+    // Set up the default clear mask, which will be passed along as user data
+    glClearMask = (int *)pfMalloc(sizeof(int), pfGetSharedArena());
+    *glClearMask = GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT;
+
     // The first member of the list is a dummy node. This is necessary because
     // changes made to the first node are not reflected within the draw process
     // so the first node must always point to the same location.
@@ -48,7 +52,7 @@ vsCallbackList::vsCallbackList(pfChannel *callbackChannel)
         pfGetSharedArena());
     defaultDrawNode->next = NULL;
     defaultDrawNode->func = vsCallbackList::defaultCallback;
-    defaultDrawNode->data = NULL;
+    defaultDrawNode->data = glClearMask;
 
     // Connect the list nodes to one another
     callbackList->next = defaultDrawNode;
@@ -79,6 +83,13 @@ vsCallbackList::vsCallbackList(pfChannel *callbackChannel)
     // Set the semaphore of the dummy node to the semaphore of the entire list
     // so that it can be retrieved later by the traversal function
     callbackList->sema = listSemaphore;
+
+    // Declare a semaphore to protect the GL clear mask
+    maskSemaphore = usnewsema(pfGetSemaArena(), 1);
+
+    // Set the semaphore of the default node to the mask semaphore so that it
+    // can be retrieved later by the traversal function
+    defaultDrawNode->sema = maskSemaphore;
 }
 
 // ------------------------------------------------------------------------
@@ -117,8 +128,12 @@ vsCallbackList::~vsCallbackList()
     // Free the callback list address pointer
     pfFree(callbackListAddress);
 
-    // Free the semaphore
+    // Free the GL clear mask variable
+    pfFree(glClearMask);
+
+    // Free the semaphores
     usfreesema(listSemaphore, pfGetSemaArena());
+    usfreesema(maskSemaphore, pfGetSemaArena());
 }
 
 // ------------------------------------------------------------------------
@@ -467,6 +482,41 @@ void vsCallbackList::removeCallback(pfChanFuncType callback,
 }
 
 // ------------------------------------------------------------------------
+// Set the value of the mask used for clearing during rendering
+// ------------------------------------------------------------------------
+void vsCallbackList::setGLClearMask(int clearMask)
+{
+    // Acquire the semaphore for the mask
+    uspsema(maskSemaphore);
+
+    // Safely update the value
+    *glClearMask = clearMask;
+
+    // Release the semaphore
+    usvsema(maskSemaphore);
+}
+
+// ------------------------------------------------------------------------
+// Get the value of the mask used for clearing during rendering
+// ------------------------------------------------------------------------
+int vsCallbackList::getGLClearMask()
+{
+    int clearMask;
+
+    // Acquire the semaphore for the mask
+    uspsema(maskSemaphore);
+
+    // Safely update the value
+    clearMask = *glClearMask;
+
+    // Release the semaphore
+    usvsema(maskSemaphore);
+
+    // Return the value for the mask
+    return clearMask;
+}
+
+// ------------------------------------------------------------------------
 // static VESS internal function - Performer callback
 // This is the only draw callback that should be set to a Performer
 // channel. It traverses the linked list of callback functions and calls
@@ -512,8 +562,23 @@ void vsCallbackList::traverseCallbacks(pfChannel *chan, void *userData)
 // ------------------------------------------------------------------------
 void vsCallbackList::defaultCallback(pfChannel *chan, void *userData)
 {
-    // Clear the channel
-    chan->clear();
+    vsCallbackNode *currentNode;
+    int            clearMask;
+
+    // Grab the pointer to the current callback node
+    currentNode = (vsCallbackNode *)userData;
+
+    // Acquire the semaphore for the clear mask
+    uspsema(currentNode->sema);
+
+    // Get the value of the clear mask
+    clearMask = *((int *)currentNode->data);
+
+    // Release the clear mask semaphore
+    usvsema(currentNode->sema);
+
+    // Clear the channel according to the user data clear mask
+    glClear(clearMask);
 
     // Draw the scene
     pfDraw();

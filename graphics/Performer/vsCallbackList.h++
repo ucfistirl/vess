@@ -52,6 +52,9 @@ private:
     vsCallbackNode  **callbackListAddress;
 
     usema_t         *listSemaphore;
+    usema_t         *maskSemaphore;
+
+    int             *glClearMask;
 
 VS_INTERNAL:
 
@@ -83,6 +86,9 @@ public:
 
     void                  removeCallback(pfChanFuncType callbackFunction,
                                          void *sharedMemory);
+
+    void                  setGLClearMask(int clearMask);
+    int                   getGLClearMask();
 };
 
 #endif
