@@ -32,6 +32,7 @@ vsTextBuilder::vsTextBuilder()
     // Create the loader that will be used to convert the
     // performer subgraph.
     loader = new vsDatabaseLoader();
+    loader->ref();
 
     // Set the font to normal.
     font = NULL;
@@ -56,6 +57,7 @@ vsTextBuilder::vsTextBuilder(char *newFont)
     // Create the loader that will be used to convert the
     // performer subgraph.
     loader = new vsDatabaseLoader();
+    loader->ref();
 
     // Set the justification to the default centered.
     setJustification(VS_TEXTBUILDER_JUSTIFY_CENTER);
@@ -80,6 +82,7 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor)
     // Create the loader that will be used to convert the
     // performer subgraph.
     loader = new vsDatabaseLoader();
+    loader->ref();
 
     // Set the justification to the default centered.
     setJustification(VS_TEXTBUILDER_JUSTIFY_CENTER);
@@ -106,6 +109,7 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor,
     // Create the loader that will be used to convert the
     // performer subgraph.
     loader = new vsDatabaseLoader();
+    loader->ref();
 
     // Set the justification to the default centered.
     setJustification(VS_TEXTBUILDER_JUSTIFY_CENTER);
@@ -133,7 +137,7 @@ vsTextBuilder::~vsTextBuilder()
     }
 
     // Delete the loader.
-    delete loader;
+    vsObject::unrefDelete(loader);
 }
 
 // ------------------------------------------------------------------------
