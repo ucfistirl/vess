@@ -24,10 +24,11 @@
 
 #include <termios.h>
 #include <unistd.h>
+#include "vsObject.h++"
 
 #define VS_SERIAL_NUM_READ_RETRYS  320000
 
-class vsSerialPort
+class vsSerialPort : public vsObject
 {
 private:
 
@@ -46,8 +47,10 @@ public:
                  vsSerialPort(char *deviceName);
                  vsSerialPort(char *deviceName, long baud, int wordLength,
                               char parity, int stopBits);
-                 ~vsSerialPort(void);
+    virtual      ~vsSerialPort(void);
       
+    virtual const char    *getClassName();
+
     int          writePacket(unsigned char *string, int length);
     int          readPacket(unsigned char *string, int length);
 
