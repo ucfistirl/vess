@@ -41,9 +41,12 @@ protected:
     Display        *display;
     Window         window;
 
+    // The mouse and keyboard objects
     vsMouse        *mouse;
     vsKeyboard     *keyboard;
 
+    // Flag to indicate if the mouse is in the window
+    int            mouseInWindow;
 
 VS_INTERNAL:
 
@@ -57,6 +60,8 @@ public:
 
     vsMouse         *getMouse();   
     vsKeyboard      *getKeyboard();   
+
+    int             isMouseInWindow();
 
     virtual void    update();
 };

@@ -53,10 +53,14 @@ vsWindowSystem::vsWindowSystem(vsWindow *mainWindow)
     // Most mice have 2 axes and 3 buttons
     mouse = new vsMouse(2, 3, xSize, ySize);
 
+    // Assume the mouse isn't in the window yet (an EnterNotify or 
+    // PointerMotion event will change this)
+    mouseInWindow = VS_FALSE;
+
     // Select the X Input events we want
     XSelectInput(display, window, PointerMotionHintMask | PointerMotionMask |
         ButtonPressMask | ButtonReleaseMask | KeyPressMask | KeyReleaseMask |
-        StructureNotifyMask);
+        StructureNotifyMask | EnterWindowMask | LeaveWindowMask);
 }
 
 // ------------------------------------------------------------------------
@@ -101,6 +105,14 @@ Display *vsWindowSystem::getDisplay()
 Window vsWindowSystem::getWindow()
 {
     return window;
+}
+
+// ------------------------------------------------------------------------
+// Return whether or not the mouse is currently in the window
+// ------------------------------------------------------------------------
+int vsWindowSystem::isMouseInWindow()
+{
+    return mouseInWindow;
 }
 
 // ------------------------------------------------------------------------
@@ -164,11 +176,23 @@ void vsWindowSystem::update()
     while (XCheckTypedWindowEvent(display, window, MotionNotify, 
         &event))
     {
+        mouseInWindow = VS_TRUE;
+
         if (XQueryPointer(display, window, &rootWin, &childWin, 
             &rootX, &rootY, &winX, &winY, &modMask))
         {
             mouse->moveTo(winX, winY);
         }
+    }
+    while (XCheckTypedWindowEvent(display, window, EnterNotify, 
+        &event))
+    {
+        mouseInWindow = VS_TRUE;
+    }
+    while (XCheckTypedWindowEvent(display, window, LeaveNotify, 
+        &event))
+    {
+        mouseInWindow = VS_FALSE;
     }
     while (XCheckTypedWindowEvent(display, window, ConfigureNotify,
         &event))
