@@ -109,7 +109,7 @@ public:
                        vsTextBuilder(char *newFont, vsVector newColor);
                        vsTextBuilder(char *newFont, vsVector newColor,
                                      vsMatrix newTransform);
-                       ~vsTextBuilder();
+    virtual            ~vsTextBuilder();
 
     virtual const char *getClassName();
 
