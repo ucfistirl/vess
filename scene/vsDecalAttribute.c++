@@ -104,7 +104,7 @@ void vsDecalAttribute::attach(vsNode *theNode)
     performerLayer = new pfLayer();
     ((vsComponent *)theNode)->replaceBottomGroup(performerLayer);
 
-    performerLayer->setMode(PFDECAL_BASE_HIGH_QUALITY);
+    performerLayer->setMode(PFDECAL_BASE_DISPLACE | PFDECAL_LAYER_OFFSET);
 
     attachedFlag = 1;
 }
