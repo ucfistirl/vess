@@ -286,12 +286,12 @@ void vsKinematics::setCenterOfMass(vsVector newCenter)
 
     xform = transform->getPreTransform();
     for (loop = 0; loop < 3; loop++)
-        xform[loop][3] = -(nCenter[loop]);
+        xform[loop][3] = nCenter[loop];
     transform->setPreTransform(xform);
 
     xform = transform->getPostTransform();
     for (loop = 0; loop < 3; loop++)
-        xform[loop][3] = nCenter[loop];
+        xform[loop][3] = -(nCenter[loop]);
     transform->setPostTransform(xform);
 }
 
