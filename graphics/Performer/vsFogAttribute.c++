@@ -139,17 +139,17 @@ void vsFogAttribute::getColor(double *r, double *g, double *b)
 // ------------------------------------------------------------------------
 // Sets the near and far threshold ranges for the fog
 // ------------------------------------------------------------------------
-void vsFogAttribute::setRanges(double near, double far)
+void vsFogAttribute::setRanges(double nearFog, double farFog)
 {
     // Set the fog ranges on the Performer object
-    performerFog->setRange(near, far);
+    performerFog->setRange(nearFog, farFog);
 }
 
 // ------------------------------------------------------------------------
 // Retrieves the near and far threshold ranges for the fog. NULL pointers
 // may be passed in for undesired values.
 // ------------------------------------------------------------------------
-void vsFogAttribute::getRanges(double *near, double *far)
+void vsFogAttribute::getRanges(double *nearFog, double *farFog)
 {
     float onset, opaque;
 
@@ -157,10 +157,10 @@ void vsFogAttribute::getRanges(double *near, double *far)
     performerFog->getRange(&onset, &opaque);
 
     // Return the desired fog values
-    if (near)
-        *near = onset;
-    if (far)
-        *far = opaque;
+    if (nearFog)
+        *nearFog = onset;
+    if (farFog)
+        *farFog = opaque;
 }
 
 // ------------------------------------------------------------------------
@@ -171,7 +171,7 @@ void vsFogAttribute::attachDuplicate(vsNode *theNode)
 {
     vsFogAttribute *newAttrib;
     double r, g, b;
-    double near, far;
+    double nearFog, farFog;
 
     // Create a new fog attribute and add it to the given node
     newAttrib = new vsFogAttribute();
@@ -186,8 +186,8 @@ void vsFogAttribute::attachDuplicate(vsNode *theNode)
     newAttrib->setColor(r, g, b);
 
     // Ranges
-    getRanges(&near, &far);
-    newAttrib->setRanges(near, far);
+    getRanges(&nearFog, &farFog);
+    newAttrib->setRanges(nearFog, farFog);
 }
 
 // ------------------------------------------------------------------------
