@@ -153,6 +153,15 @@ void vsOptimizer::cleanChildren(vsComponent *componentNode)
             if (strlen(targetComponent->getName()) > 0)
                 continue;
 
+	    // Additionally, if the component has no children, then removing
+	    // this component would change the ordering of the parent's
+	    // children. If the parent has a GROUPING category attribute, then
+	    // this change is unacceptable.
+	    if ( (targetComponent->getChildCount() == 0) &&
+		 (componentNode->getCategoryAttribute(
+		    VS_ATTRIBUTE_CATEGORY_GROUPING, 0)) )
+		continue;
+
             // If we've made it this far, then it should be okay to remove
             // the component
             zapComponent(targetComponent);
