@@ -26,10 +26,18 @@
 
 #include "vsStateAttribute.h++"
 
+enum vsTransparencyQuality
+{
+    VS_TRANSP_QUALITY_DEFAULT,
+    VS_TRANSP_QUALITY_FAST,
+    VS_TRANSP_QUALITY_HIGH
+};
+
 class vsTransparencyAttribute : public vsStateAttribute
 {
 private:
 
+    int         quality;
     int         transpValue;
 
 VS_INTERNAL:
@@ -51,6 +59,9 @@ public:
     void           enable();
     void           disable();
     int            isEnabled();
+    
+    void           setQuality(int newQuality);
+    int            getQuality();
 };
 
 #endif

@@ -31,7 +31,8 @@
 // ------------------------------------------------------------------------
 vsTransparencyAttribute::vsTransparencyAttribute()
 {
-    transpValue = PFTR_BLEND_ALPHA;
+    quality = VS_TRANSP_QUALITY_DEFAULT;
+    transpValue = PFTR_ON;
 }
 
 // ------------------------------------------------------------------------
@@ -54,7 +55,18 @@ int vsTransparencyAttribute::getAttributeType()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::enable()
 {
-    transpValue = PFTR_BLEND_ALPHA;
+    switch (quality)
+    {
+        case VS_TRANSP_QUALITY_DEFAULT:
+            transpValue = PFTR_ON;
+            break;
+        case VS_TRANSP_QUALITY_FAST:
+            transpValue = PFTR_FAST;
+            break;
+        case VS_TRANSP_QUALITY_HIGH:
+            transpValue = PFTR_HIGH_QUALITY;
+            break;
+    }
     
     markOwnersDirty();
 }
@@ -74,10 +86,38 @@ void vsTransparencyAttribute::disable()
 // ------------------------------------------------------------------------
 int vsTransparencyAttribute::isEnabled()
 {
-    if (transpValue == PFTR_BLEND_ALPHA)
+    if (transpValue != PFTR_OFF)
         return VS_TRUE;
     else
         return VS_FALSE;
+}
+
+// ------------------------------------------------------------------------
+// Sets the quality of the transparency rendering calculation
+// ------------------------------------------------------------------------
+void vsTransparencyAttribute::setQuality(int newQuality)
+{
+    if ((newQuality != VS_TRANSP_QUALITY_DEFAULT) &&
+        (newQuality != VS_TRANSP_QUALITY_FAST) &&
+        (newQuality != VS_TRANSP_QUALITY_HIGH))
+    {
+        printf("vsTransparencyAttribute::setQuality: Unrecognized quality "
+            "constant\n");
+        return;
+    }
+
+    quality = newQuality;
+
+    if (isEnabled())
+        enable();
+}
+
+// ------------------------------------------------------------------------
+// Gets the quality of the transparency rendering calculation
+// ------------------------------------------------------------------------
+int vsTransparencyAttribute::getQuality()
+{
+    return quality;
 }
 
 // ------------------------------------------------------------------------
@@ -94,6 +134,7 @@ void vsTransparencyAttribute::attachDuplicate(vsNode *theNode)
         newAttrib->enable();
     else
         newAttrib->disable();
+    newAttrib->setQuality(getQuality());
 
     theNode->addAttribute(newAttrib);
 }
@@ -119,7 +160,7 @@ void vsTransparencyAttribute::apply()
 
     gState->setTransparency(this);
     if (overrideFlag)
-	gState->lockTransparency(this);
+        gState->lockTransparency(this);
 }
 
 // ------------------------------------------------------------------------
@@ -131,7 +172,7 @@ void vsTransparencyAttribute::restoreSaved()
     vsGraphicsState *gState = (vsSystem::systemObject)->getGraphicsState();
 
     if (overrideFlag)
-	gState->unlockTransparency(this);
+        gState->unlockTransparency(this);
     gState->setTransparency(
         (vsTransparencyAttribute *)(attrSaveList[--attrSaveCount]));
 }
