@@ -514,10 +514,14 @@ vsNode *vsDatabaseLoader::convertNode(pfNode *node, vsObjectMap *nodeMap,
         // as part of their sanity checking.
         for (loop = 0; loop < performerGroup->getNumChildren(); loop++)
         {
-            // Convert the child and add it to the current node
+            // Convert the child to a VESS node
             child = convertNode(performerGroup->getChild(loop), nodeMap,
                 attrMap);
-            newComponent->addChild(child);
+
+            // Don't try to add the converted child to the current node
+            // unless the child was successfully converted
+            if (child != NULL)
+                newComponent->addChild(child);
         }
 
         // Determine which group subtype (if any) that this group is, and

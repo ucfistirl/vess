@@ -416,7 +416,12 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
             // Recurse on the loop'th child, and add the result of that as
             // a child of this component
             child = convertNode(osgGroup->getChild(loop), nodeMap, attrMap);
-            newComponent->addChild(child);
+
+            // If the node conversion failed, don't try to add it to the
+            // parent (this may happen on nodes that aren't supported by
+            // VESS)
+            if (child != NULL)
+                newComponent->addChild(child);
             
             // Check for a PolygonOffset attribute on the group's
             // StateSet; store its offset data if it exists.
