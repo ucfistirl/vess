@@ -287,17 +287,18 @@ void vsFlyingMotion::update()
         {
             dPitch = -(pitchAxis->getPosition()) * turningRate * interval;
             newP = p + dPitch;
-
-            if (p > 89.9)
-                newP = 89.9;
-            if (p < -89.9)
-                newP = -89.9;
         }
         else
         {
             dPitch = 0;
             newP = (-(pitchAxis->getPosition()) * 89.9);
         }
+
+        // Make sure the new pitch doesn't reach 90 degrees
+        if (newP > 89.9)
+            newP = 89.9;
+        if (newP < -89.9)
+            newP = -89.9;
     }
 
     // Update the orientation
