@@ -722,9 +722,9 @@ void vsQuat::setVecsRotation(vsVector originForward, vsVector originUp,
     // the originUp vector
     newUp = rotatePoint(startUp);
 
-    // Don't compute the roll if the up directions already match, or if
-    // either up vector is parallel to its corresponding forward vector
-    if (!(newUp == endUp) && !(startDir == startUp) && !(endDir == endUp))
+    // Don't compute the roll if either of the up direction vectors are
+    // parallel to their corresponding forward vectors
+    if (!(startDir == startUp) && !(endDir == endUp))
     {
         // Force originUp to be perpendicular to originForward
         dotProd = endDir.getDotProduct(newUp);
@@ -738,28 +738,33 @@ void vsQuat::setVecsRotation(vsVector originForward, vsVector originUp,
         endUp -= componentVec;
         endUp.normalize();
 
-        // Compute the axis and angle of rotation. Although the forward
-        // vector should be suitable as an axis of rotation, I'm computing
-        // it again here for simplicity; the getAngleBetween function can
-        // sometimes return a negative angle, but the cross product will
-        // be the opposite direction in those cases, so the two negatives
-        // cancel out.
-        rotAxis = newUp.getCrossProduct(endUp);
+	// Abort at this point if the two 'up' vectors are already aligned
+	if (!(newUp == endUp))
+	{
+	    // Compute the axis and angle of rotation. Although the forward
+	    // vector should be suitable as an axis of rotation, I'm computing
+	    // it again here for simplicity; the getAngleBetween function can
+	    // sometimes return a negative angle, but the cross product will
+	    // be the opposite direction in those cases, so the two negatives
+	    // cancel out.
+	    rotAxis = newUp.getCrossProduct(endUp);
 
-        // Check for the special case where the two up vectors are
-        // opposite directions
-        if (rotAxis == zeroVector)
-        {
-            rotAxis = endDir;
-            rotAngle = 180.0;
-        }
-        else
-            rotAngle = newUp.getAngleBetween(endUp);
+	    // Check for the special case where the two up vectors are
+	    // opposite directions
+	    if (rotAxis == zeroVector)
+	    {
+		rotAxis = endDir;
+		rotAngle = 180.0;
+	    }
+	    else
+		rotAngle = newUp.getAngleBetween(endUp);
 
-        roll.setAxisAngleRotation(rotAxis[0], rotAxis[1], rotAxis[2], rotAngle);
+	    roll.setAxisAngleRotation(rotAxis[0], rotAxis[1], rotAxis[2],
+		rotAngle);
 
-        // Combine the two rotations
-        (*this) = roll * (*this);
+	    // Combine the two rotations
+	    (*this) = roll * (*this);
+	}
     }
 }
 
