@@ -41,6 +41,7 @@ vsGeometry::vsGeometry()
 {
     int loop;
 
+    // Create the Performer objects and chain them together
     performerGeode = new pfGeode();
     performerGeode->ref();
 
@@ -52,6 +53,7 @@ vsGeometry::vsGeometry()
     performerGeostate->ref();
     performerGeoset->setGState(performerGeostate);
     
+    // Initialize our list variables
     colorList = NULL;
     colorListSize = 0;
     normalList = NULL;
@@ -62,16 +64,25 @@ vsGeometry::vsGeometry()
     vertexListSize = 0;
     lengthsList = NULL;
 
+    // Initialize the number of primitives and the size of the primitive
+    // length list to zero
     setPrimitiveCount(0);
     
+    // Set up our lights list
     lightsList = (pfLight **)
         (pfMemory::malloc(sizeof(pfLight *) * PF_MAX_LIGHTS));
     for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
         lightsList[loop] = NULL;
+
+    // Set our callback function as the geostate callback function,
+    // and our array of pfLights as the callback data pointer
     performerGeostate->setFuncs(geostateCallback, NULL, lightsList);
     
+    // Disable forced-flatshaded mode on the geoset
     performerGeoset->setDrawMode(PFGS_FLATSHADE, PF_OFF);
     
+    // Create a link between this object and the Performer geode object
+    // in our object map
     ((vsSystem::systemObject)->getNodeMap())->registerLink(this,
         performerGeode);
 }
@@ -104,6 +115,7 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
     int loop, tResult;
     int attrBind;
 
+    // Store the geode pointer and obtain the geoset pointer
     performerGeode = targetGeode;
     performerGeode->ref();
     performerGeoset = targetGeode->getGSet(0);
@@ -112,114 +124,168 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
     // * Retrieve the attribute lists
     
     // Vertex Coordinates
+    // Get the vertex coordinate list and index list, if applicable
     performerGeoset->getAttrLists(PFGS_COORD3, (void **)(&vertexList), &ilist);
     if (ilist)
     {
-        // Convert indexed to non-indexed
+        // Convert from indexed to non-indexed values by selectively
+	// copying from the data list to a new list based on the
+	// index list indices
         vertexListSize = (pfMemory::getSize(ilist) / sizeof(ushort));
         vec3List = (pfVec3 *)
             (pfMemory::malloc(sizeof(pfVec3) * vertexListSize));
         for (loop = 0; loop < vertexListSize; loop++)
             (vec3List[loop]).copy(vertexList[ilist[loop]]);
         
+	// Attach our own list to the geoset
         attrBind = performerGeoset->getAttrBind(PFGS_COORD3);
         performerGeoset->setAttr(PFGS_COORD3, attrBind, (void *)vec3List, NULL);
+
+        // Dispose of the old data list and the index list, if neither
+	// is still being used
         if (!(pfMemory::getRef(vertexList)))
             pfMemory::free(vertexList);
         if (!(pfMemory::getRef(ilist)))
             pfMemory::free(ilist);
+
+        // Keep the new data list
         vertexList = vec3List;
     }
     else
+    {
+        // Calculate the size of the list and store it
         vertexListSize = (pfMemory::getSize(vertexList) / sizeof(pfVec3));
+    }
 
     // Colors
+    // Get the color list and index list, if applicable
     performerGeoset->getAttrLists(PFGS_COLOR4, (void **)(&colorList), &ilist);
     if (ilist)
     {
-        // Convert indexed to non-indexed
+        // Convert from indexed to non-indexed values by selectively
+	// copying from the data list to a new list based on the
+	// index list indices
         colorListSize = (pfMemory::getSize(ilist) / sizeof(ushort));
         vec4List = (pfVec4 *)
             (pfMemory::malloc(sizeof(pfVec4) * colorListSize));
         for (loop = 0; loop < colorListSize; loop++)
             (vec4List[loop]).copy(colorList[ilist[loop]]);
         
+	// Attach our own list to the geoset
         attrBind = performerGeoset->getAttrBind(PFGS_COLOR4);
         performerGeoset->setAttr(PFGS_COLOR4, attrBind, (void *)vec4List, NULL);
+
+        // Dispose of the old data list and the index list, if neither
+	// is still being used
         if (!(pfMemory::getRef(colorList)))
             pfMemory::free(colorList);
         if (!(pfMemory::getRef(ilist)))
             pfMemory::free(ilist);
+
+        // Keep the new data list
         colorList = vec4List;
     }
     else
+    {
+        // Calculate the size of the list and store it
         colorListSize = (pfMemory::getSize(colorList) / sizeof(pfVec4));
+    }
 
     // Normals
+    // Get the normal list and index list, if applicable
     performerGeoset->getAttrLists(PFGS_NORMAL3, (void **)(&normalList), &ilist);
     if (ilist)
     {
-        // Convert indexed to non-indexed
+        // Convert from indexed to non-indexed values by selectively
+	// copying from the data list to a new list based on the
+	// index list indices
         normalListSize = (pfMemory::getSize(ilist) / sizeof(ushort));
         vec3List = (pfVec3 *)
             (pfMemory::malloc(sizeof(pfVec3) * normalListSize));
         for (loop = 0; loop < normalListSize; loop++)
             (vec3List[loop]).copy(normalList[ilist[loop]]);
         
+	// Attach our own list to the geoset
         attrBind = performerGeoset->getAttrBind(PFGS_NORMAL3);
         performerGeoset->setAttr(PFGS_NORMAL3, attrBind, (void *)vec3List,
             NULL);
+
+        // Dispose of the old data list and the index list, if neither
+	// is still being used
         if (!(pfMemory::getRef(normalList)))
             pfMemory::free(normalList);
         if (!(pfMemory::getRef(ilist)))
             pfMemory::free(ilist);
+
+        // Keep the new data list
         normalList = vec3List;
     }
     else
+    {
+        // Calculate the size of the list and store it
         normalListSize = (pfMemory::getSize(normalList) / sizeof(pfVec3));
+    }
 
     // Texture Coordinates
+    // Get the texture coordinate list and index list, if applicable
     performerGeoset->getAttrLists(PFGS_TEXCOORD2, (void **)(&texCoordList),
         &ilist); 
     if (ilist)
     {
-        // Convert indexed to non-indexed
+        // Convert from indexed to non-indexed values by selectively
+	// copying from the data list to a new list based on the
+	// index list indices
         texCoordListSize = (pfMemory::getSize(ilist) / sizeof(ushort));
         vec2List = (pfVec2 *)
             (pfMemory::malloc(sizeof(pfVec2) * texCoordListSize));
         for (loop = 0; loop < texCoordListSize; loop++)
             (vec2List[loop]).copy(texCoordList[ilist[loop]]);
         
+	// Attach our own list to the geoset
         attrBind = performerGeoset->getAttrBind(PFGS_TEXCOORD2);
         performerGeoset->setAttr(PFGS_TEXCOORD2, attrBind, (void *)vec2List,
             NULL);
+
+        // Dispose of the old data list and the index list, if neither
+	// is still being used
         if (!(pfMemory::getRef(texCoordList)))
             pfMemory::free(texCoordList);
         if (!(pfMemory::getRef(ilist)))
             pfMemory::free(ilist);
+
+        // Keep the new data list
         texCoordList = vec2List;
     }
     else
+    {
+        // Calculate the size of the list and store it
         texCoordListSize = (pfMemory::getSize(texCoordList) / sizeof(pfVec2));
+    }
 
+    // Get the list of primitive lengths from the Performer geoset
     lengthsList = performerGeoset->getPrimLengths();
     
+    // Replace Performer FLAT primitive types with more conventional ones
     inflateFlatGeometry();
 
+    // Create a connection between the Performer geode and this vsGeometry
+    // in the node map
     ((vsSystem::systemObject)->getNodeMap())->registerLink(this,
         performerGeode);
 
+    // Obtain the geostate
     geoset = performerGeode->getGSet(0);
     geostate = geoset->getGState();
 
     // * Interpret the GeoState elements here
-    
     if (geostate)
     {
         // Fog
         fog = (pfFog *)(geostate->getAttr(PFSTATE_FOG));
         if (fog)
         {
+            // Create a new pfFog, copy the geostate's fog data into that,
+	    // and used it to create a new vsFogAttribute on this geometry
             newFog = new pfFog();
             newFog->copy(fog);
             fogAttrib = new vsFogAttribute(newFog);
@@ -231,11 +297,17 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
         backMaterial = (pfMaterial *)(geostate->getAttr(PFSTATE_BACKMTL));
         if (frontMaterial)
         {
+            // Check the object map to see if this material already has
+	    // a VESS attribute associated with it
             materialAttrib = (vsMaterialAttribute *)((vsSystem::systemObject)->
                 getNodeMap()->mapSecondToFirst(frontMaterial));
 
+            // If there's no associated material attribute, make one
             if (!materialAttrib)
             {
+		// VESS materials must always have back sides; create the
+		// data for the back from the front if it doesn't already
+		// exist.
                 if (backMaterial)
                     newBack = backMaterial;
                 else
@@ -244,73 +316,102 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
                     newBack->copy(frontMaterial);
                 }
 
+                // Create the material attribute from the Performer
+		// materials
                 materialAttrib = new vsMaterialAttribute(frontMaterial,
                     newBack);
 
+                // Register the Performer material to VESS material
+		// attribute connection in the object map
                 (vsSystem::systemObject)->getNodeMap()->
                     registerLink(materialAttrib, frontMaterial);
             }
 
+            // Add the material attribute to this geometry
             addAttribute(materialAttrib);
         }
         else
+        {
+            // Mark that there's no material on the geostate
             materialAttrib = NULL;
+        }
 
         // Texture
         texture = (pfTexture *)(geostate->getAttr(PFSTATE_TEXTURE));
         texEnv = (pfTexEnv *)(geostate->getAttr(PFSTATE_TEXENV));
         if (texture)
         {
+            // Check the object map to see if this texture already has
+	    // a VESS attribute associated with it
             texAttrib = (vsTextureAttribute *)((vsSystem::systemObject)->
                 getNodeMap()->mapSecondToFirst(texture));
 
+            // If there's no associated texture attribute, make one
             if (!texAttrib)
             {
+		// VESS textures always have an associated Performer
+		// texture environment built in; create one if the
+		// geostate doesn't alredy have one.
                 if (texEnv)
                     newTexEnv = texEnv;
                 else
                     newTexEnv = new pfTexEnv();
 
+                // Create the texture attribute from the Performer
+		// texture objects
                 texAttrib = new vsTextureAttribute(texture, newTexEnv);
 
+                // Register the Performer texture to VESS texture
+		// attribute connection in the object map
                 (vsSystem::systemObject)->getNodeMap()->registerLink(texAttrib,
                     texture);
             }
 
+            // Add the texture attribute to this geometry
             addAttribute(texAttrib);
         }
         else
+        {
+            // Mark that there's no texture on the geostate
             texAttrib = NULL;
+        }
     
         // Transparency
         if ((geostate->getInherit() & PFSTATE_TRANSPARENCY) == 0)
         {
+            // Get the transparency mode from the Performer geostate,
+	    // create a new transparency attribute, and set the attribute
+	    // to match the mode from the geostate
             transMode = geostate->getMode(PFSTATE_TRANSPARENCY);
             transAttrib = new vsTransparencyAttribute();
+
             if (transMode == PFTR_OFF)
                 transAttrib->disable();
             else
                 transAttrib->enable();
 
+            // Add the transparency attribute to this geometry
             addAttribute(transAttrib);
         }
         else
         {
             // Determine by hand if transparency is needed
+
+            // Start with no transparency
             tResult = 0;
 
-            // Check the material alpha
+            // Check the material alpha for less-than-full opacity
             if (materialAttrib &&
                 (materialAttrib->getAlpha(VS_MATERIAL_SIDE_FRONT) < 1.0))
                 tResult = 1;
 
-            // Check the vertex colors
+            // Check the vertex colors for non-opaque values
             if (!tResult)
                 for (loop = 0; loop < colorListSize; loop++)
                     if (fabs(colorList[loop][3] - 1.0) > 1E-6)
                         tResult = 1;
 
-            // Scan the texture (if it exists) for transparency
+            // Scan the texture pixels (if one exists) for transparency
             if (!tResult && texAttrib &&
                 (texAttrib->getApplyMode() != VS_TEXTURE_APPLY_DECAL))
                 {
@@ -318,20 +419,32 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
                     int xSize, ySize, dFormat;
                     unsigned char *imageData;
                 
+                    // Get the texture image data and parameters from
+		    // the vsTextureAttribute
                     texAttrib->getImage(&imageData, &xSize, &ySize, &dFormat);
+
+                    // Only scan the texture if the format is in RGB mode
+		    // and includes alpha values
                     if (dFormat == VS_TEXTURE_DFORMAT_RGBA)
                     {
                         // Search each pixel of the texture for alpha < 1.0
                         pixelSize = ((long)xSize) * ((long)ySize);
                         for (texLoop = 0; texLoop < pixelSize; texLoop++)
+                        {
+                            // Check the individual alpha value; if it's
+			    // less than opaque, set the needs-transparency
+			    // flag.
                             if (imageData[(texLoop * 4) + 3] < 255)
                             {
                                 tResult = 1;
                                 break;
                             }
+                        }
                     }
                 }
 
+            // If transparency has been determined to be required, create
+	    // a new enabled transparency attribute on this geometry
             if (tResult)
             {
                 transAttrib = new vsTransparencyAttribute();
@@ -343,14 +456,18 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
         // Backface (Cull Face)
         if ((geostate->getInherit() & PFSTATE_CULLFACE) == 0)
         {
+            // Get the face culling mode from the geostate
             cullMode = geostate->getMode(PFSTATE_CULLFACE);
+
+            // Create a new backface attribute and set its mode based on
+	    // the face culling mode
             backAttrib = new vsBackfaceAttribute();
-        
             if (cullMode == PFCF_OFF)
                 backAttrib->enable();
             else
                 backAttrib->disable();
 
+            // Add the attribute to this geometry
             addAttribute(backAttrib);
         }
 
@@ -358,42 +475,59 @@ vsGeometry::vsGeometry(pfGeode *targetGeode)
         if (((geostate->getInherit() & PFSTATE_SHADEMODEL) == 0) &&
             !(getTypedAttribute(VS_ATTRIBUTE_TYPE_SHADING, 0)))
         {
+            // Get the shading mode from the geostate
             shadeMode = geostate->getMode(PFSTATE_SHADEMODEL);
+
+            // Create a new shading attribute and set its mode based on
+	    // the shading mode
             shadeAttrib = new vsShadingAttribute();
             if (shadeMode == PFSM_FLAT)
                 shadeAttrib->setShading(VS_SHADING_FLAT);
             else
                 shadeAttrib->setShading(VS_SHADING_GOURAUD);
+
+            // Add the attribute to this geometry
             addAttribute(shadeAttrib);
         }
 
         // Wireframe
         if ((geostate->getInherit() & PFSTATE_ENWIREFRAME) == 0)
         {
+            // Get the wireframe mode from the geostate
             wireMode = geostate->getMode(PFSTATE_ENWIREFRAME);
-            wireAttrib = new vsWireframeAttribute();
-        
-            if (wireMode == PFTR_ON)
-                backAttrib->enable();
-            else
-                backAttrib->disable();
 
+            // Create a new wireframe attribute and set its mode based on
+	    // the wireframe mode
+            wireAttrib = new vsWireframeAttribute();
+            if (wireMode == PF_ON)
+                wireAttrib->enable();
+            else
+                wireAttrib->disable();
+
+            // Add the attribute to this geometry
             addAttribute(wireAttrib);
         }
 
+        // At this point, we don't need the geostate anymore
         pfDelete(geostate);
     }
 
+    // Disable forced-flatshaded mode on the geoset
     performerGeoset->setDrawMode(PFGS_FLATSHADE, PF_OFF);
 
+    // Create a brand-new (empty) geostate on this geometry's geoset
     performerGeostate = new pfGeoState();
     performerGeostate->ref();
     performerGeoset->setGState(performerGeostate);
     
+    // Set up our lights list
     lightsList = (pfLight **)
         (pfMemory::malloc(sizeof(pfLight *) * PF_MAX_LIGHTS));
     for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
         lightsList[loop] = NULL;
+
+    // Set our callback function as the geostate callback function,
+    // and our array of pfLights as the callback data pointer
     performerGeostate->setFuncs(geostateCallback, NULL, lightsList);
 }
 
@@ -409,6 +543,8 @@ vsGeometry::~vsGeometry()
     // used by other nodes.
     while (getAttributeCount() > 0)
     {
+        // Get the first attribute, remove it, and delete it if it's
+	// unused
         attr = getAttribute(0);
         removeAttribute(attr);
         if (!(attr->isAttached()))
@@ -418,6 +554,7 @@ vsGeometry::~vsGeometry()
     // Remove this node from its parents
     while (getParentCount() > 0)
     {
+        // Get the first parent, and remove this node from it
         parent = getParent(0);
         parent->removeChild(this);
     }
@@ -430,6 +567,7 @@ vsGeometry::~vsGeometry()
     performerGeostate->unref();
     pfDelete(performerGeostate);
     
+    // Delete the geoetric data lists
     if (vertexList && !(pfMemory::getRef(vertexList)))
         pfMemory::free(vertexList);
     if (colorList && !(pfMemory::getRef(colorList)))
@@ -441,6 +579,8 @@ vsGeometry::~vsGeometry()
     if (lengthsList && !(pfMemory::getRef(lengthsList)))
         pfMemory::free(lengthsList);
 
+    // Remove the association between this object and the Performer
+    // objects from the object map
     ((vsSystem::systemObject)->getNodeMap())->removeLink(this,
         VS_OBJMAP_FIRST_LIST);
 }
@@ -458,6 +598,7 @@ int vsGeometry::getNodeType()
 // ------------------------------------------------------------------------
 void vsGeometry::setPrimitiveType(int newType)
 {
+    // Translate the primitive type constant
     switch (newType)
     {
         case VS_GEOMETRY_TYPE_POINTS:
@@ -506,6 +647,8 @@ void vsGeometry::setPrimitiveType(int newType)
 // ------------------------------------------------------------------------
 int vsGeometry::getPrimitiveType()
 {
+    // Obtain the Performer primitive type from the geoset, and translate
+    // it to VESS
     switch (performerGeoset->getPrimType())
     {
         case PFGS_POINTS:
@@ -529,6 +672,7 @@ int vsGeometry::getPrimitiveType()
             return VS_GEOMETRY_TYPE_POLYS;
     }
     
+    // If the primitive type is unrecignized, return an error value
     return -1;
 }
 
@@ -538,6 +682,7 @@ int vsGeometry::getPrimitiveType()
 // ------------------------------------------------------------------------
 void vsGeometry::setPrimitiveCount(int newCount)
 {
+    // Set the number of primitives on the Performer geoset
     performerGeoset->setNumPrims(newCount);
     
     // If the geometry's particular primitive type doesn't require a
@@ -567,6 +712,7 @@ void vsGeometry::setPrimitiveCount(int newCount)
             sizeof(int) * newCount));
     }
     
+    // Set the primitive lengths array on the Performer geoset
     performerGeoset->setPrimLengths(lengthsList);
 }
 
@@ -584,6 +730,7 @@ int vsGeometry::getPrimitiveCount()
 // ------------------------------------------------------------------------
 void vsGeometry::setPrimitiveLength(int index, int length)
 {
+    // Bounds check
     if ((index < 0) || (index >= getPrimitiveCount()))
     {
         printf("vsGeometry::setPrimitiveLength: Index out of bounds\n");
@@ -598,6 +745,7 @@ void vsGeometry::setPrimitiveLength(int index, int length)
         (getPrimitiveType() == VS_GEOMETRY_TYPE_QUADS))
         return;
 
+    // Set the desired length value
     lengthsList[index] = length;
 }
 
@@ -607,6 +755,7 @@ void vsGeometry::setPrimitiveLength(int index, int length)
 // ------------------------------------------------------------------------
 int vsGeometry::getPrimitiveLength(int index)
 {
+    // Boudns check
     if ((index < 0) || (index >= getPrimitiveCount()))
     {
         printf("vsGeometry::getPrimitiveLength: Index out of bounds\n");
@@ -624,6 +773,7 @@ int vsGeometry::getPrimitiveLength(int index)
     if (getPrimitiveType() == VS_GEOMETRY_TYPE_QUADS)
         return 4;
 
+    // Return the desired length value
     return (lengthsList[index]);
 }
 
@@ -644,6 +794,9 @@ void vsGeometry::setPrimitiveLengths(int *lengths)
         (getPrimitiveType() == VS_GEOMETRY_TYPE_QUADS))
         return;
 
+    // Copy the list of primitive lengths from the specified array to
+    // our internal array, assuming that the length of the list is
+    // equal to the number of primitives in the geometry
     for (loop = 0; loop < getPrimitiveCount(); loop++)
         lengthsList[loop] = lengths[loop];
 }
@@ -658,8 +811,14 @@ void vsGeometry::getPrimitiveLengths(int *lengthsBuffer)
 {
     int loop;
     
+    // Copy primitive length values from this object to the specified
+    // array, assuming that the primitive count is set correctly
     for (loop = 0; loop < getPrimitiveCount(); loop++)
     {
+        // If this geometry contains one of the fixed-length primitive
+	// types, then copy that fixed length into the result array
+	// positions; otherwise, copy the entry from our primitive
+	// lengths array.
         switch (getPrimitiveType())
         {
             case VS_GEOMETRY_TYPE_POINTS:
@@ -691,6 +850,7 @@ void vsGeometry::setBinding(int whichData, int binding)
 {
     int performerBinding;
     
+    // Translate VESS constants to Performer constants
     switch (binding)
     {
         case VS_GEOMETRY_BIND_NONE:
@@ -710,27 +870,33 @@ void vsGeometry::setBinding(int whichData, int binding)
             return;
     }
 
+    // Set the binding value
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
+            // Vertex coordinates should always be per-vertex
             if (binding != VS_GEOMETRY_BIND_PER_VERTEX)
             {
                 printf("vsGeometry::setBinding: Vertex coordinate binding must "
                     "always be VS_GEOMETRY_BIND_PER_VERTEX\n");
                 return;
             }
+            // Set vertex coordinate binding on the geoset
             performerGeoset->setAttr(PFGS_COORD3, performerBinding,
                 vertexList, NULL);
             break;
         case VS_GEOMETRY_NORMALS:
+            // Set color binding on the geoset
             performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
                 normalList, NULL);
             break;
         case VS_GEOMETRY_COLORS:
+            // Set normal binding on the geoset
             performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
                 colorList, NULL);
             break;
         case VS_GEOMETRY_TEXTURE_COORDS:
+            // Texture coordinates should always be either per-vertex or off
             if ((binding != VS_GEOMETRY_BIND_PER_VERTEX) &&
                 (binding != VS_GEOMETRY_BIND_NONE))
             {
@@ -739,6 +905,7 @@ void vsGeometry::setBinding(int whichData, int binding)
                     "VS_GEOMETRY_BIND_NONE\n");
                 return;
             }
+            // Set texture coordinate binding on the geoset
             performerGeoset->setAttr(PFGS_TEXCOORD2, performerBinding,
                 texCoordList, NULL);
             break;
@@ -756,6 +923,7 @@ int vsGeometry::getBinding(int whichData)
 {
     int result;
 
+    // Fetch the binding value
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
@@ -774,6 +942,7 @@ int vsGeometry::getBinding(int whichData)
             return -1;
     }
     
+    // Translate Performer constants to VESS constants
     switch (result)
     {
         case PFGS_OFF:
@@ -786,6 +955,7 @@ int vsGeometry::getBinding(int whichData)
             return VS_GEOMETRY_BIND_PER_VERTEX;
     }
     
+    // If the Performer binding value is unrecognized, return an error value
     return -1;
 }
 
@@ -799,71 +969,85 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
 {
     int loop;
 
+    // Bounds check
     if (dataIndex < 0)
     {
         printf("vsGeometry::setData: Index out of bounds\n");
         return;
     }
     
+    // Interpret the whichData constant
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
+            // Bounds check
             if (dataIndex >= vertexListSize)
             {
                 printf("vsGeometry::setData: Index out of bounds\n");
                 return;
             }
+            // Input check
             if (data.getSize() < 3)
             {
                 printf("vsGeometry::setData: Insufficient data (vertex "
                     "coordinates require 3 values)\n");
                 return;
             }
+            // Copy the data into our list
             for (loop = 0; loop < 3; loop++)
                 (vertexList[dataIndex])[loop] = data[loop];
             break;
         case VS_GEOMETRY_NORMALS:
+            // Bounds check
             if (dataIndex >= normalListSize)
             {
                 printf("vsGeometry::setData: Index out of bounds\n");
                 return;
             }
+            // Input check
             if (data.getSize() < 3)
             {
                 printf("vsGeometry::setData: Insufficient data (vertex "
                     "normals require 3 values)\n");
                 return;
             }
+            // Copy the data into our list
             for (loop = 0; loop < 3; loop++)
                 (normalList[dataIndex])[loop] = data[loop];
             break;
         case VS_GEOMETRY_COLORS:
+            // Bounds check
             if (dataIndex >= colorListSize)
             {
                 printf("vsGeometry::setData: Index out of bounds\n");
                 return;
             }
+            // Input check
             if (data.getSize() < 4)
             {
                 printf("vsGeometry::setData: Insufficient data (colors "
                     "require 4 values)\n");
                 return;
             }
+            // Copy the data into our list
             for (loop = 0; loop < 4; loop++)
                 (colorList[dataIndex])[loop] = data[loop];
             break;
         case VS_GEOMETRY_TEXTURE_COORDS:
+            // Bounds check
             if (dataIndex >= texCoordListSize)
             {
                 printf("vsGeometry::setData: Index out of bounds\n");
                 return;
             }
+            // Input check
             if (data.getSize() < 2)
             {
                 printf("vsGeometry::setData: Insufficient data (texture "
                     "coordinates require 2 values)\n");
                 return;
             }
+            // Copy the data into our list
             for (loop = 0; loop < 2; loop++)
                 (texCoordList[dataIndex])[loop] = data[loop];
             break;
@@ -884,50 +1068,60 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
     vsVector result;
     int loop;
 
+    // Bounds check
     if (dataIndex < 0)
     {
         printf("vsGeometry::getData: Index out of bounds\n");
         return result;
     }
     
+    // Interpret the whichData constant
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
+            // Bounds check
             if (dataIndex >= vertexListSize)
             {
                 printf("vsGeometry::getData: Index out of bounds\n");
                 return result;
             }
+            // Copy the data to the result vector
             result.setSize(3);
             for (loop = 0; loop < 3; loop++)
                 result[loop] = (vertexList[dataIndex])[loop];
             break;
         case VS_GEOMETRY_NORMALS:
+            // Bounds check
             if (dataIndex >= normalListSize)
             {
                 printf("vsGeometry::getData: Index out of bounds\n");
                 return result;
             }
+            // Copy the data to the result vector
             result.setSize(3);
             for (loop = 0; loop < 3; loop++)
                 result[loop] = (normalList[dataIndex])[loop];
             break;
         case VS_GEOMETRY_COLORS:
+            // Bounds check
             if (dataIndex >= colorListSize)
             {
                 printf("vsGeometry::getData: Index out of bounds\n");
                 return result;
             }
+            // Copy the data to the result vector
             result.setSize(4);
             for (loop = 0; loop < 4; loop++)
                 result[loop] = (colorList[dataIndex])[loop];
             break;
         case VS_GEOMETRY_TEXTURE_COORDS:
+            // Bounds check
             if (dataIndex >= texCoordListSize)
             {
                 printf("vsGeometry::getData: Index out of bounds\n");
                 return result;
             }
+            // Copy the data to the result vector
             result.setSize(2);
             for (loop = 0; loop < 2; loop++)
                 result[loop] = (texCoordList[dataIndex])[loop];
@@ -937,6 +1131,7 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
             return result;
     }
     
+    // Return the copied data vector
     return result;
 }
 
@@ -949,6 +1144,7 @@ void vsGeometry::setDataList(int whichData, vsVector *dataList)
 {
     int loop, sloop;
     
+    // Interpret the whichData constant
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
@@ -987,11 +1183,13 @@ void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
 {
     int loop, sloop;
     
+    // Interpret the whichData constant
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
             for (loop = 0; loop < vertexListSize; loop++)
             {
+                // Copy the data to the vector buffer
                 dataBuffer[loop].setSize(3);
                 for (sloop = 0; sloop < 3; sloop++)
                     dataBuffer[loop][sloop] = vertexList[loop][sloop];
@@ -1000,6 +1198,7 @@ void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
         case VS_GEOMETRY_NORMALS:
             for (loop = 0; loop < normalListSize; loop++)
             {
+                // Copy the data to the vector buffer
                 dataBuffer[loop].setSize(3);
                 for (sloop = 0; sloop < 3; sloop++)
                     dataBuffer[loop][sloop] = normalList[loop][sloop];
@@ -1008,6 +1207,7 @@ void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
         case VS_GEOMETRY_COLORS:
             for (loop = 0; loop < colorListSize; loop++)
             {
+                // Copy the data to the vector buffer
                 dataBuffer[loop].setSize(4);
                 for (sloop = 0; sloop < 4; sloop++)
                     dataBuffer[loop][sloop] = colorList[loop][sloop];
@@ -1016,6 +1216,7 @@ void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
         case VS_GEOMETRY_TEXTURE_COORDS:
             for (loop = 0; loop < texCoordListSize; loop++)
             {
+                // Copy the data to the vector buffer
                 dataBuffer[loop].setSize(2);
                 for (sloop = 0; sloop < 2; sloop++)
                     dataBuffer[loop][sloop] = texCoordList[loop][sloop];
@@ -1036,7 +1237,10 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
 {
     int binding, performerBinding;
     
+    // Get the VESS binding for this geometry
     binding = getBinding(whichData);
+
+    // Translate VESS to Performer
     switch (binding)
     {
         case VS_GEOMETRY_BIND_NONE:
@@ -1053,9 +1257,13 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
             break;
     }
 
+    // Interpret the whichData constant
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
+            // Determine what we need to do with the data list
+	    // based on whether or not it currently exists, and
+	    // the desired new size of the list
             if (newSize && !vertexList)
             {
                 // Create
@@ -1074,11 +1282,15 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
                 vertexList = (pfVec3 *)(pfMemory::realloc(vertexList,
                     sizeof(pfVec3) * newSize));
             }
+            // Set the new list size on the Performer geoset
             performerGeoset->setAttr(PFGS_COORD3, performerBinding,
                 vertexList, NULL);
             vertexListSize = newSize;
             break;
         case VS_GEOMETRY_NORMALS:
+            // Determine what we need to do with the data list
+	    // based on whether or not it currently exists, and
+	    // the desired new size of the list
             if (newSize && !normalList)
             {
                 // Create
@@ -1097,11 +1309,15 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
                 normalList = (pfVec3 *)(pfMemory::realloc(normalList,
                     sizeof(pfVec3) * newSize));
             }
+            // Set the new list size on the Performer geoset
             performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
                 normalList, NULL);
             normalListSize = newSize;
             break;
         case VS_GEOMETRY_COLORS:
+            // Determine what we need to do with the data list
+	    // based on whether or not it currently exists, and
+	    // the desired new size of the list
             if (newSize && !colorList)
             {
                 // Create
@@ -1120,11 +1336,15 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
                 colorList = (pfVec4 *)(pfMemory::realloc(colorList,
                     sizeof(pfVec4) * newSize));
             }
+            // Set the new list size on the Performer geoset
             performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
                 colorList, NULL);
             colorListSize = newSize;
             break;
         case VS_GEOMETRY_TEXTURE_COORDS:
+            // Determine what we need to do with the data list
+	    // based on whether or not it currently exists, and
+	    // the desired new size of the list
             if (newSize && !texCoordList)
             {
                 // Create
@@ -1143,6 +1363,7 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
                 texCoordList = (pfVec2 *)(pfMemory::realloc(texCoordList,
                     sizeof(pfVec2) * newSize));
             }
+            // Set the new list size on the Performer geoset
             performerGeoset->setAttr(PFGS_TEXCOORD2, performerBinding,
                 texCoordList, NULL);
             texCoordListSize = newSize;
@@ -1158,6 +1379,7 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
 // ------------------------------------------------------------------------
 int vsGeometry::getDataListSize(int whichData)
 {
+    // Interpret the whichData constant
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
@@ -1172,6 +1394,7 @@ int vsGeometry::getDataListSize(int whichData)
             printf("vsGeometry::getDataListSize: Unrecognized data value\n");
     }
     
+    // If the whichData constant is unrecognized, return an error value
     return -1;
 }
 
@@ -1183,12 +1406,15 @@ void vsGeometry::getBoundSphere(vsVector *centerPoint, double *radius)
 {
     pfSphere boundSphere;
     
+    // Get the geometry bounding sphere from the Performer geode
     performerGeode->getBound(&boundSphere);
     
+    // Copy the sphere center point to the result vector, if there is one
     if (centerPoint)
         centerPoint->set(boundSphere.center[PF_X], boundSphere.center[PF_Y],
             boundSphere.center[PF_Z]);
 
+    // Copy the sphere radius to the result value, if there is one
     if (radius)
         *radius = boundSphere.radius;
 }
@@ -1205,24 +1431,37 @@ vsMatrix vsGeometry::getGlobalXform()
     vsMatrix result;
     int loop, sloop;
 
+    // Start at this geometry's geode with an identity matrix
     xform.makeIdent();
     nodePtr = performerGeode;
     
+    // Starting at this geometry's pfGeode, run through all of the
+    // nodes in the Performer scene graph and accumulate transforms
+    // from every pfSCS (or pfDCS, which is derived from pfSCS) along
+    // the way. The assumption here is that each node will only have
+    // one parent. (Not always the case, but if there is more then we
+    // wouldn't know which one to use anyway.)
     while (nodePtr->getNumParents() > 0)
     {
+        // Check if the node is a pfSCS (or subclass of one)
         if (nodePtr->isOfType(pfSCS::getClassType()))
         {
+            // Multiply the pfSCS's matrix into our matrix
             scsMatPtr = ((pfSCS *)nodePtr)->getMatPtr();
             xform.postMult(*scsMatPtr);
         }
         
+        // Move to the node's (first) parent
         nodePtr = nodePtr->getParent(0);
     }
     
+    // Copy the resulting Performer matrix to a VESS one, transposing as
+    // we go
     for (loop = 0; loop < 4; loop++)
         for (sloop = 0; sloop < 4; sloop++)
             result[loop][sloop] = xform[sloop][loop];
 
+    // Return the resulting matrix
     return result;
 }
 
@@ -1234,6 +1473,7 @@ vsMatrix vsGeometry::getGlobalXform()
 // ------------------------------------------------------------------------
 void vsGeometry::setIntersectValue(unsigned int newValue)
 {
+    // Set the intersection mask on the Performer node
     performerGeode->setTravMask(PFTRAV_ISECT, newValue, PFTRAV_SELF, PF_SET);
 }
 
@@ -1242,6 +1482,7 @@ void vsGeometry::setIntersectValue(unsigned int newValue)
 // ------------------------------------------------------------------------
 unsigned int vsGeometry::getIntersectValue()
 {
+    // Get the intersection mask from the Performer node
     return (performerGeode->getTravMask(PFTRAV_ISECT));
 }
 
@@ -1254,6 +1495,7 @@ unsigned int vsGeometry::getIntersectValue()
 // ------------------------------------------------------------------------
 void vsGeometry::setVisibilityValue(unsigned int newValue)
 {
+    // Set the visibility mask on the Performer node
     performerGeode->setTravMask(PFTRAV_DRAW, newValue, PFTRAV_SELF, PF_SET);
 }
 
@@ -1262,6 +1504,7 @@ void vsGeometry::setVisibilityValue(unsigned int newValue)
 // ------------------------------------------------------------------------
 unsigned int vsGeometry::getVisibilityValue()
 {
+    // Get the visibility mask from the Performer node
     return (performerGeode->getTravMask(PFTRAV_DRAW));
 }
 
@@ -1275,12 +1518,14 @@ void vsGeometry::addAttribute(vsAttribute *newAttribute)
     int attrCat, attrType;
     int loop;
 
+    // Verify that the attribute is willing to be attached
     if (!(newAttribute->canAttach()))
     {
         printf("vsGeometry::addAttribute: Attribute is already in use\n");
         return;
     }
     
+    // vsGeometries can only contain state attributes for now
     attrCat = newAttribute->getAttributeCategory();
     if (attrCat != VS_ATTRIBUTE_CATEGORY_STATE)
     {
@@ -1289,6 +1534,7 @@ void vsGeometry::addAttribute(vsAttribute *newAttribute)
         return;
     }
     
+    // vsGeometries can only contain one of each type of state attribute
     attrType = newAttribute->getAttributeType();
     for (loop = 0; loop < getAttributeCount(); loop++)
         if ((getAttribute(loop))->getAttributeType() == attrType)
@@ -1326,6 +1572,8 @@ void vsGeometry::inflateFlatGeometry()
     pfVec3 *newNormals;
     vsShadingAttribute *shading;
 
+    // Determine how much data needs to be replicated based on the
+    // flat primitive type
     switch (performerGeoset->getPrimType())
     {
         case PFGS_FLAT_LINESTRIPS:
@@ -1339,53 +1587,89 @@ void vsGeometry::inflateFlatGeometry()
             return;
     }
     
+    // Calculate the number of vertices in the geometry, based on the
+    // lengths of each primitive as stored in the primitive lengths list
     listSum = 0;
     for (loop = 0; loop < getPrimitiveCount(); loop++)
         listSum += lengthsList[loop];
     
-    // Inflate colors
+    // Inflate the color data, if present and bound per-vertex
     binding = performerGeoset->getAttrBind(PFGS_COLOR4);
     if (binding == PFGS_PER_VERTEX)
     {
+	// Run through the list of colors, adding extra values in to
+	// compensate for what the flat primitive type leaves out; this
+	// is done once per primitive.
+
+	// Start at the beginning for both lists
         oldPosition = 0;
         newPosition = 0;
+
+	// Create a new list
         newColors = (pfVec4 *)(pfMemory::malloc(sizeof(pfVec4) * listSum));
+
+	// Copy values from the old list to the new one
         for (primLoop = 0; primLoop < getPrimitiveCount(); primLoop++)
         {
+	    // Replicate a number of data values equal to the number
+	    // of values the flat primitive type normally omits
             for (loop = 0; loop < jumpCount; loop++)
                 (newColors[newPosition++]).copy(colorList[oldPosition]);
+
+	    // Then copy the rest of the data values of the primitive
             for (loop = 0; loop < (lengthsList[primLoop] - jumpCount); loop++)
                 (newColors[newPosition++]).copy(colorList[oldPosition++]);
         }
+
+	// Bind the new color list to the geoset
         performerGeoset->setAttr(PFGS_COLOR4, binding, (void *)newColors, NULL);
         pfMemory::free(colorList);
+
+        // Store the new color list and list size
         colorList = newColors;
         colorListSize = listSum;
     }
     
-    // Inflate normals
+    // Inflate the normal data, if present and bound per-vertex
     binding = performerGeoset->getAttrBind(PFGS_NORMAL3);
     if (binding == PFGS_PER_VERTEX)
     {
+	// Run through the list of normals, adding extra values in to
+	// compensate for what the flat primitive type leaves out; this
+	// is done once per primitive.
+
+	// Start at the beginning for both lists
         oldPosition = 0;
         newPosition = 0;
+
+	// Create a new list
         newNormals = (pfVec3 *)(pfMemory::malloc(sizeof(pfVec3) * listSum));
+
+	// Copy values from the old list to the new one
         for (primLoop = 0; primLoop < getPrimitiveCount(); primLoop++)
         {
+	    // Replicate a number of data values equal to the number
+	    // of values the flat primitive type normally omits
             for (loop = 0; loop < jumpCount; loop++)
                 (newNormals[newPosition++]).copy(normalList[oldPosition]);
+
+	    // Then copy the rest of the data values of the primitive
             for (loop = 0; loop < (lengthsList[primLoop] - jumpCount); loop++)
                 (newNormals[newPosition++]).copy(normalList[oldPosition++]);
         }
+
+	// Bind the new normal list to the geoset
         performerGeoset->setAttr(PFGS_NORMAL3, binding, (void *)newNormals,
             NULL);
         pfMemory::free(normalList);
+
+        // Store the new color list and list size
         normalList = newNormals;
         normalListSize = listSum;
     }
     
-    // Add a shading attribute to compensate for the loss of the
-    // 'FLAT' primitive type
+    // Create and add a shading attribute to this geometry to compensate for
+    // the loss of the 'FLAT' primitive type
     shading = new vsShadingAttribute();
     shading->setShading(VS_SHADING_FLAT);
     addAttribute(shading);
@@ -1414,10 +1698,16 @@ void vsGeometry::inflateFlatGeometry()
 // ------------------------------------------------------------------------
 vsNode *vsGeometry::nodeSearch(const char *name, int *idx)
 {
+    // Check if this is the node we're looking for
     if (!strcmp(name, getName()))
     {
+	// Check if this is the desired instance of the nodes with the
+	// target name by examining the idx value
         if ((*idx) > 0)
         {
+	    // The name is right but this is still the wrong one; decrement
+	    // the idx value to mark that we've found one, and keep
+	    // searching
             (*idx)--;
             return NULL;
         }
@@ -1425,6 +1715,7 @@ vsNode *vsGeometry::nodeSearch(const char *name, int *idx)
             return this;
     }
 
+    // NULL result if the node was not found
     return NULL;
 }
 
@@ -1436,8 +1727,11 @@ vsNode *vsGeometry::nodeSearch(const char *name, int *idx)
 // ------------------------------------------------------------------------
 void vsGeometry::applyAttributes()
 {
+    // Call the inherited version of this function
     vsNode::applyAttributes();
     
+    // Call the system's vsGraphicsState object to configure the
+    // Performer geostate on this geometry
     (vsSystem::systemObject)->getGraphicsState()->applyState(
         performerGeostate);
 }
@@ -1453,11 +1747,14 @@ int vsGeometry::geostateCallback(pfGeoState *gstate, void *userData)
     pfLight **lightList;
     int loop;
     
+    // Obtain the list of Performer light objects
     lightList = (pfLight **)userData;
     
+    // Turn on local lights
     for (loop = 0; loop < PF_MAX_LIGHTS; loop++)
         if (lightList[loop] != NULL)
             (lightList[loop])->on();
 
+    // Done (Performer ignores this function's return value)
     return 0;
 }
