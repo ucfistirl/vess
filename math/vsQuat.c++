@@ -570,6 +570,46 @@ void vsQuat::setAxisAngleRotation(double x, double y, double z,
 }
 
 // ------------------------------------------------------------------------
+// Retrieves the axis and amount of rotation represented by this
+// quaternion.
+//
+// Note: NULL pointers may be passed in to denote unwanted return values
+// ------------------------------------------------------------------------
+void vsQuat::getAxisAngleRotation(double *x, double *y, double *z,
+    double *rotDegrees)
+{
+    vsVector axis;
+    double mag, degrees;
+    
+    axis.set(data[0], data[1], data[2]);
+    mag = axis.getMagnitude();
+    if (mag < 1E-6)
+    {
+	if (x)
+	    *x = 0.0;
+	if (y)
+	    *y = 0.0;
+	if (z)
+	    *z = 0.0;
+	if (rotDegrees)
+	    *rotDegrees = 0.0;
+	return;
+    }
+    
+    axis.normalize();
+    degrees = VS_RAD2DEG(acos(data[3]) * 2.0);
+    
+    if (x)
+	*x = axis[0];
+    if (y)
+	*y = axis[1];
+    if (z)
+	*z = axis[2];
+    if (rotDegrees)
+	*rotDegrees = degrees;
+}
+
+// ------------------------------------------------------------------------
 // Sets this quaternion to represent the coordinate space rotation that
 // will rotate the directions specified by originForward and originUp to
 // match those specified by targetForward and targetUp, respectively.

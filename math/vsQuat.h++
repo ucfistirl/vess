@@ -58,6 +58,8 @@ public:
                     double *axis3Degrees);
     void        setAxisAngleRotation(double x, double y, double z,
                     double rotDegrees);
+    void        getAxisAngleRotation(double *x, double *y, double *z,
+                    double *rotDegrees);
     void        setVecsRotation(vsVector originForward, vsVector originUp,
                     vsVector targetForward, vsVector targetUp);
 
