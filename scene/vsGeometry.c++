@@ -790,7 +790,7 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
-            if ((vertexListSize != -1) && (dataIndex >= vertexListSize))
+            if (dataIndex >= vertexListSize)
             {
                 printf("vsGeometry::setData: Index out of bounds\n");
                 return;
@@ -799,7 +799,7 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
                 (vertexList[dataIndex])[loop] = data[loop];
             break;
         case VS_GEOMETRY_NORMALS:
-            if ((normalListSize != -1) && (dataIndex >= normalListSize))
+            if (dataIndex >= normalListSize)
             {
                 printf("vsGeometry::setData: Index out of bounds\n");
                 return;
@@ -808,7 +808,7 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
                 (normalList[dataIndex])[loop] = data[loop];
             break;
         case VS_GEOMETRY_COLORS:
-            if ((colorListSize != -1) && (dataIndex >= colorListSize))
+            if (dataIndex >= colorListSize)
             {
                 printf("vsGeometry::setData: Index out of bounds\n");
                 return;
@@ -817,7 +817,7 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
                 (colorList[dataIndex])[loop] = data[loop];
             break;
         case VS_GEOMETRY_TEXTURE_COORDS:
-            if ((texCoordListSize != -1) && (dataIndex >= texCoordListSize))
+            if (dataIndex >= texCoordListSize)
             {
                 printf("vsGeometry::setData: Index out of bounds\n");
                 return;
@@ -851,7 +851,7 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
-            if ((vertexListSize != -1) && (dataIndex >= vertexListSize))
+            if (dataIndex >= vertexListSize)
             {
                 printf("vsGeometry::getData: Index out of bounds\n");
                 return result;
@@ -861,10 +861,9 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
                 result[loop] = (vertexList[dataIndex])[loop];
             break;
         case VS_GEOMETRY_NORMALS:
-            if ((normalListSize != -1) && (dataIndex >= normalListSize))
+            if (dataIndex >= normalListSize)
             {
-                printf("vsGeometry::getData: Index out of bounds (%d,%d)\n",
-                    dataIndex, normalListSize);
+                printf("vsGeometry::getData: Index out of bounds\n");
                 return result;
             }
             result.setSize(3);
@@ -872,7 +871,7 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
                 result[loop] = (normalList[dataIndex])[loop];
             break;
         case VS_GEOMETRY_COLORS:
-            if ((colorListSize != -1) && (dataIndex >= colorListSize))
+            if (dataIndex >= colorListSize)
             {
                 printf("vsGeometry::getData: Index out of bounds\n");
                 return result;
@@ -882,7 +881,7 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
                 result[loop] = (colorList[dataIndex])[loop];
             break;
         case VS_GEOMETRY_TEXTURE_COORDS:
-            if ((texCoordListSize != -1) && (dataIndex >= texCoordListSize))
+            if (dataIndex >= texCoordListSize)
             {
                 printf("vsGeometry::getData: Index out of bounds\n");
                 return result;
@@ -911,41 +910,21 @@ void vsGeometry::setDataList(int whichData, vsVector *dataList)
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
-            if (vertexListSize != -1)
-            {
-                printf("vsGeometry::setDataList: List size not defined\n");
-                return;
-            }
             for (loop = 0; loop < vertexListSize; loop++)
                 for (sloop = 0; sloop < 3; sloop++)
                     vertexList[loop][sloop] = dataList[loop][sloop];
             break;
         case VS_GEOMETRY_NORMALS:
-            if (normalListSize != -1)
-            {
-                printf("vsGeometry::setDataList: List size not defined\n");
-                return;
-            }
             for (loop = 0; loop < normalListSize; loop++)
                 for (sloop = 0; sloop < 3; sloop++)
                     normalList[loop][sloop] = dataList[loop][sloop];
             break;
         case VS_GEOMETRY_COLORS:
-            if (colorListSize != -1)
-            {
-                printf("vsGeometry::setDataList: List size not defined\n");
-                return;
-            }
             for (loop = 0; loop < colorListSize; loop++)
                 for (sloop = 0; sloop < 4; sloop++)
                     colorList[loop][sloop] = dataList[loop][sloop];
             break;
         case VS_GEOMETRY_TEXTURE_COORDS:
-            if (texCoordListSize != -1)
-            {
-                printf("vsGeometry::setDataList: List size not defined\n");
-                return;
-            }
             for (loop = 0; loop < texCoordListSize; loop++)
                 for (sloop = 0; sloop < 2; sloop++)
                     texCoordList[loop][sloop] = dataList[loop][sloop];
@@ -969,11 +948,6 @@ void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
-            if (vertexListSize != -1)
-            {
-                printf("vsGeometry::getDataList: List size not defined\n");
-                return;
-            }
             for (loop = 0; loop < vertexListSize; loop++)
             {
                 dataBuffer[loop].setSize(3);
@@ -982,11 +956,6 @@ void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
             }
             break;
         case VS_GEOMETRY_NORMALS:
-            if (normalListSize != -1)
-            {
-                printf("vsGeometry::getDataList: List size not defined\n");
-                return;
-            }
             for (loop = 0; loop < normalListSize; loop++)
             {
                 dataBuffer[loop].setSize(3);
@@ -995,11 +964,6 @@ void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
             }
             break;
         case VS_GEOMETRY_COLORS:
-            if (colorListSize != -1)
-            {
-                printf("vsGeometry::getDataList: List size not defined\n");
-                return;
-            }
             for (loop = 0; loop < colorListSize; loop++)
             {
                 dataBuffer[loop].setSize(4);
@@ -1008,11 +972,6 @@ void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
             }
             break;
         case VS_GEOMETRY_TEXTURE_COORDS:
-            if (texCoordListSize != -1)
-            {
-                printf("vsGeometry::getDataList: List size not defined\n");
-                return;
-            }
             for (loop = 0; loop < texCoordListSize; loop++)
             {
                 dataBuffer[loop].setSize(2);
