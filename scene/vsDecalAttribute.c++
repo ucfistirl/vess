@@ -93,7 +93,8 @@ void vsDecalAttribute::attach(vsNode *theNode)
         return;
     }
 
-    if (theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
+    if ((theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
+        (theNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY))
     {
         printf("vsDecalAttribute::attach: Can't attach decal attributes "
             "to geometry nodes\n");

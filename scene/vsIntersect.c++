@@ -402,7 +402,10 @@ void vsIntersect::intersect(vsNode *targetNode)
     
     if (targetNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
         performerNode = ((vsGeometry *)targetNode)->getBaseLibraryObject();
-    else
+    else if (targetNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY)
+        performerNode = 
+            ((vsDynamicGeometry *)targetNode)->getBaseLibraryObject();
+    else if (targetNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
         performerNode = ((vsComponent *)targetNode)->getBaseLibraryObject();
 
     // Set the intersection run to calculate paths or not depending on

@@ -36,7 +36,8 @@ class vsComponent;
 enum vsNodeType
 {
     VS_NODE_TYPE_COMPONENT,
-    VS_NODE_TYPE_GEOMETRY
+    VS_NODE_TYPE_GEOMETRY,
+    VS_NODE_TYPE_DYNAMIC_GEOMETRY
 };
 
 class vsNode

@@ -391,6 +391,7 @@ void vsComponent::addChild(vsNode *newChild)
 {
     vsComponent *childComponent;
     vsGeometry *childGeometry;
+    vsDynamicGeometry *childDynamicGeometry;
 
     // First connect the Performer nodes together
     if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
@@ -398,10 +399,15 @@ void vsComponent::addChild(vsNode *newChild)
         childComponent = (vsComponent *)newChild;
         bottomGroup->addChild(childComponent->getBaseLibraryObject());
     }
-    else
+    else if (newChild->getNodeType() == VS_NODE_TYPE_GEOMETRY)
     {
         childGeometry = (vsGeometry *)newChild;
         bottomGroup->addChild(childGeometry->getBaseLibraryObject());
+    }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY)
+    {
+        childDynamicGeometry = (vsDynamicGeometry *)newChild;
+        bottomGroup->addChild(childDynamicGeometry->getBaseLibraryObject());
     }
 
     // Then make the connection in the VESS nodes
@@ -423,6 +429,7 @@ void vsComponent::insertChild(vsNode *newChild, int index)
 {
     vsComponent *childComponent;
     vsGeometry *childGeometry;
+    vsDynamicGeometry *childDynamicGeometry;
     int loop;
     
     if (index < 0)
@@ -445,10 +452,16 @@ void vsComponent::insertChild(vsNode *newChild, int index)
         childComponent = (vsComponent *)newChild;
         bottomGroup->insertChild(index, childComponent->getBaseLibraryObject());
     }
-    else
+    else if (newChild->getNodeType() == VS_NODE_TYPE_GEOMETRY)
     {
         childGeometry = (vsGeometry *)newChild;
         bottomGroup->insertChild(index, childGeometry->getBaseLibraryObject());
+    }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY)
+    {
+        childDynamicGeometry = (vsDynamicGeometry *)newChild;
+        bottomGroup->insertChild(index, 
+            childDynamicGeometry->getBaseLibraryObject());
     }
 
     // Then make the connection in the VESS nodes
@@ -472,6 +485,7 @@ void vsComponent::removeChild(vsNode *targetChild)
     int loop, sloop;
     vsComponent *childComponent;
     vsGeometry *childGeometry;
+    vsDynamicGeometry *childDynamicGeometry;
     
     for (loop = 0; loop < childCount; loop++)
         if (targetChild == childList[loop])
@@ -489,11 +503,18 @@ void vsComponent::removeChild(vsNode *targetChild)
                 bottomGroup->removeChild(
                     childComponent->getBaseLibraryObject());
             }
-            else
+            else if (targetChild->getNodeType() == VS_NODE_TYPE_GEOMETRY)
             {
                 childGeometry = (vsGeometry *)targetChild;
                 bottomGroup->removeChild(
                     childGeometry->getBaseLibraryObject());
+            }
+            else if (targetChild->getNodeType() == 
+                        VS_NODE_TYPE_DYNAMIC_GEOMETRY)
+            {
+                childDynamicGeometry = (vsDynamicGeometry *)targetChild;
+                bottomGroup->removeChild(
+                    childDynamicGeometry->getBaseLibraryObject());
             }
 
             // 'Slide' the rest of the children down to fill in the gap
@@ -517,6 +538,7 @@ void vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
     int loop;
     vsComponent *childComponent;
     vsGeometry *childGeometry;
+    vsDynamicGeometry *childDynamicGeometry;
     pfNode *oldNode, *newNode;
     
     for (loop = 0; loop < childCount; loop++)
@@ -534,10 +556,16 @@ void vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
                 childComponent = (vsComponent *)targetChild;
                 oldNode = childComponent->getBaseLibraryObject();
             }
-            else
+            else if (targetChild->getNodeType() == VS_NODE_TYPE_GEOMETRY)
             {
                 childGeometry = (vsGeometry *)targetChild;
                 oldNode = childGeometry->getBaseLibraryObject();
+            }
+            else if (targetChild->getNodeType() == 
+                        VS_NODE_TYPE_DYNAMIC_GEOMETRY)
+            {
+                childDynamicGeometry = (vsDynamicGeometry *)targetChild;
+                oldNode = childDynamicGeometry->getBaseLibraryObject();
             }
 
             if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
@@ -545,10 +573,15 @@ void vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
                 childComponent = (vsComponent *)newChild;
                 newNode = childComponent->getBaseLibraryObject();
             }
-            else
+            else if (newChild->getNodeType() == VS_NODE_TYPE_GEOMETRY)
             {
                 childGeometry = (vsGeometry *)newChild;
                 newNode = childGeometry->getBaseLibraryObject();
+            }
+            else if (newChild->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY)
+            {
+                childDynamicGeometry = (vsDynamicGeometry *)newChild;
+                newNode = childDynamicGeometry->getBaseLibraryObject();
             }
             
             bottomGroup->replaceChild(oldNode, newNode);

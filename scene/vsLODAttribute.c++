@@ -149,7 +149,8 @@ void vsLODAttribute::attach(vsNode *theNode)
         return;
     }
 
-    if (theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
+    if ((theNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
+        (theNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY))
     {
         printf("vsLODAttribute::attach: Can't attach LOD attributes to "
             "geometry nodes\n");
