@@ -21,14 +21,10 @@
 //------------------------------------------------------------------------
 
 #include <stdio.h>
-#include <unistd.h>
 #include <string.h>
-#include <netdb.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/param.h>
 #include "vsTCPNetworkInterface.h++"
 
 // ------------------------------------------------------------------------
@@ -36,7 +32,7 @@
 // ------------------------------------------------------------------------
 vsTCPNetworkInterface::vsTCPNetworkInterface(char *address, u_short port)
 {
-    char              hostname[MAXHOSTNAMELEN];
+    char              hostname[MAXGETHOSTSTRUCT];
     struct hostent    *host;
 
     // Open the socket
@@ -65,7 +61,7 @@ vsTCPNetworkInterface::vsTCPNetworkInterface(char *address, u_short port)
 // ------------------------------------------------------------------------
 vsTCPNetworkInterface::vsTCPNetworkInterface(u_short port)
 {
-    char              hostname[MAXHOSTNAMELEN];
+    char              hostname[MAXGETHOSTSTRUCT];
     struct hostent    *host;
 
     // Open the socket
@@ -94,7 +90,15 @@ vsTCPNetworkInterface::vsTCPNetworkInterface(u_short port)
 vsTCPNetworkInterface::~vsTCPNetworkInterface()
 {
     // Close the socket
-    close(socketValue);
+    closesocket(socketValue);
+}
+
+// ------------------------------------------------------------------------
+// Gets a string representation of this object's class name
+// ------------------------------------------------------------------------
+const char *vsTCPNetworkInterface::getClassName()
+{
+    return "vsTCPNetworkInterface";
 }
 
 // ------------------------------------------------------------------------
@@ -128,9 +132,9 @@ int vsTCPNetworkInterface::acceptConnection()
 {
     fd_set                readFDs;
     struct timeval        tv;
-    int                   newSocket;
+    SOCKET                newSocket;
     struct sockaddr_in    connectingName;
-    socklen_t             connectingNameLength;
+    int                   connectingNameLength;
 
     // Set up the file descriptor set to allow reading from our main socket
     FD_ZERO(&readFDs);
@@ -142,7 +146,7 @@ int vsTCPNetworkInterface::acceptConnection()
 
     // Bail out if there's nobody waiting (select returns -1 on error and
     // 0 if nobody is there)
-    if (select(socketValue+1, &readFDs, NULL, NULL, &tv) < 1)
+    if (select((int)socketValue+1, &readFDs, NULL, NULL, &tv) < 1)
         return -1;
 
     // Try to accept a connection
@@ -153,7 +157,7 @@ int vsTCPNetworkInterface::acceptConnection()
     // If we had an error and it wasn't that we would block on a non-blocking
     // socket (a blocking socket shouldn't generate an EWOULDBLOCK error), then
     // notify the user; otherwise, store the socket and return an ID to the user
-    if ( (newSocket == -1) && (errno != EWOULDBLOCK) )
+    if ( (newSocket == -1) && (errno != WSAEWOULDBLOCK) )
     {
         printf("Could not accept a connection.\n");
         return -1;
@@ -179,20 +183,14 @@ int vsTCPNetworkInterface::acceptConnection()
 // ------------------------------------------------------------------------
 void vsTCPNetworkInterface::enableBlockingOnClient(int clientID)
 {
-    int    statusFlags;
-
-    // Get the current status flags on the socket
-    if ( (statusFlags = fcntl(clientSockets[clientID], F_GETFL)) < 0 )
-        printf("Unable to get status of socket.\n");
-    else
+    // Disable nonblocking on the socket (Windows bases everything on 
+    // *nonblocking*)
+    nonblockingMode = 0;
+    if (ioctlsocket(clientSockets[clientID], FIONBIO, 
+        &nonblockingMode) == SOCKET_ERROR)
     {
-        // Try to set the socket flags (NOT including the nonblocking flag)
-        if (fcntl(clientSockets[clientID], F_SETFL, 
-                  statusFlags & (~FNONBLOCK)) < 0)
-        {
-            // If there was error, notify the user
-            printf("Unable to disable blocking on socket.\n");
-        }
+        // If there was error, notify the user
+        printf("Unable to disable blocking on socket.\n");
     }
 }
 
@@ -201,20 +199,13 @@ void vsTCPNetworkInterface::enableBlockingOnClient(int clientID)
 // ------------------------------------------------------------------------
 void vsTCPNetworkInterface::disableBlockingOnClient(int clientID)
 {
-    int    statusFlags;
-
-    // Get the current status flags on the socket
-    if ( (statusFlags = fcntl(clientSockets[clientID], F_GETFL)) < 0 )
-        printf("Unable to get status of socket.\n");
-    else
+    // Enable nonblocking on the socket
+    nonblockingMode = 1;
+    if (ioctlsocket(clientSockets[clientID], FIONBIO, 
+        &nonblockingMode) == SOCKET_ERROR)
     {
-        // Try to set the socket flags (including the nonblocking flag) and
-        // notify the user if there was an error
-        if (fcntl(clientSockets[clientID], F_SETFL, statusFlags | FNONBLOCK)
-            < 0)
-        {
-           printf("Unable to disable blocking on socket.\n");
-        }
+        // If there was error, notify the user
+        printf("Unable to disable blocking on socket.\n");
     }
 }
 
@@ -223,14 +214,8 @@ void vsTCPNetworkInterface::disableBlockingOnClient(int clientID)
 // ------------------------------------------------------------------------
 int vsTCPNetworkInterface::makeConnection()
 {
-    int                   statusFlags;
     int                   keepTrying;
     struct sockaddr_in    connectingName;
-
-    // Get flags on our current socket (so we can put them on new sockets if
-    // needed)
-    if ( (statusFlags = fcntl(socketValue, F_GETFL)) < 0 )
-        printf("Unable to get status of socket.\n");
 
     keepTrying = 1;
     while (keepTrying == 1)
@@ -246,13 +231,13 @@ int vsTCPNetworkInterface::makeConnection()
         else
         {
             // We didn't connect so close the socket
-            close(socketValue);
+            closesocket(socketValue);
             socketValue = -1;
 
             // If we are not in blocking mode, tell the loop to stop (we give 
             // up); Otherwise, tell the user the info that we failed this time
             // and re-open the socket
-            if ( (fcntl(socketValue, F_GETFL) & FNONBLOCK) != 0 )
+            if (nonblockingMode == 0)
                 keepTrying = 0;
             else
             {
@@ -262,8 +247,8 @@ int vsTCPNetworkInterface::makeConnection()
                 if ( (socketValue = socket(AF_INET, SOCK_STREAM, 0)) < 0 )
                    printf("Unable to open socket for communication.\n");
 
-                // Put flags from previous socket on this new socket
-                if (fcntl(socketValue, F_SETFL, statusFlags) < 0)
+                // Set the new socket to nonblocking 
+                if (ioctlsocket(socketValue, FIONBIO, &nonblockingMode) == SOCKET_ERROR)
                    printf("Unable to disable blocking on socket.\n");
             }
         }
@@ -296,7 +281,7 @@ int vsTCPNetworkInterface::makeConnection()
 int vsTCPNetworkInterface::read(u_char *buffer, u_long len)
 {
     struct sockaddr_in    fromAddress;
-    socklen_t             fromAddressLength;
+    int                   fromAddressLength;
     int                   packetLength;
 
     // Make sure we have a client, error if not
@@ -304,7 +289,7 @@ int vsTCPNetworkInterface::read(u_char *buffer, u_long len)
     {
         // Get a packet
         fromAddressLength = sizeof(fromAddress);
-        packetLength = recvfrom(clientSockets[0], buffer, len, MSG_WAITALL, 
+        packetLength = recvfrom(clientSockets[0], (char *) buffer, len, 0, 
                                 (struct sockaddr *) &fromAddress, 
                                 &fromAddressLength);
 
@@ -312,7 +297,7 @@ int vsTCPNetworkInterface::read(u_char *buffer, u_long len)
         if (packetLength == 0)
         {
             // Close the socket
-            close(clientSockets[0]);
+            closesocket(clientSockets[0]);
 
             // Remove the socket from our list
             numClientSockets--;
@@ -337,12 +322,12 @@ int vsTCPNetworkInterface::read(u_char *buffer, u_long len)
 int vsTCPNetworkInterface::read(int clientID, u_char *buffer, u_long len)
 {
     struct sockaddr_in   fromAddress;
-    socklen_t            fromAddressLength;
+    int                  fromAddressLength;
     int                  packetLength;
 
     // Get a packet
     fromAddressLength = sizeof(fromAddress);
-    packetLength = recvfrom(clientSockets[clientID], buffer, len, MSG_WAITALL,
+    packetLength = recvfrom(clientSockets[clientID], (char *) buffer, len, 0,
                             (struct sockaddr *) &fromAddress, 
                             &fromAddressLength);
 
@@ -350,7 +335,7 @@ int vsTCPNetworkInterface::read(int clientID, u_char *buffer, u_long len)
     if (packetLength == 0)
     {
         // Close the socket
-        close(clientSockets[clientID]);
+        closesocket(clientSockets[clientID]);
 
         // Remove the socket from our list
         if (VS_MAX_TCP_CLIENTS > 1)
@@ -362,7 +347,7 @@ int vsTCPNetworkInterface::read(int clientID, u_char *buffer, u_long len)
                 (numClientSockets - clientID) * sizeof(struct sockaddr_in));
             memmove(&clientNameLengths[clientID], 
                 &clientNameLengths[clientID+1],
-                (numClientSockets - clientID) * sizeof(socklen_t));
+                (numClientSockets - clientID) * sizeof(int));
         }
         numClientSockets--;
 
@@ -400,7 +385,7 @@ int vsTCPNetworkInterface::write(u_char *buffer, u_long len)
     // return immediately if there is space).  This lets us take a split
     // second to see if there will be space rather than returning back to
     // the user immediately and having them, sleep and loop, etc.
-    status = select(clientSockets[0] + 1, NULL, &writeFDs, NULL, &tv);
+    status = select((int)clientSockets[0] + 1, NULL, &writeFDs, NULL, &tv);
     if (status < 1)
         return status;
 
@@ -408,7 +393,7 @@ int vsTCPNetworkInterface::write(u_char *buffer, u_long len)
     if (numClientSockets > 0)
     {
         // Write the packet
-        lengthWritten = sendto(clientSockets[0], buffer, len, 0, 
+        lengthWritten = sendto(clientSockets[0], (char *)buffer, len, 0, 
                                (struct sockaddr *) &clientNames[0], 
                                clientNameLengths[0]);
 
@@ -442,12 +427,12 @@ int vsTCPNetworkInterface::write(int clientID, u_char *buffer, u_long len)
     // return immediately if there is space).  This lets us take a split
     // second to see if there will be space rather than returning back to
     // the user immediately and having them, sleep and loop, etc.
-    status = select(clientSockets[clientID] + 1, NULL, &writeFDs, NULL, &tv);
+    status = select((int)clientSockets[clientID] + 1, NULL, &writeFDs, NULL, &tv);
     if (status < 1)
         return status;
 
     // Write the packet
-    lengthWritten = sendto(clientSockets[clientID], buffer, len, 0,  
+    lengthWritten = sendto(clientSockets[clientID], (char *)buffer, len, 0,  
                            (struct sockaddr *) &clientNames[clientID],
                            clientNameLengths[clientID]);
 
