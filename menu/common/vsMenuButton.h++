@@ -14,7 +14,8 @@
 //    VESS Module:  vsMenuButton.h++
 //
 //    Description:  The vsMenuButton is a clickable object. It has a state
-//                  describing whether it is currently activated.
+//                  describing whether it is currently activated and may
+//                  be set to un-press when idling or not.
 //
 //    Author(s):    Casey Thurston
 //
@@ -32,6 +33,12 @@ class VS_SYSTEM_DLL vsMenuButton : public vsMenuObject
 {
 protected:
 
+    bool              idleReverts;
+    bool              idleState;
+
+    bool              canRepeat;
+    bool              previousState;
+
     bool              pressedState;
 
 public:
@@ -45,6 +52,13 @@ public:
     virtual const char      *getClassName();
 
     virtual void            update(vsMenuSignal signal, vsMenuFrame *frame);
+
+    void                    setRepeatable(bool repeat);
+    bool                    isRepeatable();
+
+    void                    setIdleReversion(bool reverts, bool state);
+    bool                    revertsOnIdle();
+    bool                    getRevertState();
 
     void                    setState(bool pressed);
     bool                    isPressed();

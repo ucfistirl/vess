@@ -31,7 +31,15 @@ vsMenuButton::vsMenuButton()
     menuComponent = NULL;
     menuKinematics = NULL;
 
-    // Initialize the button press state
+    // Set whether this frame can be repeat-activated by default.
+    canRepeat = true;
+    previousState = false;
+
+    // Set whether idle causes state reversion to true by default.
+    idleReverts = true;
+    idleState = false;
+
+    // Initialize the button press state.
     pressedState = false;
 }
 
@@ -51,6 +59,14 @@ vsMenuButton::vsMenuButton(vsMenuObject *object)
         menuComponent->ref();
     if (menuKinematics)
         menuKinematics->ref();
+
+    // Set whether this frame can be repeat-activated by default.
+    canRepeat = true;
+    previousState = false;
+
+    // Set whether idle causes state reversion to true by default.
+    idleReverts = true;
+    idleState = false;
 
     // Initialize the button press state
     pressedState = false;
@@ -73,6 +89,14 @@ vsMenuButton::vsMenuButton(vsComponent *component, vsKinematics *kinematics)
         menuComponent->ref();
     if (menuKinematics)
         menuKinematics->ref();
+
+    // Set whether this frame can be repeat-activated by default.
+    canRepeat = true;
+    previousState = false;
+
+    // Set whether idle causes state reversion to true by default.
+    idleReverts = true;
+    idleState = false;
 
     // Initialize the button press state
     pressedState = false;
@@ -122,8 +146,12 @@ void vsMenuButton::update(vsMenuSignal signal, vsMenuFrame *frame)
             if (menuKinematics)
                 menuKinematics->update();
 
-            // Reset the button press state to false
-            pressedState = false;
+            // Store the previous state of the button.
+            previousState = pressedState;
+
+            // Cause the button to revert if it is set to do so.
+            if (idleReverts)
+                pressedState = idleState;
         }
         break;
 
@@ -137,10 +165,59 @@ void vsMenuButton::update(vsMenuSignal signal, vsMenuFrame *frame)
 }
 
 // ------------------------------------------------------------------------
-// Sets the state of the button
+// Store whether this button can be activated in consecutive frames by
+// activation signals or whether two idle signals must be received for it
+// to allow re-activation.
+// ------------------------------------------------------------------------
+void vsMenuButton::setRepeatable(bool repeat)
+{
+    canRepeat = repeat;
+}
+
+// ------------------------------------------------------------------------
+// Return whether this button can be activated in consecutive frames by
+// activation signals or whether two idle signals must be received for it
+// to allow re-activation.
+// ------------------------------------------------------------------------
+bool vsMenuButton::isRepeatable()
+{
+    return canRepeat;
+}
+
+// ------------------------------------------------------------------------
+// Store whether the idle signal will cause this button to revert to a
+// default state, storing that state as well.
+// ------------------------------------------------------------------------
+void vsMenuButton::setIdleReversion(bool reverts, bool state)
+{
+    idleReverts = reverts;
+    idleState = state;
+}
+
+// ------------------------------------------------------------------------
+// Returns whether or not an idle signal to this button will cause it to
+// revert to a default state.
+// ------------------------------------------------------------------------
+bool vsMenuButton::revertsOnIdle()
+{
+    return idleReverts;
+}
+
+// ------------------------------------------------------------------------
+// Returns the state that this menu button will revert to on idle if its
+// reversion flag is set to true.
+// ------------------------------------------------------------------------
+bool vsMenuButton::getRevertState()
+{
+    return idleState;
+}
+
+// ------------------------------------------------------------------------
+// Sets the state of the button (updating the previous state).
 // ------------------------------------------------------------------------
 void vsMenuButton::setState(bool pressed)
 {
+    previousState = pressedState;
     pressedState = pressed;
 }
 
@@ -149,6 +226,18 @@ void vsMenuButton::setState(bool pressed)
 // ------------------------------------------------------------------------
 bool vsMenuButton::isPressed()
 {
-    return pressedState;
+    if (canRepeat)
+    {
+        return pressedState;
+    }
+    else
+    {
+        // Basically, if the pressed and previous states are equal, then the
+        // final state is always false. Otherwise, the pressed state is valid
+        // whether it is true or false.
+        if (pressedState == previousState)
+            return false;
+        return pressedState;
+    }
 }
 
