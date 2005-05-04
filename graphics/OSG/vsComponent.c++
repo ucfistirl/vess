@@ -376,9 +376,9 @@ bool vsComponent::removeChild(vsNode *targetChild)
             targetChild->unref();
             
             // Special case:  If there is a switch attribute attached to this 
-            // component, then we need to check the switch masks after we remove
-            // the child, and delete any masks that are now empty.  This emulates
-            // Performer's pfSwitch behavior.
+            // component, then we need to check the switch masks after we 
+            // remove the child, and delete any masks that are now empty.  
+            // This emulates Performer's pfSwitch behavior.
             switchAttr = (vsSwitchAttribute *)
                getTypedAttribute(VS_ATTRIBUTE_TYPE_SWITCH, 0);
             if (switchAttr != NULL)
