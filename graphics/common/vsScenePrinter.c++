@@ -35,6 +35,7 @@
 #include "vsWireframeAttribute.h++"
 #include "vsLightAttribute.h++"
 #include "vsShaderAttribute.h++"
+#include "vsLODAttribute.h++"
 
 // ------------------------------------------------------------------------
 // Constructor
@@ -1151,6 +1152,22 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
 
                 case VS_ATTRIBUTE_TYPE_LOD:
                     fprintf(outfile, "LOD\n");
+
+                    // Print the LOD ranges, if we're configured to provide
+                    // attribute details
+                    if (printerMode & VS_PRINTER_ATTRIBUTE_DETAILS)
+                    {
+                        // Iterate over the levels and print the maximum
+                        // range for that level
+                        for (loop = 0; loop < targetNode->getChildCount(); 
+                             loop++)
+                        {
+                            writeBlanks(outfile, (treeDepth * 2) + 3);
+                            fprintf(outfile, "Level %d:  %0.3lf\n",
+                                loop, ((vsLODAttribute *)attribute)->
+                                getRangeEnd(loop));
+                        }
+                    }
                     break;
 
                 case VS_ATTRIBUTE_TYPE_LIGHT:
