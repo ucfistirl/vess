@@ -72,6 +72,49 @@ int vsLODAttribute::getAttributeCategory()
 }
 
 // ------------------------------------------------------------------------
+// Sets a user-defined center for this LOD.  The default center is
+// the center of the parent node's bounding sphere.
+// ------------------------------------------------------------------------
+void vsLODAttribute::setCenter(vsVector newCenter)
+{
+    pfVec3 performerVec;
+
+    // If we're not yet attached, print a warning and bail out
+    if (!attachedCount)
+    {
+        printf("vsLODAttribute::setRangeEnd: Attribute must be attached "
+            "before LOD can be manipulated\n");
+        return;
+    }
+
+    // Set the new center on the OSG LOD node
+    performerVec.set(newCenter[VS_X], newCenter[VS_Y], newCenter[VS_Z]);
+    performerLOD->setCenter(performerVec);
+}
+
+// ------------------------------------------------------------------------
+// Returns the current center of this LOD.
+// ------------------------------------------------------------------------
+vsVector vsLODAttribute::getCenter()
+{
+    pfVec3 performerVec;
+
+    // If we're not yet attached, print a warning and bail out
+    if (!attachedCount)
+    {
+        printf("vsLODAttribute::setRangeEnd: Attribute must be attached "
+            "before LOD can be manipulated\n");
+        return vsVector(0,0,0);
+    }
+
+    // Get the current center from the LOD node
+    performerLOD->getCenter(performerVec);
+
+    // Return it in vsVector form
+    return vsVector(performerVec[0], performerVec[1], performerVec[2]);
+}
+
+// ------------------------------------------------------------------------
 // Sets the far limit for which the child with index childNum on the
 // parent component is displayed. The near limit is the far limit of the
 // child with the next lower index, or 0 for the child at index 0. The

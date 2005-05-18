@@ -1367,6 +1367,7 @@ void vsDatabaseLoader::convertLOD(vsComponent *lodComponent, osg::LOD *osgLOD)
     vsNode *childNode;
     vsComponent *childComponent;
     vsLODAttribute *lodAttr;
+    osg::Vec3 lodCenter;
     float midpoint;
     
     // * Create a list of ranges out of the minimum and maximum range
@@ -1458,11 +1459,16 @@ void vsDatabaseLoader::convertLOD(vsComponent *lodComponent, osg::LOD *osgLOD)
             }
         }
     }
+
+    // * Get the center of the OSG LOD node (in case it has a user-defined
+    // center instead of just the node's bounding sphere)
+    lodCenter = osgLOD->getCenter();
     
     // * Create a vsLODAttribute and attach it to the lodComponent, and
     // configure the attribute's ranges with the values from the range list
     lodAttr = new vsLODAttribute();
     lodComponent->addAttribute(lodAttr);
+    lodAttr->setCenter(vsVector(lodCenter[0], lodCenter[1], lodCenter[2]));
     for (loop = 0; loop < (rangeListSize-1); loop++)
         lodAttr->setRangeEnd(loop, rangeList[loop+1]);
 

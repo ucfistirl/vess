@@ -472,6 +472,8 @@ vsNode *vsDatabaseLoader::convertNode(pfNode *node, vsObjectMap *nodeMap,
 
     pfLOD *lodGroup;
     vsLODAttribute *lodAttr;
+    pfVec3 lodCenter;
+    vsVector center;
 
     pfSequence *sequenceGroup;
     vsSequenceAttribute *sequenceAttr;
@@ -543,6 +545,11 @@ vsNode *vsDatabaseLoader::convertNode(pfNode *node, vsObjectMap *nodeMap,
             // attribute needs to check the number of children on the 
             // component to properly configure itself
             newComponent->addAttribute(lodAttr);
+
+            // Set the center of the LOD
+            lodGroup->getCenter(lodCenter);
+            center.set(lodCenter[PF_X], lodCenter[PF_Y], lodCenter[PF_Z]);
+            lodAttr->setCenter(center);
 
             // Copy the pfLOD ranges to the LOD attribute
             for (loop = 0; loop < lodGroup->getNumChildren(); loop++)

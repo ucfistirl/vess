@@ -56,6 +56,9 @@ public:
 
     virtual int           getAttributeType();
     virtual int           getAttributeCategory();
+
+    void                  setCenter(vsVector newCenter);
+    vsVector              getCenter();
     
     void                  setRangeEnd(int childNum, double rangeLimit);
     double                getRangeEnd(int childNum);
