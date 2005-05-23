@@ -31,6 +31,14 @@ vsMenuSwitchButton::vsMenuSwitchButton()
     menuComponent = new vsComponent();
     menuKinematics = new vsKinematics(menuComponent);
 
+    // Set whether this frame can be repeat-activated by default.
+    canRepeat = true;
+    previousState = false;
+
+    // Set whether idle causes state reversion to true by default.
+    idleReverts = true;
+    idleState = false;
+
     // Initialize the button press state
     pressedState = false;
 
@@ -112,12 +120,16 @@ void vsMenuSwitchButton::update(vsMenuSignal signal, vsMenuFrame *frame)
     {
         case VS_MENU_SIGNAL_IDLE:
         {
-            // Reset the press state to false to indicate no change
-            pressedState = false;
-
             // Update the kinematics object if it exists
             if (menuKinematics)
                 menuKinematics->update();
+
+            // Store the previous state of the button.
+            previousState = pressedState;
+
+            // Cause the button to revert if it is set to do so.
+            if (idleReverts)
+                pressedState = idleState;
         }
         break;
 
