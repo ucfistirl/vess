@@ -34,6 +34,7 @@ vsCal3DLoader::vsCal3DLoader()
     // Create the loaders.
     meshLoader = new vsCal3DMeshLoader();
     boneLoader = new vsCal3DBoneLoader();
+    animationLoader = new vsCal3DAnimationLoader();
 
     // Create and initialize the mesh vsGrowableArray to empty.
     meshList = new vsGrowableArray(10, 1);
@@ -57,6 +58,7 @@ vsCal3DLoader::~vsCal3DLoader()
     // Delete the loaders.
     delete meshLoader;
     delete boneLoader;
+    delete animationLoader;
 
     // Delete all the entires in the mesh list.
     for (index = 0; index < meshCount; index++)
