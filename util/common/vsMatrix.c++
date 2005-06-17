@@ -1240,19 +1240,15 @@ void vsMatrix::operator-=(const vsMatrix &subtrahend)
 // ------------------------------------------------------------------------
 void vsMatrix::printRow(int rowNum) const
 {
-    // Make sure the row number is valid
-    if ((rowNum < 0) || (rowNum >= 4))
-    {
-        printf("vsMatrix::printRow:  Invalid row specified\n");
-        return;
-    }
+    printRow(rowNum, stdout);
+}
 
-    // Assume that the matrix is an affine transform matrix, which
-    // generally doesn't have large numbers in it.  Doing so allows
-    // us to have an idea how wide the matrix's columns will be.
-    printf("%8.4lf %8.4lf %8.4lf %8.4lf", data[rowNum].getValue(0),
-        data[rowNum].getValue(1), data[rowNum].getValue(2),
-        data[rowNum].getValue(3));
+// ------------------------------------------------------------------------
+// Reads the specified row of the matrix from stdin
+// ------------------------------------------------------------------------
+void vsMatrix::readRow(int rowNum)
+{
+    readRow(rowNum, stdin);
 }
 
 // ------------------------------------------------------------------------
@@ -1276,19 +1272,35 @@ void vsMatrix::printRow(int rowNum, FILE *fp) const
 }
 
 // ------------------------------------------------------------------------
+// Reads the file into the specified row of the matrix
+// ------------------------------------------------------------------------
+void vsMatrix::readRow(int rowNum, FILE *fp)
+{
+    double value0, value1, value2, value3;
+
+    // Make sure the row number is valid
+    if ((rowNum < 0) || (rowNum >= 4))
+    {
+        printf("vsMatrix::readRow:  Invalid row specified\n");
+        return;
+    }
+
+    // Read in the row from the file
+    fscanf(fp, "%lf %lf %lf %lf", &value0, &value1, &value2, &value3);
+
+    // Put the information into the matrix
+    data[rowNum].setValue(0, value0);
+    data[rowNum].setValue(1, value1);
+    data[rowNum].setValue(2, value2);
+    data[rowNum].setValue(3, value3);
+}
+
+// ------------------------------------------------------------------------
 // Prints a representation of the matrix to stdout
 // ------------------------------------------------------------------------
 void vsMatrix::print() const
 {
-    int i;
-
-    // Call printRow() for each of the four rows of the matrix.  Add a
-    // newline after each row.
-    for (i = 0; i < 4; i++)
-    {
-        printRow(i);
-        printf("\n");
-    }
+    print(stdout);
 }
 
 // ------------------------------------------------------------------------
@@ -1305,6 +1317,26 @@ void vsMatrix::print(FILE *fp) const
         printRow(i, fp);
         fprintf(fp, "\n");
     }
+}
+
+// ------------------------------------------------------------------------
+// Reads in a representation of the matrix from stdin
+// ------------------------------------------------------------------------
+void vsMatrix::read()
+{
+    read(stdin);
+}
+
+// ------------------------------------------------------------------------
+// Reads in a representation of the matrix from the specfied file
+// ------------------------------------------------------------------------
+void vsMatrix::read(FILE *fp)
+{
+    int i;
+
+    // Call readRow() for each of the four rows of the matrix.
+    for (i = 0; i < 4; i++)
+        readRow(i, fp);
 }
 
 // ------------------------------------------------------------------------

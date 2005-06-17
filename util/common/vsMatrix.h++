@@ -104,6 +104,11 @@ public:
 
     void              print() const;
     void              print(FILE *fp) const;
+
+    void              readRow(int rowNum);
+    void              readRow(int rowNum, FILE *fp);
+    void              read();
+    void              read(FILE *fp);
 };
 
 #endif
