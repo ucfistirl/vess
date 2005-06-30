@@ -80,6 +80,7 @@ vsMenuSystem::vsMenuSystem(vsPane *pane, vsWindowSystem *windowSystem)
 
     // Store the pane used to render everything
     menuPane = pane;
+    menuPane->ref();
 
     // If the pane already has a scene fetch it, otherwise create a new one
     menuScene = pane->getScene();
@@ -165,6 +166,8 @@ vsMenuSystem::~vsMenuSystem()
     {
         menuPane->setScene(NULL);
         menuPane->setView(NULL);
+        menuPane->unref();
+        menuPane = NULL;
     }
 
     // Delete these objects if it is safe to do so
@@ -194,10 +197,19 @@ const char *vsMenuSystem::getClassName()
 // ------------------------------------------------------------------------
 void vsMenuSystem::setPane(vsPane *pane)
 {
+    if (menuPane)
+    {
+        menuPane->setScene(NULL);
+        menuPane->setView(NULL);
+        menuPane->unref();
+        menuPane = NULL;
+    }
+
     // Make sure the pane passed in is non-null
     if (pane)
     {
         menuPane = pane;
+        menuPane->ref();
         menuPane->setScene(menuScene);
         menuPane->setView(menuView);
     }
