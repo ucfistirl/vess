@@ -206,14 +206,14 @@ bool vsSwitchAttribute::isEnabled(int index)
     // Ensure the given index is valid.
     if ((index < 0) || (index >= osgSwitch->getSwitchSetList().size() - 1))
     {
-        printf("vsSwitchAttribute::disableOne: Index out of bounds (%d >= %d)"
+        printf("vsSwitchAttribute::isEnabled: Index out of bounds (%d >= %d)"
             "\n", index, osgSwitch->getSwitchSetList().size() - 1);
         return true;
     }
 
     // Return true if the given switch mask is the active switch set on
     // the OSG switch
-    if (index == osgSwitch->getActiveSwitchSet())
+    if (allEnabled || (index == osgSwitch->getActiveSwitchSet()))
         return true;
     else
         return false;
