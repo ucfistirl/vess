@@ -118,7 +118,7 @@ enum VS_GRAPHICS_DLL vsGeometryDataType
     VS_GEOMETRY_GENERIC_14      = 30,
 
     VS_GEOMETRY_TEXTURE7_COORDS = 15,
-    VS_GEOMETRY_GENERIC_15      = 31,
+    VS_GEOMETRY_GENERIC_15      = 31
 };
 
 // Set the default texture unit to the zeroth unit.  For convenience and
