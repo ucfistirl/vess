@@ -31,12 +31,24 @@
 #define VS_CAL3D_XML_SKELETON_BEGIN_TAG "<VESS_CAL3D_SKELETON>"
 #define VS_CAL3D_XML_SKELETON_END_TAG   "</VESS_CAL3D_SKELETON>"
 
+
+#ifndef __DIRECTORY_NODE__
+#define __DIRECTORY_NODE__
+struct DirectoryNode
+{
+   char *dirName;
+   DirectoryNode *next;
+};
+#endif
+
 class VS_GRAPHICS_DLL vsCal3DBoneLoader : public vsObject
 {
 private:
 
     vsComponent        *getRootBone(vsComponent *current);
     vsSkeleton         *parseXML(char *filename);
+    char *             findFile(char *filename);
+    DirectoryNode      *directoryList;
 
 VS_INTERNAL:
 
@@ -46,6 +58,8 @@ public:
     virtual            ~vsCal3DBoneLoader();
 
     virtual const char *getClassName();
+    
+    void               addFilePath(const char *dirName);
 
     vsSkeleton         *loadSkeleton(char *filename);
 };

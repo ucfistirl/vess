@@ -35,6 +35,7 @@
 // ------------------------------------------------------------------------
 vsCal3DBoneLoader::vsCal3DBoneLoader()
 {
+   directoryList = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -42,6 +43,75 @@ vsCal3DBoneLoader::vsCal3DBoneLoader()
 // ------------------------------------------------------------------------
 vsCal3DBoneLoader::~vsCal3DBoneLoader()
 {
+   // Clear out the directory listing.
+   DirectoryNode *tempNode;
+   while (directoryList != NULL)
+   {
+      tempNode = directoryList;
+      directoryList = directoryList->next;
+      delete tempNode->dirName;
+      delete tempNode;
+   }
+}
+
+// ------------------------------------------------------------------------
+// Given a filename (without prepended directory), this function will find
+// return a filename that exists with a prepended directory that has been
+// added to the DirectoryNode listing. If there is no file in the
+// listed directories, this function will return NULL. This is a private
+// helper function.
+// ------------------------------------------------------------------------
+char *vsCal3DBoneLoader::findFile(char *filename)
+{
+   DirectoryNode *tempNode;
+   char *absoluteFilename;
+   char tempString[500];
+   
+   // Loop through the list of directories.
+   tempNode = directoryList;
+   while(tempNode != NULL)
+   {
+      // Create the tempString
+      strcpy(tempString, tempNode->dirName);
+      strcat(tempString, "/");
+      strcat(tempString, filename);
+      
+      // See if this file can be read by this process. 
+      if(access(tempString, R_OK) == 0)
+      {
+         // Make the absoluteFilename string.
+         absoluteFilename = 
+            (char*)(calloc(strlen(tempString)+2, sizeof(char)));
+            
+         strcpy(absoluteFilename, tempString);
+         
+         // Return it.
+         return absoluteFilename;
+      }
+      
+      tempNode = tempNode->next;
+   }
+   
+   
+   // We didn't find the file, so just return the original string.
+   return filename;
+}
+
+// ------------------------------------------------------------------------
+// Adds a directory listing to the list that we should search for files in.
+// ------------------------------------------------------------------------
+void vsCal3DBoneLoader::addFilePath(const char *dirName)
+{
+   DirectoryNode *newNode;
+   
+   // Create the node and copy the directory name.
+   newNode = (DirectoryNode*)(malloc(sizeof(DirectoryNode)));
+   newNode->dirName = (char*)(calloc(strlen(dirName)+2, sizeof(char)));
+   strcpy(newNode->dirName, dirName);
+   
+   // Put it at the beginning of the linked list.
+   newNode->next = directoryList;
+   directoryList = newNode;
 }
 
 // ------------------------------------------------------------------------
@@ -73,7 +143,6 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
     xmlNodePtr              currentBoneChild;
     xmlAttrPtr              attribute;
     bool                    validVersion;
-    bool                    validMagic;
     bool                    validRotation;
     bool                    validTranslation;
     bool                    validLocalRotation;
@@ -114,9 +183,11 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
     bonesProcessed = 0;
     boneChildrenProcessed = 0;
     validVersion = false;
-    validMagic = false;
     rootComponent = NULL;
-
+    
+    // Prepend an appropriate directory name from the listing we have.
+    filename = findFile(filename);
+    
     // Attempt to open the file for reading.
     if ((filePointer = fopen(filename, "r")) == NULL)
     {
@@ -184,26 +255,17 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
     current = current->children;
 
     // If the HEADER field is encountered, process its properties.
-    if (xmlStrcmp(current->name, (const xmlChar *) "HEADER") == 0)
+    if (xmlStrcmp(current->name, (const xmlChar *) "SKELETON") == 0)
     {
         // Traverse the properties of this tag.
         attribute = current->properties;
         while (attribute != NULL)
         {
-            // If the property is named MAGIC, check to see if it is the
-            // proper value "XSF".
-            if (xmlStrcmp(attribute->name, (const xmlChar *) "MAGIC") == 0)
+            // Get the number of bones in this skeleton.
+            if (xmlStrcmp(attribute->name, (const xmlChar *) "NUMBONES") == 0)
             {
-                if (xmlStrcmp(XML_GET_CONTENT(attribute->children),
-                    (const xmlChar *) "XSF") == 0)
-                {
-                    validMagic = true;
-                }
-                else
-                {
-                    fprintf(stderr, "vsCal3DBoneLoader::parseXML: File not of "
-                        "XSF type!\n");
-                }
+                boneCount = atoi((const char *)
+                    XML_GET_CONTENT(attribute->children));
             }
             // Else if the property is named VERSION, check to see if it is the
             // proper value "900".
@@ -229,29 +291,13 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
 
     // If either the magic and version properties were invalid or not found,
     // print error, free resources and return.
-    if (!validMagic || !validVersion)
+    if (!validVersion)
     {
         fprintf(stderr, "vsCal3DBoneLoader::parseXML: Document of wrong "
             "type.\n");
         xmlFreeDoc(document);
         delete [] fileBuffer;
         return NULL;
-    }
-
-    // Traverse the children till we reach one named SKELETON or didn't find it.
-    while ((xmlStrcmp(current->name, (const xmlChar *) "SKELETON") != 0) &&
-         (current))
-    {
-        current = current->next;
-    }
-
-    // If we found something and it has a property, named NUMBONES read it.
-    if ((current) && (current->properties) &&
-        ((xmlStrcmp(current->properties->name, (const xmlChar *) "NUMBONES"))
-         == 0))
-    {
-        boneCount = atoi((const char *)
-            XML_GET_CONTENT(current->properties->children));
     }
 
     // If we have no bones, then it is an error.
