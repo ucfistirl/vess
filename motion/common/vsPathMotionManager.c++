@@ -42,6 +42,38 @@ vsPathMotionManager::vsPathMotionManager()
 }
 
 //------------------------------------------------------------------------
+// Copy constructor.
+//------------------------------------------------------------------------
+vsPathMotionManager::vsPathMotionManager(vsPathMotionManager *original)
+{
+    int index;
+    vsPathMotion *newPathMotion;
+    
+    // Copy the current play mode.
+    currentPlayMode = original->currentPlayMode;
+   
+    // Copy the cycle information.
+    cycleMode = original->cycleMode;
+    cycleCount = original->cycleCount;
+    currentCycleCount = original->currentCycleCount;
+   
+    // Go through the list of vsPathMotion's in the original manager and
+    // use their copy constructors to make ours.
+    pathMotionSequencer = new vsSequencer();
+    pathMotionCount = 0;
+    
+    // Create all the new vsPathMotion's.
+    for (index = 0; index < original->pathMotionCount; index++)
+    { 
+       // Create the new vsPathMotion as a copy of the original at this index.
+       newPathMotion = new vsPathMotion(original->getPathMotion(index));
+       
+       // Add it to our list.
+       addPathMotion(newPathMotion);
+    }
+}
+
+//------------------------------------------------------------------------
 // Destructor
 // Deletes privately allocated variables
 //------------------------------------------------------------------------
@@ -185,6 +217,22 @@ void vsPathMotionManager::update()
 }
 
 //------------------------------------------------------------------------
+// Updates the list of PathMotion's with a delta (changed) time.
+//------------------------------------------------------------------------
+void vsPathMotionManager::update(double deltaTime)
+{
+    int index;
+    
+    // Loop through the list
+    for (index = 0; index < pathMotionCount; index++)
+    {   
+        // Update the path motion with the delta time.
+        ((vsPathMotion *) pathMotionSequencer->getUpdatable(index))->
+               update(deltaTime);
+    }
+}
+
+//------------------------------------------------------------------------
 // Add a vsPathMotion to the list.
 //------------------------------------------------------------------------
 void vsPathMotionManager::addPathMotion(vsPathMotion *pathMotion)
@@ -216,4 +264,28 @@ vsPathMotion *vsPathMotionManager::getPathMotion(int index)
 int vsPathMotionManager::getPathMotionCount()
 {
     return pathMotionCount;
+}
+
+//------------------------------------------------------------------------
+// Check whether all of the PathMotion's are stopped or not.
+//------------------------------------------------------------------------
+bool vsPathMotionManager::isDone()
+{
+    int index;
+    
+    // Loop through the list
+    for (index = 0; index < pathMotionCount; index++)
+    {
+        // If this path motion is still continuing, then the path motion as a
+        // whole is still going, and therefore this group is not done yet.
+        if (((vsPathMotion *) pathMotionSequencer->getUpdatable(index))->
+               getPlayMode() != VS_PATH_STOPPED)
+        {
+            return false;
+        }
+    }
+    
+    // Since none of the PathMotion's were not stopped, then this group of
+    // PathMotion's is finished.
+    return true;
 }
