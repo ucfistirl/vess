@@ -45,7 +45,9 @@ private:
     int                   boneCount;
     int                   lastFoundIndex;
     vsMatrix              offsetMatrix;
-
+    
+    void                  copySkeletonTree(vsNode *newNode, vsNode *origNode,
+                                           vsGrowableArray *origMap);
 VS_INTERNAL:
 
     void                  updateMatrices(vsNode *node,
@@ -59,6 +61,7 @@ public:
                           vsSkeleton(vsGrowableArray *componentList,
                                      vsGrowableArray *boneSpaceMatrixList,
                                      int listLength, vsComponent *root);
+                          vsSkeleton(vsSkeleton *original);
     virtual               ~vsSkeleton();
 
      // Inherited from vsObject

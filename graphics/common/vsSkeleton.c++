@@ -74,6 +74,101 @@ vsSkeleton::vsSkeleton(vsGrowableArray *componentList,
 }
 
 //------------------------------------------------------------------------
+// Copy constructor.
+//------------------------------------------------------------------------
+vsSkeleton::vsSkeleton(vsSkeleton *original)
+{
+    int index;
+    vsComponent *skelComp;
+    vsComponent *newSkelComp;
+    vsMatrix *skelMat;
+    vsMatrix *newSkelMat;
+    
+    // Copy primitive values.
+    boneCount = original->boneCount;
+    lastFoundIndex = original->lastFoundIndex;
+    offsetMatrix = original->offsetMatrix;
+    
+    // Clone the subgraph nodes.
+    skeletonRootBone = (vsComponent*)(original->skeletonRootBone->cloneTree());
+    skeletonRoot = new vsComponent();
+    skeletonRoot->ref();
+    skeletonRoot->addChild(skeletonRootBone);
+    
+    skeletonTransform = new vsTransformAttribute();
+    skeletonRoot->addAttribute(skeletonTransform);
+    skeletonTransform->setPreTransform(
+       original->skeletonTransform->getPreTransform());
+    skeletonTransform->setDynamicTransform(
+       original->skeletonTransform->getDynamicTransform());
+    skeletonTransform->setPostTransform(
+       original->skeletonTransform->getPostTransform());
+    
+    // Copy the skeletonComponentMap vsGrowableArray
+    skeletonComponentMap = new vsGrowableArray(boneCount, 5);
+    skeletonComponentMap->setSize(original->skeletonComponentMap->getSize());
+    
+    copySkeletonTree(skeletonRootBone, original->skeletonRootBone,
+        original->skeletonComponentMap); 
+    
+    // Copy the skeletonMatrices vsGrowableArray
+    skeletonMatrices = new vsGrowableArray(boneCount, 5);
+    skeletonMatrices->setSize(original->skeletonMatrices->getSize());
+    for (index = 0; index < original->skeletonMatrices->getSize(); index++)
+    {
+        skelMat = (vsMatrix*)(original->skeletonMatrices->getData(index));
+        
+        // Make sure it isn't NULL - if it is, we've reached the end of the
+        // list, so break.
+        if(skelMat == NULL)
+            break;
+            
+        newSkelMat = new vsMatrix();
+        newSkelMat->copy(*skelMat);
+        skeletonMatrices->setData(index, newSkelMat);
+    }
+    
+    // Copy the skeletonITMatrices vsGrowableArray
+    skeletonITMatrices = new vsGrowableArray(boneCount, 5);
+    skeletonITMatrices->setSize(original->skeletonITMatrices->getSize());
+    for (index = 0; index < original->skeletonITMatrices->getSize(); index++)
+    {
+        skelMat = (vsMatrix*)(original->skeletonITMatrices->getData(index));
+        
+        // Make sure it isn't NULL - if it is, we've reached the end of the
+        // list, so break.
+        if(skelMat == NULL)
+            break;
+            
+        newSkelMat = new vsMatrix();
+        newSkelMat->copy(*skelMat);
+        skeletonITMatrices->setData(index, newSkelMat);
+    }
+    
+    // Copy the skeleton bone space matrices vsGrowableArray
+    skeletonBoneSpaceMatrices = new vsGrowableArray(boneCount, 5);
+    skeletonBoneSpaceMatrices->setSize(
+      original->skeletonBoneSpaceMatrices->getSize());
+    for (index = 0; index < original->skeletonBoneSpaceMatrices->getSize();
+         index++)
+    {
+        skelMat = 
+            (vsMatrix*)(original->skeletonBoneSpaceMatrices->getData(index));
+        
+        // Make sure it isn't NULL - if it is, we've reached the end of the
+        // list, so break.
+        if(skelMat == NULL)
+            break;
+            
+        newSkelMat = new vsMatrix();
+        newSkelMat->copy(*skelMat);
+        skeletonBoneSpaceMatrices->setData(index, newSkelMat);
+    }
+    
+    update();
+}
+
+//------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------
 vsSkeleton::~vsSkeleton()
@@ -98,6 +193,58 @@ vsSkeleton::~vsSkeleton()
     delete skeletonBoneSpaceMatrices;
 }
 
+//------------------------------------------------------------------------
+// Private helper recursive function to copy the skeleton component map.
+// Currently called just from the copy constructor.
+//------------------------------------------------------------------------
+void vsSkeleton::copySkeletonTree(vsNode *newNode, vsNode *origNode, 
+                                  vsGrowableArray *origMap)
+{
+    int index;
+    vsNode *trav;
+    
+    // Initial check: Make sure they have the same number of children.
+    if(newNode->getChildCount() != origNode->getChildCount())
+    {
+        // Return, nothing we can do.
+        return;
+    }
+    
+    // Look through the original map to find the pointer to the original node.
+    for (index = 0; index < origMap->getSize(); index++)
+    {
+        trav = (vsNode*)(origMap->getData(index));
+        
+        // Make sure the growable array didn't return NULL; if it did, we're
+        // at the end of the list, so break from this search loop, nothing
+        // we can do.
+        if(trav == NULL)
+            break;
+        
+        // Compare the two pointers for equality.
+        if(origNode == trav)
+        {
+            // So, the origNode we're at is mapped into the array at this
+            // index. So, put the node we have here into this object's
+            // map.
+            skeletonComponentMap->setData(index, newNode);
+        }
+    }
+    
+    // Recursively call for the two nodes' children.
+    for (index = 0; index < newNode->getChildCount(); index++)
+    {
+        // Make sure that both of the child nodes at this index are components.
+        if(newNode->getChild(index)->getNodeType() == VS_NODE_TYPE_COMPONENT &&
+           origNode->getChild(index)->getNodeType() == VS_NODE_TYPE_COMPONENT)
+        {
+            copySkeletonTree(newNode->getChild(index),
+                             origNode->getChild(index),
+                             origMap);
+        }
+    }
+}
+        
 //------------------------------------------------------------------------
 // Recursive function to update the bone matrices.  See the public call
 // for more information.
