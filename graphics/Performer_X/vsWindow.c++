@@ -71,35 +71,31 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     if (hideBorder)
         performerPipeWindow->setMode(PFWIN_NOBORDER, 1);
 
+    // Set up a 24-bit double-buffered frame buffer
+    fbConfigAttrs[0] = PFFB_RGBA;
+    fbConfigAttrs[1] = PFFB_DOUBLEBUFFER;
+    fbConfigAttrs[2] = PFFB_DEPTH_SIZE;
+    fbConfigAttrs[3] = 24;
+    fbConfigAttrs[4] = PFFB_RED_SIZE;
+    fbConfigAttrs[5] = 8;
+    fbConfigAttrs[6] = PFFB_GREEN_SIZE;
+    fbConfigAttrs[7] = 8;
+    fbConfigAttrs[8] = PFFB_BLUE_SIZE;
+    fbConfigAttrs[9] = 8;
+    fbConfigAttrs[10] = PFFB_STENCIL_SIZE;
+    fbConfigAttrs[11] = 8;
+    fbConfigAttrs[12] = 0;
+
     // If a stereo visual is specified, try to configure the frame buffer
-    // for stereo now
+    // for stereo
     if (stereo)
     {
-        // Set up a stereo/double-buffered frame buffer
-        fbConfigAttrs[0] = PFFB_RGBA;
-        fbConfigAttrs[1] = PFFB_DOUBLEBUFFER;
-        fbConfigAttrs[2] = PFFB_STEREO;
-
-        fbConfigAttrs[3] = PFFB_DEPTH_SIZE;
-        fbConfigAttrs[4] = 24;
-
-        fbConfigAttrs[5] = PFFB_RED_SIZE;
-        fbConfigAttrs[6] = 8;
-
-        fbConfigAttrs[7] = PFFB_GREEN_SIZE;
-        fbConfigAttrs[8] = 8;
-
-        fbConfigAttrs[9] = PFFB_BLUE_SIZE;
-        fbConfigAttrs[10] = 8;
-
-        fbConfigAttrs[11] = PFFB_STENCIL_SIZE;
-        fbConfigAttrs[12] = 8;
-
+        fbConfigAttrs[12] = PFFB_STEREO;
         fbConfigAttrs[13] = 0;
-
-        // Pass the frame buffer configuration to Performer
-        performerPipeWindow->setFBConfigAttrs(fbConfigAttrs);
     }
+
+    // Pass the frame buffer configuration to Performer
+    performerPipeWindow->setFBConfigAttrs(fbConfigAttrs);
 
     // Set the location and size of the window
     performerPipeWindow->setOriginSize(VS_WINDOW_DEFAULT_XPOS,
@@ -210,35 +206,31 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     if (hideBorder)
         performerPipeWindow->setMode(PFWIN_NOBORDER, 1);
 
+    // Set up a 24-bit double-buffered frame buffer
+    fbConfigAttrs[0] = PFFB_RGBA;
+    fbConfigAttrs[1] = PFFB_DOUBLEBUFFER;
+    fbConfigAttrs[2] = PFFB_DEPTH_SIZE;
+    fbConfigAttrs[3] = 24;
+    fbConfigAttrs[4] = PFFB_RED_SIZE;
+    fbConfigAttrs[5] = 8;
+    fbConfigAttrs[6] = PFFB_GREEN_SIZE;
+    fbConfigAttrs[7] = 8;
+    fbConfigAttrs[8] = PFFB_BLUE_SIZE;
+    fbConfigAttrs[9] = 8;
+    fbConfigAttrs[10] = PFFB_STENCIL_SIZE;
+    fbConfigAttrs[11] = 8;
+    fbConfigAttrs[12] = 0;
+
     // If a stereo visual is specified, try to configure the frame buffer
-    // for stereo now
+    // for stereo
     if (stereo)
     {
-        // Set up a stereo/double-buffered frame buffer
-        fbConfigAttrs[0] = PFFB_RGBA;
-        fbConfigAttrs[1] = PFFB_DOUBLEBUFFER;
-        fbConfigAttrs[2] = PFFB_STEREO;
-
-        fbConfigAttrs[3] = PFFB_DEPTH_SIZE;
-        fbConfigAttrs[4] = 24;
-
-        fbConfigAttrs[5] = PFFB_RED_SIZE;
-        fbConfigAttrs[6] = 8;
-
-        fbConfigAttrs[7] = PFFB_GREEN_SIZE;
-        fbConfigAttrs[8] = 8;
-
-        fbConfigAttrs[9] = PFFB_BLUE_SIZE;
-        fbConfigAttrs[10] = 8;
-
-        fbConfigAttrs[11] = PFFB_STENCIL_SIZE;
-        fbConfigAttrs[12] = 8;
-
+        fbConfigAttrs[12] = PFFB_STEREO;
         fbConfigAttrs[13] = 0;
-
-        // Pass the frame buffer configuration to Performer
-        performerPipeWindow->setFBConfigAttrs(fbConfigAttrs);
     }
+
+    // Pass the frame buffer configuration to Performer
+    performerPipeWindow->setFBConfigAttrs(fbConfigAttrs);
 
     // Set the location and size of the window
     performerPipeWindow->setOriginSize(x, y, width, height);
@@ -417,6 +409,7 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
     xWindowDisplay = pfGetCurWSConnection();
     while (!(performerPipeWindow->isOpen()))
     {
+        performerPipeWindow->open();
         pfFrame();
         XFlush(xWindowDisplay);
     }
