@@ -63,7 +63,7 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     childPaneCount = 0;
 
     // Flag that this window is not an offscreen window
-    isOffscreenWindow = false;
+    isOffScreenWindow = false;
 
     // Flag that we're creating the MS Window in this case (so we should
     // destroy it in the destructor)
@@ -240,7 +240,7 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     childPaneCount = 0;
 
     // Flag that this window is an offscreen window
-    isOffscreenWindow = false;
+    isOffScreenWindow = false;
 
     // Flag that we're creating the MS Window in this case (so we should
     // destroy it in the destructor)
@@ -433,7 +433,7 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
     childPaneCount = 0;
 
     // Flag that this window is an offscreen window
-    isOffscreenWindow = true;
+    isOffScreenWindow = true;
 
     // Flag that we're not creating an MS Window in this case (we create a
     // pbuffer instead) 
@@ -585,7 +585,7 @@ vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
     childPaneCount = 0;
     
     // Flag that this window is not an offscreen window
-    isOffscreenWindow = false;
+    isOffScreenWindow = false;
 
     // Flag that we're not creating an MS Window in this case (we're using
     // an existing one, so we shouldn't destroy it later)
