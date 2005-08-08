@@ -31,12 +31,25 @@
 #define VS_CAL3D_XML_ANIMATION_BEGIN_TAG "<VESS_CAL3D_ANIMATION>"
 #define VS_CAL3D_XML_ANIMATION_END_TAG   "</VESS_CAL3D_ANIMATION>"
 
+
+#ifndef __DIRECTORY_NODE__
+#define __DIRECTORY_NODE__
+struct DirectoryNode
+{
+   char *dirName;
+   DirectoryNode *next;
+};
+#endif
+
 class VS_ENVIRONMENT_DLL vsCal3DAnimationLoader : public vsObject
 {
 private:
 
     vsPathMotionManager    *parseXML(char *filename,
                                      vsSkeletonKinematics *skeletonKinematics);
+    
+    char *                 findFile(char *filename);
+    DirectoryNode          *directoryList;
 
 VS_INTERNAL:
 
@@ -46,6 +59,8 @@ public:
     virtual                ~vsCal3DAnimationLoader();
 
     virtual const char     *getClassName();
+    
+    void                   addFilePath(const char *dirName);
 
     vsPathMotionManager    *loadAnimation(char *filename, vsSkeletonKinematics
                                           *skeletonKinematics);
