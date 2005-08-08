@@ -32,6 +32,23 @@
 #include "vsComponent.h++"
 #include "vsSequencer.h++"
 
+#ifdef WIN32
+    #include <io.h>
+    #define access _access
+    #define R_OK   0x04
+#else
+    #include <unistd.h>
+#endif
+
+#ifndef __DIRECTORY_NODE__
+#define __DIRECTORY_NODE__
+struct DirectoryNode
+{
+   char *dirName;
+   DirectoryNode *next;
+};
+#endif
+
 class VS_ENVIRONMENT_DLL vsCal3DLoader : public vsObject
 {
 private:
@@ -45,6 +62,10 @@ private:
     vsGrowableArray         *animationList;
     int                     animationCount;
     char                    *skeletonFilename;
+    char                    *currentDirectory;
+    DirectoryNode           *directoryList;
+    
+    char *                  findFile(char *filename);
 
 VS_INTERNAL:
 
@@ -54,6 +75,7 @@ public:
     virtual              ~vsCal3DLoader();
 
     virtual const char   *getClassName();
+    void                 addFilePath(const char *dirName);
 
     void                 parseFile(char *filename);
 
@@ -63,6 +85,7 @@ public:
 
     vsPathMotionManager  *getNewAnimation(char *name, vsSkeletonKinematics
                                           *skeletonKinematics);
+    vsGrowableArray      *getAnimationNameList();
 };
 
 #endif
