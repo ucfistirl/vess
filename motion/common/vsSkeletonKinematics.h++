@@ -43,6 +43,7 @@ public:
     // Inherited from vsObject
     virtual const char    *getClassName();
 
+    int                   getKinematicsCount();
     vsKinematics          *getBoneKinematics(int boneID);
     vsKinematics          *getBoneKinematics(vsComponent *component);
     vsKinematics          *getBoneKinematics(char *boneName);

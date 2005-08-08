@@ -74,6 +74,15 @@ const char *vsSkeletonKinematics::getClassName()
 }
 
 // ------------------------------------------------------------------------
+// A simple accessor function to return the number of kinematics objects
+// in the array.
+// ------------------------------------------------------------------------
+int vsSkeletonKinematics::getKinematicsCount()
+{
+    return kinematicsCount;
+}
+
+// ------------------------------------------------------------------------
 // Return the relevant bone kinematics based on the bone ID.
 // ------------------------------------------------------------------------
 vsKinematics *vsSkeletonKinematics::getBoneKinematics(int boneID)
