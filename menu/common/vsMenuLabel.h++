@@ -31,7 +31,7 @@
 #include "vsTextBuilder.h++"
 #include "vsVector.h++"
 
-class VS_SYSTEM_DLL vsMenuLabel : public vsMenuObject
+class VS_MENU_DLL vsMenuLabel : public vsMenuObject
 {
 private:
 

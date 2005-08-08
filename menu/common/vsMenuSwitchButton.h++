@@ -29,7 +29,7 @@
 #include "vsMenuButton.h++"
 #include "vsSwitchAttribute.h++"
 
-class VS_SYSTEM_DLL vsMenuSwitchButton : public vsMenuButton
+class VS_MENU_DLL vsMenuSwitchButton : public vsMenuButton
 {
 private:
 

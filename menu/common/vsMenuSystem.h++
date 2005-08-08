@@ -26,8 +26,6 @@
 #ifndef VS_MENU_SYSTEM_HPP
 #define VS_MENU_SYSTEM_HPP
 
-#include <X11/Xlib.h>
-#include <GL/glx.h>
 #include "vsGeometry.h++"
 #include "vsGlobals.h++"
 #include "vsIntersect.h++"
@@ -45,7 +43,7 @@
 
 #define VS_MENU_ACTION_COUNT 6
 
-enum VS_SYSTEM_DLL vsMenuAction
+enum vsMenuAction
 {
     VS_MENU_ACTION_ACTIVATE,
     VS_MENU_ACTION_PREVIOUS,
@@ -55,7 +53,7 @@ enum VS_SYSTEM_DLL vsMenuAction
     VS_MENU_ACTION_CURSOR
 };
 
-class VS_SYSTEM_DLL vsMenuSystem
+class VS_MENU_DLL vsMenuSystem
 {
 private:
 

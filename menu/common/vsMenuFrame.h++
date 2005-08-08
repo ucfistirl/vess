@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string>
 
-class VS_SYSTEM_DLL vsMenuFrame
+class VS_MENU_DLL vsMenuFrame
 {
 private:
 

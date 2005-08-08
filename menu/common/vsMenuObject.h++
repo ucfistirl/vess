@@ -31,7 +31,7 @@
 #include "vsMenuFrame.h++"
 #include "vsObject.h++"
 
-enum VS_SYSTEM_DLL vsMenuSignal
+enum vsMenuSignal
 {
     VS_MENU_SIGNAL_IDLE,
     VS_MENU_SIGNAL_ACTIVATE,
@@ -39,7 +39,7 @@ enum VS_SYSTEM_DLL vsMenuSignal
     VS_MENU_SIGNAL_DECREASE
 };
 
-class VS_SYSTEM_DLL vsMenuObject : public vsObject
+class VS_MENU_DLL vsMenuObject : public vsObject
 {
 private:
 

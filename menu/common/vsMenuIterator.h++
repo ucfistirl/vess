@@ -27,7 +27,7 @@
 #include "vsMenuObject.h++"
 #include "vsMenuTree.h++"
 
-class VS_SYSTEM_DLL vsMenuIterator
+class VS_MENU_DLL vsMenuIterator
 {
 private:
 
