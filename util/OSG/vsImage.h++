@@ -26,7 +26,7 @@
 
 enum vsImageFormat
 {
-    VS_IMAGE_FORMAT_RGB,
+    VS_IMAGE_FORMAT_RGB
 };
 
 class VS_UTIL_DLL vsImage : public vsObject
