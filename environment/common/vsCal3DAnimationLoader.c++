@@ -34,6 +34,7 @@
 // ------------------------------------------------------------------------
 vsCal3DAnimationLoader::vsCal3DAnimationLoader()
 {
+   directoryList = NULL;
 }
                                                                                 
 // ------------------------------------------------------------------------
@@ -41,6 +42,74 @@ vsCal3DAnimationLoader::vsCal3DAnimationLoader()
 // ------------------------------------------------------------------------
 vsCal3DAnimationLoader::~vsCal3DAnimationLoader()
 {
+   // Clear out the directory listing.
+   DirectoryNode *tempNode;
+   while (directoryList != NULL)
+   {
+      tempNode = directoryList;
+      directoryList = directoryList->next;
+      delete tempNode->dirName;
+      delete tempNode;
+   }
+}
+
+// ------------------------------------------------------------------------
+// Given a filename (without prepended directory), this function will find
+// return a filename that exists with a prepended directory that has been
+// added to the DirectoryNode listing. If there is no file in the
+// listed directories, this function will return NULL. This is a private
+// helper function.
+// ------------------------------------------------------------------------
+char *vsCal3DAnimationLoader::findFile(char *filename)
+{
+   DirectoryNode *tempNode;
+   char *absoluteFilename;
+   char tempString[500];
+   
+   // Loop through the list of directories.
+   tempNode = directoryList;
+   while (tempNode != NULL)
+   {
+      // Create the tempString
+      strcpy(tempString, tempNode->dirName);
+      strcat(tempString, "/");
+      strcat(tempString, filename);
+      
+      // See if this file can be read by this process. 
+      if (access(tempString, R_OK) == 0)
+      {
+         // Make the absoluteFilename string.
+         absoluteFilename = 
+            (char*)(calloc(strlen(tempString)+2, sizeof(char)));
+            
+         strcpy(absoluteFilename, tempString);
+         
+         // Return it.
+         return absoluteFilename;
+      }
+      
+      tempNode = tempNode->next;
+   }
+   
+   // We didn't find the file, so just return the original string.
+   return filename;
+}
+
+// ------------------------------------------------------------------------
+// Adds a directory listing to the list that we should search for files in.
+// ------------------------------------------------------------------------
+void vsCal3DAnimationLoader::addFilePath(const char *dirName)
+{
+   DirectoryNode *newNode;
+   
+   // Create the node and copy the directory name.
+   newNode = (DirectoryNode*)(malloc(sizeof(DirectoryNode)));
+   newNode->dirName = (char*)(calloc(strlen(dirName)+2, sizeof(char)));
+   strcpy(newNode->dirName, dirName);
+   
+   // Put it at the beginning of the linked list.
+   newNode->next = directoryList;
+   directoryList = newNode;
 }
 
 // ------------------------------------------------------------------------
@@ -61,7 +130,6 @@ vsPathMotionManager *vsCal3DAnimationLoader::parseXML(char *filename,
     xmlNodePtr              currentKeyframeChild;
     xmlAttrPtr              attribute;
     bool                    validVersion;
-    bool                    validMagic;
     int                     trackCount;
     int                     tracksProcessed;
     int                     currentBoneID;
@@ -85,8 +153,10 @@ vsPathMotionManager *vsCal3DAnimationLoader::parseXML(char *filename,
     tracksProcessed = 0;
     animationDuration = 0.0;
     validVersion = false;
-    validMagic = false;
-
+    
+    // Append an appropriate directory name to the filename.
+    filename = findFile(filename);
+    
     // Attempt to open the file for reading.
     if ((filePointer = fopen(filename, "r")) == NULL)
     {
@@ -155,73 +225,11 @@ vsPathMotionManager *vsCal3DAnimationLoader::parseXML(char *filename,
     current = current->children;
 
     // If the HEADER field is encountered, process its properties.
-    if (xmlStrcmp(current->name, (const xmlChar *) "HEADER") == 0)
+    if (xmlStrcmp(current->name, (const xmlChar *) "ANIMATION") == 0)
     {
         // Traverse the properties of this tag.
         attribute = current->properties;
         while (attribute != NULL)
-        {
-            // If the property is named MAGIC, check to see if it is the
-            // proper value "XAF".
-            if (xmlStrcmp(attribute->name, (const xmlChar *) "MAGIC") == 0)
-            {
-                if (xmlStrcmp(XML_GET_CONTENT(attribute->children),
-                    (const xmlChar *) "XAF") == 0)
-                {
-                    validMagic = true;
-                }
-                else
-                {
-                    fprintf(stderr, "vsCal3DAnimationLoader::parseXML: File "
-                        "not of XAF type!\n");
-                }
-            }
-            // Else if the property is named VERSION, check to see if it is the
-            // proper value "900".
-            else if (xmlStrcmp(attribute->name,
-                     (const xmlChar *) "VERSION") == 0)
-            {
-                if (atoi((const char *)XML_GET_CONTENT(attribute->children))
-                    >= 900)
-                {
-                    validVersion = true;
-                }
-                else
-                {
-                    fprintf(stderr, "vsCal3DAnimationLoader::parseXML: File "
-                        "older than version 900!\n");
-                }
-            }
-
-            // Move to the next property.
-            attribute = attribute->next;
-        }
-    }
-
-    // If either the magic and version properties were invalid or not found,
-    // print error, free resources and return.
-    if (!validMagic || !validVersion)
-    {
-        fprintf(stderr, "vsCal3DAnimationLoader::parseXML: Document of wrong "
-            "type.\n");
-        xmlFreeDoc(document);
-        delete [] fileBuffer;
-        return NULL;
-    }
-
-    // Traverse the children till we reach one named ANIMATION or didn't find
-    // it.
-    while ((xmlStrcmp(current->name, (const xmlChar *) "ANIMATION") != 0) &&
-         (current))
-    {
-        current = current->next;
-    }
-
-    // If we found something, parse its properties.
-    if (current)
-    {
-        attribute = current->properties;
-        while (attribute)
         {
             // If it is a DURATION property, store the value.
             if (xmlStrcmp(attribute->name, (const xmlChar *) "DURATION") == 0)
@@ -236,10 +244,37 @@ vsPathMotionManager *vsCal3DAnimationLoader::parseXML(char *filename,
                 trackCount = atoi((const char *)
                     XML_GET_CONTENT(attribute->children));
             }
+            // Else if the property is named VERSION, check to see if it is the
+            // proper value "1000".
+            else if (xmlStrcmp(attribute->name,
+                     (const xmlChar *) "VERSION") == 0)
+            {
+                if (atoi((const char *)XML_GET_CONTENT(attribute->children))
+                    >= 1000)
+                {
+                    validVersion = true;
+                }
+                else
+                {
+                    fprintf(stderr, "vsCal3DAnimationLoader::parseXML: File "
+                        "older than version 1000!\n");
+                }
+            }
 
             // Move to the next property.
             attribute = attribute->next;
         }
+    }
+
+    // If either the magic and version properties were invalid or not found,
+    // print error, free resources and return.
+    if (!validVersion)
+    {
+        fprintf(stderr, "vsCal3DAnimationLoader::parseXML: Document of wrong "
+            "type.\n");
+        xmlFreeDoc(document);
+        delete [] fileBuffer;
+        return NULL;
     }
 
     // If the duration is 0, then it is an error.
@@ -533,8 +568,9 @@ vsPathMotionManager *vsCal3DAnimationLoader::loadAnimation(char *filename,
     else
     {
         fprintf(stderr,
-            "vsCal3DAnimationLoader::loadAnimation: Load of '%s' failed\n",
-            filename);
+            "vsCal3DAnimationLoader::loadAnimation: Load of '%s' failed"
+            " file ending: \"%s\".\n",
+            filename, fileEnding);
     }
 
     return NULL;
