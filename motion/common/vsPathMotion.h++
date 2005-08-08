@@ -134,6 +134,7 @@ private:
 public:
 
                     vsPathMotion(vsKinematics *kinematics);
+                    vsPathMotion(vsPathMotion *original);
     virtual         ~vsPathMotion();
 
     virtual const char    *getClassName();
@@ -181,9 +182,12 @@ public:
     void            configureFromFile(char *filename);
 
     virtual void    update();
+    virtual void    update(double deltaTime);
 
     vsVector        getCurrentPosition();
     vsQuat          getCurrentOrientation();
+
+    void            setKinematics(vsKinematics *newKin);
 };
 
 #endif

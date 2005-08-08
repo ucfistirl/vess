@@ -72,6 +72,73 @@ vsPathMotion::vsPathMotion(vsKinematics *kinematics) : pointList(0, 1)
 }
 
 //------------------------------------------------------------------------
+// Copy constructor.
+//------------------------------------------------------------------------
+vsPathMotion::vsPathMotion(vsPathMotion *original) : pointList(0, 1)
+{
+    int index;
+    vsPathMotionSegment *tempSeg;
+    vsPathMotionSegment *tempNewSeg;
+    
+    // Copy the kinematics pointer over. (The PathMotions will reference
+    // the same kinematics object.)
+    objectKin = original->objectKin;
+    objectKin->ref();
+   
+    // Copy other data members.
+    currentPlayMode = original->currentPlayMode;
+    
+    posMode = original->posMode;
+    oriMode = original->oriMode;
+    
+    cycleMode = original->cycleMode;
+    cycleCount = original->cycleCount;
+    currentCycleCount = original->currentCycleCount;
+    
+    roundCornerRadius = original->roundCornerRadius;
+    
+    lookPoint = original->lookPoint;
+    upDirection = original->upDirection;
+    
+    pointCount = original->pointCount;
+    currentPos = original->currentPos;
+    currentOri = original->currentOri;
+    
+    currentSegmentIdx = original->currentSegmentIdx;
+    currentSegmentTime = original->currentSegmentTime;
+    totalTime = original->totalTime;
+    totalPathTime = original->totalPathTime;
+    
+    // Loop through the list of segment points and copy them over.
+    setPointListSize(original->pointList.getSize()); 
+
+    for(index = 0; index < original->pointList.getSize(); index++)
+    {
+        // Get the segment data structure from the original path motion.
+        tempSeg = ((vsPathMotionSegment*)(original->pointList.getData(index)));
+        
+        // Make sure the segment is not NULL. If it is, we've reached the end
+        // of the list, so break out of this loop.
+        if(tempSeg == NULL)
+        {
+            break;
+        }
+        
+        // Allocate new memory for this segment.
+        tempNewSeg = new vsPathMotionSegment;
+        
+        // Copy over the segment data.   
+        tempNewSeg->position = tempSeg->position;
+        tempNewSeg->orientation = tempSeg->orientation;
+        tempNewSeg->travelTime = tempSeg->travelTime;
+        tempNewSeg->pauseTime = tempSeg->pauseTime;
+        
+        // Add the new segment to our list.
+        pointList.setData(index, tempNewSeg);
+    }
+}
+            
+//------------------------------------------------------------------------
 // Destructor
 // Deletes privately allocated variables
 //------------------------------------------------------------------------
@@ -598,6 +665,7 @@ void vsPathMotion::startResume()
     {
         currentSegmentIdx = 0;
         currentSegmentTime = 0.0;
+        currentCycleCount = 0;
     }
 
     currentPlayMode = VS_PATH_PLAYING;
@@ -617,8 +685,6 @@ void vsPathMotion::pause()
 void vsPathMotion::stop()
 {
     currentPlayMode = VS_PATH_STOPPED;
-//    currentSegmentIdx = 0;
-//    currentSegmentTime = 0.0;
 }
 
 //------------------------------------------------------------------------
@@ -817,11 +883,21 @@ void vsPathMotion::configureFromFile(char *filename)
 }
 
 //------------------------------------------------------------------------
-// Updates the motion model by creating new interpolations for the current
-// position and orientation, and applies them to the model's kinematics
-// object
+// The default update function for the vsPathMotion. Since no delta-time
+// was supplied, it simply calls the main update function with the
+// delta-time determined from the system clock.
 //------------------------------------------------------------------------
 void vsPathMotion::update()
+{
+   update((vsTimer::getSystemTimer())->getInterval());
+}
+
+//------------------------------------------------------------------------
+// Updates the motion model by creating new interpolations for the current
+// position and orientation, and applies them to the model's kinematics
+// object. The deltaTime should be measured in seconds.
+//------------------------------------------------------------------------
+void vsPathMotion::update(double deltaTime)
 {
     vsPathMotionSegment *prevSeg, *currentSeg, *nextSeg, *nextNextSeg;
     vsVector *prevSegPos, *currentSegPos, *nextSegPos, *nextNextSegPos;
@@ -845,7 +921,7 @@ void vsPathMotion::update()
     if (currentPlayMode == VS_PATH_PLAYING)
     {
         // Determine how much time passed last frame
-        frameTime = (vsTimer::getSystemTimer())->getInterval();
+        frameTime = deltaTime;
 
         // Get the data for the current segment
         currentSeg = (vsPathMotionSegment *)(pointList[currentSegmentIdx]);
@@ -859,10 +935,10 @@ void vsPathMotion::update()
         // Add the 'time last frame' value to the time spent on the
         // current segment
         currentSegmentTime += frameTime;
-
+               
         // If we've spent longer on this segment than its total time,
         // then transition to the next segment
-        while (currentSegmentTime >= segmentTotalTime)
+        while (currentSegmentTime >= segmentTotalTime && deltaTime > 0.0)
         {
             // * Advance to the next path segment
 
@@ -929,6 +1005,81 @@ void vsPathMotion::update()
                 segmentTotalTime += currentSeg->pauseTime;
 
         } // if (currentSegmentTime >= segmentTotalTime)
+        
+        // If we're going backwards, see if we need to transition to the
+        // previous segment.
+        while (currentSegmentTime < 0.0 && deltaTime < 0.0)
+        {
+            // * Advance to the previous path segment
+
+            // Switch to the previous segment index
+            currentSegmentIdx--;
+            currentSegmentTime += segmentTotalTime;
+
+            // Check if we've hit the beginning of the path and need to rewind
+            // to the end
+            if (currentSegmentIdx < 0)
+            {
+                currentSegmentIdx = pointCount-1;
+                currentCycleCount--;
+            }
+                   
+            // If we've completed a number of cycles equal to the
+            // user-specified cycle count, and we're not looping
+            // infinitely, then stop. Set the location on the path to the
+            // end of the path, and mark the path mode as STOPPED; this
+            // is the last trip through this loop we will make.
+ 
+            // NOTE: This means that if a vsPathMotion is set to play, and
+            // the very first update has a negative delta-time, and the cycle
+            // count is not set to VS_PATH_CYCLE_FOREVER, then the vsPathMotion
+            // will immediately stop.
+            if ((cycleCount != VS_PATH_CYCLE_FOREVER) &&
+                (currentCycleCount < 0))
+            {
+                // Set the play mode to stopped, and set the current location
+                // on the path to the end of the path
+                currentPlayMode = VS_PATH_STOPPED;
+                currentSegmentIdx = pointCount - 1;
+                currentSeg = (vsPathMotionSegment *)(pointList[currentSegmentIdx]);
+                currentSegmentTime = currentSeg->travelTime;
+                if (currentSeg->pauseTime > 0.0)
+                    currentSegmentTime += currentSeg->pauseTime;
+                break;
+            }
+
+            // Get the data corresponding to the new segment
+            currentSeg = (vsPathMotionSegment *)(pointList[currentSegmentIdx]);
+
+            // If the new segment has a negative pause time, then go
+            // into 'pause indefinitely' mode. Set the current time on the
+            // segment to zero, so that the computation step will place
+            // the position and orientation at the beginning of this
+            // segment.
+            if (currentSeg->pauseTime < 0.0)
+            {
+                currentPlayMode = VS_PATH_PAUSED;
+                currentSegmentTime = 0.0;
+            }
+
+            // Check if we're on the first segment of the path (the part of
+            // the path before the first point), and if we're in RESTART
+            // cycle mode. Since there can't be any actual path to travel
+            // in this case, force the travel time for that segment to be
+            // zero. (There _is_ still a segment there, as there is the
+            // possibility that a delay time can be set there.)
+            if ((currentSegmentIdx == 0) &&
+                (cycleMode == VS_PATH_CYCLE_RESTART))
+            {
+                currentSeg->travelTime = 0.0;
+            }
+
+            // Calculate the new segment total path time
+            segmentTotalTime = currentSeg->travelTime;
+            if (currentSeg->pauseTime > 0.0)
+                segmentTotalTime += currentSeg->pauseTime;
+
+        }
     } // if (currentPlayMode == VS_PATH_PLAYING)
 
     // * Using the current segment parameters, recompute the position and
@@ -939,10 +1090,22 @@ void vsPathMotion::update()
     // then these extra points can loop around the path ends. If the mode
     // is REPEAT, then we get NULL data for the points off the ends of the
     // path.
-    prevSeg = getSegmentData(currentSegmentIdx - 1);
-    currentSeg = getSegmentData(currentSegmentIdx);
-    nextSeg = getSegmentData(currentSegmentIdx + 1);
-    nextNextSeg = getSegmentData(currentSegmentIdx + 2);
+    if(deltaTime >= 0)
+    {
+        prevSeg = getSegmentData(currentSegmentIdx - 1);
+        currentSeg = getSegmentData(currentSegmentIdx);
+        nextSeg = getSegmentData(currentSegmentIdx + 1);
+        nextNextSeg = getSegmentData(currentSegmentIdx + 2);
+    }
+    // Otherwise, the delta-time is negative, so get the segments as if we're
+    // going backwards.
+    else
+    {
+        prevSeg = getSegmentData(currentSegmentIdx + 1);
+        currentSeg = getSegmentData(currentSegmentIdx);
+        nextSeg = getSegmentData(currentSegmentIdx - 1);
+        nextNextSeg = getSegmentData(currentSegmentIdx - 2);
+    }
 
     // Compute the interpolation parameter, which in this case is the
     // amount of time spent on this segment (minus the pause time, if any)
@@ -952,8 +1115,11 @@ void vsPathMotion::update()
             currentSeg->travelTime;
     else
         parameter = currentSegmentTime / currentSeg->travelTime;
+            
     if (parameter < 0.0)
         parameter = 0.0;
+    else if (parameter > 1.0)
+        parameter = 1.0;
 
     // Get the positions from the segments
     if (prevSeg)
@@ -1742,4 +1908,14 @@ vsPathMotionSegment *vsPathMotion::getSegmentData(int idx)
     // Out-of-bounds and CLOSED LOOP; wrap around.
     return (vsPathMotionSegment *)
         (pointList[(idx + pointCount) % pointCount]);
+}
+
+//------------------------------------------------------------------------
+// A function to change the kinematics object that this path motion holds.
+//------------------------------------------------------------------------
+void vsPathMotion::setKinematics(vsKinematics *newKin)
+{
+    objectKin->unref();
+    objectKin = newKin;
+    objectKin->ref();
 }
