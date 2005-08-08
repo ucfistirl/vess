@@ -59,6 +59,16 @@ struct VS_GRAPHICS_DLL vsSkinMaterialData
     vsTextureAttribute  *texture[VS_MAXIMUM_TEXTURE_UNITS];
 };
 
+
+#ifndef __DIRECTORY_NODE__
+#define __DIRECTORY_NODE__
+struct DirectoryNode
+{
+   char *dirName;
+   DirectoryNode *next;
+};
+#endif
+
 class VS_GRAPHICS_DLL vsCal3DMeshLoader : public vsObject
 {
 private:
@@ -69,6 +79,9 @@ private:
 
     vsGrowableArray           *materialList;
     int                       materialCount;
+    DirectoryNode             *directoryList;
+    
+    char *                    findFile(char *filename);
 
 VS_INTERNAL:
 
@@ -80,6 +93,8 @@ public:
     virtual const char        *getClassName();
 
     void                      clearMaterials();
+    
+    void                      addFilePath(const char *dirName);
 
     void                      loadMaterial(char *filename);
     vsComponent               *loadMesh(char *filename);

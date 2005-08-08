@@ -38,6 +38,8 @@ vsCal3DMeshLoader::vsCal3DMeshLoader()
 {
     materialList = new vsGrowableArray(5, 1);
     materialCount = 0;
+    
+    directoryList = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -47,6 +49,75 @@ vsCal3DMeshLoader::~vsCal3DMeshLoader()
 {
     clearMaterials();
     delete materialList;
+    
+    // Clear out the directory listing.
+    DirectoryNode *tempNode;
+    while (directoryList != NULL)
+    {
+        tempNode = directoryList;
+        directoryList = directoryList->next;
+        delete tempNode->dirName;
+        delete tempNode;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Given a filename (without prepended directory), this function will find
+// return a filename that exists with a prepended directory that has been
+// added to the DirectoryNode listing. If there is no file in the
+// listed directories, this function will return NULL. This is a private
+// helper function.
+// ------------------------------------------------------------------------
+char *vsCal3DMeshLoader::findFile(char *filename)
+{
+   DirectoryNode *tempNode;
+   char *absoluteFilename;
+   char tempString[500];
+   
+   // Loop through the list of directories.
+   tempNode = directoryList;
+   while(tempNode != NULL)
+   {
+      // Create the tempString
+      strcpy(tempString, tempNode->dirName);
+      strcat(tempString, "/");
+      strcat(tempString, filename);
+      
+      // See if this file can be read by this process. 
+      if(access(tempString, R_OK) == 0)
+      {
+         // Make the absoluteFilename string.
+         absoluteFilename = 
+            (char*)(calloc(strlen(tempString)+2, sizeof(char)));
+            
+         strcpy(absoluteFilename, tempString);
+         
+         // Return it.
+         return absoluteFilename;
+      }
+      
+      tempNode = tempNode->next;
+   }
+   
+   // We didn't find the file, so just return the original string.
+   return filename;
+}
+
+// ------------------------------------------------------------------------
+// Adds a directory listing to the list that we should search for files in.
+// ------------------------------------------------------------------------
+void vsCal3DMeshLoader::addFilePath(const char *dirName)
+{
+   DirectoryNode *newNode;
+   
+   // Create the node and copy the directory name.
+   newNode = (DirectoryNode*)(malloc(sizeof(DirectoryNode)));
+   newNode->dirName = (char*)(calloc(strlen(dirName)+2, sizeof(char)));
+   strcpy(newNode->dirName, dirName);
+   
+   // Put it at the beginning of the linked list.
+   newNode->next = directoryList;
+   directoryList = newNode;
 }
 
 // ------------------------------------------------------------------------
@@ -62,7 +133,6 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
     xmlNodePtr                current;
     xmlAttrPtr                attribute;
     bool                      validVersion;
-    bool                      validMagic;
     int                       currentTexture;
     int                       x, y, z, w;
     int                       index;
@@ -71,8 +141,10 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
 
     currentTexture = 0;
     validVersion = false;
-    validMagic = false;
-
+    
+    // Prepend the directory information to the filename
+    filename = findFile(filename);
+    
     // If the file opening failed, print error and return.
     if ((filePointer = fopen(filename, "r")) == NULL)
     {
@@ -136,60 +208,7 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
         delete [] fileBuffer;
         return;
     }
-
-    // Go to the child because we created the parent and don't
-    // need to parse him "VS_CAL3D_XML_MATERIAL_BEGIN_TAG".
-    current = current->children;
-
-    // If the HEADER field is encountered, process its properties.
-    if (xmlStrcmp(current->name, (const xmlChar *) "HEADER") == 0)
-    {
-        // Traverse the properties of this tag.
-        for (attribute = current->properties; attribute != NULL;
-             attribute = attribute->next)
-        {
-            // If the property is named MAGIC, check to see if it is the
-            // proper value "XRF".
-            if (xmlStrcmp(attribute->name, (const xmlChar *) "MAGIC") == 0)
-            {
-                if (xmlStrcmp(XML_GET_CONTENT(attribute->children),
-                    (const xmlChar *) "XRF") == 0)
-                {
-                    validMagic = true;
-                }
-            }
-            // Else if the property is named VERSION, check to see if it is at
-            // least version "900".
-            else if (xmlStrcmp(attribute->name,
-                     (const xmlChar *) "VERSION") == 0)
-            {
-                if (atoi((const char *)XML_GET_CONTENT(attribute->children))
-                    >= 900)
-                {
-                    validVersion = true;
-                }
-            }
-        }
-    }
-
-    // If either the magic and version properties were invalid or not found,
-    // print error, free resources and return.
-    if (!validMagic || !validVersion)
-    {
-        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMaterial: Document of "
-            "wrong type.\n");
-        xmlFreeDoc(document);
-        delete [] fileBuffer;
-        return;
-    }
-
-    // Traverse the children till we reach one named MESH or didn't find it.
-    while ((xmlStrcmp(current->name, (const xmlChar *) "MATERIAL") != 0) &&
-           (current))
-    {
-        current = current->next;
-    }
-
+    
     // Get an entry from the array which will be used for this material.
     materialData = (vsSkinMaterialData *) materialList->getData(materialCount);
 
@@ -207,19 +226,53 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
     materialData = new vsSkinMaterialData;
     memset(materialData, 0, sizeof(vsSkinMaterialData));
     materialList->setData(materialCount, materialData);
+    
+    // Go to the child because we created the parent and don't
+    // need to parse him "VS_CAL3D_XML_MATERIAL_BEGIN_TAG".
+    current = current->children;
 
-    // If we found something and it has a property, named NUMMAPS read it.
-    if ((current != NULL) && (current->properties != NULL) &&
-        ((xmlStrcmp(current->properties->name, (const xmlChar *) "NUMMAPS"))
-         == 0))
+    // If the HEADER field is encountered, process its properties.
+    if (xmlStrcmp(current->name, (const xmlChar *) "MATERIAL") == 0)
     {
-        // Read in the number of texture maps that this material has.
-        materialData->textureCount = atoi((const char *)
-            XML_GET_CONTENT(current->properties->children));
+        // Traverse the properties of this tag.
+        for (attribute = current->properties; attribute != NULL;
+             attribute = attribute->next)
+        {
+            // If the property is named MAGIC, check to see if it is the
+            // proper value "XRF".
+            if (xmlStrcmp(attribute->name, (const xmlChar *) "NUMMAPS") == 0)
+            {
+                // Read in the number of texture maps that this material has.
+                materialData->textureCount = atoi((const char *)
+                    XML_GET_CONTENT(attribute->children));
 
-        // Cap it, can only support the defined maximum textures.
-        if (materialData->textureCount > VS_MAXIMUM_TEXTURE_UNITS)
-            materialData->textureCount = VS_MAXIMUM_TEXTURE_UNITS;
+                // Cap it, can only support the defined maximum textures.
+                if (materialData->textureCount > VS_MAXIMUM_TEXTURE_UNITS)
+                    materialData->textureCount = VS_MAXIMUM_TEXTURE_UNITS;
+            }
+            // Else if the property is named VERSION, check to see if it is at
+            // least version "1000".
+            else if (xmlStrcmp(attribute->name,
+                     (const xmlChar *) "VERSION") == 0)
+            {
+                if (atoi((const char *)XML_GET_CONTENT(attribute->children))
+                    >= 1000)
+                {
+                    validVersion = true;
+                }
+            }
+        }
+    }
+
+    // If either the magic and version properties were invalid or not found,
+    // print error, free resources and return.
+    if (!validVersion)
+    {
+        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMaterial: Document of "
+            "wrong type.\n");
+        xmlFreeDoc(document);
+        delete [] fileBuffer;
+        return;
     }
 
     // Process all of the MATERIAL's children.
@@ -287,9 +340,9 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
             }
             else
             {
-                // Get the texture file name.
-                tempString = (char *) XML_GET_CONTENT(current->children);
-
+                tempString = findFile(
+                        (char *) XML_GET_CONTENT(current->children));
+                        
                 // Create a vsTextureAttribute for the texture, this attribute
                 // will be referenced by any objects who use this texture.
                 // Saves a significant amount of memory since textures
@@ -345,7 +398,6 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
     xmlNodePtr             currentSubMeshChild;
     xmlAttrPtr             attribute;
     bool                   validVersion;
-    bool                   validMagic;
     char                   geometryName[VS_NODE_NAME_MAX_LENGTH];
     int                    subMeshCount;
     int                    subMeshesProcessed;
@@ -379,8 +431,10 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
     subMeshCount = 0;
     subMeshesProcessed = 0;
     validVersion = false;
-    validMagic = false;
-
+    
+    // Prepend the directory information to the filename
+    filename = findFile(filename);
+    
     // If the file opening failed, print error and return.
     if ((filePointer = fopen(filename, "r")) == NULL)
     {
@@ -448,64 +502,35 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
     // need to parse him "VS_CAL3D_XML_MESH_BEGIN_TAG".
     current = current->children;
 
-    // If the HEADER field is encountered, process its properties.
-    if (xmlStrcmp(current->name, (const xmlChar *) "HEADER") == 0)
+    // If the MESH field is encountered, process its properties.
+    if (xmlStrcmp(current->name, (const xmlChar *) "MESH") == 0)
     {
         // Traverse the properties of this tag.
         for (attribute = current->properties; attribute != NULL;
              attribute = attribute->next)
         {
-            // If the property is named MAGIC, check to see if it is the
-            // proper value "XMF".
-            if (xmlStrcmp(attribute->name, (const xmlChar *) "MAGIC") == 0)
+            // If we found something and it has a property, named 
+            // NUMSUBMESH read it.
+            if (((xmlStrcmp(attribute->name, 
+                (const xmlChar *) "NUMSUBMESH")) == 0))
             {
-                if (xmlStrcmp(XML_GET_CONTENT(attribute->children),
-                    (const xmlChar *) "XMF") == 0)
-                {
-                    validMagic = true;
-                }
+                subMeshCount = atoi((const char *)
+                  XML_GET_CONTENT(attribute->children));
             }
             // Else if the property is named VERSION, check to see if it is at
-            // least version "900".
+            // least version "1000".
             else if (xmlStrcmp(attribute->name,
                      (const xmlChar *) "VERSION") == 0)
             {
                 if (atoi((const char *)XML_GET_CONTENT(attribute->children))
-                    >= 900)
+                    >= 1000)
                 {
                     validVersion = true;
                 }
             }
         }
     }
-
-    // If either the magic and version properties were invalid or not found,
-    // print error, free resources and return.
-    if (!validMagic || !validVersion)
-    {
-        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: Document of wrong "
-            "type.\n");
-        xmlFreeDoc(document);
-        delete [] fileBuffer;
-        return NULL;
-    }
-
-    // Traverse the children till we reach one named MESH or didn't find it.
-    while ((xmlStrcmp(current->name, (const xmlChar *) "MESH") != 0) &&
-           (current))
-    {
-        current = current->next;
-    }
-
-    // If we found something and it has a property, named NUMSUBMESH read it.
-    if ((current != NULL) && (current->properties != NULL) &&
-        ((xmlStrcmp(current->properties->name, (const xmlChar *) "NUMSUBMESH"))
-         == 0))
-    {
-        subMeshCount = atoi((const char *)
-            XML_GET_CONTENT(current->properties->children));
-    }
-
+   
     // If we have no bones, then it is an error.
     if (subMeshCount == 0)
     {
@@ -514,7 +539,18 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
         delete [] fileBuffer;
         return NULL;
     }
-
+    
+    // If either the magic and version properties were invalid or not found,
+    // print error, free resources and return.
+    if (!validVersion)
+    {
+        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: Document of wrong "
+            "type.\n");
+        xmlFreeDoc(document);
+        delete [] fileBuffer;
+        return NULL;
+    }
+    
     // Move to the children of MESH, and process them all.  These
     // are the actual submeshes we need.
     current = current->children;
@@ -955,17 +991,21 @@ resultMesh->setBinding(VS_GEOMETRY_COLORS, VS_GEOMETRY_BIND_PER_VERTEX);
                                 vsVector(4, vertexData->weights));
 
                             // Set all the texture coordinates defined for
-                            // this vertex.
-                            for (meshTexCoordsProcessed = 0;
-                                 meshTexCoordsProcessed < vertexData->textures;
-                                 meshTexCoordsProcessed++)
+                            // this vertex, if we found a material above.
+                            if (materialData)
                             {
-                                resultMesh->setData(
-                                    (VS_GEOMETRY_TEXTURE0_COORDS+
-                                    meshTexCoordsProcessed),
-                                    meshVerticesProcessed,
-                                    vsVector(2, vertexData->textureCoords[
-                                    meshTexCoordsProcessed]));
+                                for (meshTexCoordsProcessed = 0;
+                                     meshTexCoordsProcessed <
+                                       vertexData->textures;
+                                     meshTexCoordsProcessed++)
+                                {
+                                    resultMesh->setData(
+                                        (VS_GEOMETRY_TEXTURE0_COORDS+
+                                        meshTexCoordsProcessed),
+                                        meshVerticesProcessed,
+                                        vsVector(2, vertexData->textureCoords[
+                                        meshTexCoordsProcessed]));
+                                }
                             }
 
 /*
@@ -1030,17 +1070,21 @@ switch (count)
                                 vsVector(4, vertexData->weights));
 
                             // Set all the texture coordinates defined for
-                            // this vertex.
-                            for (meshTexCoordsProcessed = 0;
-                                 meshTexCoordsProcessed < vertexData->textures;
-                                 meshTexCoordsProcessed++)
+                            // this vertex, if we found a material above.
+                            if (materialData)
                             {
-                                resultMesh->setData(
-                                    (VS_GEOMETRY_TEXTURE0_COORDS+
-                                    meshTexCoordsProcessed),
-                                    meshVerticesProcessed,
-                                    vsVector(2, vertexData->textureCoords[
-                                    meshTexCoordsProcessed]));
+                                for (meshTexCoordsProcessed = 0;
+                                     meshTexCoordsProcessed <
+                                       vertexData->textures;
+                                     meshTexCoordsProcessed++)
+                                {
+                                    resultMesh->setData(
+                                        (VS_GEOMETRY_TEXTURE0_COORDS+
+                                        meshTexCoordsProcessed),
+                                        meshVerticesProcessed,
+                                        vsVector(2, vertexData->textureCoords[
+                                        meshTexCoordsProcessed]));
+                                }
                             }
 
 /*
@@ -1101,17 +1145,21 @@ switch (count)
                                 vsVector(4, vertexData->weights));
 
                             // Set all the texture coordinates defined for
-                            // this vertex.
-                            for (meshTexCoordsProcessed = 0;
-                                 meshTexCoordsProcessed < vertexData->textures;
-                                 meshTexCoordsProcessed++)
+                            // this vertex, if we found a material above.
+                            if (materialData)
                             {
-                                resultMesh->setData(
-                                    (VS_GEOMETRY_TEXTURE0_COORDS+
-                                    meshTexCoordsProcessed),
-                                    meshVerticesProcessed,
-                                    vsVector(2, vertexData->textureCoords[
-                                    meshTexCoordsProcessed]));
+                                for (meshTexCoordsProcessed = 0;
+                                     meshTexCoordsProcessed <
+                                       vertexData->textures;
+                                     meshTexCoordsProcessed++)
+                                {
+                                    resultMesh->setData(
+                                        (VS_GEOMETRY_TEXTURE0_COORDS+
+                                        meshTexCoordsProcessed),
+                                        meshVerticesProcessed,
+                                        vsVector(2, vertexData->textureCoords[
+                                        meshTexCoordsProcessed]));
+                                }
                             }
 
 /*
