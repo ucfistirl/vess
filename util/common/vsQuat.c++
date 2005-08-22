@@ -14,7 +14,7 @@
 //    VESS Module:  vsQuat.c++
 //
 //    Description:  Class implementing a quaternion used to store graphics
-//		    rotations
+//                    rotations
 //
 //    Author(s):    Bryan Kline
 //
@@ -714,15 +714,15 @@ void vsQuat::getAxisAngleRotation(double *x, double *y, double *z,
     mag = axis.getMagnitude();
     if (mag < VS_DEFAULT_TOLERANCE)
     {
-	if (x)
-	    *x = 0.0;
-	if (y)
-	    *y = 0.0;
-	if (z)
-	    *z = 0.0;
-	if (rotDegrees)
-	    *rotDegrees = 0.0;
-	return;
+        if (x)
+            *x = 0.0;
+        if (y)
+            *y = 0.0;
+        if (z)
+            *z = 0.0;
+        if (rotDegrees)
+            *rotDegrees = 0.0;
+        return;
     }
 
     // Obtain the axis of rotation by normalizing the first three values
@@ -744,13 +744,13 @@ void vsQuat::getAxisAngleRotation(double *x, double *y, double *z,
     // Check which return values are desired and copy the function results
     // into the specified locations
     if (x)
-	*x = axis[0];
+        *x = axis[0];
     if (y)
-	*y = axis[1];
+        *y = axis[1];
     if (z)
-	*z = axis[2];
+        *z = axis[2];
     if (rotDegrees)
-	*rotDegrees = degrees;
+        *rotDegrees = degrees;
 }
 
 // ------------------------------------------------------------------------
@@ -795,8 +795,8 @@ void vsQuat::setVecsRotation(const vsVector &originForward, const vsVector &orig
     if (!(startDir == endDir))
     {
         // The first axis of rotation is equal to the cross product of
-	// the starting forward direction vector and the ending forward
-	// direction vector
+        // the starting forward direction vector and the ending forward
+        // direction vector
         rotAxis = startDir.getCrossProduct(endDir);
 
         // Special case: check to see if the originForward and targetForward
@@ -822,12 +822,12 @@ void vsQuat::setVecsRotation(const vsVector &originForward, const vsVector &orig
         else
         {
             // Amount to rotate is equal to the angle between the starting
-	    // and ending forward vectors
+            // and ending forward vectors
             rotAngle = startDir.getAngleBetween(endDir);
         }
 
         // Call one of the quat's functions to set this quat as the
-	// first rotation
+        // first rotation
         setAxisAngleRotation(rotAxis[0], rotAxis[1], rotAxis[2], rotAngle);
     }
 
@@ -854,34 +854,34 @@ void vsQuat::setVecsRotation(const vsVector &originForward, const vsVector &orig
         endUp -= componentVec;
         endUp.normalize();
 
-	// Abort at this point if the two 'up' vectors are already aligned
-	if (!(newUp == endUp))
-	{
-	    // Compute the axis and angle of rotation. Although the forward
-	    // vector should be suitable as an axis of rotation, I'm computing
-	    // it again here for simplicity; the getAngleBetween function can
-	    // sometimes return a negative angle, but the cross product will
-	    // be the opposite direction in those cases, so the two negatives
-	    // cancel out.
-	    rotAxis = newUp.getCrossProduct(endUp);
+        // Abort at this point if the two 'up' vectors are already aligned
+        if (!(newUp == endUp))
+        {
+            // Compute the axis and angle of rotation. Although the forward
+            // vector should be suitable as an axis of rotation, I'm computing
+            // it again here for simplicity; the getAngleBetween function can
+            // sometimes return a negative angle, but the cross product will
+            // be the opposite direction in those cases, so the two negatives
+            // cancel out.
+            rotAxis = newUp.getCrossProduct(endUp);
 
-	    // Check for the special case where the two up vectors are
-	    // opposite directions
-	    if (rotAxis == zeroVector)
-	    {
-		rotAxis = endDir;
-		rotAngle = 180.0;
-	    }
-	    else
-		rotAngle = newUp.getAngleBetween(endUp);
+            // Check for the special case where the two up vectors are
+            // opposite directions
+            if (rotAxis == zeroVector)
+            {
+                rotAxis = endDir;
+                rotAngle = 180.0;
+            }
+            else
+                rotAngle = newUp.getAngleBetween(endUp);
 
             // Create the second rotation quat as the roll rotation
-	    roll.setAxisAngleRotation(rotAxis[0], rotAxis[1], rotAxis[2],
-		rotAngle);
+            roll.setAxisAngleRotation(rotAxis[0], rotAxis[1], rotAxis[2],
+                rotAngle);
 
-	    // Combine the two rotations
-	    (*this) = roll * (*this);
-	}
+            // Combine the two rotations
+            (*this) = roll * (*this);
+        }
     }
 }
 
