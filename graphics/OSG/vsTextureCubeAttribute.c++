@@ -640,19 +640,26 @@ int vsTextureCubeAttribute::getGenMode()
 {
     // Translate the current texture coordinate generation mode on the
     // osg::TexGen into a VESS value and return it
-    switch (osgTexGen->getMode())
+    if (osgTexGen)
     {
-        case osg::TexGen::OBJECT_LINEAR:
-            return VS_TEXTURE_GEN_OBJECT_LINEAR;
-        case osg::TexGen::EYE_LINEAR:
-            return VS_TEXTURE_GEN_EYE_LINEAR;
-        case osg::TexGen::SPHERE_MAP:
-            return VS_TEXTURE_GEN_SPHERE_MAP;
-        case osg::TexGen::NORMAL_MAP:
-            return VS_TEXTURE_GEN_NORMAL_MAP;
-        case osg::TexGen::REFLECTION_MAP:
-            return VS_TEXTURE_GEN_REFLECTION_MAP;
+        switch (osgTexGen->getMode())
+        {
+            case osg::TexGen::OBJECT_LINEAR:
+                return VS_TEXTURE_GEN_OBJECT_LINEAR;
+            case osg::TexGen::EYE_LINEAR:
+                return VS_TEXTURE_GEN_EYE_LINEAR;
+            case osg::TexGen::SPHERE_MAP:
+                return VS_TEXTURE_GEN_SPHERE_MAP;
+            case osg::TexGen::NORMAL_MAP:
+                return VS_TEXTURE_GEN_NORMAL_MAP;
+            case osg::TexGen::REFLECTION_MAP:
+                return VS_TEXTURE_GEN_REFLECTION_MAP;
+            default:
+                return VS_TEXTURE_GEN_OFF;
+        }
     }
+    else
+        return VS_TEXTURE_GEN_OFF;
 }
 
 // ------------------------------------------------------------------------
