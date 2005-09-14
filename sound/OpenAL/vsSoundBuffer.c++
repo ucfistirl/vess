@@ -87,12 +87,25 @@ double vsSoundBuffer::getLength()
     }
     else
     {
-        // Compute the number of audio samples in the data
+        // Compute the number of audio samples in the data.  Note that this
+        // is integer division, since we're computing a sample count.  If 
+        // the buffer size is valid for the format being used, there won't 
+        // be any remainders from this division.
         numSamples = bufferSize / getBytesPerSample() / getChannelCount();
+    }
+
+    // Check the buffer frequency to see if it is positive (we don't want
+    // to divide by zero
+    if (bufferFrequency <= 0)
+    {
+        // We can't compute the length of this buffer, so return zero for
+        // the length
+        return 0;
     }
                                                                                 
     // Divide the number of samples by the frequency (samples per second)
-    // to get the number of seconds
+    // to get the number of seconds (note that this is now floating-point
+    // division, as we're computing time in seconds)
     return ((double)numSamples / (double)bufferFrequency);
 }
 
