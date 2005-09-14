@@ -364,10 +364,7 @@ void vsSwitchAttribute::addMask(vsComponent *parent, vsNode *newChild)
     int childIndex;
     int maskListSize;
     bool maskValue;
-    int currentMask;
     int i, j;
-    bool allChildren;
-    bool allChildrenOn;
 
     // Bail out if we're not attached (no switch to manipulate)
     if (attachedCount <= 0)
@@ -431,16 +428,12 @@ void vsSwitchAttribute::addMask(vsComponent *parent, vsNode *newChild)
 // ------------------------------------------------------------------------
 void vsSwitchAttribute::pruneMasks(vsComponent *parent)
 {
-    int childIndex;
     int maskListSize;
-    bool maskValue;
     osgSim::MultiSwitch *newSwitch;
     osgSim::MultiSwitch::ValueList switchMask;
     int newMaskCount;
     int i, j;
     bool empty;
-    int currentMask;
-    bool allChildren, allChildrenOn;
 
     // Bail out if we're not attached (no switch to manipulate)
     if (attachedCount <= 0)

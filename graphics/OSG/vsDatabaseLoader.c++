@@ -371,7 +371,6 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
     osg::Switch *switchGroup;
     osgSim::MultiSwitch *multiSwitchGroup;
     osgSim::MultiSwitch::ValueList switchMask;
-    int currentSet;
     vsSwitchAttribute *switchAttr;
             
     // Transform vars

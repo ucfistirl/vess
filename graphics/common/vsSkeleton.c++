@@ -79,8 +79,6 @@ vsSkeleton::vsSkeleton(vsGrowableArray *componentList,
 vsSkeleton::vsSkeleton(vsSkeleton *original)
 {
     int index;
-    vsComponent *skelComp;
-    vsComponent *newSkelComp;
     vsMatrix *skelMat;
     vsMatrix *newSkelMat;
     
