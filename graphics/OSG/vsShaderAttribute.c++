@@ -123,9 +123,6 @@ void vsShaderAttribute::setOSGAttrModes(vsNode *node)
 // ------------------------------------------------------------------------
 void vsShaderAttribute::attach(vsNode *node)
 {
-    osg::Vec4 *vector;
-    int length;
-
     // Do normal vsStateAttribute attaching
     vsStateAttribute::attach(node);
 

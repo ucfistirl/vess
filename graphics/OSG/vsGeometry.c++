@@ -548,7 +548,6 @@ int vsGeometry::getBinding(int whichData)
 // ------------------------------------------------------------------------
 void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
 {
-    unsigned int unit;
     int loop;
     int slotNum;
     int dataSize;
@@ -655,7 +654,6 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
 vsVector vsGeometry::getData(int whichData, int dataIndex)
 {
     vsVector result;
-    unsigned int unit;
     int loop;
     int slotNum;
     int dataSize;
@@ -756,7 +754,6 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
 // ------------------------------------------------------------------------
 void vsGeometry::setDataList(int whichData, vsVector *dataBuffer)
 {
-    unsigned int unit;
     int loop, sloop;
     int slotNum;
     int dataSize;
@@ -852,7 +849,6 @@ void vsGeometry::setDataList(int whichData, vsVector *dataBuffer)
 // ------------------------------------------------------------------------
 void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
 {
-    unsigned int unit;
     int loop, sloop;
     int slotNum;
     int dataSize;
@@ -953,7 +949,6 @@ void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
 // ------------------------------------------------------------------------
 void vsGeometry::setDataListSize(int whichData, int newSize)
 {
-    unsigned int unit;
     int slotNum;
     int dataSize;
 
@@ -1075,7 +1070,6 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
 // ------------------------------------------------------------------------
 int vsGeometry::getDataListSize(int whichData)
 {
-    unsigned int unit;
     int slotNum;
 
     // Bounds checking
