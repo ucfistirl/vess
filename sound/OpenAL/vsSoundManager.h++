@@ -27,10 +27,12 @@
 #include "vsSoundPipe.h++"
 #include "vsSoundSourceAttribute.h++"
 #include "vsSoundListenerAttribute.h++"
+#include <pthread.h>
 
 #define VS_SDM_MAX_SOUNDS          512
 #define VS_SDM_DEFAULT_VOICE_LIMIT 32
 #define VS_SDM_MAX_VOICES          128
+#define VS_SDM_SOURCE_THREAD_HZ    20
 
 struct vsSoundSourceListItem
 {
@@ -43,6 +45,10 @@ class VS_SOUND_DLL vsSoundManager : public vsUpdatable
 protected:
 
     static vsSoundManager          *instance;
+
+    pthread_t                      sourceThread;
+    pthread_mutex_t                sourceListMutex;
+    bool                           sourceThreadDone;
 
     vsSoundPipe                    *soundPipe;
 
@@ -57,6 +63,8 @@ protected:
     vsSoundListenerAttribute       *soundListener;
 
                                    vsSoundManager();
+
+    static void                    *sourceThreadFunc(void *arg);
 
     void                           sortSources();
 

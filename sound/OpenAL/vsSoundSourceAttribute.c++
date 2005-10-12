@@ -46,6 +46,7 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundSample *buffer, bool loop)
 {
     // Keep a handle to the vsSoundSample
     soundBuffer = buffer;
+    soundBuffer->ref();
 
     // Start with no OpenAL source assigned (signified by the -1)
     sourceID = 0;
@@ -91,6 +92,10 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundSample *buffer, bool loop)
     else
         playState = AL_STOPPED;
 
+    // Create a mutex to synchronize the source state between voice 
+    // management, updates, and stream operations
+    pthread_mutex_init(&sourceMutex, NULL);
+
     // Register with the sound manager
     vsSoundManager::getInstance()->addSoundSource(this);
 }
@@ -104,9 +109,13 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundStream *buffer)
 {
     // Keep a handle to the vsSoundStream
     soundBuffer = buffer;
+    soundBuffer->ref();
 
     // Remember whether we are streaming or not
     streamingSource = true;
+
+    // Assume that the stream has data available to start with
+    outOfData = false;
 
     // Start with no OpenAL source assigned
     sourceID = 0;
@@ -146,6 +155,10 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundStream *buffer)
     coordXformInv = coordXform;
     coordXformInv.conjugate();
 
+    // Create a mutex to synchronize the source state between voice 
+    // management, updates, and stream operations
+    pthread_mutex_init(&sourceMutex, NULL);
+
     // Register with the sound manager
     vsSoundManager::getInstance()->addSoundSource(this);
 }
@@ -155,8 +168,18 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundStream *buffer)
 // ------------------------------------------------------------------------
 vsSoundSourceAttribute::~vsSoundSourceAttribute()
 {
-    // Unregister from the sound manager
+    // Unregister from the sound manager, to prevent it from trying to
+    // manipulate or update this sound source any longer
     vsSoundManager::getInstance()->removeSoundSource(this);
+
+    // Unreference our sound buffer
+    soundBuffer->unref();
+
+    // Delete the playback timer
+    delete playTimer;
+
+    // Destroy the source's mutex
+    pthread_mutex_destroy(&sourceMutex);
 }
 
 // ------------------------------------------------------------------------
@@ -232,7 +255,7 @@ void vsSoundSourceAttribute::attachDuplicate(vsNode *theNode)
     if (streamingSource)
     {
         printf("vsSoundSourceAttribute::attachDuplicate:\n");
-        printf("    Cannot automatically duplicate streaming source "
+        printf("    Cannot automatically duplicate streaming sound source "
             "attributes!\n");
         return;
     }
@@ -289,7 +312,10 @@ void vsSoundSourceAttribute::assignVoice(int voiceID)
     alSource3f(sourceID, AL_DIRECTION, (ALfloat)lastDir[VS_X],
         (ALfloat)lastDir[VS_Y], (ALfloat)lastDir[VS_Z]);
 
-    // If the source should be playing, start playing now
+    // If the source should be playing, start playing now.  With OpenAL
+    // 1.1, we'll be able to start playback at the right time (using
+    // the current time in the playTimer()); however, the 1.1 implementation
+    // isn't ready yet.
     if (playState == AL_PLAYING)
         play();
 }
@@ -301,10 +327,13 @@ void vsSoundSourceAttribute::assignVoice(int voiceID)
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::revokeVoice()
 {
-    // Stop the source from playing
-    stop();
+    // Stop the OpenAL source (this function isn't called unless the sourceID
+    // is valid, so we don't need to check it)
+    alSourceStop(sourceID);
 
-    // If streaming, detach the stream from the OpenAL source
+    // If streaming, detach the stream from the OpenAL source, but keep
+    // the data in the stream intact, so we can emulate playback while
+    // the source is swapped out.
     if (streamingSource)
         ((vsSoundStream *)soundBuffer)->revokeSource();
 
@@ -398,6 +427,174 @@ vsVector vsSoundSourceAttribute::getLastPosition()
 }
 
 // ------------------------------------------------------------------------
+// Locks this source's mutual exclusion object.  This should only be 
+// called by this object or the vsSoundManager.
+// ------------------------------------------------------------------------
+void vsSoundSourceAttribute::lockSource()
+{
+    pthread_mutex_lock(&sourceMutex);
+}
+
+// ------------------------------------------------------------------------
+// Unlocks this source's mutual exclusion object.  This should only be 
+// called by this object or the vsSoundManager.
+// ------------------------------------------------------------------------
+void vsSoundSourceAttribute::unlockSource()
+{
+    pthread_mutex_unlock(&sourceMutex);
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Handles the necessary data movement for sound streams.  If a streaming
+// source is swapped out, this will try to emulate playback and keep 
+// consuming audio as normal.  This function also implicitly updates the
+// source's playback state, so the updatePlayState() function need not be
+// called for streaming sources.  This function should only be called by 
+// the vsSoundManager's worker thread.
+// ------------------------------------------------------------------------
+void vsSoundSourceAttribute::updateStream()
+{
+    int            buffersProcessed;
+    ALuint         bufferID;
+    int            state, queued;
+
+    // Lock the source to keep it from being swapped in or out by voice
+    // management during the running of this function
+    lockSource();
+
+    // Check to see if the source is active or swapped out, also making sure
+    // that OpenAL considers the source ID valid
+    if ((sourceValid) && (alIsSource(sourceID)))
+    {
+        // Get the number of buffers processed
+        alGetSourcei(sourceID, AL_BUFFERS_PROCESSED, &buffersProcessed);
+
+        // Swap buffers if the front buffer is done
+        if (buffersProcessed > 0)
+        {
+            // The current buffer is done, swap buffers.  NOTE:
+            // The user is responsible for making sure the buffers stay
+            // filled and ready
+            bufferID = ((vsSoundStream *)soundBuffer)->getFrontBufferID();
+            alSourceUnqueueBuffers(sourceID, 1, &bufferID);
+            ((vsSoundStream *)soundBuffer)->swapBuffers();
+        }
+
+        // Compare the vsSourceAttribute's play state with the real
+        // OpenAL source's state.  If the source should be playing but 
+        // isn't, try to start playing again.
+        alGetSourcei(sourceID, AL_SOURCE_STATE, &state);
+        alGetSourcei(sourceID, AL_BUFFERS_QUEUED, &queued);
+        if ((playState == AL_PLAYING) && (state != AL_PLAYING) && 
+            (queued > 0))
+        {
+             // We have at least one buffer queued, so start playing
+             // again.
+             play();
+        }
+    }
+    else
+    {
+        // The source is swapped out, so we need to emulate playback and
+        // still consume audio.  Check the play time of the source 
+        // and see if it has exceeded the length of the buffer.
+        if ((playState == AL_PLAYING) && 
+            (playTimer->getElapsed() > soundBuffer->getLength()))
+        {
+            // See if the stream had previously run out of data, and
+            // try to recover
+            if (outOfData) 
+            {
+                // See if the stream now has data available
+                if (!((vsSoundStream *)soundBuffer)->isEmpty())
+                {
+                    // Mark the playTimer immediately, to emulate the 
+                    // resuming of playback
+                    playTimer->mark();
+
+                    // Reset the out of data flag
+                    outOfData = false;
+                }
+            }
+            else
+            {
+                // Swap the stream buffers and check the result
+                if (!((vsSoundStream *)soundBuffer)->swapBuffers())
+                {
+                    // The swapBuffers() call failed, so the stream is out 
+                    // of data.  We'll try to recover from this on 
+                    // subsequent updates
+                    outOfData = true;
+                }
+                else
+                {
+                    // If we still have data, mark the playTimer at the
+                    // point where the last stream buffer finished.  This
+                    // keeps the buffer consumption timing accurate.
+                    if (!outOfData)
+                        playTimer->markAtInterval(soundBuffer->getLength());
+                }
+            }
+        }
+    }
+
+    // Unlock the source mutex
+    unlockSource();
+}
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Checks the state of the OpenAL source to see if it has changed, and
+// updates the VESS internal play state appropriately.  This function 
+// should only be called by the vsSoundManager's worker thread.
+// ------------------------------------------------------------------------
+void vsSoundSourceAttribute::updatePlayState()
+{
+    ALint state;
+
+    // Lock the source to keep it from being swapped in or out by voice
+    // management during the running of this function
+    lockSource();
+
+    // If the source is valid and isn't streaming, check the play state of 
+    // the OpenAL source and see if it has stopped.  Update the 
+    // attribute's play state if so.  If it is a looping source, it 
+    // should always be considered playing, unless stopped by the 
+    // user.
+    if ((sourceValid) && (alIsSource(sourceID)))
+    {
+        alGetSourcei(sourceID, AL_SOURCE_STATE, &state);
+        if ((playState == AL_PLAYING) && (state != AL_PLAYING))
+        {
+            // Update the play state
+            playState = AL_STOPPED;
+        }
+    }
+    else 
+    {
+        // The source is swapped out.  Check the playback timer to see if
+        // the buffer length has been exceeded.
+        if ((playState == AL_PLAYING) && 
+            (playTimer->getElapsed() > soundBuffer->getLength()))
+        {
+            // The buffer has finished playing.  However, we don't want to
+            // change the play state if this is a looping source (they 
+            // never stop unless stopped explicitly)
+            if (!loopSource)
+            {
+                // The sound is done playing, so indicate the source is
+                // stopped
+                playState = AL_STOPPED;
+            }
+        }
+    }
+
+    // Unlock the source mutex
+    unlockSource();
+}
+
+// ------------------------------------------------------------------------
 // Retrieves the type of this attribute
 // ------------------------------------------------------------------------
 int vsSoundSourceAttribute::getAttributeType()
@@ -451,9 +648,6 @@ void vsSoundSourceAttribute::update()
     vsVector       deltaVec;
     vsVector       dirVec;
     double         interval;
-    int            buffersProcessed;
-    ALuint         bufferID;
-    int            state, queued;
 
     // If we're not attached to a component, we have nothing to do
     if (!attachedCount)
@@ -467,9 +661,7 @@ void vsSoundSourceAttribute::update()
     
     // Apply the VESS-to-OpenAL coordinate transformation
     posVec.setSize(3);
-    posVec[VS_X] = result[0][3];
-    posVec[VS_Y] = result[1][3];
-    posVec[VS_Z] = result[2][3];
+    result.getTranslation(&posVec[VS_X], &posVec[VS_Y], &posVec[VS_Z]);
     posVec = coordXform.rotatePoint(posVec);
 
     // Update the velocity (based on the last frame's position)
@@ -482,7 +674,7 @@ void vsSoundSourceAttribute::update()
     {
         // Scale the position change by the inverse time interval to 
         // compute the velocity
-        deltaVec.scale(1/interval);
+        deltaVec.scale(1.0/interval);
     }
     else
     {
@@ -532,85 +724,16 @@ void vsSoundSourceAttribute::update()
         // Apply the direction to the OpenAL source
         alSource3f(sourceID, AL_DIRECTION, dirVec[VS_X], dirVec[VS_Y], 
             dirVec[VS_Z]);
-
-        // For streaming sources, check to see if we need to swap buffers
-        // to allow the old buffer to be refilled
-        if (streamingSource)
-        {
-            // Get the number of buffers processed
-            alGetSourcei(sourceID, AL_BUFFERS_PROCESSED, 
-                &buffersProcessed);
-
-            // Swap buffers if the front buffer is done
-            if (buffersProcessed > 0)
-            {
-                // The current buffer is done, swap buffers.  NOTE:
-                // The user is responsible for making sure the buffers stay
-                // filled and ready
-                bufferID = ((vsSoundStream *)soundBuffer)->getFrontBufferID();
-                alSourceUnqueueBuffers(sourceID, 1, &bufferID);
-                ((vsSoundStream *)soundBuffer)->swapBuffers();
-            }
-
-            // Compare the vsSourceAttribute's play state with the real
-            // OpenAL source's state.  If the source should be playing but 
-            // isn't, try to start playing again.
-            alGetSourcei(sourceID, AL_SOURCE_STATE, &state);
-            alGetSourcei(sourceID, AL_BUFFERS_QUEUED, &queued);
-            if ((playState == AL_PLAYING) && (state != AL_PLAYING) && 
-                (queued > 0))
-            {
-                 // We have at least one buffer queued, so start playing
-                 // again.
-                 play();
-            }
-        }
-        else
-        {
-            // If the source isn't streaming, check the play state of the 
-            // OpenAL source and see if it has stopped.  Update the 
-            // attribute's play state if so.  If it is a looping source, it 
-            // should always be considered playing, unless stopped by the 
-            // user.
-            alGetSourcei(sourceID, AL_SOURCE_STATE, &state);
-            if ((playState == AL_PLAYING) && (state != AL_PLAYING))
-            {
-                // Update the play state
-                playState = AL_STOPPED;
-            }
-        }
     }
-    else if (sourceValid && !alIsSource(sourceID))
+
+    // Check the validity of the OpenAL source
+    if (sourceValid && !alIsSource(sourceID))
     {
-        // Complain that VESS thinks it has a valid source, but OpenAL disagrees
+        // Complain that VESS thinks it has a valid source, but OpenAL 
+        // disagrees
         printf("vsSoundSourceAttribute::update:\n");
-        printf("    Source is active, but has an invalid source ID (%d)!\n", sourceID);
-    }
-    else
-    {
-        // The source is swapped out.  Check the play time of the source 
-        // and see if it has exceeded the length of the buffer
-        if ((playState == AL_PLAYING) && 
-            (playTimer->getElapsed() > soundBuffer->getLength()))
-        {
-            // See if this is a streaming source
-            if (streamingSource)
-            {
-                // Swap stream buffers and mark the timer again
-                ((vsSoundStream *)soundBuffer)->swapBuffers();
-                playTimer->mark();
-            }
-            else
-            {
-                // Don't do anything if this is a looping source
-                if (!loopSource)
-                {
-                    // The sound is done playing, so indicate the source is
-                    // stopped
-                    playState = AL_STOPPED;
-                }
-            }
-        }
+        printf("    Source is active, but has an invalid source ID (%d)!\n", 
+            sourceID);
     }
 }
 
@@ -754,6 +877,14 @@ void vsSoundSourceAttribute::setLooping(bool looping)
         // Set the source's looping state to the given value
         alSourcei(sourceID, AL_LOOPING, looping);
     }
+}
+
+// ------------------------------------------------------------------------
+// Returns whether or not this source is attached to a sound stream
+// ------------------------------------------------------------------------
+bool vsSoundSourceAttribute::isStreaming()
+{
+    return streamingSource;
 }
 
 // ------------------------------------------------------------------------

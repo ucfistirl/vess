@@ -32,6 +32,7 @@
 #include "vsMatrix.h++"
 #include "vsQuat.h++"
 #include "vsTimer.h++"
+#include <pthread.h>
  
 // Sound source priorities, used for voice management
 enum
@@ -47,52 +48,60 @@ class VS_SOUND_DLL vsSoundSourceAttribute : public vsAttribute
 protected:
 
     // The sound data
-    vsSoundBuffer    *soundBuffer;
-    bool             loopSource;
-    bool             streamingSource;
+    vsSoundBuffer      *soundBuffer;
+
+    // Type of source
+    bool               loopSource;
+    bool               streamingSource;
+
+    // Pthread mutex for synchronization of operations
+    pthread_mutex_t    sourceMutex;
 
     // Our alSource ID number, and a flag to indicate whether or not
     // the ID number is valid
-    ALuint           sourceID;
-    bool             sourceValid;
+    ALuint             sourceID;
+    bool               sourceValid;
+
+    // Indicates that a streaming source is out of sound data
+    bool               outOfData;
 
     // Offset transform from the component to the sound listener
-    vsMatrix         offsetMatrix;
+    vsMatrix           offsetMatrix;
 
     // Base direction of radiation (prior to transforms)
-    vsVector         baseDirection;
+    vsVector           baseDirection;
 
     // The vsComponent we're attached to
-    vsComponent      *parentComponent;
+    vsComponent        *parentComponent;
 
     // Previous location/direction
-    vsVector         lastPos;
-    vsVector         lastDir;
+    vsVector           lastPos;
+    vsVector           lastDir;
 
     // Coordinate conversion quaternions
-    vsQuat           coordXform;
-    vsQuat           coordXformInv;
+    vsQuat             coordXform;
+    vsQuat             coordXformInv;
 
     // Playing state of the source
-    int              playState;
+    int                playState;
 
     // Playback timer
-    vsTimer          *playTimer;
+    vsTimer            *playTimer;
 
     // Source parameters
-    double           gain;
-    double           maxGain;
-    double           minGain; 
-    double           refDistance;
-    double           maxDistance;
-    double           rolloffFactor;
-    double           pitch;
-    double           innerConeAngle;
-    double           outerConeAngle;
-    double           outerConeGain;
+    double             gain;
+    double             maxGain;
+    double             minGain; 
+    double             refDistance;
+    double             maxDistance;
+    double             rolloffFactor;
+    double             pitch;
+    double             innerConeAngle;
+    double             outerConeAngle;
+    double             outerConeGain;
 
     // Priority of this source
-    int              priority;
+    int                priority;
 
 VS_INTERNAL:
 
@@ -108,6 +117,12 @@ VS_INTERNAL:
 
     double          getEffectiveGain(vsVector listenerPos);
     vsVector        getLastPosition();
+
+    void            lockSource();
+    void            unlockSource();
+
+    void            updateStream();
+    void            updatePlayState();
 
 public:
 
@@ -151,6 +166,8 @@ public:
     // Loop control
     bool                  isLooping();
     void                  setLooping(bool looping);
+
+    bool                  isStreaming();
 
     // Volume and distance attenuation parameters
     double                getGain();

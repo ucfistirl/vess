@@ -86,6 +86,18 @@ vsSoundManager::vsSoundManager()
         alDeleteSources(numVoices - voiceLimit, (ALuint *)&voices[voiceLimit]);
         numVoices = voiceLimit;
     }
+
+    // Create a mutex to synchronize traversals of the sound source list
+    // between threads
+    pthread_mutex_init(&sourceListMutex, NULL);
+
+    // Create a separate thread to asynchronously handle some of the sound
+    // operations.  The main thread will be responsible for voice 
+    // management and scene operations.  The separate thread will handle
+    // the operations that don't rely on scene data (currently sound stream
+    // updates, and playback state).
+    sourceThreadDone = false;
+    pthread_create(&sourceThread, NULL, sourceThreadFunc, (void *)this);
 }
 
 // ------------------------------------------------------------------------
@@ -94,7 +106,78 @@ vsSoundManager::vsSoundManager()
 // ------------------------------------------------------------------------
 vsSoundManager::~vsSoundManager()
 {
+    // Wait for the worker thread to terminate
+    sourceThreadDone = true;
+    pthread_join(sourceThread, NULL);
+    pthread_mutex_destroy(&sourceListMutex);
+
+    // Reset the static instance variable to NULL
     instance = NULL;
+}
+
+// ------------------------------------------------------------------------
+// Entry point for the source update thread
+// ------------------------------------------------------------------------
+void *vsSoundManager::sourceThreadFunc(void *arg)
+{
+    vsSoundManager *manager;
+    int i;
+    unsigned long threadDelay, threadTime;
+    vsTimer *threadTimer;
+
+    // Create the timer for controlling the thread loop
+    threadTimer = new vsTimer();
+
+    // Compute the amound of time (in microseconds) to wait between 
+    // iterations of the thread loop
+    threadDelay = (unsigned long)
+        ((1.0 / (double)VS_SDM_SOURCE_THREAD_HZ) * 1.0e6);
+
+    // Get the sound manager instance from the argument (we don't want to
+    // rely on the getInstance() call, because this function may start
+    // running before the constructor is finished)
+    manager = (vsSoundManager *)arg;
+
+    // Start the update loop
+    while (!manager->sourceThreadDone)
+    {
+        // Mark the thread timer to start measuring time for this loop
+        threadTimer->mark();
+
+        // Acquire the source list mutex to keep the main thread from
+        // changing the source list around while we're traversing it
+        pthread_mutex_lock(&manager->sourceListMutex);
+
+        // Iterate over the sound sources that we know about
+        for (i = 0; i < manager->numSoundSources; i++)
+        {
+            // See if this source is a streaming source or not
+            if (manager->soundSources[i]->source->isStreaming())
+            {
+                // Update the sources streaming buffer (this implicitly
+                // deals with the playback state of the source as well)
+                manager->soundSources[i]->source->updateStream();
+            }
+            else
+            {
+                // Just update the source's playback state
+                manager->soundSources[i]->source->updatePlayState();
+            }
+        }
+
+        // Release the source list mutex
+        pthread_mutex_unlock(&manager->sourceListMutex);
+
+        // Get the elapsed time for this loop in microseconds
+        threadTime = (unsigned long)
+            (threadTimer->getElapsed() * 1.0e6);
+
+        // If we've got time to spare, take a break for a while
+        if (threadTime < threadDelay)
+            usleep((unsigned long)(threadDelay - threadTime));
+    }
+
+    return NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -113,6 +196,10 @@ void vsSoundManager::sortSources()
 
     // Get the listener's position (for gain computation)
     listenerPos = soundListener->getLastPosition();
+
+    // Acquire the source list mutex, since we're going to be changing the 
+    // source list around in the sort
+    pthread_mutex_lock(&sourceListMutex);
 
     // Clear the source gains array to -1 (sourceGain[i] < 0 indicates
     // that we haven't computed source i's gain yet)
@@ -193,6 +280,9 @@ void vsSoundManager::sortSources()
         // we know that the numPass'th element is in it's proper place
         numPass--;
     }
+
+    // Release the source list mutex
+    pthread_mutex_unlock(&sourceListMutex);
 }
 
 // ------------------------------------------------------------------------
@@ -255,6 +345,10 @@ void vsSoundManager::removeSoundPipe(vsSoundPipe *pipe)
 // ------------------------------------------------------------------------
 void vsSoundManager::addSoundSource(vsSoundSourceAttribute *attr)
 {
+    // Acquire the source list mutex to make sure the worker thread isn't
+    // traversing the source list while we're altering it
+    pthread_mutex_lock(&sourceListMutex);
+
     // Add the sound source to the sources array and reference it
     soundSources[numSoundSources]->source = attr;
     soundSources[numSoundSources]->source->ref();
@@ -273,6 +367,9 @@ void vsSoundManager::addSoundSource(vsSoundSourceAttribute *attr)
 
     // Increment the number of sources
     numSoundSources++;
+
+    // Release the source list mutex
+    pthread_mutex_unlock(&sourceListMutex);
 }
 
 // ------------------------------------------------------------------------
@@ -294,6 +391,10 @@ void vsSoundManager::removeSoundSource(vsSoundSourceAttribute *attr)
     // If we found the attribute, remove it from the array
     if (attrIndex < numSoundSources)
     {
+        // Acquire the source list mutex to make sure the worker thread isn't
+        // traversing the source list while we're altering it
+        pthread_mutex_lock(&sourceListMutex);
+
         // If the source is active, free up it's voice so other sources
         // can use it
         if (soundSources[attrIndex]->source->isActive())
@@ -328,6 +429,9 @@ void vsSoundManager::removeSoundSource(vsSoundSourceAttribute *attr)
         // Finally, recycle the deleted sound source list item, by
         // putting the deleted item back at the end of the list.
         soundSources[numSoundSources] = deletedItem;
+
+        // Release the source list mutex
+        pthread_mutex_unlock(&sourceListMutex);
     }
 }
 
@@ -551,6 +655,10 @@ void vsSoundManager::update()
         // need for the active ones.
         for (i = voiceLimit; i < numSoundSources; i++)
         {
+            // Lock the source because we may be changing it's active state
+            // here
+            soundSources[i]->source->lockSource();
+            
             // Check if the source is active
             if (soundSources[i]->source->isActive())
             {
@@ -574,6 +682,9 @@ void vsSoundManager::update()
                 // Revoke the source's voice, making the source inactive
                 soundSources[i]->source->revokeVoice();
             }
+
+            // Free the source mutex
+            soundSources[i]->source->unlockSource();
         }
 
         // Now, traverse the list of sources that should be active and
@@ -581,6 +692,9 @@ void vsSoundManager::update()
         i = 0;
         while ((i < voiceLimit) && (i < numSoundSources))
         {
+            // Lock the source, as we may be changing it's active state
+            soundSources[i]->source->lockSource();
+
             // Check if the source is inactive, but playing
             if ((!soundSources[i]->source->isActive()) && 
                 (soundSources[i]->source->isPlaying()))
@@ -594,6 +708,9 @@ void vsSoundManager::update()
                     soundSources[i]->source->assignVoice(voices[numVoices]);
                 }
             }
+
+            // Free the source mutex
+            soundSources[i]->source->unlockSource();
 
             // Move on to the next source
             i++;
