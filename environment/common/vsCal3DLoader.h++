@@ -86,6 +86,7 @@ public:
     vsPathMotionManager  *getNewAnimation(char *name, vsSkeletonKinematics
                                           *skeletonKinematics);
     vsGrowableArray      *getAnimationNameList();
+    int                  getNumAnimations();
 };
 
 #endif

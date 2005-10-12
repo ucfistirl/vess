@@ -428,3 +428,11 @@ vsGrowableArray *vsCal3DLoader::getAnimationNameList()
 {
     return animationList;
 }
+
+// ------------------------------------------------------------------------
+// Returns the number of animations found by the loader
+// ------------------------------------------------------------------------
+int vsCal3DLoader::getNumAnimations()
+{
+    return animationCount;
+}
