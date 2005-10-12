@@ -134,7 +134,6 @@ void vsMenuFrame::setFrame(char *path)
 {
     char *string;
     char *token;
-    int i;
 
     // Initialize the path to its empty state
     pathDepth = 0;
@@ -161,7 +160,6 @@ void vsMenuFrame::setFrame(char *path)
 void vsMenuFrame::appendIndex(int index)
 {
     int *tempIndices;
-    int i;
 
     // If the path is at its maximum length, it needs to be extended
     if (pathDepth == maxDepth)
