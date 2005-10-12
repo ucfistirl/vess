@@ -77,8 +77,12 @@ vsTimer::~vsTimer()
 DWORD vsTimer::getTimeDiff(DWORD latterTime, DWORD formerTime)
 {
     // Check the sizes of the parameters, to make sure latterTime is
-    // greater than formerTime
-    if (latterTime > formerTime)
+    // greater than or equal to formerTime.  We test equal because it's
+    // possible for mark() to be called followed by getElapsed() in the
+    // same frame.  The interval between these two calls may be less than
+    // a millisecond, which would cause latterTime and formerTime to be
+    // equal.
+    if (latterTime >= formerTime)
     {
         // Usual case, return the time difference
         return latterTime - formerTime;
@@ -133,6 +137,45 @@ void vsTimer::mark()
 
     // Save the new mark time
     markTime = newMark;
+}
+
+//------------------------------------------------------------------------
+// Records the time at which the given interval had elapsed since the last
+// mark.  If the given interval is less than the actual elapsed interval
+// since the last mark, this function behaves exactly like the mark()
+// function.
+//------------------------------------------------------------------------
+void vsTimer::markAtInterval(double intervalTime)
+{
+    DWORD newMark, intervalTimeMS;
+
+    // Get and record the current time in milliseconds
+    newMark = timeGetTime();
+
+    // Compute the new mark interval (in seconds)
+    markInterval = ((double)(getTimeDiff(newMark, markTime))) / 1000.0;
+
+    // See if the given interval is less than the elapsed interval
+    if (markInterval > intervalTime)
+    {
+        // Use the given interval, and set the new mark time to the time
+        // that the given interval would have expired.  Make sure to account
+        // for timer wraparound here
+        intervalTimeMS = (DWORD)((markInterval - intervalTime) * 1000.0);
+        if (markTime < intervalTimeMS)
+            markTime = UINT_MAX - (intervalTimeMS - newMark);
+        else
+            markTime = newMark - intervalTimeMS;
+
+        // Save the mark interval
+        markInterval = intervalTime;
+    }
+    else
+    {
+        // Use the actual elapsed interval and set the new mark time as if
+        // mark() had been called
+        markTime = newMark;
+    }
 }
 
 // ------------------------------------------------------------------------
