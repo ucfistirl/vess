@@ -29,6 +29,14 @@
 #include <libxml/parser.h>
 #include "vsPathMotion.h++"
 
+// Under Visual C++, we need to alias the access function and define the
+// R_OK symbol for read access checks on files
+#ifdef WIN32
+	#include <io.h>
+	#define access _access
+	#define R_OK 0x04
+#endif
+
 // ------------------------------------------------------------------------
 // Constructor
 // ------------------------------------------------------------------------
