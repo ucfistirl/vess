@@ -43,6 +43,14 @@ vsView::vsView()
     projMode = VS_VIEW_PROJMODE_PERSP;
     projHval = -1.0;
     projVval = -1.0;
+    projLeft = 0.0;
+    projRight = 1.0;
+    projBottom = 0.0;
+    projTop = 1.0;
+
+    // Initialize the change counter.  This tells the vsPane when the
+    // projection data has changed
+    changeNum = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -67,6 +75,9 @@ void vsView::setViewpoint(double xPosition, double yPosition, double zPosition)
 {
     // Set the viewpoint's position to the given values
     viewLocation.set(xPosition, yPosition, zPosition);
+
+    // Mark that a change was made to the view settings
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -79,6 +90,9 @@ void vsView::setViewpoint(vsVector newPosition)
 
     // Make sure the vector is the correct size
     viewLocation.setSize(3);
+
+    // Mark that a change was made to the view settings
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -194,6 +208,9 @@ void vsView::setDirectionFromVector(vsVector direction, vsVector upDirection)
     // * Finally, set the view orientation matrix as a composition of the
     // two quaternions
     viewRotation.setQuatRotation(upRotQuat * dirRotQuat);
+
+    // Mark that a change was made to the view settings
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -211,6 +228,9 @@ void vsView::lookAtPoint(vsVector targetPoint, vsVector upDirection)
     // Call the setDirectionFromVector method using the direction vector
     // computed and the specified up direction
     setDirectionFromVector(directionVec, upDirection);
+
+    // Mark that a change was made to the view settings
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -220,6 +240,9 @@ void vsView::setDirectionFromRotation(vsQuat rotQuat)
 {
     // Set the rotation matrix of the viewpoint using the given quaternion
     viewRotation.setQuatRotation(rotQuat);
+
+    // Mark that a change was made to the view settings
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -244,6 +267,9 @@ void vsView::setDirectionFromRotation(vsMatrix rotMatrix)
     // Eliminate any overall scale from the matrix (we only want rotation
     // here)
     viewRotation[3][3] = 1.0;
+
+    // Mark that a change was made to the view settings
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -255,6 +281,9 @@ void vsView::setClipDistances(double nearPlane, double farPlane)
     // vsPane's updateView() method)
     nearClip = nearPlane;
     farClip = farPlane;
+
+    // Mark that a change was made to the view settings
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -286,6 +315,9 @@ void vsView::setPerspective(double horizFOV, double vertiFOV)
     // Set the field of view parameters to the specified values
     projHval = horizFOV;
     projVval = vertiFOV;
+
+    // Mark that a change was made to the view settings
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -304,6 +336,32 @@ void vsView::setOrthographic(double horizSize, double vertiSize)
     // Set the width and height to the specified values
     projHval = horizSize;
     projVval = vertiSize;
+
+    // Mark that a change was made to the view settings
+    changeNum++;
+}
+
+// ------------------------------------------------------------------------
+// Sets the projection mode of the viewpoint to an off-axis perspective
+// projection with the given values as the distances from the center point
+// of the view to the sides of the viewing volume.  All values must be
+// specified explicitly.
+// ------------------------------------------------------------------------
+void vsView::setOffAxisPerspective(double left, double right, double bottom,
+                                   double top)
+{
+    // Camera manipulation is deferred for projection functions, since
+    // we can't determine the size of the pane here. See
+    // vsPane::updateView(), where these values are retrieved and
+    // utilized.
+    projMode = VS_VIEW_PROJMODE_OFFAXIS;
+    projLeft = left;
+    projRight = right;
+    projBottom = bottom;
+    projTop = top;
+
+    // Mark that a change was made to the view settings
+    changeNum++;
 }
 
 // ------------------------------------------------------------------------
@@ -364,6 +422,24 @@ void vsView::getProjectionData(int *mode, double *horizVal, double *vertiVal)
 
 // ------------------------------------------------------------------------
 // Internal function
+// Retrieves the data for off-axis projections
+// ------------------------------------------------------------------------
+void vsView::getOffAxisProjectionData(double *left, double *right,
+                                      double *bottom, double *top)
+{
+    // Return the projection values
+    if (left != NULL)
+        *left = projLeft;
+    if (right != NULL)
+        *right = projRight;
+    if (bottom != NULL)
+        *bottom = projBottom;
+    if (top != NULL)
+        *top = projTop;
+}
+
+// ------------------------------------------------------------------------
+// Internal function
 // Signals to this viewpoint object that its data is being controlled
 // by the indicated viewpoint attribute.
 // ------------------------------------------------------------------------
@@ -405,4 +481,14 @@ void vsView::updateFromAttribute()
     // it is attached to
     if (viewAttribute)
         viewAttribute->update();
+}
+
+// ------------------------------------------------------------------------
+// Internal function
+// Gets the "change number" for this object. The change number is a value
+// that is incremented every time some parameter of the view is modified.
+// ------------------------------------------------------------------------
+int vsView::getChangeNum()
+{
+    return changeNum;
 }

@@ -35,6 +35,7 @@ enum VS_GRAPHICS_DLL vsViewProjectionMode
 {
     VS_VIEW_PROJMODE_PERSP,
     VS_VIEW_PROJMODE_ORTHO
+    VS_VIEW_PROJMODE_OFFAXIS_PERSP
 };
 
 class VS_GRAPHICS_DLL vsView : public vsObject
@@ -48,6 +49,8 @@ private:
 
     int                     projMode;
     double                  projHval, projVval;
+    double                  projLeft, projRight, projTop, projBottom;
+    int                     changeNum;
     
     vsViewpointAttribute    *viewAttribute;
 
@@ -55,6 +58,8 @@ VS_INTERNAL:
 
     void        getProjectionData(int *mode, double *horizVal,
                                   double *vertiVal);
+    void        getOffAxisProjectionData(double *left, double *right,
+                                         double *bottom, double *top);
 
     bool        attachViewAttribute(vsViewpointAttribute *theAttribute);
     void        detachViewAttribute();
@@ -85,6 +90,8 @@ public:
 
     void        setPerspective(double horizFOV, double vertiFOV);
     void        setOrthographic(double horizSize, double vertiSize);
+    void        setOffAxisPerspective(double left, double right, double bottom,
+                                      double top);
 
     vsVector    getDirection();
     vsVector    getUpDirection();

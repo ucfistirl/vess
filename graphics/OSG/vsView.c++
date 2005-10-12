@@ -266,6 +266,29 @@ void vsView::setOrthographic(double horizSize, double vertiSize)
 }
 
 // ------------------------------------------------------------------------
+// Sets the projection mode of the viewpoint to an off-axis perspective 
+// projection with the given values as the distances from the center point 
+// of the view to the sides of the viewing volume.  All values must be
+// specified explicitly.
+// ------------------------------------------------------------------------
+void vsView::setOffAxisPerspective(double left, double right, double bottom, 
+                                   double top)
+{
+    // Camera manipulation is deferred for projection functions, since
+    // we can't determine the size of the pane here. See 
+    // vsPane::updateView(), where these values are retrieved and 
+    // utilized.
+    projMode = VS_VIEW_PROJMODE_OFFAXIS_PERSP;
+    projLeft = left;
+    projRight = right;
+    projBottom = bottom;
+    projTop = top;
+
+    // Mark that a change was made
+    changeNum++;
+}
+
+// ------------------------------------------------------------------------
 // Returns a vector indicating the current view direction
 // ------------------------------------------------------------------------
 vsVector vsView::getDirection()
@@ -312,6 +335,20 @@ void vsView::getProjectionData(int *mode, double *horizVal, double *vertiVal)
     *mode = projMode;
     *horizVal = projHval;
     *vertiVal = projVval;
+}
+
+// ------------------------------------------------------------------------
+// Internal function
+// Retrieves the data for off-axis projections
+// ------------------------------------------------------------------------
+void vsView::getOffAxisProjectionData(double *left, double *right, 
+                                      double *bottom, double *top)
+{
+    // Return the projection values
+    *left = projLeft;
+    *right = projRight;
+    *bottom = projBottom;
+    *top = projTop;
 }
 
 // ------------------------------------------------------------------------
