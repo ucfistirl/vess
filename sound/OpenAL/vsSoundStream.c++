@@ -175,6 +175,14 @@ bool vsSoundStream::isBufferReady()
 }
 
 // ------------------------------------------------------------------------
+// Returns whether or not the both buffers are empty
+// ------------------------------------------------------------------------
+bool vsSoundStream::isEmpty()
+{
+    return (frontBufferEmpty && backBufferEmpty);
+}
+
+// ------------------------------------------------------------------------
 // Fills the front or back buffer with the given data and queues it for 
 // playing.  Returns true if successful or false if not.  May fail if
 // there is no empty buffer to hold the audio, or if no 

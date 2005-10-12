@@ -71,6 +71,9 @@ public:
     // Returns true if the back buffer is empty and ready for queuing
     bool                  isBufferReady();
 
+    // Returns true if the stream is empty (both buffers are empty)
+    bool                  isEmpty();
+
     // Fills the back buffer with the given audio data and queues it for
     // playing.  Return value indicates success or failure.
     bool                  queueBuffer(void *audioData);
