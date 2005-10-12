@@ -34,7 +34,6 @@
 // ------------------------------------------------------------------------
 vsUDPNetworkInterface::vsUDPNetworkInterface(char *address, u_short port)
 {
-    char             hostname[MAXHOSTNAMELEN];
     struct hostent   *host;
 
     // Open the socket
