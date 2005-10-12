@@ -529,6 +529,22 @@ vsPaneBufferMode vsPane::getBufferMode()
 }
 
 // ------------------------------------------------------------------------
+// Sets the distance between the eyes for stereo visuals
+// ------------------------------------------------------------------------
+void vsPane::setEyeSeparation(double newSeparation)
+{
+    osgDisplaySettings->setEyeSeparation(newSeparation);
+}
+
+// ------------------------------------------------------------------------
+// Returns the current distance between the eyes for stereo visuals
+// ------------------------------------------------------------------------
+double vsPane::getEyeSeparation()
+{
+    return osgDisplaySettings->getEyeSeparation();
+}
+
+// ------------------------------------------------------------------------
 // Makes this pane visible. Panes are visible by default.
 // ------------------------------------------------------------------------
 void vsPane::showPane()
@@ -725,6 +741,7 @@ void vsPane::updateView()
     osg::Vec3 osgLookAtPoint;
     osg::Vec3 osgUpDirection;
     double nearClipDist, farClipDist;
+    double projLeft, projRight, projBottom, projTop;
     
     // Do nothing if no vsView is attached
     if (sceneView == NULL)
@@ -736,8 +753,7 @@ void vsPane::updateView()
     if (viewAttr)
         viewAttr->update();
     
-    // Get the projection values from the vsView and the size of the pane,
-    // and adjust the osgSceneView and osgCamera, if necessary
+    // Get the width and height of the pane, as well as the Z-clip distances
     getSize(&paneWidth, &paneHeight);
     sceneView->getProjectionData(&projMode, &projHval, &projVval);
     sceneView->getClipDistances(&nearClipDist, &farClipDist);
@@ -806,7 +822,7 @@ void vsPane::updateView()
             osgSceneView->setProjectionMatrixAsPerspective(vFOV, aspectMatch,
                 nearClipDist, farClipDist);
         }
-        else
+        else if (projMode == VS_VIEW_PROJMODE_ORTHO)
         {
             // Check the horizontal and vertical values to see if and which
             // parameters are set to default values.
@@ -841,6 +857,18 @@ void vsPane::updateView()
                 osgSceneView->setProjectionMatrixAsOrtho(-projHval, projHval,
                     -projVval, projVval, nearClipDist, farClipDist);
             }
+        }
+        else
+        {
+            // This is an off-axis projection, get the four sides of the
+            // viewing volume
+            sceneView->getOffAxisProjectionData(&projLeft, &projRight,
+                &projBottom, &projTop);
+
+            // Set the OSG scene view to use the off-axis projection
+            // matrix
+            osgSceneView->setProjectionMatrixAsFrustum(projLeft, projRight,
+                projBottom, projTop, nearClipDist, farClipDist);
         }
 
         // Calculate the current view position and orientation

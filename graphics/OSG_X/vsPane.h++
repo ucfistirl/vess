@@ -138,6 +138,10 @@ public:
     // Buffer mode functions
     void                  setBufferMode(vsPaneBufferMode newMode);
     vsPaneBufferMode      getBufferMode();
+
+    // Eye separation functions
+    void                  setEyeSeparation(double newSeparation);
+    double                getEyeSeparation();
     
     // Pane visibility functions
     void                  showPane();

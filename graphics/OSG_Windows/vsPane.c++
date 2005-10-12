@@ -29,7 +29,7 @@
 #include <osg/CullFace>
 #include <osg/LightModel>
 #include <osg/ShadeModel>
-#include <osgUtil/DisplayListVisitor>
+#include <osgUtil/GLObjectsVisitor>
 #include <osgUtil/UpdateVisitor>
 #include <osgUtil/CullVisitor>
 #include <stdio.h>
@@ -213,6 +213,9 @@ vsPane::~vsPane()
     // Unreference the display settings object
     osgDisplaySettings->unref();
 
+    // Unreference the RenderStage object
+    renderStage->unref();
+
     // Unreference the VESS scene
     if (sceneRoot != NULL)
         sceneRoot->unref();
@@ -300,7 +303,7 @@ void vsPane::setSize(int width, int height)
     osgSceneView->getViewport()->getViewport(x, y, oldWidth, oldHeight);
 
     // Compute the new normalized width and height
-    parentWindow->getSize(&winWidth, &winHeight);
+    parentWindow->getDrawableSize(&winWidth, &winHeight);
     widthNorm = (double)width / (double)winWidth;
     heightNorm = (double)height / (double)winHeight;
 
@@ -338,12 +341,12 @@ void vsPane::setPosition(int xPos, int yPos)
     int x, y, width, height;
     int winWidth, winHeight;
 
-    // Get the current viewport settings to obtain the pane's width and 
+    // Get the current viewport settings to obtain the pane's width and
     // height
     osgSceneView->getViewport()->getViewport(x, y, width, height);
 
     // Compute the new normalized origin
-    parentWindow->getSize(&winWidth, &winHeight);
+    parentWindow->getDrawableSize(&winWidth, &winHeight);
     xPosNorm = (double)xPos / (double)winWidth;
     yPosNorm = (double)yPos / (double)winHeight;
 
@@ -380,7 +383,7 @@ void vsPane::autoConfigure(int panePlacement)
     int winWidth, winHeight;
 
     // Get the dimensions of the window
-    parentWindow->getSize(&winWidth, &winHeight);
+    parentWindow->getDrawableSize(&winWidth, &winHeight);
 
     // Get the viewport of the OSG SceneView
     viewport = osgSceneView->getViewport();
@@ -518,6 +521,22 @@ vsPaneBufferMode vsPane::getBufferMode()
 }
 
 // ------------------------------------------------------------------------
+// Sets the distance between the eyes for stereo visuals
+// ------------------------------------------------------------------------
+void vsPane::setEyeSeparation(double newSeparation)
+{
+    osgDisplaySettings->setEyeSeparation(newSeparation);
+}
+
+// ------------------------------------------------------------------------
+// Returns the current distance between the eyes for stereo visuals
+// ------------------------------------------------------------------------
+double vsPane::getEyeSeparation()
+{
+    return osgDisplaySettings->getEyeSeparation();
+}
+
+// ------------------------------------------------------------------------
 // Makes this pane visible. Panes are visible by default.
 // ------------------------------------------------------------------------
 void vsPane::showPane()
@@ -546,7 +565,7 @@ void vsPane::setBackgroundColor(double r, double g, double b)
     bgColor.set((float)r, (float)g, (float)b, 1.0f);
     
     // Set the background color of the OSG SceneView object
-    osgSceneView->setBackgroundColor(bgColor);
+    osgSceneView->setClearColor(bgColor);
 }
 
 // ------------------------------------------------------------------------
@@ -558,7 +577,7 @@ void vsPane::getBackgroundColor(double *r, double *g, double *b)
     osg::Vec4 bgColor;
 
     // Get the background color of the OSG SceneView object
-    bgColor = osgSceneView->getBackgroundColor();
+    bgColor = osgSceneView->getClearColor();
 
     // Return each color component if the corresponding parameter is valid
     if (r != NULL)
@@ -714,6 +733,7 @@ void vsPane::updateView()
     osg::Vec3 osgLookAtPoint;
     osg::Vec3 osgUpDirection;
     double nearClipDist, farClipDist;
+    double projLeft, projRight, projBottom, projTop;
     
     // Do nothing if no vsView is attached
     if (sceneView == NULL)
@@ -725,8 +745,7 @@ void vsPane::updateView()
     if (viewAttr)
         viewAttr->update();
     
-    // Get the projection values from the vsView and the size of the pane,
-    // and adjust the osgSceneView and osgCamera, if necessary
+    // Get the width and height of the pane, as well as the Z-clip distances
     getSize(&paneWidth, &paneHeight);
     sceneView->getProjectionData(&projMode, &projHval, &projVval);
     sceneView->getClipDistances(&nearClipDist, &farClipDist);
@@ -795,7 +814,7 @@ void vsPane::updateView()
             osgSceneView->setProjectionMatrixAsPerspective(vFOV, aspectMatch,
                 nearClipDist, farClipDist);
         }
-        else
+        else if (projMode == VS_VIEW_PROJMODE_ORTHO)
         {
             // Check the horizontal and vertical values to see if and which
             // parameters are set to default values.
@@ -831,23 +850,38 @@ void vsPane::updateView()
                     -projVval, projVval, nearClipDist, farClipDist);
             }
         }
+        else
+        {
+            // This is an off-axis projection, get the four sides of the
+            // viewing volume
+            sceneView->getOffAxisProjectionData(&projLeft, &projRight,
+                &projBottom, &projTop);
 
-    // Calculate the current view position and orientation
-    eyePoint = sceneView->getViewpoint();
-    lookDirection = sceneView->getDirection();
-    lookAtPoint = eyePoint + lookDirection.getScaled(10.0);
-    upDirection = sceneView->getUpDirection();
+            // Set the OSG scene view to use the off-axis projection
+            // matrix
+            osgSceneView->setProjectionMatrixAsFrustum(projLeft, projRight,
+                projBottom, projTop, nearClipDist, farClipDist);
+        }
 
-    // Copy the relevant vectors into OSG vectors
-    osgEyePoint.set(eyePoint[VS_X], eyePoint[VS_Y], eyePoint[VS_Z]);
-    osgLookAtPoint.set(lookAtPoint[VS_X], lookAtPoint[VS_Y], lookAtPoint[VS_Z]);
-    osgUpDirection.set(upDirection[VS_X], upDirection[VS_Y], upDirection[VS_Z]);
+        // Calculate the current view position and orientation
+        eyePoint = sceneView->getViewpoint();
+        lookDirection = sceneView->getDirection();
+        lookAtPoint = eyePoint + lookDirection.getScaled(10.0);
+        upDirection = sceneView->getUpDirection();
 
-    // Set the current view matrix using the 'look at' interface
-    osgSceneView->setViewMatrixAsLookAt(osgEyePoint, osgLookAtPoint, osgUpDirection);
+        // Copy the relevant vectors into OSG vectors
+        osgEyePoint.set(eyePoint[VS_X], eyePoint[VS_Y], eyePoint[VS_Z]);
+        osgLookAtPoint.set(lookAtPoint[VS_X], lookAtPoint[VS_Y], 
+            lookAtPoint[VS_Z]);
+        osgUpDirection.set(upDirection[VS_X], upDirection[VS_Y], 
+            upDirection[VS_Z]);
 
-    // Record the change number
-    viewChangeNum = sceneView->getChangeNum();
+        // Set the current view matrix using the 'look at' interface
+        osgSceneView->setViewMatrixAsLookAt(osgEyePoint, osgLookAtPoint, 
+            osgUpDirection);
+
+        // Record the change number
+        viewChangeNum = sceneView->getChangeNum();
     }
 }
 
@@ -863,7 +897,7 @@ void vsPane::resize()
     int x, y, width, height;
 
     // Get the current size of the window
-    parentWindow->getSize(&winWidth, &winHeight);
+    parentWindow->getDrawableSize(&winWidth, &winHeight);
 
     // Compute the position and size of the pane in local window coordinates
     x = (int)(xPosNorm * (double)winWidth);
