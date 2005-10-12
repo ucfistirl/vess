@@ -137,7 +137,14 @@ vsWindow *vsPane::getParentWindow()
 // ------------------------------------------------------------------------
 void vsPane::setView(vsView *view)
 {
+    // Copy the vsView object
     sceneView = view;
+
+    // Initialize our local copy of the change number to one behind the
+    // new vsView's change number.  This will force the pfChannel to be 
+    // updated with all the latest settings.
+    if (sceneView)
+        viewChangeNum = sceneView->getChangeNum() - 1;
 }
 
 // ------------------------------------------------------------------------
@@ -443,6 +450,23 @@ vsPaneBufferMode vsPane::getBufferMode()
 }
 
 // ------------------------------------------------------------------------
+// Allows the eye separation for stereo rendering to be adjusted
+// ------------------------------------------------------------------------
+void vsPane::setEyeSeparation(double newSeparation)
+{
+    // Set the new eye separation value
+    eyeSeparation = newSeparation;
+}
+                                                                                
+// ------------------------------------------------------------------------
+// Returns the currently-set eye separation
+// ------------------------------------------------------------------------
+double vsPane::getEyeSeparation()
+{
+    return eyeSeparation;
+}
+                                                                                
+// ------------------------------------------------------------------------
 // Makes this pane visible. Panes are visible by default.
 // ------------------------------------------------------------------------
 void vsPane::showPane()
@@ -669,6 +693,7 @@ void vsPane::updateView()
     double near, far;
     int projMode;
     double projHval, projVval;
+    double projLeft, projRight, projBottom, projTop;
     int paneWidth, paneHeight;
     double aspectMatch;
     vsViewpointAttribute *viewAttr;
@@ -748,11 +773,11 @@ void vsPane::updateView()
         curFarClip = far;
     }
 
-    // Get the projection data from the view object and check to see if
-    // it has changed since the last time we looked.
+    // Get the latest set of projection data from the vsView
     sceneView->getProjectionData(&projMode, &projHval, &projVval);
-    if ((curProjMode != projMode) || (curProjHval != projHval) ||
-        (curProjVval != projVval))
+
+    // See if the settings have changed since the last update
+    if (sceneView->getChangeNum != viewChangeNum)
     {
         // Set the new projection based on the new mode
         if (projMode == VS_VIEW_PROJMODE_PERSP)
@@ -763,7 +788,7 @@ void vsPane::updateView()
             if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
                 stereoChannel->setFOV(projHval, projVval);
         }
-        else
+        else if (projMode == VS_VIEW_PROJMODE_ORTHO)
         {
             // Determine which projection values are specified, and
             // which must be assumed
@@ -827,6 +852,20 @@ void vsPane::updateView()
                     stereoChannel->makeOrtho(-projHval, projHval, -projVval,
                         projVval);
             }
+        }
+        else
+        {
+            // This is an off-axis projection, get the frustum extents and
+            // set them on the channel
+            sceneView->getOffAxisProjectionData(&projLeft, &projRight, 
+                &projBottom, &projTop);
+            performerChannel->makePersp(projLeft, projRight, projBottom, 
+                projTop);
+
+            // Update the stereo channel as well, if we're in stereo mode
+            if (bufferMode == VS_PANE_BUFFER_STEREO_QUADBUFFER)
+                stereoChannel->makePersp(projLeft, projRight, projBottom, 
+                    projTop);
         }
         
         // Take note of the current projection mode so we can detect
