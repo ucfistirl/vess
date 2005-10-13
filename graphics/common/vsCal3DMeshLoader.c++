@@ -1020,14 +1020,14 @@ resultMesh->setBinding(VS_GEOMETRY_COLORS, VS_GEOMETRY_BIND_PER_VERTEX);
 // Color vertex according to influences.
 double sum;
 int count;
-int crap;
+int debugIndex;
 
 sum = 0.0;
 count = 0;
-for (crap = 0; crap < 4; crap++)
+for (debugIndex = 0; debugIndex < 4; debugIndex++)
 {
-    sum += vertexData->weights[crap];
-    if (vertexData->weights[crap] > 0.0)
+    sum += vertexData->weights[debugIndex];
+    if (vertexData->weights[debugIndex] > 0.0)
         count++;
 }
 switch (count)
@@ -1099,10 +1099,10 @@ switch (count)
 // Color vertex according to influences.
 sum = 0.0;
 count = 0;
-for (crap = 0; crap < 4; crap++)
+for (debugIndex = 0; debugIndex < 4; debugIndex++)
 {
-    sum += vertexData->weights[crap];
-    if (vertexData->weights[crap] > 0.0)
+    sum += vertexData->weights[debugIndex];
+    if (vertexData->weights[debugIndex] > 0.0)
         count++;
 }
 switch (count)
@@ -1174,10 +1174,10 @@ switch (count)
 // Color vertex accoring to influences.
 sum = 0.0;
 count = 0;
-for (crap = 0; crap < 4; crap++)
+for (debugIndex = 0; debugIndex < 4; debugIndex++)
 {
-    sum += vertexData->weights[crap];
-    if (vertexData->weights[crap] > 0.0)
+    sum += vertexData->weights[debugIndex];
+    if (vertexData->weights[debugIndex] > 0.0)
         count++;
 }
 switch (count)
