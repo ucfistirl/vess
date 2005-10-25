@@ -6,6 +6,7 @@ libvsGraphics_a_SOURCES = \
                           common/vsCal3DBoneLoader.c++ \
                           common/vsCal3DMeshLoader.c++ \
                           common/vsOptimizer.c++ \
+                          common/vsParticleSystem.c++ \
                           common/vsScenePrinter.c++ \
                           common/vsSkeleton.c++ \
                           common/vsSkeletonMesh.c++ \
@@ -75,6 +76,7 @@ include_HEADERS = \
                   common/vsCal3DBoneLoader.h++ \
                   common/vsCal3DMeshLoader.h++ \
                   common/vsOptimizer.h++ \
+                  common/vsParticleSystem.h++ \
                   common/vsScenePrinter.h++ \
                   common/vsSkeleton.h++ \
                   common/vsSkeletonMesh.h++ \
