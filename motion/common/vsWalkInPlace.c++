@@ -16,6 +16,7 @@
 //    Description:  Motion model for walking action
 //
 //    Author(s):    Jason Daly
+//    Modified :    David Smith (July 21, 2005)
 //
 //------------------------------------------------------------------------
 
@@ -24,8 +25,11 @@
 #include <math.h>
 #include "vsTimer.h++"
 
+#define MM_TO_INCHES 0.039370079
+
 // ------------------------------------------------------------------------
-// Constructor for vsWalkInPlace
+// Constructor for vsWalkInPlace, using the positions of the feet and
+// the orientation of the back.
 // ------------------------------------------------------------------------
 vsWalkInPlace::vsWalkInPlace(vsMotionTracker *back, vsMotionTracker *left, 
                              vsMotionTracker *right, vsKinematics *kin)
@@ -35,6 +39,8 @@ vsWalkInPlace::vsWalkInPlace(vsMotionTracker *back, vsMotionTracker *left,
     backTracker = back;
     lFootTracker = left;
     rFootTracker = right;
+    lHipTracker = NULL;
+    rHipTracker = NULL;
     kinematics = kin;
 
     // Complain if any trackers are invalid
@@ -71,6 +77,57 @@ vsWalkInPlace::vsWalkInPlace(vsMotionTracker *back, vsMotionTracker *left,
     lastTrackerHeading = 0.0;
 }
 
+// ------------------------------------------------------------------------
+// Constructor for vsWalkInPlace using the positions of the feet and the
+// hips.  The hip positions are used to compute the orientation of the
+// body.  This provides support for point-based tracking systems.
+// ------------------------------------------------------------------------
+vsWalkInPlace::vsWalkInPlace(vsMotionTracker *lHip, vsMotionTracker *rHip, 
+                             vsMotionTracker *left, vsMotionTracker *right, 
+                             vsKinematics *kin)
+             : vsMotionModel()
+{
+    // Save the tracker and kinematics objects
+    backTracker = NULL;
+    lFootTracker = left;
+    rFootTracker = right;
+    lHipTracker = lHip;
+    rHipTracker = rHip;
+    kinematics = kin;
+
+    // Complain if any trackers are invalid
+    if ((lHip == NULL) || (rHip == NULL) || 
+        (lFootTracker == NULL) || (rFootTracker ==  NULL))
+    {
+        printf("vsWalkInPlace::vsWalkInPlace:  WARNING -- NULL motion "
+            "tracker(s) specified!\n");
+    }
+
+    // Set movement allowed flags
+    forwardAllowed = true;
+    backwardAllowed = true;
+    sideStepAllowed = true;
+
+    // Set movement speed values
+    forwardSpeed = VS_WIP_DEFAULT_FWD_SPD;
+    backwardSpeed = VS_WIP_DEFAULT_BCK_SPD;
+    sideStepSpeed = VS_WIP_DEFAULT_SS_SPD;
+
+    // Set motion trigger distance thresholds (how far the foot trackers
+    // need to be separated in a particular direction for motion to
+    // occur)
+    forwardThresh = VS_WIP_DEFAULT_FWD_THRESH;
+    backwardThresh = VS_WIP_DEFAULT_BCK_THRESH;
+    sideStepThresh = VS_WIP_DEFAULT_SS_THRESH;
+
+    // Set movement distance allowance values
+    maxAllowance = VS_WIP_DEFAULT_ALLOWANCE;
+    moveAllowance = maxAllowance;
+    movementLimited = VS_WIP_DEFAULT_LIMIT_STATE;
+
+    // Initialize the heading to default
+    lastTrackerHeading = 0.0;
+}
 // ------------------------------------------------------------------------
 // Destructor for vsWalkInPlace
 // ------------------------------------------------------------------------
@@ -268,6 +325,8 @@ void vsWalkInPlace::disableMovementLimit()
 void vsWalkInPlace::update()
 {
     vsVector             backOrient;
+    vsVector             lHipPos, rHipPos, lHipFloor;
+    vsVector             forwardVector;
     vsVector             leftFoot, rightFoot;
     double               trackerHeading;
     double               deltaHeading;
@@ -275,30 +334,56 @@ void vsWalkInPlace::update()
     vsVector             separationVec;
     double               deltaX, deltaY, deltaZ;
     double               deltaTime;
+    double               p, r;
     vsVector             v;
     bool                 motionFlag;
     double               moveSpeed;
     double               moveDistance;
     vsQuat               currentOrientation;
 
-    // Grab tracker data
-    backOrient = backTracker->getOrientationVec(VS_EULER_ANGLES_ZXY_R);
-    leftFoot = lFootTracker->getPositionVec();
-    rightFoot = rFootTracker->getPositionVec();
+    // See whether we're using the hips' positions or the back's orientation,
+    // to determine the body's orientation
+    if (lHipTracker && rHipTracker)
+    {
+        // Grab tracker data, including the feet
+        lHipPos = lHipTracker->getPositionVec().getScaled(MM_TO_INCHES);
+        rHipPos = rHipTracker->getPositionVec().getScaled(MM_TO_INCHES);
+        leftFoot = lFootTracker->getPositionVec().getScaled(MM_TO_INCHES);
+        rightFoot = rFootTracker->getPositionVec().getScaled(MM_TO_INCHES);
+        
+        // Get projection on floor of left hip position
+        lHipFloor = lHipPos;
+        lHipFloor[VS_Z] = leftFoot[VS_Z];
+    
+        // Calculate the forward vector and get the body's heading
+        forwardVector = 
+            (rHipPos - lHipPos).getCrossProduct(lHipFloor - lHipPos);
+        forwardVector.normalize();
+        headingQuat.setVecsRotation(vsVector(0.0, 1.0, 0.0),
+            vsVector(0.0, 0.0, 1.0), forwardVector, vsVector(0.0, 0.0, 1.0));
+        headingQuat.getEulerRotation(
+            VS_EULER_ANGLES_ZXY_R, &trackerHeading, &p, &r);
+    }
+    else
+    {
+        // Grab tracker data, including the feet
+        leftFoot = lFootTracker->getPositionVec();
+        rightFoot = rFootTracker->getPositionVec();
+        backOrient = backTracker->getOrientationVec(VS_EULER_ANGLES_ZXY_R);
+        
+        // Get the body's heading using the back tracker data
+        trackerHeading = backOrient[VS_H];
+        headingQuat.setAxisAngleRotation(0, 0, 1, trackerHeading);
+    }
 
-    // Get the heading of the back tracker
-    trackerHeading = backOrient[VS_H];
-    headingQuat.setAxisAngleRotation(0, 0, 1, -trackerHeading);
 
     // Compute the separation distance of the feet in all three axes
     // and rotate the separation vector to align it with the back
     // heading.  This allows us to easily determine precisely how the
     // feet are positioned with respect to the body.
     separationVec.setSize(3);
-    separationVec[VS_X] = rightFoot[VS_X] - leftFoot[VS_X];
-    separationVec[VS_Y] = rightFoot[VS_Y] - leftFoot[VS_Y];
-    separationVec[VS_Z] = rightFoot[VS_Z] - leftFoot[VS_Z];
-    separationVec = headingQuat.rotatePoint(separationVec);
+    separationVec = rightFoot - leftFoot;
+    separationVec = headingQuat.getConjugate().rotatePoint(separationVec);
 
     // Extract the feet separation distances to their x, y, and z
     // scalar components

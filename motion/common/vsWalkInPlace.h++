@@ -16,6 +16,7 @@
 //    Description:  Motion model for walking action
 //
 //    Author(s):    Jason Daly
+//    Modified :    David Smith (July 21, 2005)
 //
 //------------------------------------------------------------------------
 
@@ -59,6 +60,8 @@ protected:
     vsMotionTracker    *backTracker;
     vsMotionTracker    *lFootTracker;
     vsMotionTracker    *rFootTracker;
+    vsMotionTracker    *lHipTracker;
+    vsMotionTracker    *rHipTracker;
 
     // Previous heading as read from the back tracker
     double             lastTrackerHeading;
@@ -92,6 +95,11 @@ public:
     // Constructor
                           vsWalkInPlace(vsMotionTracker *back, 
                                         vsMotionTracker *left, 
+                                        vsMotionTracker *right,
+                                        vsKinematics *kin);
+                          vsWalkInPlace(vsMotionTracker *lHip, 
+                                        vsMotionTracker *rHip,
+                                        vsMotionTracker *left,
                                         vsMotionTracker *right,
                                         vsKinematics *kin);
 
