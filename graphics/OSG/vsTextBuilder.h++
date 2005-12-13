@@ -45,7 +45,7 @@
 //#define VS_OSG_TEXT_SCALE           0.07514f
 #define VS_OSG_TEXT_SCALE           0.005f
 
-enum VS_GRAPHICS_DLL vsTextBuilderJustification
+enum  vsTextBuilderJustification
 {
     VS_TEXTBUILDER_JUSTIFY_LEFT,
     VS_TEXTBUILDER_JUSTIFY_RIGHT,

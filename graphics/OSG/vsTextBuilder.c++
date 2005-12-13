@@ -339,7 +339,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
         return NULL;
 
     // Tell the OSG Font object to make the character textures reasonably large
-    osgFont->setSize(128, 128);
+    osgFont->setFontResolution(128, 128);
     osgFont->setTextureSizeHint(256, 256);
 
     // Create a new vsComponent to hold the characters
