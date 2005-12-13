@@ -21,7 +21,6 @@
 //------------------------------------------------------------------------
 
 #include <AL/al.h>
-#include <AL/alc.h>
 #include <AL/alut.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,14 +34,14 @@ vsSoundSample::vsSoundSample(char *fileName)
              : vsSoundBuffer()
 {
     ALsizei   size;
-    ALsizei   freq;
+    ALfloat   freq;
     ALenum    format;
     ALboolean loop;
 
     void      *soundData;
 
-    // Generate a single OpenAL sound buffer for the audio data
-    alGenBuffers(1, &bufferID);
+    // Generate a single OpenAL sound buffer using the given file
+    alutCreateBufferFromFile(fileName);
     
     // See if the buffer was generated properly
     if (alGetError() != AL_NO_ERROR)
@@ -52,8 +51,7 @@ vsSoundSample::vsSoundSample(char *fileName)
     }
 
     // Load the WAV file, keep track of the data format parameters as well
-    alutLoadWAVFile((ALbyte *)fileName, &format, &soundData, &size, &freq, 
-        &loop);
+    soundData = alutLoadMemoryFromFile(fileName, &format, &size, &freq);
 
     // Make sure the load succeeds
     if (soundData == NULL)
@@ -71,7 +69,7 @@ vsSoundSample::vsSoundSample(char *fileName)
     {
         // Store the sound parameters for later retrieval
         bufferSize = size;
-        bufferFrequency = freq;
+        bufferFrequency = (int)freq;
         bufferFormat = format;
         
         // Pass the WAV file data and parameters to the buffer
