@@ -458,6 +458,11 @@ AC_ARG_WITH(openal,
 [[  --with-openal=PREFIX    Specify the path prefix for OpenAL [/usr/local]]],
 SOUND_LIBRARY=openal, with_openal=/usr/local; SOUND_LIBRARY=openal)
 
+dnl Provide the option to use ALUT (and specify a path for it)
+AC_ARG_WITH(alut,
+[[  --with-alut=PREFIX      Specify the path prefix for ALUT [/usr/local]]],, 
+with_alut=/usr/local)
+
 dnl Check if sound is enabled
 AC_MSG_CHECKING([if sound is enabled])
 if test x$enable_sound = xyes; then
@@ -488,8 +493,23 @@ if test x$enable_sound = xyes; then
                 )
             fi
 
+            dnl See if we really have ALUT available
+            if test -e "$with_alut/include/AL/alut.h" ; then
+                SOUND_INCLUDE_DIR="$SOUND_INCLUDE_DIR -I$with_alut/include"
+            else
+                AC_MSG_ERROR([
+  
+   The OpenAL header files were not found.  Either provide a path
+   to the OpenAL library via the --with-openal=PREFIX option to 
+   configure, or disable the sound features of VESS using the
+   --disable-sound option to configure.
+
+]
+                )
+            fi
+
             dnl Add the OpenAL and supporting libraries to the link line
-            SOUND_LIB="-lopenal -lpthread -lm -ldl"
+            SOUND_LIB="-lalut -lopenal -lpthread -lm -ldl"
 
             dnl If we're on an IRIX box, we also need to link dmedia's 
             dnl libaudio library
@@ -542,17 +562,35 @@ if test x$enable_sound = xyes; then
                 )
             fi
 
+            dnl Add ALUT path to the library search path
+            SOUND_LIB_DIR="$SOUND_LIB_DIR -L$with_alut/lib"
+
             dnl Check the OpenAL libraries
             SOUND_ERROR=no
             LIBS=
             AC_CHECK_LIB(openal, alSourcei,,SOUND_ERROR=yes, $SOUND_LIB_DIR $SOUND_LIB)
-
             dnl Print a warning if the check fails
             if test x$SOUND_ERROR = xyes ; then
                 AC_MSG_WARN([
 
   There is a problem with the OpenAL libraries.  Either they are not
   installed correctly, or they have not been compiled.  VESS will compile, 
+  but any applications that use the VESS Sound Library will most likely 
+  not compile or run.
+
+]           
+                )
+            fi
+
+            dnl Check ALUT
+            AC_CHECK_LIB(alut, alutLoadMemoryFromFile,,SOUND_ERROR=yes, $SOUND_LIB_DIR $SOUND_LIB)
+
+            dnl Print a warning if the check fails
+            if test x$SOUND_ERROR = xyes ; then
+                AC_MSG_WARN([
+
+  There is a problem with the ALUT library.  Either it is not
+  installed correctly, or it has not been compiled.  VESS will compile, 
   but any applications that use the VESS Sound Library will most likely 
   not compile or run.
 
@@ -639,7 +677,7 @@ if test x$with_raw1394 != xno ; then
         fi
 
         dnl Add the 1394 path information to the variables that will eventually
-        dnl get exported to the graphics makefile.
+        dnl get exported to the IO makefile.
         EXTRA_IO_OBJECTS="$EXTRA_IO_OBJECTS vs1394Camera.$OBJEXT"
         IO_INCLUDE_DIR="$IO_INCLUDE_DIR -I$with_raw1394/include -I$with_dc1394/include"
         IO_LIB_DIR="$IO_LIB_DIR -L$with_raw1394/lib -L$with_dc1394/lib"
@@ -647,6 +685,72 @@ if test x$with_raw1394 != xno ; then
     fi
 fi
 
+dnl Provide the option to use the PhaseSpace OWL API.  This is required for
+dnl VESS support of the PhaseSpace Motion Digitization tracking system.
+AC_ARG_WITH(phasespace,
+[[  --with-phasespace=[prefix]   Use the PhaseSpace OWL library for support for
+                                 the PhaseSpace tracking system. [no]]],
+, with_phasespace=no)
+
+dnl Verify the PhaseSpace path data if present
+if test x$with_phasespace != xno ; then
+    LIBS=
+    AC_CHECK_LIB(owlsock, owlInit,,OWL_ERROR=yes,-L$with_phasespace/lib)
+    if test x$OWL_ERROR = xyes ; then
+        AC_MSG_ERROR([
+
+    There is a problem with the PhaseSpace OWL library. Check to make sure 
+    that it is installed correctly and in the specified location. 
+
+    For further support, consult the VESS User's Guide or join the 
+    vess-users mailing list at:
+
+        http://lists.sourceforge.net/lists/listinfo/vess-users
+
+])
+    fi
+
+    dnl Add the OWL path information to the variables that will eventually
+    dnl get exported to the IO makefile.
+    EXTRA_IO_OBJECTS="$EXTRA_IO_OBJECTS vsPhaseSpaceMD.$OBJEXT"
+    IO_INCLUDE_DIR="$IO_INCLUDE_DIR -I$with_phasespace/include"
+    IO_LIB_DIR="$IO_LIB_DIR -L$with_phasespace/lib"
+    IO_LIB="$IO_LIB -lowlsock"
+fi
+
+dnl Provide the option to use the InterSense API.  This is required for
+dnl general VESS support for all Intersense devices (there is a separate 
+dnl object for serial-only support for the IS-600).
+AC_ARG_WITH(isense,
+[[  --with-isense=[prefix]       Use the InterSense library for support for
+                                 InterSense tracking systems. [no]]],
+, with_isense=no)
+
+dnl Verify the InterSense path data if present
+if test x$with_isense != xno ; then
+    LIBS=
+    AC_CHECK_LIB(isense, ISD_OpenTracker,,IS_ERROR=yes,-L$with_isense -L$with_isense/lib)
+    if test x$IS_ERROR = xyes ; then
+        AC_MSG_ERROR([
+
+    There is a problem with the InterSense library. Check to make sure 
+    that it is installed correctly and in the specified location. 
+
+    For further support, consult the VESS User's Guide or join the 
+    vess-users mailing list at:
+
+        http://lists.sourceforge.net/lists/listinfo/vess-users
+
+])
+    fi
+
+    dnl Add the OWL path information to the variables that will eventually
+    dnl get exported to the IO makefile.
+    EXTRA_IO_OBJECTS="$EXTRA_IO_OBJECTS vsIntersenseTrackingSystem.$OBJEXT"
+    IO_INCLUDE_DIR="$IO_INCLUDE_DIR -I$with_isense/include"
+    IO_LIB_DIR="$IO_LIB_DIR -L$with_isense/lib"
+    IO_LIB="$IO_LIB -lisense"
+fi
 
 dnl Environment options******************************************************
 
@@ -674,6 +778,7 @@ fi
 dnl Verify the ffmpeg path data if present
 if test x$with_ffmpeg != xno ; then
     LIBS=
+    AC_CHECK_LIB(avutil, av_rescale,,VIDEO_ERROR=yes,-L$with_ffmpeg/lib)
     AC_CHECK_LIB(avcodec, avcodec_open,,VIDEO_ERROR=yes,-L$with_ffmpeg/lib)
     AC_CHECK_LIB(avformat, av_register_all,,VIDEO_ERROR=yes,-L$with_ffmpeg/lib)
     if test x$VIDEO_ERROR = xyes ; then
@@ -694,7 +799,7 @@ if test x$with_ffmpeg != xno ; then
     EXTRA_ENVIRONMENT_OBJECTS="$EXTRA_ENVIRONMENT_OBJECTS vsMovieReader.$OBJEXT"
     ENV_INCLUDE_DIR="$ENV_INCLUDE_DIR -I$with_ffmpeg/include"
     ENV_LIB_DIR="$ENV_LIB_DIR -L$with_ffmpeg/lib"
-    ENV_LIB="$ENV_LIB -lavcodec -lavformat"
+    ENV_LIB="$ENV_LIB -lavcodec -lavformat -lavutil"
 fi
 
 dnl Export the EXTRA_ENVIRONMENT_OBJECTS variable to the makefile
