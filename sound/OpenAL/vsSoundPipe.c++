@@ -35,7 +35,7 @@ vsSoundPipe::vsSoundPipe(char *deviceSpec, int freq)
     int attrList[3];
 
     // Open the audio device
-    deviceHandle = alcOpenDevice((ALubyte *)deviceSpec);
+    deviceHandle = alcOpenDevice((ALCchar *)deviceSpec);
     
     // Check the handle returned, if it's NULL, print an error and try the
     // default device instead
