@@ -424,7 +424,7 @@ vsNode *vsNode::nodeSearch(const char *name, int *idx)
 
     // Search the children of this node in the same way
     for (loop = 0; loop < getChildCount(); loop++)
-        if (result = getChild(loop)->nodeSearch(name, idx))
+        if (result = (getChild(loop)->nodeSearch(name, idx)))
             return result;
 
     // Return NULL if we make it this far without finding what we want
