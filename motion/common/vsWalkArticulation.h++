@@ -30,7 +30,7 @@
 
 #define VS_WALK_ARTIC_JOINT_COUNT 6
 
-enum VS_MOTION_DLL vsWalkArticJoints
+enum  vsWalkArticJoints
 {
     VS_WALK_ARTIC_LEFT_HIP,
     VS_WALK_ARTIC_LEFT_KNEE,
@@ -47,7 +47,7 @@ struct VS_MOTION_DLL vsWalkArticData
     double distance;
 };
 
-enum VS_MOTION_DLL vsWalkArticState
+enum  vsWalkArticState
 {
     VS_WALK_ARTIC_STOPPED,
     VS_WALK_ARTIC_MOVING,

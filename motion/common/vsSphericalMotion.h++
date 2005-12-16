@@ -52,7 +52,7 @@
 #define VS_SPHM_MINIMUM_RADIUS 0.1
 
 // Constants for noting whether we're targeting a point or component
-enum VS_MOTION_DLL vsSphericalMotionTargetMode
+enum  vsSphericalMotionTargetMode
 {
     VS_SPHM_TARGET_POINT,
     VS_SPHM_TARGET_COMPONENT

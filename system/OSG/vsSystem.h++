@@ -32,7 +32,7 @@
 #include "vsTCPNetworkInterface.h++"
 #include "vsSequencer.h++"
 
-enum VS_SYSTEM_DLL vsMultiprocessMode
+enum  vsMultiprocessMode
 {
     VS_MPROC_DEFAULT,
     VS_MPROC_SINGLE,

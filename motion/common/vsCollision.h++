@@ -33,7 +33,7 @@
 #define VS_COLLISION_DEFAULT_MARGIN 0.01
 #define VS_COLLISION_MAX_PASSES     10
 
-enum VS_MOTION_DLL vsCollisionMode
+enum  vsCollisionMode
 {
     VS_COLLISION_MODE_STOP,
     VS_COLLISION_MODE_SLIDE,

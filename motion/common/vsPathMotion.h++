@@ -31,7 +31,7 @@
 #define VS_PATH_WAIT_FOREVER  -1
 #define VS_PATH_CYCLE_FOREVER 0
 
-enum VS_MOTION_DLL vsPathPosInterpolationMode
+enum  vsPathPosInterpolationMode
 {
     VS_PATH_POS_IMODE_NONE,
     VS_PATH_POS_IMODE_LINEAR,
@@ -39,7 +39,7 @@ enum VS_MOTION_DLL vsPathPosInterpolationMode
     VS_PATH_POS_IMODE_SPLINE
 };
 
-enum VS_MOTION_DLL vsPathOrientInterpolationMode
+enum  vsPathOrientInterpolationMode
 {
     VS_PATH_ORI_IMODE_NONE,
     VS_PATH_ORI_IMODE_SLERP,
@@ -48,13 +48,13 @@ enum VS_MOTION_DLL vsPathOrientInterpolationMode
     VS_PATH_ORI_IMODE_FORWARD
 };
 
-enum VS_MOTION_DLL vsPathCycleMode
+enum  vsPathCycleMode
 {
     VS_PATH_CYCLE_RESTART,
     VS_PATH_CYCLE_CLOSED_LOOP
 };
 
-enum VS_MOTION_DLL vsPathPlayMode
+enum  vsPathPlayMode
 {
     VS_PATH_STOPPED,
     VS_PATH_PAUSED,
