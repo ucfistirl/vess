@@ -26,6 +26,7 @@
 #ifdef WIN32
     // Need to this for the JPEG library headers to work properly
     #define __WIN32__
+    #define XMD_H
 #endif
 
 extern "C"
