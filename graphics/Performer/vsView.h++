@@ -31,10 +31,10 @@ class vsView;
 #include "vsMatrix.h++"
 #include "vsViewpointAttribute.h++"
 
-enum VS_GRAPHICS_DLL vsViewProjectionMode
+enum vsViewProjectionMode
 {
     VS_VIEW_PROJMODE_PERSP,
-    VS_VIEW_PROJMODE_ORTHO
+    VS_VIEW_PROJMODE_ORTHO,
     VS_VIEW_PROJMODE_OFFAXIS_PERSP
 };
 
@@ -64,6 +64,8 @@ VS_INTERNAL:
     bool        attachViewAttribute(vsViewpointAttribute *theAttribute);
     void        detachViewAttribute();
     void        updateFromAttribute();
+
+    int         getChangeNum();
 
 public:
 

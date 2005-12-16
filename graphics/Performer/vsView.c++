@@ -354,7 +354,7 @@ void vsView::setOffAxisPerspective(double left, double right, double bottom,
     // we can't determine the size of the pane here. See
     // vsPane::updateView(), where these values are retrieved and
     // utilized.
-    projMode = VS_VIEW_PROJMODE_OFFAXIS;
+    projMode = VS_VIEW_PROJMODE_OFFAXIS_PERSP;
     projLeft = left;
     projRight = right;
     projBottom = bottom;
