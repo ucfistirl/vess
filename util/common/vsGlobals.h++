@@ -212,7 +212,7 @@ enum vsMathEulerAxisOrder
 
 // Under Windows, define the sleep() and usleep() functions as macros of
 // the Windows Sleep() function
-#ifdef WIN32
+#ifdef _MSC_VER
     #include <windows.h>
 
     // Sleep() takes milliseconds so multiply x by 1000 for sleep()
@@ -226,7 +226,7 @@ enum vsMathEulerAxisOrder
 
 // This is for the ffmpeg library under Windows, so that the int64_t and
 // uint64_t types get defined
-#ifdef WIN32
+#ifdef _MSC_VER
     #define EMULATE_INTTYPES
 #endif
 
