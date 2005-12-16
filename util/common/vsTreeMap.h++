@@ -24,15 +24,16 @@
 #ifndef VS_TREE_MAP_HPP
 #define VS_TREE_MAP_HPP
 
+#include "vsGlobals.h++"
 #include "vsGrowableArray.h++"
 
-enum VS_UTIL_DLL vsTreeMapColor
+enum  vsTreeMapColor
 {
     VS_TREE_MAP_BLACK,
     VS_TREE_MAP_RED
 };
 
-enum VS_UTIL_DLL vsTreeMapChildType
+enum  vsTreeMapChildType
 {
     VS_TREE_MAP_LEFTCHILD,
     VS_TREE_MAP_RIGHTCHILD,

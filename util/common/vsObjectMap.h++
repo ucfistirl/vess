@@ -25,7 +25,7 @@
 
 #include "vsTreeMap.h++"
 
-enum VS_UTIL_DLL vsObjectMapList
+enum  vsObjectMapList
 {
     VS_OBJMAP_FIRST_LIST,
     VS_OBJMAP_SECOND_LIST,
