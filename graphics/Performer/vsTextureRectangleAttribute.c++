@@ -859,17 +859,23 @@ int vsTextureRectangleAttribute::preTravFunc(pfTraverser *trav, void *data)
                     }
                 #endif
                 
-                // Check for the ARB multitexture extension
-                #ifdef GL_ARB_multitexture
-                    if (strcmp(token, "GL_ARB_multitexture") == 0)
-                        textureData->multitexture = true;
+                // Check for the multitexturing, first by checking if the
+                // OpenGL version is 1.3 or greater, second by checking for
+                // the ARB_multitexture extension
+                #ifdef GL_VERSION_1_3
+                    textureData->multitexture = true;
+                #else
+                    #ifdef GL_ARB_multitexture
+                        if (strcmp(token, "GL_ARB_multitexture") == 0)
+                            textureData->multitexture = true;
 
-                    // Under Windows, we have to query for the functions 
-                    // we need                        
-                    #ifdef WIN32
-                        textureData->glActiveTextureARB = 
-                            (PFNGLACTIVETEXTUREARBPROC)
-                                wglGetProcAddress("glActiveTextureARB");
+                        // Under Windows, we have to query for the functions 
+                        // we need                        
+                        #ifdef WIN32
+                            textureData->glActiveTextureARB = 
+                                (PFNGLACTIVETEXTUREARBPROC)
+                                    wglGetProcAddress("glActiveTextureARB");
+                        #endif
                     #endif
                 #endif
 
@@ -891,14 +897,19 @@ int vsTextureRectangleAttribute::preTravFunc(pfTraverser *trav, void *data)
     }
 
     // Make sure we're talking to the right texture unit
-    #ifdef GL_ARB_multitexture
-        #ifdef WIN32
-            if (textureData->multitexture)
-                textureData->glActiveTextureARB(GL_TEXTURE0_ARB + 
-                    textureData->unit);          
-        #else
-            if (textureData->multitexture)
-                glActiveTextureARB(GL_TEXTURE0_ARB + textureData->unit);
+    #ifdef GL_VERSION_1_3
+        if (textureData->multitexture)
+            glActiveTexture(GL_TEXTURE0 + textureData->unit);
+    #else 
+        #ifdef GL_ARB_multitexture
+            #ifdef WIN32
+                if (textureData->multitexture)
+                    textureData->glActiveTextureARB(GL_TEXTURE0_ARB + 
+                        textureData->unit);          
+            #else
+                if (textureData->multitexture)
+                    glActiveTextureARB(GL_TEXTURE0_ARB + textureData->unit);
+            #endif
         #endif
     #endif
 
@@ -953,14 +964,19 @@ int vsTextureRectangleAttribute::postTravFunc(pfTraverser *trav, void *data)
     textureData = (vsTextureRectangleData *)data;
 
     // Make sure we're talking to the right texture unit
-    #ifdef GL_ARB_multitexture
-        #ifdef WIN32
-            if (textureData->multitexture)
-                textureData->glActiveTextureARB(GL_TEXTURE0_ARB + 
-                    textureData->unit);
-        #else
-            if (textureData->multitexture)
-                glActiveTextureARB(GL_TEXTURE0_ARB + textureData->unit);
+    #ifdef GL_VERSION_1_3
+        if (textureData->multitexture)
+            glActiveTexture(GL_TEXTURE0 + textureData->unit);
+    #else
+        #ifdef GL_ARB_multitexture
+            #ifdef WIN32
+                if (textureData->multitexture)
+                    textureData->glActiveTextureARB(GL_TEXTURE0_ARB + 
+                        textureData->unit);
+            #else
+                if (textureData->multitexture)
+                    glActiveTextureARB(GL_TEXTURE0_ARB + textureData->unit);
+            #endif
         #endif
     #endif
 
