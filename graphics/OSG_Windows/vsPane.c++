@@ -25,10 +25,12 @@
 #include "vsGeometry.h++"
 #include "vsComponent.h++"
 #include "vsViewpointAttribute.h++"
-#include <osg/StateSet>
+#include <osg/AlphaFunc>
 #include <osg/CullFace>
 #include <osg/LightModel>
 #include <osg/ShadeModel>
+#include <osg/StateSet>
+#include <osg/TexEnv>
 #include <osgUtil/GLObjectsVisitor>
 #include <osgUtil/UpdateVisitor>
 #include <osgUtil/CullVisitor>
@@ -51,7 +53,7 @@ vsPane::vsPane(vsWindow *parent)
     osg::TexEnv *texEnv;
     osgUtil::UpdateVisitor *updateVisitor;
     osgUtil::CullVisitor *cullVisitor;
-    osgUtil::RenderGraph *renderGraph;
+    osgUtil::StateGraph *renderGraph;
     int contextID;
 
     // Initialize the viewpoint and scene to NULL
@@ -84,18 +86,18 @@ vsPane::vsPane(vsWindow *parent)
     // Construct the App and Cull NodeVisitors and the rendering objects
     updateVisitor = new osgUtil::UpdateVisitor();
     cullVisitor = new osgUtil::CullVisitor();
-    renderGraph = new osgUtil::RenderGraph();
+    renderGraph = new osgUtil::StateGraph();
     renderStage = new osgUtil::RenderStage();
     renderStage->ref();
 
     // Configure the CullVisitor to use the rendering objects we created
-    cullVisitor->setRenderGraph(renderGraph);
+    cullVisitor->setStateGraph(renderGraph);
     cullVisitor->setRenderStage(renderStage);
 
     // Configure the SceneView pipeline
     osgSceneView->setUpdateVisitor(updateVisitor);
     osgSceneView->setCullVisitor(cullVisitor);
-    osgSceneView->setRenderGraph(renderGraph);
+    osgSceneView->setStateGraph(renderGraph);
     osgSceneView->setRenderStage(renderStage);
 
     // Set small feature culling to cull things smaller than a quarter of a

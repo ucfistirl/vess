@@ -32,7 +32,7 @@ class vsPane;
 #include "vsComponent.h++"
 #include <osgUtil/SceneView>
 
-enum VS_GRAPHICS_DLL vsPanePlacement
+enum vsPanePlacement
 {
     VS_PANE_PLACEMENT_FULL_WINDOW,
     VS_PANE_PLACEMENT_TOP_HALF,
@@ -45,7 +45,7 @@ enum VS_GRAPHICS_DLL vsPanePlacement
     VS_PANE_PLACEMENT_BOTTOM_LEFT_QUADRANT
 };
 
-enum VS_GRAPHICS_DLL vsPaneEarthSkyColor
+enum vsPaneEarthSkyColor
 {
     VS_PANE_ESCOLOR_SKY_NEAR,
     VS_PANE_ESCOLOR_SKY_FAR,
@@ -54,7 +54,7 @@ enum VS_GRAPHICS_DLL vsPaneEarthSkyColor
     VS_PANE_ESCOLOR_GROUND_NEAR
 };
 
-enum VS_GRAPHICS_DLL vsPaneBufferMode
+enum vsPaneBufferMode
 {
     VS_PANE_BUFFER_MONO,
     VS_PANE_BUFFER_STEREO_ANAGLYPHIC,
