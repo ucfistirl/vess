@@ -30,7 +30,7 @@
 #include "vsAttribute.h++"
 #include "vsNode.h++"
 
-enum VS_GRAPHICS_DLL vsGeometryPrimType
+enum vsGeometryPrimType
 {
     VS_GEOMETRY_TYPE_POINTS,
     VS_GEOMETRY_TYPE_LINES,
@@ -70,7 +70,7 @@ enum VS_GRAPHICS_DLL vsGeometryPrimType
 //
 //  http://oss.sgi.com/projects/ogl-sample/registry/ARB/vertex_program.txt
 
-enum VS_GRAPHICS_DLL vsGeometryDataType
+enum vsGeometryDataType
 {
     VS_GEOMETRY_VERTEX_COORDS   = 0,
     VS_GEOMETRY_GENERIC_0       = 16,
@@ -125,7 +125,7 @@ enum VS_GRAPHICS_DLL vsGeometryDataType
 // backwards compatability.
 #define VS_GEOMETRY_TEXTURE_COORDS VS_GEOMETRY_TEXTURE0_COORDS
 
-enum VS_GRAPHICS_DLL vsGeometryDataBinding
+enum vsGeometryDataBinding
 {
     VS_GEOMETRY_BIND_NONE,
     VS_GEOMETRY_BIND_OVERALL,
@@ -133,7 +133,7 @@ enum VS_GRAPHICS_DLL vsGeometryDataBinding
     VS_GEOMETRY_BIND_PER_VERTEX
 };
 
-enum VS_GRAPHICS_DLL vsGeometryBinSortMode
+enum vsGeometryBinSortMode
 {
     VS_GEOMETRY_SORT_STATE,
     VS_GEOMETRY_SORT_DEPTH

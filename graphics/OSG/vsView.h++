@@ -27,7 +27,7 @@
 #include "vsMatrix.h++"
 #include "vsObject.h++"
 
-enum VS_GRAPHICS_DLL vsViewProjectionMode
+enum vsViewProjectionMode
 {
     VS_VIEW_PROJMODE_PERSP,
     VS_VIEW_PROJMODE_ORTHO,

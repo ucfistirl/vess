@@ -34,7 +34,7 @@ class vsIntersect;
 
 #define VS_INTERSECT_SEGS_MAX 32
 
-enum VS_GRAPHICS_DLL vsIntersectFacingMode
+enum vsIntersectFacingMode
 {
     VS_INTERSECT_IGNORE_NONE,
     VS_INTERSECT_IGNORE_FRONTFACE,

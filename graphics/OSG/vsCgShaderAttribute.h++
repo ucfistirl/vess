@@ -27,7 +27,7 @@
 #include <osgNVCg/Program>
 #include "vsStateAttribute.h++"
 
-enum VS_GRAPHICS_DLL vsCgShaderProfile
+enum vsCgShaderProfile
 {
     VS_SHADER_UNKNOWN = osgNVCg::Program::UNKNOWN,
     VS_SHADER_VP20 = osgNVCg::Program::VP20,
@@ -38,7 +38,7 @@ enum VS_GRAPHICS_DLL vsCgShaderProfile
     VS_SHADER_ARBFP1 = osgNVCg::Program::ARBFP1
 };
 
-enum VS_GRAPHICS_DLL vsCgShaderProgramType
+enum vsCgShaderProgramType
 {
     VS_SHADER_VERTEX,
     VS_SHADER_FRAGMENT

@@ -26,7 +26,7 @@
 #include <osg/ShadeModel>
 #include "vsStateAttribute.h++"
 
-enum VS_GRAPHICS_DLL vsShadingMode
+enum vsShadingMode
 {
     VS_SHADING_GOURAUD,
     VS_SHADING_FLAT
