@@ -126,8 +126,8 @@ void vsShaderAttribute::attach(vsNode *node)
     // Do normal vsStateAttribute attaching
     vsStateAttribute::attach(node);
 
-    // Set up the osg::StateSet on this node to use the osgNVCg::Context
-    // we've created
+    // Set up the osg::StateSet on this node to use the osg::VertexProgram
+    // and or osg::FragmentProgram we've created
     setOSGAttrModes(node);
 }
 
