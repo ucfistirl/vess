@@ -777,7 +777,7 @@ void vsPane::updateView()
     sceneView->getProjectionData(&projMode, &projHval, &projVval);
 
     // See if the settings have changed since the last update
-    if (sceneView->getChangeNum != viewChangeNum)
+    if (sceneView->getChangeNum() != viewChangeNum)
     {
         // Set the new projection based on the new mode
         if (projMode == VS_VIEW_PROJMODE_PERSP)
