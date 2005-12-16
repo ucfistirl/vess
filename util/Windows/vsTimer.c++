@@ -43,8 +43,10 @@ vsTimer::vsTimer()
     if (timeGetDevCaps(&tc, sizeof(TIMECAPS)) == TIMERR_NOERROR) 
     {
         // Select the minimum resolution the timer can handle
-        timerResolution = min(max(tc.wPeriodMin, timerResolution), 
-            tc.wPeriodMax);
+        if (timerResolution < tc.wPeriodMin)
+            timerResolution = tc.wPeriodMin;
+        if (timerResolution > tc.wPeriodMax)
+            timerResolution = tc.wPeriodMax;
     
         // Set the timer resolution
         timeBeginPeriod(timerResolution); 
