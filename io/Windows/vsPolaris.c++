@@ -27,6 +27,10 @@
 #include <signal.h>
 #include <time.h>
 
+#ifndef _MSC_VER
+    #include <unistd.h>
+#endif
+
 // ------------------------------------------------------------------------
 // Creates a vsPolaris object on the given serial port using the given
 // baud rate and number of trackers.  Note that only wired trackers are

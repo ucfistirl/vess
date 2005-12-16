@@ -27,6 +27,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#ifndef _MSC_VER
+    #include <unistd.h>
+#endif
+
 // ------------------------------------------------------------------------
 // Constructs a vsFastrak on the specified port with the given number of
 // trackers.  If nTrackers is zero, the class attempts to determine the 
