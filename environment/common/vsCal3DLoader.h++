@@ -32,7 +32,7 @@
 #include "vsComponent.h++"
 #include "vsSequencer.h++"
 
-#ifdef WIN32
+#ifdef _MSC_VER
     #include <io.h>
     #define access _access
     #define R_OK   0x04
