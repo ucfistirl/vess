@@ -87,6 +87,9 @@ vsSoundManager::vsSoundManager()
         numVoices = voiceLimit;
     }
 
+    // Set the source thread update rate to the default
+    setSourceUpdateRate(VS_SDM_SOURCE_THREAD_HZ);
+
     // Create a mutex to synchronize traversals of the sound source list
     // between threads
     pthread_mutex_init(&sourceListMutex, NULL);
@@ -128,11 +131,6 @@ void *vsSoundManager::sourceThreadFunc(void *arg)
     // Create the timer for controlling the thread loop
     threadTimer = new vsTimer();
 
-    // Compute the amound of time (in microseconds) to wait between 
-    // iterations of the thread loop
-    threadDelay = (unsigned long)
-        ((1.0 / (double)VS_SDM_SOURCE_THREAD_HZ) * 1.0e6);
-
     // Get the sound manager instance from the argument (we don't want to
     // rely on the getInstance() call, because this function may start
     // running before the constructor is finished)
@@ -173,8 +171,8 @@ void *vsSoundManager::sourceThreadFunc(void *arg)
             (threadTimer->getElapsed() * 1.0e6);
 
         // If we've got time to spare, take a break for a while
-        if (threadTime < threadDelay)
-            usleep((unsigned long)(threadDelay - threadTime));
+        if (threadTime < manager->threadDelay)
+            usleep((unsigned long)(manager->threadDelay - threadTime));
     }
 
     return NULL;
@@ -620,6 +618,27 @@ void vsSoundManager::setVoiceLimit(int newLimit)
 
     // Set the new voice limit
     voiceLimit = newLimit - difference;
+}
+
+// ------------------------------------------------------------------------
+// Change the number of times the source thread updates in a second.  The
+// application may need to change the default rate if it needs to do very 
+// low-latency audio operations
+// ------------------------------------------------------------------------
+void vsSoundManager::setSourceUpdateRate(int hz)
+{
+    // Compute the amound of time (in microseconds) to wait between 
+    // iterations of the source thread loop
+    threadDelay = (unsigned long)
+        ((1.0 / (double)hz) * 1.0e6);
+}
+
+// ------------------------------------------------------------------------
+// Return the current source thread update rate (in microseconds)
+// ------------------------------------------------------------------------
+int vsSoundManager::getSourceUpdateRate()
+{
+    return (int)(1.0 / ((double)threadDelay / 1.0e6)) ;
 }
 
 // ------------------------------------------------------------------------

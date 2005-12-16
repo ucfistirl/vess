@@ -49,6 +49,7 @@ protected:
     pthread_t                      sourceThread;
     pthread_mutex_t                sourceListMutex;
     bool                           sourceThreadDone;
+    int                            threadDelay;
 
     vsSoundPipe                    *soundPipe;
 
@@ -88,6 +89,9 @@ public:
 
     void                     setVoiceLimit(int newLimit);
     int                      getVoiceLimit();
+
+    void                     setSourceUpdateRate(int hz);
+    int                      getSourceUpdateRate();
 
     void                     update();
 }; 
