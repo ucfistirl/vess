@@ -41,6 +41,7 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute()
     osgTexture->ref();
     osgTexEnv = new osg::TexEnv();
     osgTexEnv->ref();
+    osgTexEnvCombine = NULL;
     osgTexGen = NULL;
 
     // Initialize the TexGen remove flag to false.
@@ -79,6 +80,7 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit)
     osgTexture->ref();
     osgTexEnv = new osg::TexEnv();
     osgTexEnv->ref();
+    osgTexEnvCombine = NULL;
     osgTexGen = NULL;
 
     // Initialize the TexGen remove flag to false.
@@ -103,15 +105,15 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit)
 // ------------------------------------------------------------------------
 vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit,
     osg::TextureRectangle *texObject, osg::TexEnv *texEnvObject,
-    osg::TexGen *texGenObject)
+    osg::TexEnvCombine *texEnvCombineObject, osg::TexGen *texGenObject)
 {
     // Set to the specified texture unit.
     if ((unit >= 0) && (unit < VS_MAXIMUM_TEXTURE_UNITS))
         textureUnit = unit;
     else
     {
-        printf("vsTextureAttribute::vsTextureAttribute: Invalid texture unit, "
-            "using default of 0\n");
+        printf("vsTextureRectangleAttribute::vsTextureRectangleAttribute: \n");
+        printf("    Invalid texture unit, using default of 0\n");
         textureUnit = 0;
     }
 
@@ -119,7 +121,11 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit,
     osgTexture = texObject;
     osgTexture->ref();
     osgTexEnv = texEnvObject;
-    osgTexEnv->ref();
+    if (osgTexEnv)
+        osgTexEnv->ref();
+    osgTexEnvCombine = texEnvCombineObject;
+    if (osgTexEnvCombine)
+        osgTexEnvCombine->ref();
     osgTexGen = texGenObject;
     if (osgTexGen)
         osgTexGen->ref();
@@ -140,7 +146,10 @@ vsTextureRectangleAttribute::~vsTextureRectangleAttribute()
 {
     // Unreference the TextureRectangle and TexEnv objects
     osgTexture->unref();
-    osgTexEnv->unref();
+    if (osgTexEnv)
+        osgTexEnv->unref();
+    if (osgTexEnvCombine)
+        osgTexEnvCombine->unref();
     if (osgTexGen)
         osgTexGen->unref();
 
@@ -362,22 +371,71 @@ int vsTextureRectangleAttribute::getBoundaryMode(int whichDirection)
 // ------------------------------------------------------------------------
 void vsTextureRectangleAttribute::setApplyMode(int applyMode)
 {
-    // Translate the applyMode to an OSG value and set it on the TexEnv
-    switch (applyMode)
+    // See if we're using an osg::TexEnv or osg::TexEnvCombine
+    if (osgTexEnv)
     {
-        case VS_TEXTURE_APPLY_DECAL:
-            osgTexEnv->setMode(osg::TexEnv::DECAL);
-            break;
-        case VS_TEXTURE_APPLY_MODULATE:
-            osgTexEnv->setMode(osg::TexEnv::MODULATE);
-            break;
-        case VS_TEXTURE_APPLY_REPLACE:
-            osgTexEnv->setMode(osg::TexEnv::REPLACE);
-            break;
-        default:
-            printf("vsTextureRectangleAttribute::setApplyMode: "
-                "Bad apply mode value\n");
-            return;
+        // Translate the applyMode to an OSG value and set it on the TexEnv
+        switch (applyMode)
+        {
+            case VS_TEXTURE_APPLY_DECAL:
+                osgTexEnv->setMode(osg::TexEnv::DECAL);
+                break;
+            case VS_TEXTURE_APPLY_MODULATE:
+                osgTexEnv->setMode(osg::TexEnv::MODULATE);
+                break;
+            case VS_TEXTURE_APPLY_REPLACE:
+                osgTexEnv->setMode(osg::TexEnv::REPLACE);
+                break;
+            case VS_TEXTURE_APPLY_BLEND:
+                osgTexEnv->setMode(osg::TexEnv::BLEND);
+                break;
+            case VS_TEXTURE_APPLY_ADD:
+                osgTexEnv->setMode(osg::TexEnv::ADD);
+                break;
+            default:
+                printf("vsTextureRectangleAttribute::setApplyMode: "
+                    "Bad apply mode value\n");
+                return;
+        }
+    }
+    else
+    {
+        // Translate the applyMode to an OSG value and set it on the
+        // TexEnvCombine
+        switch (applyMode)
+        {
+            case VS_TEXTURE_APPLY_DECAL:
+                osgTexEnvCombine->
+                    setCombine_RGB(osg::TexEnvCombine::INTERPOLATE);
+                osgTexEnvCombine->
+                    setCombine_Alpha(osg::TexEnvCombine::REPLACE);
+                break;
+            case VS_TEXTURE_APPLY_MODULATE:
+                osgTexEnvCombine->setCombine_RGB(osg::TexEnvCombine::MODULATE);
+                osgTexEnvCombine->
+                    setCombine_Alpha(osg::TexEnvCombine::MODULATE);
+                break;
+            case VS_TEXTURE_APPLY_REPLACE:
+                osgTexEnvCombine->setCombine_RGB(osg::TexEnvCombine::REPLACE);
+                osgTexEnvCombine->
+                    setCombine_Alpha(osg::TexEnvCombine::REPLACE);
+                break;
+            case VS_TEXTURE_APPLY_BLEND:
+                osgTexEnvCombine->
+                    setCombine_RGB(osg::TexEnvCombine::INTERPOLATE);
+                osgTexEnvCombine->
+                    setCombine_Alpha(osg::TexEnvCombine::INTERPOLATE);
+                break;
+            case VS_TEXTURE_APPLY_ADD:
+                osgTexEnvCombine->setCombine_RGB(osg::TexEnvCombine::ADD);
+                osgTexEnvCombine->
+                    setCombine_Alpha(osg::TexEnvCombine::ADD);
+                break;
+            default:
+                printf("vsTextureRectangleAttribute::setApplyMode: Bad apply "
+                    "mode value\n");
+                return;
+        }
     }
 }
 
@@ -386,20 +444,85 @@ void vsTextureRectangleAttribute::setApplyMode(int applyMode)
 // ------------------------------------------------------------------------
 int vsTextureRectangleAttribute::getApplyMode()
 {
-    // Fetch and translate the osg::TexEnv's apply mode.  Return the
-    // translated value.
-    switch (osgTexEnv->getMode())
+    // See if we're using an osg::TexEnv or an osg::TexEnvCombine
+    if (osgTexEnv)
     {
-        case osg::TexEnv::DECAL:
-            return VS_TEXTURE_APPLY_DECAL;
-        case osg::TexEnv::MODULATE:
-            return VS_TEXTURE_APPLY_MODULATE;
-        case osg::TexEnv::REPLACE:
-            return VS_TEXTURE_APPLY_REPLACE;
+        // Fetch and translate the osg::TexEnv's apply mode.  Return the
+        // translated value.
+        switch (osgTexEnv->getMode())
+        {
+            case osg::TexEnv::DECAL:
+                return VS_TEXTURE_APPLY_DECAL;
+            case osg::TexEnv::MODULATE:
+                return VS_TEXTURE_APPLY_MODULATE;
+            case osg::TexEnv::REPLACE:
+                return VS_TEXTURE_APPLY_REPLACE;
+            case osg::TexEnv::BLEND:
+                return VS_TEXTURE_APPLY_BLEND;
+            case osg::TexEnv::ADD:
+                return VS_TEXTURE_APPLY_ADD;
+        }
+    }
+    else
+    {
+        // Fetch and translate the osg::TexEnvCombine's combine mode.
+        // Return the translated value.
+        switch (osgTexEnvCombine->getCombine_RGB())
+        {
+            case osg::TexEnvCombine::INTERPOLATE:
+                if (osgTexEnvCombine->getCombine_Alpha() == 
+                    osg::TexEnvCombine::REPLACE)
+                    return VS_TEXTURE_APPLY_DECAL;
+                else
+                    return VS_TEXTURE_APPLY_BLEND;
+
+            case osg::TexEnvCombine::MODULATE:
+                return VS_TEXTURE_APPLY_MODULATE;
+
+            case osg::TexEnvCombine::REPLACE:
+                return VS_TEXTURE_APPLY_REPLACE;
+
+            case osg::TexEnvCombine::ADD:
+                return VS_TEXTURE_APPLY_ADD;
+        }
     }
 
     // Return -1 if we don't recognize the TexEnv's mode
     return -1;
+}
+
+// ------------------------------------------------------------------------
+// Set the base color of the texture environment
+// ------------------------------------------------------------------------
+void vsTextureRectangleAttribute::setBaseColor(vsVector color)
+{
+    osg::Vec4 osgColor;
+
+    // Get the current texture base color as an OSG vector
+    osgColor.set(color[0], color[1], color[2], color[3]);
+
+    // Set the color on the appropriate texture environment object
+    if (osgTexEnvCombine != NULL)
+        osgTexEnvCombine->setConstantColor(osgColor);
+    else
+        osgTexEnv->setColor(osgColor);
+}
+
+// ------------------------------------------------------------------------
+// Get the base color of the texture environment
+// ------------------------------------------------------------------------
+vsVector vsTextureRectangleAttribute::getBaseColor()
+{
+    osg::Vec4 osgColor;
+
+    // Get the current base color from the appropriate OSG object
+    if (osgTexEnvCombine != NULL)
+        osgColor = osgTexEnvCombine->getConstantColor();
+    else
+        osgColor = osgTexEnv->getColor();
+
+    // Return the color as a vsVector
+    return vsVector(osgColor[0], osgColor[1], osgColor[2], osgColor[3]);
 }
 
 // ------------------------------------------------------------------------
@@ -541,11 +664,19 @@ void vsTextureRectangleAttribute::setOSGAttrModes(vsNode *node)
     // Set the Texture and TexEnv attributes and the StateAttribute mode
     // on the node's StateSet
     osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexture, attrMode);
-    osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexEnv, attrMode);
+    if (osgTexEnv)
+        osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexEnv,
+            attrMode);
+    if (osgTexEnvCombine)
+        osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexEnvCombine,
+            attrMode);
     if (osgTexGen)
     {
+        // See if the removeTexGen flag has been set
         if (removeTexGen)
         {
+            // If the removeTexGen flag is set, reset the osgTexGen mode to
+            // inherit to stop using the texture coordinate generator
             osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexGen,
                 osg::StateAttribute::INHERIT);
             osgTexGen->unref();
@@ -553,8 +684,11 @@ void vsTextureRectangleAttribute::setOSGAttrModes(vsNode *node)
             removeTexGen = false;
         }
         else
+        {
+            // Otherwise, just set the mode on the StateSet as usual
             osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexGen,
                 attrMode);
+        }
     }
 }
 

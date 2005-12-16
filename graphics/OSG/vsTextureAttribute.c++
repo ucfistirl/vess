@@ -373,6 +373,40 @@ int vsTextureAttribute::getBoundaryMode(int whichDirection)
 }
 
 // ------------------------------------------------------------------------
+// Set the base color of the texture environment
+// ------------------------------------------------------------------------
+void vsTextureAttribute::setBaseColor(vsVector color)
+{
+    osg::Vec4 osgColor;
+
+    // Get the current texture base color as an OSG vector
+    osgColor.set(color[0], color[1], color[2], color[3]);
+
+    // Set the color on the appropriate texture environment object
+    if (osgTexEnvCombine != NULL)
+        osgTexEnvCombine->setConstantColor(osgColor);
+    else
+        osgTexEnv->setColor(osgColor);
+}
+
+// ------------------------------------------------------------------------
+// Get the base color of the texture environment
+// ------------------------------------------------------------------------
+vsVector vsTextureAttribute::getBaseColor()
+{
+    osg::Vec4 osgColor;
+
+    // Get the current base color from the appropriate OSG object
+    if (osgTexEnvCombine != NULL)
+        osgColor = osgTexEnvCombine->getConstantColor();
+    else
+        osgColor = osgTexEnv->getColor();
+
+    // Return the color as a vsVector
+    return vsVector(osgColor[0], osgColor[1], osgColor[2], osgColor[3]);
+}
+
+// ------------------------------------------------------------------------
 // Sets the application mode of the texture
 // ------------------------------------------------------------------------
 void vsTextureAttribute::setApplyMode(int applyMode)
@@ -391,6 +425,12 @@ void vsTextureAttribute::setApplyMode(int applyMode)
                 break;
             case VS_TEXTURE_APPLY_REPLACE:
                 osgTexEnv->setMode(osg::TexEnv::REPLACE);
+                break;
+            case VS_TEXTURE_APPLY_BLEND:
+                osgTexEnv->setMode(osg::TexEnv::BLEND);
+                break;
+            case VS_TEXTURE_APPLY_ADD:
+                osgTexEnv->setMode(osg::TexEnv::ADD);
                 break;
             default:
                 printf("vsTextureAttribute::setApplyMode: Bad apply mode "
@@ -420,6 +460,17 @@ void vsTextureAttribute::setApplyMode(int applyMode)
                 osgTexEnvCombine->
                     setCombine_Alpha(osg::TexEnvCombine::REPLACE);
                 break;
+            case VS_TEXTURE_APPLY_BLEND:
+                osgTexEnvCombine->
+                    setCombine_RGB(osg::TexEnvCombine::INTERPOLATE);
+                osgTexEnvCombine->
+                    setCombine_Alpha(osg::TexEnvCombine::INTERPOLATE);
+                break;
+            case VS_TEXTURE_APPLY_ADD:
+                osgTexEnvCombine->setCombine_RGB(osg::TexEnvCombine::ADD);
+                osgTexEnvCombine->
+                    setCombine_Alpha(osg::TexEnvCombine::ADD);
+                break;
             default:
                 printf("vsTextureAttribute::setApplyMode: Bad apply mode "
                     "value\n");
@@ -446,6 +497,10 @@ int vsTextureAttribute::getApplyMode()
                 return VS_TEXTURE_APPLY_MODULATE;
             case osg::TexEnv::REPLACE:
                 return VS_TEXTURE_APPLY_REPLACE;
+            case osg::TexEnv::BLEND:
+                return VS_TEXTURE_APPLY_BLEND;
+            case osg::TexEnv::ADD:
+                return VS_TEXTURE_APPLY_ADD;
         }
     }
     else
@@ -455,11 +510,20 @@ int vsTextureAttribute::getApplyMode()
         switch (osgTexEnvCombine->getCombine_RGB())
         {
             case osg::TexEnvCombine::INTERPOLATE:
-                return VS_TEXTURE_APPLY_DECAL;
+                if (osgTexEnvCombine->getCombine_Alpha() ==
+                    osg::TexEnvCombine::REPLACE)
+                    return VS_TEXTURE_APPLY_DECAL;
+                else
+                    return VS_TEXTURE_APPLY_BLEND;
+
             case osg::TexEnvCombine::MODULATE:
                 return VS_TEXTURE_APPLY_MODULATE;
+
             case osg::TexEnvCombine::REPLACE:
                 return VS_TEXTURE_APPLY_REPLACE;
+
+            case osg::TexEnvCombine::ADD:
+                return VS_TEXTURE_APPLY_ADD;
         }
     }
 

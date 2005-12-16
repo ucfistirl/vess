@@ -38,6 +38,7 @@ private:
 
     osg::TextureRectangle    *osgTexture;
     osg::TexEnv              *osgTexEnv;
+    osg::TexEnvCombine       *osgTexEnvCombine;
     osg::TexGen              *osgTexGen;
     osg::Image               *osgTexImage;
 
@@ -50,9 +51,10 @@ private:
 VS_INTERNAL:
 
                              vsTextureRectangleAttribute(unsigned int unit,
-                                            osg::TextureRectangle *texObject,
-                                            osg::TexEnv *texEnvObject,
-                                            osg::TexGen *texGenObject);
+                                       osg::TextureRectangle *texObject,
+                                       osg::TexEnv *texEnvObject,
+                                       osg::TexEnvCombine *texEnvCombineObject,
+                                       osg::TexGen *texGenObject);
 
     virtual void             attach(vsNode *node);
     virtual void             detach(vsNode *node);
@@ -89,6 +91,9 @@ public:
     
     void                  setApplyMode(int applyMode);
     int                   getApplyMode();
+
+    void                  setBaseColor(vsVector color);
+    vsVector              getBaseColor();
 
     void                  setGenMode(int genMode);
     int                   getGenMode();
