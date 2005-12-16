@@ -26,27 +26,27 @@
 #include <Performer/pr/pfTexture.h>
 #include "vsStateAttribute.h++"
 
-enum VS_GRAPHICS_DLL vsTextureDirection
+enum vsTextureDirection
 {
     VS_TEXTURE_DIRECTION_S,
     VS_TEXTURE_DIRECTION_T,
     VS_TEXTURE_DIRECTION_ALL
 };
 
-enum VS_GRAPHICS_DLL vsTextureBoundaryMode
+enum vsTextureBoundaryMode
 {
     VS_TEXTURE_BOUNDARY_REPEAT,
     VS_TEXTURE_BOUNDARY_CLAMP
 };
 
-enum VS_GRAPHICS_DLL vsTextureApplyMode
+enum vsTextureApplyMode
 {
     VS_TEXTURE_APPLY_DECAL,
     VS_TEXTURE_APPLY_MODULATE,
     VS_TEXTURE_APPLY_REPLACE
 };
 
-enum VS_GRAPHICS_DLL vsTextureDataFormat
+enum vsTextureDataFormat
 {
     VS_TEXTURE_DFORMAT_INTENSITY,
     VS_TEXTURE_DFORMAT_INTENSITY_ALPHA,
@@ -54,13 +54,13 @@ enum VS_GRAPHICS_DLL vsTextureDataFormat
     VS_TEXTURE_DFORMAT_RGBA
 };
 
-enum VS_GRAPHICS_DLL vsTextureMagnificationFilter
+enum vsTextureMagnificationFilter
 {
     VS_TEXTURE_MAGFILTER_NEAREST,
     VS_TEXTURE_MAGFILTER_LINEAR
 };
 
-enum VS_GRAPHICS_DLL vsTextureMinificationFilter
+enum vsTextureMinificationFilter
 {
     VS_TEXTURE_MINFILTER_NEAREST,
     VS_TEXTURE_MINFILTER_LINEAR,
@@ -68,7 +68,7 @@ enum VS_GRAPHICS_DLL vsTextureMinificationFilter
     VS_TEXTURE_MINFILTER_MIPMAP_LINEAR
 };
 
-enum VS_GRAPHICS_DLL vsTextureGenMode
+enum vsTextureGenMode
 {
     VS_TEXTURE_GEN_OBJECT_LINEAR,
     VS_TEXTURE_GEN_EYE_LINEAR,

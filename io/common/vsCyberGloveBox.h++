@@ -75,7 +75,7 @@
 
 // CyberTouch actuator indices
 #define VS_CYG_NUM_ACTUATORS 6
-enum VS_IO_DLL
+enum 
 {
     VS_CYG_TOUCH_THUMB  = 0,
     VS_CYG_TOUCH_INDEX  = 1,

@@ -32,13 +32,13 @@
 #define VS_DATABASE_MODE_NAME_ALL   0x02
 #define VS_DATABASE_MODE_AUTO_UNLIT 0x04
 
-enum VS_GRAPHICS_DLL vsDatabaseType
+enum vsDatabaseType
 {
     VS_DATABASE_TYPE_DEFAULT,
     VS_DATABASE_TYPE_FLT
 };
 
-enum VS_GRAPHICS_DLL vsDatabaseUnits
+enum vsDatabaseUnits
 {
     VS_DATABASE_UNITS_METERS,
     VS_DATABASE_UNITS_FEET,

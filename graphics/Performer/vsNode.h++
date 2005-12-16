@@ -32,7 +32,7 @@
 
 #define VS_NODE_NAME_MAX_LENGTH 80
 
-enum VS_GRAPHICS_DLL vsNodeType
+enum vsNodeType
 {
     VS_NODE_TYPE_COMPONENT,
     VS_NODE_TYPE_GEOMETRY,

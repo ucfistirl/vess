@@ -36,7 +36,7 @@
 #include "vsTransformAttribute.h++"
 #include "vsDatabaseLoader.h++"
 
-enum VS_GRAPHICS_DLL vsTextBuilderJustification
+enum vsTextBuilderJustification
 {
     VS_TEXTBUILDER_JUSTIFY_LEFT,
     VS_TEXTBUILDER_JUSTIFY_RIGHT,

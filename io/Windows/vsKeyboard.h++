@@ -49,14 +49,14 @@
 #define VS_KB_SCAN_RSHIFT 0x36
 
 // Operational modes
-enum VS_IO_DLL
+enum 
 {
     VS_KB_MODE_BUTTON,
     VS_KB_MODE_TERMINAL
 };
 
 // Key "states"
-enum VS_IO_DLL
+enum 
 {
     VS_KB_STABLE,
     VS_KB_JUST_PRESSED,
@@ -66,7 +66,7 @@ enum VS_IO_DLL
 
 // Enum to index the non-printable keys into the vsInputButton array
 // the printable keys will map directly to the corresponding ASCII codes 
-enum VS_IO_DLL
+enum 
 {
     VS_KEY_ESC        = 0,
     VS_KEY_F1         = 1,

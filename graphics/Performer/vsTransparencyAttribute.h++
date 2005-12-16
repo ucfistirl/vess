@@ -26,7 +26,7 @@
 
 #include "vsStateAttribute.h++"
 
-enum VS_GRAPHICS_DLL vsTransparencyQuality
+enum vsTransparencyQuality
 {
     VS_TRANSP_QUALITY_DEFAULT,
     VS_TRANSP_QUALITY_FAST,

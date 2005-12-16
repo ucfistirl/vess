@@ -28,7 +28,7 @@
 #define VS_JS_MAX_AXES    20
 #define VS_JS_MAX_BUTTONS 30
 
-enum VS_IO_DLL
+enum 
 {
     VS_JS_X_AXIS = 0,
     VS_JS_Y_AXIS = 1,

@@ -93,7 +93,7 @@
 #include "vsQuat.h++"
 
 // The glove sensors; use these for the getAxis() method.
-enum VS_IO_DLL 
+enum  
 {
     VS_AG_SENSOR_THUMB_MJ,    // Thumb arch joint
     VS_AG_SENSOR_THUMB_MPJ,   // Thumb metacarpophalangial joint
@@ -121,7 +121,7 @@ enum VS_IO_DLL
 };
 
 // The actual joints; use these for the getJoint() method.
-enum VS_IO_DLL 
+enum  
 {
      VS_AG_JOINT_THUMB_MJ,    // Thumb arch joint
      VS_AG_JOINT_THUMB_MPJ,   // Thumb metacarpophalangial joint

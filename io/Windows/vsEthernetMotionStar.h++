@@ -197,7 +197,7 @@ enum
 
 // Birdnet-related structures
 
-typedef VS_IO_DLL struct
+typedef struct
 {
    unsigned short int    sequence;
    unsigned short int    milliseconds;
@@ -213,13 +213,13 @@ typedef VS_IO_DLL struct
    unsigned short int    numBytes;
 }  vsBirdnetHeader;
 
-typedef VS_IO_DLL struct
+typedef struct
 {
    vsBirdnetHeader    header;
    char               buffer[64984];
 }  vsBirdnetPacket;
 
-typedef VS_IO_DLL struct
+typedef struct
 {
    unsigned char    all;
    unsigned char    error;
@@ -239,7 +239,7 @@ typedef VS_IO_DLL struct
    unsigned char    fbbStatus[126];
 }  vsBirdnetSystemStatusPacket;
 
-typedef VS_IO_DLL struct
+typedef struct
 {
    unsigned char         status;
    unsigned char         id;
@@ -257,7 +257,7 @@ typedef VS_IO_DLL struct
 }  vsBirdnetBirdStatusPacket;
 
 //  Ranges in Inches from Transmitter
-typedef VS_IO_DLL struct
+typedef struct
 {
    unsigned short int    Range0to55;
    unsigned short int    Range55to70;
@@ -268,47 +268,47 @@ typedef VS_IO_DLL struct
    unsigned short int    Range170;
 }  vsBirdnetFilterTablePacket;
 
-typedef VS_IO_DLL struct
+typedef struct
 {
    unsigned short int    azimuth;
    unsigned short int    elevation;
    unsigned short int    roll;
 }  vsBirdnetRefAlignmentPacket;
 
-typedef VS_IO_DLL struct
+typedef struct
 {
    unsigned short int    xData;
    unsigned short int    yData;
    unsigned short int    zData;
 }  vsBirdnetPositionPacket;
 
-typedef VS_IO_DLL struct
+typedef struct
 {
    unsigned short int    rotZ;
    unsigned short int    rotY;
    unsigned short int    rotX;
 }  vsBirdnetAnglePacket;
 
-typedef VS_IO_DLL struct
+typedef struct
 {
    unsigned short int    r11, r12, r13;
    unsigned short int    r21, r22, r23;
    unsigned short int    r31, r32, r33;
 }  vsBirdnetMatrixPacket;
 
-typedef VS_IO_DLL struct
+typedef struct
 {
    vsBirdnetPositionPacket    position;
    vsBirdnetAnglePacket       angle;
 }  vsBirdnetPositionAnglesPacket;
 
-typedef VS_IO_DLL struct
+typedef struct
 {
    vsBirdnetPositionPacket    position;
    vsBirdnetMatrixPacket      matrix;
 }  vsBirdnetPositionMatrixPacket;
 
-typedef VS_IO_DLL struct
+typedef struct
 {
    unsigned short int    xData;
    unsigned short int    yData;
@@ -316,7 +316,7 @@ typedef VS_IO_DLL struct
    unsigned short int    hData;
 }  vsBirdnetQuaternionPacket;
 
-typedef VS_IO_DLL struct
+typedef struct
 {
    vsBirdnetPositionPacket      position;
    vsBirdnetQuaternionPacket    quaternion;
@@ -325,7 +325,7 @@ typedef VS_IO_DLL struct
 // End of BirdNet protocol -------------------------------------------------
 
 // Tracker configuration structure
-typedef VS_IO_DLL struct
+typedef struct
 {
     unsigned char  dataFormat;
     unsigned char  hemisphere;

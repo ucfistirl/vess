@@ -30,7 +30,7 @@
 #include "vsTextureAttribute.h++"
 #include "vsShaderAttribute.h++"
 
-enum VS_GRAPHICS_DLL vsParticleSystemEmitterShape
+enum vsParticleSystemEmitterShape
 {
     VS_PARTICLESYS_EMITTER_POINT,
     VS_PARTICLESYS_EMITTER_LINE,

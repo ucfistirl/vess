@@ -43,7 +43,7 @@
 #include "vsIODevice.h++"
 
 // Index constants for each digit (single glove)
-enum VS_IO_DLL
+enum 
 {
     VS_CG_THUMB  =  0,  // Thumb
     VS_CG_FORE   =  1,  // Forefinger
@@ -54,7 +54,7 @@ enum VS_IO_DLL
 };
 
 // Index constants for each digit (paired gloves)
-enum VS_IO_DLL
+enum 
 {
     VS_CG_LTHUMB  =  0,  // Left thumb
     VS_CG_LFORE   =  1,  // Left forefinger

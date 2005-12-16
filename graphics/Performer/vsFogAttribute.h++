@@ -25,7 +25,7 @@
 #include <Performer/pr/pfFog.h>
 #include "vsStateAttribute.h++"
 
-enum VS_GRAPHICS_DLL vsFogEquationType
+enum vsFogEquationType
 {
     VS_FOG_EQTYPE_LINEAR,
     VS_FOG_EQTYPE_EXP,

@@ -34,7 +34,7 @@
 
 #define VS_UW_PACKET_SIZE   19
 
-typedef VS_IO_DLL struct
+typedef struct
 {
     unsigned char xMSB;
     unsigned char yMSB;
@@ -46,7 +46,7 @@ typedef VS_IO_DLL struct
     unsigned char hat;
 } vsUnwinderData;
 
-typedef VS_IO_DLL struct 
+typedef struct 
 {
     unsigned char                 status;
     unsigned char                 mode;

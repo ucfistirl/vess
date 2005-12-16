@@ -111,7 +111,7 @@
 #define VS_AS_ALL_TRACKERS 0xFF
 
 // RS-485 (FBB) command set
-enum VS_IO_DLL
+enum 
 {
     VS_AS_FBB_RS232CMD    = 0,
     VS_AS_FBB_SEND_DATA   = 1,
@@ -120,7 +120,7 @@ enum VS_IO_DLL
 };
 
 // Change/Examine Value command parameters
-enum VS_IO_DLL
+enum 
 {
     VS_AS_VAL_BIRD_STATUS        = 0x00,
     VS_AS_VAL_SW_REV             = 0x01,
@@ -155,14 +155,14 @@ enum VS_IO_DLL
 };
 
 // Configuration mode values
-enum VS_IO_DLL
+enum 
 {
     VS_AS_MODE_FLOCK      = 0,
     VS_AS_MODE_STANDALONE = 1
 };
 
 // Address mode values
-enum VS_IO_DLL
+enum 
 {
     VS_AS_ADDR_STANDARD = 0,
     VS_AS_ADDR_EXPANDED = 1,
@@ -170,7 +170,7 @@ enum VS_IO_DLL
 };
 
 // Data format values
-enum VS_IO_DLL
+enum 
 {
     VS_AS_DATA_POSITION   = 0,
     VS_AS_DATA_ANGLES     = 1,
@@ -182,7 +182,7 @@ enum VS_IO_DLL
 };
 
 // Hemispheres
-enum VS_IO_DLL
+enum 
 {
     VS_AS_HSPH_FORWARD = 0x0000,
     VS_AS_HSPH_AFT     = 0x0001,
@@ -193,7 +193,7 @@ enum VS_IO_DLL
 };
 
 // Synchronization modes
-enum VS_IO_DLL
+enum 
 {
     VS_AS_SYNC_NONE = 0,
     VS_AS_SYNC_1X   = 1,

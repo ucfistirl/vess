@@ -9,21 +9,21 @@
 
 #define VS_SPH_ISECT_MAX_SPHERES 32
 
-enum VS_GRAPHICS_DLL vsSphereIntersectSwitchTraversalMode
+enum vsSphereIntersectSwitchTraversalMode
 {
     VS_SPH_ISECT_SWITCH_NONE,
     VS_SPH_ISECT_SWITCH_CURRENT,
     VS_SPH_ISECT_SWITCH_ALL
 };
 
-enum VS_GRAPHICS_DLL vsSphereIntersectSequenceTraversalMode
+enum vsSphereIntersectSequenceTraversalMode
 {
     VS_SPH_ISECT_SEQUENCE_NONE,
     VS_SPH_ISECT_SEQUENCE_CURRENT,
     VS_SPH_ISECT_SEQUENCE_ALL
 };
 
-enum VS_GRAPHICS_DLL vsSphereIntersectLODTraversalMode
+enum vsSphereIntersectLODTraversalMode
 {
     VS_SPH_ISECT_LOD_NONE,
     VS_SPH_ISECT_LOD_FIRST,

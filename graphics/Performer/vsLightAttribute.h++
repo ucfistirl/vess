@@ -29,7 +29,7 @@
 #include "vsAttribute.h++"
 #include "vsNode.h++"
 
-enum VS_GRAPHICS_DLL vsLightAttributeMode
+enum vsLightAttributeMode
 {
     VS_LIGHT_MODE_GLOBAL,
     VS_LIGHT_MODE_LOCAL

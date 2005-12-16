@@ -131,7 +131,7 @@
 #define VS_IS_SYNC_VIDEO    2
 
 // Output format
-enum VS_IO_DLL
+enum 
 {
     VS_IS_FORMAT_SPACE        = 0,
     VS_IS_FORMAT_CRLF         = 1,
@@ -154,7 +154,7 @@ enum VS_IO_DLL
 #define VS_IS_SCALE_QUAT       (float)(1.0/8192.0)
 
 // Inches or centimeters
-enum VS_IO_DLL
+enum 
 {
     VS_IS_UNITS_INCHES,
     VS_IS_UNITS_CENTIMETERS

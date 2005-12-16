@@ -29,7 +29,7 @@
 #define VS_VEST_BUFFER_SIZE 128
 
 // The various states that the vest can be in
-enum VS_IO_DLL
+enum 
 {
     VS_VEST_STATE_UNKNOWN       =  0,// don't know anything about a vest yet
     VS_VEST_STATE_NOT_AVAILABLE = -1,// vest has not been detected

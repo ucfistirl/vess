@@ -23,8 +23,6 @@
 #ifndef VS_INTERSECT_HPP
 #define VS_INTERSECT_HPP
 
-//class vsIntersect;
-
 #include <Performer/pr/pfGeoSet.h>
 #include <Performer/pf/pfNode.h>
 #include "vsVector.h++"
@@ -35,28 +33,28 @@
 
 #define VS_INTERSECT_SEGS_MAX 32
 
-enum VS_GRAPHICS_DLL vsIntersectFacingMode
+enum vsIntersectFacingMode
 {
     VS_INTERSECT_IGNORE_NONE,
     VS_INTERSECT_IGNORE_FRONTFACE,
     VS_INTERSECT_IGNORE_BACKFACE
 };
 
-enum VS_GRAPHICS_DLL vsIntersectSwitchTraversalMode
+enum vsIntersectSwitchTraversalMode
 {
     VS_INTERSECT_SWITCH_NONE,
     VS_INTERSECT_SWITCH_CURRENT,
     VS_INTERSECT_SWITCH_ALL
 };
 
-enum VS_GRAPHICS_DLL vsIntersectSequenceTraversalMode
+enum vsIntersectSequenceTraversalMode
 {
     VS_INTERSECT_SEQUENCE_NONE,
     VS_INTERSECT_SEQUENCE_CURRENT,
     VS_INTERSECT_SEQUENCE_ALL
 };
 
-enum VS_GRAPHICS_DLL vsIntersectLODTraversalMode
+enum vsIntersectLODTraversalMode
 {
     VS_INTERSECT_LOD_NONE,
     VS_INTERSECT_LOD_FIRST,

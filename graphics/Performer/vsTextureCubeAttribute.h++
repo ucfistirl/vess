@@ -29,7 +29,7 @@
 
 #define VS_TEXTURE_CUBE_SIDES 6
 
-enum VS_GRAPHICS_DLL vsTextureCubeFace
+enum vsTextureCubeFace
 {
     VS_TEXTURE_CUBE_POSITIVE_X,
     VS_TEXTURE_CUBE_NEGATIVE_X,
