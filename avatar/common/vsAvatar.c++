@@ -49,12 +49,17 @@
 #include "vsWalkInPlace.h++"
 #include "vsViewpointAttribute.h++"
 #include "vsWindowSystem.h++"
+#include "vsFPSMotion.h++"
 #include <string.h>
 
+// Include the vsWSSpaceball class if we're configured for a Linux or IRIX
+// system
 #if defined(__linux__) || defined(IRIX)
 #include "vsWSSpaceball.h++"
 #endif
 
+// Include the vsLinuxJoystickSystem class only if we're configured for a 
+// Linux system
 #ifdef __linux__
 #include "vsLinuxJoystickSystem.h++"
 #endif
@@ -438,6 +443,8 @@ void *vsAvatar::createObject(char *idString)
     else if (!strcmp(idString, "vsLinuxJoystickSystem"))
         return makeVsLinuxJoystickSystem();
 #endif
+    else if (!strcmp(idString, "vsFPSMotion"))
+        return makeVsFPSMotion();
     
     // If the type name is unrecognized, just return NULL
     return NULL;
@@ -1781,7 +1788,6 @@ void *vsAvatar::makeVsPolaris()
     char cfgLine[256];
     char token[256];
     int lineType = 0;
-    char strValue[256];
     long baudRate = 9600;
     int portNumber = -1;
     int nTrackers = 0;
@@ -2262,7 +2268,7 @@ void *vsAvatar::makeVsKinematics()
 
     // Construct the vsKinematics object
     result = new vsKinematics(geom);
-    
+
     // Enable/disable inertia if configured to do so
     if (inertia == 1)
         result->enableInertia();
@@ -3993,5 +3999,213 @@ void *vsAvatar::makeVsWalkInPlace()
         result->disableMovementLimit();
     
     // Return the created vsWalkInPlace object
+    return result;
+}
+
+// ------------------------------------------------------------------------
+// Protected function
+// Creates a vsFPSMotion from data in the configuration file, and
+// returns a pointer to it.
+// ------------------------------------------------------------------------
+void *vsAvatar::makeVsFPSMotion()
+{
+    char cfgLine[256];
+    char token[256];
+    int lineType = 0;
+    vsKinematics *rootKinematics = NULL;
+    vsKinematics *viewKinematics = NULL;
+    char objName[256];
+    vsInputAxis *forwardAxis = NULL;
+    vsInputAxis *strafeAxis = NULL;
+    vsInputAxis *headingAxis = NULL;
+    vsInputAxis *pitchAxis = NULL;
+    vsIODevice *ioDev;
+    int axisNum;
+    vsMouse *mouse = NULL;
+    double maxForwardSpeed = VS_FPSM_DEFAULT_MAX_SPEED;
+    double maxReverseSpeed = VS_FPSM_DEFAULT_MAX_SPEED;
+    double maxStrafeSpeed = VS_FPSM_DEFAULT_MAX_SPEED;
+    double headingRate = VS_FPSM_DEFAULT_HEADING_RATE;
+    double pitchRate = VS_FPSM_DEFAULT_PITCH_RATE;
+    double minPitch = -VS_FPSM_DEFAULT_PITCH_LIMIT;
+    double maxPitch = VS_FPSM_DEFAULT_PITCH_LIMIT;
+    char axisMode[256];
+    vsFPSMAxisMode headingMode, pitchMode;
+    vsFPSMotion *result;
+    
+    // Read in parameters for the object
+    while (lineType != VS_AVT_LINE_END)
+    {
+        // Get the next line from the config file
+        lineType = readCfgLine(cfgLine);
+        if (lineType != VS_AVT_LINE_PARAM)
+            continue;
+
+        // Read the first token on the config line
+        sscanf(cfgLine, "%s", token);
+        
+        // Interpret the first token
+        if (!strcmp(token, "rootKinematics"))
+        {
+            // Set the kinematics object
+            sscanf(cfgLine, "%*s %s", objName);
+            rootKinematics = (vsKinematics *)(findObject(objName));
+        }
+        else if (!strcmp(token, "viewKinematics"))
+        {
+            // Set the kinematics object
+            sscanf(cfgLine, "%*s %s", objName);
+            viewKinematics = (vsKinematics *)(findObject(objName));
+        }
+        else if (!strcmp(token, "forwardAxis"))
+        {
+            // Fetch the input axis for forward/backward control
+            sscanf(cfgLine, "%*s %s %d", objName, &axisNum);
+            ioDev = (vsIODevice *)(findObject(objName));
+            if (ioDev != NULL)
+                forwardAxis = ioDev->getAxis(axisNum);
+        }
+        else if (!strcmp(token, "strafeAxis"))
+        {
+            // Fetch the input axis for strafe (left/right) control
+            sscanf(cfgLine, "%*s %s %d", objName, &axisNum);
+            ioDev = (vsIODevice *)(findObject(objName));
+            if (ioDev != NULL)
+                strafeAxis = ioDev->getAxis(axisNum);
+        }
+        else if (!strcmp(token, "headingAxis"))
+        {
+            // Fetch the input axis for heading (yaw) control
+            sscanf(cfgLine, "%*s %s %d", objName, &axisNum);
+            ioDev = (vsIODevice *)(findObject(objName));
+            if (ioDev != NULL)
+                headingAxis = ioDev->getAxis(axisNum);
+        }
+        else if (!strcmp(token, "pitchAxis"))
+        {
+            // Fetch the input axis for pitch control
+            sscanf(cfgLine, "%*s %s %d", objName, &axisNum);
+            ioDev = (vsIODevice *)(findObject(objName));
+            if (ioDev != NULL)
+                pitchAxis = ioDev->getAxis(axisNum);
+        }
+        else if (!strcmp(token, "mouse"))
+        {
+            // Fetch the input axis for pitch control
+            sscanf(cfgLine, "%*s %s %d", objName, &axisNum);
+            mouse = (vsMouse *)(findObject(objName));
+        }
+        else if (!strcmp(token, "maxForwardSpeed"))
+        {
+            // Set the maximum forward movement speed
+            sscanf(cfgLine, "%*s %lf", &maxForwardSpeed);
+        }
+        else if (!strcmp(token, "maxReverseSpeed"))
+        {
+            // Set the maximum backward movement speed
+            sscanf(cfgLine, "%*s %lf", &maxReverseSpeed);
+        }
+        else if (!strcmp(token, "maxStrafeSpeed"))
+        {
+            // Set the maximum strafe (side-to-side) movement speed
+            sscanf(cfgLine, "%*s %lf", &maxStrafeSpeed);
+        }
+        else if (!strcmp(token, "headingRate"))
+        {
+            // Set the maximum rate at which an incremental axis turns
+            sscanf(cfgLine, "%*s %lf", &headingRate);
+        }
+        else if (!strcmp(token, "pitchRate"))
+        {
+            // Set the maximum rate at which an incremental axis turns
+            sscanf(cfgLine, "%*s %lf", &headingRate);
+        }
+        else if (!strcmp(token, "headingMode"))
+        {
+            // Set whether the heading is controlled directly or 
+            // incrementally by the heading axis
+            sscanf(cfgLine, "%*s %s", axisMode);
+
+            if (strcmp(axisMode, "VS_FPSM_MODE_INCREMENTAL") == 0)
+                headingMode = VS_FPSM_MODE_INCREMENTAL;
+            else if (strcmp(axisMode, "VS_FPSM_MODE_ABSOLUTE") == 0)
+                headingMode = VS_FPSM_MODE_ABSOLUTE;
+            else
+                printf("vsAvatar::makeVsFPSMotion:  Unknown axis mode '%s'\n",
+                    axisMode);
+        }
+        else if (!strcmp(token, "pitchMode"))
+        {
+            // Set whether the heading is controlled directly or 
+            // incrementally by the heading axis
+            sscanf(cfgLine, "%*s %s", axisMode);
+
+            if (strcmp(axisMode, "VS_FPSM_MODE_INCREMENTAL") == 0)
+                pitchMode = VS_FPSM_MODE_INCREMENTAL;
+            else if (strcmp(axisMode, "VS_FPSM_MODE_ABSOLUTE") == 0)
+                pitchMode = VS_FPSM_MODE_ABSOLUTE;
+            else
+                printf("vsAvatar::makeVsFPSMotion:  Unknown axis mode '%s'\n",
+                    axisMode);
+        }
+        else if (!strcmp(token, "minPitch"))
+        {
+            // Set the minimum pitch value allowed
+            sscanf(cfgLine, "%*s %lf", &minPitch);
+        }
+        else if (!strcmp(token, "maxPitch"))
+        {
+            // Set the maximum pitch value allowed
+            sscanf(cfgLine, "%*s %lf", &maxPitch);
+        }
+        else
+            printf("vsAvatar::makeVsFPSMotion: Unrecognized token '%s'\n",
+                token);
+    }
+    
+    // We need to have at least the root kinematics defined.  If it isn't
+    // defined, bail out and return NULL for the new motion model.
+    if (rootKinematics != NULL)
+    {
+        printf("vsAvatar::makeVsFPSMotion: Root kinematics object not "
+            "specified\n");
+        return NULL;
+    }
+
+    // If the root kinematics is specified, but not the view kinematics,
+    // assume the user wants to use the root kinematics for pitch control
+    // as well.
+    if (viewKinematics != NULL)
+        viewKinematics = rootKinematics;
+
+    // Note that no axis need be specified.  The user is free to create
+    // a motion model with no controls, if they so desire.
+
+    // If a mouse was specified, use the mouse constructor for the vsFPSMotion.
+    // Otherwise, use the 4 axis constructor
+    if (mouse != NULL)
+    {
+        // Create the motion model using the mouse object
+        result = new vsFPSMotion(forwardAxis, strafeAxis, mouse, 
+            rootKinematics, viewKinematics);
+    }
+    else
+    {
+        // Create the motion model using the four axis objects
+        result = new vsFPSMotion(forwardAxis, strafeAxis, headingAxis, 
+            pitchAxis, rootKinematics, viewKinematics);
+    }
+
+    // Set the remaining parameters
+    result->setMaxForwardSpeed(maxForwardSpeed);
+    result->setMaxReverseSpeed(maxReverseSpeed);
+    result->setMaxStrafeSpeed(maxStrafeSpeed);
+    result->setHeadingRate(headingRate);
+    result->setPitchRate(pitchRate);
+    result->setHeadingAxisMode(headingMode);
+    result->setPitchAxisMode(pitchMode);
+    result->setPitchLimits(minPitch, maxPitch);
+    
+    // Return the created vsFPSMotion object
     return result;
 }

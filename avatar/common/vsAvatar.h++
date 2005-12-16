@@ -30,7 +30,7 @@
 
 #define VS_AVATAR_LOCAL_ISECT_MASK 0x01000000
 
-enum VS_AVATAR_DLL ConfigLineType
+enum  ConfigLineType
 {
     VS_AVT_LINE_END    = -1,
     VS_AVT_LINE_PARAM  = 0,
@@ -79,7 +79,6 @@ protected:
     void               *makeVsIS600();
     void               *makeVsEthernetMotionStar();
     void               *makeVsPolaris();
-    
     void               *makeVsWSSpaceball();
     void               *makeVsPinchGloveBox();
     void               *makeVsCyberGloveBox();
@@ -105,6 +104,7 @@ protected:
     void               *makeVsTrackedMotion();
     void               *makeVsWalkArticulation();
     void               *makeVsWalkInPlace();
+    void               *makeVsFPSMotion();
 
     // haptics objects
     void               *makeVsVestSystem();
