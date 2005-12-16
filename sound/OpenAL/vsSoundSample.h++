@@ -26,7 +26,6 @@
 // This implementation uses OpenAL
 
 #include <AL/al.h>
-#include <AL/alc.h>
 #include "vsGlobals.h++"
 #include "vsSoundBuffer.h++"
 

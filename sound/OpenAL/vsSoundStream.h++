@@ -7,7 +7,6 @@
 // This implementation uses OpenAL
 
 #include <AL/al.h>
-#include <AL/alc.h>
 #include "vsSoundBuffer.h++"
 
 // Buffer data format.  The actual definitions have been moved into the
