@@ -280,23 +280,15 @@ int vsKeyboard::mapToButton(unsigned virtKey, unsigned flags)
         return virtKey - 111;
     }
     
-    // Other printable character keys.  Windows gives these keys very generic
-    // names, probably in order to support a variety of keyboard layouts.
-    // We'll map these keys to their AT-style key labels.
+    // Other printable character keys.  Windows gives these keys very 
+    // generic names, probably in order to support a variety of keyboard
+    // layouts. We'll map these keys to their AT-style key labels.
     if ((virtKey >= VK_OEM_1) && (virtKey <= VK_OEM_7))
     {
         switch (virtKey)
         {
             case VK_OEM_1:
                 return ';';
-            case VK_OEM_PLUS:
-                return '=';
-            case VK_OEM_COMMA:
-                return ',';
-            case VK_OEM_MINUS:
-                return '-';
-            case VK_OEM_PERIOD:
-                return '.';
             case VK_OEM_2:
                 return '/';
             case VK_OEM_3:
@@ -309,6 +301,18 @@ int vsKeyboard::mapToButton(unsigned virtKey, unsigned flags)
                 return ']';
             case VK_OEM_7:
                 return '\'';
+
+            // These keys only show up in Windows 2000 or later
+            #if (_WIN32_WINNT >= 0x0500)
+                case VK_OEM_PLUS:
+                    return '=';
+                case VK_OEM_COMMA:
+                    return ',';
+                case VK_OEM_MINUS:
+                    return '-';
+                case VK_OEM_PERIOD:
+                    return '.';
+            #endif
         }
     }
     
@@ -440,12 +444,6 @@ int vsKeyboard::mapToChar(unsigned virtKey)
             {
                 case VK_OEM_1:
                     return ':';
-                case VK_OEM_PLUS:
-                    return '+';
-                case VK_OEM_COMMA:
-                    return '<';
-                case VK_OEM_MINUS:
-                    return '_';
                 case VK_OEM_2:
                     return '?';
                 case VK_OEM_3:
@@ -458,6 +456,17 @@ int vsKeyboard::mapToChar(unsigned virtKey)
                     return '}';
                 case VK_OEM_7:
                     return '"';
+
+                #if (_WIN32_WINNT >= 0x0500)
+                    case VK_OEM_PLUS:
+                        return '+';
+                    case VK_OEM_COMMA:
+                        return '<';
+                    case VK_OEM_MINUS:
+                        return '_';
+                    case VK_OEM_PERIOD:
+                        return '>';
+                #endif
             }
         }
         else
@@ -466,12 +475,6 @@ int vsKeyboard::mapToChar(unsigned virtKey)
             {
                 case VK_OEM_1:
                     return ';';
-                case VK_OEM_PLUS:
-                    return '=';
-                case VK_OEM_COMMA:
-                    return ',';
-                case VK_OEM_MINUS:
-                    return '-';
                 case VK_OEM_2:
                     return '/';
                 case VK_OEM_3:
@@ -484,6 +487,17 @@ int vsKeyboard::mapToChar(unsigned virtKey)
                     return ']';
                 case VK_OEM_7:
                     return '\'';
+
+                #if (_WIN32_WINNT >= 0x0500)
+                    case VK_OEM_PLUS:
+                        return '=';
+                    case VK_OEM_COMMA:
+                        return ',';
+                    case VK_OEM_MINUS:
+                        return '-';
+                    case VK_OEM_PERIOD:
+                        return '.';
+                #endif
             }
         }
     }
