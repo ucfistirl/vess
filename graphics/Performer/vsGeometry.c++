@@ -44,7 +44,8 @@ bool vsGeometry::binModesChanged = false;
 // ------------------------------------------------------------------------
 vsGeometry::vsGeometry() : parentList(5, 5)
 {
-    unsigned int unit;
+    unsigned int list;
+    char attrName[10];
     int loop;
 
     // Start with no parents
@@ -54,33 +55,51 @@ vsGeometry::vsGeometry() : parentList(5, 5)
     performerGeode = new pfGeode();
     performerGeode->ref();
 
-    // Create a pfGeoSet and add it to the geode
-    performerGeoset = new pfGeoSet();
-    performerGeoset->ref();
-    performerGeode->addGSet(performerGeoset);
+    // Create a pfGeoArray and add it to the geode
+    performerGeoarray = new pfGeoArray();
+    performerGeoarray->ref();
+    performerGeode->addGSet(performerGeoarray);
     
     // Create a pfGeoState
     performerGeostate = new pfGeoState();
     performerGeostate->ref();
-    performerGeoset->setGState(performerGeostate);
+    performerGeoarray->setGState(performerGeostate);
     
     // Initialize the attribute lists to NULL and size 0
-    colorList = NULL;
-    colorListSize = 0;
-    normalList = NULL;
-    normalListSize = 0;
-    for (unit = 0; unit < VS_MAXIMUM_TEXTURE_UNITS; unit++)
+    for (list = 0; list < VS_GEOMETRY_LIST_COUNT; list++)
     {
-        texCoordList[unit] = NULL;
-        texCoordListSize[unit] = 0;
+        dataList[list] = NULL;
+        dataListSize[list] = 0;
+        dataIsGeneric[list] = false;
+        dataBinding[list] = VS_GEOMETRY_BIND_NONE;
     }
-    vertexList = NULL;
-    vertexListSize = 0;
     lengthsList = NULL;
+
+    // Initialize the "public" normal and color list sizes and bindings
+    // Because pfGeoArrays are always per-vertex, we have to emulate the
+    // overall and per-primitive modes of these data lists
+    normalList = NULL;
+    normalBinding = VS_GEOMETRY_BIND_NONE;
+    normalListSize = 0;
+    colorList = NULL;
+    colorBinding = VS_GEOMETRY_BIND_NONE;
+    colorListSize = 0;
+
+    // WORKAROUND:  Performer's bounding box calculation for pfGeoArrays
+    // seems to blow up if there are no vertex coordinates attached
+    // (instead of just returning an empty bounding box, like a sane
+    // scene graph would do).  Try to work around this by initializing the
+    // vertex coordinate list with a single point
+    setBinding(VS_GEOMETRY_VERTEX_COORDS, VS_GEOMETRY_BIND_PER_VERTEX);
+    setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 3);
+    setData(VS_GEOMETRY_VERTEX_COORDS, 0, vsVector(0.0, 0.0, 0.0));
+    setData(VS_GEOMETRY_VERTEX_COORDS, 1, vsVector(0.0, 0.0, 0.0));
+    setData(VS_GEOMETRY_VERTEX_COORDS, 2, vsVector(0.0, 0.0, 0.0));
 
     // Initialize the number of primitives and the size of the primitive
     // length list to zero
     setPrimitiveCount(0);
+    setPrimitiveType(VS_GEOMETRY_TYPE_POINTS);
     
     // Set up our lights list
     lightsList = (pfLight **)
@@ -93,10 +112,16 @@ vsGeometry::vsGeometry() : parentList(5, 5)
     performerGeostate->setFuncs(geostateCallback, NULL, lightsList);
     
     // Disable forced-flatshaded mode on the geoset
-    performerGeoset->setDrawMode(PFGS_FLATSHADE, PF_OFF);
+    performerGeoarray->setDrawMode(PFGS_FLATSHADE, PF_OFF);
+
+    // Disable caching of geoarray data
+    performerGeoarray->allowCache(0);
     
     // Enable lighting (by default)
     enableLighting();
+
+    // Initialize the render bin
+    renderBin = performerGeoarray->getDrawBin();
 
     // Register the pfGeode with the vsObjectMap
     getMap()->registerLink(this, performerGeode);
@@ -107,7 +132,7 @@ vsGeometry::vsGeometry() : parentList(5, 5)
 // ------------------------------------------------------------------------
 vsGeometry::~vsGeometry()
 {
-    unsigned int unit;
+    unsigned int list;
 
     // Remove all parents
     detachFromParents();
@@ -118,25 +143,372 @@ vsGeometry::~vsGeometry()
     // Unlink and destroy the Performer objects
     performerGeode->unref();
     pfDelete(performerGeode);
-    performerGeoset->unref();
-    pfDelete(performerGeoset);
+    performerGeoarray->unref();
+    pfDelete(performerGeoarray);
     performerGeostate->unref();
     pfDelete(performerGeostate);
     
-    // Delete the geoetric data lists
-    if (vertexList && !(pfMemory::getRef(vertexList)))
-        pfMemory::free(vertexList);
-    if (colorList && !(pfMemory::getRef(colorList)))
-        pfMemory::free(colorList);
-    if (normalList && !(pfMemory::getRef(normalList)))
-        pfMemory::free(normalList);
-    for (unit = 0; unit < VS_MAXIMUM_TEXTURE_UNITS; unit++)
-        if (texCoordList[unit] && !(pfMemory::getRef(texCoordList[unit])))
-            pfMemory::free(texCoordList[unit]);
+    // Delete the data lists
+    for (list = 0; list < VS_MAXIMUM_TEXTURE_UNITS; list++)
+        if (dataList[list] && !(pfMemory::getRef(dataList[list])))
+            pfMemory::free(dataList[list]);
     if (lengthsList && !(pfMemory::getRef(lengthsList)))
         pfMemory::free(lengthsList);
+    if (normalList)
+        free(normalList);
+    if (colorList)
+        free(colorList);
 
     getMap()->removeLink(this, VS_OBJMAP_FIRST_LIST);
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Converts a per-primitive or overall list to per-vertex
+// ------------------------------------------------------------------------
+void vsGeometry::convertToPerVertex(int list)
+{
+    float *fakeList;
+    int fakeListSize, fakeBinding;
+    int elementSize;
+    int i, j, k;
+    int baseIndex, realIndex, fakeIndex;
+    int realListType;
+    int newSize;
+    int primitiveCount, primitiveType;
+    
+
+    // Check the list of vertex coordinates and make sure we have a
+    // vertex list to mirror (otherwise, we won't know how big to
+    // make the new list)
+    if (dataListSize[VS_GEOMETRY_VERTEX_COORDS] == 0)
+        return;
+
+    // See which list we're converting
+    if (list == VS_GEOMETRY_NORMALS)
+    {
+        fakeList = normalList;
+        fakeListSize = normalListSize;
+        fakeBinding = normalBinding;
+        elementSize = 3;
+        realListType = PFGA_NORMAL_ARRAY;
+    }
+    else if (list == VS_GEOMETRY_COLORS)
+    {
+        fakeList = colorList;
+        fakeListSize = colorListSize;
+        fakeBinding = colorBinding;
+        elementSize = 4;
+        realListType = PFGA_COLOR_ARRAY;
+    }
+    else
+    {
+        // None of the other lists accept bindings other than NONE or
+        // PER_VERTEX, so bail out here
+        return;
+    }
+
+    // If the list to be converted doesn't exist, bail out
+    if (fakeList == NULL)
+        return;
+
+    // If the current internal list size is zero or the binding is NONE,
+    // we have nothing to convert yet
+    if ((fakeListSize == 0) || (fakeBinding == VS_GEOMETRY_BIND_NONE))
+        return;
+  
+    // Figure out how big to make the real list
+    newSize = dataListSize[VS_GEOMETRY_VERTEX_COORDS];
+
+    // Resize the list to match the number of vertices in the geometry.
+    // Determine what we need to do with the data list
+    // based on whether or not it currently exists, and
+    // the desired new size of the list
+    if (newSize && !dataList[list])
+    {
+        // No list exists, create new list
+        dataList[list] = (float *)(pfMemory::malloc(
+            sizeof(float) * elementSize * newSize));
+        pfMemory::ref(dataList[list]);
+
+        // Set the newly-created list on the pfGeoArray
+        if (dataBinding[list] != VS_GEOMETRY_BIND_NONE)
+            performerGeoarray->setAttr(realListType, elementSize, GL_FLOAT,
+                sizeof(float)*elementSize, dataList[list]);
+    }
+    else if (!newSize && dataList[list])
+    {
+        // List exists, but the requested new size is zero, so
+        // delete the existing list
+        if (dataBinding[list] != VS_GEOMETRY_BIND_NONE)
+            performerGeoarray->setAttr(realListType, elementSize, GL_FLOAT,
+                sizeof(float)*elementSize, NULL);
+
+        // Now, delete both the GeoArray and GeoSet lists
+        pfMemory::unref(dataList[list]);
+        pfMemory::free(dataList[list]);
+        dataList[list] = NULL;
+    }
+    else if (newSize && dataList[list])
+    {
+        // Modify the length of the existing list using realloc.
+        pfMemory::ref(dataList[list]);
+        if (dataBinding[list] != VS_GEOMETRY_BIND_NONE)
+            performerGeoarray->setAttr(realListType, elementSize, GL_FLOAT,
+                sizeof(float)*elementSize, NULL);
+        dataList[list] = (float *)(pfMemory::realloc(dataList[list],
+            sizeof(float) * elementSize * newSize));
+        pfMemory::unref(dataList[list]);
+
+        if (dataBinding[list] != VS_GEOMETRY_BIND_NONE)
+            performerGeoarray->setAttr(realListType, elementSize, GL_FLOAT,
+                sizeof(float)*elementSize, dataList[list]);
+    }
+
+    // Update the data list size
+    dataListSize[list] = newSize;
+
+    // Process the list to convert the old binding to per-vertex
+    if (fakeBinding == VS_GEOMETRY_BIND_OVERALL)
+    {
+        // Copy the data from the first element of the internal "fake" list
+        // to all elements of the real list 
+        for (i = 0; i < dataListSize[list]; i++)
+            for (j = 0; j < elementSize; j++)
+                dataList[list][i*elementSize + j] = fakeList[j];
+
+        // Switch the actual binding of the list to per-vertex and attach
+        // the list to the geometry if necessary
+        if (dataBinding[list] != VS_GEOMETRY_BIND_PER_VERTEX)
+            performerGeoarray->setAttr(realListType, elementSize, GL_FLOAT, 
+                sizeof(float)*elementSize, dataList[list]);
+        dataBinding[list] = VS_GEOMETRY_BIND_PER_VERTEX;
+    }
+    else if (fakeBinding == VS_GEOMETRY_BIND_PER_PRIMITIVE)
+    {
+        // Copy the data from the first element to all other elements
+        // of the list.  The process will be different depending on the
+        // primitive type.
+        primitiveCount = getPrimitiveCount();
+        primitiveType = getPrimitiveType();
+        switch (primitiveType)
+        {
+            case VS_GEOMETRY_TYPE_POINTS:
+                // A straight list-to-list copy works for points
+                memcpy(dataList[list], fakeList, 
+                    primitiveCount*sizeof(float)*elementSize);
+                break;
+
+            case VS_GEOMETRY_TYPE_LINES:
+                // Copy the lines' attributes (two per primitive)
+                for (i = 0; i < primitiveCount; i++)
+                    for (j = 0; j < 2; j++)
+                        for (k = 0; k < elementSize; k++)
+                        {
+                            // Compute the list indices, each primitive has
+                            // two vertices with elementSize components each
+                            realIndex = i*2*elementSize + j*elementSize + k;
+                            fakeIndex = i*elementSize + k;
+                            dataList[list][realIndex] = fakeList[fakeIndex];
+                        }
+                break;
+
+            case VS_GEOMETRY_TYPE_TRIS:
+                // Copy the triangles' attributes (three per primitive)
+                for (i = 0; i < primitiveCount; i++)
+                    for (j = 0; j < 3; j++)
+                        for (k = 0; k < elementSize; k++)
+                        {
+                            // Compute the list indices, each primitive has
+                            // three vertices with elementSize components each
+                            realIndex = i*3*elementSize + j*elementSize + k;
+                            fakeIndex = i*elementSize + k;
+                            dataList[list][realIndex] = fakeList[fakeIndex];
+                        }
+                break;
+
+            case VS_GEOMETRY_TYPE_QUADS:
+                // Copy the quads' attributes (four per primitive)
+                for (i = 0; i < primitiveCount; i++)
+                    for (j = 0; j < 4; j++)
+                        for (k = 0; k < elementSize; k++)
+                        {
+                            // Compute the list indices, each primitive has
+                            // four vertices with elementSize components each
+                            realIndex = i*4*elementSize + j*elementSize + k;
+                            fakeIndex = i*elementSize + k;
+                            dataList[list][realIndex] = fakeList[fakeIndex];
+                        }
+                break;
+
+            case VS_GEOMETRY_TYPE_LINE_STRIPS:
+            case VS_GEOMETRY_TYPE_TRI_STRIPS:
+            case VS_GEOMETRY_TYPE_TRI_FANS:
+            case VS_GEOMETRY_TYPE_POLYS:
+                // Copy the strips' attributes, using the lengths array
+                // to determine how many vertices per primitive.  Use
+                // a baseIndex variable to keep track of where in the list
+                // each primitive starts
+                baseIndex = 0;
+                for (i = 0; i < primitiveCount; i++)
+                {
+                    for (j = 0; j < lengthsList[i]; j++)
+                    {
+                        for (k = 0; k < elementSize; k++)
+                        {
+                            // Compute the list indices
+                            realIndex = 
+                                baseIndex + j*elementSize + k;
+                            fakeIndex = i*elementSize + k;
+                            dataList[list][realIndex] = fakeList[fakeIndex];
+                        }
+                    }
+
+                    // Update the baseIndex so we know where the next
+                    // primitive starts
+                    baseIndex += lengthsList[i]*elementSize;
+                }
+                break;
+        }
+
+        // Switch the actual binding of the list to per-vertex and attach
+        // the list to the geometry if necessary
+        if (dataBinding[list] != VS_GEOMETRY_BIND_PER_VERTEX)
+            performerGeoarray->setAttr(realListType, elementSize, GL_FLOAT, 
+                sizeof(float)*elementSize, dataList[list]);
+        dataBinding[list] = VS_GEOMETRY_BIND_PER_VERTEX;
+    }
+    else if (fakeBinding == VS_GEOMETRY_BIND_PER_VERTEX)
+    {
+        // If the binding is already per-vertex, we just need to copy
+        // the list data over
+        memcpy(dataList[list], fakeList, 
+            dataListSize[list]*sizeof(float)*elementSize);
+
+        // Set the actual binding of the list to per-vertex and attach
+        // the list to the geometry if necessary
+        if (dataBinding[list] != VS_GEOMETRY_BIND_PER_VERTEX)
+            performerGeoarray->setAttr(realListType, elementSize, GL_FLOAT, 
+                sizeof(float)*elementSize, dataList[list]);
+        dataBinding[list] = VS_GEOMETRY_BIND_PER_VERTEX;
+    }
+    else if (fakeBinding == VS_GEOMETRY_BIND_NONE)
+    {
+        // Set the actual binding of the list to non and detach
+        // the list from the geometry if necessary
+        if (dataBinding[list] != VS_GEOMETRY_BIND_NONE)
+        dataBinding[list] = VS_GEOMETRY_BIND_PER_VERTEX;
+        performerGeoarray->setAttr(realListType, elementSize, GL_FLOAT,
+            sizeof(float)*elementSize, NULL);
+    }
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Emulates setting an overall-bound data element on the normal or color 
+// list
+// ------------------------------------------------------------------------
+void vsGeometry::setOverallData(int list, vsVector data)
+{
+    int i, j;
+
+    // Figure out which list we're manipulating. Note that we assume all
+    // error checking on ranges, list sizes, and bounds has already been
+    // done by the calling function
+    if (list == VS_GEOMETRY_NORMALS)
+    {
+        // Copy the data to every element in the list 
+        for (i = 0; i < dataListSize[list]; i++)
+        {
+            for (j = 0; j < 3; j++)
+                dataList[list][i*3 + j] = data[j];
+        }
+    }
+    else if (list == VS_GEOMETRY_COLORS)
+    {
+        // Copy the data to every element in the list 
+        for (i = 0; i < dataListSize[list]; i++)
+        {
+            for (j = 0; j < 4; j++)
+                dataList[list][i*4 + j] = data[j];
+        }
+    }
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Emulates setting a per-primitive-bound data element on the normal or 
+// color list
+// ------------------------------------------------------------------------
+void vsGeometry::setPerPrimitiveData(int list, int index, vsVector data)
+{
+    int baseIndex, i, j;
+    int elementSize;
+
+    // Figure out which list we're manipulating and determine the size of 
+    // each element of the list. 
+    if (list == VS_GEOMETRY_NORMALS)
+        elementSize = 3;
+    else if (list == VS_GEOMETRY_COLORS)
+        elementSize = 4;
+    else
+        return;
+
+    // Adjust the list data.  Note that we assume all error checking on 
+    // ranges, list sizes, and bounds has already been done by the calling 
+    // function
+    switch (getPrimitiveType())
+    {
+        case VS_GEOMETRY_TYPE_POINTS:
+            // Only one element to copy
+            for (i = 0 ; i < elementSize; i++)
+                dataList[list][index*elementSize + i] = data[i];
+            break;
+
+        case VS_GEOMETRY_TYPE_LINES:
+            // Two elements to copy
+            for (i = 0 ; i < 2; i++)
+                for (j = 0; j < elementSize; j++)
+                    dataList[list][index*elementSize*2 + i*elementSize + j] = 
+                        data[j];
+            break;
+
+        case VS_GEOMETRY_TYPE_TRIS:
+            // Three elements to copy
+            for (i = 0 ; i < 3; i++)
+                for (j = 0; j < elementSize; j++)
+                    dataList[list][index*elementSize*3 + i*elementSize + j] = 
+                        data[j];
+            break;
+
+        case VS_GEOMETRY_TYPE_QUADS:
+            // Four elements to copy
+            for (i = 0 ; i < 4; i++)
+                for (j = 0; j < elementSize; j++)
+                    dataList[list][index*elementSize*4 + i*elementSize + j] = 
+                        data[j];
+            break;
+
+        case VS_GEOMETRY_TYPE_LINE_STRIPS:
+        case VS_GEOMETRY_TYPE_TRI_STRIPS:
+        case VS_GEOMETRY_TYPE_TRI_FANS:
+        case VS_GEOMETRY_TYPE_POLYS:
+            // Compute the base index where we will start modifying data in the
+            // list
+            baseIndex = 0;
+            for (i = 0; i < index; i++)
+                baseIndex += lengthsList[i]*elementSize;
+
+            // Modify the data for all vertices related to this primitive
+            for (i = 0; i < lengthsList[index]; i++)
+                for (j = 0; j < elementSize; j++)
+                    dataList[list][baseIndex + i*elementSize + j] = data[j];
+            break;
+
+        default:
+            printf("vsGeometry::setPerPrimitiveData:  Unrecognized primitive "
+                "type\n");
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -187,38 +559,38 @@ void vsGeometry::setPrimitiveType(int newType)
     switch (newType)
     {
         case VS_GEOMETRY_TYPE_POINTS:
-            performerGeoset->setPrimType(PFGS_POINTS);
+            performerGeoarray->setPrimType(PFGS_POINTS);
             break;
         case VS_GEOMETRY_TYPE_LINES:
-            performerGeoset->setPrimType(PFGS_LINES);
+            performerGeoarray->setPrimType(PFGS_LINES);
             break;
         case VS_GEOMETRY_TYPE_LINE_STRIPS:
-            performerGeoset->setPrimType(PFGS_LINESTRIPS);
+            performerGeoarray->setPrimType(PFGS_LINESTRIPS);
             break;
         case VS_GEOMETRY_TYPE_LINE_LOOPS:
             printf("vsGeometry::setPrimitiveType: VS_GEOMETRY_TYPE_LINE_LOOPS "
                 "type not supported under Performer operation\n");
-            performerGeoset->setPrimType(PFGS_LINESTRIPS);
+            performerGeoarray->setPrimType(PFGS_LINESTRIPS);
             break;
         case VS_GEOMETRY_TYPE_TRIS:
-            performerGeoset->setPrimType(PFGS_TRIS);
+            performerGeoarray->setPrimType(PFGS_TRIS);
             break;
         case VS_GEOMETRY_TYPE_TRI_STRIPS:
-            performerGeoset->setPrimType(PFGS_TRISTRIPS);
+            performerGeoarray->setPrimType(PFGS_TRISTRIPS);
             break;
         case VS_GEOMETRY_TYPE_TRI_FANS:
-            performerGeoset->setPrimType(PFGS_TRIFANS);
+            performerGeoarray->setPrimType(PFGS_TRIFANS);
             break;
         case VS_GEOMETRY_TYPE_QUADS:
-            performerGeoset->setPrimType(PFGS_QUADS);
+            performerGeoarray->setPrimType(PFGS_QUADS);
             break;
         case VS_GEOMETRY_TYPE_QUAD_STRIPS:
             printf("vsGeometry::setPrimitiveType: VS_GEOMETRY_TYPE_QUAD_STRIPS "
                 "type not supported under Performer operation\n");
-            performerGeoset->setPrimType(PFGS_QUADS);
+            performerGeoarray->setPrimType(PFGS_QUADS);
             break;
         case VS_GEOMETRY_TYPE_POLYS:
-            performerGeoset->setPrimType(PFGS_POLYS);
+            performerGeoarray->setPrimType(PFGS_POLYS);
             break;
         default:
             printf("vsGeometry::setPrimitiveType: Unrecognized primitive "
@@ -234,7 +606,7 @@ int vsGeometry::getPrimitiveType()
 {
     // Obtain the Performer primitive type from the geoset, and translate
     // it to VESS
-    switch (performerGeoset->getPrimType())
+    switch (performerGeoarray->getPrimType())
     {
         case PFGS_POINTS:
             return VS_GEOMETRY_TYPE_POINTS;
@@ -257,7 +629,7 @@ int vsGeometry::getPrimitiveType()
             return VS_GEOMETRY_TYPE_POLYS;
     }
     
-    // If the primitive type is unrecignized, return an error value
+    // If the primitive type is unrecognized, return an error value
     return -1;
 }
 
@@ -268,7 +640,7 @@ int vsGeometry::getPrimitiveType()
 void vsGeometry::setPrimitiveCount(int newCount)
 {
     // Set the number of primitives on the Performer geoset
-    performerGeoset->setNumPrims(newCount);
+    performerGeoarray->setNumPrims(newCount);
     
     // If the geometry's particular primitive type doesn't require a
     // primitive lengths array, don't bother updating it.
@@ -296,9 +668,9 @@ void vsGeometry::setPrimitiveCount(int newCount)
         lengthsList = (int *)(pfMemory::realloc(lengthsList,
             sizeof(int) * newCount));
     }
-    
+
     // Set the primitive lengths array on the Performer geoset
-    performerGeoset->setPrimLengths(lengthsList);
+    performerGeoarray->setPrimLengths(lengthsList);
 }
 
 // ------------------------------------------------------------------------
@@ -306,7 +678,7 @@ void vsGeometry::setPrimitiveCount(int newCount)
 // ------------------------------------------------------------------------
 int vsGeometry::getPrimitiveCount()
 {
-    return (performerGeoset->getNumPrims());
+    return (performerGeoarray->getNumPrims());
 }
 
 // ------------------------------------------------------------------------
@@ -434,28 +806,45 @@ void vsGeometry::getPrimitiveLengths(int *lengthsBuffer)
 void vsGeometry::setBinding(int whichData, int binding)
 {
     int performerBinding;
-    unsigned int unit;
-    
-    // Translate VESS constants to Performer constants
-    switch (binding)
-    {
-        case VS_GEOMETRY_BIND_NONE:
-            performerBinding = PFGS_OFF;
-            break;
-        case VS_GEOMETRY_BIND_OVERALL:
-            performerBinding = PFGS_OVERALL;
-            break;
-        case VS_GEOMETRY_BIND_PER_PRIMITIVE:
-            performerBinding = PFGS_PER_PRIM;
-            break;
-        case VS_GEOMETRY_BIND_PER_VERTEX:
-            performerBinding = PFGS_PER_VERTEX;
-            break;
-        default:
-            printf("vsGeometry::setBinding: Unrecognized binding value\n");
-            return;
-    }
+    int list, unit;
 
+    // Figure out which list is being modified.  If it's a generic list,
+    // we need to translate the index.  We also need to make sure we're
+    // not changing the binding of a list when the corresponding overlapping
+    // list is in use.
+    if (whichData >= VS_GEOMETRY_LIST_COUNT)
+    {
+        // Compute the list index
+        list = whichData - VS_GEOMETRY_LIST_COUNT;
+
+        // Check the corresponding conventional attribute list to make sure
+        // it's not being used
+        if ((dataListSize[list] > 0) && (!dataIsGeneric[list]))
+        {
+            printf("vsGeometry::setBinding:  Cannot modify binding on generic "
+                 "attribute type %d when\n", list);
+            printf("    corresponding conventional attribute type is in "
+                 "use.\n");
+            return;
+        }
+    }
+    else
+    {
+        // Remember the list index
+        list = whichData;
+
+        // Check the corresponding generic attribute list to make sure
+        // it's not being used
+        if ((dataListSize[list] > 0) && (dataIsGeneric[list]))
+        {
+            printf("vsGeometry::setBinding:  Cannot modify binding on generic "
+                 "attribute type %d when\n", list);
+            printf("    corresponding conventional attribute type is in "
+                 "use.\n");
+            return;
+        }
+    }
+    
     // Figure out which data is being affected and apply the new binding
     switch (whichData)
     {
@@ -467,21 +856,197 @@ void vsGeometry::setBinding(int whichData, int binding)
                     "always be VS_GEOMETRY_BIND_PER_VERTEX\n");
                 return;
             }
-            // Set vertex coordinate binding on the geoset
-            performerGeoset->setAttr(PFGS_COORD3, performerBinding,
-                vertexList, NULL);
+            // Add the attribute list to the geoarray, if necessary
+            if ((dataBinding[list] != VS_GEOMETRY_BIND_PER_VERTEX) &&
+                (dataList[list] != NULL))
+            {
+                performerGeoarray->setAttr(PFGA_COORD_ARRAY, 3, 
+                    GL_FLOAT, sizeof(float)*3, dataList[list]);
+            }
+            dataBinding[list] = VS_GEOMETRY_BIND_PER_VERTEX;
             break;
 
+        case VS_GEOMETRY_VERTEX_WEIGHTS:
+            // Vertex weights are not supported directly by Performer, so
+            // we pass them down as a generic attribute. Vertex weights 
+            // binding should be either none or per-vertex
+            if ((binding != VS_GEOMETRY_BIND_PER_VERTEX) &&
+                (binding != VS_GEOMETRY_BIND_NONE))
+            {
+                printf("vsGeometry::setBinding: Vertex weights binding "
+                    "must be either VS_GEOMETRY_BIND_PER_VERTEX or "
+                    "VS_GEOMETRY_BIND_NONE\n");
+                return;
+            }
+
+            // Set vertex weight binding on the geoset
+            if (binding == VS_GEOMETRY_BIND_NONE)
+            {
+                // Remove the attribute list from the geoarray, if necessary
+                if ((dataBinding[list] != VS_GEOMETRY_BIND_NONE) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setMultiAttr(PFGA_GENERIC_ARRAY, 1, 4, 
+                        GL_FLOAT, sizeof(float)*4, NULL);
+            }           
+            else
+            {
+                // Add the attribute list to the geoarray, if necessary
+                if ((dataBinding[list] == VS_GEOMETRY_BIND_NONE) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setMultiAttr(PFGA_GENERIC_ARRAY, 1, 4, 
+                        GL_FLOAT, sizeof(float)*4, dataList[list]);
+            }
+            dataBinding[list] = binding;
+            break;
+
+
         case VS_GEOMETRY_NORMALS:
-            // Set color binding on the geoset
-            performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
-                normalList, NULL);
+            // Update the binding on the fake normal list and recompute the
+            // actual list
+            normalBinding = binding;
+            convertToPerVertex(VS_GEOMETRY_NORMALS);
+
+            // Set normal binding on the geoset
+            if (binding == VS_GEOMETRY_BIND_NONE)
+            {
+                // Remove the pfGeoArray attribute, if we have it set
+                if ((dataBinding[list] == VS_GEOMETRY_BIND_PER_VERTEX) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setAttr(PFGA_NORMAL_ARRAY, 3, GL_FLOAT,
+                        sizeof(float)*3, NULL);
+            }
+            else
+            {
+                // Add the attribute list to the geoarray
+                if ((dataBinding[list] == VS_GEOMETRY_BIND_NONE) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setAttr(PFGA_NORMAL_ARRAY, 3, GL_FLOAT, 
+                        sizeof(float)*3, dataList[list]);
+            }
             break;
 
         case VS_GEOMETRY_COLORS:
-            // Set normal binding on the geoset
-            performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
-                colorList, NULL);
+            // Update the binding on the fake color list and recompute the
+            // actual list
+            colorBinding = binding;
+            convertToPerVertex(VS_GEOMETRY_COLORS);
+
+            // Set color binding on the geoset
+            if (binding == VS_GEOMETRY_BIND_NONE)
+            {
+                // Remove the pfGeoArray attribute, if we have it set
+                if ((dataBinding[list] == VS_GEOMETRY_BIND_PER_VERTEX) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setAttr(PFGA_COLOR_ARRAY, 4, GL_FLOAT, 
+                        sizeof(float)*4, NULL);
+            }
+            else
+            {
+                // Add the attribute list to the geoarray
+                if ((dataBinding[list] == VS_GEOMETRY_BIND_NONE) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setAttr(PFGA_COLOR_ARRAY, 4, GL_FLOAT, 
+                        sizeof(float)*4, dataList[list]);
+            }
+            break;
+
+        case VS_GEOMETRY_ALT_COLORS:
+            // Alternate colors are not supported directly by Performer, so
+            // we pass them down as a generic attribute.  Their binding 
+            // should be either none or per-vertex
+            if ((binding != VS_GEOMETRY_BIND_PER_VERTEX) &&
+                (binding != VS_GEOMETRY_BIND_NONE))
+            {
+                printf("vsGeometry::setBinding: Alternate color binding "
+                    "must be either VS_GEOMETRY_BIND_PER_VERTEX or "
+                    "VS_GEOMETRY_BIND_NONE\n");
+                return;
+            }
+
+            // Set vertex weight binding on the geoset
+            if (binding == VS_GEOMETRY_BIND_NONE)
+            {
+                // Remove the attribute list from the geoarray, if necessary
+                if ((dataBinding[list] != VS_GEOMETRY_BIND_NONE) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setMultiAttr(PFGA_GENERIC_ARRAY, 4, 4, 
+                        GL_FLOAT, sizeof(float)*4, NULL);
+            }           
+            else
+            {
+                // Add the attribute list to the geoarray, if necessary
+                if ((dataBinding[list] == VS_GEOMETRY_BIND_NONE) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setMultiAttr(PFGA_GENERIC_ARRAY, 4, 4, 
+                        GL_FLOAT, sizeof(float)*4, dataList[list]);
+            }
+            dataBinding[list] = binding;
+            break;
+
+        case VS_GEOMETRY_FOG_COORDS:
+            // Fog coordinates are not supported directly by Performer, so
+            // we pass them down as a generic attribute. Fog coordinates
+            // binding should be either none or per-vertex
+            if ((binding != VS_GEOMETRY_BIND_PER_VERTEX) &&
+                (binding != VS_GEOMETRY_BIND_NONE))
+            {
+                printf("vsGeometry::setBinding: Fog coordinates binding "
+                    "must be either VS_GEOMETRY_BIND_PER_VERTEX or "
+                    "VS_GEOMETRY_BIND_NONE\n");
+                return;
+            }
+
+            // Set fog coordinate binding on the geoset
+            if (binding == VS_GEOMETRY_BIND_NONE)
+            {
+                // Remove the attribute list from the geoarray, if necessary
+                if ((dataBinding[list] != VS_GEOMETRY_BIND_NONE) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setMultiAttr(PFGA_GENERIC_ARRAY, 5, 4, 
+                        GL_FLOAT, sizeof(float)*4, NULL);
+            }           
+            else
+            {
+                // Add the attribute list to the geoarray, if necessary
+                if ((dataBinding[list] == VS_GEOMETRY_BIND_NONE) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setMultiAttr(PFGA_GENERIC_ARRAY, 5, 4, 
+                        GL_FLOAT, sizeof(float)*4, dataList[list]);
+            }
+            dataBinding[list] = binding;
+            break;
+
+        case VS_GEOMETRY_USER_DATA0:
+        case VS_GEOMETRY_USER_DATA1:
+            // We pass user data down as a generic attribute.  Binding 
+            // should be either none or per-vertex
+            if ((binding != VS_GEOMETRY_BIND_PER_VERTEX) &&
+                (binding != VS_GEOMETRY_BIND_NONE))
+            {
+                printf("vsGeometry::setBinding: User data binding "
+                    "must be either VS_GEOMETRY_BIND_PER_VERTEX or "
+                    "VS_GEOMETRY_BIND_NONE\n");
+                return;
+            }
+
+            // Set user data binding on the geoarray
+            if (binding == VS_GEOMETRY_BIND_NONE)
+            {
+                // Remove the attribute list from the geoarray, if necessary
+                if ((dataBinding[list] != VS_GEOMETRY_BIND_NONE) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setMultiAttr(PFGA_GENERIC_ARRAY, list, 
+                        4, GL_FLOAT, sizeof(float)*4, NULL);
+            }           
+            else
+            {
+                // Add the attribute list to the geoarray, if necessary
+                if ((dataBinding[list] == VS_GEOMETRY_BIND_NONE) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setMultiAttr(PFGA_GENERIC_ARRAY, list, 
+                        4, GL_FLOAT, sizeof(float)*4, dataList[list]);
+            }
+            dataBinding[list] = binding;
             break;
 
         case VS_GEOMETRY_TEXTURE0_COORDS:
@@ -492,18 +1057,9 @@ void vsGeometry::setBinding(int whichData, int binding)
         case VS_GEOMETRY_TEXTURE5_COORDS:
         case VS_GEOMETRY_TEXTURE6_COORDS:
         case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
+            // Calculate the texture unit we're working with
+            unit = list - VS_GEOMETRY_TEXTURE0_COORDS;
 
-            // Make sure we don't try to set data we don't have a texture
-            // unit for
-            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
-            {
-                printf("vsGeometry::setBinding:  Unsupported texture "
-                    "unit %d\n", unit);
-                return;
-            }
-                                                                                
             // Texture coordinates should always be either per-vertex or off
             if ((binding != VS_GEOMETRY_BIND_PER_VERTEX) &&
                 (binding != VS_GEOMETRY_BIND_NONE))
@@ -513,31 +1069,25 @@ void vsGeometry::setBinding(int whichData, int binding)
                     "VS_GEOMETRY_BIND_NONE\n");
                 return;
             }
+
             // Set texture coordinate binding on the geoset
-            performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit,
-                performerBinding, texCoordList[unit], NULL);
-            break;
-
-        case VS_GEOMETRY_VERTEX_WEIGHTS:
-            printf("vsGeometry::setBinding: Vertex weights not supported in "
-                "vsGeometry.\n");
-            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
-            break;
-
-        case VS_GEOMETRY_ALT_COLORS:
-            printf("vsGeometry::setBinding: Alternate colors not supported "
-                "under Performer.\n");
-            break;
-
-        case VS_GEOMETRY_FOG_COORDS:
-            printf("vsGeometry::setBinding: Fog coordinates not supported "
-                "under Performer.\n");
-            break;
-
-        case VS_GEOMETRY_USER_DATA0:
-        case VS_GEOMETRY_USER_DATA1:
-            printf("vsGeometry::setBinding: User data attributes not "
-                "supported under Performer.\n");
+            if (binding == VS_GEOMETRY_BIND_NONE)
+            {
+                // Remove the attribute list from the geoarray, if necessary
+                if ((dataBinding[list] != VS_GEOMETRY_BIND_NONE) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setMultiAttr(PFGA_TEX_ARRAY, unit, 2, 
+                        GL_FLOAT, sizeof(float)*2, NULL);
+            }           
+            else
+            {
+                // Add the attribute list to the geoarray, if necessary
+                if ((dataBinding[list] == VS_GEOMETRY_BIND_NONE) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setMultiAttr(PFGA_TEX_ARRAY, unit, 2, 
+                        GL_FLOAT, sizeof(float)*2, dataList[list]);
+            }
+            dataBinding[list] = binding;
             break;
 
         case VS_GEOMETRY_GENERIC_0:
@@ -556,8 +1106,36 @@ void vsGeometry::setBinding(int whichData, int binding)
         case VS_GEOMETRY_GENERIC_13:
         case VS_GEOMETRY_GENERIC_14:
         case VS_GEOMETRY_GENERIC_15:
-            printf("vsGeometry::setBinding: Generic attributes not supported "
-                "under Performer.\n");
+            // Generic attributes should always be either per-vertex or off
+            if ((binding != VS_GEOMETRY_BIND_PER_VERTEX) &&
+                (binding != VS_GEOMETRY_BIND_NONE))
+            {
+                // Print out an appropriate error message
+                if (whichData >= VS_GEOMETRY_LIST_COUNT)
+                    printf("vsGeometry::setBinding: Generic attribute binding "
+                        "must be either VS_GEOMETRY_BIND_PER_VERTEX or "
+                        "VS_GEOMETRY_BIND_NONE\n");
+                return;
+            }
+
+            // Set generic attribute binding on the geoarray
+            if (binding == VS_GEOMETRY_BIND_NONE)
+            {
+                // Remove the attribute list from the geoarray, if necessary
+                if ((dataBinding[list] != VS_GEOMETRY_BIND_NONE) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setMultiAttr(PFGA_GENERIC_ARRAY, list,
+                        4, GL_FLOAT, sizeof(float)*4, NULL);
+            }           
+            else
+            {
+                // Add the attribute list to the geoarray, if necessary
+                if ((dataBinding[list] == VS_GEOMETRY_BIND_NONE) &&
+                    (dataList[list] != NULL))
+                    performerGeoarray->setMultiAttr(PFGA_GENERIC_ARRAY, list, 
+                        4, GL_FLOAT, sizeof(float)*4, dataList[list]);
+            }
+            dataBinding[list] = binding;
             break;
 
         default:
@@ -572,105 +1150,27 @@ void vsGeometry::setBinding(int whichData, int binding)
 // ------------------------------------------------------------------------
 int vsGeometry::getBinding(int whichData)
 {
-    unsigned int unit;
-    int result;
+    int list;
 
-    // Fetch the binding value
-    switch (whichData)
-    {
-        case VS_GEOMETRY_VERTEX_COORDS:
-            return VS_GEOMETRY_BIND_PER_VERTEX;
-        case VS_GEOMETRY_NORMALS:
-            result = performerGeoset->getAttrBind(PFGS_NORMAL3);
-            break;
-        case VS_GEOMETRY_COLORS:
-            result = performerGeoset->getAttrBind(PFGS_COLOR4);
-            break;
-        case VS_GEOMETRY_TEXTURE0_COORDS:
-        case VS_GEOMETRY_TEXTURE1_COORDS:
-        case VS_GEOMETRY_TEXTURE2_COORDS:
-        case VS_GEOMETRY_TEXTURE3_COORDS:
-        case VS_GEOMETRY_TEXTURE4_COORDS:
-        case VS_GEOMETRY_TEXTURE5_COORDS:
-        case VS_GEOMETRY_TEXTURE6_COORDS:
-        case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-                                                                                
-            // Make sure we don't try to set data we don't have a texture
-            // unit for
-            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
-            {
-                printf("vsGeometry::getBinding:  Unsupported texture "
-                    "unit %d\n", unit);
-                return VS_GEOMETRY_BIND_NONE;
-            }
-                                                                                
-            result = performerGeoset->getMultiAttrBind(PFGS_TEXCOORD2, unit);
-            break;
+    // Figure out which list is required, return the "fake" binding (used
+    // in the emulation of PER_PRIMITIVE and OVERALL data) if the normal
+    // or color list is selected
+    if (whichData == VS_GEOMETRY_NORMALS)
+        return normalBinding;
+    else if (whichData == VS_GEOMETRY_COLORS)
+        return colorBinding;
+    else if (whichData >= VS_GEOMETRY_LIST_COUNT)
+        list = whichData - VS_GEOMETRY_LIST_COUNT;
+    else
+        list = whichData;
 
-        case VS_GEOMETRY_VERTEX_WEIGHTS:
-            printf("vsGeometry::getBinding: Vertex weights not supported in "
-                "vsGeometry.\n");
-            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
-            break;
-
-        case VS_GEOMETRY_ALT_COLORS:
-            printf("vsGeometry::getBinding: Alternate colors not supported "
-                "under Performer.\n");
-            break;
-
-        case VS_GEOMETRY_FOG_COORDS:
-            printf("vsGeometry::getBinding: Fog coordinates not supported "
-                "under Performer.\n");
-            break;
-
-        case VS_GEOMETRY_USER_DATA0:
-        case VS_GEOMETRY_USER_DATA1:
-            printf("vsGeometry::getBinding: User data attributes not "
-                "supported under Performer.\n");
-            break;
-
-        case VS_GEOMETRY_GENERIC_0:
-        case VS_GEOMETRY_GENERIC_1:
-        case VS_GEOMETRY_GENERIC_2:
-        case VS_GEOMETRY_GENERIC_3:
-        case VS_GEOMETRY_GENERIC_4:
-        case VS_GEOMETRY_GENERIC_5:
-        case VS_GEOMETRY_GENERIC_6:
-        case VS_GEOMETRY_GENERIC_7:
-        case VS_GEOMETRY_GENERIC_8:
-        case VS_GEOMETRY_GENERIC_9:
-        case VS_GEOMETRY_GENERIC_10:
-        case VS_GEOMETRY_GENERIC_11:
-        case VS_GEOMETRY_GENERIC_12:
-        case VS_GEOMETRY_GENERIC_13:
-        case VS_GEOMETRY_GENERIC_14:
-        case VS_GEOMETRY_GENERIC_15:
-            printf("vsGeometry::getBinding: Generic attributes not supported "
-                "under Performer.\n");
-            break;
-
-        default:
-            printf("vsGeometry::getBinding: Unrecognized data value\n");
-            return -1;
-    }
-    
-    // Translate Performer constants to VESS constants
-    switch (result)
-    {
-        case PFGS_OFF:
-            return VS_GEOMETRY_BIND_NONE;
-        case PFGS_OVERALL:
-            return VS_GEOMETRY_BIND_OVERALL;
-        case PFGS_PER_PRIM:
-            return VS_GEOMETRY_BIND_PER_PRIMITIVE;
-        case PFGS_PER_VERTEX:
-            return VS_GEOMETRY_BIND_PER_VERTEX;
-    }
-    
-    // If the Performer binding value is unrecognized, return an error value
-    return -1;
+    // Make sure we're not returning the binding of a generic list when a
+    // conventional list is active, and vice versa
+    if (((list == whichData) && (!dataIsGeneric[list])) ||
+        ((list != whichData) && (dataIsGeneric[list])))
+        return dataBinding[list];
+    else
+        return VS_GEOMETRY_BIND_NONE;
 }
 
 // ------------------------------------------------------------------------
@@ -681,13 +1181,52 @@ int vsGeometry::getBinding(int whichData)
 // ------------------------------------------------------------------------
 void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
 {
-    unsigned int unit;
+    int list;
     int loop;
 
+    // Figure out which list we're changing
+    if (whichData >= VS_GEOMETRY_LIST_COUNT)
+        list = whichData - VS_GEOMETRY_LIST_COUNT;
+    else
+        list = whichData;
+
     // Bounds check
-    if (dataIndex < 0)
+    if ((dataIndex < 0) || (dataIndex >= dataListSize[list]))
     {
         printf("vsGeometry::setData: Index out of bounds\n");
+        printf("   size = %d,  index = %d\n", dataListSize[list], dataIndex);
+        return;
+    }
+
+    // Check the bounds on the internal normal or color list if appropriate
+    if ((list == VS_GEOMETRY_NORMALS) && (dataIndex >= normalListSize))
+    {
+        printf("vsGeometry::setData: (normal) Index out of bounds\n");
+        printf("   size = %d,  index = %d\n", normalListSize, dataIndex);
+        return;
+    }
+    else if ((list == VS_GEOMETRY_COLORS) && (dataIndex >= colorListSize))
+    {
+        printf("vsGeometry::setData: (color) Index out of bounds\n");
+        printf("   size = %d,  index = %d\n", colorListSize, dataIndex);
+        return;
+    }
+
+    // Make sure we don't trample over a list that's in use by trying to
+    // alter it's corresponding overlapping list
+    if ((dataIsGeneric[list]) && (list == whichData))
+    {
+        printf("vsGeometry::setData:  Cannot modify data on conventional "
+             "attribute type %d when\n", list);
+        printf("    corresponding generic attribute type is in use.\n");
+        return;
+    }
+    else if ((!dataIsGeneric[list]) && (list != whichData))
+    {
+        printf("vsGeometry::setData:  Cannot modify data on generic "
+             "attribute type %d when\n", list);
+        printf("    corresponding conventional attribute type is in "
+             "use.\n");
         return;
     }
     
@@ -695,12 +1234,6 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
-            // Bounds check
-            if (dataIndex >= vertexListSize)
-            {
-                printf("vsGeometry::setData: Index out of bounds\n");
-                return;
-            }
             // Input check
             if (data.getSize() < 3)
             {
@@ -710,16 +1243,10 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
             }
             // Copy the data into our list
             for (loop = 0; loop < 3; loop++)
-                (vertexList[dataIndex])[loop] = data[loop];
+                dataList[list][dataIndex*3 + loop] = data[loop];
             break;
 
         case VS_GEOMETRY_NORMALS:
-            // Bounds check
-            if (dataIndex >= normalListSize)
-            {
-                printf("vsGeometry::setData: Index out of bounds\n");
-                return;
-            }
             // Input check
             if (data.getSize() < 3)
             {
@@ -727,28 +1254,56 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
                     "normals require 3 values)\n");
                 return;
             }
-            // Copy the data into our list
+            // Copy the data into the emulated normal list, and also the
+            // real data list if the binding is per-vertex
             for (loop = 0; loop < 3; loop++)
-                (normalList[dataIndex])[loop] = data[loop];
+            {
+                normalList[dataIndex*3 + loop] = data[loop];
+            }
+
+            // Use the appropriate helper function to alter the real data 
+            // list
+            if (normalBinding == VS_GEOMETRY_BIND_OVERALL)
+                setOverallData(VS_GEOMETRY_NORMALS, data);
+            else if (normalBinding == VS_GEOMETRY_BIND_PER_PRIMITIVE)
+                setPerPrimitiveData(VS_GEOMETRY_NORMALS, dataIndex, data);
+            else if (normalBinding == VS_GEOMETRY_BIND_PER_VERTEX)
+            {
+                // Use the same copy operation as above
+                for (loop = 0; loop < 3; loop++)
+                {
+                    dataList[list][dataIndex*3 + loop] = data[loop];
+                }
+            }
             break;
 
         case VS_GEOMETRY_COLORS:
-            // Bounds check
-            if (dataIndex >= colorListSize)
-            {
-                printf("vsGeometry::setData: Index out of bounds\n");
-                return;
-            }
-            // Input check
             if (data.getSize() < 4)
             {
                 printf("vsGeometry::setData: Insufficient data (colors "
                     "require 4 values)\n");
                 return;
             }
-            // Copy the data into our list
+            // Copy the data into our list (both new and old-style color lists)
             for (loop = 0; loop < 4; loop++)
-                (colorList[dataIndex])[loop] = data[loop];
+            {
+                colorList[dataIndex*4 + loop] = data[loop];
+            }
+
+            // Use the appropriate helper function to alter the real data 
+            // list
+            if (colorBinding == VS_GEOMETRY_BIND_OVERALL)
+                setOverallData(VS_GEOMETRY_COLORS, data);
+            else if (colorBinding == VS_GEOMETRY_BIND_PER_PRIMITIVE)
+                setPerPrimitiveData(VS_GEOMETRY_COLORS, dataIndex, data);
+            else if (colorBinding == VS_GEOMETRY_BIND_PER_VERTEX)
+            {
+                // Use the same copy operation as above
+                for (loop = 0; loop < 4; loop++)
+                {
+                    dataList[list][dataIndex*4 + loop] = data[loop];
+                }
+            }
             break;
 
         case VS_GEOMETRY_TEXTURE0_COORDS:
@@ -759,24 +1314,6 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
         case VS_GEOMETRY_TEXTURE5_COORDS:
         case VS_GEOMETRY_TEXTURE6_COORDS:
         case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-                                                                                
-            // Make sure we don't try to set data we don't have a texture
-            // unit for
-            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
-            {
-                printf("vsGeometry::setData:  Unsupported texture "
-                    "unit %d\n", unit);
-                return;
-            }
-                                                                                
-            // Bounds check
-            if (dataIndex >= texCoordListSize[unit])
-            {
-                printf("vsGeometry::setData: Index out of bounds\n");
-                return;
-            }
             // Input check
             if (data.getSize() < 2)
             {
@@ -786,31 +1323,14 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
             }
             // Copy the data into our list
             for (loop = 0; loop < 2; loop++)
-                (texCoordList[unit][dataIndex])[loop] = data[loop];
+                dataList[list][dataIndex*2 + loop] = data[loop];
             break;
 
         case VS_GEOMETRY_VERTEX_WEIGHTS:
-            printf("vsGeometry::getBinding: Vertex weights not supported in "
-                "vsGeometry.\n");
-            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
-            break;
-
         case VS_GEOMETRY_ALT_COLORS:
-            printf("vsGeometry::getBinding: Alternate colors not supported "
-                "under Performer.\n");
-            break;
-
         case VS_GEOMETRY_FOG_COORDS:
-            printf("vsGeometry::getBinding: Fog coordinates not supported "
-                "under Performer.\n");
-            break;
-
         case VS_GEOMETRY_USER_DATA0:
         case VS_GEOMETRY_USER_DATA1:
-            printf("vsGeometry::getBinding: User data attributes not "
-                "supported under Performer.\n");
-            break;
-
         case VS_GEOMETRY_GENERIC_0:
         case VS_GEOMETRY_GENERIC_1:
         case VS_GEOMETRY_GENERIC_2:
@@ -827,8 +1347,9 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
         case VS_GEOMETRY_GENERIC_13:
         case VS_GEOMETRY_GENERIC_14:
         case VS_GEOMETRY_GENERIC_15:
-            printf("vsGeometry::getBinding: Generic attributes not supported "
-                "under Performer.\n");
+            // Copy the data into our list
+            for (loop = 0; loop < data.getSize(); loop++)
+                dataList[list][dataIndex*4 + loop] = data[loop];
             break;
 
         default:
@@ -846,14 +1367,49 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
 vsVector vsGeometry::getData(int whichData, int dataIndex)
 {
     vsVector result;
-    unsigned int unit;
     int loop;
+    int list;
+    
+    // Figure out which list we're changing
+    if (whichData >= VS_GEOMETRY_LIST_COUNT)
+        list = whichData - VS_GEOMETRY_LIST_COUNT;
+    else
+        list = whichData;
 
     // Bounds check
-    if (dataIndex < 0)
+    if ((dataIndex < 0) || (dataIndex >= dataListSize[list]))
     {
         printf("vsGeometry::getData: Index out of bounds (dataIndex = %d)\n",
             dataIndex);
+        return result;
+    }
+
+    // Check the bounds on the internal normal or color list if appropriate
+    if ((list == VS_GEOMETRY_NORMALS) && (dataIndex >= normalListSize))
+    {
+        printf("vsGeometry::setData: Index out of bounds\n");
+        return result;
+    }
+    else if ((list == VS_GEOMETRY_COLORS) && (dataIndex >= colorListSize))
+    {
+        printf("vsGeometry::setData: Index out of bounds\n");
+        return result;
+    }
+
+    // Make sure we don't return information about a generic list when
+    // a conventional list is specified or vice versa
+    if ((list == whichData) && (dataIsGeneric[list]))
+    {
+        printf("vsGeometry::getData:  Cannot query data from a conventional "
+            "attribute list\n");
+        printf("    when the corresponding generic list is active\n");
+        return result;
+    }
+    else if ((list != whichData) && (!dataIsGeneric[list]))
+    {
+        printf("vsGeometry::getData:  Cannot query data from a generic "
+            "attribute list\n");
+        printf("    when the corresponding conventional list is active\n");
         return result;
     }
     
@@ -861,48 +1417,24 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
-            // Bounds check
-            if (dataIndex >= vertexListSize)
-            {
-                printf("vsGeometry::getData: Index out of bounds "
-                    "(list = VERTEX_COORDS, dataIndex = %d, listSize = %d)\n",
-                    dataIndex, vertexListSize);
-                return result;
-            }
             // Copy the data to the result vector
             result.setSize(3);
             for (loop = 0; loop < 3; loop++)
-                result[loop] = (vertexList[dataIndex])[loop];
+                result[loop] = dataList[list][dataIndex*3 + loop];
             break;
 
         case VS_GEOMETRY_NORMALS:
-            // Bounds check
-            if (dataIndex >= normalListSize)
-            {
-                printf("vsGeometry::getData: Index out of bounds "
-                    "(list = NORMALS, dataIndex = %d, listSize = %d)\n",
-                    dataIndex, normalListSize);
-                return result;
-            }
             // Copy the data to the result vector
             result.setSize(3);
             for (loop = 0; loop < 3; loop++)
-                result[loop] = (normalList[dataIndex])[loop];
+                result[loop] = normalList[dataIndex*3 + loop];
             break;
 
         case VS_GEOMETRY_COLORS:
-            // Bounds check
-            if (dataIndex >= colorListSize)
-            {
-                printf("vsGeometry::getData: Index out of bounds "
-                    "(list = COLORS, dataIndex = %d, listSize = %d)\n",
-                    dataIndex, colorListSize);
-                return result;
-            }
             // Copy the data to the result vector
             result.setSize(4);
             for (loop = 0; loop < 4; loop++)
-                result[loop] = (colorList[dataIndex])[loop];
+                result[loop] = colorList[dataIndex*4 + loop];
             break;
 
         case VS_GEOMETRY_TEXTURE0_COORDS:
@@ -913,54 +1445,17 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
         case VS_GEOMETRY_TEXTURE5_COORDS:
         case VS_GEOMETRY_TEXTURE6_COORDS:
         case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-                                                                                
-            // Make sure we don't try to set data we don't have a texture
-            // unit for
-            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
-            {
-                printf("vsGeometry::getData:  Unsupported texture "
-                    "unit %d\n", unit);
-                return result;
-            }
-                                                                                
-            // Bounds check
-            if (dataIndex >= texCoordListSize[unit])
-            {
-                printf("vsGeometry::getData: Index out of bounds "
-                    "(list = TEXTURE%d_COORDS, dataIndex = %d, "
-                    "listSize = %d)\n", unit, dataIndex, texCoordListSize[unit]);
-                return result;
-            }
             // Copy the data to the result vector
             result.setSize(2);
             for (loop = 0; loop < 2; loop++)
-                result[loop] = (texCoordList[unit][dataIndex])[loop];
+                result[loop] = dataList[list][dataIndex*2 + loop];
             break;
 
         case VS_GEOMETRY_VERTEX_WEIGHTS:
-            printf("vsGeometry::getData: Vertex weights not supported in "
-                "vsGeometry.\n");
-            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
-            break;
-
         case VS_GEOMETRY_ALT_COLORS:
-            printf("vsGeometry::getData: Alternate colors not supported "
-                "under Performer.\n");
-            break;
-
         case VS_GEOMETRY_FOG_COORDS:
-            printf("vsGeometry::getData: Fog coordinates not supported "
-                "under Performer.\n");
-            break;
-
         case VS_GEOMETRY_USER_DATA0:
         case VS_GEOMETRY_USER_DATA1:
-            printf("vsGeometry::getData: User data attributes not "
-                "supported under Performer.\n");
-            break;
-
         case VS_GEOMETRY_GENERIC_0:
         case VS_GEOMETRY_GENERIC_1:
         case VS_GEOMETRY_GENERIC_2:
@@ -977,8 +1472,10 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
         case VS_GEOMETRY_GENERIC_13:
         case VS_GEOMETRY_GENERIC_14:
         case VS_GEOMETRY_GENERIC_15:
-            printf("vsGeometry::getData: Generic attributes not supported "
-                "under Performer.\n");
+            // Copy the data to the result vector
+            result.setSize(4);
+            for (loop = 0; loop < 4; loop++)
+                result[loop] = dataList[list][dataIndex*4 + loop];
             break;
 
         default:
@@ -995,30 +1492,69 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
 // to the values in dataList. The dataList array must be at least as large
 // as the size of particular list in question.
 // ------------------------------------------------------------------------
-void vsGeometry::setDataList(int whichData, vsVector *dataList)
+void vsGeometry::setDataList(int whichData, vsVector *newDataList)
 {
-    unsigned int unit;
     int loop, sloop;
+    int list;
+
+    // Figure out which list we're changing
+    if (whichData >= VS_GEOMETRY_LIST_COUNT)
+        list = whichData - VS_GEOMETRY_LIST_COUNT;
+    else
+        list = whichData;
     
-    // Interpret the whichData constant
+    // Make sure we don't trample over a list that's in use by trying to
+    // alter it's corresponding overlapping list
+    if ((dataIsGeneric[list]) && (list == whichData))
+    {
+        printf("vsGeometry::setDataList:  Cannot modify data on conventional "
+             "attribute type %d when\n", list);
+        printf("    corresponding generic attribute type is in use.\n");
+        return;
+    }
+    else if ((!dataIsGeneric[list]) && (list != whichData))
+    {
+        printf("vsGeometry::setDataList:  Cannot modify data on generic "
+             "attribute type %d when\n", list);
+        printf("    corresponding conventional attribute type is in "
+             "use.\n");
+        return;
+    }
+    
+    // Interpret the whichData constant and copy the data from the new
+    // data list provided to the appropriate data list
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
-            for (loop = 0; loop < vertexListSize; loop++)
+            for (loop = 0; loop < dataListSize[list]; loop++)
                 for (sloop = 0; sloop < 3; sloop++)
-                    vertexList[loop][sloop] = dataList[loop][sloop];
+                    dataList[list][loop*3 + sloop] = newDataList[loop][sloop];
             break;
 
         case VS_GEOMETRY_NORMALS:
-            for (loop = 0; loop < normalListSize; loop++)
+            // Copy the input list to our internal normal list
+            for (loop = 0; loop < dataListSize[list]; loop++)
                 for (sloop = 0; sloop < 3; sloop++)
-                    normalList[loop][sloop] = dataList[loop][sloop];
+                {
+                    normalList[loop*3 + sloop] = newDataList[loop][sloop];
+                }
+
+            // Now that the internal normal list is set, convert the list to
+            // a per-vertex list for rendering
+            convertToPerVertex(list);
             break;
 
         case VS_GEOMETRY_COLORS:
-            for (loop = 0; loop < colorListSize; loop++)
+            // Copy the input list to our internal color list
+            for (loop = 0; loop < dataListSize[list]; loop++)
                 for (sloop = 0; sloop < 4; sloop++)
-                    colorList[loop][sloop] = dataList[loop][sloop];
+                {
+                    colorList[loop*4 + sloop] = newDataList[loop][sloop];
+                }
+
+            // Now that the internal color list is set, convert the list to
+            // a per-vertex list for rendering
+            convertToPerVertex(list);
             break;
 
         case VS_GEOMETRY_TEXTURE0_COORDS:
@@ -1029,45 +1565,16 @@ void vsGeometry::setDataList(int whichData, vsVector *dataList)
         case VS_GEOMETRY_TEXTURE5_COORDS:
         case VS_GEOMETRY_TEXTURE6_COORDS:
         case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-                                                                                
-            // Make sure we don't try to set data we don't have a texture
-            // unit for
-            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
-            {
-                printf("vsGeometry::setDataList:  Unsupported texture "
-                    "unit %d\n", unit);
-                return;
-            }
-                                                                                
-            for (loop = 0; loop < texCoordListSize[unit]; loop++)
+            for (loop = 0; loop < dataListSize[list]; loop++)
                 for (sloop = 0; sloop < 2; sloop++)
-                    texCoordList[unit][loop][sloop] = dataList[loop][sloop];
+                    dataList[list][loop*2 + sloop] = newDataList[loop][sloop];
             break;
 
         case VS_GEOMETRY_VERTEX_WEIGHTS:
-            printf("vsGeometry::setDataList: Vertex weights not supported in "
-                "vsGeometry.\n");
-            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
-            break;
-
         case VS_GEOMETRY_ALT_COLORS:
-            printf("vsGeometry::setDataList: Alternate colors not supported "
-                "under Performer.\n");
-            break;
-
         case VS_GEOMETRY_FOG_COORDS:
-            printf("vsGeometry::setDataList: Fog coordinates not supported "
-                "under Performer.\n");
-            break;
-
         case VS_GEOMETRY_USER_DATA0:
         case VS_GEOMETRY_USER_DATA1:
-            printf("vsGeometry::setDataList: User data attributes not "
-                "supported under Performer.\n");
-            break;
-
         case VS_GEOMETRY_GENERIC_0:
         case VS_GEOMETRY_GENERIC_1:
         case VS_GEOMETRY_GENERIC_2:
@@ -1084,9 +1591,9 @@ void vsGeometry::setDataList(int whichData, vsVector *dataList)
         case VS_GEOMETRY_GENERIC_13:
         case VS_GEOMETRY_GENERIC_14:
         case VS_GEOMETRY_GENERIC_15:
-            printf("vsGeometry::setDataList: Generic attributes not supported "
-                "under Performer.\n");
-            break;
+            for (loop = 0; loop < dataListSize[list]; loop++)
+                for (sloop = 0; sloop < 4; sloop++)
+                    dataList[list][loop*4 + sloop] = newDataList[loop][sloop];
 
         default:
             printf("vsGeometry::setDataList: Unrecognized data type\n");
@@ -1102,39 +1609,66 @@ void vsGeometry::setDataList(int whichData, vsVector *dataList)
 // ------------------------------------------------------------------------
 void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
 {
-    unsigned int unit;
+    int list;
     int loop, sloop;
     
-    // Interpret the whichData constant
+    // Figure out which list we're changing
+    if (whichData >= VS_GEOMETRY_LIST_COUNT)
+        list = whichData - VS_GEOMETRY_LIST_COUNT;
+    else
+        list = whichData;
+    
+    // Make sure we don't trample over a list that's in use by trying to
+    // alter it's corresponding overlapping list
+    if ((dataIsGeneric[list]) && (list == whichData))
+    {
+        printf("vsGeometry::getDataList:  Cannot modify data on conventional "
+             "attribute type %d when the\n", list);
+        printf("    corresponding generic attribute type is in use.\n");
+        return;
+    }
+    else if ((!dataIsGeneric[list]) && (list != whichData))
+    {
+        printf("vsGeometry::getDataList:  Cannot modify data on generic "
+             "attribute type %d when the\n", list);
+        printf("    corresponding conventional attribute type is in "
+             "use.\n");
+        return;
+    }
+    
+    // Interpret the whichData constant and copy the appropriate data list
+    // to the given data buffer
     switch (whichData)
     {
         case VS_GEOMETRY_VERTEX_COORDS:
-            for (loop = 0; loop < vertexListSize; loop++)
+            for (loop = 0; loop < dataListSize[list]; loop++)
             {
                 // Copy the data to the vector buffer
                 dataBuffer[loop].setSize(3);
                 for (sloop = 0; sloop < 3; sloop++)
-                    dataBuffer[loop][sloop] = vertexList[loop][sloop];
+                    dataBuffer[loop][sloop] = dataList[list][loop*3 + sloop];
             }
             break;
 
         case VS_GEOMETRY_NORMALS:
-            for (loop = 0; loop < normalListSize; loop++)
+            // Return the data from the internal normal list
+            for (loop = 0; loop < dataListSize[list]; loop++)
             {
                 // Copy the data to the vector buffer
                 dataBuffer[loop].setSize(3);
                 for (sloop = 0; sloop < 3; sloop++)
-                    dataBuffer[loop][sloop] = normalList[loop][sloop];
+                    dataBuffer[loop][sloop] = normalList[loop*3 + sloop];
             }
             break;
 
         case VS_GEOMETRY_COLORS:
-            for (loop = 0; loop < colorListSize; loop++)
+            // Return the data from the internal color list
+            for (loop = 0; loop < dataListSize[list]; loop++)
             {
                 // Copy the data to the vector buffer
                 dataBuffer[loop].setSize(4);
                 for (sloop = 0; sloop < 4; sloop++)
-                    dataBuffer[loop][sloop] = colorList[loop][sloop];
+                    dataBuffer[loop][sloop] = colorList[loop*4 + sloop];
             }
             break;
 
@@ -1146,49 +1680,20 @@ void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
         case VS_GEOMETRY_TEXTURE5_COORDS:
         case VS_GEOMETRY_TEXTURE6_COORDS:
         case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-                                                                                
-            // Make sure we don't try to set data we don't have a texture
-            // unit for
-            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
-            {
-                printf("vsGeometry::getDataList:  Unsupported texture "
-                    "unit %d\n", unit);
-                return;
-            }
-                                                                                
-            for (loop = 0; loop < texCoordListSize[unit]; loop++)
+            for (loop = 0; loop < dataListSize[list]; loop++)
             {
                 // Copy the data to the vector buffer
                 dataBuffer[loop].setSize(2);
                 for (sloop = 0; sloop < 2; sloop++)
-                    dataBuffer[loop][sloop] = texCoordList[unit][loop][sloop];
+                    dataBuffer[loop][sloop] = dataList[list][loop*2 + sloop];
             }
             break;
 
         case VS_GEOMETRY_VERTEX_WEIGHTS:
-            printf("vsGeometry::getDataList: Vertex weights not supported in "
-                "vsGeometry.\n");
-            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
-            break;
-
         case VS_GEOMETRY_ALT_COLORS:
-            printf("vsGeometry::getDataList: Alternate colors not supported "
-                "under Performer.\n");
-            break;
-
         case VS_GEOMETRY_FOG_COORDS:
-            printf("vsGeometry::getDataList: Fog coordinates not supported "
-                "under Performer.\n");
-            break;
-
         case VS_GEOMETRY_USER_DATA0:
         case VS_GEOMETRY_USER_DATA1:
-            printf("vsGeometry::getDataList: User data attributes not "
-                "supported under Performer.\n");
-            break;
-
         case VS_GEOMETRY_GENERIC_0:
         case VS_GEOMETRY_GENERIC_1:
         case VS_GEOMETRY_GENERIC_2:
@@ -1205,9 +1710,13 @@ void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
         case VS_GEOMETRY_GENERIC_13:
         case VS_GEOMETRY_GENERIC_14:
         case VS_GEOMETRY_GENERIC_15:
-            printf("vsGeometry::getDataList: Generic attributes not supported "
-                "under Performer.\n");
-            break;
+            for (loop = 0; loop < dataListSize[list]; loop++)
+            {
+                // Copy the data to the vector buffer
+                dataBuffer[loop].setSize(4);
+                for (sloop = 0; sloop < 4; sloop++)
+                    dataBuffer[loop][sloop] = dataList[list][loop*4 + sloop];
+            }
 
         default:
             printf("vsGeometry::getDataList: Unrecognized data type\n");
@@ -1224,11 +1733,46 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
 {
     unsigned int unit;
     int binding, performerBinding;
+    int list;
     
+    // Figure out which list we're changing
+    if (whichData >= VS_GEOMETRY_LIST_COUNT)
+        list = whichData - VS_GEOMETRY_LIST_COUNT;
+    else
+        list = whichData;
+
+    // Check to see if the overlapping generic or conventional list is
+    // already in use before we change this one
+    if ((list == whichData) && (dataIsGeneric[list]) && 
+        (dataListSize[list] > 0))
+    {
+        printf("vsGeometry::setDataListSize:  Cannot resize conventional "
+             "attribute list %d when the\n", list);
+        printf("    corresponding generic attribute list is in use.\n");
+        printf("    Resize the corresponding list to 0 first.\n");
+        return;
+    }
+    else if ((list != whichData) && (!dataIsGeneric[list]) &&
+             (dataListSize[list] > 0))
+    {
+        printf("vsGeometry::setDataListSize:  Cannot resize generic "
+             "attribute list %d when the\n", list);
+        printf("    corresponding conventional attribute list is in use.\n");
+        printf("    Resize the corresponding list to 0 first.\n");
+        return;
+    }
+
+    // If we get this far, we're correctly modifying the requested list.
+    // First, set the "is generic" flag on the list to the correct value.
+    if (list == whichData)
+        dataIsGeneric[list] = false;
+    else
+        dataIsGeneric[list] = true;
+
     // Get the VESS binding for this geometry
     binding = getBinding(whichData);
 
-    // Translate VESS to Performer
+    // Translate the VESS binding to its Performer counterpart
     switch (binding)
     {
         case VS_GEOMETRY_BIND_NONE:
@@ -1252,48 +1796,55 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
             // Determine what we need to do with the data list
             // based on whether or not it currently exists, and
             // the desired new size of the list
-            if (newSize && !vertexList)
+            if (newSize && !dataList[list])
             {
                 // No list exists, create a new list
-                vertexList = (pfVec3 *)(pfMemory::malloc(
-                    sizeof(pfVec3) * newSize));
-                pfMemory::ref(vertexList);
+                dataList[list] = (float *)(pfMemory::malloc(
+                    sizeof(float) * 3 * newSize));
+                pfMemory::ref(dataList[list]);
 
-                // Set the newly-created vertex list on the pfGeoSet
-                performerGeoset->setAttr(PFGS_COORD3, performerBinding,
-                    vertexList, NULL);
+                // Set the newly-created vertex list on the pfGeoArray, if it
+                // is currently bound
+                if (dataBinding[list] == VS_GEOMETRY_BIND_PER_VERTEX)
+                    performerGeoarray->setAttr(PFGA_COORD_ARRAY, 3, GL_FLOAT,
+                        sizeof(float)*3, dataList[list]);
             }
-            else if (!newSize && vertexList)
+            else if (!newSize && dataList[list])
             {
                 // List exists, but the requested new size is zero, so
                 // delete the existing list
-                performerGeoset->setAttr(PFGS_COORD3, performerBinding,
-                    NULL, NULL);
-                pfMemory::unref(vertexList);
-                pfMemory::free(vertexList);
-                vertexList = NULL;
-            }
-            else
-            {
-                // Either the list is NULL, and the requested size is
-                // zero, or the list exists and the new size is non-zero.
-                // Modify the length of the existing list using realloc.
-                // If the list doesn't exist, the realloc call will do
-                // nothing, since the requested size is also zero.
-                pfMemory::ref(vertexList);
-                performerGeoset->setAttr(PFGS_COORD3, performerBinding,
-                    NULL, NULL);
-                vertexList = (pfVec3 *)(pfMemory::realloc(vertexList,
-                    sizeof(pfVec3) * newSize));
-                pfMemory::unref(vertexList);
+                pfMemory::unref(dataList[list]);
+                pfMemory::free(dataList[list]);
+                dataList[list] = NULL;
 
-                // Set the newly-resized vertex list on the pfGeoSet
-                performerGeoset->setAttr(PFGS_COORD3, performerBinding,
-                    vertexList, NULL);
+                // To prevent confusion, unbind the list when it's deleted
+                dataBinding[list] = VS_GEOMETRY_BIND_NONE;
+            }
+            else if (newSize && dataList[list])
+            {
+                // Modify the length of the existing list using realloc.
+                pfMemory::ref(dataList[list]);
+                if (dataBinding[list] == VS_GEOMETRY_BIND_PER_VERTEX)
+                    performerGeoarray->setAttr(PFGA_COORD_ARRAY, 3, GL_FLOAT,
+                        sizeof(float)*3, NULL);
+                dataList[list] = (float *)(pfMemory::realloc(dataList[list],
+                    sizeof(float) * 3 * newSize));
+                pfMemory::unref(dataList[list]);
+
+                // Set the newly-resized vertex list on the pfGeoArray
+                if (dataBinding[list] == VS_GEOMETRY_BIND_PER_VERTEX)
+                    performerGeoarray->setAttr(PFGA_COORD_ARRAY, 3, GL_FLOAT,
+                        sizeof(float)*3, dataList[list]);
             }
 
             // Store the new list size
-            vertexListSize = newSize;
+            dataListSize[list] = newSize;
+
+            // Since we've changed the number of vertices in the geometry,
+            // we may need to reconvert the normal and color arrays (if their
+            // bindings are not per-vertex)
+            convertToPerVertex(VS_GEOMETRY_NORMALS);
+            convertToPerVertex(VS_GEOMETRY_COLORS);
             break;
 
         case VS_GEOMETRY_NORMALS:
@@ -1302,46 +1853,28 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
             // the desired new size of the list
             if (newSize && !normalList)
             {
-                // No list exists, create a new normal list
-                normalList = (pfVec3 *)(pfMemory::malloc(
-                    sizeof(pfVec3) * newSize));
-                pfMemory::ref(normalList);
-
-                // Set the newly-created normal list on the pfGeoSet
-                performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
-                    normalList, NULL);
+                // No list exists, create new normal list
+                normalList = (float *)(malloc(
+                    sizeof(float) * 3 * newSize));
             }
             else if (!newSize && normalList)
             {
                 // List exists, but the requested new size is zero, so
                 // delete the existing normal list
-                performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
-                    NULL, NULL);
-                pfMemory::unref(normalList);
-                pfMemory::free(normalList);
+                free(normalList);
                 normalList = NULL;
             }
-            else
+            else if (newSize && normalList)
             {
-                // Either the list is NULL, and the requested size is
-                // zero, or the list exists and the new size is non-zero.
                 // Modify the length of the existing list using realloc.
-                // If the list doesn't exist, the realloc call will do
-                // nothing, since the requested size is also zero.
-                pfMemory::ref(normalList);
-                performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
-                    NULL, NULL);
-                normalList = (pfVec3 *)(pfMemory::realloc(normalList,
-                    sizeof(pfVec3) * newSize));
-                pfMemory::unref(normalList);
-
-                // Set the newly-resized normal list on the pfGeoSet
-                performerGeoset->setAttr(PFGS_NORMAL3, performerBinding,
-                    normalList, NULL);
+                normalList = (float *)(realloc(normalList,
+                    sizeof(float) * 3 * newSize));
             }
 
-            // Store the new list size
+            // Store the new list size, and convert the internal list to
+            // a per-vertex sized list
             normalListSize = newSize;
+            convertToPerVertex(VS_GEOMETRY_NORMALS);
             break;
 
         case VS_GEOMETRY_COLORS:
@@ -1350,46 +1883,28 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
             // the desired new size of the list
             if (newSize && !colorList)
             {
-                // No list exists, create a new color list
-                colorList = (pfVec4 *)(pfMemory::malloc(
-                    sizeof(pfVec4) * newSize));
-                pfMemory::ref(colorList);
-                                                                                
-                // Set the newly-created color list on the pfGeoSet
-                performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
-                    colorList, NULL);
+                // No list exists, create new color list
+                colorList = (float *)(malloc(
+                    sizeof(float) * 4 * newSize));
             }
             else if (!newSize && colorList)
             {
                 // List exists, but the requested new size is zero, so
                 // delete the existing color list
-                performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
-                    NULL, NULL);
-                pfMemory::unref(colorList);
-                pfMemory::free(colorList);
+                free(colorList);
                 colorList = NULL;
             }
-            else
+            else if (newSize && colorList)
             {
-                // Either the list is NULL, and the requested size is
-                // zero, or the list exists and the new size is non-zero.
                 // Modify the length of the existing list using realloc.
-                // If the list doesn't exist, the realloc call will do
-                // nothing, since the requested size is also zero.
-                pfMemory::ref(colorList);
-                performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
-                    NULL, NULL);
-                colorList = (pfVec4 *)(pfMemory::realloc(colorList,
-                    sizeof(pfVec4) * newSize));
-                pfMemory::unref(colorList);
-                                                                                
-                // Set the newly-resized color list on the pfGeoSet
-                performerGeoset->setAttr(PFGS_COLOR4, performerBinding,
-                    colorList, NULL);
+                colorList = (float *)(realloc(colorList,
+                    sizeof(float) * 4 * newSize));
             }
 
-            // Store the new list size
+            // Store the new list size, and convert the internal list to
+            // a per-vertex sized list
             colorListSize = newSize;
+            convertToPerVertex(VS_GEOMETRY_COLORS);
             break;
 
         case VS_GEOMETRY_TEXTURE0_COORDS:
@@ -1400,89 +1915,63 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
         case VS_GEOMETRY_TEXTURE5_COORDS:
         case VS_GEOMETRY_TEXTURE6_COORDS:
         case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-                                                                                
-            // Make sure we don't try to set data we don't have a texture
-            // unit for
-            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
-            {
-                printf("vsGeometry::setDataListSize:  Unsupported texture "
-                    "unit %d\n", unit);
-                return;
-            }
-                                                                                
+            // Calculate the texture unit we're working with
+            unit = list - VS_GEOMETRY_TEXTURE0_COORDS;
+
             // Determine what we need to do with the data list
             // based on whether or not it currently exists, and
             // the desired new size of the list
-            if (newSize && !texCoordList[unit])
+            if (newSize && !dataList[list])
             {
                 // No list exists, create a new texture coordinate list
-                texCoordList[unit] = (pfVec2 *)(pfMemory::malloc(
-                    sizeof(pfVec2) * newSize));
-                pfMemory::ref(texCoordList[unit]);
+                dataList[list] = (float *)(pfMemory::malloc(
+                    sizeof(float) * 2 * newSize));
+                pfMemory::ref(dataList[list]);
                                                                                 
                 // Set the newly-created texture coordinate list on the
-                // pfGeoSet
-                performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit,
-                    performerBinding, texCoordList[unit], NULL);
+                // pfGeoArray
+                if (dataBinding[list] == VS_GEOMETRY_BIND_PER_VERTEX)
+                    performerGeoarray->setMultiAttr(PFGA_TEX_ARRAY, unit, 2, 
+                        GL_FLOAT, sizeof(float)*2, dataList[list]);
             }
-            else if (!newSize && texCoordList[unit])
+            else if (!newSize && dataList[list])
             {
                 // List exists, but the requested new size is zero, so
                 // delete the existing texture coordinate list
-                performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit,
-                    performerBinding, NULL, NULL);
-                pfMemory::unref(texCoordList[unit]);
-                pfMemory::free(texCoordList[unit]);
-                texCoordList[unit] = NULL;
+                pfMemory::unref(dataList[list]);
+                pfMemory::free(dataList[list]);
+                dataList[list] = NULL;
+
+                // To prevent confusion, unbind the list when it's deleted
+                dataBinding[list] = VS_GEOMETRY_BIND_NONE;
             }
-            else
+            else if (newSize && dataList[list])
             {
-                // Either the list is NULL, and the requested size is
-                // zero, or the list exists and the new size is non-zero.
                 // Modify the length of the existing list using realloc.
-                // If the list doesn't exist, the realloc call will do
-                // nothing, since the requested size is also zero.
-                pfMemory::ref(texCoordList[unit]);
-                performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit,
-                    performerBinding, NULL, NULL);
-                texCoordList[unit] = (pfVec2 *)(pfMemory::realloc(
-                    texCoordList[unit], sizeof(pfVec2) * newSize));
-                pfMemory::unref(texCoordList[unit]);
+                pfMemory::ref(dataList[list]);
+                if (dataBinding[list] == VS_GEOMETRY_BIND_PER_VERTEX)
+                    performerGeoarray->setMultiAttr(PFGA_TEX_ARRAY, unit, 2, 
+                        GL_FLOAT, sizeof(float)*2, NULL);
+                dataList[list] = (float *)(pfMemory::realloc(dataList[list], 
+                    sizeof(float) * 2 * newSize));
+                pfMemory::unref(dataList[list]);
                                                                                 
                 // Set the newly-resized texture coordinate list on the
-                // pfGeoSet
-                performerGeoset->setMultiAttr(PFGS_TEXCOORD2, unit,
-                    performerBinding, texCoordList[unit], NULL);
+                // pfGeoArray
+                if (dataBinding[list] == VS_GEOMETRY_BIND_PER_VERTEX)
+                    performerGeoarray->setMultiAttr(PFGA_TEX_ARRAY, unit, 2, 
+                        GL_FLOAT, sizeof(float)*2, dataList[list]);
             }
 
             // Store the new list size
-            texCoordListSize[unit] = newSize;
+            dataListSize[list] = newSize;
             break;
 
         case VS_GEOMETRY_VERTEX_WEIGHTS:
-            printf("vsGeometry::setDataListSize: Vertex weights not supported "
-                "in vsGeometry.\n");
-            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
-            break;
-
         case VS_GEOMETRY_ALT_COLORS:
-            printf("vsGeometry::setDataListSize: Alternate colors not "
-                "supported under Performer.\n");
-            break;
-
         case VS_GEOMETRY_FOG_COORDS:
-            printf("vsGeometry::setDataListSize: Fog coordinates not "
-                "supported under Performer.\n");
-            break;
-
         case VS_GEOMETRY_USER_DATA0:
         case VS_GEOMETRY_USER_DATA1:
-            printf("vsGeometry::setDataListSize: User data attributes not "
-                "supported under Performer.\n");
-            break;
-
         case VS_GEOMETRY_GENERIC_0:
         case VS_GEOMETRY_GENERIC_1:
         case VS_GEOMETRY_GENERIC_2:
@@ -1499,8 +1988,55 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
         case VS_GEOMETRY_GENERIC_13:
         case VS_GEOMETRY_GENERIC_14:
         case VS_GEOMETRY_GENERIC_15:
-            printf("vsGeometry::setDataListSize: Generic attributes not "
-                "supported under Performer.\n");
+            // Determine what we need to do with the data list
+            // based on whether or not it currently exists, and
+            // the desired new size of the list
+            if (newSize && !dataList[list])
+            {
+                // No list exists, create a new generic list
+                dataList[list] = (float *)(pfMemory::malloc(
+                    sizeof(float) * 4 * newSize));
+                pfMemory::ref(dataList[list]);
+                                                                                
+                // Set the newly-created generic list on the
+                // pfGeoArray
+                if (dataBinding[list] == VS_GEOMETRY_BIND_PER_VERTEX)
+                    performerGeoarray->setMultiAttr(PFGA_GENERIC_ARRAY, list, 
+                        4, GL_FLOAT, sizeof(float)*4, dataList[list]);
+            }
+            else if (!newSize && dataList[list])
+            {
+                // List exists, but the requested new size is zero, so
+                // delete the existing generic list
+                performerGeoarray->setMultiAttr(PFGA_GENERIC_ARRAY, list, 4, 
+                    GL_FLOAT, sizeof(float)*4, NULL);
+                pfMemory::unref(dataList[list]);
+                pfMemory::free(dataList[list]);
+                dataList[list] = NULL;
+
+                // To prevent confusion, unbind the list when it's deleted
+                dataBinding[list] = VS_GEOMETRY_BIND_NONE;
+            }
+            else if (newSize && dataList[list])
+            {
+                // Modify the length of the existing list using realloc.
+                pfMemory::ref(dataList[list]);
+                if (dataBinding[list] == VS_GEOMETRY_BIND_PER_VERTEX)
+                    performerGeoarray->setMultiAttr(PFGA_GENERIC_ARRAY, list,
+                        4, GL_FLOAT, sizeof(float)*4, NULL);
+                dataList[list] = (float *)(pfMemory::realloc(dataList[list], 
+                    sizeof(float) * 4 * newSize));
+                pfMemory::unref(dataList[list]);
+                                                                                
+                // Set the newly-resized generic attribute list on the
+                // pfGeoArray
+                if (dataBinding[list] == VS_GEOMETRY_BIND_PER_VERTEX)
+                    performerGeoarray->setMultiAttr(PFGA_GENERIC_ARRAY, list,
+                        4, GL_FLOAT, sizeof(float)*4, dataList[list]);
+            }
+
+            // Store the new list size
+            dataListSize[list] = newSize;
             break;
 
         default:
@@ -1515,86 +2051,36 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
 int vsGeometry::getDataListSize(int whichData)
 {
     unsigned int unit;
+    int list;
 
     // Interpret the whichData constant
-    switch (whichData)
+    if (whichData >= VS_GEOMETRY_LIST_COUNT)
+        list = whichData - VS_GEOMETRY_LIST_COUNT; 
+    else
+        list = whichData;
+
+    // Range check the list index
+    if ((list < 0) || (list >= VS_GEOMETRY_LIST_COUNT))
     {
-        case VS_GEOMETRY_VERTEX_COORDS:
-            return vertexListSize;
-        case VS_GEOMETRY_NORMALS:
-            return normalListSize;
-        case VS_GEOMETRY_COLORS:
-            return colorListSize;
-        case VS_GEOMETRY_TEXTURE0_COORDS:
-        case VS_GEOMETRY_TEXTURE1_COORDS:
-        case VS_GEOMETRY_TEXTURE2_COORDS:
-        case VS_GEOMETRY_TEXTURE3_COORDS:
-        case VS_GEOMETRY_TEXTURE4_COORDS:
-        case VS_GEOMETRY_TEXTURE5_COORDS:
-        case VS_GEOMETRY_TEXTURE6_COORDS:
-        case VS_GEOMETRY_TEXTURE7_COORDS:
-            // Calculate the texture unit we are working with.
-            unit = whichData - VS_GEOMETRY_TEXTURE0_COORDS;
-                                                                                
-            // Make sure we don't try to set data we don't have a texture
-            // unit for
-            if (unit >= VS_MAXIMUM_TEXTURE_UNITS)
-            {
-                printf("vsGeometry::getDataListSize:  Unsupported texture "
-                    "unit %d\n", unit);
-                return 0;
-            }
-                                                                                
-            return texCoordListSize[unit];
-
-        case VS_GEOMETRY_VERTEX_WEIGHTS:
-            printf("vsGeometry::getDataListSize: Vertex weights not supported "
-                "in vsGeometry.\n");
-            printf("    (use vsSkeletonMeshGeometry for vertex skinning.\n");
-            break;
-
-        case VS_GEOMETRY_ALT_COLORS:
-            printf("vsGeometry::getDataListSize: Alternate colors not "
-                "supported under Performer.\n");
-            break;
-
-        case VS_GEOMETRY_FOG_COORDS:
-            printf("vsGeometry::getDataListSize: Fog coordinates not "
-                "supported under Performer.\n");
-            break;
-
-        case VS_GEOMETRY_USER_DATA0:
-        case VS_GEOMETRY_USER_DATA1:
-            printf("vsGeometry::getDataListSize: User data attributes not "
-                "supported under Performer.\n");
-            break;
-
-        case VS_GEOMETRY_GENERIC_0:
-        case VS_GEOMETRY_GENERIC_1:
-        case VS_GEOMETRY_GENERIC_2:
-        case VS_GEOMETRY_GENERIC_3:
-        case VS_GEOMETRY_GENERIC_4:
-        case VS_GEOMETRY_GENERIC_5:
-        case VS_GEOMETRY_GENERIC_6:
-        case VS_GEOMETRY_GENERIC_7:
-        case VS_GEOMETRY_GENERIC_8:
-        case VS_GEOMETRY_GENERIC_9:
-        case VS_GEOMETRY_GENERIC_10:
-        case VS_GEOMETRY_GENERIC_11:
-        case VS_GEOMETRY_GENERIC_12:
-        case VS_GEOMETRY_GENERIC_13:
-        case VS_GEOMETRY_GENERIC_14:
-        case VS_GEOMETRY_GENERIC_15:
-            printf("vsGeometry::getDataListSize: Generic attributes not "
-                "supported under Performer.\n");
-            break;
-
-        default:
-            printf("vsGeometry::getDataListSize: Unrecognized data value\n");
+        printf("vsGeometry::getDataListSize:  Invalid data list index\n");
+        return -1;
     }
-    
-    // If the whichData constant is unrecognized, return an error value
-    return -1;
+
+    // Make sure we're not returning the size of a generic list when a
+    // conventional list is active, and vice versa
+    if (((list == whichData) && (!dataIsGeneric[list])) ||
+        ((list != whichData) && (dataIsGeneric[list])))
+    {
+        // Return the internal list size if normals or colors are requested
+        if (list == VS_GEOMETRY_NORMALS)
+            return normalListSize;
+        else if (list == VS_GEOMETRY_COLORS)
+            return colorListSize;
+        else
+            return dataListSize[list];
+    }
+    else
+        return 0;
 }
 
 // ------------------------------------------------------------------------
@@ -1641,8 +2127,8 @@ void vsGeometry::setRenderBin(int binNum)
     // Store the bin number
     renderBin = binNum;
 
-    // Set the pfGeoSet to use the given bin
-    performerGeoset->setDrawBin((short)binNum);
+    // Set the pfGeoArray to use the given bin
+    performerGeoarray->setDrawBin((short)binNum);
 
     // Set the sort order on the draw bin to a default value to force
     // a bin mode update.  This is necessary because Performer will not

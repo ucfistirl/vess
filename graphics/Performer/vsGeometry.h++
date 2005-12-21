@@ -25,12 +25,12 @@
 #define VS_GEOMETRY_HPP
 
 #include <Performer/pf/pfGeode.h>
-#include <Performer/pr/pfGeoSet.h>
+#include <Performer/pr/pfGeoArray.h>
 #include "vsVector.h++"
 #include "vsAttribute.h++"
 #include "vsNode.h++"
 
-enum VS_GRAPHICS_DLL vsGeometryPrimType
+enum vsGeometryPrimType
 {
     VS_GEOMETRY_TYPE_POINTS,
     VS_GEOMETRY_TYPE_LINES,
@@ -70,23 +70,10 @@ enum VS_GRAPHICS_DLL vsGeometryPrimType
 //
 //  http://oss.sgi.com/projects/ogl-sample/registry/ARB/vertex_program.txt
 //
-// Note that in this implementation only the following data lists are 
-// supported:
-//
-//     VS_GEOMETRY_VERTEX_COORDS
-//     VS_GEOMETRY_NORMALS
-//     VS_GEOMETRY_COLORS
-//     VS_GEOMETRY_TEXTURE0_COORDS
-//     VS_GEOMETRY_TEXTURE1_COORDS
-//     VS_GEOMETRY_TEXTURE2_COORDS
-//     VS_GEOMETRY_TEXTURE3_COORDS
-//     VS_GEOMETRY_TEXTURE4_COORDS
-//     VS_GEOMETRY_TEXTURE5_COORDS
-//     VS_GEOMETRY_TEXTURE6_COORDS
-//     VS_GEOMETRY_TEXTURE7_COORDS
-//
-                                                                                
-enum VS_GRAPHICS_DLL vsGeometryDataType
+// Note that the GLSL spec doesn't have this restriction, but we still enforce
+// it for now to support vsShaderAttribute
+
+enum vsGeometryDataType
 {
     VS_GEOMETRY_VERTEX_COORDS   = 0,
     VS_GEOMETRY_GENERIC_0       = 16,
@@ -126,7 +113,7 @@ enum VS_GRAPHICS_DLL vsGeometryDataType
                                                                                 
     VS_GEOMETRY_TEXTURE4_COORDS = 12,
     VS_GEOMETRY_GENERIC_12      = 28,
-
+                                                                                
     VS_GEOMETRY_TEXTURE5_COORDS = 13,
     VS_GEOMETRY_GENERIC_13      = 29,
                                                                                 
@@ -141,7 +128,7 @@ enum VS_GRAPHICS_DLL vsGeometryDataType
 // backwards compatability.
 #define VS_GEOMETRY_TEXTURE_COORDS VS_GEOMETRY_TEXTURE0_COORDS
 
-enum VS_GRAPHICS_DLL vsGeometryDataBinding
+enum vsGeometryDataBinding
 {
     VS_GEOMETRY_BIND_NONE,
     VS_GEOMETRY_BIND_OVERALL,
@@ -149,7 +136,7 @@ enum VS_GRAPHICS_DLL vsGeometryDataBinding
     VS_GEOMETRY_BIND_PER_VERTEX
 };
 
-enum VS_GRAPHICS_DLL vsGeometryBinSortMode
+enum vsGeometryBinSortMode
 {
     VS_GEOMETRY_SORT_STATE,
     VS_GEOMETRY_SORT_DEPTH
@@ -157,6 +144,8 @@ enum VS_GRAPHICS_DLL vsGeometryBinSortMode
 
 // The maximum texture units that VESS can support.
 #define VS_MAXIMUM_TEXTURE_UNITS PFGS_MAX_TEXTURES
+
+#define VS_GEOMETRY_LIST_COUNT 16
 
 class VS_GRAPHICS_DLL vsGeometry : public vsNode
 {
@@ -166,17 +155,20 @@ private:
     int                 parentCount;
 
     pfGeode             *performerGeode;
-    pfGeoSet            *performerGeoset;
+    pfGeoArray          *performerGeoarray;
     pfGeoState          *performerGeostate;
 
-    pfVec4              *colorList;
-    int                 colorListSize;
-    pfVec3              *normalList;
-    int                 normalListSize;
-    pfVec2              *texCoordList[VS_MAXIMUM_TEXTURE_UNITS];
-    int                 texCoordListSize[VS_MAXIMUM_TEXTURE_UNITS];
-    pfVec3              *vertexList;
-    int                 vertexListSize;
+    float               *dataList[VS_GEOMETRY_LIST_COUNT];
+    int                 dataListSize[VS_GEOMETRY_LIST_COUNT];
+    bool                dataIsGeneric[VS_GEOMETRY_LIST_COUNT];
+    int                 dataBinding[VS_GEOMETRY_LIST_COUNT];
+
+    // Fake lists to handle the emulation of OVERALL and PER_PRIMITIVE
+    // bindings
+    float               *normalList, *colorList;
+    int                 normalBinding, normalListSize;
+    int                 colorBinding, colorListSize;
+
     int                 *lengthsList;
 
     int                 lightingEnable;
@@ -185,6 +177,11 @@ private:
 
     static vsTreeMap    *binModeList;
     int                 renderBin;
+
+    void                convertToPerVertex(int list);
+    void                setOverallData(int list, vsVector data);
+    void                setPerPrimitiveData(int list, int index, 
+                                            vsVector data);
 
 VS_INTERNAL:
 
@@ -226,7 +223,7 @@ public:
 
     void                  setData(int whichData, int dataIndex, vsVector data);
     vsVector              getData(int whichData, int dataIndex);
-    void                  setDataList(int whichData, vsVector *dataList);
+    void                  setDataList(int whichData, vsVector *newDataList);
     void                  getDataList(int whichData, vsVector *dataBuffer);
     void                  setDataListSize(int whichData, int newSize);
     int                   getDataListSize(int whichData);
