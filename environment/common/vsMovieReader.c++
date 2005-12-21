@@ -21,6 +21,7 @@
 //------------------------------------------------------------------------
 
 #include "vsMovieReader.h++"
+#include "vsSoundManager.h++"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -171,7 +172,7 @@ bool vsMovieReader::openFile(char *filename)
     videoStreamIndex = 0;
 
     // Get the video codec context for this stream
-    videoCodecContext = &(movieFile->streams[videoStreamIndex]->codec);
+    videoCodecContext = movieFile->streams[videoStreamIndex]->codec;
 
     // Keep searching the file for a video stream until we find it, or
     // until we run out of streams
@@ -183,7 +184,7 @@ bool vsMovieReader::openFile(char *filename)
 
         // If this stream index is valid, examine the video codec context
         if (videoStreamIndex < movieFile->nb_streams)  
-            videoCodecContext = &(movieFile->streams[videoStreamIndex]->codec);
+            videoCodecContext = movieFile->streams[videoStreamIndex]->codec;
     }
 
     // If we didn't find a viable video codec context, reset the video 
@@ -191,6 +192,7 @@ bool vsMovieReader::openFile(char *filename)
     if (videoStreamIndex >= movieFile->nb_streams)
     {
         videoCodecContext = NULL;
+        videoStream = NULL;
         videoCodec = NULL;
         videoStreamIndex = -1;
     }
@@ -198,6 +200,7 @@ bool vsMovieReader::openFile(char *filename)
     {
         // We've found a video stream, now initialize the codecs and see if
         // we can decode it.
+        videoStream = movieFile->streams[videoStreamIndex];
 
         // Find the appropriate video codec
         videoCodec = avcodec_find_decoder(videoCodecContext->codec_id);
@@ -208,6 +211,7 @@ bool vsMovieReader::openFile(char *filename)
 
             // Reset the video variables to indicate no video
             videoCodecContext = NULL;
+            videoStream = NULL;
             videoCodec = NULL;
             videoStreamIndex = -1;
         }
@@ -222,6 +226,7 @@ bool vsMovieReader::openFile(char *filename)
 
                 // Reset the video variables to indicate no video
                 videoCodecContext = NULL;
+                videoStream = NULL;
                 videoCodec = NULL;
                 videoStreamIndex = -1;
             }
@@ -246,27 +251,30 @@ bool vsMovieReader::openFile(char *filename)
 
                 // Get the video frame rate.  If it's not available, then
                 // we'll stick with the default 30 fps rate.
-                if (videoCodecContext->frame_rate != 0)
+                if (av_q2d(videoStream->time_base) > 1.0E-9)
                 {
-                    // The actual frames per second number is obtained by 
-                    // dividing the frame rate by the so-called frame rate 
-                    // base.  The base number is used by FFVideo to handle the 
-                    // differences between static and variable frame rate 
-                    // movie files.  Anyway, if we divide them in reverse 
-                    // order, we get the number of seconds per frame.
-                    timePerFrame = (double)videoCodecContext->frame_rate_base /
-                        (double)videoCodecContext->frame_rate;
+                    timePerFrame = av_q2d(videoStream->time_base);
+
+                    // Some video files have their timestamps in fractional
+                    // milliseconds (for example, 1/30000, instead of 1/30).
+                    // See if the frame time is less than some arbitrary 
+                    // number (say 1/100 sec), and multiply by 1000 if so.
+                    if (timePerFrame < 0.01)
+                    {
+                        timePerFrame *= 1000.0;
+                    }
                 }
             }
         }
     }
+
 
     // Try to find an audio stream in the file.  Start the search with the 
     // first stream.
     audioStreamIndex = 0;
 
     // Get the audio codec context for this stream
-    audioCodecContext = &(movieFile->streams[audioStreamIndex]->codec);
+    audioCodecContext = movieFile->streams[audioStreamIndex]->codec;
 
     // Keep searching the file for a audio stream until we find it, or
     // until we run out of streams
@@ -278,7 +286,7 @@ bool vsMovieReader::openFile(char *filename)
 
         // If this stream index is valid, examine the audio codec context
         if (audioStreamIndex < movieFile->nb_streams)  
-            audioCodecContext = &(movieFile->streams[audioStreamIndex]->codec);
+            audioCodecContext = movieFile->streams[audioStreamIndex]->codec;
     }
 
     // If we didn't find a viable audio codec context, reset the audio 
@@ -286,6 +294,7 @@ bool vsMovieReader::openFile(char *filename)
     if (audioStreamIndex >= movieFile->nb_streams)
     {
         audioCodecContext = NULL;
+        audioStream = NULL;
         audioCodec = NULL;
         audioStreamIndex = -1;
     }
@@ -293,6 +302,7 @@ bool vsMovieReader::openFile(char *filename)
     {
         // We've found a audio stream, now initialize the codecs and see if
         // we can decode it.
+        audioStream = movieFile->streams[audioStreamIndex];
 
         // Find the appropriate audio codec
         audioCodec = avcodec_find_decoder(audioCodecContext->codec_id);
@@ -303,6 +313,7 @@ bool vsMovieReader::openFile(char *filename)
 
             // Reset the audio variables to indicate no audio
             audioCodecContext = NULL;
+            audioStream = NULL;
             audioCodec = NULL;
             audioStreamIndex = -1;
         }
@@ -329,9 +340,12 @@ bool vsMovieReader::openFile(char *filename)
                 // ffmpeg always decodes 16-bit audio
                 sampleSize = 2;
 
-                // Compute the number of audio samples per frame of video
+                // Compute the number of audio samples per frame of video,
+                // then quadruple it to determine a good audio buffer size.
+                // This will keep the audio stream from starving while we're
+                // busy decoding video.
                 samplesPerFrame = (int)(timePerFrame * sampleRate) * 
-                    sampleSize * channelCount;
+                    sampleSize * channelCount * 4;
 
                 // Acquire the audio mutex
                 pthread_mutex_lock(&audioMutex);
@@ -367,6 +381,8 @@ bool vsMovieReader::openFile(char *filename)
         // mode is STOPPED.)
         currentFrameTime = 0.0;
         totalFileTime = 0.0;
+        lastTimeStamp = 0.0;
+        lastFrameInterval = timePerFrame;
         playMode = VS_MOVIE_PLAYING;
 
         // Prime the decoder by pulling in the first frame of the video
@@ -560,11 +576,11 @@ void vsMovieReader::advanceTime(double seconds)
     currentFrameTime += seconds;
     totalFileTime += seconds;
 
-    // If the time for the current frame is greater than the video's
-    // time-per-frame, then advance the frame
-    while (currentFrameTime > timePerFrame)
+    // Read frames from the stream as long as the frame's timestamp is
+    // less than the current file time
+    while ((lastTimeStamp < totalFileTime) && 
+           ((playMode == VS_MOVIE_PLAYING) || (playMode == VS_MOVIE_EOF)))
     {
-        currentFrameTime -= timePerFrame;
         readNextFrame();
         frameAdvanced = true;
     }
@@ -608,7 +624,7 @@ void vsMovieReader::restart()
     // Make sure we have a valid stream to seek to the beginning of
     if ((videoStreamIndex >= 0) || (audioStreamIndex >= 0))
     {
-        av_seek_frame(movieFile, -1, 0);
+        av_seek_frame(movieFile, -1, 0, 0);
         if (videoCodecContext != NULL)
             avcodec_flush_buffers(videoCodecContext);
     }
@@ -619,6 +635,8 @@ void vsMovieReader::restart()
     // Reset the video timers
     currentFrameTime = 0.0;
     totalFileTime = 0.0;
+    lastTimeStamp = 0.0;
+    lastFrameInterval = timePerFrame;
 
     // Mark the file as ready to play (we have to do this _before_ we call
     // advanceFrame(), as that function won't work if the play mode is
@@ -649,6 +667,7 @@ void vsMovieReader::readNextFrame()
     unsigned char *audioBufferPtr;
     int size, outputSize;
     unsigned char *dataPtr;
+    double timeStamp;
 
     // Can't do anything if we're not in a PLAYING mode
     if ((playMode != VS_MOVIE_PLAYING) && (playMode != VS_MOVIE_EOF))
@@ -659,6 +678,17 @@ void vsMovieReader::readNextFrame()
     {
         if (dequeuePacket(videoQueue, &moviePacket))
         {
+            // Compute the packet timestamp
+            if (moviePacket.pts == AV_NOPTS_VALUE)
+            {
+                timeStamp = lastTimeStamp + lastFrameInterval;
+            }
+            else
+            {
+                timeStamp = moviePacket.pts * av_q2d(videoStream->time_base);
+                lastFrameInterval = timeStamp - lastTimeStamp;
+            }
+
             // Allocate a video frame and decode the video packet
             readSize = 
                 avcodec_decode_video(videoCodecContext, videoFrame, 
@@ -675,6 +705,9 @@ void vsMovieReader::readNextFrame()
                 // Release the packet
                 av_free_packet(&moviePacket);
             }
+
+            // Remember the time stamp
+            lastTimeStamp = timeStamp;
         }
         else if (playMode == VS_MOVIE_EOF)
         {
@@ -686,7 +719,7 @@ void vsMovieReader::readNextFrame()
 
     // See if we need to decode more audio
     while ((audioCodecContext != NULL) && 
-           (audioBufferSize < AVCODEC_MAX_AUDIO_FRAME_SIZE * 6) &&
+           (audioBufferSize < samplesPerFrame) &&
            (audioQueue->packetCount > 0))
     {
         // Get a packet from the audio queue
@@ -729,6 +762,7 @@ void vsMovieReader::readNextFrame()
 
             // Release the packet
             av_free_packet(&moviePacket);
+
         }
     }
 
@@ -748,7 +782,7 @@ void vsMovieReader::readNextFrame()
 void vsMovieReader::copyFrame()
 {
     // If we're not PLAYING, then there's nothing to copy
-    if (playMode != VS_MOVIE_PLAYING)
+    if ((playMode != VS_MOVIE_PLAYING) && (playMode != VS_MOVIE_EOF))
         return;
 
     // Only copy the data if there is a place to copy it to
@@ -971,7 +1005,6 @@ void *vsMovieReader::fileThreadFunc(void *readerObject)
         // If we hit the end of the file, tell the main thread
         if ((readStatus < 0) && (instance->playMode == VS_MOVIE_PLAYING))
             instance->playMode = VS_MOVIE_EOF;
-        
 
         // Sleep for a while to yield the processor to other threads
         usleep(10000);
@@ -1002,7 +1035,7 @@ void *vsMovieReader::audioThreadFunc(void *readerObject)
             // Check if it's time to update the audio stream
             while ((instance->soundStream != NULL) && 
                    (instance->soundStream->isBufferReady()) && 
-                   (instance->audioBufferSize > instance->samplesPerFrame))
+                   (instance->audioBufferSize >= instance->samplesPerFrame))
             {
                 // Lock the audio mutex
                 pthread_mutex_lock(&instance->audioMutex);

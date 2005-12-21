@@ -26,6 +26,7 @@
 
 #include "vsObject.h++"
 #include "vsSoundStream.h++"
+#include "vsTimer.h++"
 #include <stdio.h>
 #include <pthread.h>
 
@@ -37,7 +38,7 @@ extern "C"
 
 #define VS_MOVIE_PACKET_QUEUE_SIZE 8
 
-enum VS_ENVIRONMENT_DLL vsMoviePlayMode
+enum  vsMoviePlayMode
 {
     VS_MOVIE_PLAYING,
     VS_MOVIE_STOPPED,
@@ -62,12 +63,14 @@ private:
     vsMoviePacketQueue    *audioQueue;
 
     AVCodecContext        *videoCodecContext;
+    AVStream              *videoStream;
     AVCodec               *videoCodec;
     int                   videoStreamIndex;
     AVFrame               *videoFrame;
     AVPicture             *rgbFrame;
 
     AVCodecContext        *audioCodecContext;
+    AVStream              *audioStream;
     AVCodec               *audioCodec;
     int                   audioStreamIndex;
     int                   sampleRate, sampleSize, channelCount;
@@ -82,9 +85,12 @@ private:
     double                timePerFrame;
 
     unsigned char         *outputBuffer;
+    double                lastTimeStamp;
+    double                lastFrameInterval;
     double                currentFrameTime;
     double                totalFileTime;
     int                   playMode;
+vsTimer *playTimer;
 
     void                  readNextFrame();
     void                  copyFrame();
