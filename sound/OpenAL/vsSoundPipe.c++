@@ -24,6 +24,7 @@
 #include "vsSoundPipe.h++"
 #include "vsSoundManager.h++"
 #include <stdio.h>
+#include <AL/alut.h>
 
 // ------------------------------------------------------------------------
 // Creates a vsSoundPipe using the specified audio device (from .openalrc
@@ -33,6 +34,10 @@
 vsSoundPipe::vsSoundPipe(char *deviceSpec, int freq)
 {
     int attrList[3];
+
+    // Initialize ALUT without a context (we'll do the context ourselves, but
+    // we still need to initialize ALUT to be able to load files)
+    alutInitWithoutContext(0, NULL);
 
     // Open the audio device
     deviceHandle = alcOpenDevice((ALCchar *)deviceSpec);
@@ -70,6 +75,10 @@ vsSoundPipe::vsSoundPipe(int freq)
 {
     int attrList[3];
 
+    // Initialize ALUT without a context (we'll do the context ourselves, but
+    // we still need to initialize ALUT to be able to load files)
+    alutInitWithoutContext(0, NULL);
+
     // Open the audio device
     deviceHandle = alcOpenDevice(NULL);
 
@@ -95,6 +104,10 @@ vsSoundPipe::vsSoundPipe(int freq)
 vsSoundPipe::vsSoundPipe()
 {
     int attrList[1];
+
+    // Initialize ALUT without a context (we'll do the context ourselves, but
+    // we still need to initialize ALUT to be able to load files)
+    alutInitWithoutContext(0, NULL);
 
     // Create an empty attribute list, so OpenAL will use the default
     // settings
@@ -127,6 +140,9 @@ vsSoundPipe::~vsSoundPipe()
 
     // Unregister from the sound manager
     vsSoundManager::getInstance()->removeSoundPipe(this);
+
+    // Clean up ALUT
+    alutExit();
 }
 
 // ------------------------------------------------------------------------
