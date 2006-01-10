@@ -39,7 +39,6 @@
 #include "vsViewpointAttribute.h++"
 #include "vsWindowSystem.h++"
 #include "vsTextBuilder.h++"
-#include "vsSoundManager.h++"
 #include "vsScentManager.h++"
 
 vsSystem *vsSystem::systemObject = NULL;
@@ -127,10 +126,9 @@ vsSystem::~vsSystem()
     vsObject::deleteObjectList();
 #endif
 
-    // Delete the sound and scent managers
-    vsSoundManager::deleteInstance();
+    // Delete the scent manager
     vsScentManager::deleteInstance();
-        
+
     // Clear the static class member to NULL
     systemObject = NULL;
 }
