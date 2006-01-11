@@ -36,6 +36,7 @@
 #include "vsLightAttribute.h++"
 #include "vsGrowableArray.h++"
 #include "vsGeometry.h++"
+#include "vsGLSLProgramAttribute.h++"
 
 class VS_GRAPHICS_DLL vsGraphicsState : public vsObject
 {
@@ -45,6 +46,7 @@ private:
 
     vsBackfaceAttribute            *backfaceAttr;
     vsFogAttribute                 *fogAttr;
+    vsGLSLProgramAttribute         *glslAttr;
     vsMaterialAttribute            *materialAttr;
     vsShaderAttribute              *shaderAttr;
     vsShadingAttribute             *shadingAttr;
@@ -59,6 +61,7 @@ private:
     
     void                       *backfaceLock;
     void                       *fogLock;
+    void                       *glslLock;
     void                       *materialLock;
     void                       *shaderLock;
     void                       *shadingLock;
@@ -86,6 +89,7 @@ public:
 
     void          setBackface(vsBackfaceAttribute *newAttrib);
     void          setFog(vsFogAttribute *newAttrib);
+    void          setGLSLProgram(vsGLSLProgramAttribute *newAttrib);
     void          setMaterial(vsMaterialAttribute *newAttrib);
     void          setShader(vsShaderAttribute *newAttrib);
     void          setShading(vsShadingAttribute *newAttrib);
@@ -102,6 +106,7 @@ public:
 
     vsBackfaceAttribute            *getBackface();
     vsFogAttribute                 *getFog();
+    vsGLSLProgramAttribute         *getGLSLProgram();
     vsMaterialAttribute            *getMaterial();
     vsShaderAttribute              *getShader();
     vsShadingAttribute             *getShading();
@@ -116,6 +121,7 @@ public:
     
     void          lockBackface(void *lockAddr);
     void          lockFog(void *lockAddr);
+    void          lockGLSLProgram(void *lockAddr);
     void          lockMaterial(void *lockAddr);
     void          lockShader(void *lockAddr);
     void          lockShading(void *lockAddr);
@@ -125,6 +131,7 @@ public:
 
     void          unlockBackface(void *lockAddr);
     void          unlockFog(void *lockAddr);
+    void          unlockGLSLProgram(void *lockAddr);
     void          unlockMaterial(void *lockAddr);
     void          unlockShader(void *lockAddr);
     void          unlockShading(void *lockAddr);

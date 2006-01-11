@@ -88,6 +88,7 @@ void vsGraphicsState::clearState()
     // Clear the 'current attribute' values
     backfaceAttr = NULL;
     fogAttr = NULL;
+    glslAttr = NULL;
     materialAttr = NULL;
     shaderAttr = NULL;
     shadingAttr = NULL;
@@ -104,6 +105,7 @@ void vsGraphicsState::clearState()
     // Clear the 'attribute lock' pointers
     backfaceLock = NULL;
     fogLock = NULL;
+    glslLock = NULL;
     materialLock = NULL;
     shaderLock = NULL;
     shadingLock = NULL;
@@ -136,6 +138,10 @@ void vsGraphicsState::applyState(pfGeoState *state)
     // Call the fog attribute (if any) to make its state changes
     if (fogAttr)
         fogAttr->setState(state);
+
+    // Call the GLSL program attribute (if any) to make its state changes
+    if (glslAttr)
+        glslAttr->setState(state);
 
     // Call the material attribute (if any) to make its state changes
     if (materialAttr)
@@ -199,6 +205,16 @@ void vsGraphicsState::setFog(vsFogAttribute *newAttrib)
     // Set the current attribute, if it's not locked
     if (!fogLock)
         fogAttr = newAttrib;
+}
+
+// ------------------------------------------------------------------------
+// Sets the attribute that contains the desired GLSL program state
+// ------------------------------------------------------------------------
+void vsGraphicsState::setGLSLProgram(vsGLSLProgramAttribute *newAttrib)
+{
+    // Set the current attribute, if it's not locked
+    if (!glslLock)
+        glslAttr = newAttrib;
 }
 
 // ------------------------------------------------------------------------
@@ -344,6 +360,14 @@ vsFogAttribute *vsGraphicsState::getFog()
 }
 
 // ------------------------------------------------------------------------
+// Retrieves the attribute that contains the current GLSL program state
+// ------------------------------------------------------------------------
+vsGLSLProgramAttribute *vsGraphicsState::getGLSLProgram()
+{
+    return glslAttr;
+}
+
+// ------------------------------------------------------------------------
 // Retrieves the attribute that contains the current material state
 // ------------------------------------------------------------------------
 vsMaterialAttribute *vsGraphicsState::getMaterial()
@@ -456,6 +480,18 @@ void vsGraphicsState::lockFog(void *lockAddr)
 }
 
 // ------------------------------------------------------------------------
+// Locks the current GLSL program attribute, using the given address as a
+// 'key'. The GLSL program attribute cannot be changed again until it is
+// unlocked with this key address.
+// ------------------------------------------------------------------------
+void vsGraphicsState::lockGLSLProgram(void *lockAddr)
+{
+    // If there's no existing lock, set the lock value
+    if (!glslLock)
+        glslLock = lockAddr;
+}
+
+// ------------------------------------------------------------------------
 // Locks the current material attribute, using the given address as a
 // 'key'. The material attribute cannot be changed again until it is
 // unlocked with this key address.
@@ -549,6 +585,18 @@ void vsGraphicsState::unlockFog(void *lockAddr)
     // If the unlock value matches the lock value, clear the lock
     if (fogLock == lockAddr)
         fogLock = NULL;
+}
+
+// ------------------------------------------------------------------------
+// Unlocks the current GLSL program attribute, using the given address as a
+// 'key'; this key must match the key that the attribute was locked with or
+// the function will not work.
+// ------------------------------------------------------------------------
+void vsGraphicsState::unlockGLSLProgram(void *lockAddr)
+{
+    // If the unlock value matches the lock value, clear the lock
+    if (glslLock == lockAddr)
+        glslLock = NULL;
 }
 
 // ------------------------------------------------------------------------
