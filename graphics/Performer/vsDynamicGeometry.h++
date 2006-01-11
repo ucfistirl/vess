@@ -27,10 +27,19 @@
 
 #include <Performer/pr/pfFlux.h>
 #include <Performer/pf/pfGeode.h>
-#include <Performer/pr/pfGeoSet.h>
+#include <Performer/pr/pfGeoArray.h>
 #include "vsVector.h++"
 #include "vsAttribute.h++"
 #include "vsGeometry.h++"
+
+struct vsDynamicDataList
+{
+    int                fluxBufferID;
+    float              *dataList;
+    int                dataListSize;
+    bool               dataIsGeneric;
+    int                dataBinding;
+};
 
 class VS_GRAPHICS_DLL vsDynamicGeometry : public vsNode
 {
@@ -41,37 +50,41 @@ private:
 
     pfGeode            *performerGeode;
     pfFlux             *performerFlux;
-    pfGeoSet           *performerGeoset;
+    pfGeoArray         *performerGeoarray;
     pfGeoState         *performerGeostate;
 
-    pfVec4             *colorList;
-    int                colorListSize;
-    pfVec3             *normalList;
-    int                normalListSize;
-    pfVec2             *texCoordList[VS_MAXIMUM_TEXTURE_UNITS];
-    int                texCoordListSize[VS_MAXIMUM_TEXTURE_UNITS];
-    pfVec3             *vertexList;
-    int                vertexListSize;
+    pfFlux             *dynamicData[VS_GEOMETRY_LIST_COUNT];
+
+    pfVertexAttr       *dataAttr[VS_GEOMETRY_LIST_COUNT];
+    float              *dataList[VS_GEOMETRY_LIST_COUNT];
+    int                dataListSize[VS_GEOMETRY_LIST_COUNT];
+    bool               dataIsGeneric[VS_GEOMETRY_LIST_COUNT];
+    int                dataBinding[VS_GEOMETRY_LIST_COUNT];
+
+    // Fake lists to handle the emulation of OVERALL and PER_PRIMITIVE
+    // bindings
+    float               *normalList, *colorList;
+    int                 normalBinding, normalListSize;
+    int                 colorBinding, colorListSize;
+
     int                *lengthsList;
 
     // Storage for some of the geometry attributes that
     // may stay static
     int                primitiveType;
     int                primitiveCount;
-    int                colorBinding;
-    int                normalBinding;
-    int                texCoordBinding[VS_MAXIMUM_TEXTURE_UNITS];
-    int                vertexBinding;
 
+    int                lightingEnable;
     pfLight            **lightsList;
 
     int                renderBin;
 
-    static int         initFluxedGeoSet(pfFluxMemory *fluxMem);
+    void               convertToPerVertex(int list);
+    void               setOverallData(int list, vsVector data);
+    void               setPerPrimitiveData(int list, int index,
+                                           vsVector data);
 
-    void               inflateFlatGeometry();
-
-    static int         preCullNode(pfTraverser *trav, void *data);
+    static int         initFluxedGeoArray(pfFluxMemory *fluxMem);
 
 VS_INTERNAL:
 

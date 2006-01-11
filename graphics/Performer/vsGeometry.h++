@@ -159,6 +159,7 @@ private:
     pfGeoState          *performerGeostate;
 
     float               *dataList[VS_GEOMETRY_LIST_COUNT];
+    pfVertexAttr        *dataAttr[VS_GEOMETRY_LIST_COUNT];
     int                 dataListSize[VS_GEOMETRY_LIST_COUNT];
     bool                dataIsGeneric[VS_GEOMETRY_LIST_COUNT];
     int                 dataBinding[VS_GEOMETRY_LIST_COUNT];

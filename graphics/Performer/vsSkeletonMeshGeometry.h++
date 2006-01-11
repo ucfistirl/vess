@@ -27,14 +27,14 @@
 
 #include <Performer/pr/pfFlux.h>
 #include <Performer/pf/pfGeode.h>
-#include <Performer/pr/pfGeoSet.h>
+#include <Performer/pr/pfGeoArray.h>
 #include "vsVector.h++"
 #include "vsAttribute.h++"
 #include "vsGeometry.h++"
+#include "vsDynamicGeometry.h++"
 
 #define VS_GEOMETRY_SKIN_VERTEX_COORDS 1000
 #define VS_GEOMETRY_SKIN_NORMALS       1001
-                                                                                
 #define VS_GEOMETRY_BONE_INDICES       VS_GEOMETRY_USER_DATA1
 
 class VS_GRAPHICS_DLL vsSkeletonMeshGeometry : public vsNode
@@ -46,44 +46,47 @@ private:
 
     pfGeode            *performerGeode;
     pfFlux             *performerFlux;
-    pfGeoSet           *performerGeoset;
+    pfGeoArray         *performerGeoarray;
     pfGeoState         *performerGeostate;
 
-    pfVec4             *colorList;
-    int                colorListSize;
-    pfVec3             *originalNormalList;
-    pfVec3             *normalList;
-    int                normalListSize;
-    pfVec2             *texCoordList[VS_MAXIMUM_TEXTURE_UNITS];
-    int                texCoordListSize[VS_MAXIMUM_TEXTURE_UNITS];
-    pfVec3             *originalVertexList;
-    pfVec3             *vertexList;
-    int                vertexListSize;
-    int                *lengthsList;
+    pfFlux             *dynamicData[VS_GEOMETRY_LIST_COUNT];
 
-    pfVec4             *boneList;
-    int                boneListSize;
-    pfVec4             *weightList;
-    int                weightListSize;
+    int                initCount;
+
+    pfVertexAttr       *dataAttr[VS_GEOMETRY_LIST_COUNT];
+    float              *dataList[VS_GEOMETRY_LIST_COUNT];
+    int                dataListSize[VS_GEOMETRY_LIST_COUNT];
+    bool               dataIsGeneric[VS_GEOMETRY_LIST_COUNT];
+    int                dataBinding[VS_GEOMETRY_LIST_COUNT];
+
+    // Fake lists to handle the emulation of OVERALL and PER_PRIMITIVE
+    // bindings for colors
+    float               *colorList;
+    int                 colorBinding, colorListSize;
+
+    // List of vertices and normals in their original state (before being
+    // modified by the skinning process)
+    float              *originalVertexList;
+    float              *originalNormalList;
+
+    int                *lengthsList;
 
     // Storage for some of the geometry attributes that
     // may stay static
     int                primitiveType;
     int                primitiveCount;
-    int                colorBinding;
-    int                normalBinding;
-    int                texCoordBinding[VS_MAXIMUM_TEXTURE_UNITS];
-    int                vertexBinding;
 
+    int                lightingEnable;
     pfLight            **lightsList;
 
     int                renderBin;
 
-    static int         initFluxedGeoSet(pfFluxMemory *fluxMem);
+    void               convertToPerVertex(int list);
+    void               setOverallData(int list, vsVector data);
+    void               setPerPrimitiveData(int list, int index,
+                                           vsVector data);
 
-    void               inflateFlatGeometry();
-
-    static int         preCullNode(pfTraverser *trav, void *data);
+    static int         initFluxedGeoArray(pfFluxMemory *fluxMem);
 
 VS_INTERNAL:
 
