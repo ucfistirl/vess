@@ -18,6 +18,9 @@ libvsGraphics_a_SOURCES = \
                           @SG@/vsDecalAttribute.c++ \
                           @SG@/vsDynamicGeometry.c++ \
                           @SG@/vsFogAttribute.c++ \
+                          @SG@/vsGLSLProgramAttribute.c++ \
+                          @SG@/vsGLSLShader.c++ \
+                          @SG@/vsGLSLUniform.c++ \
                           @SG@/vsGeometry.c++ \
                           @SG@/vsGraphicsState.c++ \
                           @SG@/vsIntersect.c++ \
@@ -88,6 +91,9 @@ include_HEADERS = \
                   @SG@/vsDecalAttribute.h++ \
                   @SG@/vsDynamicGeometry.h++ \
                   @SG@/vsFogAttribute.h++ \
+                  @SG@/vsGLSLProgramAttribute.h++ \
+                  @SG@/vsGLSLShader.h++ \
+                  @SG@/vsGLSLUniform.h++ \
                   @SG@/vsGeometry.h++ \
                   @SG@/vsGraphicsState.h++ \
                   @SG@/vsIntersect.h++ \
