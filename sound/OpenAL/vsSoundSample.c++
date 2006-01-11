@@ -55,7 +55,7 @@ vsSoundSample::vsSoundSample(char *fileName)
 
     // Make sure the load succeeds
     error = alutGetError();
-    if (error != ALUT_ERROR_NO_ERROR)
+    if ((soundData == NULL) && (error != ALUT_ERROR_NO_ERROR))
     {
         // Load failed, print an error
         printf("vsSoundSample::vsSoundSample:  Unable to load file: %s\n", 
@@ -87,7 +87,6 @@ vsSoundSample::vsSoundSample(char *fileName)
 
             default:
                 // Don't print anything extra
-printf("    ALUT error:  %d\n", (int)error);
                 break;
         }
     }
