@@ -36,6 +36,9 @@
 #include "vsLightAttribute.h++"
 #include "vsShaderAttribute.h++"
 #include "vsLODAttribute.h++"
+#include "vsGLSLProgramAttribute.h++"
+#include "vsGLSLShader.h++"
+#include "vsGLSLUniform.h++"
 
 // ------------------------------------------------------------------------
 // Constructor
@@ -821,6 +824,7 @@ void vsScenePrinter::writeSkeletonMeshGeometry(
                     // is supported by the graphics library.
                     if (textureUnit < VS_MAXIMUM_TEXTURE_UNITS)
                     {
+                        writeBlanks(outfile, (treeDepth * 2) + 1);
                         fprintf(outfile, "TEXCOORDS (unit %d) (%d): ",
                             textureUnit, 
                             geometry->getDataListSize(
@@ -1725,6 +1729,120 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
 
                             // Release the shader code memory
                             free(shaderCode);
+                        }
+                    }
+                    break;
+
+                case VS_ATTRIBUTE_TYPE_GLSL_PROGRAM:
+                    fprintf(outfile, "GLSL_PROGRAM\n");
+
+                    if (printerMode & VS_PRINTER_ATTRIBUTE_DETAILS)
+                    {
+                        int i;
+                        int numShaders;
+                        vsGLSLShader *shader;
+                        int numUniforms;
+                        vsGLSLUniform *uniform;
+                        
+                        // Print the shaders attached to the program
+                        numShaders = ((vsGLSLProgramAttribute *)attribute)->
+                            getNumShaders();
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "Shaders (%d):\n", numShaders);
+                        for (i = 0; i < numShaders; i++)
+                        {
+                            shader = ((vsGLSLProgramAttribute *)attribute)->
+                                getShader(i);
+                            writeBlanks(outfile, (treeDepth * 2) + 5);
+                            fprintf(outfile, "%p  type = ", shader);
+                            if (shader->getShaderType() == 
+                                VS_GLSL_VERTEX_SHADER)
+                                fprintf(outfile, "VERTEX_SHADER\n");
+                            else if (shader->getShaderType() == 
+                                VS_GLSL_FRAGMENT_SHADER)
+                                fprintf(outfile, "FRAGMENT_SHADER\n");
+                            else
+                                fprintf(outfile, "UNDEFINED_SHADER\n");
+                        }
+
+                        // Print the uniforms attached to the program
+                        numUniforms = ((vsGLSLProgramAttribute *)attribute)->
+                            getNumUniforms();
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "Uniforms (%d):\n", numUniforms);
+                        for (i = 0; i < numUniforms; i++)
+                        {
+                            uniform = ((vsGLSLProgramAttribute *)attribute)->
+                                getUniform(i);
+                            writeBlanks(outfile, (treeDepth * 2) + 5);
+                            fprintf(outfile, "%p  name = %s  type = ", uniform, 
+                                uniform->getName());
+                            switch (uniform->getType())
+                            {
+                                case VS_UNIFORM_FLOAT:
+                                    fprintf(outfile, "FLOAT\n");
+                                    break;
+                                case VS_UNIFORM_FLOAT_VEC2:
+                                    fprintf(outfile, "FLOAT_VEC2\n");
+                                    break;
+                                case VS_UNIFORM_FLOAT_VEC3:
+                                    fprintf(outfile, "FLOAT_VEC3\n");
+                                    break;
+                                case VS_UNIFORM_FLOAT_VEC4:
+                                    fprintf(outfile, "FLOAT_VEC4\n");
+                                    break;
+                                case VS_UNIFORM_INT:
+                                    fprintf(outfile, "INT\n");
+                                    break;
+                                case VS_UNIFORM_INT_VEC2:
+                                    fprintf(outfile, "INT_VEC2\n");
+                                    break;
+                                case VS_UNIFORM_INT_VEC3:
+                                    fprintf(outfile, "INT_VEC3\n");
+                                    break;
+                                case VS_UNIFORM_INT_VEC4:
+                                    fprintf(outfile, "INT_VEC4\n");
+                                    break;
+                                case VS_UNIFORM_BOOL:
+                                    fprintf(outfile, "BOOL\n");
+                                    break;
+                                case VS_UNIFORM_BOOL_VEC2:
+                                    fprintf(outfile, "BOOL_VEC2\n");
+                                    break;
+                                case VS_UNIFORM_BOOL_VEC3:
+                                    fprintf(outfile, "BOOL_VEC3\n");
+                                    break;
+                                case VS_UNIFORM_BOOL_VEC4:
+                                    fprintf(outfile, "BOOL_VEC4\n");
+                                    break;
+                                case VS_UNIFORM_FLOAT_MAT2:
+                                    fprintf(outfile, "FLOAT_MAT2\n");
+                                    break;
+                                case VS_UNIFORM_FLOAT_MAT3:
+                                    fprintf(outfile, "FLOAT_MAT3\n");
+                                    break;
+                                case VS_UNIFORM_FLOAT_MAT4:
+                                    fprintf(outfile, "FLOAT_MAT4\n");
+                                    break;
+                                case VS_UNIFORM_SAMPLER_1D:
+                                    fprintf(outfile, "SAMPLER_1D\n");
+                                    break;
+                                case VS_UNIFORM_SAMPLER_2D:
+                                    fprintf(outfile, "SAMPLER_2D\n");
+                                    break;
+                                case VS_UNIFORM_SAMPLER_3D:
+                                    fprintf(outfile, "SAMPLER_3D\n");
+                                    break;
+                                case VS_UNIFORM_SAMPLER_1D_SHADOW:
+                                    fprintf(outfile, "SAMPLER_1D_SHADOW\n");
+                                    break;
+                                case VS_UNIFORM_SAMPLER_2D_SHADOW:
+                                    fprintf(outfile, "SAMPLER_2D_SHADOW\n");
+                                    break;
+                                default:
+                                    fprintf(outfile, "UNDEFINED\n");
+                                    break;
+                            }
                         }
                     }
                     break;
