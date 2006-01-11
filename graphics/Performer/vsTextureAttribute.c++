@@ -314,6 +314,12 @@ void vsTextureAttribute::setApplyMode(int applyMode)
         case VS_TEXTURE_APPLY_REPLACE:
             performerTexEnv->setMode(PFTE_REPLACE);
             break;
+        case VS_TEXTURE_APPLY_BLEND:
+            performerTexEnv->setMode(PFTE_BLEND);
+            break;
+        case VS_TEXTURE_APPLY_ADD:
+            performerTexEnv->setMode(PFTE_ADD);
+            break;
         default:
             printf("vsTextureAttribute::setApplyMode: Bad apply mode value\n");
             return;
@@ -335,6 +341,10 @@ int vsTextureAttribute::getApplyMode()
             return VS_TEXTURE_APPLY_MODULATE;
         case PFTE_REPLACE:
             return VS_TEXTURE_APPLY_REPLACE;
+        case PFTE_BLEND:
+            return VS_TEXTURE_APPLY_BLEND;
+        case PFTE_ADD:
+            return VS_TEXTURE_APPLY_ADD;
     }
 
     // If the mode is unrecognized, return an error value
