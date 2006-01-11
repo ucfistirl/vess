@@ -499,8 +499,8 @@ if test x$enable_sound = xyes; then
             else
                 AC_MSG_ERROR([
   
-   The OpenAL header files were not found.  Either provide a path
-   to the OpenAL library via the --with-openal=PREFIX option to 
+   The ALUT header files were not found.  Either provide a path
+   to the ALUT library via the --with-alut=PREFIX option to 
    configure, or disable the sound features of VESS using the
    --disable-sound option to configure.
 
