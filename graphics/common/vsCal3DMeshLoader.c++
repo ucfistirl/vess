@@ -1227,6 +1227,10 @@ switch (count)
             // Finalize the changes to the mesh geometry.
             resultMesh->finishNewState();
 
+            // Propagate the initial state down the pipeline
+            resultMesh->beginNewState();
+            resultMesh->finishNewState();
+
             // Increment the number of submeshes we have processed to account
             // for the current one.
             subMeshesProcessed++;
