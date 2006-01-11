@@ -111,6 +111,14 @@ const char *vsSkeletonMesh::getClassName()
 }
 
 // ------------------------------------------------------------------------
+// Returns the number of sub-meshes in this mesh
+// ------------------------------------------------------------------------
+int vsSkeletonMesh::getNumSubMeshes()
+{
+    return subMeshCount;
+}
+
+// ------------------------------------------------------------------------
 // Return the geometry for the indexed mesh in this object.
 // ------------------------------------------------------------------------
 vsSkeletonMeshGeometry *vsSkeletonMesh::getSubMesh(int index)

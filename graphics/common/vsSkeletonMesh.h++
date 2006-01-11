@@ -47,6 +47,7 @@ public:
 
     virtual const char        *getClassName();
 
+    int                       getNumSubMeshes();
     vsSkeletonMeshGeometry    *getSubMesh(int index);
 
     vsComponent               *getRootComponent();
