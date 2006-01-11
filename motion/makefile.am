@@ -8,7 +8,6 @@ libvsMotion_a_SOURCES = \
                         common/vs8TrackerArm.c++ \
                         common/vsArticulatedCollision.c++ \
                         common/vsAxisRotation.c++ \
-                        common/vsButtonMotion.c++ \
                         common/vsCollision.c++ \
                         common/vsDifferentialTrackedOrientation.c++ \
                         common/vsDrivingMotion.c++ \
@@ -43,7 +42,6 @@ include_HEADERS = \
                   common/vs8TrackerArm.h++ \
                   common/vsArticulatedCollision.h++ \
                   common/vsAxisRotation.h++ \
-                  common/vsButtonMotion.h++ \
                   common/vsCollision.h++ \
                   common/vsDifferentialTrackedOrientation.h++ \
                   common/vsDrivingMotion.h++ \
