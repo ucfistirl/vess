@@ -64,7 +64,12 @@ vsGLSLProgramAttribute::~vsGLSLProgramAttribute()
 
 // ------------------------------------------------------------------------
 // Draw process traversal callback to handle changes to the vertex 
-// attributes, since Performer doesn't provide an API for this.
+// attribute bindings, since Performer doesn't provide an API for this.
+//
+// NOTE:  The getGLHandle() function of pfShaderProgram does not work as
+//        documented, and I was unable to get it to work any other way.
+//        Because of this, there is no way to provide vertex attribute
+//        binding support for GLSL programs under Performer.
 // ------------------------------------------------------------------------
 int vsGLSLProgramAttribute::travCallback(pfTraverser *trav, void *userData)
 {
@@ -449,8 +454,8 @@ vsGLSLUniform *vsGLSLProgramAttribute::getUniform(int index)
 // in the GLSL program 
 //
 // NOTE:  As of Performer 3.2.1, there is no support for vertex attribute
-//        bindings, and it was impossible to provide support via a draw
-//        callback
+//        bindings, and it was also impossible to provide support via a 
+//        draw callback (see the travCallback() function above).
 // ------------------------------------------------------------------------
 void vsGLSLProgramAttribute::bindVertexAttr(const char *name, 
                                             unsigned int index)
@@ -488,8 +493,8 @@ void vsGLSLProgramAttribute::bindVertexAttr(const char *name,
 // Removes the named vertex attribute binding from the program
 //
 // NOTE:  As of Performer 3.2.1, there is no support for vertex attribute
-//        bindings, and it was impossible to provide support via a draw
-//        callback
+//        bindings, and it was also impossible to provide support via a 
+//        draw callback (see the travCallback() function above).
 // ------------------------------------------------------------------------
 void vsGLSLProgramAttribute::removeVertexAttrBinding(const char *name)
 {
