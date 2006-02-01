@@ -71,8 +71,11 @@ vsDatabaseLoader::vsDatabaseLoader() : nodeNames(0, 50)
     // Default database units are meters
     unitMode = VS_DATABASE_UNITS_METERS;
     
-    // By default the AUTO_UNLIT mode is the only setting enabled
-    loaderModes = VS_DATABASE_MODE_AUTO_UNLIT;
+    // By default the AUTO_UNLIT mode is the only setting enabled.  The
+    // AUTOGEN_NORMALS mode is also on, because it can't be disabled in
+    // the Performer flight loader.
+    loaderModes = VS_DATABASE_MODE_AUTO_UNLIT | 
+        VS_DATABASE_MODE_AUTOGEN_NORMALS;
 }
 
 // ------------------------------------------------------------------------
@@ -217,8 +220,17 @@ const char *vsDatabaseLoader::getPath()
 // ------------------------------------------------------------------------
 // Sets the specified loader mode to the given value
 // ------------------------------------------------------------------------
-void vsDatabaseLoader::setLoaderMode(int whichMode, int modeVal)
+void vsDatabaseLoader::setLoaderMode(int whichMode, bool modeVal)
 {
+    // Check for the AUTOGEN_NORMALS flag.  If the user is trying to
+    // turn it off, print that Performer won't let us.
+    if ((whichMode == VS_DATABASE_MODE_AUTOGEN_NORMALS) && (!modeVal))
+    {
+        printf("vsDatabaseLoader::setLoaderMode:  Cannot disable automatic"
+            " generation of\n");
+        printf("    normals under Performer operation.\n");
+    }
+    
     // OR the mode in if we're adding it, or ~AND it out if we're removing it
     if (modeVal)
         loaderModes |= whichMode;

@@ -28,9 +28,10 @@
 #include "vsGeometry.h++"
 #include "vsGrowableArray.h++"
 
-#define VS_DATABASE_MODE_NAME_XFORM 0x01
-#define VS_DATABASE_MODE_NAME_ALL   0x02
-#define VS_DATABASE_MODE_AUTO_UNLIT 0x04
+#define VS_DATABASE_MODE_NAME_XFORM      0x01
+#define VS_DATABASE_MODE_NAME_ALL        0x02
+#define VS_DATABASE_MODE_AUTO_UNLIT      0x04
+#define VS_DATABASE_MODE_AUTOGEN_NORMALS 0x08
 
 enum vsDatabaseType
 {
@@ -112,7 +113,7 @@ public:
     void               clearPath();
     const char         *getPath();
 
-    void               setLoaderMode(int whichMode, int modeVal);
+    void               setLoaderMode(int whichMode, bool modeVal);
     bool               getLoaderMode(int whichMode);
 
     vsComponent        *loadDatabase(char *databaseFilename);
