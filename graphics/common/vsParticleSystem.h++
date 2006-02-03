@@ -74,7 +74,7 @@ struct VS_GRAPHICS_DLL vsParticle
 
 class VS_GRAPHICS_DLL vsParticleSystem : public vsUpdatable
 {
-private:
+protected:
 
     vsComponent           *parentComponent;
 
