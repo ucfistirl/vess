@@ -4165,7 +4165,7 @@ void *vsAvatar::makeVsFPSMotion()
     
     // We need to have at least the root kinematics defined.  If it isn't
     // defined, bail out and return NULL for the new motion model.
-    if (rootKinematics != NULL)
+    if (rootKinematics == NULL)
     {
         printf("vsAvatar::makeVsFPSMotion: Root kinematics object not "
             "specified\n");
@@ -4175,7 +4175,7 @@ void *vsAvatar::makeVsFPSMotion()
     // If the root kinematics is specified, but not the view kinematics,
     // assume the user wants to use the root kinematics for pitch control
     // as well.
-    if (viewKinematics != NULL)
+    if (viewKinematics == NULL)
         viewKinematics = rootKinematics;
 
     // Note that no axis need be specified.  The user is free to create
