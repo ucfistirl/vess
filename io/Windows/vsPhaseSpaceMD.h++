@@ -114,8 +114,7 @@ public:
     vsPSMDCamera               *getCamera(int index);
 
     void                       createPointTracker(int ledIndex);
-    void                       createRigidTracker(int ledCount, int *ledBoxes,
-                                                  int *ledPorts, 
+    void                       createRigidTracker(int ledCount, int *ledIndices,
                                                   vsVector *ledOffsets);
 
     void                       enableTracker(int trackerIndex);
