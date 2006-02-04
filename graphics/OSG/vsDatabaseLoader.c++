@@ -39,6 +39,7 @@
 #include <osg/TexEnv>
 #include <osg/TexEnvCombine>
 #include <osg/TexGen>
+#include <osg/TexMat>
 #include <osg/PolygonMode>
 #include <osg/PolygonOffset>
 #include <osgUtil/SmoothingVisitor>
@@ -961,6 +962,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     osg::TexEnv *osgTexEnv;
     osg::TexGen *osgTexGen;
     osg::TexEnvCombine *osgTexEnvCombine;
+    osg::TexMat *osgTexMat;
     vsTextureAttribute *vsTextureAttr;
     vsTextureCubeAttribute *vsTextureCubeAttr;
 
@@ -1065,6 +1067,11 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
             (stateSet->getTextureAttribute(textureUnit,
             osg::StateAttribute::TEXGEN));
 
+        // See if there's a texture matrix generator attached.
+        osgTexMat = dynamic_cast<osg::TexMat *>
+            (stateSet->getTextureAttribute(textureUnit,
+            osg::StateAttribute::TEXMAT));
+
         // Note here that we're dynamic-casting to a Texture2D object, not just
         // any Texture type. If the texture isn't a Texture2D, the cast will
         // fail and return a NULL, which will make the function then test if it
@@ -1116,10 +1123,17 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
                 if (osgTexGen)
                     osgTexGen = new osg::TexGen(*osgTexGen);
 
+                // Create a new texture matrix object for use by the texture
+                // attribute. (We don't want to use the one that came with the
+                // texture object, because it's possible that the TexMat may
+                // have been used in other places that the Texture wasn't.)
+                if (osgTexMat)
+                    osgTexMat = new osg::TexMat(*osgTexMat);
+
                 vsTextureAttr = 
-                    new vsTextureAttribute(textureUnit,
+                    new vsTextureAttribute((unsigned int)(textureUnit),
                     (osg::Texture2D *)osgTexture, osgTexEnv, osgTexEnvCombine,
-                    osgTexGen);
+                    osgTexGen, osgTexMat);
 
                 // Check the status of the override flag
                 osgRefAttrPair = stateSet->getTextureAttributePair(textureUnit,
@@ -1187,10 +1201,18 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
                 else
                     osgTexGen = new osg::TexGen(*osgTexGen);
 
+                // Create a new texture matrix object for use by the texture
+                // attribute.  (We don't want to use the one that came with
+                // came with the texture object, because it's possible that
+                // the TexMat may have been used in other places that the
+                // Texture wasn't.)
+                if (osgTexMat)
+                    osgTexMat = new osg::TexMat(*osgTexMat);
+
                 vsTextureCubeAttr =
                     new vsTextureCubeAttribute(textureUnit,
                     (osg::TextureCubeMap *) osgTexture, osgTexEnv, 
-                    osgTexEnvCombine, osgTexGen);
+                    osgTexEnvCombine, osgTexGen, osgTexMat);
 
                 // Check the status of the override flag
                 osgRefAttrPair = stateSet->getTextureAttributePair(

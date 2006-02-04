@@ -28,7 +28,9 @@
 #include <osg/TexEnv>
 #include <osg/TexEnvCombine>
 #include <osg/TexGen>
+#include <osg/TexMat>
 #include <osg/Image>
+#include "vsMatrix.h++"
 #include "vsStateAttribute.h++"
 
 enum vsTextureDirection
@@ -94,6 +96,7 @@ private:
     osg::TexGen           *osgTexGen;
     osg::TexEnvCombine    *osgTexEnvCombine;
     osg::Image            *osgTexImage;
+    osg::TexMat           *osgTexMat;
 
     unsigned int          textureUnit;
 
@@ -107,7 +110,8 @@ VS_INTERNAL:
                                        osg::Texture2D *texObject,
                                        osg::TexEnv *texEnvObject,
                                        osg::TexEnvCombine *texEnvCombineObject,
-                                       osg::TexGen *texGenObject);
+                                       osg::TexGen *texGenObject,
+                                       osg::TexMat *texMatObject);
 
     virtual void      attach(vsNode *node);
     virtual void      detach(vsNode *node);
@@ -155,6 +159,9 @@ public:
 
     void                  setGenMode(int genMode);
     int                   getGenMode();
+    
+    void                  setTextureMatrix(vsMatrix newTransform);
+    vsMatrix              getTextureMatrix();
 
     unsigned int          getTextureUnit();
 };

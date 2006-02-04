@@ -42,6 +42,7 @@ vsTextureAttribute::vsTextureAttribute()
     osgTexEnv->ref();
     osgTexGen = NULL;
     osgTexEnvCombine = NULL;
+    osgTexMat = NULL;
 
     // Initialize the TexGen remove flag to false.
     removeTexGen = false;
@@ -83,7 +84,8 @@ vsTextureAttribute::vsTextureAttribute(unsigned int unit)
     osgTexEnv->ref();
     osgTexGen = NULL;
     osgTexEnvCombine = NULL;
-
+    osgTexMat = NULL;
+    
     // Initialize the TexGen remove flag to false.
     removeTexGen = false;
 
@@ -114,7 +116,8 @@ vsTextureAttribute::vsTextureAttribute(unsigned int unit)
 // ------------------------------------------------------------------------
 vsTextureAttribute::vsTextureAttribute(unsigned int unit,
     osg::Texture2D *texObject, osg::TexEnv *texEnvObject,
-    osg::TexEnvCombine *texEnvCombineObject, osg::TexGen *texGenObject)
+    osg::TexEnvCombine *texEnvCombineObject, osg::TexGen *texGenObject,
+    osg::TexMat *texMatObject)
 {
     // Set to the specified texture unit.
     if ((unit >= 0) && (unit < VS_MAXIMUM_TEXTURE_UNITS))
@@ -141,6 +144,11 @@ vsTextureAttribute::vsTextureAttribute(unsigned int unit,
     osgTexImage = osgTexture->getImage();
     osgTexImage->ref();
 
+    // Save (or create) and reference the TexMat object
+    osgTexMat = texMatObject;
+    if (osgTexMat)
+        osgTexMat->ref();
+    
     // Initialize the TexGen remove flag to false.
     removeTexGen = false;
 
@@ -165,6 +173,10 @@ vsTextureAttribute::~vsTextureAttribute()
     // Unreference the texture image data if it exists
     if (osgTexImage != NULL)
         osgTexImage->unref();
+       
+    // Unference the texture matrix if it exists
+    if (osgTexMat)
+        osgTexMat->unref();
 }
 
 // ------------------------------------------------------------------------
@@ -741,6 +753,70 @@ unsigned int vsTextureAttribute::getTextureUnit()
 }
 
 // ------------------------------------------------------------------------
+// Sets the texture matrix
+// ------------------------------------------------------------------------
+void vsTextureAttribute::setTextureMatrix(vsMatrix newTransform)
+{
+    osg::Matrixf osgMatrix;
+    bool createdMat;
+    
+    // Convert the vsMatrix into an osg::Matrix
+    for (int loop = 0; loop < 4; loop++)
+        for (int sloop = 0; sloop < 4; sloop++)
+            osgMatrix(loop, sloop) = newTransform[sloop][loop];
+
+    // See if we have an osg::TexMat to hold the texture matrix
+    if (osgTexMat)
+    {
+        // We have one already, so don't create one
+        createdMat = false;
+    }
+    else
+    {
+        // We don't have one, so create one
+        osgTexMat = new osg::TexMat();
+        osgTexMat->ref();
+        createdMat = true;
+    }
+
+    // Apply osgMatrix to the osgTexMat
+    osgTexMat->setMatrix(osgMatrix);
+
+    // If we just created the texture matrix, let all owning nodes know 
+    // about the new state
+    if (createdMat)
+    {
+        markOwnersDirty();
+        setAllOwnersOSGAttrModes();
+    }
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the texture matrix
+// ------------------------------------------------------------------------
+vsMatrix vsTextureAttribute::getTextureMatrix()
+{
+    osg::Matrixf osgMatrix;
+    vsMatrix vsMat;
+
+    // If we don't have a texture matrix, just return an identity matrix
+    if (!osgTexMat)
+    {
+        vsMat.setIdentity();
+        return vsMat;
+    }
+
+    // Get the current texture matrix
+    osgMatrix = osgTexMat->getMatrix();
+
+    // Convert the osg::Matrix into a vsMatrix and return it
+    for (int loop = 0; loop < 4; loop++)
+        for (int sloop = 0; sloop < 4; sloop++)
+            vsMat[sloop][loop] = osgMatrix(loop, sloop);
+    return vsMat;
+}
+
+// ------------------------------------------------------------------------
 // Private function
 // Sets the modes on the StateSet of this node's OSG node to reflect the
 // settings of this attribute
@@ -790,6 +866,12 @@ void vsTextureAttribute::setOSGAttrModes(vsNode *node)
                 attrMode);   
         }
     }
+    
+    // If a texture transformation matrix has been provided, update the state
+    // set to reflect that
+    if (osgTexMat)
+        osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexMat,
+            attrMode);
 }
 
 // ------------------------------------------------------------------------
@@ -856,6 +938,7 @@ bool vsTextureAttribute::isEquivalent(vsAttribute *attribute)
     vsTextureAttribute *attr;
     unsigned char *image1, *image2;
     int xval1, yval1, xval2, yval2, val1, val2;
+    vsMatrix mat1, mat2;
     
     // Make sure the given attribute is valid
     if (!attribute)
@@ -920,6 +1003,12 @@ bool vsTextureAttribute::isEquivalent(vsAttribute *attribute)
     val1 = getTextureUnit();
     val2 = attr->getTextureUnit();
     if (val1 != val2)
+        return false;
+        
+    // Compare texture matrices
+    mat1 = getTextureMatrix();
+    mat2 = attr->getTextureMatrix();
+    if(!mat1.isEqual(mat2))
         return false;
 
     // If all pass, the attribute is equivalent

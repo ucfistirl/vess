@@ -46,6 +46,8 @@ private:
     pfTexture     *performerTexture;
     pfTexEnv      *performerTexEnv;
     pfTexGen      *performerTexGen;
+    pfMatrix      textureMatrix;
+    bool          textureMatrixEnabled;
 
     unsigned int  textureUnit;
 
@@ -54,7 +56,8 @@ VS_INTERNAL:
                     vsTextureCubeAttribute(unsigned int unit,
                                            pfTexture *texObject,
                                            pfTexEnv *texEnvObject,
-                                           pfTexGen *texGenObject);
+                                           pfTexGen *texGenObject,
+                                           pfMatrix texMat, bool useTexMat);
 
     virtual void    attachDuplicate(vsNode *theNode);
 
@@ -94,6 +97,9 @@ public:
     int                   getMagFilter();
     void                  setMinFilter(int newFilter);
     int                   getMinFilter();
+
+    void                  setTextureMatrix(vsMatrix newMatrix);
+    vsMatrix              getTextureMatrix();
 
     void                  setGenMode(int genMode);
     int                   getGenMode();

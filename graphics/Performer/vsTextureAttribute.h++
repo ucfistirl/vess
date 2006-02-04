@@ -23,8 +23,10 @@
 #ifndef VS_TEXTURE_ATTRIBUTE_HPP
 #define VS_TEXTURE_ATTRIBUTE_HPP
 
+#include <Performer/pr/pfLinMath.h>
 #include <Performer/pr/pfTexture.h>
 #include "vsStateAttribute.h++"
+#include "vsMatrix.h++"
 
 enum vsTextureDirection
 {
@@ -87,6 +89,8 @@ private:
     pfTexture     *performerTexture;
     pfTexEnv      *performerTexEnv;
     pfTexGen      *performerTexGen;
+    pfMatrix      textureMatrix;
+    bool          textureMatrixEnabled;
     unsigned int  textureUnit;
 
 VS_INTERNAL:
@@ -94,7 +98,8 @@ VS_INTERNAL:
                     vsTextureAttribute(unsigned int unit,
                                        pfTexture *texObject,
                                        pfTexEnv *texEnvObject, 
-                                       pfTexGen *texGenObject);
+                                       pfTexGen *texGenObject,
+                                       pfMatrix texMat, bool useTexMat);
 
     virtual void    attachDuplicate(vsNode *theNode);
 
@@ -137,6 +142,9 @@ public:
 
     void                  setGenMode(int genMode);
     int                   getGenMode();
+
+    void                  setTextureMatrix(vsMatrix newMatrix);
+    vsMatrix              getTextureMatrix();
 
     unsigned int          getTextureUnit();
 

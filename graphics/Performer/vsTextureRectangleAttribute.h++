@@ -76,6 +76,8 @@ private:
     pfTexture       *performerTexture;
     pfTexEnv        *performerTexEnv;
     pfTexGen        *performerTexGen;
+    pfMatrix        textureMatrix;
+    bool            textureMatrixEnabled;
 
     unsigned int    textureUnit;
 
@@ -104,7 +106,8 @@ public:
                           vsTextureRectangleAttribute(unsigned int unit);
                           vsTextureRectangleAttribute(unsigned int unit,
                               pfTexture *texObject, pfTexEnv *texEnvObject,
-                              pfTexGen *texGenObject);
+                              pfTexGen *texGenObject, pfMatrix texMat,
+                              bool useTexMat);
 
     virtual               ~vsTextureRectangleAttribute();
 
@@ -129,6 +132,9 @@ public:
 
     void                  setGenMode(int genMode);
     int                   getGenMode();
+
+    void                  setTextureMatrix(vsMatrix newMatrix);
+    vsMatrix              getTextureMatrix();
 
     unsigned int          getTextureUnit();
 };

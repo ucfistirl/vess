@@ -27,6 +27,7 @@
 #include <osg/Texture>
 #include <osg/TexEnv>
 #include <osg/TexEnvCombine>
+#include <osg/TexMat>
 #include <osg/Image>
 #include "vsStateAttribute.h++"
 #include "vsTextureAttribute.h++"
@@ -51,6 +52,7 @@ private:
     osg::TexEnv            *osgTexEnv;
     osg::TexEnvCombine     *osgTexEnvCombine;
     osg::TexGen            *osgTexGen;
+    osg::TexMat            *osgTexMat;
     osg::Image             *osgTexImage[VS_TEXTURE_CUBE_SIDES];
 
     unsigned int           textureUnit;
@@ -63,7 +65,8 @@ VS_INTERNAL:
                                        osg::TextureCubeMap *texObject,
                                        osg::TexEnv *texEnvObject,
                                        osg::TexEnvCombine *texEnvCombineObject,
-                                       osg::TexGen *texGenObject);
+                                       osg::TexGen *texGenObject,
+                                       osg::TexMat *texMatObject);
 
     virtual void          attach(vsNode *node);
     virtual void          detach(vsNode *node);
@@ -111,6 +114,9 @@ public:
 
     void                  setGenMode(int genMode);
     int                   getGenMode();
+
+    void                  setTextureMatrix(vsMatrix newMatrix);
+    vsMatrix              getTextureMatrix();
 
     unsigned int          getTextureUnit();
 };

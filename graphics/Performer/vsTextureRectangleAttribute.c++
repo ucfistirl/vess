@@ -38,6 +38,8 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute()
     performerTexEnv->ref();
     performerTexEnv->setMode(PFTE_DECAL);
     performerTexGen = NULL;
+    textureMatrix.makeIdent();
+    textureMatrixEnabled = false;
 
     // Set to the default texture unit
     textureUnit = 0;
@@ -74,6 +76,8 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit)
     performerTexEnv->ref();
     performerTexEnv->setMode(PFTE_DECAL);
     performerTexGen = NULL;
+    textureMatrix.makeIdent();
+    textureMatrixEnabled = false;
 
     // Set to the specified texture unit.
     if ((unit >= 0) && (unit < VS_MAXIMUM_TEXTURE_UNITS))
@@ -109,7 +113,8 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit)
 // Constructor - Sets the texture attribute up as already attached
 // ------------------------------------------------------------------------
 vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit,
-    pfTexture *texObject, pfTexEnv *texEnvObject, pfTexGen *texGenObject)
+    pfTexture *texObject, pfTexEnv *texEnvObject, pfTexGen *texGenObject,
+    pfMatrix texMat, bool useTexMat)
 {
     // Store pointers to the specified Performer texture and texture
     // environment objects
@@ -120,6 +125,11 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit,
     performerTexGen = texGenObject;
     if (performerTexGen)
         performerTexGen->ref();
+    textureMatrixEnabled = false;
+    if (useTexMat)
+        textureMatrix.copy(texMat);
+    else
+        textureMatrix.makeIdent();
 
     // Set to the specified texture unit.
     if ((unit >= 0) && (unit < VS_MAXIMUM_TEXTURE_UNITS))
@@ -567,6 +577,35 @@ int vsTextureRectangleAttribute::getGenMode()
 }
 
 // ------------------------------------------------------------------------
+// Set a new texture matrix
+// ------------------------------------------------------------------------
+void vsTextureRectangleAttribute::setTextureMatrix(vsMatrix newMatrix)
+{
+    // Convert the vsMatrix into a pfMatrix
+    for (int loop = 0; loop < 4; loop++)
+        for (int sloop = 0; sloop < 4; sloop++)
+            textureMatrix[loop][sloop] = newMatrix[sloop][loop];
+
+    // Set that we're now using the texture matrix, so the proper modes
+    // are set in the Performer state
+    textureMatrixEnabled = true;
+}
+
+// ------------------------------------------------------------------------
+// Retrieve the current texture matrix
+// ------------------------------------------------------------------------
+vsMatrix vsTextureRectangleAttribute::getTextureMatrix()
+{
+    vsMatrix vsMat;
+
+    // Convert the current texture matrix into a vsMatrix and return it
+    for (int loop = 0; loop < 4; loop++)
+        for (int sloop = 0; sloop < 4; sloop++)
+            vsMat[sloop][loop] = textureMatrix[loop][sloop];
+    return vsMat;
+}
+
+// ------------------------------------------------------------------------
 // Return the set texture unit for this textureAttribute.
 // ------------------------------------------------------------------------
 unsigned int vsTextureRectangleAttribute::getTextureUnit()
@@ -742,6 +781,11 @@ void vsTextureRectangleAttribute::setState(pfGeoState *state)
         state->setMultiMode(PFSTATE_ENTEXGEN, textureUnit, PF_ON);
         state->setMultiAttr(PFSTATE_TEXGEN, textureUnit, performerTexGen);
     }
+    if (textureMatrixEnabled)
+    {
+        state->setMultiMode(PFSTATE_ENTEXMAT, textureUnit, PF_ON);
+        state->setMultiAttr(PFSTATE_TEXMAT, textureUnit, &textureMatrix);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -754,6 +798,7 @@ bool vsTextureRectangleAttribute::isEquivalent(vsAttribute *attribute)
     vsTextureRectangleAttribute *attr;
     unsigned char *image1, *image2;
     int xval1, yval1, xval2, yval2, val1, val2;
+    vsMatrix mat1, mat2;
     
     // NULL check
     if (!attribute)
@@ -805,6 +850,12 @@ bool vsTextureRectangleAttribute::isEquivalent(vsAttribute *attribute)
     val1 = getTextureUnit();
     val2 = attr->getTextureUnit();
     if (val1 != val2)
+        return false;
+
+    // Texture Matrix check
+    mat1 = getTextureMatrix();
+    mat2 = getTextureMatrix();
+    if (!mat1.isEqual(mat2))
         return false;
 
     // Attributes are equivalent if all checks pass

@@ -38,6 +38,8 @@ vsTextureCubeAttribute::vsTextureCubeAttribute()
     performerTexEnv->setMode(PFTE_DECAL);
     performerTexGen = new pfTexGen();
     performerTexGen->ref();
+    textureMatrix.makeIdent();
+    textureMatrixEnabled = false;
 
     // Specify it is a cube map
     performerTexture->setFormat(PFTEX_CUBE_MAP, 1);
@@ -63,6 +65,8 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit)
     performerTexEnv->setMode(PFTE_DECAL);
     performerTexGen = new pfTexGen();
     performerTexGen->ref();
+    textureMatrix.makeIdent();
+    textureMatrixEnabled = false;
 
     // Specify it is a cube map
     performerTexture->setFormat(PFTEX_CUBE_MAP, 1);
@@ -86,7 +90,8 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit)
 // Constructor - Sets the texture attribute up as already attached
 // ------------------------------------------------------------------------
 vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit,
-    pfTexture *texObject, pfTexEnv *texEnvObject, pfTexGen *texGenObject)
+    pfTexture *texObject, pfTexEnv *texEnvObject, pfTexGen *texGenObject,
+    pfMatrix texMat, bool useTexMat)
 {
     // Store pointers to the specified Performer texture and texture
     // environment objects
@@ -96,6 +101,11 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit,
     performerTexEnv->ref();
     performerTexGen = texGenObject;
     performerTexGen->ref();
+    textureMatrixEnabled = useTexMat;
+    if (textureMatrixEnabled)
+        textureMatrix.copy(texMat);
+    else
+        textureMatrix.makeIdent();
 
     // Specify it is a cube map
     performerTexture->setFormat(PFTEX_CUBE_MAP, 1);
@@ -534,6 +544,35 @@ int vsTextureCubeAttribute::getGenMode()
 }
 
 // ------------------------------------------------------------------------
+// Set a new texture matrix
+// ------------------------------------------------------------------------
+void vsTextureCubeAttribute::setTextureMatrix(vsMatrix newMatrix)
+{
+    // Convert the vsMatrix into a pfMatrix
+    for (int loop = 0; loop < 4; loop++)
+        for (int sloop = 0; sloop < 4; sloop++)
+            textureMatrix[loop][sloop] = newMatrix[sloop][loop];
+
+    // Set that we're now using the texture matrix, so the proper modes
+    // are set in the Performer state
+    textureMatrixEnabled = true;
+}
+
+// ------------------------------------------------------------------------
+// Retrieve the current texture matrix
+// ------------------------------------------------------------------------
+vsMatrix vsTextureCubeAttribute::getTextureMatrix()
+{
+    vsMatrix vsMat;
+
+    // Convert the current texture matrix into a vsMatrix and return it
+    for (int loop = 0; loop < 4; loop++)
+        for (int sloop = 0; sloop < 4; sloop++)
+            vsMat[sloop][loop] = textureMatrix[loop][sloop];
+    return vsMat;
+}
+
+// ------------------------------------------------------------------------
 // Return the set texture unit for this textureAttribute.
 // ------------------------------------------------------------------------
 unsigned int vsTextureCubeAttribute::getTextureUnit()
@@ -642,6 +681,13 @@ void vsTextureCubeAttribute::setState(pfGeoState *state)
     // Enable the texture generator, and set it.
     state->setMultiMode(PFSTATE_ENTEXGEN, textureUnit, PF_ON);
     state->setMultiAttr(PFSTATE_TEXGEN, textureUnit, performerTexGen);
+
+    // If the texture matrix is enabled, set it as well.
+    if (textureMatrixEnabled)
+    {
+        state->setMultiMode(PFSTATE_ENTEXMAT, textureUnit, PF_ON);
+        state->setMultiAttr(PFSTATE_TEXMAT, textureUnit, &textureMatrix);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -654,6 +700,7 @@ bool vsTextureCubeAttribute::isEquivalent(vsAttribute *attribute)
     vsTextureCubeAttribute *attr;
     unsigned char *image1, *image2;
     int xval1, yval1, xval2, yval2, val1, val2, loop;
+    vsMatrix mat1, mat2;
     
     // NULL check
     if (!attribute)
@@ -720,6 +767,12 @@ bool vsTextureCubeAttribute::isEquivalent(vsAttribute *attribute)
     val1 = getTextureUnit();
     val2 = attr->getTextureUnit();
     if (val1 != val2)
+        return false;
+
+    // Texture Matrix check
+    mat1 = getTextureMatrix();
+    mat2 = attr->getTextureMatrix();
+    if (!mat1.isEqual(mat2))
         return false;
 
     // Attributes are equivalent if all checks pass

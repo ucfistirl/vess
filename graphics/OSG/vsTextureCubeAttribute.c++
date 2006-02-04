@@ -45,6 +45,7 @@ vsTextureCubeAttribute::vsTextureCubeAttribute()
     osgTexEnvCombine = NULL;
     osgTexGen = new osg::TexGen();
     osgTexGen->ref();
+    osgTexMat = NULL;
 
     // Start with no image data
     for (loop = 0; loop < VS_TEXTURE_CUBE_SIDES; loop++)
@@ -90,6 +91,7 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit)
     osgTexEnvCombine = NULL;
     osgTexGen = new osg::TexGen();
     osgTexGen->ref();
+    osgTexMat = NULL;
 
     // Start with no image data
     for (loop = 0; loop < VS_TEXTURE_CUBE_SIDES; loop++)
@@ -121,7 +123,8 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit)
 // ------------------------------------------------------------------------
 vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit,
     osg::TextureCubeMap *texObject, osg::TexEnv *texEnvObject,
-    osg::TexEnvCombine *texEnvCombineObject, osg::TexGen *texGenObject)
+    osg::TexEnvCombine *texEnvCombineObject, osg::TexGen *texGenObject,
+    osg::TexMat *texMatObject)
 {
     // Set to the specified texture unit.
     if ((unit >= 0) && (unit < VS_MAXIMUM_TEXTURE_UNITS))
@@ -133,7 +136,7 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit,
         textureUnit = 0;
     }
 
-    // Save and reference the TextureCubeMap, TexEnv, and TexGen objects
+    // Save and reference the TextureCubeMap, TexEnv, and TexMat objects
     osgTextureCube = texObject;
     osgTextureCube->ref();
     osgTexEnv = texEnvObject;
@@ -142,9 +145,22 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit,
     osgTexEnvCombine = texEnvCombineObject;
     if (osgTexEnvCombine)
         osgTexEnvCombine->ref();
+    osgTexMat = texMatObject;
+    if (osgTexMat)
+        osgTexMat->ref();
+
+    // This type of texture assumes we have a texture coordinate generator
+    // at all times, so if we're not given one, we need to create it
     osgTexGen = texGenObject;
-    if (osgTexGen)
-        osgTexGen->ref();
+    if (!osgTexGen)
+    {
+        // Create the TexGen and default it to REFLECTION_MAP mode
+        osgTexGen = new osg::TexGen();
+        setGenMode(VS_TEXTURE_GEN_REFLECTION_MAP);
+    }
+    osgTexGen->ref();
+
+    // Save and reference the texture matrix
 
     // Reference the texture image data
     osgTexImage[0] = osgTextureCube->getImage((osg::TextureCubeMap::Face) 0);
@@ -169,13 +185,15 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit,
 // ------------------------------------------------------------------------
 vsTextureCubeAttribute::~vsTextureCubeAttribute()
 {
-    // Unreference the Texture2D and TexEnv objects
+    // Unreference the Texture2D, TexEnv, and TexMat objects
     osgTextureCube->unref();
     if (osgTexEnv)
         osgTexEnv->unref();
     if (osgTexEnvCombine)
         osgTexEnvCombine->unref();
     osgTexGen->unref();
+    if (osgTexMat)
+        osgTexMat->unref();
 
     // Unreference the texture image data if it exists
     if (osgTexImage[0] != NULL) osgTexImage[0]->unref();
@@ -727,6 +745,70 @@ int vsTextureCubeAttribute::getGenMode()
 }
 
 // ------------------------------------------------------------------------
+// Set a new texture matrix
+// ------------------------------------------------------------------------
+void vsTextureCubeAttribute::setTextureMatrix(vsMatrix newMatrix)
+{
+    osg::Matrixf osgMatrix;
+    bool createdMat;
+
+    // Convert the vsMatrix into an osg::Matrix
+    for (int loop = 0; loop < 4; loop++)
+        for (int sloop = 0; sloop < 4; sloop++)
+            osgMatrix(loop, sloop) = newMatrix[sloop][loop];
+
+    // See if we have an osg::TexMat to hold the texture matrix
+    if (osgTexMat)
+    {
+        // We have one already, so don't create one
+        createdMat = false;
+    }
+    else
+    {
+        // We don't have one, so create one
+        osgTexMat = new osg::TexMat();
+        osgTexMat->ref();
+        createdMat = true;
+    }
+
+    // Apply osgMatrix to the osgTexMat
+    osgTexMat->setMatrix(osgMatrix);
+
+    // If we just created the texture matrix, let all owning nodes know
+    // about the new state
+    if (createdMat)
+    {
+        markOwnersDirty();
+        setAllOwnersOSGAttrModes();
+    }
+}
+
+// ------------------------------------------------------------------------
+// Retrieve the current texture matrix
+// ------------------------------------------------------------------------
+vsMatrix vsTextureCubeAttribute::getTextureMatrix()
+{
+    osg::Matrixf osgMatrix; 
+    vsMatrix vsMat;
+
+    // If we don't have a texture matrix, just return an identity matrix
+    if (!osgTexMat)
+    {
+        vsMat.setIdentity();
+        return vsMat;
+    }
+
+    // Get the current texture matrix
+    osgMatrix = osgTexMat->getMatrix();
+
+    // Convert the osg::Matrix into a vsMatrix and return it
+    for (int loop = 0; loop < 4; loop++)
+        for (int sloop = 0; sloop < 4; sloop++)
+            vsMat[sloop][loop] = osgMatrix(loop, sloop);
+    return vsMat;
+}
+
+// ------------------------------------------------------------------------
 // Return the texture unit used in the texture attribute
 // ------------------------------------------------------------------------
 unsigned int vsTextureCubeAttribute::getTextureUnit()
@@ -761,6 +843,11 @@ void vsTextureCubeAttribute::setOSGAttrModes(vsNode *node)
         attrMode);
     osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexEnv, attrMode);
     osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexGen, attrMode);
+
+    // If a texture matrix exists, update the state to reflect that
+    if (osgTexMat)
+        osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexMat,
+            attrMode);
 }
 
 // ------------------------------------------------------------------------
@@ -823,6 +910,7 @@ bool vsTextureCubeAttribute::isEquivalent(vsAttribute *attribute)
     vsTextureCubeAttribute *attr;
     unsigned char *image1, *image2;
     int xval1, yval1, xval2, yval2, val1, val2, loop;
+    vsMatrix mat1, mat2;
     
     // Make sure the given attribute is valid
     if (!attribute)
@@ -890,6 +978,12 @@ bool vsTextureCubeAttribute::isEquivalent(vsAttribute *attribute)
     val1 = getTextureUnit();
     val2 = attr->getTextureUnit();
     if (val1 != val2)
+        return false;
+        
+    // Compare texture matrices
+    mat1 = getTextureMatrix();
+    mat2 = attr->getTextureMatrix();
+    if(!mat1.isEqual(mat2))
         return false;
 
     // If all pass, the attribute is equivalent

@@ -967,6 +967,8 @@ void vsDatabaseLoader::convertAttrs(vsGeometry *geometry, pfGeoState *geoState,
     pfTexture *texture;
     pfTexEnv *texEnv;
     pfTexGen *texGen;
+    pfMatrix texMat;
+    bool useTexMat;
     vsTextureAttribute *textureAttr;
     vsTextureCubeAttribute *textureCubeAttr;
     int transpMode;
@@ -1067,13 +1069,28 @@ void vsDatabaseLoader::convertAttrs(vsGeometry *geometry, pfGeoState *geoState,
         // to a translucent material.
         textureAttr = NULL;
 
-        // Check for a texture
+        // Check for a texture and its associated attributes
         texture = (pfTexture *)(geoState->getMultiAttr(PFSTATE_TEXTURE,
             textureUnit));
+
+        // ... texture environment
         texEnv = (pfTexEnv *)(geoState->getMultiAttr(PFSTATE_TEXENV,
             textureUnit));
+
+        // ... texture coord generation
         texGen = (pfTexGen *)(geoState->getMultiAttr(PFSTATE_TEXGEN,
             textureUnit));
+
+        // ... and finally, texture matrix.  Only retrieve the matrix
+        // if the geostate is set to actually use it.  Otherwise, just
+        // go with an identity matrix.
+        useTexMat = (bool)(geoState->getMultiMode(PFSTATE_ENTEXMAT,
+            textureUnit));
+        if (useTexMat)
+            texMat = *(pfMatrix *)(geoState->getMultiAttr(PFSTATE_TEXMAT,
+                textureUnit));
+        else
+            texMat.makeIdent();
         if (texture != NULL)
         {
             // If it is a texture cube map
@@ -1110,7 +1127,7 @@ void vsDatabaseLoader::convertAttrs(vsGeometry *geometry, pfGeoState *geoState,
                     // Create the texture attribute from the Performer texture
                     // objects
                     textureCubeAttr = new vsTextureCubeAttribute(textureUnit,
-                        texture, texEnv, texGen);
+                        texture, texEnv, texGen, texMat, useTexMat);
 
                     // Link the pfTexture to the new texture attribute in the
                     // attribute map, so we can find it if it's used again
@@ -1142,7 +1159,7 @@ void vsDatabaseLoader::convertAttrs(vsGeometry *geometry, pfGeoState *geoState,
                     // Create the texture attribute from the Performer texture
                     // objects
                     textureAttr = new vsTextureAttribute(textureUnit,
-                        texture, texEnv, texGen);
+                        texture, texEnv, texGen, texMat, useTexMat);
 
                     // Link the pfTexture to the new texture attribute in the
                     // attribute map, so we can find it if it's used again
