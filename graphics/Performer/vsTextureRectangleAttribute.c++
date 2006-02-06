@@ -237,7 +237,8 @@ void vsTextureRectangleAttribute::setImage(unsigned char *imageData,
             comp = 4;
             break;
         default:
-            printf("vsTextureAttribute::setImage: Bad data format value\n");
+            printf("vsTextureRectangleAttribute::setImage: Bad data format "
+                "value\n");
             return;
     }
 
@@ -382,27 +383,12 @@ void vsTextureRectangleAttribute::reloadTextureData()
 void vsTextureRectangleAttribute::setBoundaryMode(int whichDirection,
                                                   int boundaryMode)
 {
-    int wrapType;
-
-    // Translate the VESS texture wrap constant to Performer
-    if (boundaryMode == VS_TEXTURE_BOUNDARY_REPEAT)
-        wrapType = PFTEX_REPEAT;
-    else
-        wrapType = PFTEX_CLAMP;
-
-    // Set the desired Performer texture wrap mode based on the direction
-    // constant
-    switch (whichDirection)
+    // OpenGL does not allow texture rectangles to repeat, so print an
+    // error message if the user tries to set any mode other than CLAMP.
+    if (boundaryMode != VS_TEXTURE_BOUNDARY_CLAMP)
     {
-        case VS_TEXTURE_DIRECTION_S:
-            performerTexture->setRepeat(PFTEX_WRAP_S, wrapType);
-            break;
-        case VS_TEXTURE_DIRECTION_T:
-            performerTexture->setRepeat(PFTEX_WRAP_T, wrapType);
-            break;
-        case VS_TEXTURE_DIRECTION_ALL:
-            performerTexture->setRepeat(PFTEX_WRAP, wrapType);
-            break;
+        printf("vsTextureRectangleAttribute::setBoundaryMode:\n");
+        printf("    Bad boundary mode (only CLAMP is allowed).\n");
     }
 }
 
@@ -411,20 +397,8 @@ void vsTextureRectangleAttribute::setBoundaryMode(int whichDirection,
 // ------------------------------------------------------------------------
 int vsTextureRectangleAttribute::getBoundaryMode(int whichDirection)
 {
-    int wrapType;
-
-    // Set the desired Performer texture wrap mode based on the direction
-    // constant
-    if (whichDirection == VS_TEXTURE_DIRECTION_T)
-        wrapType = performerTexture->getRepeat(PFTEX_WRAP_T);
-    else
-        wrapType = performerTexture->getRepeat(PFTEX_WRAP_S);
-
-    // Translate the Performer texture wrap constant to VESS
-    if (wrapType == PFTEX_REPEAT)
-        return VS_TEXTURE_BOUNDARY_REPEAT;
-    else
-        return VS_TEXTURE_BOUNDARY_CLAMP;
+    // CLAMP is the only mode allowed for texture rectangles
+    return VS_TEXTURE_BOUNDARY_CLAMP;
 }
 
 // ------------------------------------------------------------------------
@@ -472,6 +446,81 @@ int vsTextureRectangleAttribute::getApplyMode()
     // If the mode is unrecognized, return an error value
     return -1;
 }
+
+// ------------------------------------------------------------------------
+// Sets the magnification filter used by the texture
+// ------------------------------------------------------------------------
+void vsTextureRectangleAttribute::setMagFilter(int newFilter)
+{
+    // Translate the VESS magnification filter constant to the corresponding
+    // OpenGL constant.  This will be used in the traversal callback to
+    // set the mag filter properly.
+    switch (newFilter)
+    {
+        case VS_TEXTURE_MAGFILTER_NEAREST:
+            textureData->magFilter = GL_NEAREST;
+            textureData->dirty;
+            break;
+        case VS_TEXTURE_MAGFILTER_LINEAR:
+            textureData->magFilter = GL_LINEAR;
+            textureData->dirty;
+            break;
+        default:
+            printf("vsTextureRectangleAttribute::setMagFilter:\n"); 
+            printf("    Bad filter value (only NEAREST or LINEAR allowed)\n");
+            break;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the magnification filter used by the texture
+// ------------------------------------------------------------------------
+int vsTextureRectangleAttribute::getMagFilter()
+{
+    // Convert the mag filter value from OpenGL to VESS and return it
+    if (textureData->magFilter == GL_NEAREST)
+        return VS_TEXTURE_MAGFILTER_NEAREST;
+    else
+        return VS_TEXTURE_MAGFILTER_LINEAR;
+}
+
+// ------------------------------------------------------------------------
+// Sets the minification filter used by the texture
+// ------------------------------------------------------------------------
+void vsTextureRectangleAttribute::setMinFilter(int newFilter)
+{
+    // Translate the VESS minification filter constant to the corresponding
+    // OpenGL constant.  This will be used in the traversal callback to
+    // set the mag filter properly.
+    switch (newFilter)
+    {
+        case VS_TEXTURE_MINFILTER_NEAREST:
+            textureData->minFilter = GL_NEAREST;
+            textureData->dirty = true;
+            break;
+        case VS_TEXTURE_MINFILTER_LINEAR:
+            textureData->minFilter = GL_LINEAR;
+            textureData->dirty = true;
+            break;
+        default:
+            printf("vsTextureRectangleAttribute::setMinFilter:\n");
+            printf("    Bad filter value (only NEAREST or LINEAR allowed)\n");
+            break;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the minification filter used by the texture
+// ------------------------------------------------------------------------
+int vsTextureRectangleAttribute::getMinFilter()
+{
+    // Convert the mag filter value from OpenGL to VESS and return it
+    if (textureData->magFilter == GL_NEAREST)
+        return VS_TEXTURE_MINFILTER_NEAREST;
+    else
+        return VS_TEXTURE_MINFILTER_LINEAR;
+}
+
 
 // ------------------------------------------------------------------------
 // Sets the texture coordinate generation mode of the texture
@@ -988,6 +1037,12 @@ int vsTextureRectangleAttribute::preTravFunc(pfTraverser *trav, void *data)
         // Only reload the data if it has been modified
         if (textureData->dirty)
         {
+            // Set the magnification and minification filters
+            glTexParameteri(textureData->target, GL_TEXTURE_MAG_FILTER,
+                textureData->magFilter);
+            glTexParameteri(textureData->target, GL_TEXTURE_MIN_FILTER,
+                textureData->minFilter);
+
             // Copy the texture data to the texture target, avoiding any MIP-
             // mapping or borders (these aren't supported by texture rectangle)
             glTexImage2D(textureData->target, 0, textureData->internalFormat,

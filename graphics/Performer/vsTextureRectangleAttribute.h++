@@ -57,6 +57,8 @@ struct VS_GRAPHICS_DLL vsTextureRectangleData
     void        *data;
     int         unit;
     int         multitexture;
+    int         magFilter;
+    int         minFilter;
 
     bool        dirty;
 
@@ -129,6 +131,11 @@ public:
  
     void                  setApplyMode(int applyMode);
     int                   getApplyMode();
+
+    void                  setMagFilter(int newFilter);
+    int                   getMagFilter();
+    void                  setMinFilter(int newFilter);
+    int                   getMinFilter();
 
     void                  setGenMode(int genMode);
     int                   getGenMode();
