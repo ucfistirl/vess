@@ -335,29 +335,12 @@ void vsTextureRectangleAttribute::reloadTextureData()
 void vsTextureRectangleAttribute::setBoundaryMode(int whichDirection,
     int boundaryMode)
 {
-    osg::Texture::WrapMode wrapType;
-
-    // Translate the new boundary mode value into its OSG counterpart
-    if (boundaryMode == VS_TEXTURE_BOUNDARY_REPEAT)
-        wrapType = osg::Texture::REPEAT;
-    else
-        wrapType = osg::Texture::CLAMP;
-
-    // Apply the new boundary mode to the given direction(s)
-    switch (whichDirection)
+    // Print an error if any mode other than CLAMP is specified
+    if (boundaryMode != VS_TEXTURE_BOUNDARY_CLAMP)
     {
-        case VS_TEXTURE_DIRECTION_S:
-            osgTexture->setWrap(osg::Texture::WRAP_S, wrapType);
-            break;
-
-        case VS_TEXTURE_DIRECTION_T:
-            osgTexture->setWrap(osg::Texture::WRAP_T, wrapType);
-            break;
-
-        case VS_TEXTURE_DIRECTION_ALL:
-            osgTexture->setWrap(osg::Texture::WRAP_S, wrapType);
-            osgTexture->setWrap(osg::Texture::WRAP_T, wrapType);
-            break;
+        printf("vsTextureRectangleAttribute::setBoundaryMode:\n");
+        printf("    Only CLAMP boundary mode is valid for texture "
+            "rectangles.\n");
     }
 }
 
@@ -366,19 +349,8 @@ void vsTextureRectangleAttribute::setBoundaryMode(int whichDirection,
 // ------------------------------------------------------------------------
 int vsTextureRectangleAttribute::getBoundaryMode(int whichDirection)
 {
-    int wrapType;
-
-    // Fetch the OSG WrapType for the given direction
-    if (whichDirection == VS_TEXTURE_DIRECTION_T)
-        wrapType = osgTexture->getWrap(osg::Texture::WRAP_T);
-    else
-        wrapType = osgTexture->getWrap(osg::Texture::WRAP_S);
-
-    // Translate the WrapType into a VESS value
-    if (wrapType == osg::Texture::REPEAT)
-        return VS_TEXTURE_BOUNDARY_REPEAT;
-    else
-        return VS_TEXTURE_BOUNDARY_CLAMP;
+    // The only mode allowed is CLAMP
+    return VS_TEXTURE_BOUNDARY_CLAMP;
 }
 
 // ------------------------------------------------------------------------
@@ -505,6 +477,90 @@ int vsTextureRectangleAttribute::getApplyMode()
     // Return -1 if we don't recognize the TexEnv's mode
     return -1;
 }
+
+// ------------------------------------------------------------------------
+// Sets the magnification filter used by the texture
+// ------------------------------------------------------------------------
+void vsTextureRectangleAttribute::setMagFilter(int newFilter)
+{
+    // Translate the new filter mode to its OSG counterpart and apply it
+    // to the Texture2D object
+    switch (newFilter)
+    {
+        case VS_TEXTURE_MAGFILTER_NEAREST:
+            osgTexture->setFilter(osg::Texture::MAG_FILTER,
+                osg::Texture::NEAREST);
+            break;
+        case VS_TEXTURE_MAGFILTER_LINEAR:
+            osgTexture->setFilter(osg::Texture::MAG_FILTER,
+                osg::Texture::LINEAR);
+            break;
+        default:
+            printf("vsTextureAttribute::setMagFilter: Bad filter value\n");
+            break;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the magnification filter used by the texture
+// ------------------------------------------------------------------------
+int vsTextureRectangleAttribute::getMagFilter()
+{
+    // Translate the current MagFilter mode on the osg::Texture2D into
+    // a VESS value and return it
+    switch (osgTexture->getFilter(osg::Texture::MAG_FILTER))
+    {
+        case osg::Texture::NEAREST:
+            return VS_TEXTURE_MAGFILTER_NEAREST;
+        case osg::Texture::LINEAR:
+            return VS_TEXTURE_MAGFILTER_LINEAR;
+    }
+
+    return -1;
+}
+
+// ------------------------------------------------------------------------
+// Sets the minification filter used by the texture
+// ------------------------------------------------------------------------
+void vsTextureRectangleAttribute::setMinFilter(int newFilter)
+{
+    // Translate the new filter mode to its OSG counterpart and apply it
+    // to the Texture2D object
+    switch (newFilter)
+    {
+        case VS_TEXTURE_MINFILTER_NEAREST:
+            osgTexture->setFilter(osg::Texture::MIN_FILTER,
+                osg::Texture::NEAREST);
+            break;
+        case VS_TEXTURE_MINFILTER_LINEAR:
+            osgTexture->setFilter(osg::Texture::MIN_FILTER,
+                osg::Texture::LINEAR);
+            break;
+        default:
+            printf("vsTextureRectangleAttribute::setMinFilter:\n");
+            printf("    Bad filter value (only NEAREST or LINEAR allowed)\n");
+            break;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the minification filter used by the texture
+// ------------------------------------------------------------------------
+int vsTextureRectangleAttribute::getMinFilter()
+{
+    // Translate the current MinFilter mode on the osg::Texture2D into
+    // a VESS value and return it
+    switch (osgTexture->getFilter(osg::Texture::MIN_FILTER))
+    {
+        case osg::Texture::NEAREST:
+            return VS_TEXTURE_MINFILTER_NEAREST;
+        case osg::Texture::LINEAR:
+            return VS_TEXTURE_MINFILTER_LINEAR;
+    }
+
+    return -1;
+}
+
 
 // ------------------------------------------------------------------------
 // Set the base color of the texture environment

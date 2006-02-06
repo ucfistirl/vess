@@ -95,6 +95,11 @@ public:
     void                  setApplyMode(int applyMode);
     int                   getApplyMode();
 
+    void                  setMagFilter(int newFilter);
+    int                   getMagFilter();
+    void                  setMinFilter(int newFilter);
+    int                   getMinFilter();
+
     void                  setBaseColor(vsVector color);
     vsVector              getBaseColor();
 
