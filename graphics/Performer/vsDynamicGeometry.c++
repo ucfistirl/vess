@@ -1528,6 +1528,7 @@ void vsDynamicGeometry::setData(int whichData, int dataIndex, vsVector data)
 {
     int list;
     int loop;
+    int listSize;
 
     // Figure out which list we're changing
     if (whichData >= VS_GEOMETRY_LIST_COUNT)
@@ -1535,25 +1536,22 @@ void vsDynamicGeometry::setData(int whichData, int dataIndex, vsVector data)
     else
         list = whichData;
 
-    // Bounds check
-    if ((dataIndex < 0) || (dataIndex >= dataListSize[list]))
+    // Bounds check.  First get the size of the list we're working with.
+    // If we're working with normals or colors we need to check against the
+    // internal list sizes instead of the pfGeoArray list sizes.
+    if (whichData == VS_GEOMETRY_NORMALS)
+        listSize = normalListSize;
+    else if (whichData == VS_GEOMETRY_COLORS)
+        listSize = colorListSize;
+    else
+        listSize = dataListSize[list];
+
+    // Now check the given index against the size of the list
+    if ((dataIndex < 0) || (dataIndex >= listSize))
     {
         printf("vsDynamicGeometry::setData: Index out of bounds\n");
-        printf("   size = %d,  index = %d\n", dataListSize[list], dataIndex);
-        return;
-    }
-
-    // Check the bounds on the internal normal or color list if appropriate
-    if ((list == VS_GEOMETRY_NORMALS) && (dataIndex >= normalListSize))
-    {
-        printf("vsDynamicGeometry::setData: (normal) Index out of bounds\n");
-        printf("   size = %d,  index = %d\n", normalListSize, dataIndex);
-        return;
-    }
-    else if ((list == VS_GEOMETRY_COLORS) && (dataIndex >= colorListSize))
-    {
-        printf("vsDynamicGeometry::setData: (color) Index out of bounds\n");
-        printf("   size = %d,  index = %d\n", colorListSize, dataIndex);
+        printf("   list = %d, size = %d,  index = %d\n", list,
+            listSize, dataIndex);
         return;
     }
 
@@ -1561,8 +1559,8 @@ void vsDynamicGeometry::setData(int whichData, int dataIndex, vsVector data)
     // alter it's corresponding overlapping list
     if ((dataIsGeneric[list]) && (list == whichData))
     {
-        printf("vsDynamicGeometry::setData:  Cannot modify data on conventional "
-             "attribute type %d when\n", list);
+        printf("vsDynamicGeometry::setData:  Cannot modify data on "
+             "conventional attribute type %d when\n", list);
         printf("    corresponding generic attribute type is in use.\n");
         return;
     }
@@ -1715,6 +1713,7 @@ vsVector vsDynamicGeometry::getData(int whichData, int dataIndex)
     vsVector result;
     int loop;
     int list;
+    int listSize;
     
     // Figure out which list we're querying
     if (whichData >= VS_GEOMETRY_LIST_COUNT)
@@ -1722,23 +1721,22 @@ vsVector vsDynamicGeometry::getData(int whichData, int dataIndex)
     else
         list = whichData;
 
-    // Bounds check
-    if ((dataIndex < 0) || (dataIndex >= dataListSize[list]))
-    {
-        printf("vsDynamicGeometry::getData: Index out of bounds (whichData = "
-            "%d)\n", dataIndex);
-        return result;
-    }
+    // Bounds check.  First get the size of the list we're working with.
+    // If we're working with normals or colors we need to check against the
+    // internal list sizes instead of the pfGeoArray list sizes.
+    if (whichData == VS_GEOMETRY_NORMALS)
+        listSize = normalListSize;
+    else if (whichData == VS_GEOMETRY_COLORS)
+        listSize = colorListSize;
+    else
+        listSize = dataListSize[list];
 
-    // Check the bounds on the internal normal or color list if appropriate
-    if ((list == VS_GEOMETRY_NORMALS) && (dataIndex >= normalListSize))
+    // Now check the given index against the size of the list
+    if ((dataIndex < 0) || (dataIndex >= listSize))
     {
         printf("vsDynamicGeometry::setData: Index out of bounds\n");
-        return result;
-    }
-    else if ((list == VS_GEOMETRY_COLORS) && (dataIndex >= colorListSize))
-    {
-        printf("vsDynamicGeometry::setData: Index out of bounds\n");
+        printf("   list = %d, size = %d,  index = %d\n", list,
+            listSize, dataIndex);
         return result;
     }
 

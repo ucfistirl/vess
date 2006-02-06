@@ -1570,6 +1570,7 @@ void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
 {
     unsigned int unit;
     int loop, list;
+    int listSize;
 
     // Validate the data and parameters.  The procedure for this is different
     // based on the list that's being changed.
@@ -1596,19 +1597,20 @@ void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
         else
             list = whichData;
 
-        // Make sure the data index is valid
-        if ((dataIndex < 0) || (dataIndex >= dataListSize[list]))
+        // Bounds check.  First get the size of the list we're working with.
+        // If we're working with colors we need to check against the
+        // internal list size instead of the pfGeoArray list size.
+        if (whichData == VS_GEOMETRY_COLORS)
+            listSize = colorListSize;
+        else
+            listSize = dataListSize[list];
+
+        // Now check the given index against the size of the list
+        if ((dataIndex < 0) || (dataIndex >= listSize))
         {
             printf("vsSkeletonMeshGeometry::setData: Index out of bounds\n");
-            return;
-        }
-
-        // Check the bounds on the internal color list if appropriate
-        if ((list == VS_GEOMETRY_COLORS) && (dataIndex >= colorListSize))
-        {
-            printf("vsSkeletonMeshGeometry::setData: (color) Index out of "
-                "bounds\n");
-            printf("   size = %d,  index = %d\n", colorListSize, dataIndex);
+            printf("   list = %d, size = %d,  index = %d\n", list,
+                listSize, dataIndex);
             return;
         }
 
@@ -1778,6 +1780,7 @@ vsVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
     unsigned int unit;
     int loop;
     int list;
+    int listSize;
     
     // Validate the data and parameters.  The procedure for this is different
     // based on the list that's being queried.
@@ -1804,19 +1807,18 @@ vsVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
         else
             list = whichData;
 
-        // Make sure the data index is valid
-        if ((dataIndex < 0) || (dataIndex >= dataListSize[list]))
+        // Bounds check.  First get the size of the list we're working with.
+        // If we're working with colors we need to check against the
+        // internal list size instead of the pfGeoArray list size.
+        if (whichData == VS_GEOMETRY_COLORS)
+            listSize = colorListSize;
+        else
+            listSize = dataListSize[list];
+
+        // Now check the given index against the size of the list
+        if ((dataIndex < 0) || (dataIndex >= listSize))
         {
             printf("vsSkeletonMeshGeometry::getData: Index out of bounds\n");
-            return result;
-        }
-
-        // Check the bounds on the internal color list if appropriate
-        if ((list == VS_GEOMETRY_COLORS) && (dataIndex >= colorListSize))
-        {
-            printf("vsSkeletonMeshGeometry::setData: (color) Index out of "
-                "bounds\n");
-            printf("   size = %d,  index = %d\n", colorListSize, dataIndex);
             return result;
         }
 
