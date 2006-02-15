@@ -802,14 +802,19 @@ void vsComponent::disableLighting()
    }
 }
         
-    
-       
 // ------------------------------------------------------------------------
 // Enables culling on this node and its children
 // ------------------------------------------------------------------------
 void vsComponent::enableCull()
 {
-    topGroup->setCullingActive(true);
+    int loop;
+
+    // Iterate over the component's children
+    for (loop = 0; loop < childCount; loop++)
+    {
+        // Enable culling on this child
+        ((vsNode *)childList[loop])->enableCull();
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -817,7 +822,14 @@ void vsComponent::enableCull()
 // ------------------------------------------------------------------------
 void vsComponent::disableCull()
 {
-    topGroup->setCullingActive(false);
+    int loop;
+
+    // Iterate over the component's children
+    for (loop = 0; loop < childCount; loop++)
+    {
+        // Disable culling on this child
+        ((vsNode *)childList[loop])->disableCull();
+    }
 }
 
 // ------------------------------------------------------------------------

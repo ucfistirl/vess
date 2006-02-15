@@ -665,7 +665,11 @@ void vsScene::disableLighting()
 // ------------------------------------------------------------------------
 void vsScene::enableCull()
 {
-    osgGroup->setCullingActive(true);
+    // If the child is valid, enable culling
+    if (child != NULL)
+    {
+        child->enableCull();
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -673,7 +677,11 @@ void vsScene::enableCull()
 // ------------------------------------------------------------------------
 void vsScene::disableCull()
 {
-    osgGroup->setCullingActive(false);
+    // If the child is valid, disable culling
+    if (child != NULL)
+    {
+        child->disableCull();
+    }
 }
 
 // ------------------------------------------------------------------------
