@@ -29,6 +29,7 @@
 #include "vsTransformAttribute.h++"
 #include "vsTextureAttribute.h++"
 #include "vsShaderAttribute.h++"
+#include "vsGLSLProgramAttribute.h++"
 
 enum vsParticleSystemEmitterShape
 {
@@ -38,6 +39,12 @@ enum vsParticleSystemEmitterShape
     VS_PARTICLESYS_EMITTER_SPHERE,
     VS_PARTICLESYS_EMITTER_SQUARE,
     VS_PARTICLESYS_EMITTER_CUBE
+};
+
+enum vsParticleSystemShaderType
+{
+    VS_PARTICLESYS_ARB_SHADER,
+    VS_PARTICLESYS_GLSL_SHADER
 };
 
 struct VS_GRAPHICS_DLL vsParticle
@@ -76,107 +83,110 @@ class VS_GRAPHICS_DLL vsParticleSystem : public vsUpdatable
 {
 protected:
 
-    vsComponent           *parentComponent;
+    vsComponent               *parentComponent;
 
     // Emitter data
-    vsVector              emitterPosition;
-    vsVector              emitterVelocity;
-    vsQuat                emitterOrientation;
-    vsVector              emitterAngularVelocityAxis;
-    double                emitterAngularVelocitySpeed;
-    vsComponent           *emitterFollowNode;
+    vsVector                  emitterPosition;
+    vsVector                  emitterVelocity;
+    vsQuat                    emitterOrientation;
+    vsVector                  emitterAngularVelocityAxis;
+    double                    emitterAngularVelocitySpeed;
+    vsComponent               *emitterFollowNode;
 
-    double                emitterAge;
-    double                emitterLifetime;
+    double                    emitterAge;
+    double                    emitterLifetime;
 
-    double                emissionRate;
-    double                emissionTimer;
+    double                    emissionRate;
+    double                    emissionTimer;
 
-    double                emitterActive;
+    double                    emitterActive;
 
     vsParticleSystemEmitterShape    emitterShape;
-    double                emitterMinRadius;
-    double                emitterMaxRadius;
+    double                    emitterMinRadius;
+    double                    emitterMaxRadius;
 
     // Particle list data
-    vsGrowableArray       particleList;
-    int                   particleListSize;
-    int                   activeParticleCount;
-    int                   nextInactiveParticleIdx;
+    vsGrowableArray           particleList;
+    int                       particleListSize;
+    int                       activeParticleCount;
+    int                       nextInactiveParticleIdx;
 
     // Global particle data
-    vsTextureAttribute    *masterTexture;
-    vsTextureAttribute    *tex1;
-    vsTextureAttribute    *tex2;
-    vsTextureAttribute    *tex3;
+    vsTextureAttribute        *masterTexture;
+    vsTextureAttribute        *tex1;
+    vsTextureAttribute        *tex2;
+    vsTextureAttribute        *tex3;
 
-    vsVector              globalAcceleration;
+    vsVector                  globalAcceleration;
 
     // Hardware shading mode
-    vsShaderAttribute     *shader;
-    bool                  hardwareShading;
+    vsShaderAttribute         *arbShader;
+    vsGLSLProgramAttribute    *glslShader;
+    bool                      hardwareShading;
 
     // Individual particle data
-    double                lifetime;
-    double                lifetimeVariance;
+    double                    lifetime;
+    double                    lifetimeVariance;
 
-    vsVector              initialVelocity;
-    double                velocityMinAngleVariance;
-    double                velocityMaxAngleVariance;
-    double                velocitySpeedVariance;
+    vsVector                  initialVelocity;
+    double                    velocityMinAngleVariance;
+    double                    velocityMaxAngleVariance;
+    double                    velocitySpeedVariance;
 
-    double                orbitSpeed;
-    double                orbitSpeedVariance;
-    double                orbitRadiusDelta;
-    double                orbitRadiusDeltaVariance;
+    double                    orbitSpeed;
+    double                    orbitSpeedVariance;
+    double                    orbitRadiusDelta;
+    double                    orbitRadiusDeltaVariance;
 
-    double                initialSize;
-    double                initialSizeVariance;
-    double                finalSize;
-    double                finalSizeVariance;
-    bool                  lockSizeVariance;
+    double                    initialSize;
+    double                    initialSizeVariance;
+    double                    finalSize;
+    double                    finalSizeVariance;
+    bool                      lockSizeVariance;
+    
+    double                    rotation;
+    double                    rotationVariance;
+    double                    rotationSpeed;
+    double                    rotationSpeedVariance;
 
-    double                rotation;
-    double                rotationVariance;
-    double                rotationSpeed;
-    double                rotationSpeedVariance;
-
-    vsVector              initialColor;
-    vsVector              initialColorVariance;
-    vsVector              finalColor;
-    vsVector              finalColorVariance;
-    bool                  lockIntraColorVariance;
-    bool                  lockInterColorVariance;
+    vsVector                  initialColor;
+    vsVector                  initialColorVariance;
+    vsVector                  finalColor;
+    vsVector                  finalColorVariance;
+    bool                      lockIntraColorVariance;
+    bool                      lockInterColorVariance;
 
     // Follow node extra data
-    vsVector              prevFollowNodePos;
-    vsQuat                prevFollowNodeOri;
-    bool                  prevFollowDataValid;
-    vsVector              currentFollowNodePos;
-    vsQuat                currentFollowNodeOri;
+    vsVector                  prevFollowNodePos;
+    vsQuat                    prevFollowNodeOri;
+    bool                      prevFollowDataValid;
+    vsVector                  currentFollowNodePos;
+    vsQuat                    currentFollowNodeOri;
 
     // Particle management routines
-    vsParticle            *createParticle();
-    void                  destroyParticle(vsParticle *particle);
+    vsParticle                *createParticle();
+    void                      destroyParticle(vsParticle *particle);
 
-    void                  activateParticle(vsParticle *particle,
-                                           double creationDelay,
-                                           double frameTime);
-    void                  deactivateParticle(vsParticle *particle);
+    void                      activateParticle(vsParticle *particle,
+                                               double creationDelay,
+                                               double frameTime);
+    void                      deactivateParticle(vsParticle *particle);
 
-    void                  updateParticle(vsParticle *particle,
-                                         double deltaTime);
+    void                      updateParticle(vsParticle *particle,
+                                             double deltaTime);
 
     // Utility routines
-    double                getRandom();
-    double                getRandomVariance();
-    void                  findNextInactive();
+    double                    getRandom();
+    double                    getRandomVariance();
+    void                      findNextInactive();
 
 public:
 
     // 'Structors
                    vsParticleSystem();
                    vsParticleSystem(char *shaderProgram);
+                   vsParticleSystem(char *shaderProgram,
+                                    vsParticleSystemShaderType shaderType);
     virtual        ~vsParticleSystem();
 
     // Inherited from vsObject

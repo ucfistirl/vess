@@ -41,7 +41,8 @@ vsParticleSystem::vsParticleSystem()
     // Not using hardware shading, set the flag and shader variable
     // appropriately
     hardwareShading = false;
-    shader = NULL;
+    arbShader = NULL;
+    glslShader = NULL;
 
     // Create the texture attribute that all the particles will use
     masterTexture = new vsTextureAttribute();
@@ -120,7 +121,8 @@ vsParticleSystem::vsParticleSystem()
 }
 
 // ------------------------------------------------------------------------
-// Constructor, creates a particle system in hardware mode
+// Constructor, creates a particle system in hardware mode, using an
+// ARB_vertex_program shader.
 // ------------------------------------------------------------------------
 vsParticleSystem::vsParticleSystem(char *shaderProgram) 
                 : particleList(0, 1)
@@ -133,9 +135,131 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram)
 
     // Create the shader attribute
     hardwareShading = true;
-    shader = new vsShaderAttribute();
-    shader->setVertexSourceFile(shaderProgram);
-    parentComponent->addAttribute(shader);
+    arbShader = new vsShaderAttribute();
+    arbShader->setVertexSourceFile(shaderProgram);
+    parentComponent->addAttribute(arbShader);
+
+    // Not using a GLSL shader, so initialize it to NULL
+    glslShader = NULL;
+
+    // Create the texture attribute that all the particles will use
+    masterTexture = new vsTextureAttribute();
+    masterTexture->ref();
+    masterTexture->setApplyMode(VS_TEXTURE_APPLY_MODULATE);
+    parentComponent->addAttribute(masterTexture);
+
+    // Add transparency to the particles
+    transpAttr = new vsTransparencyAttribute();
+    transpAttr->enable();
+    transpAttr->disableOcclusion();
+    parentComponent->addAttribute(transpAttr);
+
+    // Create the initial list of vsParticle structures
+    particleListSize = 0;
+    activeParticleCount = 0;
+    setMaxParticleCount(10);
+    nextInactiveParticleIdx = 0;
+
+    // Emitter default paramters
+    emitterPosition.set(0.0, 0.0, 0.0);
+    emitterVelocity.set(0.0, 0.0, 0.0);
+    emitterOrientation.set(0.0, 0.0, 0.0, 1.0);
+    emitterAngularVelocityAxis.set(0.0, 0.0, 1.0);
+    emitterAngularVelocitySpeed = 0.0;
+    emitterFollowNode = NULL;
+
+    emitterAge = 0.0;
+    emitterLifetime = -1.0;
+
+    emissionRate = 1.0;
+    emissionTimer = 0.0;
+
+    emitterActive = true;
+
+    emitterShape = VS_PARTICLESYS_EMITTER_SPHERE;
+    emitterMinRadius = 0.0;
+    emitterMaxRadius = 0.0;
+
+    // Particle default parameters
+    globalAcceleration.set(0.0, 0.0, 0.0);
+
+    lifetime = 1.0;
+    lifetimeVariance = 0.0;
+
+    initialVelocity.set(0.0, 0.0, 0.0);
+    velocityMinAngleVariance = 0.0;
+    velocityMaxAngleVariance = 0.0;
+    velocitySpeedVariance = 0.0;
+
+    orbitSpeed = 0.0;
+    orbitSpeedVariance = 0.0;
+    orbitRadiusDelta = 0.0;
+    orbitRadiusDeltaVariance = 0.0;
+
+    initialSize = 1.0;
+    initialSizeVariance = 0.0;
+    finalSize = 1.0;
+    finalSizeVariance = 0.0;
+    lockSizeVariance = false;
+
+    rotation = 0.0;
+    rotationVariance = 0.0;
+    rotationSpeed = 0.0;
+    rotationSpeedVariance = 0.0;
+
+    initialColor.set(1.0, 1.0, 1.0, 1.0);
+    initialColorVariance.set(0.0, 0.0, 0.0, 0.0);
+    finalColor.set(1.0, 1.0, 1.0, 1.0);
+    finalColorVariance.set(0.0, 0.0, 0.0, 0.0);
+    lockIntraColorVariance = false;
+    lockInterColorVariance = false;
+
+    // Mark that the 'previous' follow node data isn't valid yet
+    prevFollowDataValid = false;
+}
+
+// ------------------------------------------------------------------------
+// Constructor, creates a particle system in hardware mode, using the
+// specified type of shader.
+// ------------------------------------------------------------------------
+vsParticleSystem::vsParticleSystem(char *shaderProgram, 
+                                   vsParticleSystemShaderType shaderType)
+                : particleList(0, 1)
+{
+    vsTransparencyAttribute *transpAttr;
+    vsGLSLShader *shaderObject;
+
+    // Create the master component
+    parentComponent = new vsComponent();
+    parentComponent->ref();
+
+    // Initialize the shader attributes to NULL
+    arbShader = NULL;
+    glslShader = NULL;
+
+    // Create the shader attribute
+    switch (shaderType)
+    {
+        case VS_PARTICLESYS_ARB_SHADER:
+            hardwareShading = true;
+            arbShader = new vsShaderAttribute();
+            arbShader->setVertexSourceFile(shaderProgram);
+            parentComponent->addAttribute(arbShader);
+            break;
+
+        case VS_PARTICLESYS_GLSL_SHADER:
+            hardwareShading = true;
+            glslShader = new vsGLSLProgramAttribute();
+            shaderObject = new vsGLSLShader(VS_GLSL_VERTEX_SHADER);
+            shaderObject->setSourceFile(shaderProgram);
+            glslShader->addShader(shaderObject);
+            parentComponent->addAttribute(glslShader);
+            break;
+
+        default:
+            printf("vsParticleSystem::vsParticleSystem: Unknown shader type "
+                "specified!\n");
+    }
 
     // Create the texture attribute that all the particles will use
     masterTexture = new vsTextureAttribute();
@@ -1007,33 +1131,13 @@ vsParticle *vsParticleSystem::createParticle()
     // lists to hold the position, rotation, and size
     if (hardwareShading)
     {
-/*
-        // GENERIC_6 holds the position and rotation of the particle
-        geometry->setBinding(VS_GEOMETRY_GENERIC_6, 
-            VS_GEOMETRY_BIND_PER_VERTEX);
-        geometry->setDataListSize(VS_GEOMETRY_GENERIC_6, 4);
-        geometry->setData(VS_GEOMETRY_GENERIC_6, 0,
-            vsVector(0.0, 0.0, 0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_GENERIC_6, 1,
-            vsVector(0.0, 0.0, 0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_GENERIC_6, 2,
-            vsVector(0.0, 0.0, 0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_GENERIC_6, 3,
-            vsVector(0.0, 0.0, 0.0, 0.0));
-
-        // GENERIC_7 holds the size of the particle
-        geometry->setBinding(VS_GEOMETRY_GENERIC_7, 
-            VS_GEOMETRY_BIND_PER_VERTEX);
-        geometry->setDataListSize(VS_GEOMETRY_GENERIC_7, 4);
-        geometry->setData(VS_GEOMETRY_GENERIC_7, 0,
-            vsVector(0.0, 0.0, 0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_GENERIC_7, 1,
-            vsVector(0.0, 0.0, 0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_GENERIC_7, 2,
-            vsVector(0.0, 0.0, 0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_GENERIC_7, 3,
-            vsVector(0.0, 0.0, 0.0, 0.0));
-*/
+        // Scene graph frustum culling won't work properly if we're 
+        // transforming the particle in a shader program (the particle won't
+        // really be where the scene graph thinks it is).  Disable culling
+        // on the new particle to keep it from getting culled erroneously.
+        geometry->disableCull();
+ 
+        // Texture coordinate 1 holds the particle's X and Y position
         geometry->setBinding(VS_GEOMETRY_TEXTURE1_COORDS, 
             VS_GEOMETRY_BIND_PER_VERTEX);
         geometry->setDataListSize(VS_GEOMETRY_TEXTURE1_COORDS, 4);
@@ -1046,6 +1150,7 @@ vsParticle *vsParticleSystem::createParticle()
         geometry->setData(VS_GEOMETRY_TEXTURE1_COORDS, 3,
             vsVector(0.0, 0.0));
 
+        // Texture coordinate 2 holds the particle's Z position and rotation
         geometry->setBinding(VS_GEOMETRY_TEXTURE2_COORDS, 
             VS_GEOMETRY_BIND_PER_VERTEX);
         geometry->setDataListSize(VS_GEOMETRY_TEXTURE2_COORDS, 4);
@@ -1058,6 +1163,7 @@ vsParticle *vsParticleSystem::createParticle()
         geometry->setData(VS_GEOMETRY_TEXTURE2_COORDS, 3,
             vsVector(0.0, 0.0));
 
+        // Texture coordinate 3 holds the particle's size
         geometry->setBinding(VS_GEOMETRY_TEXTURE3_COORDS, 
             VS_GEOMETRY_BIND_PER_VERTEX);
         geometry->setDataListSize(VS_GEOMETRY_TEXTURE3_COORDS, 4);
@@ -1712,31 +1818,7 @@ void vsParticleSystem::updateParticle(vsParticle *particle, double deltaTime)
     // See if we're using hardware or software rendering
     if (hardwareShading)
     {
-/*
-        // GENERIC_6 holds the particle's position and rotation
-        particle->quadGeometry->setData(VS_GEOMETRY_GENERIC_6, 0,
-            vsVector(position[VS_X], position[VS_Y], position[VS_Z],
-                particle->rotation));
-        particle->quadGeometry->setData(VS_GEOMETRY_GENERIC_6, 1,
-            vsVector(position[VS_X], position[VS_Y], position[VS_Z],
-                particle->rotation));
-        particle->quadGeometry->setData(VS_GEOMETRY_GENERIC_6, 2,
-            vsVector(position[VS_X], position[VS_Y], position[VS_Z],
-                particle->rotation));
-        particle->quadGeometry->setData(VS_GEOMETRY_GENERIC_6, 3,
-            vsVector(position[VS_X], position[VS_Y], position[VS_Z],
-                particle->rotation));
-
-        // GENERIC_7 holds the particle's size
-        particle->quadGeometry->setData(VS_GEOMETRY_GENERIC_7, 0,
-            vsVector(currentSize, 0.0, 0.0, 0.0));
-        particle->quadGeometry->setData(VS_GEOMETRY_GENERIC_7, 1,
-            vsVector(currentSize, 0.0, 0.0, 0.0));
-        particle->quadGeometry->setData(VS_GEOMETRY_GENERIC_7, 2,
-            vsVector(currentSize, 0.0, 0.0, 0.0));
-        particle->quadGeometry->setData(VS_GEOMETRY_GENERIC_7, 3,
-            vsVector(currentSize, 0.0, 0.0, 0.0));
-*/
+        // Texture coordinate 1 holds the particle's X and Y position
         particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE1_COORDS, 0,
             vsVector(position[VS_X], position[VS_Y]));
         particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE1_COORDS, 1,
@@ -1745,6 +1827,8 @@ void vsParticleSystem::updateParticle(vsParticle *particle, double deltaTime)
             vsVector(position[VS_X], position[VS_Y]));
         particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE1_COORDS, 3,
             vsVector(position[VS_X], position[VS_Y]));
+
+        // Texture coordinate 2 holds the particle's Z position and rotation
         particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE2_COORDS, 0,
             vsVector(position[VS_Z], particle->rotation));
         particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE2_COORDS, 1,
@@ -1753,6 +1837,8 @@ void vsParticleSystem::updateParticle(vsParticle *particle, double deltaTime)
             vsVector(position[VS_Z], particle->rotation));
         particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE2_COORDS, 3,
             vsVector(position[VS_Z], particle->rotation));
+
+        // Texture coordinate 3 holds the particle's size
         particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE3_COORDS, 0,
             vsVector(currentSize, 0.0));
         particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE3_COORDS, 1,
