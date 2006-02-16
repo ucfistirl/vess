@@ -112,6 +112,7 @@ protected:
     int                       nextInactiveParticleIdx;
 
     // Global particle data
+    int                       particleRenderBin;
     vsTextureAttribute        *masterTexture;
     vsTextureAttribute        *tex1;
     vsTextureAttribute        *tex2;
@@ -197,6 +198,9 @@ public:
 
     // Particle system main component
     vsComponent    *getComponent();
+
+    // Set the render bin for particles to use
+    void           setRenderBin(int newBin);
 
     // Particle emission controls
     void           reset();

@@ -56,6 +56,9 @@ vsParticleSystem::vsParticleSystem()
     transpAttr->disableOcclusion();
     parentComponent->addAttribute(transpAttr);
 
+    // Set the renderbin for each particle to 0 (the default bin)
+    particleRenderBin = 0;
+
     // Create the initial list of vsParticle structures
     particleListSize = 0;
     activeParticleCount = 0;
@@ -153,6 +156,9 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram)
     transpAttr->enable();
     transpAttr->disableOcclusion();
     parentComponent->addAttribute(transpAttr);
+
+    // Set the renderbin for each particle to 0 (the default bin)
+    particleRenderBin = 0;
 
     // Create the initial list of vsParticle structures
     particleListSize = 0;
@@ -272,6 +278,9 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram,
     transpAttr->enable();
     transpAttr->disableOcclusion();
     parentComponent->addAttribute(transpAttr);
+
+    // Set the renderbin for each particle to 0 (the default bin)
+    particleRenderBin = 0;
 
     // Create the initial list of vsParticle structures
     particleListSize = 0;
@@ -462,6 +471,27 @@ void vsParticleSystem::update()
 vsComponent *vsParticleSystem::getComponent()
 {
     return parentComponent;
+}
+
+// ------------------------------------------------------------------------
+// Sets the render bin for all particle geometry to use.  Often, particle
+// systems don't live well with other transparent geometry.  Setting the
+// render bin can fix this.
+// ------------------------------------------------------------------------
+void vsParticleSystem::setRenderBin(int newBin)
+{
+    vsParticle *particle;
+    int loop;
+
+    // Change the bin number for all new particles
+    particleRenderBin = newBin;
+
+    // Set the render bin on all existing particles
+    for (loop = 0; loop < particleListSize; loop++)
+    {
+        particle = (vsParticle *)(particleList[loop]);
+        particle->quadGeometry->setRenderBin(particleRenderBin);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -1094,6 +1124,7 @@ vsParticle *vsParticleSystem::createParticle()
 
     // Create the particle's geometry
     geometry = new vsGeometry();
+    geometry->setRenderBin(particleRenderBin);
     geometry->setPrimitiveType(VS_GEOMETRY_TYPE_QUADS);
     geometry->setPrimitiveCount(1);
 
@@ -1786,6 +1817,7 @@ void vsParticleSystem::updateParticle(vsParticle *particle, double deltaTime)
     // Update the orbit angle and radius
     particle->orbitAngle += (particle->orbitVelocity * deltaTime);
     particle->orbitRadius += (particle->orbitRadiusDelta * deltaTime);
+
     // Cap the angle to the [0.0, 360] range
     while (particle->orbitAngle < 0.0)
         particle->orbitAngle += 360.0;
