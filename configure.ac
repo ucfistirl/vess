@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(vess, 4.0.0, vess@ist.ucf.edu)
+AC_INIT(vess, 4.1.0, vess@ist.ucf.edu)
 AC_CONFIG_SRCDIR(motion/common/vsDrivingMotion.c++)
 AC_CONFIG_AUX_DIR(config) 
 
