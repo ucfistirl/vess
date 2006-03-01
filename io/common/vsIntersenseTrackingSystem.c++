@@ -27,6 +27,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifndef _MSC_VER
+    #include <unistd.h>
+#endif
+
 // ------------------------------------------------------------------------
 // Constructor.  Creates and initializes the vsIntersenseTrackingSystem
 // object.  The "portNumber" parameter typically refers to either a
@@ -44,6 +48,7 @@
 vsIntersenseTrackingSystem::vsIntersenseTrackingSystem(int portNumber)
 {
     int i;
+    vsQuat quat1, quat2;
 
     // Clear all of our status structures first
     systemHandle = 0;
@@ -55,12 +60,19 @@ vsIntersenseTrackingSystem::vsIntersenseTrackingSystem(int portNumber)
     memset(joystick, 0, sizeof(joystick));
     numTrackers = 0;
     valid = false;
+    port = portNumber;
+
+    // Set up quaternions for transforming Intersense coordinates into VESS
+    // coordinates
+    quat1.setAxisAngleRotation(0, 0, 1, 90);
+    quat2.setAxisAngleRotation(0, 1, 0, 180);
+    coordXform = quat2 * quat1;
 
     // Initialize the tracker to station index and station to tracker index
     // maps
     for (i = 0; i <= ISD_MAX_STATIONS; i++)
         trackerToStation[i] = -1;
-    for (i = 0; i < VS_ITS_MAX_TRACKERS; i++)
+    for (i = 0; i < VS_ITS_MAX_TRACKERS + 1; i++)
         stationToTracker[i] = -1;
 
     // Open the connection to the tracking system
@@ -91,7 +103,7 @@ vsIntersenseTrackingSystem::vsIntersenseTrackingSystem(int portNumber)
         if (numTrackers > 0)
         {
             printf("vsIntersenseTrackingSystem::vsIntersenseTrackingSystem:\n");
-            printf("    %d tracker(s) found.\n");
+            printf("    %d tracker(s) found.\n", numTrackers);
         }
         else
         {
@@ -194,7 +206,7 @@ bool vsIntersenseTrackingSystem::configureSystem()
     };
 
     // Report the type of interface in use
-    printf("  Connected via port #%d ");
+    printf("  Connected via port #%d ", port);
     switch (systemConfig.Interface)
     {
         case ISD_INTERFACE_SERIAL:
@@ -224,6 +236,14 @@ bool vsIntersenseTrackingSystem::configureSystem()
                 "unreliable.\n");
             break;
     };
+
+    // Get the system hardware info, so we know the system's capabilities
+    if ((!ISD_GetSystemHardwareInfo(systemHandle, &systemInfo)) ||
+        (!systemInfo.Valid))
+    {
+        printf("  WARNING:  Unable to retrieve system capabilities\n");
+        return false;
+    }
 
     // If we got this far, we should have a working configuration, so return
     // true
@@ -291,7 +311,18 @@ void vsIntersenseTrackingSystem::configureJoystick(int trackerNum)
 void vsIntersenseTrackingSystem::enumerateTrackers()
 {
     int stationNum;
-    int i;
+    vsTimer dataTimer;
+
+    // Collect tracker data for 5 seconds at regular intervals to allow 
+    // the InterSense library to gather data on which trackers are available
+    printf("  Collecting station data...\n");
+    while (dataTimer.getElapsed() < 5.0)
+    {
+        // Call update() to force the tracking library to collect data from
+        // the tracker
+        update();
+        usleep(100000);
+    }
 
     // If this is an InterTrax device, we know there is only one active
     // station (if we try to get the station configuration from an
@@ -307,21 +338,23 @@ void vsIntersenseTrackingSystem::enumerateTrackers()
     else if (systemConfig.TrackerType == ISD_PRECISION_SERIES)
     {
         // Test each station to see if it's active
-        for (stationNum = 1; stationNum <= ISD_MAX_STATIONS; i++)
+        for (stationNum = 1; 
+            stationNum <= systemInfo.Capability.MaxStations; 
+            stationNum++)
         {
             // Try to get the configuration of this station
             if (ISD_GetStationConfig(systemHandle, 
                     &(trackerConfig[numTrackers]), stationNum, false))
             {
-                // See if this station is active
+                // If the station is active, create a tracker for it
                 if (trackerConfig[numTrackers].State)
                 {
-                    // If the station is active, create a tracker for it
-                    printf("  Station %d is active\n", stationNum);
-                    tracker[numTrackers] = new vsMotionTracker(numTrackers);
+                    printf("  Configuring station %d\n", stationNum);
+                    tracker[numTrackers] = 
+                        new vsMotionTracker(numTrackers);
                     trackerToStation[numTrackers] = stationNum;
                     stationToTracker[stationNum] = numTrackers;
-                    
+                
                     // Check to see if this station includes analog and/or
                     // button controls, and set them up if necessary
                     configureJoystick(numTrackers);
@@ -331,15 +364,10 @@ void vsIntersenseTrackingSystem::enumerateTrackers()
                 }
                 else
                 {
-                    // The station isn't active, just ignore it
-                    printf("  Station %d is not active\n", stationNum);
+                    // We failed to get a configuration for this station, so 
+                    // just assume it's not there
+                    printf("  Station %d is not a valid station\n", stationNum);
                 }
-            }
-            else
-            {
-                // We failed to get a configuration for this station, so just
-                // assume it's not there
-                printf("  Station %d is not a valid station\n");
             }
         }
     }
@@ -531,7 +559,7 @@ void vsIntersenseTrackingSystem::disableLEDs()
 void vsIntersenseTrackingSystem::update()
 {
     ISD_TRACKER_DATA_TYPE trackerData;
-    int stationNum, trackerNum;
+    int trackerNum;
     vsVector position;
     vsQuat orientation;
     vsInputAxis *axis;
@@ -541,24 +569,37 @@ void vsIntersenseTrackingSystem::update()
     ISD_GetData(systemHandle, &trackerData);
 
     // Extract the relevant data from the tracker data structure
-    for (i = 1; i <= ISD_MAX_TRACKERS; i++)
+    for (i = 1; i <= systemInfo.Capability.MaxStations; i++)
     {
         // See if this record matches a valid tracker
         trackerNum = stationToTracker[i];
         if ((trackerNum >= 0) && (trackerNum < numTrackers))
         {
             // Extract and set the position for this tracker
-            position.set(trackerData.Station[i].Position[VS_X],
-                trackerData.Station[i].Position[VS_Y], 
-                trackerData.Station[i].Position[VS_Z]);
+            position.set(trackerData.Station[i-1].Position[VS_X],
+                trackerData.Station[i-1].Position[VS_Y], 
+                trackerData.Station[i-1].Position[VS_Z]);
+            position = coordXform.rotatePoint(position);
             tracker[trackerNum]->setPosition(position);
 
             // Extract and set the orientation for this tracker
-            orientation.set(trackerData.Station[i].Orientation[VS_W],
-                trackerData.Station[i].Orientation[VS_X], 
-                trackerData.Station[i].Orientation[VS_Y], 
-                trackerData.Station[i].Orientation[VS_Z]);
-            tracker[trackerNum]->setOrientation(orientation);
+            if (trackerConfig[i].AngleFormat == ISD_QUATERNION)
+            {
+                orientation.set(trackerData.Station[i-1].Orientation[1],
+                    trackerData.Station[i-1].Orientation[2], 
+                    trackerData.Station[i-1].Orientation[3], 
+                    trackerData.Station[i-1].Orientation[0]);
+                tracker[trackerNum]->setOrientation(orientation);
+            }
+            else
+            {
+                orientation.setEulerRotation(VS_EULER_ANGLES_ZXY_R,
+                    -trackerData.Station[i-1].Orientation[0],
+                    trackerData.Station[i-1].Orientation[1],
+                    trackerData.Station[i-1].Orientation[2]);
+                tracker[trackerNum]->setOrientation(orientation);
+            }
+            orientation = coordXform * orientation * coordXform;
 
             // See if this tracker has a joystick associated with it
             if (hasJoystick(trackerNum))
@@ -568,14 +609,14 @@ void vsIntersenseTrackingSystem::update()
                 {
                     // Update this axis with the latest state
                     axis = joystick[trackerNum]->getAxis(j);
-                    axis->setPosition(trackerData.Station[i].AnalogData[j]);
+                    axis->setPosition(trackerData.Station[i-1].AnalogData[j]);
                 }
 
                 // Iterate over the joystick's buttons
                 for (j = 0; j < joystick[trackerNum]->getNumButtons(); j++)
                 {
                     // Update this button with the latest state
-                    if (trackerData.Station[i].ButtonState[j])
+                    if (trackerData.Station[i-1].ButtonState[j])
                         joystick[trackerNum]->getButton(j)->setPressed();
                     else
                         joystick[trackerNum]->getButton(j)->setReleased();

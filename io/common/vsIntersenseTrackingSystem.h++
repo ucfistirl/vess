@@ -44,6 +44,7 @@ private:
     // Note:  A "Tracker" in Intersense-speak is a "System" in VESS, while
     // a "Station" in Intersense is a "Tracker" in VESS.  Since this is a
     // VESS class, the variables defined here use the VESS conventions.
+    int                      port;
     ISD_TRACKER_HANDLE       systemHandle;
     ISD_TRACKER_INFO_TYPE    systemConfig;
     ISD_STATION_INFO_TYPE    trackerConfig[VS_ITS_MAX_TRACKERS];
@@ -60,6 +61,8 @@ private:
     int                      stationToTracker[VS_ITS_MAX_TRACKERS + 1];
 
     bool                     valid;
+
+    vsQuat                   coordXform;
 
     bool                     configureSystem();
     void                     configureJoystick(int trackerNum);
