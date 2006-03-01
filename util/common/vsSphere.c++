@@ -208,7 +208,9 @@ void vsSphere::addSphere(const vsSphere &sphere)
     
 //------------------------------------------------------------------------
 // Sets this sphere to the smallest sphere that contains all of the given
-// points. Can modify the order of the points within the list.
+// points.  NOTE:  The points in the list will be reordered during this
+// process.  If you need the points to remain in order, make a backup
+// copy of your list before calling this method.
 //------------------------------------------------------------------------
 void vsSphere::enclosePoints(vsVector *points, int pointCount)
 {
@@ -302,7 +304,9 @@ void vsSphere::enclosePoints(vsVector *points, int pointCount)
 
 //------------------------------------------------------------------------
 // Sets this sphere to the smallest sphere that encompasses all of the
-// given spheres. Can modify the order of the spheres within the list.
+// given spheres. NOTE:  The spheres in the list will be reordered during 
+// this process.  If you need the spheres to remain in order, make a backup
+// copy of your list before calling this method.
 //------------------------------------------------------------------------
 void vsSphere::encloseSpheres(vsSphere *spheres, int sphereCount)
 {
