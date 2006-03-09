@@ -31,7 +31,7 @@
 #include "vsMenuFrame.h++"
 #include "vsMenuObject.h++"
 
-enum vsMenuLinkMode
+enum VS_MENU_DLL vsMenuLinkMode
 {
     VS_MENU_LINK_MODE_RELATIVE,
     VS_MENU_LINK_MODE_ABSOLUTE
