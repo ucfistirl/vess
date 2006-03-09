@@ -42,6 +42,8 @@ private:
 
     vsPipe             *parentPipe;
 
+    int                screenIndex;
+
     vsGrowableArray    childWindowList;
     int                childWindowCount;
 
@@ -55,6 +57,8 @@ VS_INTERNAL:
 
     void           addWindow(vsWindow *newWindow);
     void           removeWindow(vsWindow *targetWindow);
+
+    int            getScreenIndex();
 
 public:
 

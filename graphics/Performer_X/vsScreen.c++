@@ -219,3 +219,12 @@ void vsScreen::removeWindow(vsWindow *targetWindow)
     // Complain if we couldn't find the window
     printf("vsScreen::removeWindow: Specified window not part of screen\n");
 }
+
+// ------------------------------------------------------------------------
+// VESS internal function
+// Returns the system-wide index of the current screen
+// ------------------------------------------------------------------------
+int vsScreen::getScreenIndex()
+{
+    return screenIndex;
+}
