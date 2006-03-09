@@ -820,6 +820,8 @@ void vsPane::updateView()
                 // Both FOV's specified, so set accordingly
                 hFOV = projHval;
                 vFOV = projVval;
+
+                aspectMatch = hFOV / vFOV;
             }
 
             // Set the OSG camera to the new FOV values
