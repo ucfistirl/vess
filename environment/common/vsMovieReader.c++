@@ -183,7 +183,7 @@ bool vsMovieReader::openFile(char *filename)
         videoStreamIndex++;
 
         // If this stream index is valid, examine the video codec context
-        if (videoStreamIndex < movieFile->nb_streams)  
+        if (videoStreamIndex < movieFile->nb_streams)
             videoCodecContext = movieFile->streams[videoStreamIndex]->codec;
     }
 
@@ -198,18 +198,18 @@ bool vsMovieReader::openFile(char *filename)
     }
     else
     {
-        // We've found a video stream, now initialize the codecs and see if
-        // we can decode it.
+        // We've found a video stream, now initialize the codecs and see if we
+        // can decode it.
         videoStream = movieFile->streams[videoStreamIndex];
 
-        // Find the appropriate video codec
+        // Find the appropriate video codec.
         videoCodec = avcodec_find_decoder(videoCodecContext->codec_id);
         if (videoCodec == NULL)
         {
             printf("vsMovieReader::openFile: Unable to find appropriate video "
                 "decoder!\n");
 
-            // Reset the video variables to indicate no video
+            // Reset the video variables to indicate no video.
             videoCodecContext = NULL;
             videoStream = NULL;
             videoCodec = NULL;
@@ -217,14 +217,14 @@ bool vsMovieReader::openFile(char *filename)
         }
         else
         {
-            // Initialize the video codec
+            // Initialize the video codec.
             errorCode = avcodec_open(videoCodecContext, videoCodec);
             if (errorCode < 0)
             {
                 printf("vsMovieReader::openFile: Unable to initialize video "
                     "decoder!\n");
 
-                // Reset the video variables to indicate no video
+                // Reset the video variables to indicate no video.
                 videoCodecContext = NULL;
                 videoStream = NULL;
                 videoCodec = NULL;
@@ -232,7 +232,7 @@ bool vsMovieReader::openFile(char *filename)
             }
             else
             {
-                // Obtain the video size
+                // Obtain the video size.
                 imageWidth = videoCodecContext->width;
                 imageHeight = videoCodecContext->height;
 
@@ -273,15 +273,15 @@ bool vsMovieReader::openFile(char *filename)
     // first stream.
     audioStreamIndex = 0;
 
-    // Get the audio codec context for this stream
+    // Get the audio codec context for this stream.
     audioCodecContext = movieFile->streams[audioStreamIndex]->codec;
 
     // Keep searching the file for a audio stream until we find it, or
-    // until we run out of streams
+    // until we run out of streams.
     while ((audioStreamIndex < movieFile->nb_streams) &&
            (audioCodecContext->codec_type != CODEC_TYPE_AUDIO))
     {
-        // Try the next audio stream
+        // Try the next audio stream.
         audioStreamIndex++;
 
         // If this stream index is valid, examine the audio codec context
@@ -353,13 +353,17 @@ bool vsMovieReader::openFile(char *filename)
                 // Create the vsSoundStream to carry the audio data to the
                 // application-provided sound source
                 if (channelCount > 1)
+                {
                     soundStream = 
                         new vsSoundStream(samplesPerFrame,
                             VS_SBUF_FORMAT_STEREO16, sampleRate);
+                }
                 else
+                {
                     soundStream = 
                         new vsSoundStream(samplesPerFrame,
                             VS_SBUF_FORMAT_MONO16, sampleRate);
+                }
 
                 // Reference the sound stream
                 soundStream->ref();
@@ -584,6 +588,10 @@ void vsMovieReader::advanceTime(double seconds)
         readNextFrame();
         frameAdvanced = true;
     }
+
+    // Clip the total file time if it ran off the end of the movie.
+    if (lastTimeStamp < totalFileTime)
+        totalFileTime = lastTimeStamp;
 
     // Copy the frame data over, if we advanced to a new one
     if (frameAdvanced)
