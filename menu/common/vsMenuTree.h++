@@ -58,6 +58,7 @@ public:
     bool            addObject(vsMenuFrame *frame, vsMenuObject *object);
     bool            removeObject(vsMenuFrame *frame);
 
+    int             getChildCount(vsMenuFrame *frame);
     vsMenuObject    *getObject(vsMenuFrame *frame);
 };
 

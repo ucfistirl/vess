@@ -123,6 +123,36 @@ bool vsMenuTree::removeObject(vsMenuFrame *frame)
 }
 
 // ------------------------------------------------------------------------
+// This function will count the children of the node that the given frame
+// points to.
+// ------------------------------------------------------------------------
+int vsMenuTree::getChildCount(vsMenuFrame *frame)
+{
+    vsMenuTreeNode *node;
+    int count;
+
+    // Get the node at the specified location.
+    node = getNode(frame);
+
+    // Confirm that the node exists, and that it has at least one child.
+    if (node && node->child)
+    {
+        // Begin at the first child and accumulate.
+        node = node->child;
+        count = 0;
+        while (node)
+        {
+            count++;
+            node = node->sibling;
+        }
+
+        return count;
+    }
+
+    return 0;
+}
+
+// ------------------------------------------------------------------------
 // This method returns the object at the location in the tree specified by
 // the given frame, or NULL if the frame is invalid.
 // ------------------------------------------------------------------------
@@ -130,13 +160,16 @@ vsMenuObject *vsMenuTree::getObject(vsMenuFrame *frame)
 {
     vsMenuTreeNode *node;
 
-    // Get the node at the specified location
+    // Get the node at the specified location.
     node = getNode(frame);
 
-    // If the node exists, return its object
+    // If the node exists
     if (node)
-        return node->object;
+    {
+       return node->object;
+    }
 
+    // Return 0 if the node doesn't exist or has no children.
     return NULL;
 }
 
