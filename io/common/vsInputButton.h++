@@ -27,7 +27,7 @@
 #include "vsTimer.h++"
 #include "vsUpdatable.h++"
 
-#define VS_IB_DBLCLICK_INTERVAL  0.2
+#define VS_IB_DBLCLICK_INTERVAL  0.4
 
 class VS_IO_DLL vsInputButton : public vsUpdatable
 {

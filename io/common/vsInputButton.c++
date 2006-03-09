@@ -88,6 +88,7 @@ void vsInputButton::setPressed(void)
         // Set the button to pressed
         pressed = true;
 
+/*
         // Mark the button press time
         buttonTimer->mark();
         
@@ -101,6 +102,20 @@ void vsInputButton::setPressed(void)
         {
             doubleClicked = false;
         }
+*/
+    }
+
+    buttonTimer->mark();
+    
+    // Calculate the time interval between this and the last press,
+    // and flag a double-click if the interval is small enough
+    if (buttonTimer->getInterval() <= doubleClickInterval)
+    {
+        doubleClicked = true;
+    }
+    else
+    {
+        doubleClicked = false;
     }
 }
 
