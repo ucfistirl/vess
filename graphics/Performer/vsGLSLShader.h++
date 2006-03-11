@@ -32,7 +32,7 @@ enum vsGLSLShaderType
     VS_GLSL_UNDEFINED_SHADER = -1
 };
 
-class vsGLSLShader : public vsObject
+class VS_GRAPHICS_DLL vsGLSLShader : public vsObject
 {
 private:
 

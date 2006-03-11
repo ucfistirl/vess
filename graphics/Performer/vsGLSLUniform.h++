@@ -64,7 +64,7 @@ union vsGLSLUniformData
 #define VS_GLSL_UNIFORM_NAME_MAX 256
 #define VS_GLSL_UNIFORM_MAX_PARENTS 32
 
-class vsGLSLUniform : public vsObject
+class VS_GRAPHICS_DLL vsGLSLUniform : public vsObject
 {
 private:
 
