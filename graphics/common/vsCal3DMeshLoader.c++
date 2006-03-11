@@ -177,7 +177,7 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
     // Fill in the buffer with the initial begin tag, then read the file
     // content and then concatenate the end tag.
     strcpy(fileBuffer, VS_CAL3D_XML_MATERIAL_BEGIN_TAG);
-    fread(&(fileBuffer[strlen(VS_CAL3D_XML_MATERIAL_BEGIN_TAG)]), 1, fileSize,
+    fileSize = fread(&(fileBuffer[strlen(VS_CAL3D_XML_MATERIAL_BEGIN_TAG)]), 1, fileSize,
         filePointer);
     // Need to insert a null because fread does not.
     fileBuffer[strlen(VS_CAL3D_XML_MATERIAL_BEGIN_TAG)+fileSize] = 0;
@@ -467,7 +467,7 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
     // Fill in the buffer with the initial begin tag, then read the file
     // content and then concatenate the end tag.
     strcpy(fileBuffer, VS_CAL3D_XML_MESH_BEGIN_TAG);
-    fread(&(fileBuffer[strlen(VS_CAL3D_XML_MESH_BEGIN_TAG)]), 1, fileSize,
+    fileSize = fread(&(fileBuffer[strlen(VS_CAL3D_XML_MESH_BEGIN_TAG)]), 1, fileSize,
         filePointer);
     // Need to insert a null because fread does not.
     fileBuffer[strlen(VS_CAL3D_XML_MESH_BEGIN_TAG)+fileSize] = 0;
