@@ -1444,7 +1444,7 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
             {
                 min = VS_SQR(emitterMinRadius / emitterMaxRadius);
                 distance = min + ((1.0 - min) * getRandom());
-                distance = cbrt(distance);
+                distance = pow(distance, 1.0/3.0);
                 distance *= emitterMaxRadius;
             }
             else
