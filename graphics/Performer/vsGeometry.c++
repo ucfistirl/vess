@@ -1359,7 +1359,7 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
         listSize = dataListSize[list];
     
     // Now check the given index against the size of the list
-    if ((dataIndex < 0) || (dataIndex >= listSize));
+    if ((dataIndex < 0) || (dataIndex >= listSize))
     {
         printf("vsGeometry::getData: Index out of bounds (dataIndex = %d)\n",
             dataIndex);
@@ -1710,7 +1710,7 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
     int list;
     int copySize;
     float *tempList;
-    
+
     // Figure out which list we're changing
     if (whichData >= VS_GEOMETRY_LIST_COUNT)
         list = whichData - VS_GEOMETRY_LIST_COUNT;
@@ -1738,8 +1738,20 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
         return;
     }
 
-    // If we're resizing the list to the same size, there's not much to do
-    if (dataListSize[list] == newSize)
+    // If we're resizing the list to the same size, there's not much to do.
+    // Just make sure we compare against the internal list sizes for normals
+    // and colors.
+    if (list == VS_GEOMETRY_NORMALS) 
+    {
+        if (normalListSize == newSize)
+            return;
+    }
+    else if (list == VS_GEOMETRY_COLORS) 
+    {
+        if (colorListSize == newSize)
+            return;
+    }
+    else if (dataListSize[list] == newSize)
         return;
 
     // If we get this far, we're correctly modifying the requested list.
