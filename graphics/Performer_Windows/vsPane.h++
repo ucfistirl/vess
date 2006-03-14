@@ -95,6 +95,8 @@ private:
 
     int                 *glClearMask;
 
+    int                 viewChangeNum;
+
 VS_INTERNAL:
 
     void                updateView();
@@ -127,6 +129,9 @@ public:
 
     void                setBufferMode(vsPaneBufferMode newMode);
     vsPaneBufferMode    getBufferMode();
+
+    void                setEyeSeparation(double newSeparation);
+    double              getEyeSeparation();
  
     void                showPane();
     void                hidePane();
@@ -147,6 +152,9 @@ public:
 
     void                setGLClearMask(int clearMask);
     int                 getGLClearMask();
+
+    void                setLODScale(double newScale);
+    double              getLODScale();
 
     pfChannel           *getBaseLibraryObject();
 };
