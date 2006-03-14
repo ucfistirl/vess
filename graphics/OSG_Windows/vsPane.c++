@@ -309,8 +309,11 @@ void vsPane::setSize(int width, int height)
     widthNorm = (double)width / (double)winWidth;
     heightNorm = (double)height / (double)winHeight;
 
+    // The vertical position must be recalculated
+    yPosNorm = (double)(y + oldHeight - height) / (double)winHeight;
+
     // Set the new width and height
-    osgSceneView->getViewport()->setViewport(x, y, width, height);
+    osgSceneView->setViewport(x, y + oldHeight - height, width, height);
 
     // Modify the view change value so that we recompute the projection
     // parameters on the next drawFrame
@@ -350,10 +353,10 @@ void vsPane::setPosition(int xPos, int yPos)
     // Compute the new normalized origin
     parentWindow->getDrawableSize(&winWidth, &winHeight);
     xPosNorm = (double)xPos / (double)winWidth;
-    yPosNorm = (double)yPos / (double)winHeight;
+    yPosNorm = (double)(winHeight - (yPos + height)) / (double)winHeight;
 
-    // Set the new origin
-    osgSceneView->getViewport()->
+    // Set the new origin (using the VESS standard upper-left origin)
+    osgSceneView->
         setViewport(xPos, winHeight - (yPos + height), width, height);
 }
 
@@ -364,15 +367,20 @@ void vsPane::setPosition(int xPos, int yPos)
 void vsPane::getPosition(int *xPos, int *yPos)
 {
     int x, y, width, height;
-    
+    int winWidth, winHeight;
+ 
     // Obtain the viewport settings
     osgSceneView->getViewport()->getViewport(x, y, width, height);
-    
+
+    // Convert the lower-left-origin-based OSG coordinates to upper-left
+    // VESS coordinates. This requires manipulating only the y coordinate.
+    parentWindow->getDrawableSize(&winWidth, &winHeight);
+
     // Return the position in the parameters
     if (xPos != NULL)
         *xPos = x;
     if (yPos != NULL)
-        *yPos = y;
+        *yPos = (winHeight - (y + height));
 }
 
 // ------------------------------------------------------------------------
@@ -692,6 +700,24 @@ void vsPane::setGLClearMask(int clearMask)
 int vsPane::getGLClearMask()
 {
     return (renderStage->getClearMask());
+}
+
+// ------------------------------------------------------------------------
+// Sets the current level-of-detail scale factor.  A value of 2.0 computes
+// LOD's as if they were being viewed from twice as far away.  A value of
+// 0.0 always shows the highest LOD.
+// ------------------------------------------------------------------------
+void vsPane::setLODScale(double newScale)
+{
+    osgSceneView->setLODScale((float)newScale);
+}
+
+// ------------------------------------------------------------------------
+// Returns the current LOD scale setting
+// ------------------------------------------------------------------------
+double vsPane::getLODScale()
+{
+    return osgSceneView->getLODScale();
 }
 
 // ------------------------------------------------------------------------

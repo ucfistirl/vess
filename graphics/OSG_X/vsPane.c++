@@ -705,6 +705,24 @@ int vsPane::getGLClearMask()
 }
 
 // ------------------------------------------------------------------------
+// Sets the current level-of-detail scale factor.  A value of 2.0 computes
+// LOD's as if they were being viewed from twice as far away.  A value of
+// 0.0 always shows the highest LOD.
+// ------------------------------------------------------------------------
+void vsPane::setLODScale(double newScale)
+{
+    osgSceneView->setLODScale((float)newScale);
+}
+
+// ------------------------------------------------------------------------
+// Returns the current LOD scale setting
+// ------------------------------------------------------------------------
+double vsPane::getLODScale()
+{
+    return osgSceneView->getLODScale();
+}
+
+// ------------------------------------------------------------------------
 // Returns the Open Scene Graph object associated with this object
 // ------------------------------------------------------------------------
 osgUtil::SceneView *vsPane::getBaseLibraryObject()

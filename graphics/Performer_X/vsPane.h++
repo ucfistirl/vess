@@ -153,6 +153,9 @@ public:
     void                setGLClearMask(int clearMask);
     int                 getGLClearMask();
 
+    void                setLODScale(double newScale);
+    double              getLODScale();
+
     pfChannel           *getBaseLibraryObject();
 };
 

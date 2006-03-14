@@ -139,6 +139,7 @@ public:
     void                  setBufferMode(vsPaneBufferMode newMode);
     vsPaneBufferMode      getBufferMode();
 
+    // Eye separation functions
     void                  setEyeSeparation(double newSeparation);
     double                getEyeSeparation();
     
@@ -162,10 +163,14 @@ public:
     void                  enableStats();
     void                  disableStats();
     bool                  areStatsEnabled();
-    
+
     // OpenGL buffer clear mask
     void                  setGLClearMask(int clearMask);
     int                   getGLClearMask();
+
+    // LOD scale settings
+    void                  setLODScale(double newScale);
+    double                getLODScale();
 
     // OSG object accessor
     osgUtil::SceneView    *getBaseLibraryObject();

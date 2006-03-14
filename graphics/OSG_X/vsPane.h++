@@ -168,6 +168,10 @@ public:
     void                  setGLClearMask(int clearMask);
     int                   getGLClearMask();
 
+    // LOD scale settings
+    void                  setLODScale(double newScale);
+    double                getLODScale();
+
     // OSG object accessor
     osgUtil::SceneView    *getBaseLibraryObject();
 };
