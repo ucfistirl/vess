@@ -633,7 +633,7 @@ double vsVector::getAngleBetween(const vsVector &endVector) const
     // between two vectors is equal to their dot product divided by the
     // product of their magnitudes.
 
-    double dot, startMag, endMag;
+    double dot, dotAbs, startMag, endMag;
 
     // Compute the dot product
     dot = getDotProduct(endVector);
@@ -647,6 +647,20 @@ double vsVector::getAngleBetween(const vsVector &endVector) const
     // result if this happens.
     if ((startMag < VS_DEFAULT_TOLERANCE) || (endMag < VS_DEFAULT_TOLERANCE))
         return 0.0;
+
+    // Deal with any floating point inaccuracy here.  If the numerator and
+    // denominator are nearly equal, it can cause the acos() call below to
+    // return NaN's in some cases.
+    dotAbs = fabs(dot);
+    if (fabs(dotAbs - (startMag * endMag)) < VS_DEFAULT_TOLERANCE)
+    {
+        // The vectors are either equal or opposite.  We can find out using
+        // the sign of the dot product
+        if (dot < 0.0)
+            return 180.0;
+        else
+            return 0.0;
+    }
 
     // The final angle is the inverse cosine of the quotient of the dot
     // product and magnitude product
