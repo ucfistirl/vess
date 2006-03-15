@@ -20,10 +20,9 @@
 //
 //------------------------------------------------------------------------
 
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include "vsGLSLProgramAttribute.h++"
+#include "vsGlobals.h++"
 
+#include "vsGLSLProgramAttribute.h++"
 #include "vsGraphicsState.h++"
 
 // ------------------------------------------------------------------------
@@ -44,6 +43,13 @@ vsGLSLProgramAttribute::vsGLSLProgramAttribute()
     // Initialize the vertex attribute bindings
     attrBindingsChanged = false;
     memset(attrBindings, 0, sizeof(attrBindings));
+
+    // Initialize the OpenGL function pointers to NULL.  We can't query
+    // them until we're in the draw process    
+    #ifdef WIN32
+        glValidateProgramARB = NULL;
+        glBindAttribLocationARB = NULL;
+    #endif
 }
 
 // ------------------------------------------------------------------------
@@ -86,16 +92,29 @@ int vsGLSLProgramAttribute::travCallback(pfTraverser *trav, void *userData)
     // Get the instance that is calling this function
     instance = (vsGLSLProgramAttribute *)userData;
 
+    #ifdef WIN32
+        // If we haven't queried the function pointers yet, do it now
+        if (instance->glValidateProgramARB == NULL)
+            instance->glValidateProgramARB = (PFNGLVALIDATEPROGRAMARBPROC)
+                wglGetProcAddress("glValidateProgramARB");
+        if (instance->glValidateProgramARB == NULL)
+            instance->glBindAttribLocationARB = 
+               (PFNGLBINDATTRIBLOCATIONARBPROC)
+                    wglGetProcAddress("glBindAttribLocationARB");
+    #endif
+    
     // Get the OpenGL handle for the GLSL program
     programHandle = instance->performerProgram->getGLHandle();
 
     // Check the program handle to see if it's valid.  If not, bail out 
     // before we start trying to bind attributes to a bogus program.
-    #ifdef OPENGL_2_0
+    #ifndef WIN32
         if (!glIsProgram((GLuint)programHandle))
             return PFTRAV_CONT;
     #else
-        if (!glIsProgramARB(programHandle))
+        glGetError();
+        instance->glValidateProgramARB(programHandle);
+        if (glGetError() != GL_NO_ERROR)
             return PFTRAV_CONT;
     #endif
 
@@ -107,11 +126,11 @@ int vsGLSLProgramAttribute::travCallback(pfTraverser *trav, void *userData)
         {
             // Call either the native OpenGL function (for OpenGL 2.0+) 
             // or the ARB_shanding_language function (for OpenGL 1.x).
-            #ifdef OPENGL_2_0
+            #ifndef WIN32
                 glBindAttribLocation((GLuint)programHandle, i, 
                     instance->attrBindings[i]);
             #else
-                glBindAttribLocationARB(programHandle, i, 
+                instance->glBindAttribLocationARB(programHandle, i, 
                     instance->attrBindings[i]);
             #endif
         }
