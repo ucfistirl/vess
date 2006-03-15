@@ -36,7 +36,6 @@ vsSoundSample::vsSoundSample(char *fileName)
     ALfloat   freq;
     ALenum    format;
     ALenum    error;
-    ALboolean loop;
 
     void      *soundData;
 

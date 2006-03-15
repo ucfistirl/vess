@@ -23,8 +23,8 @@
 #include <AL/al.h>
 #include <stdio.h>
 
-#include "vsSoundListenerAttribute.h++"
 #include "vsSoundManager.h++"
+#include "vsSoundListenerAttribute.h++"
 #include "vsNode.h++"
 #include "vsTimer.h++"
 

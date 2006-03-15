@@ -23,6 +23,7 @@
 #ifndef VS_SOUND_SOURCE_ATTRIBUTE_HPP
 #define VS_SOUND_SOURCE_ATTRIBUTE_HPP
 
+#include <pthread.h>
 #include "vsComponent.h++"
 #include "vsAttribute.h++"
 #include "vsSoundSample.h++"
@@ -32,7 +33,6 @@
 #include "vsMatrix.h++"
 #include "vsQuat.h++"
 #include "vsTimer.h++"
-#include <pthread.h>
  
 // Sound source priorities, used for voice management
 enum

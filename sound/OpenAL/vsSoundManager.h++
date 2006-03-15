@@ -23,11 +23,11 @@
 #ifndef VS_SOUND_MANAGER_HPP
 #define VS_SOUND_MANAGER_HPP
 
+#include <pthread.h>
 #include "vsUpdatable.h++"
 #include "vsSoundPipe.h++"
 #include "vsSoundSourceAttribute.h++"
 #include "vsSoundListenerAttribute.h++"
-#include <pthread.h>
 
 #define VS_SDM_MAX_SOUNDS          512
 #define VS_SDM_DEFAULT_VOICE_LIMIT 32

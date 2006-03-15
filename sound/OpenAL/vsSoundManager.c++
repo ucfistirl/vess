@@ -125,7 +125,7 @@ void *vsSoundManager::sourceThreadFunc(void *arg)
 {
     vsSoundManager *manager;
     int i;
-    unsigned long threadDelay, threadTime;
+    unsigned long threadTime;
     vsTimer *threadTimer;
 
     // Create the timer for controlling the thread loop

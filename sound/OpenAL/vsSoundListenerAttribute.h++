@@ -23,9 +23,9 @@
 #ifndef VS_SOUND_LISTENER_ATTRIBUTE_HPP
 #define VS_SOUND_LISTENER_ATTRIBUTE_HPP
 
+#include "vsSoundBuffer.h++"
 #include "vsComponent.h++"
 #include "vsAttribute.h++"
-#include "vsSoundBuffer.h++"
 #include "vsVector.h++"
 #include "vsMatrix.h++"
 #include "vsQuat.h++"
