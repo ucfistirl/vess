@@ -23,6 +23,7 @@
 #ifndef VS_PANE_HPP
 #define VS_PANE_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pf/pfChannel.h>
 #include <Performer/pf/pfScene.h>
 

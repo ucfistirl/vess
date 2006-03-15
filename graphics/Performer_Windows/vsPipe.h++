@@ -28,8 +28,8 @@
 
 class vsPipe;
 
-#include <Performer/pf/pfPipe.h>
 #include "vsGlobals.h++"
+#include <Performer/pf/pfPipe.h>
 #include "vsObject.h++"
 #include "vsScreen.h++"
 

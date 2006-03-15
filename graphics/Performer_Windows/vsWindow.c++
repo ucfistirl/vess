@@ -47,8 +47,6 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     vsPipe *parentPipe;
     static int fbConfigAttrs[20];
 
-    int result;
-    
     // No panes attached to start with
     childPaneCount = 0;
     
@@ -143,8 +141,6 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     vsPipe *parentPipe;
     static int fbConfigAttrs[20];
 
-    int result;
-    
     // No panes attached to start with
     childPaneCount = 0;
     
@@ -230,8 +226,6 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
 vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
 {
     vsPipe *parentPipe;
-    HWND msWindowID;
-    int result;
 
     // Check the value of the msWin parameter, and print a warning if it
     // looks like the user is trying to use the old vsWindow constructor
@@ -571,10 +565,8 @@ void vsWindow::saveImage(char *filename)
 {
     HWND msWindow;
     HDC devContext, memDevContext;
-    int xpos, ypos;
     RECT windowRect;
     unsigned int width, height;
-    unsigned int border, depth;
     HBITMAP bitmapHandle;
     HGDIOBJ oldBitmap;
     BITMAP bitmap;
@@ -583,9 +575,9 @@ void vsWindow::saveImage(char *filename)
     int bitmapDataSize;
     LPVOID bitmapData;
 
-    unsigned long redPixel, greenPixel, bluePixel;
     unsigned short *redBuffer, *greenBuffer, *blueBuffer;
-    int loop, sloop, index;
+    unsigned int loop, sloop;
+    int index;
     IMAGE *imageOut;
     int tempInt;
 
@@ -693,10 +685,8 @@ vsImage * vsWindow::getImage()
     vsImage * image;
     HWND msWindow;
     HDC devContext, memDevContext;
-    int xpos, ypos;
     RECT windowRect;
     unsigned int width, height;
-    unsigned int border, depth;
     HBITMAP bitmapHandle;
     HGDIOBJ oldBitmap;
     BITMAP bitmap;
@@ -704,12 +694,6 @@ vsImage * vsWindow::getImage()
     BITMAPINFO bitmapInfo;
     int bitmapDataSize;
     LPVOID bitmapData;
-
-    unsigned long redPixel, greenPixel, bluePixel;
-    unsigned short *redBuffer, *greenBuffer, *blueBuffer;
-    int loop, sloop, index;
-    IMAGE *imageOut;
-    int tempInt;
 
     // Get the MS window handle and the handle to it's GDI device context
     msWindow = (HWND)performerPipeWindow->getWSWindow();
