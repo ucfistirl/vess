@@ -467,7 +467,6 @@ bool vsSphereIntersect::intersectWithBox(vsSphere sphere, pfBox *box)
     vsMatrix invXform;
     vsVector center;
     vsVector radiusVec;
-    double radius;
     double centerX, centerY, centerZ;
 
     // Initialize the square distance accumulator.  We use the squared
@@ -598,7 +597,6 @@ void vsSphereIntersect::intersectWithGeometry(int sphIndex,
     int primCount;
     int triCount;
     int lengthSum;
-    int triIndex;
     vsVector a, b, c;
     int aIndex, bIndex, cIndex;
     vsVector point;
@@ -608,7 +606,7 @@ void vsSphereIntersect::intersectWithGeometry(int sphIndex,
     double oldDot, newDot;
     vsVector closestPoint;
     double localSqrDist;
-    int closestPrim, closestTriangle;
+    int closestPrim;
     vsVector closestNormal;
     int closestVertIndices[3];
     vsVector distVec;
@@ -868,7 +866,6 @@ void vsSphereIntersect::intersectSpheres(vsNode *targetNode)
     double radius;
     int i;
     vsSphere nodeSphere;
-    int intersectFlag;
     vsMatrix previousXform;
     vsMatrix localXform;
     vsSphere previousBoundSphere;
@@ -1115,7 +1112,6 @@ int vsSphereIntersect::getSphereListSize()
 void vsSphereIntersect::setSphere(int sphNum, vsVector center, double radius)
 {
     vsVector sphCenter;
-    vsSphere *sph;
 
     // Make sure the sphere number is valid
     if ((sphNum < 0) || (sphNum >= sphereListSize))

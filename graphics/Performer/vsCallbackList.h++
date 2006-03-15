@@ -23,6 +23,7 @@
 #ifndef VS_CALLBACK_LIST_HPP
 #define VS_CALLBACK_LIST_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pf/pfChannel.h>
 #include <ulocks.h>
 #include "vsObject.h++"

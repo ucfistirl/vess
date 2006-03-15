@@ -23,6 +23,7 @@
 #ifndef VS_MATERIAL_ATTRIBUTE_HPP
 #define VS_MATERIAL_ATTRIBUTE_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pr/pfMaterial.h>
 #include "vsStateAttribute.h++"
 

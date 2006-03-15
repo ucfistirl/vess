@@ -22,6 +22,7 @@
 #ifndef VS_FOG_ATTRIBUTE_HPP
 #define VS_FOG_ATTRIBUTE_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pr/pfFog.h>
 #include "vsStateAttribute.h++"
 

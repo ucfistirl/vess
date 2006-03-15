@@ -66,7 +66,6 @@ vsGLSLUniform::~vsGLSLUniform()
 void vsGLSLUniform::updateParentPrograms()
 {
     int i;
-    int type;
 
     // Make sure this uniform is of a valid type, otherwise we don't update
     // anything

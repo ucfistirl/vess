@@ -24,6 +24,7 @@
 #ifndef VS_DECAL_ATTRIBUTE_HPP
 #define VS_DECAL_ATTRIBUTE_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pf/pfLayer.h>
 #include "vsAttribute.h++"
 #include "vsNode.h++"

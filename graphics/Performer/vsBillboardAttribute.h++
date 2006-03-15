@@ -23,6 +23,7 @@
 #ifndef VS_BILLBOARD_ATTRIBUTE_HPP
 #define VS_BILLBOARD_ATTRIBUTE_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pf/pfBillboard.h>
 #include <Performer/pf/pfDCS.h>
 #include "vsMatrix.h++"

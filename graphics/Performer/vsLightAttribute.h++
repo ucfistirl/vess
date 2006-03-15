@@ -24,6 +24,7 @@
 #ifndef VS_LIGHT_ATTRIBUTE_HPP
 #define VS_LIGHT_ATTRIBUTE_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pr/pfLight.h>
 #include <Performer/pf/pfLightSource.h>
 #include "vsAttribute.h++"

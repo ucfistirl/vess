@@ -24,6 +24,7 @@
 #ifndef VS_GEOMETRY_HPP
 #define VS_GEOMETRY_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pf/pfGeode.h>
 #include <Performer/pr/pfGeoArray.h>
 #include "vsVector.h++"

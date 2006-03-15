@@ -23,6 +23,7 @@
 #ifndef VS_SWITCH_ATTRIBUTE_HPP
 #define VS_SWITCH_ATTRIBUTE_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pf/pfSwitch.h>
 #include "vsAttribute.h++"
 #include "vsNode.h++"

@@ -23,6 +23,7 @@
 #ifndef VS_SHADER_ATTRIBUTE_HPP
 #define VS_SHADER_ATTRIBUTE_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pr/pfVertexProgram.h>
 #include <Performer/pr/pfFragmentProgram.h>
 #include <Performer/pr/pfGProgramParms.h>

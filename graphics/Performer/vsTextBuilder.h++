@@ -24,6 +24,7 @@
 #ifndef VS_TEXTBUILDER_HPP
 #define VS_TEXTBUILDER_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pf/pfText.h>
 #include <Performer/pr/pfString.h>
 #include <Performer/pfdu.h>

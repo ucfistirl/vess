@@ -23,13 +23,16 @@
 #ifndef VS_GLSL_PROGRAM_ATTRIBUTE_HPP
 #define VS_GLSL_PROGRAM_ATTRIBUTE_HPP
 
+#include "vsGlobals.h++"
+
 #include <Performer/pr/pfShaderProgram.h>
 #include <Performer/pf/pfTraverser.h>
+#include "vsStateAttribute.h++"
 #include "vsGLSLShader.h++"
 #include "vsGLSLUniform.h++"
-#include "vsStateAttribute.h++"
 #include "vsGrowableArray.h++"
 #include "vsVector.h++"
+
 
 #define VS_GPROG_MAX_SHADERS 8
 #define VS_GPROG_MAX_UNIFORMS 32
@@ -53,6 +56,11 @@ private:
 
     char   attrBindings[VS_GPROG_MAX_ATTR_BINDINGS][VS_GPROG_ATTR_NAME_LENGTH];
 
+    #ifdef WIN32
+        PFNGLVALIDATEPROGRAMARBPROC       glValidateProgramARB;
+        PFNGLBINDATTRIBLOCATIONARBPROC    glBindAttribLocationARB;
+    #endif
+    
     static int           travCallback(pfTraverser *trav, void *userData);
 
 VS_INTERNAL:

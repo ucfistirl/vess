@@ -823,7 +823,6 @@ void vsGeometry::getPrimitiveLengths(int *lengthsBuffer)
 // ------------------------------------------------------------------------
 void vsGeometry::setBinding(int whichData, int binding)
 {
-    int performerBinding;
     int list, unit;
 
     // Figure out which list is being modified.  If it's a generic list,
@@ -2085,7 +2084,6 @@ void vsGeometry::setDataListSize(int whichData, int newSize)
 // ------------------------------------------------------------------------
 int vsGeometry::getDataListSize(int whichData)
 {
-    unsigned int unit;
     int list;
 
     // Interpret the whichData constant

@@ -23,6 +23,7 @@
 #ifndef VS_INTERSECT_HPP
 #define VS_INTERSECT_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pr/pfGeoSet.h>
 #include <Performer/pf/pfNode.h>
 #include "vsVector.h++"

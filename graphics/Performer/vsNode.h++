@@ -23,6 +23,7 @@
 #ifndef VS_NODE_HPP
 #define VS_NODE_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pf/pfNode.h>
 #include "vsObject.h++"
 #include "vsGrowableArray.h++"

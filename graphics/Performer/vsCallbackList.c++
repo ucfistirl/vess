@@ -22,6 +22,12 @@
 
 #include "vsCallbackList.h++"
 
+// For some reason, this function is missing from the Performer Windows
+// version
+#ifdef WIN32
+    int _pfussemastub(int*) {return 0;}
+#endif
+
 // ------------------------------------------------------------------------
 // Constructor - Saves the channel for future use, makes callback lists for
 // the default cull and draw callbacks, and sets their traversal functions

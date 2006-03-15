@@ -27,6 +27,7 @@
 #ifndef VS_LOD_ATTRIBUTE_HPP
 #define VS_LOD_ATTRIBUTE_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pf/pfLOD.h>
 #include "vsAttribute.h++"
 #include "vsNode.h++"

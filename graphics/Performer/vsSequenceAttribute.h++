@@ -25,6 +25,7 @@
 #ifndef VS_SEQUENCE_ATTRIBUTE_HPP
 #define VS_SEQUENCE_ATTRIBUTE_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pf/pfSequence.h>
 #include "vsAttribute.h++"
 #include "vsNode.h++"

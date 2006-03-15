@@ -25,6 +25,7 @@
 
 class vsLightAttribute;
 
+#include "vsGlobals.h++"
 #include <Performer/pf/pfScene.h>
 #include "vsNode.h++"
 #include "vsLightAttribute.h++"

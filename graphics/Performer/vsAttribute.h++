@@ -26,6 +26,7 @@
 #ifndef VS_ATTRIBUTE_HPP
 #define VS_ATTRIBUTE_HPP
 
+#include "vsGlobals.h++"
 #include <stdlib.h>
 #include <Performer/pr/pfGeoState.h>
 #include "vsGlobals.h++"

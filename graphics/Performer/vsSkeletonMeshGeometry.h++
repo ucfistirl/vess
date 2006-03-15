@@ -25,6 +25,7 @@
 #ifndef VS_SKELETON_MESH_GEOMETRY_HPP
 #define VS_SKELETON_MESH_GEOMETRY_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pr/pfFlux.h>
 #include <Performer/pf/pfGeode.h>
 #include <Performer/pr/pfGeoArray.h>

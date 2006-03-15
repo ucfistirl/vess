@@ -22,6 +22,7 @@
 #ifndef VS_DATABASE_LOADER_HPP
 #define VS_DATABASE_LOADER_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pf/pfNode.h>
 #include <Performer/pfdb/pfflt.h>
 #include "vsComponent.h++"

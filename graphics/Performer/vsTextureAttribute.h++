@@ -23,6 +23,7 @@
 #ifndef VS_TEXTURE_ATTRIBUTE_HPP
 #define VS_TEXTURE_ATTRIBUTE_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pr/pfLinMath.h>
 #include <Performer/pr/pfTexture.h>
 #include "vsStateAttribute.h++"

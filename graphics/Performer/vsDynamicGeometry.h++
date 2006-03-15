@@ -25,6 +25,7 @@
 #ifndef VS_DYNAMIC_GEOMETRY_HPP
 #define VS_DYNAMIC_GEOMETRY_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pr/pfFlux.h>
 #include <Performer/pf/pfGeode.h>
 #include <Performer/pr/pfGeoArray.h>

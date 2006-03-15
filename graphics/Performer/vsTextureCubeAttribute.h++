@@ -23,6 +23,7 @@
 #ifndef VS_TEXTURE_CUBE_ATTRIBUTE_HPP
 #define VS_TEXTURE_CUBE_ATTRIBUTE_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pr/pfTexture.h>
 #include "vsStateAttribute.h++"
 #include "vsTextureAttribute.h++"

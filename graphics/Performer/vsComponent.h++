@@ -23,6 +23,7 @@
 #ifndef VS_COMPONENT_HPP
 #define VS_COMPONENT_HPP
 
+#include "vsGlobals.h++"
 #include <Performer/pf/pfGroup.h>
 #include "vsGrowableArray.h++"
 #include "vsVector.h++"
