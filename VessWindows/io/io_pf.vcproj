@@ -24,11 +24,11 @@
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="2"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				DebugInformationFormat="4"
+				DisableSpecificWarnings="4291;4099"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -59,7 +59,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="Release"
+			OutputDirectory="../lib"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
 			CharacterSet="2">
@@ -71,24 +71,25 @@
 				AdditionalIncludeDirectories="..\..\graphics\common;..\..\graphics\Performer;..\..\graphics\Performer_Windows;..\..\util\Windows;..\..\util\Performer;..\..\util\common;..\..\util\Performer;..\..\llio\Windows;..\..\io\Windows;..\..\io\Performer_Windows;..\..\io\common"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_IO_EXPORTS"
 				StringPooling="TRUE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				DebugInformationFormat="3"
+				DisableSpecificWarnings="4291;4099;4244"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="wsock32.lib winmm.lib libpf.lib"
-				OutputFile="$(OutDir)/io.dll"
+				OutputFile="$(OutDir)/vsIO.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/io.lib"
+				ImportLibrary="$(OutDir)/vsIO.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -110,6 +111,9 @@
 		<Filter
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
+			<File
+				RelativePath="..\dummy.c">
+			</File>
 			<File
 				RelativePath="..\..\io\common\vs6DInputDevice.c++">
 			</File>
@@ -153,6 +157,27 @@
 				RelativePath="..\..\io\common\vsFlockOfBirds.c++">
 			</File>
 			<File
+				RelativePath="..\..\io\common\vsInputAxis.c++">
+			</File>
+			<File
+				RelativePath="..\..\io\common\vsInputButton.c++">
+			</File>
+			<File
+				RelativePath="..\..\io\common\vsIntersenseTrackingSystem.c++">
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\io\common\vsIODevice.c++">
 			</File>
 			<File
@@ -163,12 +188,6 @@
 			</File>
 			<File
 				RelativePath="..\..\io\common\vsISTJoystickBox.c++">
-			</File>
-			<File
-				RelativePath="..\..\io\common\vsInputAxis.c++">
-			</File>
-			<File
-				RelativePath="..\..\io\common\vsInputButton.c++">
 			</File>
 			<File
 				RelativePath="..\..\io\common\vsJoystick.c++">
@@ -190,6 +209,21 @@
 			</File>
 			<File
 				RelativePath="..\..\io\Windows\vsPhantomSystem.c++">
+			</File>
+			<File
+				RelativePath="..\..\io\Windows\vsPhaseSpaceMD.c++">
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\io\common\vsPinchGloveBox.c++">
@@ -253,6 +287,15 @@
 				RelativePath="..\..\io\common\vsFlockOfBirds.h++">
 			</File>
 			<File
+				RelativePath="..\..\io\common\vsInputAxis.h++">
+			</File>
+			<File
+				RelativePath="..\..\io\common\vsInputButton.h++">
+			</File>
+			<File
+				RelativePath="..\..\io\common\vsIntersenseTrackingSystem.h++">
+			</File>
+			<File
 				RelativePath="..\..\io\common\vsIODevice.h++">
 			</File>
 			<File
@@ -263,12 +306,6 @@
 			</File>
 			<File
 				RelativePath="..\..\io\common\vsISTJoystickBox.h++">
-			</File>
-			<File
-				RelativePath="..\..\io\common\vsInputAxis.h++">
-			</File>
-			<File
-				RelativePath="..\..\io\common\vsInputButton.h++">
 			</File>
 			<File
 				RelativePath="..\..\io\common\vsJoystick.h++">
@@ -293,6 +330,9 @@
 			</File>
 			<File
 				RelativePath="..\..\io\Windows\vsPhantomSystem.h++">
+			</File>
+			<File
+				RelativePath="..\..\io\Windows\vsPhaseSpaceMD.h++">
 			</File>
 			<File
 				RelativePath="..\..\io\common\vsPinchGloveBox.h++">

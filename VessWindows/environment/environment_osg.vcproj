@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="environment"
-	ProjectGUID="{4BDE8BF2-BD92-41A3-9E05-4434A5AC1405}"
+	ProjectGUID="{F5059846-CB7D-4FE3-B433-63D6BD581039}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -23,7 +23,7 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_ENVIRONMENT_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
+				RuntimeLibrary="3"
 				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -70,7 +70,7 @@
 				AdditionalIncludeDirectories="../../motion/common;../../sound/OpenAL;../../io/OSG_Windows;../../io/Windows;../../io/common;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../llio/Windows;../../util/Windows;../../util/common;../../util/OSG"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_ENVIRONMENT_EXPORTS;EMULATE_INTTYPES"
 				StringPooling="TRUE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
@@ -81,7 +81,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="avcodec.lib avformat.lib libxml2.lib iconv.lib pthreadVC.lib"
+				AdditionalDependencies="avcodec.lib avformat.lib avutil.lib libxml2.lib iconv.lib pthreadVC2.lib"
 				OutputFile="$(OutDir)/vsEnvironment.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
@@ -110,6 +110,9 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
+			<File
+				RelativePath="..\dummy.c">
+			</File>
 			<File
 				RelativePath="..\..\environment\common\vsCal3DAnimationLoader.c++">
 			</File>

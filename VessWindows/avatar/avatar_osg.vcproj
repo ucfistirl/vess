@@ -109,6 +109,9 @@
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
+				RelativePath="..\dummy.c">
+			</File>
+			<File
 				RelativePath="..\..\avatar\common\vsAvatar.c++">
 			</File>
 			<File

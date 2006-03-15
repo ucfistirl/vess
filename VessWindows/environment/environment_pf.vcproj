@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.00"
-	Name="llio"
-	ProjectGUID="{2683BBB3-5C78-4450-A0A7-CF07E8B139B5}"
+	Name="environment"
+	ProjectGUID="{F5059846-CB7D-4FE3-B433-63D6BD581039}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -19,28 +19,27 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\util\common;..\..\util\Windows;..\..\util\OSG"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_LLIO_EXPORTS"
+				AdditionalIncludeDirectories="..\..\motion\common;..\..\sound\OpenAL;..\..\io\Performer_Windows;..\..\io\Windows;..\..\io\common;..\..\graphics\Performer_Windows;..\..\graphics\Performer;..\..\graphics\common;..\..\util\Windows;..\..\util\common;..\..\util\Performer"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_ENVIRONMENT_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				DebugInformationFormat="4"
+				DisableSpecificWarnings="4291;4099;4244"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wsock32.lib winmm.lib vsUtil.lib"
-				OutputFile="$(OutDir)/vsLLIO.dll"
+				AdditionalDependencies="avutil.lib avcodec.lib avformat.lib libxml2.lib iconv.lib pthreadVC2.lib"
+				OutputFile="$(OutDir)/vsEnvironment.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\lib"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/llio.pdb"
+				ProgramDatabaseFile="$(OutDir)/environment.pdb"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/vsLLIO.lib"
+				ImportLibrary="$(OutDir)/vsEnvironment.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -68,29 +67,27 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				AdditionalIncludeDirectories="..\..\util\common;..\..\util\Windows;..\..\util\OSG"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_LLIO_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_ENVIRONMENT_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
-				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				DebugInformationFormat="3"
+				DisableSpecificWarnings="4291;4099;4244"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wsock32.lib winmm.lib"
-				OutputFile="$(OutDir)/vsLLIO.dll"
+				AdditionalDependencies="avutil.lib avcodec.lib avformat.lib libxml2.lib iconv.lib pthreadVC2.lib"
+				OutputFile="$(OutDir)/vsEnvironment.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\lib"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/vsLLIO.lib"
+				ImportLibrary="$(OutDir)/vsEnvironment.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -116,38 +113,26 @@
 				RelativePath="..\dummy.c">
 			</File>
 			<File
-				RelativePath="..\..\llio\Windows\vsIPCInterface.c++">
+				RelativePath="..\..\environment\common\vsCal3DAnimationLoader.c++">
 			</File>
 			<File
-				RelativePath="..\..\llio\Windows\vsNetworkInterface.c++">
+				RelativePath="..\..\environment\common\vsCal3DLoader.c++">
 			</File>
 			<File
-				RelativePath="..\..\llio\Windows\vsSerialPort.c++">
-			</File>
-			<File
-				RelativePath="..\..\llio\Windows\vsTCPNetworkInterface.c++">
-			</File>
-			<File
-				RelativePath="..\..\llio\Windows\vsUDPNetworkInterface.c++">
+				RelativePath="..\..\environment\common\vsMovieReader.c++">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc">
 			<File
-				RelativePath="..\..\llio\Windows\vsIPCInterface.h++">
+				RelativePath="..\..\environment\common\vsCal3DAnimationLoader.h++">
 			</File>
 			<File
-				RelativePath="..\..\llio\Windows\vsNetworkInterface.h++">
+				RelativePath="..\..\environment\common\vsCal3DLoader.h++">
 			</File>
 			<File
-				RelativePath="..\..\llio\Windows\vsSerialPort.h++">
-			</File>
-			<File
-				RelativePath="..\..\llio\Windows\vsTCPNetworkInterface.h++">
-			</File>
-			<File
-				RelativePath="..\..\llio\Windows\vsUDPNetworkInterface.h++">
+				RelativePath="..\..\environment\common\vsMovieReader.h++">
 			</File>
 		</Filter>
 		<Filter

@@ -68,7 +68,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				AdditionalIncludeDirectories="../../system/OSG;../../system/common;../../avatar/common;../../motion/common;../../sound/OpenAL;../../io/OSG_Windows;../../io/Windows;../../io/common;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../llio/Windows;../../util/Windows;../../util/common;../../util/OSG"
+				AdditionalIncludeDirectories="../../system/OSG;../../system/common;../../avatar/common;../../motion/common;../../scent/common;../../sound/OpenAL;../../io/OSG_Windows;../../io/Windows;../../io/common;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../llio/Windows;../../util/Windows;../../util/common;../../util/OSG"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_SYSTEM_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -112,6 +112,9 @@
 		<Filter
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
+			<File
+				RelativePath="..\dummy.c">
+			</File>
 			<File
 				RelativePath="..\..\system\common\vsRemoteInterface.c++">
 			</File>

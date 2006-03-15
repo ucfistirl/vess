@@ -69,7 +69,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				AdditionalIncludeDirectories=".;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../llio/Windows;../../util/common;../../util/OSG"
+				AdditionalIncludeDirectories=".;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../llio/Windows;../../util/common;../../util/OSG;../../util/Windows"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_GRAPHICS_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -83,7 +83,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="osg.lib osgDB.lib osgUtil.lib osgText.lib opengl32.lib glu32.lib freetype.lib libjpeg.lib libmpeg2.lib libvo.lib libxml2.lib iconv.lib"
+				AdditionalDependencies="osg.lib osgDB.lib osgUtil.lib osgText.lib osgSim.lib opengl32.lib glu32.lib freetype219.lib libjpeg.lib avcodec.lib avformat.lib avutil.lib libxml2.lib iconv.lib"
 				OutputFile="$(OutDir)/vsGraphics.dll"
 				LinkIncremental="1"
 				IgnoreDefaultLibraryNames="libcd.lib"
@@ -113,6 +113,9 @@
 		<Filter
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
+			<File
+				RelativePath="..\dummy.c">
+			</File>
 			<File
 				RelativePath="..\..\graphics\OSG\vsAttribute.c++">
 			</File>
@@ -153,6 +156,15 @@
 				RelativePath="..\..\graphics\OSG\vsGeometry.c++">
 			</File>
 			<File
+				RelativePath="..\..\graphics\Osg\vsGLSLProgramAttribute.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Osg\vsGLSLShader.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Osg\vsGLSLUniform.c++">
+			</File>
+			<File
 				RelativePath="..\..\graphics\OSG\vsGraphicsState.c++">
 			</File>
 			<File
@@ -162,13 +174,13 @@
 				RelativePath="..\..\graphics\OSG\vsIntersectTraverser.c++">
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsLODAttribute.c++">
-			</File>
-			<File
 				RelativePath="..\..\graphics\OSG\vsLightAttribute.c++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG\vsLocalLightCallback.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\OSG\vsLODAttribute.c++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG\vsMaterialAttribute.c++">
@@ -181,6 +193,9 @@
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG_Windows\vsPane.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsParticleSystem.c++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG_Windows\vsPipe.c++">
@@ -301,6 +316,15 @@
 				RelativePath="..\..\graphics\OSG\vsGeometry.h++">
 			</File>
 			<File
+				RelativePath="..\..\graphics\Osg\vsGLSLProgramAttribute.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Osg\vsGLSLShader.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Osg\vsGLSLUniform.h++">
+			</File>
+			<File
 				RelativePath="..\..\graphics\OSG\vsGraphicsState.h++">
 			</File>
 			<File
@@ -310,13 +334,13 @@
 				RelativePath="..\..\graphics\OSG\vsIntersectTraverser.h++">
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsLODAttribute.h++">
-			</File>
-			<File
 				RelativePath="..\..\graphics\OSG\vsLightAttribute.h++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG\vsLocalLightCallback.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\OSG\vsLODAttribute.h++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG\vsMaterialAttribute.h++">
@@ -329,6 +353,9 @@
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG_Windows\vsPane.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsParticleSystem.h++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\OSG_Windows\vsPipe.h++">

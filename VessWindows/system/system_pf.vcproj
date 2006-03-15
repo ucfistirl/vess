@@ -24,11 +24,11 @@
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="2"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				DebugInformationFormat="4"
+				DisableSpecificWarnings="4291;4099"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -59,7 +59,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="Release"
+			OutputDirectory="../lib"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
 			CharacterSet="2">
@@ -71,24 +71,25 @@
 				AdditionalIncludeDirectories="../../system/Performer;../../system/common;../../avatar/common;../../motion/common;../../sound/OpenAL;../../io/Performer_Windows;../../io/Windows;../../io/common;../../graphics/Performer_Windows;../../graphics/Performer;../../graphics/common;../../llio/Windows;../../util/Windows;../../util/common;../../util/Performer"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_SYSTEM_EXPORTS"
 				StringPooling="TRUE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				DebugInformationFormat="3"
+				DisableSpecificWarnings="4291;4099;4244"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="libpf.lib libpfdu-util.lib libpfflt.lib wsock32.lib libxml2.lib"
-				OutputFile="$(OutDir)/system.dll"
+				OutputFile="$(OutDir)/vsSystem.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/system.lib"
+				ImportLibrary="$(OutDir)/vsSystem.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -110,6 +111,9 @@
 		<Filter
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
+			<File
+				RelativePath="..\dummy.c">
+			</File>
 			<File
 				RelativePath="..\..\system\common\vsRemoteInterface.c++">
 			</File>

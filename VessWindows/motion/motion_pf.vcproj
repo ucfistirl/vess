@@ -24,11 +24,11 @@
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="2"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				DebugInformationFormat="4"
+				DisableSpecificWarnings="4291;4099"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -57,7 +57,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="Release"
+			OutputDirectory="../lib"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
 			CharacterSet="2">
@@ -69,23 +69,24 @@
 				AdditionalIncludeDirectories="..\..\io\Performer_Windows;..\..\io\Windows;..\..\io\common;..\..\graphics\Performer_Windows;..\..\graphics\Performer;..\..\graphics\common;..\..\util\Windows;..\..\util\common;..\..\util\Performer"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_MOTION_EXPORTS"
 				StringPooling="TRUE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				DebugInformationFormat="3"
+				DisableSpecificWarnings="4291;4099;4244"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/motion.dll"
+				OutputFile="$(OutDir)/vsMotion.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/motion.lib"
+				ImportLibrary="$(OutDir)/vsMotion.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -108,7 +109,16 @@
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
+				RelativePath="..\dummy.c">
+			</File>
+			<File
 				RelativePath="..\..\motion\common\vs3TrackerArm.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vs4TrackerHead.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vs8TrackerArm.c++">
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsArticulatedCollision.c++">
@@ -127,6 +137,9 @@
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsFlyingMotion.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsFPSMotion.c++">
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsHandArticulation.c++">
@@ -190,6 +203,12 @@
 				RelativePath="..\..\motion\common\vs3TrackerArm.h++">
 			</File>
 			<File
+				RelativePath="..\..\motion\common\vs4TrackerHead.h++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vs8TrackerArm.h++">
+			</File>
+			<File
 				RelativePath="..\..\motion\common\vsArticulatedCollision.h++">
 			</File>
 			<File
@@ -206,6 +225,9 @@
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsFlyingMotion.h++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsFPSMotion.h++">
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsHandArticulation.h++">

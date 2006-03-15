@@ -113,6 +113,12 @@
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
+				RelativePath="..\dummy.c">
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsChromaKey.c++">
+			</File>
+			<File
 				RelativePath="..\..\util\common\vsGrowableArray.c++">
 			</File>
 			<File
@@ -152,6 +158,9 @@
 		<Filter
 			Name="Header Files"
 			Filter="h++;h;hpp;hxx;hm;inl;inc">
+			<File
+				RelativePath="..\..\util\common\vsChromaKey.h++">
+			</File>
 			<File
 				RelativePath="..\..\util\common\vsGlobals.h++">
 			</File>

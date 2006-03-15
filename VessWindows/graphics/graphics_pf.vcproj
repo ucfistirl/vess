@@ -24,11 +24,11 @@
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="2"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				DebugInformationFormat="4"
+				DisableSpecificWarnings="4099;4291"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -60,7 +60,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="Release"
+			OutputDirectory="../lib"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
 			CharacterSet="2">
@@ -72,25 +72,26 @@
 				AdditionalIncludeDirectories=".;../../graphics/Performer_Windows;../../graphics/Performer;../../graphics/common;../../llio/Windows;../../util/common;../../util/Performer"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_GRAPHICS_EXPORTS"
 				StringPooling="TRUE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				DebugInformationFormat="3"
+				DisableSpecificWarnings="4291;4099;4244"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libpf.lib libpfdu-util.lib libpfflt.lib opengl32.lib glu32.lib libmpeg2.lib libvo.lib"
-				OutputFile="$(OutDir)/graphics.dll"
+				AdditionalDependencies="libpf.lib libpfdu-util.lib libpfflt.lib opengl32.lib glu32.lib libxml2.lib iconv.lib"
+				OutputFile="$(OutDir)/vsGraphics.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../lib"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/graphics.lib"
+				ImportLibrary="$(OutDir)/vsGraphics.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -112,6 +113,9 @@
 		<Filter
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
+			<File
+				RelativePath="..\dummy.c">
+			</File>
 			<File
 				RelativePath="..\..\graphics\Performer\vsAttribute.c++">
 			</File>
@@ -149,16 +153,25 @@
 				RelativePath="..\..\graphics\Performer\vsGeometry.c++">
 			</File>
 			<File
+				RelativePath="..\..\graphics\Performer\vsGLSLProgramAttribute.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Performer\vsGLSLShader.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Performer\vsGLSLUniform.c++">
+			</File>
+			<File
 				RelativePath="..\..\graphics\Performer\vsGraphicsState.c++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer\vsIntersect.c++">
 			</File>
 			<File
-				RelativePath="..\..\graphics\Performer\vsLODAttribute.c++">
+				RelativePath="..\..\graphics\Performer\vsLightAttribute.c++">
 			</File>
 			<File
-				RelativePath="..\..\graphics\Performer\vsLightAttribute.c++">
+				RelativePath="..\..\graphics\Performer\vsLODAttribute.c++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer\vsMaterialAttribute.c++">
@@ -171,6 +184,9 @@
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer_Windows\vsPane.c++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsParticleSystem.c++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer_Windows\vsPipe.c++">
@@ -285,16 +301,25 @@
 				RelativePath="..\..\graphics\Performer\vsGeometry.h++">
 			</File>
 			<File
+				RelativePath="..\..\graphics\Performer\vsGLSLProgramAttribute.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Performer\vsGLSLShader.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\Performer\vsGLSLUniform.h++">
+			</File>
+			<File
 				RelativePath="..\..\graphics\Performer\vsGraphicsState.h++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer\vsIntersect.h++">
 			</File>
 			<File
-				RelativePath="..\..\graphics\Performer\vsLODAttribute.h++">
+				RelativePath="..\..\graphics\Performer\vsLightAttribute.h++">
 			</File>
 			<File
-				RelativePath="..\..\graphics\Performer\vsLightAttribute.h++">
+				RelativePath="..\..\graphics\Performer\vsLODAttribute.h++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer\vsMaterialAttribute.h++">
@@ -307,6 +332,9 @@
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer_Windows\vsPane.h++">
+			</File>
+			<File
+				RelativePath="..\..\graphics\common\vsParticleSystem.h++">
 			</File>
 			<File
 				RelativePath="..\..\graphics\Performer_Windows\vsPipe.h++">

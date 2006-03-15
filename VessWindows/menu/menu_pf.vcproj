@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.00"
-	Name="util"
-	ProjectGUID="{CB9451FD-1E11-480B-8D01-D925BC3BD4DD}"
+	Name="menu"
+	ProjectGUID="{5360172A-E465-4A9A-ACE9-3789CA7D4AB9}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -19,27 +19,26 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\util\common;..\..\util\Windows;..\..\util\OSG"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_UTIL_EXPORTS"
+				AdditionalIncludeDirectories="../../util/common;../../util/Performer;../../util/Windows;../../graphics/common;../../graphics/Performer;../../graphics/Performer_Windows;../../sound/OpenAL;../../io/common;../../io/Performer_Windows;../../io/Windows;../../motion/common;../../avatar/common;../../environment/common;../../system/common;../../system/Performer"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_MENU_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				DebugInformationFormat="4"
+				DisableSpecificWarnings="4244;4291;4099"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libjpeg.lib winmm.lib"
-				OutputFile="$(OutDir)/vsUtil.dll"
+				OutputFile="$(OutDir)/vsMenu.dll"
 				LinkIncremental="2"
-				IgnoreDefaultLibraryNames="libc.lib"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/util.pdb"
+				ProgramDatabaseFile="$(OutDir)/menu.pdb"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/vsUtil.lib"
+				ImportLibrary="$(OutDir)/vsMenu.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -64,14 +63,9 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="1"
-				OmitFramePointers="TRUE"
-				AdditionalIncludeDirectories="..\..\util\common;..\..\util\Windows;..\..\util\OSG"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_UTIL_EXPORTS"
-				StringPooling="TRUE"
+				AdditionalIncludeDirectories="../../util/common;../../util/Performer;../../util/Windows;../../graphics/common;../../graphics/Performer;../../graphics/Performer_Windows;../../sound/OpenAL;../../io/common;../../io/Performer_Windows;../../io/Windows;../../motion/common;../../avatar/common;../../environment/common;../../system/common;../../system/Performer"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_MENU_EXPORTS"
 				RuntimeLibrary="2"
-				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
@@ -81,14 +75,13 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libjpeg.lib winmm.lib"
-				OutputFile="$(OutDir)/vsUtil.dll"
+				OutputFile="$(OutDir)/vsMenu.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/vsUtil.lib"
+				ImportLibrary="$(OutDir)/vsMenu.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -106,102 +99,86 @@
 				Name="VCWebDeploymentTool"/>
 		</Configuration>
 	</Configurations>
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
+			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
 				RelativePath="..\dummy.c">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsChromaKey.c++">
+				RelativePath="..\..\menu\common\vsMenuButton.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsGrowableArray.c++">
+				RelativePath="..\..\menu\common\vsMenuFrame.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\Performer\vsImage.c++">
+				RelativePath="..\..\menu\common\vsMenuIterator.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsMatrix.c++">
+				RelativePath="..\..\menu\common\vsMenuLabel.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsObject.c++">
+				RelativePath="..\..\menu\common\vsMenuLink.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsObjectMap.c++">
+				RelativePath="..\..\menu\common\vsMenuObject.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsQuat.c++">
+				RelativePath="..\..\menu\common\vsMenuSwitchButton.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsSequencer.c++">
+				RelativePath="..\..\menu\common\vsMenuSystem.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsSphere.c++">
+				RelativePath="..\..\menu\common\vsMenuToggleButton.c++">
 			</File>
 			<File
-				RelativePath="..\..\util\Windows\vsTimer.c++">
-			</File>
-			<File
-				RelativePath="..\..\util\common\vsTreeMap.c++">
-			</File>
-			<File
-				RelativePath="..\..\util\common\vsUpdatable.c++">
-			</File>
-			<File
-				RelativePath="..\..\util\common\vsVector.c++">
+				RelativePath="..\..\menu\common\vsMenuTree.c++">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h++;h;hpp;hxx;hm;inl;inc">
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
-				RelativePath="..\..\util\common\vsChromaKey.h++">
+				RelativePath="..\..\menu\common\vsMenuButton.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsGlobals.h++">
+				RelativePath="..\..\menu\common\vsMenuFrame.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsGrowableArray.h++">
+				RelativePath="..\..\menu\common\vsMenuIterator.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\Performer\vsImage.h++">
+				RelativePath="..\..\menu\common\vsMenuLabel.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsMatrix.h++">
+				RelativePath="..\..\menu\common\vsMenuLink.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsObject.h++">
+				RelativePath="..\..\menu\common\vsMenuObject.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsObjectMap.h++">
+				RelativePath="..\..\menu\common\vsMenuSwitchButton.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsQuat.h++">
+				RelativePath="..\..\menu\common\vsMenuSystem.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsSequencer.h++">
+				RelativePath="..\..\menu\common\vsMenuToggleButton.h++">
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsSphere.h++">
-			</File>
-			<File
-				RelativePath="..\..\util\Windows\vsTimer.h++">
-			</File>
-			<File
-				RelativePath="..\..\util\common\vsTreeMap.h++">
-			</File>
-			<File
-				RelativePath="..\..\util\common\vsUpdatable.h++">
-			</File>
-			<File
-				RelativePath="..\..\util\common\vsVector.h++">
+				RelativePath="..\..\menu\common\vsMenuTree.h++">
 			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
+			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
 		</Filter>
 	</Files>
 	<Globals>

@@ -82,7 +82,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="openal32.lib alut.lib "
+				AdditionalDependencies="openal32.lib alut.lib pthreadVC2.lib"
 				OutputFile="$(OutDir)/vsSound.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\lib"
@@ -112,6 +112,9 @@
 		<Filter
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
+			<File
+				RelativePath="..\dummy.c">
+			</File>
 			<File
 				RelativePath="..\..\sound\OpenAL\vsSoundBuffer.c++">
 			</File>

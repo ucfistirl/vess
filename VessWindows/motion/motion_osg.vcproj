@@ -109,7 +109,16 @@
 			Name="Source Files"
 			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
+				RelativePath="..\dummy.c">
+			</File>
+			<File
 				RelativePath="..\..\motion\common\vs3TrackerArm.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vs4TrackerHead.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vs8TrackerArm.c++">
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsArticulatedCollision.c++">
@@ -128,6 +137,9 @@
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsFlyingMotion.c++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsFPSMotion.c++">
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsHandArticulation.c++">
@@ -191,6 +203,12 @@
 				RelativePath="..\..\motion\common\vs3TrackerArm.h++">
 			</File>
 			<File
+				RelativePath="..\..\motion\common\vs4TrackerHead.h++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vs8TrackerArm.h++">
+			</File>
+			<File
 				RelativePath="..\..\motion\common\vsArticulatedCollision.h++">
 			</File>
 			<File
@@ -207,6 +225,9 @@
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsFlyingMotion.h++">
+			</File>
+			<File
+				RelativePath="..\..\motion\common\vsFPSMotion.h++">
 			</File>
 			<File
 				RelativePath="..\..\motion\common\vsHandArticulation.h++">
