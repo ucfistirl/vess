@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../util/common;../../util/OSG;../../util/Windows;../../llio/Windows;../../graphics/OSG;../../io/common;../../io/Windows"
+				AdditionalIncludeDirectories="../../util/common;../../util/OSG;../../util/Windows;../../llio/Windows;../../graphics/OSG;../../graphics/OSG_Windows;../../io/common;../../io/Windows"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_SCENT_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
