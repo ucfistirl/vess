@@ -214,6 +214,7 @@ enum vsMathEulerAxisOrder
 // the Windows Sleep() function
 #ifdef _MSC_VER
     #include <windows.h>
+    #include <wingdi.h>
 
     // Sleep() takes milliseconds so multiply x by 1000 for sleep()
     #define sleep(x)  Sleep((x) * 1000)
@@ -224,10 +225,28 @@ enum vsMathEulerAxisOrder
     #define usleep(x) Sleep((x) / 1000)
 #endif
 
-// This is for the ffmpeg library under Windows, so that the int64_t and
-// uint64_t types get defined
-#ifdef _MSC_VER
-    #define EMULATE_INTTYPES
+// Handle all OpenGL includes before other libraries get in the way
+// Don't request function prototypes on Windows, we have to query them
+// from the driver instead
+#ifndef WIN32
+    #define GL_GLEXT_PROTOTYPES
+#endif
+
+#include <GL/gl.h>
+
+// On Windows, glext.h is not automatically included, so we have to
+// include it manually
+#ifdef WIN32
+    // Before we include glext.h for the various function prototypes and
+    // symbols we use, we need to #define a few extensions as already
+    // present.  Performer's opengl.h defines these extensions and macros,
+    // but doesn't define the extension symbol itself as present.
+    #define GL_EXT_polygon_offset 1
+    #define GL_SGIS_point_line_texgen 1
+    #define GL_SGIS_texture_lod 1
+    #define GL_EXT_packed_pixels 1
+    #define GL_SGIS_detail_texture 1
+    #include <GL/glext.h>
 #endif
 
 #endif
