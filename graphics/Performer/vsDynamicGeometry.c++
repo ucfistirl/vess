@@ -801,7 +801,7 @@ void vsDynamicGeometry::beginNewState()
             // We have a vertex attribute for this list, but there is no 
             // longer a list available to use
             performerGeoarray->removeAttr(dataAttr[list]);
-            dataAttr[list] == NULL;
+            dataAttr[list] = NULL;
         }
         else if ((dataAttr[list] == NULL) && (dataList[list] != NULL))
         {
@@ -1198,7 +1198,6 @@ void vsDynamicGeometry::getPrimitiveLengths(int *lengthsBuffer)
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::setBinding(int whichData, int binding)
 {
-    int performerBinding;
     int list, unit;
 
     // Figure out which list is being modified.  If it's a generic list,
@@ -2077,7 +2076,6 @@ void vsDynamicGeometry::getDataList(int whichData, vsVector *dataBuffer)
 void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
 {
     unsigned int unit;
-    int binding, performerBinding;
     int list;
     int copySize;
     float *tempList;
@@ -2110,7 +2108,19 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
     }
 
     // If we're resizing the list to the same size, there's not much to do
-    if (dataListSize[list] == newSize)
+    // Just make sure we compare against the internal list sizes for normals
+    // and colors.
+    if (list == VS_GEOMETRY_NORMALS) 
+    {
+        if (normalListSize == newSize)
+            return;
+    }
+    else if (list == VS_GEOMETRY_COLORS) 
+    {
+        if (colorListSize == newSize)
+            return;
+    }
+    else if (dataListSize[list] == newSize)
         return;
 
     // If we get this far, we're correctly modifying the requested list.
@@ -2425,7 +2435,6 @@ void vsDynamicGeometry::setDataListSize(int whichData, int newSize)
 // ------------------------------------------------------------------------
 int vsDynamicGeometry::getDataListSize(int whichData)
 {
-    unsigned int unit;
     int list;
 
     // Interpret the whichData constant

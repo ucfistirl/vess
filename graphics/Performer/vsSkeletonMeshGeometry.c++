@@ -37,7 +37,6 @@
 // ------------------------------------------------------------------------
 vsSkeletonMeshGeometry::vsSkeletonMeshGeometry() : parentList(5, 5)
 {
-    unsigned int unit;
     int loop, list;
     vsDynamicDataList dynList;
     vsDynamicDataList *initData;
@@ -808,7 +807,7 @@ void vsSkeletonMeshGeometry::beginNewState()
             // We have a vertex attribute for this list, but there is no 
             // longer a list available to use
             performerGeoarray->removeAttr(dataAttr[list]);
-            dataAttr[list] == NULL;
+            dataAttr[list] = NULL;
         }
         else if ((dataAttr[list] == NULL) && (dataList[list] != NULL))
         {
@@ -1211,7 +1210,6 @@ void vsSkeletonMeshGeometry::getPrimitiveLengths(int *lengthsBuffer)
 void vsSkeletonMeshGeometry::setBinding(int whichData, int binding)
 {
     unsigned int unit;
-    int performerBinding;
     int list;
 
     // Figure out which list is being modified.
@@ -1568,7 +1566,6 @@ int vsSkeletonMeshGeometry::getBinding(int whichData)
 void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
                                      vsVector data)
 {
-    unsigned int unit;
     int loop, list;
     int listSize;
 
@@ -1777,7 +1774,6 @@ void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
 vsVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
 {
     vsVector result;
-    unsigned int unit;
     int loop;
     int list;
     int listSize;
@@ -1938,7 +1934,6 @@ vsVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
 // ------------------------------------------------------------------------
 void vsSkeletonMeshGeometry::setDataList(int whichData, vsVector *newDataList)
 {
-    unsigned int unit;
     int loop, sloop;
     int list;
 
@@ -2230,9 +2225,7 @@ void vsSkeletonMeshGeometry::getDataList(int whichData, vsVector *dataBuffer)
 // ------------------------------------------------------------------------
 void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
 {
-    unsigned int unit;
-    int binding, performerBinding;
-    int list;
+    int list, unit;
     int copySize;
     float *tempList;
 
@@ -2296,8 +2289,15 @@ void vsSkeletonMeshGeometry::setDataListSize(int whichData, int newSize)
             return;
         }
 
-        // If we're resizing the list to the same size, there's not much to do
-        if (dataListSize[list] == newSize)
+        // If we're resizing the list to the same size, there's not much to
+        // do.  Just make sure we compare against the internal list size
+        // for colors.
+        if (list == VS_GEOMETRY_COLORS) 
+        {
+            if (colorListSize == newSize)
+                return;
+        }
+        else if (dataListSize[list] == newSize)
             return;
     }
 
