@@ -37,8 +37,6 @@ vs4TrackerHead::vs4TrackerHead(vsMotionTracker *headRear,
                                vsMotionTracker *rShoulder, 
                                vsKinematics *kin)
 {
-    int i;
-
     headTrackerRear = headRear;
     headTrackerFront = headFront;
     lShoulderTracker = lShoulder;
