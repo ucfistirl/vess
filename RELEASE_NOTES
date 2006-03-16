@@ -1,0 +1,797 @@
+RELEASE NOTES
+
+4.1.0
+-----
+Incremental feature release. Dependent graphics libraries are now 
+OpenSceneGraph-1.0.0 and OpenGL Performer 3.2.1 or later.  Supported operating
+systems are Linux and Windows.  IRIX is no longer officially supported, but
+the existing IRIX code remains.
+
+Added support for the PhaseSpace Motion Digitizer and native support for
+all InterSense motion tracking devices.  Both of these use external libraries
+provided by the vendor.  Added several new motion models (and changed 
+vsWalkInPlace) to support point-based motion trackers (such as the 
+PhaseSpace).
+
+Added a new first-person shooter-like motion model (vsFPSMotion).  It uses
+two kinematics, one for overall position/heading, and one for view elevation,
+for cases these two parameters need to be controlled separately.  The motion
+model is designed to handle keyboard/mouse controls as well as dual-analog
+joystick controls, although other control mechanisms are also possible.
+
+Several changes to support skinned character animation.  Added the ability to 
+pass an arbitrary time to vsPathMotion and vsPathMotionManager update 
+functions.  Added copy constructors to vsPathMotion and vsPathMotionManager.
+Added a function to vsSkeletonKinematics to retrieve the number of 
+vsKinematics objects being controlled by it.  
+
+Several new features to improve the dynamic characteristics of the various
+menu library classes.  Several bug fixes and improvements to fault-tolerance 
+as well.
+
+Added a particle system class (vsParticleSystem).  The system is very flexible,
+with numerous configuration options.  It can operate entirely on the CPU or
+with the assistance of a GPU vertex program to handle the transformation,
+billboarding, and lighting.  See the User's Guide for details and sample
+code.
+
+Added support for the OpenGL shading language.  Three new classes,
+vsGLSLProgramAttribute, vsGLSLShader, and vsGLSLUniform encapsulate GLSL
+programs, GLSL shader objects, and uniform parameters, respectively.
+
+Previously, the LOD attribute was ignoring the LOD center property in the 
+database file.  Added a new function to allow the LOD center to be set by 
+the user.  Added code to vsDatabaseLoader to get the LOD center from the
+file and use it.
+
+Added support for texture matrices in all three texture classes, like the
+texture environment settings, the texture matrix is encapsulated within the
+VESS texture object itself.
+
+Added support for BLEND and ADD texture apply modes (in addition to the
+traditional DECAL, MODULATE, and REPLACE modes).  Also added internal support 
+for osg::TexEnvCombine for texture combining operations.  This allows certain
+databases and models to look more correct, although no additional API 
+functionality is added to facilitate manipulation of texture combining.
+
+Added support for off-axis projections in vsView.  This functionality is 
+essential for multi-screen displays.
+
+vsGeometry, vsDynamicGeometry, and vsSkeletonMeshGeometry are now implemented 
+with pfGeoArrays under Performer.  This new Performer class is better suited 
+to modern graphics hardware and has new functionality to help take advantage 
+of programmable graphics hardware.
+
+The enable/disableLighting() method of vsGeometry has now been propagated
+to vsNode and all descendants.  For example, calling enableLighting() on a 
+vsComponent will enable lighting on all of its descendant vsGeometrys.
+
+Added file search path functionality to the CAL3D loader classes.
+
+Added automatic normal generation to the OSG version of vsDatabaseLoader.
+This is intended to better match the properties of Performer's OpenFlight
+loader.  The feature is controlled through a new loader mode 
+(AUTOGEN_NORMALS).
+
+The vsSwitchAttribute implementation now uses the osgSim::MultiSwitch class
+in OSG.  This new switch class has proper support for OpenFlight switch
+bead masks.
+
+Added more detail to the printing of certain attributes in vsScenePrinter, as
+well as adding support for the new attributes.
+
+Added a markAtInterval() method to vsTimer, allowing the timer to be marked
+at a predefined interval (e.g.: every 3 seconds).  This is useful for timing
+and counting iterations of a process that takes a fixed amount of time.
+
+The sound library now uses the "freealut" implementation of the ALUT library,
+instead of the now-deprecated version that was integrated into OpenAL.  This
+changes application linking requirements.
+
+The vsSoundManager now spawns an asynchronous thread to monitor the state
+of all active sound sources.  This thread updates and buffer-swaps all 
+streaming sound sources and updates the playback state of static sources.
+The thread does its best to run at a constant update rate, which defaults
+to 20 Hz and can be changed by the application.  This change greatly improves
+the audio performance of applications with streaming sounds and relatively low
+visual frame rates.
+
+Added the capability of "virtually playing" streaming sources.  When a
+streaming sound source is swapped out by the voice management system, the
+vsSoundManager still swaps the stream's buffers as if it were still consuming
+audio data.  This fixes a problem in previous versions of the sound library,
+where streaming sounds needed to have ALWAYS_ON priority to guarantee
+reliable behavior.
+
+Changed vsMovieReader to use the presentation timestamps provided by ffmpeg
+for synchronization.  This significantly improves audio/video synchronization.
+The implementation now uses a more recent version of ffmpeg as well.
+
+The vsScentManager now has the ability to accept a vsComponent, specifying
+a subscene for occlusion tests.  With a valid subscene loaded, any scent 
+sources with occlusion enabled are disabled if a line-of-sight test between 
+the scent source and detector fails. 
+
+Added read and write methods to vsMatrix.
+
+Added deletion methods to clean-up sound and scent manager instances.
+
+Removed printf() that displayed how many voices are available.
+
+Added variable and functions to allow a variable scent on/scent off cycle
+time, instead of the time being compiled in.
+
+Fixed a bug where linear, rounded and spline paths were not handled properly
+in vsPathMotion when reading from a file.
+
+Fixed a bug in setTargetComponent().  It should have been checking the
+parameter passed in (targetCmp) for NULL, not the object variable (targetComp).
+
+Fixed a bug with vsMenuObjects that was causing double deletions of a 
+vsComponent.
+
+The vsMenuObject copy constructor now clones the child component for 
+flexibility (rather than simply referencing the original).
+
+Fixed the component/kinematics deletion process so that a vsMenuObject
+created with these two values will not double-delete.
+
+Added two concepts to the menu button.  The first is the idea of a state
+reversion on idle.  Buttons may now be set to revert to some default state
+when sent an idle signal, and that default state may be set as well.  
+Additionally, buttons may be set as repeatable or not as follows: a repeatable
+button will respond to activation signals on consecutive frames.  A 
+non-repeatable button will require a blank frame with no activation to 
+respond as pressed again.
+
+Fixed a bug with the menu label component so that it no longer disappears 
+when the text is reset.
+
+Added the setTextBuilder method so that the text builder used to render
+text into a vsMenuLabel can be changed dynamically.
+
+Menu labels can now cope with being text-builder-less if desired.  They
+will simply store the text and wait until the text builder is set before
+generating the component.
+
+Added the concept of enabled-ness to vsMenuObjects, with a boolean variable 
+and two helper functions setEnabled() and isEnabled() to specify whether a 
+particular vsMenuObject should be visible in a vsMenuSystem.
+
+A vsMenuObject can now be created with a component and kinematics (and
+deleted without issue).
+
+Within the menu library, the switch button now has reversion behavior matching
+that of the standard vsMenuButton.
+
+Panes and cursors no longer have to be defined at the time the object is
+instantiated; a new constructor allows them to be set later.  A NULL menu
+tree is now permitted without crashing on updates. 
+
+Added a requirement where vsMenuObjects in the specified vsMenuTree must be 
+considered enabled to be added to the menu scene graph. Objects that are not
+enabled are still updated.
+
+Added a the concept of a repeatable action that can be triggered in
+consecutive frames without 'taking a frame off' as it was before. For
+example, if the cursor button is set to repeatable with a call to the
+setRepeatable() method, then holding the cursor over a button will cause
+it to be activated once for every update, rather than just the first one
+as before.
+
+The vsMenuSystem will no longer attempt to update disabled items.
+
+The vsMenuSystem can now cope with being paneless.
+
+Added reference counting on the menuPane.  Anyone who has access to the 
+vsMenuPane can know that it is still being used because of its increment 
+on the reference count.
+
+Fixed vsMenuTrees to work without frames specified.
+
+Within the IO library, initialized the vsJoystick member object to NULL, and 
+added checks in update() for the port not opening properly and for the 
+joystick object being NULL.  Should keep applications from crashing when 
+they try to open an invalid joystick port.
+
+Added details for LOD attributes to vsScenePrinter.
+
+Fixed a memory bug occuring when setting a stereo pane's scene to NULL 
+(in vsPane).
+
+Within the Performer version, the vsWindow(vsScreen *, xWindow) constructor
+now refs the pfPipeWindow, fixing an erroneous debug message.
+
+Added a flag to indicate whether a native window (MS window or X window) was
+created by the vsWindow constructor or not, and added code to deal with it
+appropriately in the destructor.  If a native window is created in the
+constructor, it will be deleted in the destructor.  If not, it won't be.  This
+allows pre-existing native windows (such as a GtkDrawingArea for example) to
+be reused after a vsWindow is created on them and then deleted.
+
+Within vsComponent, added support for texture rectangles in addAttribute().
+
+Insured that insertChild within vsComponent does not set its parent before 
+attempting to shortcut and addChild if inserting to the end of the current
+children list.
+
+Also added an extra else to set the texture unit used by the given attribute
+to a sentinel value (-1) if the attribute is not a texture attribute.  This
+fixes a problem that kept an attribute from being attached to the vsComponent
+or vsScene in certain circumstances when it should have been able to.
+
+Added two functions to enable/disable lighting on a vsComponent and all
+children.
+
+Within vsDatabaseLoader, added methods to vsLODAttribute to allow the center
+of the LOD to be set by the user.  Added code to vsDatabaseLoader that would
+read the LOD center from the loaded scene and set the LOD center on the new 
+vsLODAttribute created.  This fixes problems on some databases where LOD's 
+would cut out very briefly and come back.
+
+Changed the enable/disable lighting functions to virtual, because now all 
+vsNode descendents implement this function.  Also added two functions to 
+enable and disable lighting on the scene.
+
+Fixed missing getJustification() method in Performer version of vsTextBuilder.
+
+Fixed origin in vsPane to be upper-left based.
+
+Within vsWindow of the OSG version, fixed the getDrawableSize(&w, &h) method
+to actually return the drawable size rather than the root window size.
+
+Within vsComponent, added checks for texture rectangle (to go along with 
+texture and texture cube) attributes in addAttribute() method.  Also fixed 
+a bug that was comparing the node's attribute list with the wrong attribute.
+
+Fixed bug in OSG version of vsComponent::insertChild().  Also fixed a bug with
+the switch attribute mask being in wrong location (inside wrong block).
+
+In OSG version of vsDatabaseLoader, support for loading multitextured files was 
+incomplete, because only one set of texture coordinates was ever being loaded.  
+This is now fixed.
+
+Added a feature to support the osg::TexEnvCombine state attribute, which can
+be used instead of the regular osg::TexEnv for more powerful texture combining
+operations.  This is only rudimentary support (none of the extra features
+of osg::TexEnvCombine are exposed).  This change was needed to support the
+OpenFlight detail texture emulation provided by the OSG OpenFlight loader.
+Without it, databases with detail textures did not look right.
+
+Also made a change so that the default texture apply mode on any texture
+attribute with a texture unit greater than 0 is now MODULATE instead of
+DECAL.  This ensures that files with multitexturing have their texture layers
+combined properly.
+
+Implemented automatic normal generation using the osgUtil::SmoothingVisitor.  
+This better matches Performer's behavior when loading OpenFlight 
+files without normals.  This behavior can be disabled using the new 
+VS_DATABASE_MODE_AUTOGEN_NORMALS loader mode.
+
+Within the OSG version of vsIntersect, fixed the setPickSeg function so 
+it correctly projects coordinates into non-full-screen panes.
+
+Added two boolean values in the OSG version of vsSwitchAttribute that 
+remember if the vsSwitchAttribute has all of its attachments enabled or 
+disabled.  These are modified in the enableAll() and disableAll() methods, 
+and are used primarily in addMask() and pruneMask().
+
+Added a getJustification method to return the current justification mode.
+
+Within Environment library, vsCal3DLoader now properly creates and deletes the 
+cal3d animation loader.
+
+
+4.0.0
+-----
+Major release.  Runs on OpenGL Performer 3.0 or later and Open Scene
+Graph 0.9.6-2 (in IRIX, Linux and Windows).
+
+Addition of chromakey compositing class to allow VESS to work
+for augmented reality (real world scene can be composited into virtual
+scene, or vice-versa).
+
+Changes to vsMatrix to speed up matrix multiplication and inversion.
+
+Fixed bug in getAxisAngleRotation() in vsQuat where floating point
+error was causing it to return NaN.  Added a getDecomposition() function
+to obtain the amount of a quaternion's rotation that rotates around a
+specific axis.
+
+Fixed bug in error handling code of vsSphere where it would confuse
+an error with a correctly empty return value.
+
+Improved methods in vsVector to increase efficiency.
+
+In vsImage, fixed missing extern "C" around the #include of the jpeglib.h file
+in the OSG version.  Also added a #define that is necessary for Windows
+functionality.
+
+Fixed bug in vsUDPNetworkInterface to read responses from any address
+rather than the one written to (this was causing a problem with the
+vsMotionStarSystem class in reading from a Motion Star configured in
+broadcast mode).
+
+Added in a new "path motion" manager that helps the user coordinate
+instances of the vsPathMotion class for use in animations.
+
+Added support for programmable shading.  Cg is supported and a number
+of classes were added (vsCgMatrixParameter, vsCgParameter, 
+vsCgParameterBlockAttribute, vsCgShaderAttribute, vsCgStateMatrixParameter,
+vsCgTextureParameter, and vsCgVectorParameter).  See the User's Manual
+for more information.
+
+Added support for Cal-3D files.  Cal-3D is a plug-in to 3-D Studio Max
+that allows characters to be modeled and written out in "Cal-3D" format.
+This format retains all the bone weights that can be used within VESS
+applications (such as for skinning).  vsCal3DBoneLoader, vsCal3DLoader,
+and vsCal3DMeshLoader were added to support this feature.  In addition,
+vsSkeleton and vsSkeletonMesh were added to provide for automatically
+skinning a skeleton within VESS (see the User's Manual for more information).
+Accordingly, support for skeleton meshes were added to vsComponent.
+
+Multi-texturing is now supported.
+
+Fixed sequence callbacks in OSG.  Previously, traversals were stopping
+at all sequence nodes.  Modified getCurrentChild() in vsSequence to 
+return -1 when the osg::Sequence is out of range (vsSequenceCallback
+will not call getChildTime when it sees the -1, which will avoid "index
+out of range" warning statements when a sequence is not yet fully 
+initialized or has no children).
+
+vsTextureCubeAttribute and vsTextureRectangleAttribute were added to
+support texture cubes and texture rectangles, respectively.
+
+Enabled GL_NORMALIZE to normalize all vectors in OpenGL.  This prevents
+strange lighting effects when an object is scaled.
+
+Added pixel buffer support.  Scenes can now be rendered off screen for
+use (such as saving snapshots or as textures).
+
+vsMPEGReader is now vsMovieReader and uses the ffmpeg library instead
+of the mpeg2dec library.  The ffmpeg library allows many additional
+video and audio codecs beyond MPEG.  vsMovieReader also supports audio
+streams instead of just video streams (as was the case with vsMPEGReader).
+
+Fixed bug in vsWindow where a drawable's width and height were not set
+properly.
+
+Added the vsButtonAxis class that emulates the behavior of an input
+axis based on the input of some number of vsInputButtons.
+
+Fixed the getPosition method of vsInputAxis to properly return the
+idle position (instead of zero).
+
+Added support for a 1394 camera using the libraw1394 and libdc1393
+libraries (useful for augmented reality applications).
+
+Fixed two memory allocation issues in vsKeyboard.
+
+Added voice management functionality to the Sound Library.  Note that
+vsSoundManager MUST be updated each frame due to this.  This has been
+required since version 3.0.0 but would not break if not performed.
+This is no longer the case (vsSoundManager update() must be called each
+frame).  
+
+Within vsScentSource, added the ability to turn scent sources on and off
+without losing their scaling factor.  Allows intermittent scents such
+as firing a gun.
+
+Added several methods to the vsSoundBuffer class to allow characteristics
+of the sound to be queried (size, format, frequency, etc.).  Also added
+in a check to avoid a division by zero, which could happen if an invalid
+audio format was used.
+
+Added a vsArticulatedCollision class for performing collision detection
+and handling of an articulated object.
+
+Altered vsCollision to improve intersection against concave objects.
+
+Modified vsDrivingMotion to differentiate between maximum forward
+velocity and maximum reverse velocity (previously, it had a single
+maximum velocity).
+
+Added in a class for inverse kinematics (vsInverseKinematics).
+
+Added a configureFromFile() method to vsPathMotion to allow it to
+be initialized from external files.
+
+Added support for vsButtonAxis, vsPathMotion and vsSequencer classes
+to the vsAvatar class.
+
+Fixed orphaned memory issue found in vsRemoteInterfaceBuffer.
+
+Added a menu system to allow the user to have a menu that may be
+used to select options, etc.  Uses vsComponents to represent the
+various menu items allowing the menu itself to be composed of
+2-D or 3-D objects (allowing for a 2-D on screen menu, or a 3-D
+immersive menu).  All of these elements have been placed into
+a new "menu" library.
+
+Added a new "environment" library that will eventually include 
+additional data about the experiment for proper interaction
+(material composition, weights, etc.).  As of this release, it
+contains the "meta loader" for Cal-3D files.
+
+
+3.0.0
+-----
+Major release.  Added a port to Windows (both OpenGL Performer 3.0 or later
+and Open Scene Graph supported).
+
+Open Scene Graph version updated to 0.9.6.  Several changes to VESS to
+accomodate this new version.
+
+New motion model for path following.  Allows user to specify a linear path,
+linear path with rounded corners, quaternion curve, or Catmull-Rom spline
+path for any vsKinematics object to follow.  Position and/or orientation
+can be interpolated.
+
+Added a new low-level IO library.  The former IO library now contains only
+input devices and drivers.  The low-level IO library handles serial ports and
+network interfaces.  A new parallel port driver was also added (Linux only).
+
+Added a Scent Library to provide a subsystem for handling olfactory
+components of a scene.  Works very similar to the Sound Library.  Scent
+source objects can be attached to vsComponents, as can a scent detector
+object.  A singleton class (vsScentManager) allows a single-call update
+of all scent sources and scent detector.  Currently, only the ScentAir
+ScentKiosk olfactory device is supported (via a custom-designed parallel
+port interface).
+
+All boolean parameters and return values that were previously typed as
+int have been converted to bool.  As a result, the VS_TRUE and VS_FALSE
+symbols no longer exist.
+
+Added a new class called vsMPEGReader to obtain video data from MPEG-1 and
+MPEG-2 files.  Added new functionality to vsTextureAttribute to signal that
+texture data has changed.  This enables vsTextureAttribute, in conjunction
+with vsMPEGReader (or another constant stream of images), to perform video
+texturing.
+
+Added a new intersection method based on spheres instead of line segments.
+Added a vsSphere class to the Utility Library to support this (basic sphere
+operations are provided).
+
+Support for Sensable Technologies PHANToM (including force feedback control).
+Requires a remote connection to a Phantom server application, which uses
+Sensable's GHOST library (Windows or Red Hat Linux 7.2 only).  Details in
+the User's Guide.  Support also includes a vsPhantomMotion motion model,
+providing motion tracking capability using the PHANToM, and a
+vsPhantomCollision motion model, providing collision and force feedback
+response for the PHANToM.
+
+Support for the Immersion 3D CyberGrasp (Windows only, includes force
+feedback control).  Requires only the free version of the Virtual Hand
+Toolkit provided with the hardware (Virtual Hand Studio is not used or
+required).
+
+Added several motion models intended to support the use of the CyberGrasp
+and regular articulation gloves.  vsHandArticulation is a convenience class
+that manages the 22 separate degrees of freedom of a human hand (works
+closely with the vsArticulationGlove class).  vsHandCollision provides a
+simple interface to detect collisions between a virtual hand and the
+environment.  It includes a method to determine whether or not a particular
+object (vsComponent) is "grasped."  vsRelativeObjectMotion allows a
+virtual hand or any other vsKinematics to manipulate any virtual object.
+The target object can be moved and rotated freely, or can be constrained
+to move along a line, along a plane, or to rotate only about a single axis.
+
+Support for the Northern Digital Polaris tracking system.
+
+Support for the ScentAir olfactory system in the I/O library (Linux only, 
+using IST's custom interface).
+
+Support for IST's Virtual Environment Stimulus Tool (VEST) tactile feedback
+device.
+
+Reduced the number of vsWindow constructors to three.  The stereo parameter
+is now required in all vsWindow constructor calls.
+
+Changed the vsSwitchAttribute under Open Scene Graph to match Performer's
+functionality.  This eliminates the ability to switch multiple children
+on under Open Scene Graph, but the behavior is now consistent between the
+two scene graphs (and the OpenFlight file itself).
+
+Added a mode parameter to vsScenePrinter to allow control of how much
+data is printed via a bit mask.
+
+Added a vsImage class to allow images to be passed as coherent units.  Used
+by vsWindow (for screen captures).
+
+Added a vsUpdatable base class and a vsSequencer class that can automatically
+update a list vsUpdatable-derived objects with the option of providing a fixed
+minimum latency for each update.
+
+Added a "remote interface" that, by default, VESS creates when application
+is run.  Allows alteration of the running parameters of the VESS application
+(sequence ordering, placement of components, setting of kinematics, display
+of statistics).  See User's Guide for more information.
+
+Performance updates to mathematics classes (using const references instead
+of pass-by-value).  Added new math operations.
+
+Several known bugs relating to Open Scene Graph fixed.  Memory usage was
+greatly reduced, and OpenFlight node masks are now supported by Open Scene
+Graph (and hence, by VESS).  Also, added a vsSequenceCallback class to
+provide missing Performer functionality for the vsSequenceAttribute under
+Open Scene Graph.  Specifically, providing a negative time value for a
+sequence frame causes the sequence to pause at that frame.
+
+Set-up mailing list at http://lists.sourceforge.net/lists/listinfo/vess-users
+
+
+2.0.0
+-----
+Major release.  Added a port to Open Scene Graph.  VESS can now be compiled
+either on OpenGL Performer or Open Scene Graph.
+
+Altered compile method to use autoconf/automake (see User's Guide).
+
+Altered directory hierarchy.  "input" library now known as "io" library
+(to support haptics devices that have both input and output).  "scene"
+library now known as "graphics" library.  "math" library now known as 
+"utility" library and its focus broadened.  Dependencies between libraries
+cleaned-up significantly to avoid circular dependencies.  Also, split
+libraries into subdirectories based on either architecture (IRIX, Linux)
+or scene graph library (OpenGL Performer, Open Scene Graph).
+
+Database loader altered.  Now has a better correspondence between the database
+hierarchy and the in memory scene graph hierarchy.  Database loader is now
+a user-instantiated object rather than being created by vsSystem.
+
+enableCull() and disableCull() calls added to vsNode and its descendants
+that allows the user to control culling traversals.
+
+Support for render bins added to vsGeometry and vsDynamicGeometry (see
+User's Guide).
+
+vsScenePrinter class added to print the VESS scene graph in a nice way.
+
+Added getDrawableSize() to vsWindow to allow the size of the drawable
+area (the area without borders, decorations, or other widgets) to be
+retrieved. 
+
+Fixed problem in vsDynamicGeometry that Performer could not accurately 
+compute bounding spheres for fluxed geometry.
+
+Altered vsView to inherit from vsObject (useful in other places).
+
+Sample programs located in the directory "sample" require GNU make to
+compile.
+
+
+1.2.0
+-----
+Fixed a bug in the setVecsRotation function of vsQuat dealing with
+computing roll using the "up" vector.
+
+Added additional internal capability for checking equivalence of
+attributes.
+
+Added new vsDynamicGeometry class to support geometry that changes
+its attributes between frames.
+
+Added new vsObject base class to support reference counting and magic
+numbers for all nodes and attributes.
+
+Added new vsWireframeAttribute to allow wireframing a scene (or part of a
+scene).
+
+Fixed problem in vsGeometry with primitive counts causing memory issues.
+
+Added workaround to vsIntersect to deal with Performer intersection issue
+of not returning paths with more than 32 nodes.  Added facing mode to 
+vsIntersect to ignore front or back faces during intersection.  Added 
+functionality to support what branch of a switch, sequence, etc to traverse
+in an intersection traversal (current, first, all).
+
+Fixed bug in vsLightAttribute that incorrectly ordered the attenuation
+values.
+
+Fixed bug in vsSwitchAttribute's isEnabled() method that did not correctly
+return a node as being enabled when all nodes are enabled.
+
+Added occlusion support to vsTransparencyAttribute to specify whether the
+attached geometry should or should not write depth information to the
+Z-buffer when rendered.
+
+Fixed bug in vsGrowableArray in setSize() that did not make sure new size
+was bigger than current size before clearing memory.  Also added a new
+feature that clears newly-allocated memory to NULL.
+
+Added new getScreenCount() method to vsSystem that returns the number of
+screens detected on the system.
+
+Added a new constructor to vsWindow to support creating your own windows
+first.
+
+Fixed bug in vsWindowSystem where events were not read in the order they
+happened.
+
+Changed internal object mapping from a linear list to a red-black tree to
+improve efficiency.
+
+Fixed bug in vsAscensionSerialTrackingSystem and vsEthernetMotionStar
+in extracting tracker data into a vsMatrix.
+
+Fixed bug in vsFastrak's setBaudRate to properly remember streaming mode.
+
+Added threshold to the idle functionality of vsInputAxis and vsJoystick 
+(helps to handle drifting joysticks).  Added ability to invert a vsInputAxis.
+
+Added new vsLinuxJoystickSystem that supports reading a joystick under
+the Linux kernel.
+
+Fixed semaphore bug in vsSharedInputData.
+
+Rearranged initialization and clean-up code in vsUnwinder to be more
+fault tolerant.
+
+Added new update function to vsKinematics to allow user to specify elapsed
+time between updates.
+
+Fixed bug in vsCollision that improperly calculated the amount of movement
+allowed.
+
+Added new vsSphericalMotion motion model that provides spherical control for
+the viewpoint or virtual object to which it is attached.
+
+Added tweaks to make VESS compatible with GCC 3.2.
+
+Further commented existing code.
+
+
+
+1.1.0
+-----
+Added the vsUpdatable abstract base class to the System Library.  This
+class only contains a pure virtual update() function.  Modified vsAvatar,
+vsInputSystem, vsKinematics, and vsMotionModel to subclass from this new
+class.
+
+Fixed problems with vsAscensionSerialTrackingSystem class.  Added
+additional delays during the configuration process which seemed to make
+SRT-based configurations behave better.  Fixed the setActiveHemisphere()
+method to correctly handle endian-ness.  Also fixed other configuration
+commands that used to assume that an ERC was present.
+
+Fixed some endianness issues with the ethernet packets in 
+vsEthernetMotionStar.  
+
+Added a setBaudRate() call to vsFastrak to allow setting of the baud
+rate on the fly.  Useful for very old FASTRAK systems that do not
+allow baud rate to be set with DIP switches.  Extra sleep() and 
+usleep() calls were added to the initialization process to make the 
+FASTRAK work with faster PC's.
+
+Fix to vsKeyboard class to correctly handle faulty X key release events.
+
+Addition to vsSerialPort of methods to set the state of DTR and RTS
+control lines. Also improved comments within this class.  Increased the
+read retry count to accommodate the faster PC's.
+
+Temporary fix to vsWindowSystem to prevent Performer and VESS from trying
+to intercept the same X events.  For now, VESS just leaves it to Performer.
+This will be changed in the future so that Performer leaves it to VESS.
+
+Fixed minor bug in the vsMatrix and vsQuat operator==() methods.
+
+Fixed error in vsQuat's slerp() method when the source and destination
+quaternions were the same.  Also fixed the setVecsRotation() method to
+correctly handle situations when the source and target directions are
+exactly opposite of each other.
+
+Fixed a problem in vsComponent's deleteTree() method.
+
+Restructured the handling of the vsNode method findNodeByName() such
+that instead of being pure virtual and having vsGeometry and vsComponent
+make their own versions, now instead vsNode has the only version but calls
+methods internal to vsGeometry and vsComponent to do the actual work.  This
+was done in order to add in a new version of findNodeByName() that is able
+to find multiple nodes with the same name.
+
+Added ability to create 'picking' segments within vsIntersect.  These are
+segments usually resulting from user interaction, and are generally rays
+fired from the viewpoint location out to infinity within the scene.
+
+Fixed vsLightAttribute() constructor to not attempt to disable its light
+object when it is first created, as this was causing Performer to
+segmentation fault when a light attribute was created without a vsWindow
+being open first.
+
+Fixed minor bug in vsGrowableArray's setMaxSize() method.
+
+Increased the maximum size of a vsObjectMap, as some large databases could
+cause it to overflow.
+
+Modified the vsSystem method printScene() to additionally print out
+addresses of nodes, and to correctly recognize and print out the
+SOUND_SOURCE and SOUND_LISTENER attribute types.
+
+Added a new vsWalkArticulation motion model to the Motion Library.  This
+motion model attempts to mimic the leg movements of a walking human.  This
+motion model requires other motion models that cause this human to move to
+use velocity-based, rather than position-based, movement modes.  Also added
+a sample animation data file of the type that this class needs to operate.
+
+Fixed bug in vsOptimizer's CLEAN_TREE pass which could allow deletion of
+children on components with GROUPING category attributes.
+
+Fixed an error message in vsSoundListenerAttribute that referred to "sound
+source" instead of "sound listener"
+
+Added a getBufferSize() call in vsSoundStream to return the amount of data
+(in bytes) that is expected on each call to queueBuffer().  Also fixed a
+bug in the swapBuffers() call that would result in improper queueing of
+subsequent buffers if the stream ever ran out of data completely.
+
+Added vsArticulationGlove input device class for handling of gloves that
+sense the articulation of the fingers and hand.  Also added vsCyberGloveBox
+input system class for handling of the Immersion 3D Interaction CyberGlove.
+
+Fix in vsInputButton such that there must now be a setReleased() call between
+two setPressed() calls for the presses to be a double-click.  Fixes problem
+with polled input systems (like vsUnwinder) which call setPressed() 
+repeatedly.
+
+Changed vsWindow to include a pointer to the current vsWindowSystem that
+is using its input.  Also changed vsWindowSystem to notify the vsWindow
+when the window system is being created or destroyed.
+
+Modified vsStateAttribute-derived attributes, as well as
+vsGraphicsState, to handle the new attribute override feature, where an
+attribute can be set to override any attributes of the same type below
+it in the scene.
+
+Fixed bug in vsOptimizer tree cleaning optimization which could allow
+children of components with grouping category attributes to be deleted.
+
+Improved commenting and error messages within vsDatabaseLoader.
+
+Many changes to avatar library. Added support for objects from the motion
+library.  Added object chaining so that motion model objects can use other
+objects like input objects and kinematics objects.  Added viewpoint objects
+for tying a pane to an avatar.  Added input device adapters for a standard
+method of retrieving one input device from an input system.  Added more
+error messages for bad configuration file data.  Deprecated old setup
+function with three parameters in favor of one with no parameters; the
+same object data that was in the paired growable arrays is now in a trio
+of avatar instance variable arrays for all make*() functions to use.
+Added a findObject() function for easy retrieval of a named object from
+the object lists.  Also added vsConfigAvatar avatar subclass for automated
+creation and handling of an avatar from a configuration file, and added
+vsGhostFlyAvatar avatar subclass for a no-geometry, flying motion model,
+scene viewer avatar.
+
+Added a clearPath() function for clearing the vsDatabaseLoader's file
+search path.  Also removed the 1000 character limit for path entries.
+
+Increased the maximum size of the vsGrowableArrays in vsObjectMap.
+
+Added a new constructor to vsWindow that allows an existing pfPipeWindow
+to be used to create it.  This permits non-standard pfPipeWindow
+configurations to be used with VESS.
+
+Added setOverride() method to vsAttributes and supporting functions
+to vsGraphicsState.
+
+Added additional error checking to vsGeometry's setData() function.  The
+method now ensures that the input vsVector is the proper size for the data
+concerned.
+
+Added method to vsTransparencyAttribute to allow selection of transparency 
+quality.
+
+Added initialization of vsFlyingMotion's currentSpeed member to all of
+its constructors.
+
+
+
+1.0.0
+-----
+The first public release of VESS!
+
+Please send any suggestions, bug reports, killer apps, etc. to 
+  vess@ist.ucf.edu, or report them at http://sourceforge.net/projects/vess
+

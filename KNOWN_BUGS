@@ -1,0 +1,70 @@
+
+COMMON
+======
+The "remote interface" only supports Euler angles.
+
+
+GLSL uniform data arrays are not currently supported, due to the fact that
+OpenSceneGraph has no support for GLSL uniform arrays, and that Performer
+has no support for the indexing of GLSL uniform arrays.  A workaround is to 
+pack the array into a structure, so in the GLSL code instead of this:
+
+    uniform mat4 matrix[32];
+
+use this:
+
+    struct BoneMatrix
+    {
+        mat4 matrix;
+    };
+
+    uniform BoneMatrix matrixList[32];
+
+and use "matrixList[<index>].matrix" instead of matrix[<index>] in your 
+VESS program to reference the element at index <index>.  Uniform array support
+is currently being developed for Open Scene Graph, and this limitation will
+be removed when this development is completed.
+
+
+OPENGL PERFORMER
+================
+Enabling Earth/Sky with an orthographic projection causes the buffer not
+to clear properly.
+
+The same instanced geometry nodes cannot be affected by state attributes of
+the same type at the same time (there is only one pfGeoState to manipulate).
+
+When the vsMaterialAttribute color mode is set to override the material
+diffuse color with the geometry vertex colors, the vertices' alpha values
+also override the material alpha value.
+
+Due to a bug in Performer's OpenFlight loader, geometry that is set as
+transparent or semi-transparent in the OpenFlight file is loaded and
+rendered as fully opaque.  A workaround is to use a transparent material
+in the OpenFlight file instead of using the transparency setting.
+
+Although Performer's OpenFlight loader has configuration options available,
+it seems that any specified options are ignored by the loader.  As a result,
+it is not possible to disable the VS_DATABASE_MODE_AUTOGEN_NORMALS option
+in vsDatabaseLoader.  This means that OpenFlight models without normals will 
+always have normals automatically generated at load time.
+
+Because of the nature of the Performer Earth/Sky, if display of Earth/Sky 
+is requested, the depth and color buffers are always cleared regardless of 
+the contents of the glClearMask.
+
+GLSL vertex attribute bindings are not supported under Performer.  Performer
+provides no API for this in its pfShaderProgram class, and there is not
+currently any way to work around this limitation.  This means that generic 
+per-vertex data cannot be used in GLSL programs.  A partial workaround is
+to pack "generic" data into unused texture coordinate lists instead of
+generic attribute lists.  However, the VESS 4.x API limits texture 
+coordinates to 2 elements, and Performer limits the number of texture units
+to 4.  These limitations make this workaround only marginally useful.
+
+
+OPEN SCENE GRAPH
+================
+Open Scene Graph cannot automatically place materials on loaded geometry
+(if geometry is not being lit properly, try adding materials to it).
+

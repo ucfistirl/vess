@@ -1,0 +1,61 @@
+
+                       VIRTUAL ENVIRONMENT SOFTWARE SANDBOX
+                                     (VESS)
+
+                                  Version 4.1.0
+
+
+
+INTRODUCTION
+============
+
+VESS is a suite of libraries based on lessons learned from years of virtual 
+environment research and is used to create the software for various virtual 
+reality research applications at UCF/IST. 
+
+The goal of VESS is to provide an application base that is useful and 
+functional using today's hardware and graphics and audio libraries, extensible
+to support future hardware and software libraries, and easily portable to 
+multiple platforms, graphics and audio systems, and application programming 
+interfaces (API's). 
+
+VESS is currently available for SGI's OpenGL Performer and the open source
+Open Scene Graph project under Linux and Windows.  An IRIX version also
+exists but is not supported (we no longer have SGI machines on which to
+test it).   VESS supports a wide range of input devices including the Polhemus
+Fastrak, the Ascension Flock of Birds and MotionStar, the InterSense IS600, 
+the FakeSpace PinchGlove box, keyboard, mouse, joysticks, and Spaceballs.  
+A 2-D or 3-D menu system is also available, and a 1394 camera and video 
+compositing ability is supported to allow for augmented reality!  In addition,
+sound support is provided through the use of OpenAL, haptics support is 
+provided for the PHANToM and CyberGrasp, and a powerful system of motion 
+models is provided.  An olfactory driver for the ScentAir, Inc. ScentKiosk 
+device is also included.  Four modalities in one library!
+
+
+LICENSING
+=========
+
+VESS is Copyright (c) 2001,2002,2003,2004,2005,2006 by the University of
+Central Florida and is released under an open-source license.  It can be 
+downloaded from http://vess.ist.ucf.edu/ free of charge.  Please see the 
+file LICENSE for detailed licensing information.  No warranty is given and
+we assume no liability (use at your own risk).
+
+
+COMPILING
+=========
+
+Complete instructions for compiling the VESS libraries can be found in
+the VESS User's Manual (located in the docs subdirectory).
+
+
+ADDITIONAL INFORMATION
+======================
+
+In addition to the web site at http://vess.ist.ucf.edu/, we have set-up a 
+site at SourceForge that can be used for help and information exchange.  A
+mailing is available and can be subscribed to by going to the following 
+address: http://lists.sourceforge.net/lists/listinfo/vess-users
+
+
