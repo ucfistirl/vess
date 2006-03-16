@@ -42,31 +42,31 @@ private:
 
 public:
 
-                    vsPathMotionManager();
-                    vsPathMotionManager(vsPathMotionManager *original);
-    virtual         ~vsPathMotionManager();
+                          vsPathMotionManager();
+                          vsPathMotionManager(vsPathMotionManager *original);
+    virtual               ~vsPathMotionManager();
 
     virtual const char    *getClassName();
 
-    void            setCycleMode(int mode);
-    void            setCycleCount(int cycles);
-    int             getCycleMode();
-    int             getCycleCount();
+    void                  setCycleMode(int mode);
+    void                  setCycleCount(int cycles);
+    int                   getCycleMode();
+    int                   getCycleCount();
 
-    void            startResume();
-    void            pause();
-    void            stop();
-    int             getPlayMode();
-    bool            isDone();
+    void                  startResume();
+    void                  pause();
+    void                  stop();
+    int                   getPlayMode();
+    bool                  isDone();
 
-    virtual void    update();
-    virtual void    update(double deltaTime);
+    virtual void          update();
+    virtual void          update(double deltaTime);
 
-    void            addPathMotion(vsPathMotion *pathMotion);
-    void            removePathMotion(vsPathMotion *pathMotion);
+    void                  addPathMotion(vsPathMotion *pathMotion);
+    void                  removePathMotion(vsPathMotion *pathMotion);
 
-    vsPathMotion    *getPathMotion(int index);
-    int             getPathMotionCount();
+    vsPathMotion          *getPathMotion(int index);
+    int                   getPathMotionCount();
 };
 
 #endif

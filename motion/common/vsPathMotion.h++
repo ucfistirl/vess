@@ -133,61 +133,61 @@ private:
 
 public:
 
-                    vsPathMotion(vsKinematics *kinematics);
-                    vsPathMotion(vsPathMotion *original);
-    virtual         ~vsPathMotion();
+                          vsPathMotion(vsKinematics *kinematics);
+                          vsPathMotion(vsPathMotion *original);
+    virtual               ~vsPathMotion();
 
     virtual const char    *getClassName();
 
-    void            setPositionMode(int mode);
-    int             getPositionMode();
+    void                  setPositionMode(int mode);
+    int                   getPositionMode();
 
-    void            setOrientationMode(int mode);
-    int             getOrientationMode();
+    void                  setOrientationMode(int mode);
+    int                   getOrientationMode();
 
-    void            setCycleMode(int mode);
-    void            setCycleCount(int cycles);
-    int             getCycleMode();
-    int             getCycleCount();
+    void                  setCycleMode(int mode);
+    void                  setCycleCount(int cycles);
+    int                   getCycleMode();
+    int                   getCycleCount();
 
-    void            setCornerRadius(double radius);
-    double          getCornerRadius();
+    void                  setCornerRadius(double radius);
+    double                getCornerRadius();
 
-    void            setLookAtPoint(vsVector point);
-    vsVector        getLookAtPoint();
+    void                  setLookAtPoint(vsVector point);
+    vsVector              getLookAtPoint();
 
-    void            setUpDirection(vsVector up);
-    vsVector        getUpDirection();
+    void                  setUpDirection(vsVector up);
+    vsVector              getUpDirection();
 
-    void            setPointListSize(int size);
-    int             getPointListSize();
+    void                  setPointListSize(int size);
+    int                   getPointListSize();
 
-    void            setPosition(int point, vsVector position);
-    void            setOrientation(int point, vsQuat orientation);
-    void            setTime(int point, double seconds);
-    void            setPauseTime(int point, double seconds);
+    void                  setPosition(int point, vsVector position);
+    void                  setOrientation(int point, vsQuat orientation);
+    void                  setTime(int point, double seconds);
+    void                  setPauseTime(int point, double seconds);
 
-    vsVector        getPosition(int point);
-    vsQuat          getOrientation(int point);
-    double          getTime(int point);
-    double          getPauseTime(int point);
+    vsVector              getPosition(int point);
+    vsQuat                getOrientation(int point);
+    double                getTime(int point);
+    double                getPauseTime(int point);
 
-    void            autoSetTimes(double totalPathSeconds);
+    void                  autoSetTimes(double totalPathSeconds);
 
-    void            startResume();
-    void            pause();
-    void            stop();
-    int             getPlayMode();
+    void                  startResume();
+    void                  pause();
+    void                  stop();
+    int                   getPlayMode();
 
-    void            configureFromFile(char *filename);
+    void                  configureFromFile(char *filename);
 
-    virtual void    update();
-    virtual void    update(double deltaTime);
+    virtual void          update();
+    virtual void          update(double deltaTime);
 
-    vsVector        getCurrentPosition();
-    vsQuat          getCurrentOrientation();
+    vsVector              getCurrentPosition();
+    vsQuat                getCurrentOrientation();
 
-    void            setKinematics(vsKinematics *newKin);
+    void                  setKinematics(vsKinematics *newKin);
 };
 
 #endif

@@ -62,26 +62,26 @@ protected:
 
 public:
 
-                    vsRelativeObjectMotion(vsKinematics *objKin,
-                                           vsKinematics *manipKin);
-                    ~vsRelativeObjectMotion(); 
+                          vsRelativeObjectMotion(vsKinematics *objKin,
+                                                 vsKinematics *manipKin);
+                          ~vsRelativeObjectMotion(); 
 
-    const char *    getClassName();
+    virtual const char    *getClassName();
 
-    void            lockTranslation();
-    void            constrainTranslationToLine(vsVector axis);
-    void            constrainTranslationToPlane(vsVector normal);
-    void            freeTranslation();
+    void                  lockTranslation();
+    void                  constrainTranslationToLine(vsVector axis);
+    void                  constrainTranslationToPlane(vsVector normal);
+    void                  freeTranslation();
+      
+    void                  lockRotation();
+    void                  constrainRotationToAxis(vsVector axis);
+    void                  freeRotation();
 
-    void            lockRotation();
-    void            constrainRotationToAxis(vsVector axis);
-    void            freeRotation();
+    void                  attachObject();
+    void                  detachObject();
+    bool                  isObjectAttached();
 
-    void            attachObject();
-    void            detachObject();
-    bool            isObjectAttached();
-
-    virtual void    update();
+    virtual void          update();
 };
 
 #endif

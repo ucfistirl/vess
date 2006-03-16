@@ -31,6 +31,7 @@
 class VS_MOTION_DLL vs4TrackerHead : public vsMotionModel
 {
 protected:
+
     // Motion trackers
     vsMotionTracker     *headTrackerRear, *headTrackerFront;
     vsMotionTracker     *lShoulderTracker, *rShoulderTracker;
@@ -40,17 +41,17 @@ protected:
     vsKinematics        *kinematics;
 
 public:
-    // Constructor / Destructor
-                        vs4TrackerHead(vsMotionTracker *headRear,
-                                                 vsMotionTracker *headFront,
-                                                 vsMotionTracker *lShoulder,
-                                                 vsMotionTracker *rShoulder,
-                                                 vsKinematics *kin);
-    virtual             ~vs4TrackerHead();
 
-    virtual const char  *getClassName(); 
+                          vs4TrackerHead(vsMotionTracker *headRear,
+                                         vsMotionTracker *headFront,
+                                         vsMotionTracker *lShoulder,
+                                         vsMotionTracker *rShoulder,
+                                         vsKinematics *kin);
+    virtual               ~vs4TrackerHead();
+
+    virtual const char    *getClassName(); 
 
     // Updates the motion model
-    virtual void        update();
+    virtual void          update();
 };
 #endif

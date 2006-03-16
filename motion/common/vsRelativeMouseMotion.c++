@@ -27,35 +27,35 @@
 #include "vsTimer.h++"
 // #include "vsSystem.h++"
 
-vsRelativeMouseMotion::vsRelativeMouseMotion(vsMouse * mouse,
-        vsKinematics * kinObj)
+vsRelativeMouseMotion::vsRelativeMouseMotion(vsMouse *mouse,
+                                             vsKinematics *kinObj)
 {
     kinematics = kinObj;
 
     // For a mouse, axis 0 is the x axis. axis 1 is the y axis.
-    inputAxis[ 0 ] = mouse->getAxis( 0 );
-    inputAxis[ 1 ] = mouse->getAxis( 1 );
+    inputAxis[0] = mouse->getAxis(0);
+    inputAxis[1] = mouse->getAxis(1);
 
     // Axis scaling - how many degrees a half-screen movement of the mouse
     // rotates the viewpoint
-    axisChange[ 0 ] = 100.0;
-    axisChange[ 1 ] = 90.0;
+    axisChange[0] = 100.0;
+    axisChange[1] = 90.0;
 
     // Axis limits
-    axisLimits[ 0 ] = false;
-    axisLimits[ 1 ] = true;
-    kinMin[ 1 ] = -90.0;
-    kinMax[ 1 ] = 90.0;
+    axisLimits[0] = false;
+    axisLimits[1] = true;
+    kinMin[1] = -90.0;
+    kinMax[1] = 90.0;
 
     // which axis to rotate around?
-    rotationAxis[ 0 ] = VS_Z;
-    rotationAxis[ 1 ] = VS_X;
+    rotationAxis[0] = VS_Z;
+    rotationAxis[1] = VS_X;
 
     // see header files - these reflect on the way that the calculated
     // orientation is combined with the current orientation on the kinematics
     // object
-    prePost[ 0 ] = false;
-    prePost[ 1 ] = true;
+    prePost[0] = false;
+    prePost[1] = true;
     
     // Initialize class variables
     throttleAxis = NULL;
@@ -75,7 +75,7 @@ vsRelativeMouseMotion::vsRelativeMouseMotion(vsMouse * mouse,
     reset();
 }
 
-vsRelativeMouseMotion::~vsRelativeMouseMotion( )
+vsRelativeMouseMotion::~vsRelativeMouseMotion()
 {
 }
 
@@ -84,12 +84,12 @@ const char * vsRelativeMouseMotion::getClassName()
     return "vsRelativeMouseMotion";
 }
 
-void vsRelativeMouseMotion::setThrottleAxisMode( vsFlyingAxisMode axisMode )
+void vsRelativeMouseMotion::setThrottleAxisMode(vsFlyingAxisMode axisMode)
 {
     throttleMode = axisMode;
 }
 
-vsFlyingAxisMode vsRelativeMouseMotion::getThrottleAxisMode( )
+vsFlyingAxisMode vsRelativeMouseMotion::getThrottleAxisMode()
 {
     return throttleMode;
 }
@@ -141,13 +141,13 @@ void vsRelativeMouseMotion::update()
 void vsRelativeMouseMotion::updateOrientation()
 {
     // Deal with each axis separetly
-    for( int axis=0; axis<NUMBER_OF_AXES; axis++ )
+    for (int axis=0; axis<NUMBER_OF_AXES; axis++)
     {
         double delta;
         double currentRotation[3];
         vsQuat q;
 
-        if( inputAxis[axis]==NULL )
+        if (inputAxis[axis]==NULL)
             continue;
 
         // Get the change in the axis
@@ -160,51 +160,49 @@ void vsRelativeMouseMotion::updateOrientation()
 
         // Get the current orientation so we can enforce axis limits
         q = kinematics->getOrientation();
-        q.getEulerRotation( VS_EULER_ANGLES_XYZ_S,
-                &currentRotation[VS_X],
-                &currentRotation[VS_Y],
-                &currentRotation[VS_Z] );
+        q.getEulerRotation(VS_EULER_ANGLES_XYZ_S, &currentRotation[VS_X],
+            &currentRotation[VS_Y], &currentRotation[VS_Z]);
 
         // enforce axis limits
-        if( axisLimits[axis] )
+        if (axisLimits[axis])
         {
             double newRotation =
-                currentRotation[ rotationAxis[axis] ] + delta;
-            if( newRotation >= kinMax[axis] )
+                currentRotation[rotationAxis[axis]] + delta;
+            if (newRotation >= kinMax[axis])
                 delta = 0.0;
-            else if( newRotation <= kinMin[axis] )
+            else if (newRotation <= kinMin[axis])
                 delta = 0.0;
         }
 
         // set up the rotation for the given axis
-        switch( rotationAxis[ axis ] )
+        switch (rotationAxis[axis])
         {
             case VS_X:
-                q.setAxisAngleRotation( 1.0, 0.0, 0.0, delta );
+                q.setAxisAngleRotation(1.0, 0.0, 0.0, delta);
                 break;
             case VS_Y:
-                q.setAxisAngleRotation( 0.0, 1.0, 0.0, delta );
+                q.setAxisAngleRotation(0.0, 1.0, 0.0, delta);
                 break;
             case VS_Z:
-                q.setAxisAngleRotation( 0.0, 0.0, 1.0, delta );
+                q.setAxisAngleRotation(0.0, 0.0, 1.0, delta);
                 break;
         }
 
         // do we apply this axis with pre or post multiplication?
-        if( prePost[axis] ) //post
+        if (prePost[axis])
             q = kinematics->getOrientation() * q;
-        else //pre
+        else
             q = q * kinematics->getOrientation();
        
         // Finally, set the new orientation
-        kinematics->setOrientation( q );
+        kinematics->setOrientation(q);
     }
 }
 
 // ------------------------------------------------------------------------
 // If the state needed to be reset, we would do it here.
 // ------------------------------------------------------------------------
-void vsRelativeMouseMotion::reset( )
+void vsRelativeMouseMotion::reset()
 {
 }
 
@@ -213,12 +211,12 @@ void vsRelativeMouseMotion::reset( )
 // around the x axis to go more than -60 degrees to 60 degrees so to limit
 // head movement).
 // ------------------------------------------------------------------------
-void vsRelativeMouseMotion::setAxisLimits( int axis,
-        double minLimit, double maxLimit )
+void vsRelativeMouseMotion::setAxisLimits(int axis, double minLimit,
+                                          double maxLimit )
 {
-    if( axis>=0 && axis<NUMBER_OF_AXES )
+    if (axis>=0 && axis<NUMBER_OF_AXES)
     {
-        if( maxLimit <= minLimit )
+        if (maxLimit <= minLimit)
             axisLimits[axis] = false;
         else
         {
@@ -230,20 +228,36 @@ void vsRelativeMouseMotion::setAxisLimits( int axis,
 }
 
 // ------------------------------------------------------------------------
+// Removes axis limits
+// ------------------------------------------------------------------------
+void vsRelativeMouseMotion::setAxisLimits(int axis, double minLimit)
+{
+    setAxisLimits(axis, 0.0, -1.0);
+}
+
+// ------------------------------------------------------------------------
+// Removes axis limits
+// ------------------------------------------------------------------------
+void vsRelativeMouseMotion::setAxisLimits(int axis)
+{
+    setAxisLimits(axis, 0.0, -1.0);
+}
+
+// ------------------------------------------------------------------------
 // Set How the orientation transformation is applied (see header file)
 // ------------------------------------------------------------------------
-void vsRelativeMouseMotion::setAxisPrePost( int axis, bool isPost )
+void vsRelativeMouseMotion::setAxisPrePost(int axis, bool isPost)
 {
-    if( axis>=0 && axis<NUMBER_OF_AXES )
+    if (axis>=0 && axis<NUMBER_OF_AXES)
         prePost[axis] = isPost;
 }
 
 // ------------------------------------------------------------------------
 // Get How the orientation transformation is applied (see header file)
 // ------------------------------------------------------------------------
-bool vsRelativeMouseMotion::getAxisPrePost( int axis )
+bool vsRelativeMouseMotion::getAxisPrePost(int axis)
 {
-    if( axis>=0 && axis<NUMBER_OF_AXES )
+    if (axis>=0 && axis<NUMBER_OF_AXES)
         return prePost[axis];
     else
         return false;
@@ -253,9 +267,9 @@ bool vsRelativeMouseMotion::getAxisPrePost( int axis )
 // Set the scaling factor. For every 1/2-axis movement of the mouse (0.0 to
 // 1.0), we rotate this many degrees around the given axis.
 // ------------------------------------------------------------------------
-void vsRelativeMouseMotion::setAxisChange( int axis, double scaleFactor )
+void vsRelativeMouseMotion::setAxisChange(int axis, double scaleFactor)
 {
-    if( axis>=0 && axis<NUMBER_OF_AXES )
+    if (axis>=0 && axis<NUMBER_OF_AXES)
         axisChange[axis] = scaleFactor;
 }
 
@@ -263,9 +277,9 @@ void vsRelativeMouseMotion::setAxisChange( int axis, double scaleFactor )
 // Get the scaling factor. For every 1/2-axis movement of the mouse (0.0 to
 // 1.0), we rotate this many degrees around the given axis.
 // ------------------------------------------------------------------------
-double vsRelativeMouseMotion::getAxisChange( int axis )
+double vsRelativeMouseMotion::getAxisChange(int axis)
 {
-    if( axis>=0 && axis<NUMBER_OF_AXES )
+    if (axis>=0 && axis<NUMBER_OF_AXES)
         return axisChange[axis];
     else
         return 0.0;
@@ -274,18 +288,18 @@ double vsRelativeMouseMotion::getAxisChange( int axis )
 // ------------------------------------------------------------------------
 // Set the axis which we will rotate around (VS_X, VS_Y, VS_Z)
 // ------------------------------------------------------------------------
-void vsRelativeMouseMotion::setRotationAxis( int axis, int newRotationAxis )
+void vsRelativeMouseMotion::setRotationAxis(int axis, int newRotationAxis)
 {
-    if( axis>=0 && axis<NUMBER_OF_AXES )
+    if (axis>=0 && axis<NUMBER_OF_AXES)
         rotationAxis[axis] = newRotationAxis;
 }
 
 // ------------------------------------------------------------------------
 // Get the axis which we will rotate around (VS_X, VS_Y, VS_Z)
 // ------------------------------------------------------------------------
-int vsRelativeMouseMotion::getRotationAxis( int axis )
+int vsRelativeMouseMotion::getRotationAxis(int axis)
 {
-    if( axis>=0 && axis<NUMBER_OF_AXES )
+    if (axis>=0 && axis<NUMBER_OF_AXES)
         return rotationAxis[axis];
     else
         return 0;

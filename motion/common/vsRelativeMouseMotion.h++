@@ -82,43 +82,45 @@ private:
     vsFlyingAxisMode    throttleMode;
 
 public:
-                        vsRelativeMouseMotion( vsMouse *, vsKinematics * );
-    virtual             ~vsRelativeMouseMotion();
+                          vsRelativeMouseMotion(vsMouse *, vsKinematics *);
+    virtual               ~vsRelativeMouseMotion();
 
-    virtual const char  *getClassName();
+    virtual const char    *getClassName();
 
-    void                reset();
+    void                  reset();
 
     // Update velocity and orientation
-    void                update();
+    void                  update();
 
     // Update just velocity or orientation
-    void                updateVelocity();
-    void                updateOrientation();
+    void                  updateVelocity();
+    void                  updateOrientation();
 
-    void                setThrottleAxisMode( vsFlyingAxisMode newMode );
-    vsFlyingAxisMode    getThrottleAxisMode();
+    void                  setThrottleAxisMode( vsFlyingAxisMode newMode );
+    vsFlyingAxisMode      getThrottleAxisMode();
 
-    void                setAxisLimits( int axis,
-                                double minLimit=0.0, double maxLimit=-1.0 );
+    void                  setAxisLimits(int axis, double minLimit,
+                                        double maxLimit);
+    void                  setAxisLimits(int axis, double minLimit);
+    void                  setAxisLimits(int axis);
 
     // Apply the transformation with (pre|post)modify?
-    void                setAxisPrePost( int axis, bool isPost );
-    bool                getAxisPrePost( int axis );
+    void                  setAxisPrePost(int axis, bool isPost);
+    bool                  getAxisPrePost(int axis);
 
     // For every 1.0 movement of the vsInputAxis, rotate scaleFactor degrees
-    void                setAxisChange( int axis, double scaleFactor );
-    double              getAxisChange( int axis );
+    void                  setAxisChange(int axis, double scaleFactor);
+    double                getAxisChange(int axis);
 
     // Which axis (VS_X, VS_Y, VS_Z) to rotate around
-    void                setRotationAxis( int axis, int newRotationAxis );
-    int                 getRotationAxis( int axis );
+    void                  setRotationAxis(int axis, int newRotationAxis);
+    int                   getRotationAxis(int axis);
 
     // Motion parameter accessors
-    double              getAccelerationRate();
-    void                setAccelerationRate(double newRate);
-    double              getMaxSpeed();
-    void                setMaxSpeed(double newMax);
+    double                getAccelerationRate();
+    void                  setAccelerationRate(double newRate);
+    double                getMaxSpeed();
+    void                  setMaxSpeed(double newMax);
 };
 
 #endif
