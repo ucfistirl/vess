@@ -30,16 +30,16 @@
 // offsets to zero.
 // ------------------------------------------------------------------------
 vs8TrackerArm::vs8TrackerArm(vsMotionTracker *lShoulderTracker,
-                                        vsMotionTracker *rShoulderTracker,
-                                        vsMotionTracker *upperArm1Tracker,
-                                        vsMotionTracker *upperArm2Tracker,
-                                        vsKinematics *shoulderJoint,
-                                        vsMotionTracker *foreArm1Tracker,
-                                        vsMotionTracker *foreArm2Tracker,
-                                        vsKinematics *elbowJoint,
-                                        vsMotionTracker *handTracker1,
-                                        vsMotionTracker *handTracker2,
-                                        vsKinematics *wristJoint)
+                             vsMotionTracker *rShoulderTracker,
+                             vsMotionTracker *upperArm1Tracker,
+                             vsMotionTracker *upperArm2Tracker,
+                             vsKinematics *shoulderJoint,
+                             vsMotionTracker *foreArm1Tracker,
+                             vsMotionTracker *foreArm2Tracker,
+                             vsKinematics *elbowJoint,
+                             vsMotionTracker *handTracker1,
+                             vsMotionTracker *handTracker2,
+                             vsKinematics *wristJoint)
 {
     // Store the traker pointers
     this->lShoulderTracker = lShoulderTracker;
