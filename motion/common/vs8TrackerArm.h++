@@ -18,7 +18,7 @@
 //		    ideally mounted on the subject's back, upper arm,
 //		    and hand.
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, David Smith
 //
 //------------------------------------------------------------------------
 
