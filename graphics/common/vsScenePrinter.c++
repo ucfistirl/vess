@@ -994,7 +994,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
     vsAttribute *attribute;
     int loop, sloop;
     vsMatrix mat;
-    double r, g, b;
+    double r, g, b, a;
     double nearFog, farFog;
     int mode;
     int shadingData;
@@ -1355,6 +1355,20 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                             getColor(VS_MATERIAL_SIDE_BACK, 
                                 VS_MATERIAL_COLOR_EMISSIVE, &r, &g, &b);
                         fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
+
+                        // Alpha (front and back)
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "Alpha:\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        fprintf(outfile, "Front:  ");
+                        a = ((vsMaterialAttribute *)attribute)->
+                            getAlpha(VS_MATERIAL_SIDE_FRONT);
+                        fprintf(outfile, "%0.2lf\n", a);
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        fprintf(outfile, "Back:   ");
+                        a = ((vsMaterialAttribute *)attribute)->
+                            getAlpha(VS_MATERIAL_SIDE_BACK);
+                        fprintf(outfile, "%0.2lf\n", a);
 
                         // Front material color-tracking mode
                         writeBlanks(outfile, (treeDepth * 2) + 3);
