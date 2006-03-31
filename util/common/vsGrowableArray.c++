@@ -47,8 +47,8 @@ vsGrowableArray::vsGrowableArray(int initialSize, int sizeIncrement)
     // Store the grow step size
     stepSize = sizeIncrement;
 
-    // Maximum size defaults to 32767; clamp the start size to that value
-    maxSize = 32767;
+    // Maximum size defaults to 2147483647; clamp the start size to that value
+    maxSize = 2147483647;
     if (startSize > maxSize)
         maxSize = startSize;
     
