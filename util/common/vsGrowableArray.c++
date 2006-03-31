@@ -38,7 +38,7 @@ vsGrowableArray::vsGrowableArray(int initialSize, int sizeIncrement)
     // Bounds check on initial size
     if (initialSize < 0)
     {
-        printf("vsGrowableArray::vsGrowableArray: Invalid initial size\n");
+        printf("vsGrowableArray::vsGrowableArray: Invalid initial size, size = %d is negative\n",initialSize);
         startSize = 0;
     }
     else
@@ -79,7 +79,7 @@ void vsGrowableArray::setSize(int newSize)
     // Bounds check
     if (newSize < 0)
     {
-        printf("vsGrowableArray::setSize: Invalid size\n");
+        printf("vsGrowableArray::setSize: Invalid size = %d is negative\n",newSize);
         return;
     }
 
@@ -152,7 +152,7 @@ void vsGrowableArray::setSizeIncrement(int sizeIncrement)
     // Bounds check
     if (sizeIncrement <= 0)
     {
-        printf("vsGrowableArray::setSizeIncrement: Invalid size increment\n");
+        printf("vsGrowableArray::setSizeIncrement: Invalid size increment = %d is not positive\n",sizeIncrement);
         return;
     }
 
@@ -178,7 +178,7 @@ void vsGrowableArray::setMaxSize(int newMax)
     // Bounds check
     if (newMax <= 0)
     {
-        printf("vsGrowableArray::setMaxSize: Invalid maximum size\n");
+        printf("vsGrowableArray::setMaxSize: Invalid maximum size = %d is not positive\n",newMax);
         return;
     }
 
@@ -210,7 +210,7 @@ inline bool vsGrowableArray::access(int index)
     // Array bounds check
     if ((index < 0) || (index >= maxSize))
     {
-        printf("vsGrowableArray::access: Array index out of bounds\n");
+        printf("vsGrowableArray::access: Array index out of bounds, index = %d\n",index);
         return false;
     }
 
@@ -221,7 +221,7 @@ inline bool vsGrowableArray::access(int index)
         // be able to access this index
         if (stepSize <= 0)
         {
-            printf("vsGrowableArray::access: Array index out of bounds\n");
+            printf("vsGrowableArray::access: Array index out of bounds, index = %d\n",index);
             return false;
         }
 
