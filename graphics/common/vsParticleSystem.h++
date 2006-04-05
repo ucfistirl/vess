@@ -16,7 +16,7 @@
 //    Description:  Class that constructs a series of objects that behave
 //                  as a coherent group
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Jason Daly
 //
 //------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@
 
 #include "vsUpdatable.h++"
 #include "vsComponent.h++"
-#include "vsGeometry.h++"
+#include "vsDynamicGeometry.h++"
 #include "vsTransformAttribute.h++"
 #include "vsTextureAttribute.h++"
 #include "vsShaderAttribute.h++"
@@ -47,7 +47,7 @@ enum vsParticleSystemShaderType
     VS_PARTICLESYS_GLSL_SHADER
 };
 
-struct VS_GRAPHICS_DLL vsParticle
+struct vsParticle
 {
     bool                    isActive;
 
@@ -55,6 +55,7 @@ struct VS_GRAPHICS_DLL vsParticle
     vsTransformAttribute    *positionAttr;
     vsTransformAttribute    *rotScaleAttr;
     vsGeometry              *quadGeometry;
+    int                     geomIndex;
 
     double                  ageSeconds;
     double                  lifetimeSeconds;
@@ -124,6 +125,8 @@ protected:
     vsShaderAttribute         *arbShader;
     vsGLSLProgramAttribute    *glslShader;
     bool                      hardwareShading;
+    vsDynamicGeometry         *sharedGeom;
+    vsGrowableArray           primInUse;
 
     // Individual particle data
     double                    lifetime;
@@ -187,7 +190,9 @@ public:
                    vsParticleSystem();
                    vsParticleSystem(char *shaderProgram);
                    vsParticleSystem(char *shaderProgram,
-                                    vsParticleSystemShaderType shaderType);
+                                 vsParticleSystemShaderType shaderType);
+                   vsParticleSystem(vsShaderAttribute *shaderAttr);
+                   vsParticleSystem(vsGLSLProgramAttribute *shaderAttr);
     virtual        ~vsParticleSystem();
 
     // Inherited from vsObject

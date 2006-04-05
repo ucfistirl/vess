@@ -16,7 +16,7 @@
 //    Description:  Class that constructs a series of objects that behave
 //                  as a coherent group
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Jason Daly
 //
 //------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@
 // Constructor
 // ------------------------------------------------------------------------
 vsParticleSystem::vsParticleSystem() 
-                : particleList(0, 1)
+                : particleList(0, 1), primInUse(0, 1)
 {
     vsTransparencyAttribute *transpAttr;
 
@@ -39,111 +39,12 @@ vsParticleSystem::vsParticleSystem()
     parentComponent->ref();
 
     // Not using hardware shading, set the flag and shader variable
-    // appropriately
+    // appropriately.  Also set the "shared" geometry node to NULL, since
+    // each particle will have its own geometry node
     hardwareShading = false;
     arbShader = NULL;
     glslShader = NULL;
-
-    // Create the texture attribute that all the particles will use
-    masterTexture = new vsTextureAttribute();
-    masterTexture->ref();
-    masterTexture->setApplyMode(VS_TEXTURE_APPLY_MODULATE);
-    parentComponent->addAttribute(masterTexture);
-
-    // Add transparency to the particles
-    transpAttr = new vsTransparencyAttribute();
-    transpAttr->enable();
-    transpAttr->disableOcclusion();
-    parentComponent->addAttribute(transpAttr);
-
-    // Set the renderbin for each particle to 0 (the default bin)
-    particleRenderBin = 0;
-
-    // Create the initial list of vsParticle structures
-    particleListSize = 0;
-    activeParticleCount = 0;
-    setMaxParticleCount(10);
-    nextInactiveParticleIdx = 0;
-
-    // Emitter default paramters
-    emitterPosition.set(0.0, 0.0, 0.0);
-    emitterVelocity.set(0.0, 0.0, 0.0);
-    emitterOrientation.set(0.0, 0.0, 0.0, 1.0);
-    emitterAngularVelocityAxis.set(0.0, 0.0, 1.0);
-    emitterAngularVelocitySpeed = 0.0;
-    emitterFollowNode = NULL;
-
-    emitterAge = 0.0;
-    emitterLifetime = -1.0;
-
-    emissionRate = 1.0;
-    emissionTimer = 0.0;
-
-    emitterActive = true;
-
-    emitterShape = VS_PARTICLESYS_EMITTER_SPHERE;
-    emitterMinRadius = 0.0;
-    emitterMaxRadius = 0.0;
-
-    // Particle default parameters
-    globalAcceleration.set(0.0, 0.0, 0.0);
-
-    lifetime = 1.0;
-    lifetimeVariance = 0.0;
-
-    initialVelocity.set(0.0, 0.0, 0.0);
-    velocityMinAngleVariance = 0.0;
-    velocityMaxAngleVariance = 0.0;
-    velocitySpeedVariance = 0.0;
-
-    orbitSpeed = 0.0;
-    orbitSpeedVariance = 0.0;
-    orbitRadiusDelta = 0.0;
-    orbitRadiusDeltaVariance = 0.0;
-
-    initialSize = 1.0;
-    initialSizeVariance = 0.0;
-    finalSize = 1.0;
-    finalSizeVariance = 0.0;
-    lockSizeVariance = false;
-
-    rotation = 0.0;
-    rotationVariance = 0.0;
-    rotationSpeed = 0.0;
-    rotationSpeedVariance = 0.0;
-
-    initialColor.set(1.0, 1.0, 1.0, 1.0);
-    initialColorVariance.set(0.0, 0.0, 0.0, 0.0);
-    finalColor.set(1.0, 1.0, 1.0, 1.0);
-    finalColorVariance.set(0.0, 0.0, 0.0, 0.0);
-    lockIntraColorVariance = false;
-    lockInterColorVariance = false;
-
-    // Mark that the 'previous' follow node data isn't valid yet
-    prevFollowDataValid = false;
-}
-
-// ------------------------------------------------------------------------
-// Constructor, creates a particle system in hardware mode, using an
-// ARB_vertex_program shader.
-// ------------------------------------------------------------------------
-vsParticleSystem::vsParticleSystem(char *shaderProgram) 
-                : particleList(0, 1)
-{
-    vsTransparencyAttribute *transpAttr;
-
-    // Create the master component
-    parentComponent = new vsComponent();
-    parentComponent->ref();
-
-    // Create the shader attribute
-    hardwareShading = true;
-    arbShader = new vsShaderAttribute();
-    arbShader->setVertexSourceFile(shaderProgram);
-    parentComponent->addAttribute(arbShader);
-
-    // Not using a GLSL shader, so initialize it to NULL
-    glslShader = NULL;
+    sharedGeom = NULL;
 
     // Create the texture attribute that all the particles will use
     masterTexture = new vsTextureAttribute();
@@ -226,11 +127,139 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram)
 
 // ------------------------------------------------------------------------
 // Constructor, creates a particle system in hardware mode, using the
-// specified type of shader.
+// ARB_vertex_program code in the specified file
+// ------------------------------------------------------------------------
+vsParticleSystem::vsParticleSystem(char *shaderProgram)
+                : particleList(0, 1), primInUse(0, 1)
+{
+    vsTransparencyAttribute *transpAttr;
+
+    // Create the master component
+    parentComponent = new vsComponent();
+    parentComponent->ref();
+
+    // Initialize the shader attributes to NULL
+    arbShader = NULL;
+    glslShader = NULL;
+
+    // Create the shader attribute
+    hardwareShading = true;
+    arbShader = new vsShaderAttribute();
+    arbShader->setVertexSourceFile(shaderProgram);
+    arbShader->ref();
+    parentComponent->addAttribute(arbShader);
+
+    // Create the texture attribute that all the particles will use
+    masterTexture = new vsTextureAttribute();
+    masterTexture->ref();
+    masterTexture->setApplyMode(VS_TEXTURE_APPLY_MODULATE);
+    parentComponent->addAttribute(masterTexture);
+
+    // Add transparency to the particles
+    transpAttr = new vsTransparencyAttribute();
+    transpAttr->enable();
+    transpAttr->disableOcclusion();
+    parentComponent->addAttribute(transpAttr);
+
+    // Set the renderbin for each particle to 0 (the default bin)
+    particleRenderBin = 0;
+
+    // Create the shared geometry node that all particles will use
+    sharedGeom = new vsDynamicGeometry();
+    sharedGeom->ref();
+    sharedGeom->beginNewState();
+    sharedGeom->setPrimitiveType(VS_GEOMETRY_TYPE_QUADS);
+    sharedGeom->enableLighting();
+    sharedGeom->disableCull();
+    sharedGeom->setIntersectValue(0x00000001);
+    sharedGeom->setBinding(VS_GEOMETRY_VERTEX_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_NORMALS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_COLORS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE0_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE1_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE2_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE3_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->finishNewState();
+    parentComponent->addChild(sharedGeom);
+
+    // Create the initial list of vsParticle structures
+    particleListSize = 0;
+    activeParticleCount = 0;
+    setMaxParticleCount(10);
+    nextInactiveParticleIdx = 0;
+
+    // Emitter default paramters
+    emitterPosition.set(0.0, 0.0, 0.0);
+    emitterVelocity.set(0.0, 0.0, 0.0);
+    emitterOrientation.set(0.0, 0.0, 0.0, 1.0);
+    emitterAngularVelocityAxis.set(0.0, 0.0, 1.0);
+    emitterAngularVelocitySpeed = 0.0;
+    emitterFollowNode = NULL;
+
+    emitterAge = 0.0;
+    emitterLifetime = -1.0;
+
+    emissionRate = 1.0;
+    emissionTimer = 0.0;
+
+    emitterActive = true;
+
+    emitterShape = VS_PARTICLESYS_EMITTER_SPHERE;
+    emitterMinRadius = 0.0;
+    emitterMaxRadius = 0.0;
+
+    // Particle default parameters
+    globalAcceleration.set(0.0, 0.0, 0.0);
+
+    lifetime = 1.0;
+    lifetimeVariance = 0.0;
+
+    initialVelocity.set(0.0, 0.0, 0.0);
+    velocityMinAngleVariance = 0.0;
+    velocityMaxAngleVariance = 0.0;
+    velocitySpeedVariance = 0.0;
+
+    orbitSpeed = 0.0;
+    orbitSpeedVariance = 0.0;
+    orbitRadiusDelta = 0.0;
+    orbitRadiusDeltaVariance = 0.0;
+
+    initialSize = 1.0;
+    initialSizeVariance = 0.0;
+    finalSize = 1.0;
+    finalSizeVariance = 0.0;
+    lockSizeVariance = false;
+
+    rotation = 0.0;
+    rotationVariance = 0.0;
+    rotationSpeed = 0.0;
+    rotationSpeedVariance = 0.0;
+
+    initialColor.set(1.0, 1.0, 1.0, 1.0);
+    initialColorVariance.set(0.0, 0.0, 0.0, 0.0);
+    finalColor.set(1.0, 1.0, 1.0, 1.0);
+    finalColorVariance.set(0.0, 0.0, 0.0, 0.0);
+    lockIntraColorVariance = false;
+    lockInterColorVariance = false;
+
+    // Mark that the 'previous' follow node data isn't valid yet
+    prevFollowDataValid = false;
+}
+
+// ------------------------------------------------------------------------
+// Constructor, creates a particle system in hardware mode, using the
+// source code for the specified type of shader in the specified file.
 // ------------------------------------------------------------------------
 vsParticleSystem::vsParticleSystem(char *shaderProgram, 
                                    vsParticleSystemShaderType shaderType)
-                : particleList(0, 1)
+                : particleList(0, 1), primInUse(0, 1)
 {
     vsTransparencyAttribute *transpAttr;
     vsGLSLShader *shaderObject;
@@ -250,12 +279,14 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram,
             hardwareShading = true;
             arbShader = new vsShaderAttribute();
             arbShader->setVertexSourceFile(shaderProgram);
+            arbShader->ref();
             parentComponent->addAttribute(arbShader);
             break;
 
         case VS_PARTICLESYS_GLSL_SHADER:
             hardwareShading = true;
             glslShader = new vsGLSLProgramAttribute();
+            glslShader->ref();
             shaderObject = new vsGLSLShader(VS_GLSL_VERTEX_SHADER);
             shaderObject->setSourceFile(shaderProgram);
             glslShader->addShader(shaderObject);
@@ -281,6 +312,279 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram,
 
     // Set the renderbin for each particle to 0 (the default bin)
     particleRenderBin = 0;
+
+    // Create the shared geometry node that all particles will use
+    sharedGeom = new vsDynamicGeometry();
+    sharedGeom->ref();
+    sharedGeom->beginNewState();
+    sharedGeom->setPrimitiveType(VS_GEOMETRY_TYPE_QUADS);
+    sharedGeom->enableLighting();
+    sharedGeom->disableCull();
+    sharedGeom->setIntersectValue(0x00000001);
+    sharedGeom->setBinding(VS_GEOMETRY_VERTEX_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_NORMALS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_COLORS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE0_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE1_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE2_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE3_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->finishNewState();
+    parentComponent->addChild(sharedGeom);
+
+    // Create the initial list of vsParticle structures
+    particleListSize = 0;
+    activeParticleCount = 0;
+    setMaxParticleCount(10);
+    nextInactiveParticleIdx = 0;
+
+    // Emitter default paramters
+    emitterPosition.set(0.0, 0.0, 0.0);
+    emitterVelocity.set(0.0, 0.0, 0.0);
+    emitterOrientation.set(0.0, 0.0, 0.0, 1.0);
+    emitterAngularVelocityAxis.set(0.0, 0.0, 1.0);
+    emitterAngularVelocitySpeed = 0.0;
+    emitterFollowNode = NULL;
+
+    emitterAge = 0.0;
+    emitterLifetime = -1.0;
+
+    emissionRate = 1.0;
+    emissionTimer = 0.0;
+
+    emitterActive = true;
+
+    emitterShape = VS_PARTICLESYS_EMITTER_SPHERE;
+    emitterMinRadius = 0.0;
+    emitterMaxRadius = 0.0;
+
+    // Particle default parameters
+    globalAcceleration.set(0.0, 0.0, 0.0);
+
+    lifetime = 1.0;
+    lifetimeVariance = 0.0;
+
+    initialVelocity.set(0.0, 0.0, 0.0);
+    velocityMinAngleVariance = 0.0;
+    velocityMaxAngleVariance = 0.0;
+    velocitySpeedVariance = 0.0;
+
+    orbitSpeed = 0.0;
+    orbitSpeedVariance = 0.0;
+    orbitRadiusDelta = 0.0;
+    orbitRadiusDeltaVariance = 0.0;
+
+    initialSize = 1.0;
+    initialSizeVariance = 0.0;
+    finalSize = 1.0;
+    finalSizeVariance = 0.0;
+    lockSizeVariance = false;
+
+    rotation = 0.0;
+    rotationVariance = 0.0;
+    rotationSpeed = 0.0;
+    rotationSpeedVariance = 0.0;
+
+    initialColor.set(1.0, 1.0, 1.0, 1.0);
+    initialColorVariance.set(0.0, 0.0, 0.0, 0.0);
+    finalColor.set(1.0, 1.0, 1.0, 1.0);
+    finalColorVariance.set(0.0, 0.0, 0.0, 0.0);
+    lockIntraColorVariance = false;
+    lockInterColorVariance = false;
+
+    // Mark that the 'previous' follow node data isn't valid yet
+    prevFollowDataValid = false;
+}
+
+// ------------------------------------------------------------------------
+// Constructor, creates a particle system in hardware mode, using the
+// given pre-existing ARB shader attribute.
+// ------------------------------------------------------------------------
+vsParticleSystem::vsParticleSystem(vsShaderAttribute *shaderAttr)                                    
+                : particleList(0, 1), primInUse(0, 1)
+{
+    vsTransparencyAttribute *transpAttr;
+
+    // Create the master component
+    parentComponent = new vsComponent();
+    parentComponent->ref();
+
+    // Initialize the shader attributes
+    arbShader = shaderAttr;
+    glslShader = NULL;
+    parentComponent->addAttribute(arbShader);
+    arbShader->ref();
+    hardwareShading = true;
+
+    // Create the texture attribute that all the particles will use
+    masterTexture = new vsTextureAttribute();
+    masterTexture->ref();
+    masterTexture->setApplyMode(VS_TEXTURE_APPLY_MODULATE);
+    parentComponent->addAttribute(masterTexture);
+
+    // Add transparency to the particles
+    transpAttr = new vsTransparencyAttribute();
+    transpAttr->enable();
+    transpAttr->disableOcclusion();
+    parentComponent->addAttribute(transpAttr);
+
+    // Set the renderbin for each particle to 0 (the default bin)
+    particleRenderBin = 0;
+
+    // Create the shared geometry node that all particles will use
+    sharedGeom = new vsDynamicGeometry();
+    sharedGeom->ref();
+    sharedGeom->beginNewState();
+    sharedGeom->setPrimitiveType(VS_GEOMETRY_TYPE_QUADS);
+    sharedGeom->enableLighting();
+    sharedGeom->disableCull();
+    sharedGeom->setIntersectValue(0x00000001);
+    sharedGeom->setBinding(VS_GEOMETRY_VERTEX_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_NORMALS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_COLORS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE0_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE1_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE2_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE3_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->finishNewState();
+    parentComponent->addChild(sharedGeom);
+
+    // Create the initial list of vsParticle structures
+    particleListSize = 0;
+    activeParticleCount = 0;
+    setMaxParticleCount(10);
+    nextInactiveParticleIdx = 0;
+
+    // Emitter default paramters
+    emitterPosition.set(0.0, 0.0, 0.0);
+    emitterVelocity.set(0.0, 0.0, 0.0);
+    emitterOrientation.set(0.0, 0.0, 0.0, 1.0);
+    emitterAngularVelocityAxis.set(0.0, 0.0, 1.0);
+    emitterAngularVelocitySpeed = 0.0;
+    emitterFollowNode = NULL;
+
+    emitterAge = 0.0;
+    emitterLifetime = -1.0;
+
+    emissionRate = 1.0;
+    emissionTimer = 0.0;
+
+    emitterActive = true;
+
+    emitterShape = VS_PARTICLESYS_EMITTER_SPHERE;
+    emitterMinRadius = 0.0;
+    emitterMaxRadius = 0.0;
+
+    // Particle default parameters
+    globalAcceleration.set(0.0, 0.0, 0.0);
+
+    lifetime = 1.0;
+    lifetimeVariance = 0.0;
+
+    initialVelocity.set(0.0, 0.0, 0.0);
+    velocityMinAngleVariance = 0.0;
+    velocityMaxAngleVariance = 0.0;
+    velocitySpeedVariance = 0.0;
+
+    orbitSpeed = 0.0;
+    orbitSpeedVariance = 0.0;
+    orbitRadiusDelta = 0.0;
+    orbitRadiusDeltaVariance = 0.0;
+
+    initialSize = 1.0;
+    initialSizeVariance = 0.0;
+    finalSize = 1.0;
+    finalSizeVariance = 0.0;
+    lockSizeVariance = false;
+
+    rotation = 0.0;
+    rotationVariance = 0.0;
+    rotationSpeed = 0.0;
+    rotationSpeedVariance = 0.0;
+
+    initialColor.set(1.0, 1.0, 1.0, 1.0);
+    initialColorVariance.set(0.0, 0.0, 0.0, 0.0);
+    finalColor.set(1.0, 1.0, 1.0, 1.0);
+    finalColorVariance.set(0.0, 0.0, 0.0, 0.0);
+    lockIntraColorVariance = false;
+    lockInterColorVariance = false;
+
+    // Mark that the 'previous' follow node data isn't valid yet
+    prevFollowDataValid = false;
+}
+
+// ------------------------------------------------------------------------
+// Constructor, creates a particle system in hardware mode, using the
+// given GLSL program attribute (thus, avoiding the cost of a recompile
+// ------------------------------------------------------------------------
+vsParticleSystem::vsParticleSystem(vsGLSLProgramAttribute *shaderAttr)                                    
+                : particleList(0, 1), primInUse(0, 1)
+{
+    vsTransparencyAttribute *transpAttr;
+
+    // Create the master component
+    parentComponent = new vsComponent();
+    parentComponent->ref();
+
+    // Initialize the shader attributes
+    arbShader = NULL;
+    glslShader = shaderAttr;
+    parentComponent->addAttribute(glslShader);
+    glslShader->ref();
+    hardwareShading = true;
+
+    // Create the texture attribute that all the particles will use
+    masterTexture = new vsTextureAttribute();
+    masterTexture->ref();
+    masterTexture->setApplyMode(VS_TEXTURE_APPLY_MODULATE);
+    parentComponent->addAttribute(masterTexture);
+
+    // Add transparency to the particles
+    transpAttr = new vsTransparencyAttribute();
+    transpAttr->enable();
+    transpAttr->disableOcclusion();
+    parentComponent->addAttribute(transpAttr);
+
+    // Set the renderbin for each particle to 0 (the default bin)
+    particleRenderBin = 0;
+
+    // Create the shared geometry node that all particles will use
+    sharedGeom = new vsDynamicGeometry();
+    sharedGeom->ref();
+    sharedGeom->beginNewState();
+    sharedGeom->setPrimitiveType(VS_GEOMETRY_TYPE_QUADS);
+    sharedGeom->enableLighting();
+    sharedGeom->disableCull();
+    sharedGeom->setIntersectValue(0x00000001);
+    sharedGeom->setBinding(VS_GEOMETRY_VERTEX_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_NORMALS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_COLORS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE0_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE1_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE2_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->setBinding(VS_GEOMETRY_TEXTURE3_COORDS,
+        VS_GEOMETRY_BIND_PER_VERTEX);
+    sharedGeom->finishNewState();
+    parentComponent->addChild(sharedGeom);
 
     // Create the initial list of vsParticle structures
     particleListSize = 0;
@@ -357,6 +661,25 @@ vsParticleSystem::~vsParticleSystem()
     for (loop = 0; loop < particleListSize; loop++)
         destroyParticle((vsParticle *)(particleList[loop]));
 
+    // De-reference any shader attributes we created or used
+    if (arbShader)
+    {
+        parentComponent->removeAttribute(arbShader);
+        arbShader->unref();
+    }
+    if (glslShader)
+    {
+        parentComponent->removeAttribute(glslShader);
+        glslShader->unref();
+    }
+    
+    // If we're using shared geometry, delete that now
+    if (sharedGeom)
+    {
+        parentComponent->removeChild(sharedGeom);
+        vsObject::unrefDelete(sharedGeom);
+    }
+        
     // Dispose of the master component and texture
     vsObject::unrefDelete(masterTexture);
     vsObject::unrefDelete(parentComponent);
@@ -388,6 +711,11 @@ void vsParticleSystem::update()
 
     // Determine the amount of time between emitted particles
     emitInterval = (1.0 / emissionRate);
+    
+    // If we're using hardware shading, begin a new dynamic geometry
+    // state
+    if (hardwareShading)
+        sharedGeom->beginNewState();
 
     // Get the current position and orientation of the follow node, if there
     // is one
@@ -439,6 +767,11 @@ void vsParticleSystem::update()
             nextEmitTime += emitInterval;
         }
     }
+    
+    // If we're using hardware shading, signal that we're done changing
+    // the geometry for this frame
+    if (hardwareShading)
+        sharedGeom->finishNewState();
 
     // Update the 'time spent waiting for next emission' variable. This
     // involves adding in the amount of time that passed this frame, and then
@@ -749,6 +1082,7 @@ void vsParticleSystem::getEmitterShape(vsParticleSystemEmitterShape *shape,
 // ------------------------------------------------------------------------
 void vsParticleSystem::setMaxParticleCount(int maxParticles)
 {
+    int oldSize;
     int loop;
 
     // Sanity check; must be at least one particle
@@ -764,15 +1098,42 @@ void vsParticleSystem::setMaxParticleCount(int maxParticles)
     {
         particleList.setSize(maxParticles);
 
+        if (hardwareShading)
+        {
+            sharedGeom->beginNewState();
+            sharedGeom->setPrimitiveCount(maxParticles);
+            sharedGeom->setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 
+                maxParticles*4);
+            sharedGeom->setDataListSize(VS_GEOMETRY_NORMALS, maxParticles*4);
+            sharedGeom->setDataListSize(VS_GEOMETRY_COLORS, maxParticles*4);
+            sharedGeom->setDataListSize(VS_GEOMETRY_TEXTURE0_COORDS, 
+                maxParticles*4);
+            sharedGeom->setDataListSize(VS_GEOMETRY_TEXTURE1_COORDS, 
+                maxParticles*4);
+            sharedGeom->setDataListSize(VS_GEOMETRY_TEXTURE2_COORDS, 
+                maxParticles*4);
+            sharedGeom->setDataListSize(VS_GEOMETRY_TEXTURE3_COORDS, 
+                maxParticles*4);
+
+            primInUse.setSize(maxParticles);
+        }
+
+        oldSize = particleListSize;
+        particleListSize = maxParticles;
+
         // The list is growing; create new particle structures for the new
         // list entries
-        for (loop = particleListSize; loop < maxParticles; loop++)
+        for (loop = oldSize; loop < particleListSize; loop++)
             particleList[loop] = createParticle();
-
-        particleListSize = maxParticles;
+            
+        if (hardwareShading)
+            sharedGeom->finishNewState();
     }
     else if (maxParticles < particleListSize)
     {
+        if (hardwareShading)
+            sharedGeom->beginNewState();
+            
         // The list is shrinking; destroy the particle structures for the
         // disappearing list entries
         for (loop = maxParticles; loop < particleListSize; loop++)
@@ -780,6 +1141,26 @@ void vsParticleSystem::setMaxParticleCount(int maxParticles)
 
         particleList.setSize(maxParticles);
         particleListSize = maxParticles;
+
+        if (hardwareShading)
+        {
+            sharedGeom->setPrimitiveCount(maxParticles);
+            sharedGeom->setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 
+                maxParticles*4);
+            sharedGeom->setDataListSize(VS_GEOMETRY_NORMALS, maxParticles*4);
+            sharedGeom->setDataListSize(VS_GEOMETRY_COLORS, maxParticles*4);
+            sharedGeom->setDataListSize(VS_GEOMETRY_TEXTURE0_COORDS, 
+                maxParticles*4);
+            sharedGeom->setDataListSize(VS_GEOMETRY_TEXTURE1_COORDS, 
+                maxParticles*4);
+            sharedGeom->setDataListSize(VS_GEOMETRY_TEXTURE2_COORDS, 
+                maxParticles*4);
+            sharedGeom->setDataListSize(VS_GEOMETRY_TEXTURE3_COORDS, 
+                maxParticles*4);
+            sharedGeom->finishNewState();
+
+            primInUse.setSize(maxParticles);
+        }
     }
 
     // Since the list size changed, a lot of our instance variables could
@@ -842,7 +1223,8 @@ void vsParticleSystem::setParticleLifetime(double seconds, double variance)
 // Gets the time (and variance) in seconds for which each particle is
 // active
 // ------------------------------------------------------------------------
-void vsParticleSystem::getParticleLifetime(double *seconds, double *variance)
+void vsParticleSystem::getParticleLifetime(double *seconds, 
+                                                 double *variance)
 {
     if (seconds)
         *seconds = lifetime;
@@ -865,8 +1247,8 @@ void vsParticleSystem::setParticleVelocity(vsVector velocity,
     // Sanity check; maximum angle must be at least as large as minimum
     if (minAngleVariance > maxAngleVariance)
     {
-        printf("vsParticleSystem::setParticleVelocity: Maximum angle variance "
-            "must be larger than minimum angle variance\n");
+        printf("vsParticleSystem::setParticleVelocity: Maximum angle "
+            "variance must be larger than minimum angle variance\n");
         return;
     }
 
@@ -912,7 +1294,8 @@ void vsParticleSystem::setParticleOrbitSpeed(double speed, double variance)
 // Gets the speed (and variance), in degrees per second, at which the
 // particle revolves around the axis of the emitter
 // ------------------------------------------------------------------------
-void vsParticleSystem::getParticleOrbitSpeed(double *speed, double *variance)
+void vsParticleSystem::getParticleOrbitSpeed(double *speed,
+                                                   double *variance)
 {
     if (speed)
         *speed = orbitSpeed;
@@ -966,8 +1349,9 @@ void vsParticleSystem::setParticleSize(double initial, double initialVariance,
 // are linked; if true, the same fraction of each variance is used when
 // computing variances.
 // ------------------------------------------------------------------------
-void vsParticleSystem::getParticleSize(double *initial, double *initialVariance,
-    double *final, double *finalVariance, bool *uniform)
+void vsParticleSystem::getParticleSize(double *initial, 
+    double *initialVariance, double *final, double *finalVariance,
+    bool *uniform)
 {
     if (initial)
         *initial = initialSize;
@@ -1095,7 +1479,7 @@ vsParticle *vsParticleSystem::createParticle()
     vsGeometry *geometry;
     vsTransformAttribute *translateAttr, *rotScaleAttr;
     vsBillboardAttribute *bbAttr;
-
+    int primIndex;
 
     // Create the particle structure
     result = new vsParticle;
@@ -1120,105 +1504,43 @@ vsParticle *vsParticleSystem::createParticle()
         rotScaleComponent = new vsComponent();
         rotScaleAttr = new vsTransformAttribute();
         rotScaleComponent->addAttribute(rotScaleAttr);
-    }
 
-    // Create the particle's geometry
-    geometry = new vsGeometry();
-    geometry->setRenderBin(particleRenderBin);
-    geometry->setPrimitiveType(VS_GEOMETRY_TYPE_QUADS);
-    geometry->setPrimitiveCount(1);
+        // Create the particle's geometry
+        geometry = new vsGeometry();
+        geometry->setRenderBin(particleRenderBin);
+        geometry->setPrimitiveType(VS_GEOMETRY_TYPE_QUADS);
+        geometry->setPrimitiveCount(1);
 
-    geometry->setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 4);
-    geometry->setData(VS_GEOMETRY_VERTEX_COORDS, 0,
-        vsVector(-0.5, -0.5, 0.0));
-    geometry->setData(VS_GEOMETRY_VERTEX_COORDS, 1,
-        vsVector( 0.5, -0.5, 0.0));
-    geometry->setData(VS_GEOMETRY_VERTEX_COORDS, 2,
-        vsVector( 0.5,  0.5, 0.0));
-    geometry->setData(VS_GEOMETRY_VERTEX_COORDS, 3,
-        vsVector(-0.5,  0.5, 0.0));
+        geometry->setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 4);
+        geometry->setData(VS_GEOMETRY_VERTEX_COORDS, 0,
+            vsVector(-0.5, -0.5, 0.0));
+        geometry->setData(VS_GEOMETRY_VERTEX_COORDS, 1,
+            vsVector( 0.5, -0.5, 0.0));
+        geometry->setData(VS_GEOMETRY_VERTEX_COORDS, 2,
+            vsVector( 0.5,  0.5, 0.0));
+        geometry->setData(VS_GEOMETRY_VERTEX_COORDS, 3,
+            vsVector(-0.5,  0.5, 0.0));
 
-    geometry->setBinding(VS_GEOMETRY_NORMALS, VS_GEOMETRY_BIND_OVERALL);
-    geometry->setDataListSize(VS_GEOMETRY_NORMALS, 1);
-    geometry->setData(VS_GEOMETRY_NORMALS, 0, vsVector(0.0, 0.0, 1.0));
+        geometry->setBinding(VS_GEOMETRY_NORMALS, VS_GEOMETRY_BIND_OVERALL);
+        geometry->setDataListSize(VS_GEOMETRY_NORMALS, 1);
+        geometry->setData(VS_GEOMETRY_NORMALS, 0, vsVector(0.0, 0.0, 1.0));
 
-    geometry->setBinding(VS_GEOMETRY_COLORS, VS_GEOMETRY_BIND_OVERALL);
-    geometry->setDataListSize(VS_GEOMETRY_COLORS, 1);
-    geometry->setData(VS_GEOMETRY_COLORS, 0, vsVector(1.0, 1.0, 1.0, 1.0));
+        geometry->setBinding(VS_GEOMETRY_COLORS, VS_GEOMETRY_BIND_OVERALL);
+        geometry->setDataListSize(VS_GEOMETRY_COLORS, 1);
+        geometry->setData(VS_GEOMETRY_COLORS, 0, vsVector(1.0, 1.0, 1.0, 1.0));
 
-    geometry->setBinding(VS_GEOMETRY_TEXTURE_COORDS,
-        VS_GEOMETRY_BIND_PER_VERTEX);
-    geometry->setDataListSize(VS_GEOMETRY_TEXTURE_COORDS, 4);
-    geometry->setData(VS_GEOMETRY_TEXTURE_COORDS, 0, vsVector(0.0, 0.0));
-    geometry->setData(VS_GEOMETRY_TEXTURE_COORDS, 1, vsVector(1.0, 0.0));
-    geometry->setData(VS_GEOMETRY_TEXTURE_COORDS, 2, vsVector(1.0, 1.0));
-    geometry->setData(VS_GEOMETRY_TEXTURE_COORDS, 3, vsVector(0.0, 1.0));
-
-    geometry->enableLighting();
-
-    geometry->setIntersectValue(0x00000001);
-
-    // If we're using hardware shading, add a couple of geometry data
-    // lists to hold the position, rotation, and size
-    if (hardwareShading)
-    {
-        // Scene graph frustum culling won't work properly if we're 
-        // transforming the particle in a shader program (the particle won't
-        // really be where the scene graph thinks it is).  Disable culling
-        // on the new particle to keep it from getting culled erroneously.
-        geometry->disableCull();
- 
-        // Texture coordinate 1 holds the particle's X and Y position
-        geometry->setBinding(VS_GEOMETRY_TEXTURE1_COORDS, 
+        geometry->setBinding(VS_GEOMETRY_TEXTURE_COORDS,
             VS_GEOMETRY_BIND_PER_VERTEX);
-        geometry->setDataListSize(VS_GEOMETRY_TEXTURE1_COORDS, 4);
-        geometry->setData(VS_GEOMETRY_TEXTURE1_COORDS, 0,
-            vsVector(0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_TEXTURE1_COORDS, 1,
-            vsVector(0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_TEXTURE1_COORDS, 2,
-            vsVector(0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_TEXTURE1_COORDS, 3,
-            vsVector(0.0, 0.0));
+        geometry->setDataListSize(VS_GEOMETRY_TEXTURE_COORDS, 4);
+        geometry->setData(VS_GEOMETRY_TEXTURE_COORDS, 0, vsVector(0.0, 0.0));
+        geometry->setData(VS_GEOMETRY_TEXTURE_COORDS, 1, vsVector(1.0, 0.0));
+        geometry->setData(VS_GEOMETRY_TEXTURE_COORDS, 2, vsVector(1.0, 1.0));
+        geometry->setData(VS_GEOMETRY_TEXTURE_COORDS, 3, vsVector(0.0, 1.0));
 
-        // Texture coordinate 2 holds the particle's Z position and rotation
-        geometry->setBinding(VS_GEOMETRY_TEXTURE2_COORDS, 
-            VS_GEOMETRY_BIND_PER_VERTEX);
-        geometry->setDataListSize(VS_GEOMETRY_TEXTURE2_COORDS, 4);
-        geometry->setData(VS_GEOMETRY_TEXTURE2_COORDS, 0,
-            vsVector(0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_TEXTURE2_COORDS, 1,
-            vsVector(0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_TEXTURE2_COORDS, 2,
-            vsVector(0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_TEXTURE2_COORDS, 3,
-            vsVector(0.0, 0.0));
+        geometry->enableLighting();
 
-        // Texture coordinate 3 holds the particle's size
-        geometry->setBinding(VS_GEOMETRY_TEXTURE3_COORDS, 
-            VS_GEOMETRY_BIND_PER_VERTEX);
-        geometry->setDataListSize(VS_GEOMETRY_TEXTURE3_COORDS, 4);
-        geometry->setData(VS_GEOMETRY_TEXTURE3_COORDS, 0,
-            vsVector(0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_TEXTURE3_COORDS, 1,
-            vsVector(0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_TEXTURE3_COORDS, 2,
-            vsVector(0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_TEXTURE3_COORDS, 3,
-            vsVector(0.0, 0.0));
+        geometry->setIntersectValue(0x00000001);
 
-        // Keep a reference to the geometry node
-        result->quadGeometry = geometry;
-        result->quadGeometry->ref();
-
-        // Set the remaining structure members to NULL (we don't use them
-        // in hardware mode
-        result->mainComponent = NULL;
-        result->positionAttr = NULL;
-        result->rotScaleAttr = NULL;
-    }
-    else
-    {
         // Connect the chain of nodes together
         translationComponent->addChild(billboardComponent);
         billboardComponent->addChild(rotScaleComponent);
@@ -1233,6 +1555,99 @@ vsParticle *vsParticleSystem::createParticle()
         result->rotScaleAttr->ref();
         result->quadGeometry = geometry;
         result->quadGeometry->ref();
+    }
+    else
+    {
+        // Figure out this particle's primitive index
+        primIndex = 0;
+        while ((primIndex < particleListSize) && 
+            (primInUse[primIndex]))
+            primIndex++;
+
+        if (primIndex >= particleListSize)
+        {
+            printf("vsParticleSystem::createParticle:  Particle list is "
+                "full!\n");
+            return NULL;
+        }
+
+        // Mark this particle as in use in the shared geometry
+        primInUse[primIndex] = (void *)true;
+
+        // Multiply the primitive index by 4 to get the actual vertex index 
+        // in the shared geometry node
+        result->geomIndex = primIndex * 4;
+
+        // Set up the particle's position, normal, color and texture coords
+        sharedGeom->setData(VS_GEOMETRY_VERTEX_COORDS, result->geomIndex + 0,
+            vsVector(-0.5, -0.5, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_VERTEX_COORDS, result->geomIndex + 1,
+            vsVector( 0.5, -0.5, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_VERTEX_COORDS, result->geomIndex + 2,
+            vsVector( 0.5,  0.5, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_VERTEX_COORDS, result->geomIndex + 3,
+            vsVector(-0.5,  0.5, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_NORMALS, result->geomIndex + 0,
+            vsVector(0.0, 0.0, 1.0));
+        sharedGeom->setData(VS_GEOMETRY_NORMALS, result->geomIndex + 1,
+            vsVector(0.0, 0.0, 1.0));
+        sharedGeom->setData(VS_GEOMETRY_NORMALS, result->geomIndex + 2,
+            vsVector(0.0, 0.0, 1.0));
+        sharedGeom->setData(VS_GEOMETRY_NORMALS, result->geomIndex + 3,
+            vsVector(0.0, 0.0, 1.0));
+        sharedGeom->setData(VS_GEOMETRY_COLORS, result->geomIndex + 0,
+            vsVector(0.0, 0.0, 0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_COLORS, result->geomIndex + 1,
+            vsVector(0.0, 0.0, 0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_COLORS, result->geomIndex + 2,
+            vsVector(0.0, 0.0, 0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_COLORS, result->geomIndex + 3,
+            vsVector(0.0, 0.0, 0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE0_COORDS, result->geomIndex + 0,
+            vsVector(0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE0_COORDS, result->geomIndex + 1,
+            vsVector(1.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE0_COORDS, result->geomIndex + 2,
+            vsVector(1.0, 1.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE0_COORDS, result->geomIndex + 3,
+            vsVector(0.0, 1.0));
+
+        // Texture coordinate 1 holds the particle's X and Y position
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS, result->geomIndex + 0,
+            vsVector(0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS, result->geomIndex + 1,
+            vsVector(0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS, result->geomIndex + 2,
+            vsVector(0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS, result->geomIndex + 3,
+            vsVector(0.0, 0.0));
+
+        // Texture coordinate 2 holds the particle's Z position and rotation
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS, result->geomIndex + 0,
+            vsVector(0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS, result->geomIndex + 1,
+            vsVector(0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS, result->geomIndex + 2,
+            vsVector(0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS, result->geomIndex + 3,
+            vsVector(0.0, 0.0));
+
+        // Texture coordinate 3 holds the particle's size
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS, result->geomIndex + 0,
+            vsVector(0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS, result->geomIndex + 1,
+            vsVector(0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS, result->geomIndex + 2,
+            vsVector(0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS, result->geomIndex + 3,
+            vsVector(0.0, 0.0));
+
+        // Set the remaining structure members to NULL (we don't use them
+        // in hardware mode
+        result->mainComponent = NULL;
+        result->quadGeometry = NULL;
+        result->positionAttr = NULL;
+        result->rotScaleAttr = NULL;
     }
 
     // Set the particle to inactive
@@ -1250,18 +1665,25 @@ vsParticle *vsParticleSystem::createParticle()
 // ------------------------------------------------------------------------
 void vsParticleSystem::destroyParticle(vsParticle *particle)
 {
+    int primIndex;
+
     // Deactivate the particle first, if needed
     if (particle->isActive)
         deactivateParticle(particle);
 
     // Dispose of the nodes and attributes
-    if (!hardwareShading)
+    if (hardwareShading)
+    {
+        primIndex = particle->geomIndex / 4;
+        primInUse[primIndex] = (void *)false;
+    }
+    else
     {
         vsObject::unrefDelete(particle->mainComponent);
         vsObject::unrefDelete(particle->positionAttr);
         vsObject::unrefDelete(particle->rotScaleAttr);
+        vsObject::unrefDelete(particle->quadGeometry);
     }
-    vsObject::unrefDelete(particle->quadGeometry);
 
     // Destroy the particle structure
     delete particle;
@@ -1307,9 +1729,7 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
 
     // Attach the particle's geometry to the particle system's master
     // component
-    if (hardwareShading)
-        parentComponent->addChild(particle->quadGeometry);
-    else
+    if (!hardwareShading)
         parentComponent->addChild(particle->mainComponent);
 
     // Determine the particle's lifetime and set it to zero age
@@ -1369,10 +1789,6 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
 
     // * Randomly compute the particle's initial position based on the shape,
     // orientation, and radii of the emitter
-
-//    // Start with the radius calculation
-//    distance = emitterMinRadius +
-//        ((emitterMaxRadius - emitterMinRadius) * getRandom());
 
     // Then account for the emitter's shape
     switch (emitterShape)
@@ -1592,9 +2008,6 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
         // random angle determination will cause the directions to 'bunch up'
         // around the 0-degree center direction. A bit of trig is required to
         // make the distribution a little more even.
-//        pitchDegs = velocityMinAngleVariance +
-//            ((velocityMaxAngleVariance - velocityMinAngleVariance) *
-//                getRandom());
         min = cos(VS_DEG2RAD(velocityMinAngleVariance));
         max = cos(VS_DEG2RAD(velocityMaxAngleVariance));
         pitchDegs = min + ((max - min) * getRandom());
@@ -1747,9 +2160,16 @@ void vsParticleSystem::deactivateParticle(vsParticle *particle)
     // Remove the particle node chain from the system's master component
     if (hardwareShading)
     {
-        // When using hardware, we only attach the geometry node.  Detach
-        // it to deactivate the particle.
-        parentComponent->removeChild(particle->quadGeometry);
+        // Hide the particle in the primitive list, by setting it's alpha
+        // value to zero
+        sharedGeom->setData(VS_GEOMETRY_COLORS, particle->geomIndex + 0,
+            vsVector(0.0, 0.0, 0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_COLORS, particle->geomIndex + 1,
+            vsVector(0.0, 0.0, 0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_COLORS, particle->geomIndex + 2,
+            vsVector(0.0, 0.0, 0.0, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_COLORS, particle->geomIndex + 3,
+            vsVector(0.0, 0.0, 0.0, 0.0));
     }
     else
     {
@@ -1839,7 +2259,6 @@ void vsParticleSystem::updateParticle(vsParticle *particle, double deltaTime)
     position.scale(particle->orbitRadius);
     position += particle->position;
 
-    
     // Transform the particle's position from local to global coordinates
     position = particle->emitterMatrix.getPointXform(position);
 
@@ -1850,35 +2269,51 @@ void vsParticleSystem::updateParticle(vsParticle *particle, double deltaTime)
     // See if we're using hardware or software rendering
     if (hardwareShading)
     {
+        // Compute the particle's color and place that into the geometry object
+        color = (particle->initialColor.getScaled(1.0 - lifeRatio) +
+                 particle->finalColor.getScaled(lifeRatio));
+        sharedGeom->setData(VS_GEOMETRY_COLORS, 
+            particle->geomIndex + 0, color);
+        sharedGeom->setData(VS_GEOMETRY_COLORS,
+            particle->geomIndex + 1, color);
+        sharedGeom->setData(VS_GEOMETRY_COLORS,
+            particle->geomIndex + 2, color);
+        sharedGeom->setData(VS_GEOMETRY_COLORS,
+            particle->geomIndex + 3, color);
+
         // Texture coordinate 1 holds the particle's X and Y position
-        particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE1_COORDS, 0,
-            vsVector(position[VS_X], position[VS_Y]));
-        particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE1_COORDS, 1,
-            vsVector(position[VS_X], position[VS_Y]));
-        particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE1_COORDS, 2,
-            vsVector(position[VS_X], position[VS_Y]));
-        particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE1_COORDS, 3,
-            vsVector(position[VS_X], position[VS_Y]));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS, 
+            particle->geomIndex + 0, vsVector(position[VS_X], position[VS_Y]));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS,
+            particle->geomIndex + 1, vsVector(position[VS_X], position[VS_Y]));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS,
+            particle->geomIndex + 2, vsVector(position[VS_X], position[VS_Y]));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS,
+            particle->geomIndex + 3, vsVector(position[VS_X], position[VS_Y]));
 
         // Texture coordinate 2 holds the particle's Z position and rotation
-        particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE2_COORDS, 0,
-            vsVector(position[VS_Z], particle->rotation));
-        particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE2_COORDS, 1,
-            vsVector(position[VS_Z], particle->rotation));
-        particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE2_COORDS, 2,
-            vsVector(position[VS_Z], particle->rotation));
-        particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE2_COORDS, 3,
-            vsVector(position[VS_Z], particle->rotation));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS, 
+            particle->geomIndex + 0, vsVector(position[VS_Z], 
+            particle->rotation));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS,
+            particle->geomIndex + 1, vsVector(position[VS_Z], 
+            particle->rotation));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS,
+            particle->geomIndex + 2, vsVector(position[VS_Z], 
+            particle->rotation));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS,
+            particle->geomIndex + 3, vsVector(position[VS_Z], 
+            particle->rotation));
 
         // Texture coordinate 3 holds the particle's size
-        particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE3_COORDS, 0,
-            vsVector(currentSize, 0.0));
-        particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE3_COORDS, 1,
-            vsVector(currentSize, 0.0));
-        particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE3_COORDS, 2,
-            vsVector(currentSize, 0.0));
-        particle->quadGeometry->setData(VS_GEOMETRY_TEXTURE3_COORDS, 3,
-            vsVector(currentSize, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS, 
+            particle->geomIndex + 0, vsVector(currentSize, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS,
+            particle->geomIndex + 1, vsVector(currentSize, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS,
+            particle->geomIndex + 2, vsVector(currentSize, 0.0));
+        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS,
+            particle->geomIndex + 3, vsVector(currentSize, 0.0));
     }
     else
     {
@@ -1893,12 +2328,12 @@ void vsParticleSystem::updateParticle(vsParticle *particle, double deltaTime)
             particle->rotation, 0.0, 0.0);
         scaleMat.setScale(currentSize, currentSize, currentSize);
         particle->rotScaleAttr->setDynamicTransform(scaleMat * rotMat);
-    }
 
-    // Compute the particle's color and place that into the geometry object
-    color = (particle->initialColor.getScaled(1.0 - lifeRatio) +
-             particle->finalColor.getScaled(lifeRatio));
-    particle->quadGeometry->setData(VS_GEOMETRY_COLORS, 0, color);
+        // Compute the particle's color and place that into the geometry object
+        color = (particle->initialColor.getScaled(1.0 - lifeRatio) +
+                 particle->finalColor.getScaled(lifeRatio));
+        particle->quadGeometry->setData(VS_GEOMETRY_COLORS, 0, color);
+    }
 }
 
 // ------------------------------------------------------------------------
