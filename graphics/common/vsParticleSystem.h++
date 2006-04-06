@@ -30,6 +30,7 @@
 #include "vsTextureAttribute.h++"
 #include "vsShaderAttribute.h++"
 #include "vsGLSLProgramAttribute.h++"
+#include "vsTimer.h++"
 
 enum vsParticleSystemEmitterShape
 {
@@ -167,6 +168,8 @@ protected:
     vsVector                  currentFollowNodePos;
     vsQuat                    currentFollowNodeOri;
 
+    vsTimer *                 updateTimer;
+
     // Particle management routines
     vsParticle                *createParticle();
     void                      destroyParticle(vsParticle *particle);
@@ -200,6 +203,7 @@ public:
 
     // Inherited from vsUpdatable
     void           update();
+    void           update(double deltaTime);
 
     // Particle system main component
     vsComponent    *getComponent();

@@ -123,6 +123,10 @@ vsParticleSystem::vsParticleSystem()
 
     // Mark that the 'previous' follow node data isn't valid yet
     prevFollowDataValid = false;
+    
+    // Create and mark the update timer.
+    updateTimer = new vsTimer();
+    updateTimer->mark();
 }
 
 // ------------------------------------------------------------------------
@@ -251,6 +255,10 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram)
 
     // Mark that the 'previous' follow node data isn't valid yet
     prevFollowDataValid = false;
+    
+    // Create and mark the update timer.
+    updateTimer = new vsTimer();
+    updateTimer->mark();
 }
 
 // ------------------------------------------------------------------------
@@ -400,6 +408,10 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram,
 
     // Mark that the 'previous' follow node data isn't valid yet
     prevFollowDataValid = false;
+    
+    // Create and mark the update timer.
+    updateTimer = new vsTimer();
+    updateTimer->mark();
 }
 
 // ------------------------------------------------------------------------
@@ -524,6 +536,10 @@ vsParticleSystem::vsParticleSystem(vsShaderAttribute *shaderAttr)
 
     // Mark that the 'previous' follow node data isn't valid yet
     prevFollowDataValid = false;
+    
+    // Create and mark the update timer.
+    updateTimer = new vsTimer();
+    updateTimer->mark();
 }
 
 // ------------------------------------------------------------------------
@@ -648,6 +664,10 @@ vsParticleSystem::vsParticleSystem(vsGLSLProgramAttribute *shaderAttr)
 
     // Mark that the 'previous' follow node data isn't valid yet
     prevFollowDataValid = false;
+    
+    // Create and mark the update timer.
+    updateTimer = new vsTimer();
+    updateTimer->mark();
 }
 
 // ------------------------------------------------------------------------
@@ -683,6 +703,9 @@ vsParticleSystem::~vsParticleSystem()
     // Dispose of the master component and texture
     vsObject::unrefDelete(masterTexture);
     vsObject::unrefDelete(parentComponent);
+    
+    // Delete the update timer
+    delete updateTimer;
 }
 
 // ------------------------------------------------------------------------
@@ -694,9 +717,21 @@ const char *vsParticleSystem::getClassName()
 }
 
 // ------------------------------------------------------------------------
-// Updates the particles in this system
+// Updates the particles in this system based on real-time.
 // ------------------------------------------------------------------------
 void vsParticleSystem::update()
+{
+   // Get the time elapsed since the last update.
+   double frameTime = updateTimer->getElapsed();
+   
+   // Call the main update function with this value.
+   update(frameTime);
+}
+
+// ------------------------------------------------------------------------
+// Updates the particles in this system based on a delta-time value.
+// ------------------------------------------------------------------------
+void vsParticleSystem::update(double deltaTime)
 {
     double frameTime;
     vsMatrix followNodeMatrix;
@@ -707,7 +742,7 @@ void vsParticleSystem::update()
     vsQuat rotQuat;
 
     // Get the amount of time to advance this frame
-    frameTime = (vsTimer::getSystemTimer())->getInterval();
+    frameTime = deltaTime;
 
     // Determine the amount of time between emitted particles
     emitInterval = (1.0 / emissionRate);
@@ -796,6 +831,9 @@ void vsParticleSystem::update()
     prevFollowNodePos = currentFollowNodePos;
     prevFollowNodeOri = currentFollowNodeOri;
     prevFollowDataValid = true;
+    
+    // Mark the update timer for the next update call.
+    updateTimer->mark();
 }
 
 // ------------------------------------------------------------------------
@@ -818,12 +856,20 @@ void vsParticleSystem::setRenderBin(int newBin)
 
     // Change the bin number for all new particles
     particleRenderBin = newBin;
+    
+    // Set the render bin on the shared geometry node.
+    sharedGeom->setRenderBin(particleRenderBin);
 
     // Set the render bin on all existing particles
     for (loop = 0; loop < particleListSize; loop++)
     {
         particle = (vsParticle *)(particleList[loop]);
-        particle->quadGeometry->setRenderBin(particleRenderBin);
+        
+        // Make sure this geometry is initialized first...
+        if(particle->quadGeometry != NULL)
+        {
+            particle->quadGeometry->setRenderBin(particleRenderBin);
+        }
     }
 }
 
