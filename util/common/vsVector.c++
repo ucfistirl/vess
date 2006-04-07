@@ -51,7 +51,7 @@ vsVector::vsVector(int size)
     // Bounds checking
     if ((size < 1) || (size > 4))
     {
-        printf("vsVector::vsVector(int): Invalid size parameter\n");
+        printf("vsVector::vsVector(int): Invalid size parameter, size=%d\n",size);
         vecSize = 4;
     }
     else
@@ -69,7 +69,7 @@ vsVector::vsVector(int size, double values[])
     // Bounds checking
     if ((size < 1) || (size > 4))
     {
-        printf("vsVector::vsVector(int, double[]): Invalid size parameter\n");
+        printf("vsVector::vsVector(int, double[]): Invalid size parameter, size=%d\n",size);
         clear();
         vecSize = 4;
         return;
@@ -140,7 +140,7 @@ void vsVector::set(int size, double values[])
     // Bounds checking
     if ((size < 1) || (size > 4))
     {
-        printf("vsVector::set(int, double[]): Invalid size parameter\n");
+        printf("vsVector::set(int, double[]): Invalid size parameter, size=%d\n",size);
         return;
     }
 
@@ -239,7 +239,7 @@ void vsVector::setSize(int size)
     // Bounds checking
     if ((size < 1) || (size > 4))
     {
-        printf("vsVector::setSize: Invalid size parameter\n");
+        printf("vsVector::setSize: Invalid size parameter, size=%d\n",size);
         return;
     }
 
@@ -263,7 +263,7 @@ void vsVector::setValue(int index, double value)
     // Bounds checking
     if ((index < 0) || (index >= vecSize))
     {
-        printf("vsVector::setValue: Invalid index\n");
+        printf("vsVector::setValue: Invalid index = %d\n",index);
         return;
     }
     
@@ -279,7 +279,7 @@ double vsVector::getValue(int index) const
     // Bounds checking
     if ((index < 0) || (index >= vecSize))
     {
-        printf("vsVector::getValue: Invalid index\n");
+        printf("vsVector::getValue: Invalid index = %d\n",index);
         return data[0];
     }
     
@@ -351,7 +351,7 @@ void vsVector::add(const vsVector &addend)
     // Verify that the vectors are the same size
     if (vecSize != addend.vecSize)
     {
-        printf("vsVector::add: Vector size mismatch\n");
+        printf("vsVector::add: Vector size mismatch, (this->vecSize = %d) != (addend.vecSize = %d)\n",vecSize,addend.vecSize);
         return;
     }
 
@@ -372,7 +372,7 @@ vsVector vsVector::getSum(const vsVector &addend) const
     // Verify that the vectors are the same size
     if (vecSize != addend.vecSize)
     {
-        printf("vsVector::getSum: Vector size mismatch\n");
+        printf("vsVector::getSum: Vector size mismatch, (this->vecSize = %d) != (addend.vecSize = %d)\n",vecSize,addend.vecSize);
         return result;
     }
 
@@ -397,7 +397,7 @@ void vsVector::subtract(const vsVector &subtrahend)
     // Verify that the vectors are the same size
     if (vecSize != subtrahend.vecSize)
     {
-        printf("vsVector::subtract: Vector size mismatch\n");
+        printf("vsVector::subtract: Vector size mismatch, (this->vecSize = %d) != (subtrahend.vecSize = %d)\n",vecSize,subtrahend.vecSize);
         return;
     }
 
@@ -418,7 +418,7 @@ vsVector vsVector::getDifference(const vsVector &subtrahend) const
     // Verify that the vectors are the same size
     if (vecSize != subtrahend.vecSize)
     {
-        printf("vsVector::getDifference: Vector size mismatch\n");
+        printf("vsVector::getDifference: Vector size mismatch, (this->vecSize = %d) != (subtrahend.vecSize = %d)\n",vecSize,subtrahend.vecSize);
         return result;
     }
 
@@ -508,7 +508,7 @@ double vsVector::getDotProduct(const vsVector &operand) const
     // Verify that the vectors are the same size
     if (vecSize != operand.vecSize)
     {
-        printf("vsVector::getDotProduct: Vector size mismatch\n");
+        printf("vsVector::getDotProduct: Vector size mismatch, (this->vecSize = %d) != (operand.vecSize = %d)\n",vecSize,operand.vecSize);
         return 0.0;
     }
 
@@ -675,7 +675,7 @@ double &vsVector::operator[](int index)
     // Bounds checking
     if ((index < 0) || (index >= vecSize))
     {
-        printf("vsVector::operator[]: Invalid index\n");
+        printf("vsVector::operator[]: Invalid index = %d\n",index);
         return data[0];
     }
     
@@ -691,7 +691,7 @@ const double &vsVector::operator[](int index) const
     // Bounds checking
     if ((index < 0) || (index >= vecSize))
     {
-        printf("vsVector::operator[]: Invalid index\n");
+        printf("vsVector::operator[]: Invalid index = %d\n",index);
         return data[0];
     }
     
@@ -712,7 +712,7 @@ vsVector vsVector::operator+(const vsVector &addend) const
     // Verify that the vectors are the same size
     if (vecSize != addend.vecSize)
     {
-        printf("vsVector::operator+: Vector size mismatch\n");
+        printf("vsVector::operator+: Vector size mismatch, (this->vecSize = %d) != (addend.vecSize = %d)\n",vecSize,addend.vecSize);
         return result;
     }
 
@@ -739,7 +739,7 @@ vsVector vsVector::operator-(const vsVector &subtrahend) const
     // Verify that the vectors are the same size
     if (vecSize != subtrahend.vecSize)
     {
-        printf("vsVector::operator-: Vector size mismatch\n");
+        printf("vsVector::operator-: Vector size mismatch, (this->vecSize = %d) != (subtrahend.vecSize = %d)\n",vecSize,subtrahend.vecSize);
         return result;
     }
 
@@ -785,7 +785,7 @@ void vsVector::operator+=(const vsVector &addend)
     // Verify that the vectors are the same size
     if (vecSize != addend.vecSize)
     {
-        printf("vsVector::operator+=: Vector size mismatch\n");
+        printf("vsVector::operator+=: Vector size mismatch, (this->vecSize = %d) != (addend.vecSize = %d)\n",vecSize,addend.vecSize);
         return;
     }
 
@@ -806,7 +806,7 @@ void vsVector::operator-=(const vsVector &subtrahend)
     // Verify that the vectors are the same size
     if (vecSize != subtrahend.vecSize)
     {
-        printf("vsVector::operator-=: Vector size mismatch\n");
+        printf("vsVector::operator-=: Vector size mismatch, (this->vecSize = %d) != (subtrahend.vecSize = %d)\n",vecSize,subtrahend.vecSize);
         return;
     }
 
