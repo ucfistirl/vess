@@ -66,6 +66,10 @@ vsSphericalMotion::vsSphericalMotion(vsMouse *mouse, vsKinematics *kin)
      orbitConst = VS_SPHM_DEFAULT_ORBIT_CONST;
      zoomConst = VS_SPHM_DEFAULT_ZOOM_CONST;
      minRadius = VS_SPHM_DEFAULT_MIN_RADIUS;
+
+     // Initialize intermediate motion values
+     lastHorizontal = 0.0;
+     lastVertical = 0.0;
 }
 
 // ------------------------------------------------------------------------
