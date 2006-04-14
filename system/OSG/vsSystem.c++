@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include <osg/Drawable>
 #include <osg/Geode>
+#include <osgDB/Registry>
+#include <osgDB/DatabasePager>
 
 #include "vsLightAttribute.h++"
 #include "vsLocalLightCallback.h++"
@@ -51,6 +53,8 @@ vsSystem *vsSystem::systemObject = NULL;
 // ------------------------------------------------------------------------
 vsSystem::vsSystem()
 {
+    osgDB::DatabasePager *osgDBPager;
+
     // Start out uninitialized
     isInitted = 0;
 
@@ -83,6 +87,9 @@ vsSystem::vsSystem()
     // Create a sequencer to act as a "root sequencer"
     rootSequencer = new vsSequencer();
     rootSequencer->ref();
+
+    // Create an OSG DatabasePager in case we load up any paged databases
+    osgDBPager = osgDB::Registry::instance()->getOrCreateDatabasePager();
 }
 
 // ------------------------------------------------------------------------
@@ -445,6 +452,8 @@ void vsSystem::drawFrame()
     vsPane *targetPane;
     vsScene *scene;
     int screenCount = vsScreen::getScreenCount();
+    double lastFrameInterval, availableTime;
+    osgDB::DatabasePager *osgDBPager;
 
     // Do nothing if this isn't a real system object
     if (!validObject)
@@ -547,12 +556,19 @@ void vsSystem::drawFrame()
 
     // Mark the system timer for this frame
     vsTimer::getSystemTimer()->mark();
+    lastFrameInterval = vsTimer::getSystemTimer()->getInterval();
 
     // Update the OSG FrameStamp object
     frameNumber++;
-    simTime += vsTimer::getSystemTimer()->getInterval();
+    simTime += lastFrameInterval;
     osgFrameStamp->setFrameNumber(frameNumber);
     osgFrameStamp->setReferenceTime(simTime);
+
+    // Handle database paging
+    availableTime = lastFrameInterval;
+    osgDBPager = osgDB::Registry::instance()->getDatabasePager();
+    if (osgDBPager)
+        osgDBPager->signalBeginFrame(osgFrameStamp);
     
     // Perform update, cull, and draw traversals for each pane
     for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
@@ -585,12 +601,35 @@ void vsSystem::drawFrame()
                 if (targetPane->isVisible())
                 {
                     targetPane->getBaseLibraryObject()->draw();
+
+                    // See if we're doing database paging
+                    if (osgDBPager)
+                    {
+                        // Tell the pager to compile any new GL objects
+                        // it has loaded
+                        osgDBPager->compileGLObjects(
+                            *(targetPane->getBaseLibraryObject()->getState()),
+                            availableTime);
+
+                        // Tell the target pane to flush any GL objects that
+                        // have been deleted
+                        targetPane->getBaseLibraryObject()->
+                            flushDeletedGLObjects(availableTime);
+                    }
                 }
             }
 
             // Swap buffers on this window
             targetWindow->swapBuffers();
         }
+    }
+
+    // If we're doing database paging, signal the pager that we're done
+    // with this frame
+    if (osgDBPager)
+    {
+        osgDBPager->updateSceneGraph(simTime);
+        osgDBPager->signalEndFrame();
     }
 
 #ifdef WIN32

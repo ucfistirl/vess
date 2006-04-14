@@ -30,6 +30,7 @@
 #include <osg/Sequence>
 #include <osg/Switch>
 #include <osg/LOD>
+#include <osg/PagedLOD>
 
 enum vsIntersectSwitchTraversalMode
 {
@@ -75,6 +76,7 @@ VS_INTERNAL:
     virtual void    apply(osg::Sequence &node);
     virtual void    apply(osg::Switch &node);
     virtual void    apply(osg::LOD &node);
+    virtual void    apply(osg::PagedLOD &node);
 };
 
 #endif

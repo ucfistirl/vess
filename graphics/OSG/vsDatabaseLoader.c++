@@ -24,6 +24,7 @@
 #include <string.h>
 #include <osgDB/Registry>
 #include <osgDB/ReadFile>
+#include <osgDB/WriteFile>
 #include <osg/LOD>
 #include <osg/Sequence>
 #include <osgSim/MultiSwitch>
@@ -605,7 +606,19 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
                 
                 xformAttr->setDynamicTransform(xformMat);
             }
-        } // if (dynamic_cast<osg::Transform *>(node))
+        }
+        else
+        {
+            // If this group has no children, it may actually be a node that
+            // controls a paged database (such as a txp::TXPNode).
+            if (osgGroup->getNumChildren() == 0)
+            {
+                // To handle these nodes, we'll just add the leaf group to 
+                // the new VESS scene, and let OSG take care of the paging 
+                // for us.
+                newComponent->replaceBottomGroup((osg::Group *)node);
+            }
+        }
         
         // Create a decal attribute on the new component if needed
         if (needsDecal)
@@ -619,7 +632,7 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
             convertAttrs(newComponent, node->getStateSet(), attrMap);
         
         result = newComponent;
-    } // if (dynamic_cast<osg::Geode *>(node))
+    } // if (dynamic_cast<osg::Group *>(node))
 
     // Return NULL if the conversion didn't go correctly (in which case
     // we'll have a NULL result here)
@@ -1390,7 +1403,7 @@ void vsDatabaseLoader::convertLOD(vsComponent *lodComponent, osg::LOD *osgLOD)
     vsLODAttribute *lodAttr;
     osg::Vec3 lodCenter;
     float midpoint;
-    
+
     // * Create a list of ranges out of the minimum and maximum range
     // values for each child, as specified by the osg LOD object. 
     rangeListSize = (osgLOD->getNumRanges() * 2) + 1;

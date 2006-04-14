@@ -188,7 +188,10 @@ void vsIntersectTraverser::apply(osg::LOD &node)
     // child
     if (lodTravMode == VS_INTERSECT_LOD_FIRST)
     {
-        node.getChild(0)->accept(*this);
+        // We need to check if the child is valid.  This may be a PagedLOD
+        // so it's children may not be loaded yet.
+        if (node.getChild(0) != NULL)
+            node.getChild(0)->accept(*this);
         return;
     }
 
@@ -197,6 +200,17 @@ void vsIntersectTraverser::apply(osg::LOD &node)
     {
         // We're traversing all children, apply the IntersectVisitor to
         // the current child with no check
-        node.getChild(i)->accept(*this);
+        if (node.getChild(i) != NULL)
+            node.getChild(i)->accept(*this);
     }
+}
+
+// ------------------------------------------------------------------------
+// Internal function (called by OSG)
+// Apply this traverser to an osg::PagedLOD
+// ------------------------------------------------------------------------
+void vsIntersectTraverser::apply(osg::PagedLOD &node)
+{
+    // Do the normal PagedLOD traversal
+    node.traverse(*this);
 }
