@@ -137,6 +137,13 @@ enum vsMathEulerAxisOrder
         #define VS_GRAPHICS_DLL  __declspec(dllimport)
     #endif
 
+    // vsDynamics library
+    #ifdef VS_DYNAMICS_EXPORTS
+        #define VS_DYNAMICS_DLL  __declspec(dllexport)
+    #else
+        #define VS_DYNAMICS_DLL  __declspec(dllimport)
+    #endif
+
     // vsIO library
     #ifdef VS_IO_EXPORTS
         #define VS_IO_DLL  __declspec(dllexport)
@@ -165,6 +172,13 @@ enum vsMathEulerAxisOrder
         #define VS_MOTION_DLL  __declspec(dllimport)
     #endif
 
+    // vsDynamo library
+    #ifdef VS_DYNAMO_EXPORTS
+        #define VS_DYNAMO_DLL  __declspec(dllexport)
+    #else
+        #define VS_DYNAMO_DLL  __declspec(dllimport)
+    #endif
+
     // vsAvatar library
     #ifdef VS_AVATAR_EXPORTS
         #define VS_AVATAR_DLL  __declspec(dllexport)
@@ -179,18 +193,18 @@ enum vsMathEulerAxisOrder
         #define VS_ENVIRONMENT_DLL  __declspec(dllimport)
     #endif
 
-    // vsSystem library
-    #ifdef VS_SYSTEM_EXPORTS
-        #define VS_SYSTEM_DLL  __declspec(dllexport)
-    #else
-        #define VS_SYSTEM_DLL  __declspec(dllimport)
-    #endif
-
 	// vsMenu library
     #ifdef VS_MENU_EXPORTS
         #define VS_MENU_DLL  __declspec(dllexport)
     #else
         #define VS_MENU_DLL  __declspec(dllimport)
+    #endif
+
+    // vsSystem library
+    #ifdef VS_SYSTEM_EXPORTS
+        #define VS_SYSTEM_DLL  __declspec(dllexport)
+    #else
+        #define VS_SYSTEM_DLL  __declspec(dllimport)
     #endif
 
 #else
@@ -199,10 +213,12 @@ enum vsMathEulerAxisOrder
      #define VS_UTIL_DLL
      #define VS_LLIO_DLL
      #define VS_GRAPHICS_DLL
+     #define VS_DYNAMICS_DLL
      #define VS_IO_DLL
      #define VS_SOUND_DLL
      #define VS_SCENT_DLL
      #define VS_MOTION_DLL
+     #define VS_DYNAMO_DLL
      #define VS_AVATAR_DLL
      #define VS_ENVIRONMENT_DLL
      #define VS_SYSTEM_DLL
