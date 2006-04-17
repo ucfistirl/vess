@@ -93,6 +93,7 @@ include_HEADERS = \
 # met.
 EXTRA_HEADERS = \
                 common/vsIntersenseTrackingSystem.h++ \
+                Linux/vs1394Camera.h++ \
                 Linux/vsLinuxJoystickSystem.h++ \
                 Linux/vsPhaseSpaceMD.h++ \
                 Linux/vsScentAirSystem.h++
