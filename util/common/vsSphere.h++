@@ -24,13 +24,13 @@
 #define VS_SPHERE_HPP
 
 #include "vsGlobals.h++"
+#include "vsShape.h++"
 #include "vsVector.h++"
 
-class VS_UTIL_DLL vsSphere
+class VS_UTIL_DLL vsSphere : public vsShape
 {
 private:
 
-    vsVector    center;
     double      radius;
 
     void        promote(vsVector *points, int index);
@@ -51,32 +51,38 @@ private:
 
 public:
 
-                vsSphere();
-                vsSphere(const vsVector &centerPoint,
-                         const double &sphereRadius);
-                ~vsSphere();
+                          vsSphere();
+                          vsSphere(const vsVector &centerPoint,
+                                   const double &sphereRadius);
+                          ~vsSphere();
 
-    void        setEmpty();
-    void        setSphere(const vsVector &centerPoint,
-                          const double &sphereRadius);
+    virtual const char    *getClassName();
 
-    vsVector    getCenterPoint() const;
-    double      getRadius() const;
+    void                  setEmpty();
+    virtual void          setSphere(const vsVector &center,
+                              const double &radius);
 
-    void        addPoint(const vsVector &point);
-    void        addSphere(const vsSphere &sphere);
+    virtual void          setScale(vsScaleType type, double value);
 
-    void        enclosePoints(vsVector *points, int pointCount);
-    void        encloseSpheres(vsSphere *spheres, int sphereCount);
+    virtual double        getScale(vsScaleType type) const;
 
-    bool        isPointInside(const vsVector &point) const;
-    bool        isSphereInside(const vsSphere &sphere) const;
-    bool        isSegIsect(const vsVector &segStart,
-                           const vsVector &segEnd) const;
-    bool        isSphereIsect(const vsSphere &sphere) const;
+    vsVector              getCenterPoint() const;
+    double                getRadius() const;
 
-    void        print() const;
-    void        print(FILE *fp) const;
+    void                  addPoint(const vsVector &point);
+    void                  addSphere(const vsSphere &sphere);
+
+    void                  enclosePoints(vsVector *points, int pointCount);
+    void                  encloseSpheres(vsSphere *spheres, int sphereCount);
+
+    bool                  isPointInside(const vsVector &point) const;
+    bool                  isSphereInside(const vsSphere &sphere) const;
+    bool                  isSegIsect(const vsVector &segStart,
+                                     const vsVector &segEnd) const;
+    bool                  isSphereIsect(const vsSphere &sphere) const;
+
+    void                  print() const;
+    void                  print(FILE *fp) const;
 };
 
 #endif

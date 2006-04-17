@@ -50,23 +50,59 @@ vsSphere::~vsSphere()
 }
 
 //------------------------------------------------------------------------
+// Virtual function
+//------------------------------------------------------------------------
+const char *vsSphere::getClassName()
+{
+    return "vsSphere";
+}
+
+//------------------------------------------------------------------------
 // Sets the sphere to an empty sphere
 //------------------------------------------------------------------------
 void vsSphere::setEmpty()
 {
-    center.set(0.0, 0.0, 0.0);
-    radius = -1.0;
+    setSphere(vsVector(0.0, 0.0, 0.0), -1.0);
 }
 
 //------------------------------------------------------------------------
+// Virtual function
 // Sets the sphere to have the designated center point and radius
 //------------------------------------------------------------------------
 void vsSphere::setSphere(const vsVector &centerPoint,
     const double &sphereRadius)
 {
-    center.clearCopy(centerPoint);
-    center.setSize(3);
+    translationVector.clearCopy(centerPoint);
+    translationVector.setSize(3);
     radius = sphereRadius;
+}
+
+//------------------------------------------------------------------------
+// Virtual function
+// If the provided scale type is VS_SCALE_TYPE_RADIUS, this method sets
+// the radius.
+//------------------------------------------------------------------------
+void vsSphere::setScale(vsScaleType type, double value)
+{
+    if (type == VS_SCALE_TYPE_RADIUS)
+    {
+        radius = value;
+    }
+}
+
+//------------------------------------------------------------------------
+// Virtual function
+// If the provided scale type is VS_SCALE_TYPE_RADIUS, this method returns
+// the radius, otherwise it returns 0.
+//------------------------------------------------------------------------
+double vsSphere::getScale(vsScaleType type) const
+{
+    if (type == VS_SCALE_TYPE_RADIUS)
+    {
+        return radius;
+    }
+
+    return 0.0;
 }
 
 //------------------------------------------------------------------------
@@ -74,7 +110,7 @@ void vsSphere::setSphere(const vsVector &centerPoint,
 //------------------------------------------------------------------------
 vsVector vsSphere::getCenterPoint() const
 {
-    return center;
+    return translationVector;
 }
 
 //------------------------------------------------------------------------
@@ -107,13 +143,12 @@ void vsSphere::addPoint(const vsVector &point)
     {
         // If this in an empty sphere, then the result should be centered on
         // the target point and have a radius of zero
-        center = pt;
-        radius = 0.0;
+        setSphere(pt, 0.0);
     }
     else
     {
         // Check to make sure that the point isn't already within the sphere
-        distSqr = (pt - center).getMagnitudeSquared();
+        distSqr = (pt - translationVector).getMagnitudeSquared();
 
         // Comparing the squares of the distances is just as effective as
         // comparing the distances themselves, and it doesn't require taking a
@@ -128,7 +163,7 @@ void vsSphere::addPoint(const vsVector &point)
         // that the center point moved.
 
         // The direction to move is from the center, towards the new point
-        moveDir = pt - center;
+        moveDir = pt - translationVector;
         moveDir.normalize();
 
         // The distance to move is half of the distance from the boundary of
@@ -136,12 +171,10 @@ void vsSphere::addPoint(const vsVector &point)
         dist = sqrt(distSqr);
         moveDist = (dist - radius) / 2.0;
 
-        // Move the center point of the sphere
-        center += moveDir.getScaled(moveDist);
-
-        // Increase the sphere's radius to cover both the old sphere and the
-        // new point
-        radius += moveDist;
+        // Move the center point of the sphere and increase the sphere's radius
+        // to cover both the old sphere and the new point.
+        setSphere(translationVector + moveDir.getScaled(moveDist),
+            radius + moveDist);
     }
 }
 
@@ -165,14 +198,13 @@ void vsSphere::addSphere(const vsSphere &sphere)
     // Check the radius of this sphere
     if (radius < 0.0)
     {
-        center = pt;
-        radius = rad;
+        setSphere(pt, rad);
     }
     else
     {
         // Check to make sure that the new sphere isn't already within
         // this sphere
-        dist = (pt - center).getMagnitude();
+        dist = (pt - translationVector).getMagnitude();
 
         // The new sphere is inside if the distance between the centers plus
         // the new sphere's radius is less then this sphere's radius.
@@ -190,19 +222,17 @@ void vsSphere::addSphere(const vsSphere &sphere)
         // new sphere
 
         // The direction to move is from the center, towards the new point
-        moveDir = pt - center;
+        moveDir = pt - translationVector;
         moveDir.normalize();
 
         // The distance to move is half of the distance from the boundary of
         // the sphere (the radius) to the far point on the target sphere
         moveDist = ((dist + rad) - radius) / 2.0;
 
-        // Move the center point of the sphere
-        center += moveDir.getScaled(moveDist);
-
-        // Increase the sphere's radius to cover both the old sphere and the
-        // new sphere
-        radius += moveDist;
+        // Move the center point of the sphere increase the sphere's radius to
+        // cover both the old sphere and the new sphere.
+        setSphere(translationVector + moveDir.getScaled(moveDist),
+            radius + moveDist);
     }
 }
     
@@ -417,7 +447,7 @@ bool vsSphere::isPointInside(const vsVector &point) const
 
     // Compute the squared distance between the target point and this sphere's
     // center
-    distSqr = (pt - center).getMagnitudeSquared();
+    distSqr = (pt - translationVector).getMagnitudeSquared();
 
     // Comparing the squares of the distances is just as effective as
     // comparing the distances themselves, and it doesn't require
@@ -444,7 +474,7 @@ bool vsSphere::isSphereInside(const vsSphere &sphere) const
         return false;
 
     // Get the distance between the two spheres' centers
-    dist = (sphere.getCenterPoint() - center).getMagnitude();
+    dist = (sphere.getCenterPoint() - translationVector).getMagnitude();
 
     // The sphere is considered inside if the distance between the two
     // spheres' centers plus the radius of the sphere parameter is less
@@ -483,7 +513,7 @@ bool vsSphere::isSegIsect(const vsVector &segStart, const vsVector &segEnd)
     // start to the end, and the vector from the segment start to the center
     // point of this sphere.
     v0 = end - start;
-    v1 = center - start;
+    v1 = translationVector - start;
 
     // Compute the 'key point': the point on the line (not necessarily on the
     // segment) closest to the center of the sphere. This key point is
@@ -532,7 +562,7 @@ bool vsSphere::isSphereIsect(const vsSphere &sphere) const
 
     // The target sphere intersects this sphere if the distance between the
     // two spheres' centers is less than the sum of the two spheres' radii
-    dist = (center - sphere.getCenterPoint()).getMagnitude();
+    dist = (translationVector - sphere.getCenterPoint()).getMagnitude();
     if (dist > (radius + sphere.getRadius()))
         return false;
 
@@ -545,7 +575,7 @@ bool vsSphere::isSphereIsect(const vsSphere &sphere) const
 void vsSphere::print() const
 {
     // Use vsVector's print function to print the center point
-    center.print();
+    translationVector.print();
 
     // Print the radius
     printf(" (%0.4lf)", radius);
@@ -557,7 +587,7 @@ void vsSphere::print() const
 void vsSphere::print(FILE *fp) const
 {
     // Use vsVector's print function to print the center point
-    center.print(fp);
+    translationVector.print(fp);
 
     // Print the radius
     fprintf(fp, " (%0.4lf)", radius);
