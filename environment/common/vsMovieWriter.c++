@@ -172,30 +172,48 @@ const char *vsMovieWriter::getClassName()
 
 // ------------------------------------------------------------------------
 // FIXME: Right now, this sets the one and only video queue... in the
-// future it should dynamically add a new video stream for output.
+// future should it dynamically add a new video stream for output?
 // ------------------------------------------------------------------------
 void vsMovieWriter::addVideoQueue(vsVideoQueue *queue)
 {
+    // Release the reference on the previously set queue.
+    if (videoQueue)
+    {
+        videoQueue->yieldReference(videoReferenceID);
+        vsObject::unrefDelete(videoQueue);
+    }
+
     // Store and reference the video queue.
     videoQueue = queue;
-    videoQueue->ref();
-
-    // Obtain a reference ID for the queue.
-    videoReferenceID = videoQueue->addReference();
+    if (videoQueue)
+    {
+        // Reference and obtain a reference ID for the queue.
+        videoQueue->ref();
+        videoReferenceID = videoQueue->addReference();
+    }
 }
 
 // ------------------------------------------------------------------------
 // FIXME: Right now, this sets the one and only audio queue... in the
-// future it should dynamically add a new audio stream for output.
+// future should it dynamically add a new audio stream for output?
 // ------------------------------------------------------------------------
 void vsMovieWriter::addAudioQueue(vsMultiQueue *queue)
 {
+    // Release the reference on the previously set queue.
+    if (audioQueue)
+    {
+        audioQueue->yieldReference(audioReferenceID);
+        vsObject::unrefDelete(audioQueue);
+    }
+
     // Store and reference the audio queue.
     audioQueue = queue;
-    audioQueue->ref();
-
-    // Obtain a reference ID for the queue.
-    audioReferenceID = audioQueue->addReference();
+    if (audioQueue)
+    {
+        // Reference and obtain a reference ID for the queue.
+        audioQueue->ref();
+        audioReferenceID = audioQueue->addReference();
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -213,9 +231,15 @@ void vsMovieWriter::setFrameSize(vsVideoFrameSize size)
     }
 
     // Store the new frame size in the video context.
-    size = VS_VIDEO_SIZE_640X480;
     switch (size)
     {
+        case VS_VIDEO_SIZE_320X180:
+        {
+            vCodecContext->width = 320;
+            vCodecContext->height = 180;
+        }
+        break;
+
         case VS_VIDEO_SIZE_320X240:
         {
             vCodecContext->width = 320;
@@ -230,6 +254,13 @@ void vsMovieWriter::setFrameSize(vsVideoFrameSize size)
         }
         break;
 
+        case VS_VIDEO_SIZE_640X360:
+        {
+            vCodecContext->width = 640;
+            vCodecContext->height = 360;
+        }
+        break;
+
         case VS_VIDEO_SIZE_640X480:
         {
             vCodecContext->width = 640;
@@ -241,6 +272,13 @@ void vsMovieWriter::setFrameSize(vsVideoFrameSize size)
         {
             vCodecContext->width = 800;
             vCodecContext->height = 600;
+        }
+        break;
+
+        case VS_VIDEO_SIZE_1024X576:
+        {
+            vCodecContext->width = 1024;
+            vCodecContext->height = 576;
         }
         break;
 
@@ -320,6 +358,9 @@ vsVideoTimingMode vsMovieWriter::getTimingMode()
 // ------------------------------------------------------------------------
 bool vsMovieWriter::openFile(char *filename)
 {
+    double resampleScale;
+    int resamplePad;
+
     // Make sure a file isn't already open.
     if (fileOpen)
     {
@@ -377,14 +418,13 @@ bool vsMovieWriter::openFile(char *filename)
     // Allocate a frame for the RGB24-format data. This frame will be necessary
     // in all cases, as the data received from the vsVideoQueue will be in
     // RGB24 format.
-    rgbFrame = allocFrame(PIX_FMT_RGB24, vCodecContext->width,
-        vCodecContext->height);
-/*
     rgbFrame = allocFrame(PIX_FMT_RGB24, videoQueue->getWidth(),
         videoQueue->getHeight());
-*/
     if (rgbFrame == NULL)
     {
+        // FIXME: Free memory allocated earlier in the function.
+
+        // Print an error message and return.
         fprintf(stderr, "vsMovieWriter::openFile: "
             "Unable to allocate RGB image frame!\n");
         return false;
@@ -397,11 +437,13 @@ bool vsMovieWriter::openFile(char *filename)
     if (vCodecContext->pix_fmt != PIX_FMT_RGB24)
     {
         // Attempt to allocate the temporary image.
-        outputFrame = allocFrame(vCodecContext->pix_fmt,
-            vCodecContext->width, vCodecContext->height);
-// videoQueue->getWidth(), videoQueue->getHeight());
-        if (outputFrame == NULL)
+        conversionFrame = allocFrame(vCodecContext->pix_fmt,
+            videoQueue->getWidth(), videoQueue->getHeight());
+        if (conversionFrame == NULL)
         {
+            // FIXME: Free memory allocated earlier in the function.
+
+            // Print an error message and return.
             fprintf(stderr, "vsMovieWriter::openFile: "
                 "Unable to allocate output image frame!\n");
             return false;
@@ -410,7 +452,30 @@ bool vsMovieWriter::openFile(char *filename)
     else
     {
         // Simply use the RGB frame for the output frame.
-        outputFrame = rgbFrame;
+        conversionFrame = rgbFrame;
+    }
+
+    // Yet another frame is required for resampling the converted image from
+    // its input size to the desired output size, but only if the input and
+    // output sizes differ.
+    if ((vCodecContext->width != videoQueue->getWidth()) ||
+        (vCodecContext->height != videoQueue->getHeight()))
+    {
+        // The aspect ratio is the same, so no bars should be necessary. This
+        // allows for the use of a simple resampler.
+        resampleContext = img_resample_init(vCodecContext->width,
+            vCodecContext->height, videoQueue->getWidth(),
+            videoQueue->getHeight());
+
+        // Create a frame to hold the resampled data.
+        resampleFrame = allocFrame(vCodecContext->pix_fmt,
+            vCodecContext->width, vCodecContext->height);
+    }
+    else
+    {
+        // Simply use the output frame for the resampled frame.
+        resampleContext = NULL;
+        resampleFrame = conversionFrame;
     }
 
     // Find a codec matching the audio codec context.
@@ -547,14 +612,44 @@ void vsMovieWriter::closeFile()
         avcodec_close(vStream->codec);
         if (rgbFrame)
         {
+            // First, ensure the output and resample frames are not deleted
+            // twice if they share the same frame data as the rgb frame.
+            if (conversionFrame == rgbFrame)
+            {
+                conversionFrame = NULL;
+            }
+            if (resampleFrame == rgbFrame)
+            {
+                resampleFrame = NULL;
+            }
+
+            // Now free the rgb frame and its data buffer.
             av_free(rgbFrame->data[0]);
             av_free(rgbFrame);
         }
 
-        if ((outputFrame) && (outputFrame != rgbFrame))
+        if (conversionFrame)
         {
-            av_free(outputFrame->data[0]);
-            av_free(outputFrame);
+            // First, ensure the resample frame is not deleted twice if it
+            // shares the same frame data as the output frame.
+            if (resampleFrame == conversionFrame)
+            {
+                resampleFrame = NULL;
+            }
+
+            av_free(conversionFrame->data[0]);
+            av_free(conversionFrame);
+        }
+
+        if (resampleFrame)
+        {
+            av_free(resampleFrame->data[0]);
+            av_free(resampleFrame);
+        }
+
+        if (resampleContext)
+        {
+            img_resample_close(resampleContext);
         }
 
         if (vOutputBuffer)
@@ -750,10 +845,10 @@ void *vsMovieWriter::writeLoopFixed(void *userData)
                     (double)writer->rawSampleSize / 22050.0;
             }
 /*
-            // FIXME: Starvation behavior is undefined...
+            // FIXME: Define audio starvation behavior here.
             else
             {
-                // Write some audio data.
+                // Write some null audio data.
                 writer->writeSamples(writer->nullSamples);
             }
 */
@@ -849,10 +944,10 @@ void *vsMovieWriter::writeLoopReal(void *userData)
                     (double)writer->rawSampleSize / 22050.0;
             }
 /*
-            // FIXME: Starvation behavior is undefined...
+            // FIXME: Define audio starvation behavior here.
             else
             {
-                // Write some audio data.
+                // Write some null audio data.
                 writer->writeSamples(writer->nullSamples);
             }
 */
@@ -973,14 +1068,18 @@ void vsMovieWriter::writeFrame()
         // will now be converted into the main frame. In the case
         // that the desired format is RGB24, the video buffer will
         // already be attached to the main frame.
-/*
-        img_convert((AVPicture *)outputFrame, vCodecContext->pix_fmt,
+        img_convert((AVPicture *)conversionFrame, vCodecContext->pix_fmt,
             (AVPicture *)rgbFrame, PIX_FMT_RGB24, videoQueue->getWidth(),
             videoQueue->getHeight());
-*/
-        img_convert((AVPicture *)outputFrame, vCodecContext->pix_fmt,
-            (AVPicture *)rgbFrame, PIX_FMT_RGB24, vCodecContext->width,
-            vCodecContext->height);
+    }
+
+    // Test the dimensions to see if resampling is necessary.
+    if ((vCodecContext->width != videoQueue->getWidth()) ||
+        (vCodecContext->height != videoQueue->getHeight()))
+    {
+        // Resample the data in the output frame.
+        img_resample(resampleContext, (AVPicture *)resampleFrame,
+            (const AVPicture *)conversionFrame);
     }
 
     // The write procedure is dependent upon the picture format.
@@ -995,8 +1094,8 @@ void vsMovieWriter::writeFrame()
         videoPacket.stream_index = vStream->index;
 
         // The size and data are taken straight from the frame.
-        videoPacket.size= sizeof(AVPicture);
-        videoPacket.data= (uint8_t *)rgbFrame;
+        videoPacket.size = sizeof(AVPicture);
+        videoPacket.data = (uint8_t *)resampleFrame;
  
         // Write the next video frame.
         av_write_frame(movieContext, &videoPacket);
@@ -1005,7 +1104,7 @@ void vsMovieWriter::writeFrame()
     {
         // Attempt to encode the image, storing the final size.
         videoPacketSize = avcodec_encode_video(vCodecContext, vOutputBuffer,
-            vOutputBufferSize, outputFrame);
+            vOutputBufferSize, resampleFrame);
 
         // The size will be zero if the image was buffered.
         if (videoPacketSize > 0)

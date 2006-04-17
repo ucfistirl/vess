@@ -42,10 +42,13 @@ extern "C"
 
 enum VS_ENVIRONMENT_DLL vsVideoFrameSize
 {
+    VS_VIDEO_SIZE_320X180,
     VS_VIDEO_SIZE_320X240,
     VS_VIDEO_SIZE_400X300,
+    VS_VIDEO_SIZE_640X360,
     VS_VIDEO_SIZE_640X480,
     VS_VIDEO_SIZE_800X600,
+    VS_VIDEO_SIZE_1024X576,
     VS_VIDEO_SIZE_1024X768,
     VS_VIDEO_SIZE_1280X960,
     VS_VIDEO_SIZE_1600X1200
@@ -64,27 +67,39 @@ private:
     AVFormatContext       *movieContext;
     AVOutputFormat        *movieFormat;
 
+
+
     vsVideoQueue          *videoQueue;
     int                   videoReferenceID;
     vsVideoTimingMode     videoTimingMode;
+
     AVStream              *vStream;
     int                   vStreamIndex;
     AVCodecContext        *vCodecContext;
     AVCodec               *vCodec;
+
     AVFrame               *rgbFrame;
-    AVFrame               *outputFrame;
+    AVFrame               *conversionFrame;
+    AVFrame               *resampleFrame;
+    ImgReSampleContext    *resampleContext;
+
     uint8_t               *vOutputBuffer;
     int                   vOutputBufferSize;
 
+
+
     vsMultiQueue          *audioQueue;
     int                   audioReferenceID;
+
     AVStream              *aStream;
     int                   aStreamIndex;
     AVCodecContext        *aCodecContext;
     AVCodec               *aCodec;
-    uint8_t               *rawSamples;
+
     uint8_t               *nullSamples;
+    uint8_t               *rawSamples;
     int                   rawSampleSize;
+
     uint8_t               *aOutputBuffer;
     int                   aOutputBufferSize;
 
@@ -122,18 +137,6 @@ public:
     int                  getHeight();
     int                  getDataSize();
     double               getTimePerFrame();
-
-/*
-  codec
-  bit rate
-  frame width
-  frame heigth
-  frame rate
-
-  intra frame rate (gop_size?)
-  B frames?
-  macroblocks
-*/
 
     void                 setTimingMode(vsVideoTimingMode mode);
     vsVideoTimingMode    getTimingMode();
