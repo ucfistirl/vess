@@ -25,7 +25,6 @@
 #include "vsMultiQueue.h++"
 #include "vsObject.h++"
 #include "vsVideoQueue.h++"
-#include "vsVideoStream.h++"
 #include <stdio.h>
 #include <pthread.h>
 
