@@ -146,7 +146,7 @@ public:
     void             setDeviceName(char *deviceName);
     const char       *getDeviceName();
 
-    void             startStream();
+    bool             startStream();
     void             stopStream();
     bool             isStreamGoing();
 

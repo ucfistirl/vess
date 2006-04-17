@@ -404,17 +404,17 @@ const char *vs1394Camera::getDeviceName()
 // Starts the video stream for the current camera. A video stream must
 // be going before frames of video data can be retrieved from the camera.
 //
-// Create the thread.
+// Create the thread, returning true if successful and false otherwise.
 //------------------------------------------------------------------------
-void vs1394Camera::startStream()
+bool vs1394Camera::startStream()
 {
     // If there's no connected camera, fail
     if (!validCamera)
-        return;
+        return false;
 
     // If there's already a stream going, then there's nothing to do
     if (activeStream)
-        return;
+        return false;
 
     // Attempt to set up the camera for DMA (video1394) transfer, including
     // setting up the camera information data structure
@@ -424,7 +424,7 @@ void vs1394Camera::startStream()
         != DC1394_SUCCESS)
     {
         printf("vs1394Camera::startStream: Unable to setup camera\n");
-        return;
+        return false;
     }
 
     // Attempt to start the flow of video data from the camera
@@ -435,7 +435,7 @@ void vs1394Camera::startStream()
         dc1394_release_camera(busHandle, &cameraInfo);
 
         printf("vs1394Camera::startStream: Unable to start data stream\n");
-        return;
+        return false;
     }
 
     // Create a new video stream using the current frame data, storing an
@@ -460,6 +460,9 @@ void vs1394Camera::startStream()
 
     // Calibration defaults to off
     calibrationEnabled = false;
+
+    // Return true, indicating that the stream was successfully created.
+    return true;
 }
 
 //------------------------------------------------------------------------
