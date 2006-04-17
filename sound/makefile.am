@@ -4,6 +4,7 @@ lib_LIBRARIES = libvsSound.a libvsSound.so
 # Sources for libvsSound.a
 libvsSound_a_SOURCES = \
                        @AL@/vsSoundBuffer.c++ \
+                       @AL@/vsSoundCapture.c++ \
                        @AL@/vsSoundListenerAttribute.c++ \
                        @AL@/vsSoundManager.c++ \
                        @AL@/vsSoundPipe.c++ \
@@ -17,6 +18,7 @@ libvsSound_so_SOURCES = $(libvsSound_a_SOURCES)
 # Header files
 include_HEADERS = \
                   @AL@/vsSoundBuffer.h++ \
+                  @AL@/vsSoundCapture.h++ \
                   @AL@/vsSoundListenerAttribute.h++ \
                   @AL@/vsSoundManager.h++ \
                   @AL@/vsSoundPipe.h++ \
