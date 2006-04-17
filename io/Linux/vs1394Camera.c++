@@ -17,7 +17,7 @@
 //                  compliant camera attached to the computer via a 1394
 //                  connection
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Casey Thurston
 //
 //------------------------------------------------------------------------
 
@@ -35,8 +35,15 @@ vs1394Camera::vs1394Camera()
     // Initially, we aren't connected to a camera
     validCamera = false;
     activeStream = false;
-    hasFrame = false;
     calibrationEnabled = false;
+
+    // The stream should be null until it is created.
+    videoQueue = NULL;
+    currentFrameData = NULL;
+
+    // Initialize the semaphores.
+    pthread_mutex_init(&signalMutex, NULL);
+    pthread_mutex_init(&cameraMutex, NULL);
 
     // Attempt to connect to the first camera on the first bus
     connectToCamera(0, 0);
@@ -61,8 +68,15 @@ vs1394Camera::vs1394Camera(int busIndex, int cameraIndex)
     // Initially, we aren't connected to a camera
     validCamera = false;
     activeStream = false;
-    hasFrame = false;
     calibrationEnabled = false;
+
+    // The stream should be null until it is created.
+    videoQueue = NULL;
+    currentFrameData = NULL;
+
+    // Initialize the semaphores.
+    pthread_mutex_init(&signalMutex, NULL);
+    pthread_mutex_init(&cameraMutex, NULL);
 
     // Attempt to connect to the specified camera on the specified bus
     connectToCamera(busIndex, cameraIndex);
@@ -97,7 +111,7 @@ const char *vs1394Camera::getClassName()
 
 //------------------------------------------------------------------------
 // Updates the camera by fetching the next frame of video from the camera
-// if a video stream is currently open
+// if a video stream is currently open.
 //------------------------------------------------------------------------
 void vs1394Camera::update()
 {
@@ -109,18 +123,8 @@ void vs1394Camera::update()
     if (!activeStream)
         return;
 
-    // If we have the video data from a previous update, dispose of that
-    if (hasFrame)
-    {
-        dc1394_dma_done_with_buffer(&cameraInfo);
-        hasFrame = false;
-    }
-
-    // Get a new frame from the camera
-    if (dc1394_dma_single_capture(&cameraInfo) == DC1394_SUCCESS)
-        hasFrame = true;
-    else
-        printf("vs1394Camera::update: Error reading video frame\n");
+    // Peek the top frame from the video stream into the current data pointer.
+//    videoQueue->dequeue((char *)currentFrameData, NULL, videoReferenceID);
 
     // If calibration mode is enabled, then perform the calibration here
     if (calibrationEnabled)
@@ -170,10 +174,16 @@ bool vs1394Camera::isValidFrameSize(int size)
     // camera. If so, then query if the exact frame size specified is also
     // supported.
 
+    // Acquire exclusive access to the camera.
+    pthread_mutex_lock(&cameraMutex);
+
     // Get the current supported formats
     if (dc1394_query_supported_formats(busHandle, cameraNodeID, &formats)
         != DC1394_SUCCESS)
     {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         printf("vs1394Camera::isValidFrameSize: "
             "Error communicating with camera\n");
         return false;
@@ -181,16 +191,27 @@ bool vs1394Camera::isValidFrameSize(int size)
 
     // Check for format compatability
     if (!(formats & getFormatMask(size)))
+    {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         return false;
+    }
 
     // Get the supported modes for the desired format
     if (dc1394_query_supported_modes(busHandle, cameraNodeID,
         getFormatConst(size), &modes) != DC1394_SUCCESS)
     {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         printf("vs1394Camera::isValidFrameSize: "
             "Error communicating with camera\n");
         return false;
     }
+
+    // Yield exclusive access to the camera.
+    pthread_mutex_unlock(&cameraMutex);
 
     // Check for mode compatability
     if (!(modes & getModeMask(size)))
@@ -297,15 +318,24 @@ bool vs1394Camera::isValidFrameRate(int rate)
     // the frame rate specified is supported by the camera for the current
     // frame size.
 
+    // Acquire exclusive access to the camera.
+    pthread_mutex_lock(&cameraMutex);
+
     // Get the current supported framerates
     if (dc1394_query_supported_framerates(busHandle, cameraNodeID,
         getFormatConst(frameSize), getModeConst(frameSize), &frameRates)
         != DC1394_SUCCESS)
     {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         printf("vs1394Camera::isValidFrameRate: "
             "Error communicating with camera\n");
         return false;
     }
+
+    // Yield exclusive access to the camera.
+    pthread_mutex_unlock(&cameraMutex);
 
     // Check for compatability
     if (!(frameRates & getFramerateMask(rate)))
@@ -373,6 +403,8 @@ const char *vs1394Camera::getDeviceName()
 //------------------------------------------------------------------------
 // Starts the video stream for the current camera. A video stream must
 // be going before frames of video data can be retrieved from the camera.
+//
+// Create the thread.
 //------------------------------------------------------------------------
 void vs1394Camera::startStream()
 {
@@ -399,19 +431,32 @@ void vs1394Camera::startStream()
     if (dc1394_start_iso_transmission(busHandle, cameraInfo.node)
         != DC1394_SUCCESS)
     {
-        printf("vs1394Camera::startStream: Unable to start data stream\n");
-
         // Dispose of the cameraInfo structure's allocated data
         dc1394_release_camera(busHandle, &cameraInfo);
 
+        printf("vs1394Camera::startStream: Unable to start data stream\n");
         return;
     }
 
+    // Create a new video stream using the current frame data, storing an
+    // arbitrary number of images.
+    videoQueue = new vsVideoQueue(getFrameWidth(), getFrameHeight(), 5);
+    //videoReferenceID = videoQueue->addReference();
+    videoQueue->ref();
+
+    // Allocate a pointer to hold the current frame locally. RGB format uses
+    // three bytes per pixel.
+    currentFrameData =
+        (unsigned char *)malloc(getFrameWidth() * getFrameHeight() * 3);
+
+    // For now, capture should be allowed to proceed.
+    ceaseCapture = false;
+
+    // Finally, create the thread.
+    pthread_create(&captureThread, NULL, captureLoop, this);
+
     // Everything's working; mark the stream as going
     activeStream = true;
-
-    // Note that we don't have any data yet
-    hasFrame = false;
 
     // Calibration defaults to off
     calibrationEnabled = false;
@@ -419,6 +464,8 @@ void vs1394Camera::startStream()
 
 //------------------------------------------------------------------------
 // Stops the video stream from the current camera
+//
+// Close the thread.
 //------------------------------------------------------------------------
 void vs1394Camera::stopStream()
 {
@@ -430,12 +477,25 @@ void vs1394Camera::stopStream()
     if (!activeStream)
         return;
 
-    // If we have the video data from a previous update, dispose of that
-    if (hasFrame)
-    {
-        dc1394_dma_done_with_buffer(&cameraInfo);
-        hasFrame = false;
-    }
+    // Sieze control of the signalling semaphore.
+    pthread_mutex_lock(&signalMutex);
+
+    // Mark that the thread should finish execution.
+    ceaseCapture = true;
+
+    // Release the signalling semaphore to allow the loop to notice it.
+    pthread_mutex_unlock(&signalMutex);
+
+    // Wait until the capture thread has closed, disregarding its return value.
+    pthread_join(captureThread, NULL);
+
+    // Destroy the vsVideoQueue.
+    vsObject::unrefDelete(videoQueue);
+    videoQueue = NULL;
+
+    // Free the current frame pointer.
+    free(currentFrameData);
+    currentFrameData = NULL;
 
     // Release the storage space used by the camera information structure
     dc1394_dma_release_camera(busHandle, &cameraInfo);
@@ -453,16 +513,33 @@ bool vs1394Camera::isStreamGoing()
     return activeStream;
 }
 
+/*
+//------------------------------------------------------------------------
+// Returns the vsVideoStream of the current active stream, or NULL if
+// there is no stream.
+//------------------------------------------------------------------------
+vsVideoStream *vs1394Camera::getVideoStream()
+{
+    return videoStream;
+}
+*/
+
+//------------------------------------------------------------------------
+// Returns the vsVideoQueue of the current active stream, or NULL if there
+// is no stream.
+//------------------------------------------------------------------------
+vsVideoQueue *vs1394Camera::getVideoQueue()
+{
+    return videoQueue;
+}
+
 //------------------------------------------------------------------------
 // Gets a pointer to the current frame's video data. Note that this
 // pointer can change after each update() call.
 //------------------------------------------------------------------------
 const char *vs1394Camera::getCurrentFramePtr()
 {
-    if (hasFrame)
-        return (const char *)(cameraInfo.capture_buffer);
-    else
-        return NULL;
+    return (const char *)currentFrameData;
 }
 
 //------------------------------------------------------------------------
@@ -508,22 +585,35 @@ void vs1394Camera::setParameterValue(int param, unsigned int value)
         return;
     }
 
+    // Acquire exclusive access to the camera.
+    pthread_mutex_lock(&cameraMutex);
+
     // Check to see if the specified parameter is recognized by the camera
     if (dc1394_is_feature_present(busHandle, cameraNodeID, whichParam,
         &boolVal) != DC1394_SUCCESS)
     {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         printf("vs1394Camera::setParameterValue: Error communicating with "
             "camera\n");
         return;
     }
     // If the camera doesn't support that parameter, then there's nothing to do
     if (!boolVal)
+    {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
         return;
+    }
 
     // Check to see if the specified parameter can be modified
     if (dc1394_has_manual_mode(busHandle, cameraNodeID, whichParam, &boolVal)
         != DC1394_SUCCESS)
     {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         printf("vs1394Camera::setParameterValue: Error communicating with "
             "camera\n");
         return;
@@ -531,13 +621,20 @@ void vs1394Camera::setParameterValue(int param, unsigned int value)
     // If the camera doesn't support modification of that parameter, then we
     // can't do anything
     if (!boolVal)
+    {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
         return;
+    }
 
     // Make sure the specified parameter is in 'manual' mode, if it has an
     // 'automatic' setting
     if (dc1394_has_auto_mode(busHandle, cameraNodeID, whichParam, &boolVal)
         != DC1394_SUCCESS)
     {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         printf("vs1394Camera::setParameterValue: Error communicating with "
             "camera\n");
         return;
@@ -549,6 +646,9 @@ void vs1394Camera::setParameterValue(int param, unsigned int value)
         if (dc1394_is_feature_auto(busHandle, cameraNodeID, whichParam,
             &boolVal) != DC1394_SUCCESS)
         {
+            // Yield exclusive access to the camera.
+            pthread_mutex_unlock(&cameraMutex);
+
             printf("vs1394Camera::setParameterValue: Error communicating with "
                 "camera\n");
             return;
@@ -560,8 +660,11 @@ void vs1394Camera::setParameterValue(int param, unsigned int value)
             if (dc1394_auto_on_off(busHandle, cameraNodeID, whichParam, 0)
                 != DC1394_SUCCESS)
             {
-                printf("vs1394Camera::setParameterValue: Error communicating with "
-                    "camera\n");
+                // Yield exclusive access to the camera.
+                pthread_mutex_unlock(&cameraMutex);
+
+                printf("vs1394Camera::setParameterValue: Error communicating "
+                    "with camera\n");
                 return;
             }
         }
@@ -574,6 +677,9 @@ void vs1394Camera::setParameterValue(int param, unsigned int value)
     if (dc1394_get_min_value(busHandle, cameraNodeID, whichParam, &minVal)
         != DC1394_SUCCESS)
     {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         printf("vs1394Camera::setParameterValue: Error communicating with "
             "camera\n");
         return;
@@ -585,6 +691,9 @@ void vs1394Camera::setParameterValue(int param, unsigned int value)
     if (dc1394_get_max_value(busHandle, cameraNodeID, whichParam, &maxVal)
         != DC1394_SUCCESS)
     {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         printf("vs1394Camera::setParameterValue: Error communicating with "
             "camera\n");
         return;
@@ -605,6 +714,9 @@ void vs1394Camera::setParameterValue(int param, unsigned int value)
         if (dc1394_get_white_balance(busHandle, cameraNodeID, &blueVal,
             &redVal) != DC1394_SUCCESS)
         {
+            // Yield exclusive access to the camera.
+            pthread_mutex_unlock(&cameraMutex);
+
             printf("vs1394Camera::setParameterValue: Error communicating with "
                 "camera\n");
             return;
@@ -620,6 +732,9 @@ void vs1394Camera::setParameterValue(int param, unsigned int value)
         if (dc1394_set_white_balance(busHandle, cameraNodeID, blueVal, redVal)
             != DC1394_SUCCESS)
         {
+            // Yield exclusive access to the camera.
+            pthread_mutex_unlock(&cameraMutex);
+
             printf("vs1394Camera::setParameterValue: Error communicating with "
                 "camera\n");
             return;
@@ -633,11 +748,17 @@ void vs1394Camera::setParameterValue(int param, unsigned int value)
         if (dc1394_set_feature_value(busHandle, cameraNodeID, whichParam,
             myVal) != DC1394_SUCCESS)
         {
+            // Yield exclusive access to the camera.
+            pthread_mutex_unlock(&cameraMutex);
+
             printf("vs1394Camera::setParameterValue: Error communicating with "
                 "camera\n");
             return;
         }
     }
+
+    // Yield exclusive access to the camera.
+    pthread_mutex_unlock(&cameraMutex);
 }
 
 //------------------------------------------------------------------------
@@ -657,10 +778,16 @@ unsigned int vs1394Camera::getParameterValue(int param)
     // Translate from VESS constants to library constants
     whichParam = getParameterConst(param);
 
+    // Acquire exclusive access to the camera.
+    pthread_mutex_lock(&cameraMutex);
+
     // Check to see if the specified parameter is recognized by the camera
     if (dc1394_is_feature_present(busHandle, cameraNodeID, whichParam,
         &boolVal) != DC1394_SUCCESS)
     {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         printf("vs1394Camera::getParameterValue: Error communicating with "
             "camera\n");
         return 0;
@@ -668,23 +795,33 @@ unsigned int vs1394Camera::getParameterValue(int param)
     // If the camera doesn't support that parameter, then return a default
     // value
     if (!boolVal)
+    {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
         return 0;
+    }
 
     // Check to see if the specified parameter can be read from the camera
     if (dc1394_can_read_out(busHandle, cameraNodeID, whichParam, &boolVal)
         != DC1394_SUCCESS)
     {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         printf("vs1394Camera::getParameterValue: Error communicating with "
             "camera\n");
         return 0;
     }
-    // If that parameter can't be read from the camera, then return a default
-    // value
-    if (!boolVal)
-        return 0;
 
-    // Read the specified parameter from the camera
-    // Determine what to do based on the constant
+    // If the parameter can't be read from the camera, return a default value.
+    if (!boolVal)
+    {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+        return 0;
+    }
+
+    // Read the specified parameter from the camera and determine what to do.
     if (whichParam == FEATURE_WHITE_BALANCE)
     {
         // Special case; this one library constant corresponds to two
@@ -694,6 +831,9 @@ unsigned int vs1394Camera::getParameterValue(int param)
         if (dc1394_get_white_balance(busHandle, cameraNodeID, &blueVal,
             &redVal) != DC1394_SUCCESS)
         {
+            // Yield exclusive access to the camera.
+            pthread_mutex_unlock(&cameraMutex);
+
             printf("vs1394Camera::getParameterValue: Error communicating with "
                 "camera\n");
             return 0;
@@ -701,9 +841,17 @@ unsigned int vs1394Camera::getParameterValue(int param)
 
         // Return the value of the specified parameter
         if (param == VS_1394CAM_PARAM_BLUE_BALANCE)
+        {
+            // Yield exclusive access to the camera.
+            pthread_mutex_unlock(&cameraMutex);
             return blueVal;
-        else // (param == VS_1394CAM_PARAM_BLUE_BALANCE)
+        }
+        else
+        {
+            // Yield exclusive access to the camera.
+            pthread_mutex_unlock(&cameraMutex);
             return redVal;
+        }
     }
     else
     {
@@ -713,14 +861,23 @@ unsigned int vs1394Camera::getParameterValue(int param)
         if (dc1394_get_feature_value(busHandle, cameraNodeID, whichParam,
             &myVal) != DC1394_SUCCESS)
         {
+            // Yield exclusive access to the camera.
+            pthread_mutex_unlock(&cameraMutex);
+
             printf("vs1394Camera::getParameterValue: Error communicating with "
                 "camera\n");
             return 0;
         }
 
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         // Return the value of the specified parameter
         return myVal;
     }
+
+    // Yield exclusive access to the camera.
+    pthread_mutex_unlock(&cameraMutex);
 
     // Should never get here
     return 0;
@@ -733,7 +890,7 @@ unsigned int vs1394Camera::getParameterMinValue(int param)
 {
     int whichParam;
     unsigned int minVal;
-    dc1394bool_t boolVal;
+    dc1394bool_t parameterSupported;
 
     // If there's no connected camera, fail
     if (!validCamera)
@@ -742,27 +899,44 @@ unsigned int vs1394Camera::getParameterMinValue(int param)
     // Translate from VESS constants to library constants
     whichParam = getParameterConst(param);
 
+    // Acquire exclusive access to the camera.
+    pthread_mutex_lock(&cameraMutex);
+
     // Check to see if the specified parameter is recognized by the camera
     if (dc1394_is_feature_present(busHandle, cameraNodeID, whichParam,
-        &boolVal) != DC1394_SUCCESS)
+        &parameterSupported) != DC1394_SUCCESS)
     {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         printf("vs1394Camera::getParameterMinValue: Error communicating with "
             "camera\n");
         return 0;
     }
-    // If the camera doesn't support that parameter, then return a default
-    // value
-    if (!boolVal)
+
+    // If the parameter isn't supported, return a default value.
+    if (!parameterSupported)
+    {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
         return 0;
+    }
+
 
     // Read the specified minimum from the camera
     if (dc1394_get_min_value(busHandle, cameraNodeID, whichParam, &minVal)
         != DC1394_SUCCESS)
     {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         printf("vs1394Camera::getParameterMinValue: Error communicating with "
             "camera\n");
         return 0;
     }
+
+    // Yield exclusive access to the camera.
+    pthread_mutex_unlock(&cameraMutex);
 
     // Return the minimum value
     return minVal;
@@ -775,7 +949,7 @@ unsigned int vs1394Camera::getParameterMaxValue(int param)
 {
     int whichParam;
     unsigned int maxVal;
-    dc1394bool_t boolVal;
+    dc1394bool_t parameterSupported;
 
     // If there's no connected camera, fail
     if (!validCamera)
@@ -784,30 +958,102 @@ unsigned int vs1394Camera::getParameterMaxValue(int param)
     // Translate from VESS constants to library constants
     whichParam = getParameterConst(param);
 
+    // Acquire exclusive access to the camera.
+    pthread_mutex_lock(&cameraMutex);
+
     // Check to see if the specified parameter is recognized by the camera
     if (dc1394_is_feature_present(busHandle, cameraNodeID, whichParam,
-        &boolVal) != DC1394_SUCCESS)
+        &parameterSupported) != DC1394_SUCCESS)
     {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         printf("vs1394Camera::getParameterMaxValue: Error communicating with "
             "camera\n");
         return 0;
     }
-    // If the camera doesn't support that parameter, then return a default
-    // value
-    if (!boolVal)
+
+    // If the parameter isn't supported, return a default value.
+    if (!parameterSupported)
+    {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
         return 0;
+    }
 
     // Read the specified maximum from the camera
     if (dc1394_get_max_value(busHandle, cameraNodeID, whichParam, &maxVal)
         != DC1394_SUCCESS)
     {
+        // Yield exclusive access to the camera.
+        pthread_mutex_unlock(&cameraMutex);
+
         printf("vs1394Camera::getParameterMaxValue: Error communicating with "
             "camera\n");
         return 0;
     }
 
+    // Yield exclusive access to the camera.
+    pthread_mutex_unlock(&cameraMutex);
+
     // Return the maximum value
     return maxVal;
+}
+
+//------------------------------------------------------------------------
+// Static Private function
+// This is the loop function of the capture thread. It captures the most
+// recent frame from the camera, timestamps it, and pushes it into the
+// video stream.
+//------------------------------------------------------------------------
+void *vs1394Camera::captureLoop(void *userData)
+{
+    vs1394Camera *camera;
+    vsTimer *videoTimer;
+
+    // Store the pointer to the camera.
+    camera = (vs1394Camera *)userData;
+
+    // Create a timer.
+    videoTimer = new vsTimer();
+
+    // Sieze the semaphore used to signal that the function should cease.
+    pthread_mutex_lock(&camera->signalMutex);
+
+    // Read from the device until signalled otherwise.
+    while (!camera->ceaseCapture)
+    {
+        // Release the signal semaphore for now.
+        pthread_mutex_unlock(&camera->signalMutex);
+
+        // Acquire exclusive access to the camera so that the appropriate
+        // capture calls may be made.
+        pthread_mutex_lock(&camera->cameraMutex);
+
+        // Get a new frame from the camera
+        if (dc1394_dma_single_capture(&camera->cameraInfo) == DC1394_SUCCESS)
+        {
+            // Stuff the data into the video stream.
+            camera->videoQueue->enqueue(
+                (char *)camera->cameraInfo.capture_buffer,
+                videoTimer->getElapsed());
+
+            // We're already done with the buffer, so free it.
+            dc1394_dma_done_with_buffer(&camera->cameraInfo);
+        }
+
+        // Give back control of the camera.
+        pthread_mutex_unlock(&camera->cameraMutex);
+
+        // Take control of the signal semaphore again for the loop check.
+        pthread_mutex_lock(&camera->signalMutex);
+    }
+
+    // Release the signal semaphore, as its signal has been passed.
+    pthread_mutex_unlock(&camera->signalMutex);
+
+    // Exit the thread so the stream can be closed.
+    pthread_exit(NULL);
 }
 
 //------------------------------------------------------------------------
@@ -1236,62 +1482,61 @@ void vs1394Camera::calibrateColor()
 {
     long redTotal, greenTotal, blueTotal;
     long loop, pixelCount;
-    const unsigned char *dataPtr;
+    unsigned char *dataPtr;
     unsigned int value;
 
     // Requires a frame to be loaded
-    if (!hasFrame)
-        return;
-
-    // Calculate the number of pixels worth of data we're processing
-    pixelCount = getFrameWidth() * getFrameHeight();
-
-    // Clear the accumulators
-    redTotal = 0;
-    greenTotal = 0;
-    blueTotal = 0;
-
-    // Start at the first byte of the image
-    dataPtr = (const unsigned char *)(getCurrentFramePtr());
-
-    // Sum up all of the pixels in the image
-    for (loop = 0; loop < pixelCount; loop++)
+    if (currentFrameData)
     {
-        // Red
-        redTotal += (*dataPtr++);
-        // Green
-        greenTotal += (*dataPtr++);
-        // Blue
-        blueTotal += (*dataPtr++);
-    }
-    // Divide the accumulated totals by the number of pixels to get the
-    // average for each color
-    redTotal /= pixelCount;
-    greenTotal /= pixelCount;
-    blueTotal /= pixelCount;
+        // Calculate the number of pixels worth of data we're processing
+        pixelCount = getFrameWidth() * getFrameHeight();
 
-    // Balance the blue against the green
-    if (blueTotal > (greenTotal + 1))
-    {
-        value = getParameterValue(VS_1394CAM_PARAM_BLUE_BALANCE);
-        setParameterValue(VS_1394CAM_PARAM_BLUE_BALANCE, value-1);
-    }
-    if (blueTotal < (greenTotal - 1))
-    {
-        value = getParameterValue(VS_1394CAM_PARAM_BLUE_BALANCE);
-        setParameterValue(VS_1394CAM_PARAM_BLUE_BALANCE, value+1);
-    }
+        // Clear the accumulators
+        redTotal = 0;
+        greenTotal = 0;
+        blueTotal = 0;
 
-    // Balance the red against the green
-    if (redTotal > (greenTotal + 1))
-    {
-        value = getParameterValue(VS_1394CAM_PARAM_RED_BALANCE);
-        setParameterValue(VS_1394CAM_PARAM_RED_BALANCE, value-1);
-    }
-    if (redTotal < (greenTotal - 1))
-    {
-        value = getParameterValue(VS_1394CAM_PARAM_RED_BALANCE);
-        setParameterValue(VS_1394CAM_PARAM_RED_BALANCE, value+1);
+        // Start at the first byte of the image
+        dataPtr = (unsigned char *)currentFrameData;
+
+        // Sum up all of the pixels in the image
+        for (loop = 0; loop < pixelCount; loop++)
+        {
+            // Pixels occur in RGB order.
+            redTotal += (*dataPtr++);
+            greenTotal += (*dataPtr++);
+            blueTotal += (*dataPtr++);
+        }
+
+        // Divide the accumulated totals by the number of pixels to get the
+        // average for each color
+        redTotal /= pixelCount;
+        greenTotal /= pixelCount;
+        blueTotal /= pixelCount;
+
+        // Balance the blue against the green
+        if (blueTotal > (greenTotal + 1))
+        {
+            value = getParameterValue(VS_1394CAM_PARAM_BLUE_BALANCE);
+            setParameterValue(VS_1394CAM_PARAM_BLUE_BALANCE, value-1);
+        }
+        if (blueTotal < (greenTotal - 1))
+        {
+            value = getParameterValue(VS_1394CAM_PARAM_BLUE_BALANCE);
+            setParameterValue(VS_1394CAM_PARAM_BLUE_BALANCE, value+1);
+        }
+
+        // Balance the red against the green
+        if (redTotal > (greenTotal + 1))
+        {
+            value = getParameterValue(VS_1394CAM_PARAM_RED_BALANCE);
+            setParameterValue(VS_1394CAM_PARAM_RED_BALANCE, value-1);
+        }
+        if (redTotal < (greenTotal - 1))
+        {
+            value = getParameterValue(VS_1394CAM_PARAM_RED_BALANCE);
+            setParameterValue(VS_1394CAM_PARAM_RED_BALANCE, value+1);
+        }
     }
 }
 
@@ -1306,41 +1551,38 @@ void vs1394Camera::calibrateBrightness()
 {
     long byteTotal;
     long loop, byteCount;
-    const unsigned char *dataPtr;
+    unsigned char *dataPtr;
     unsigned int value;
 
     // Requires a frame to be loaded
-    if (!hasFrame)
-        return;
-
-    // Calculate the number of bytes worth of data we're processing
-    byteCount = getFrameWidth() * getFrameHeight() * 3;
-
-    // Clear the accumulator
-    byteTotal = 0;
-
-    // Start at the first byte of the image
-    dataPtr = (const unsigned char *)(getCurrentFramePtr());
-
-    // Sum up all of the bytes in the image
-    for (loop = 0; loop < byteCount; loop++)
-        byteTotal += (*dataPtr++);
-
-    // Divide the accumulated total by the number of bytes to get the average
-    byteTotal /= byteCount;
-
-#define TARGET_BRIGHTNESS 252
-
-    // Balance the brightness against a sentinel value
-    if (byteTotal > (TARGET_BRIGHTNESS + 1))
+    if (currentFrameData)
     {
-        value = getParameterValue(VS_1394CAM_PARAM_BRIGHTNESS);
-        setParameterValue(VS_1394CAM_PARAM_BRIGHTNESS, value-1);
-    }
-    if (byteTotal < (TARGET_BRIGHTNESS - 1))
-    {
-        value = getParameterValue(VS_1394CAM_PARAM_BRIGHTNESS);
-        setParameterValue(VS_1394CAM_PARAM_BRIGHTNESS, value+1);
-    }
+        // Calculate the number of bytes worth of data we're processing
+        byteCount = getFrameWidth() * getFrameHeight() * 3;
 
+        // Clear the accumulator
+        byteTotal = 0;
+
+        // Start at the first byte of the image
+        dataPtr = (unsigned char *)currentFrameData;
+
+        // Sum up all of the bytes in the image
+        for (loop = 0; loop < byteCount; loop++)
+            byteTotal += (*dataPtr++);
+
+        // Divide the total by the number of bytes to get the average.
+        byteTotal /= byteCount;
+
+        // Balance the brightness against a sentinel value
+        if (byteTotal > (VS_1394_CAMERA_TARGET_BRIGHTNESS + 1))
+        {
+            value = getParameterValue(VS_1394CAM_PARAM_BRIGHTNESS);
+            setParameterValue(VS_1394CAM_PARAM_BRIGHTNESS, value-1);
+        }
+        if (byteTotal < (VS_1394_CAMERA_TARGET_BRIGHTNESS - 1))
+        {
+            value = getParameterValue(VS_1394CAM_PARAM_BRIGHTNESS);
+            setParameterValue(VS_1394CAM_PARAM_BRIGHTNESS, value+1);
+        }
+    }
 }

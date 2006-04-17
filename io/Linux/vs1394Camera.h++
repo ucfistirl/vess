@@ -17,7 +17,7 @@
 //                  compliant camera attached to the computer via a 1394
 //                  connection
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Casey Thurston
 //
 //------------------------------------------------------------------------
 
@@ -27,6 +27,11 @@
 #include <libraw1394/raw1394.h>
 #include <libdc1394/dc1394_control.h>
 #include "vsIOSystem.h++"
+#include "vsTimer.h++"
+#include "vsVideoQueue.h++"
+#include <pthread.h>
+
+#define VS_1394_CAMERA_TARGET_BRIGHTNESS 252
 
 enum vs1394CameraFrameSize
 {
@@ -79,15 +84,24 @@ private:
     raw1394handle_t         busHandle;
     nodeid_t                cameraNodeID;
 
+    char                    videoDeviceName[80];
     int                     frameSize;
     int                     frameRate;
-    char                    videoDeviceName[80];
 
     bool                    activeStream;
     dc1394_cameracapture    cameraInfo;
     bool                    hasFrame;
 
     bool                    calibrationEnabled;
+
+    vsVideoQueue            *videoQueue;
+    int                     videoReferenceID;
+    unsigned char           *currentFrameData;
+
+    pthread_t               captureThread;
+    pthread_mutex_t         cameraMutex;
+    pthread_mutex_t         signalMutex;
+    bool                    ceaseCapture;
 
     void                    connectToCamera(int busIndex, int cameraIndex);
     void                    disconnectFromCamera();
@@ -105,59 +119,48 @@ private:
     void                    calibrateColor();
     void                    calibrateBrightness();
 
+    static void             *captureLoop(void *userData);
+
 public:
 
-    // Constructors/destructor
-                    vs1394Camera();
-                    vs1394Camera(int busIndex, int cameraIndex);
-    virtual         ~vs1394Camera();
+                     vs1394Camera();
+                     vs1394Camera(int busIndex, int cameraIndex);
+    virtual          ~vs1394Camera();
 
-    // Inherited from vsObject
     virtual const char    *getClassName();
 
-    // Inherited from vsUpdatable
-    virtual void    update();
+    virtual void     update();
 
-    // Choose which camera to use
-    void            selectCamera(int busIndex, int cameraIndex);
+    void             selectCamera(int busIndex, int cameraIndex);
 
-    // Set/get frame size
-    bool            isValidFrameSize(int size);
-    void            setFrameSize(int size);
-    int             getFrameSize();
-    int             getFrameWidth();
-    int             getFrameHeight();
+    bool             isValidFrameSize(int size);
+    void             setFrameSize(int size);
+    int              getFrameSize();
+    int              getFrameWidth();
+    int              getFrameHeight();
 
-    // Set/get frame rate
-    // These functions are contingent on the current frame size
-    bool            isValidFrameRate(int rate);
-    void            setFrameRate(int rate);
-    int             getFrameRate();
+    bool             isValidFrameRate(int rate);
+    void             setFrameRate(int rate);
+    int              getFrameRate();
 
-    // Set/get device name
-    // This is the name of the devfs device to connect to to establish
-    // the video stream through
-    void            setDeviceName(char *deviceName);
-    const char      *getDeviceName();
+    void             setDeviceName(char *deviceName);
+    const char       *getDeviceName();
 
-    // Start and stop the flow of data from the camera
-    void            startStream();
-    void            stopStream();
-    bool            isStreamGoing();
+    void             startStream();
+    void             stopStream();
+    bool             isStreamGoing();
 
-    // Get a pointer to the current frame's data
-    // This pointer may change after every update
-    const char      *getCurrentFramePtr();
+    vsVideoQueue     *getVideoQueue();
 
-    // Enable/disable the automatic camera calibration
-    void            enableWhiteBalance();
-    void            disableWhiteBalance();
+    const char       *getCurrentFramePtr();
 
-    // Get/set the various settings of the camera
-    void            setParameterValue(int param, unsigned int value);
-    unsigned int    getParameterValue(int param);
-    unsigned int    getParameterMinValue(int param);
-    unsigned int    getParameterMaxValue(int param);
+    void             enableWhiteBalance();
+    void             disableWhiteBalance();
+
+    void             setParameterValue(int param, unsigned int value);
+    unsigned int     getParameterValue(int param);
+    unsigned int     getParameterMinValue(int param);
+    unsigned int     getParameterMaxValue(int param);
 };
 
 #endif
