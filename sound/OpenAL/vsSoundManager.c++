@@ -661,8 +661,9 @@ void vsSoundManager::update()
         soundSources[i]->source->update();
     }
 
-    // Perform voice management if we have more sources in the
-    // scene than voices to process them with
+    // Perform voice management.  If a listener and one or more sources
+    // exist, then make sure the most important sources are mixed and
+    // played, up to the sound library's voice limit.
     if ((soundListener) && (numSoundSources > 0))
     {
         // Sort the sources by priority, then by effective gain
