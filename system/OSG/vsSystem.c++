@@ -78,11 +78,7 @@ vsSystem::vsSystem()
     systemObject = this;
     
     // Initialize the remote interface
-#ifdef VESS_DEBUG
-    remoteInterface = new vsRemoteInterface("vessxml.dtd");
-#else
     remoteInterface = new vsRemoteInterface();
-#endif
 
     // Create a sequencer to act as a "root sequencer"
     rootSequencer = new vsSequencer();
