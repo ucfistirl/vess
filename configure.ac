@@ -797,6 +797,7 @@ if test x$with_ffmpeg != xno ; then
     dnl Add the ffmpeg path information to the variables that will eventually
     dnl get exported to the graphics makefile.
     EXTRA_ENVIRONMENT_OBJECTS="$EXTRA_ENVIRONMENT_OBJECTS vsMovieReader.$OBJEXT"
+    EXTRA_ENVIRONMENT_OBJECTS="$EXTRA_ENVIRONMENT_OBJECTS vsMovieWriter.$OBJEXT"
     ENV_INCLUDE_DIR="$ENV_INCLUDE_DIR -I$with_ffmpeg/include"
     ENV_LIB_DIR="$ENV_LIB_DIR -L$with_ffmpeg/lib"
     ENV_LIB="$ENV_LIB -lavcodec -lavformat -lavutil"
