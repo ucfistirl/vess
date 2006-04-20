@@ -108,7 +108,7 @@ vsMovieWriter::vsMovieWriter(const char *format)
         vCodecContext->mb_decision=2;
     }
 
-    // Create a new audio stream with an ID of 1 (in contrast to the video
+    // Create a new audio stream with an ID of 1 (as opposed to the video
     // stream index of 0).
     aStreamIndex = 1;
     aStream = av_new_stream(movieContext, aStreamIndex);
@@ -146,20 +146,31 @@ vsMovieWriter::~vsMovieWriter()
 
     // If a file is open, be sure to close it.
     if (fileOpen)
+    {
         closeFile();
+    }
 
     for (i = 0; i < movieContext->nb_streams; i++)
     {
         av_freep(&movieContext->streams[i]);
     }
 
+    av_free(movieFormat);
     av_free(movieContext);
 
     if (videoQueue)
+    {
         vsObject::unrefDelete(videoQueue);
+    }
 
     if (audioQueue)
+    {
         vsObject::unrefDelete(audioQueue);
+    }
+
+    // Destroy the mutex variables now that they are no longer needed.
+    pthread_mutex_destroy(&signalMutex);
+    pthread_mutex_destroy(&writeMutex);
 }
 
 // ------------------------------------------------------------------------
@@ -358,9 +369,6 @@ vsVideoTimingMode vsMovieWriter::getTimingMode()
 // ------------------------------------------------------------------------
 bool vsMovieWriter::openFile(char *filename)
 {
-    double resampleScale;
-    int resamplePad;
-
     // Make sure a file isn't already open.
     if (fileOpen)
     {
@@ -384,7 +392,8 @@ bool vsMovieWriter::openFile(char *filename)
     // Dump the format information out to the file.
     dump_format(movieContext, 0, filename, 1);
 
-    // Find a codec matching the video codec context.
+    // Find a codec matching the video codec context. This codec does not need
+    // to be freed later, as it is a pointer maintained by ffmpeg.
     vCodec = avcodec_find_encoder(vCodecContext->codec_id);
     if (vCodec == NULL)
     {
@@ -422,7 +431,11 @@ bool vsMovieWriter::openFile(char *filename)
         videoQueue->getHeight());
     if (rgbFrame == NULL)
     {
-        // FIXME: Free memory allocated earlier in the function.
+        // Free the video output buffer if exists.
+        if (vOutputBuffer)
+        {
+            free(vOutputBuffer);
+        }
 
         // Print an error message and return.
         fprintf(stderr, "vsMovieWriter::openFile: "
@@ -441,7 +454,15 @@ bool vsMovieWriter::openFile(char *filename)
             videoQueue->getWidth(), videoQueue->getHeight());
         if (conversionFrame == NULL)
         {
-            // FIXME: Free memory allocated earlier in the function.
+            // Free the video output buffer if exists.
+            if (vOutputBuffer)
+            {
+                free(vOutputBuffer);
+            }
+
+            // Free the rgbFrame, which is always allocated.
+            free(rgbFrame->data[0]);
+            av_free(rgbFrame);
 
             // Print an error message and return.
             fprintf(stderr, "vsMovieWriter::openFile: "
@@ -466,10 +487,75 @@ bool vsMovieWriter::openFile(char *filename)
         resampleContext = img_resample_init(vCodecContext->width,
             vCodecContext->height, videoQueue->getWidth(),
             videoQueue->getHeight());
+        if (resampleContext == NULL)
+        {
+            // Free the video output buffer if exists.
+            if (vOutputBuffer)
+            {
+                free(vOutputBuffer);
+            }
+
+            // First, ensure the conversion frame is not deleted twice if it
+            // shares the same frame data as the rgb frame.
+            if (conversionFrame == rgbFrame)
+            {
+                conversionFrame = NULL;
+            }
+
+            // Now free the rgb frame and its data buffer.
+            free(rgbFrame->data[0]);
+            av_free(rgbFrame);
+
+            // Now free the conversion frame if it is still unique.
+            if (conversionFrame)
+            {
+                free(conversionFrame->data[0]);
+                av_free(conversionFrame);
+            }
+
+            // Print an error message and return.
+            fprintf(stderr, "vsMovieWriter::openFile: "
+                "Unable to initialize resampling context!\n");
+            return false;
+        }
 
         // Create a frame to hold the resampled data.
         resampleFrame = allocFrame(vCodecContext->pix_fmt,
             vCodecContext->width, vCodecContext->height);
+        if (resampleFrame == NULL)
+        {
+            // Free the video output buffer if exists.
+            if (vOutputBuffer)
+            {
+                free(vOutputBuffer);
+            }
+
+            // First, ensure the conversion frame is not deleted twice if it
+            // shares the same frame data as the rgb frame.
+            if (conversionFrame == rgbFrame)
+            {
+                conversionFrame = NULL;
+            }
+
+            // Now free the rgb frame and its data buffer.
+            free(rgbFrame->data[0]);
+            av_free(rgbFrame);
+
+            // Now free the conversion frame if it is still unique.
+            if (conversionFrame)
+            {
+                free(conversionFrame->data[0]);
+                av_free(conversionFrame);
+            }
+
+            // Free the resampling context if it exists.
+            img_resample_close(resampleContext);
+
+            // Print an error message and return.
+            fprintf(stderr, "vsMovieWriter::openFile: "
+                "Unable to allocate resampling frame!\n");
+            return false;
+        }
     }
     else
     {
@@ -482,6 +568,53 @@ bool vsMovieWriter::openFile(char *filename)
     aCodec = avcodec_find_encoder(aCodecContext->codec_id);
     if (aCodec == NULL)
     {
+        // Free the video output buffer if exists.
+        if (vOutputBuffer)
+        {
+            free(vOutputBuffer);
+        }
+
+        // First, ensure the conversion and resample frames are not deleted
+        // twice if they share the same frame data as the rgb frame.
+        if (conversionFrame == rgbFrame)
+        {
+            conversionFrame = NULL;
+        }
+
+        if (resampleFrame == rgbFrame)
+        {
+            resampleFrame = NULL;
+        }
+
+        // Now free the rgb frame and its data buffer.
+        free(rgbFrame->data[0]);
+        av_free(rgbFrame);
+
+        if (conversionFrame)
+        {
+            // Ensure the resample frame is not deleted twice if it shares
+            // the same frame data as the output frame.
+            if (resampleFrame == conversionFrame)
+            {
+                resampleFrame = NULL;
+            }
+
+            free(conversionFrame->data[0]);
+            av_free(conversionFrame);
+        }
+
+        // Free the resampling context if it exists.
+        if (resampleContext)
+        {
+            img_resample_close(resampleContext);
+        }
+
+        if (resampleFrame)
+        {
+            free(resampleFrame->data[0]);
+            av_free(resampleFrame);
+        }
+
         fprintf(stderr, "vsMovieWriter::openFile: Unable to find audio "
             "codec!\n");
         return false;
@@ -534,7 +667,7 @@ bool vsMovieWriter::openFile(char *filename)
     rawSamples =
         (uint8_t *)malloc(rawSampleSize * 2 * aCodecContext->channels);
     nullSamples =
-        (uint8_t *)calloc(rawSampleSize * 2 * aCodecContext->channels, 0);
+        (uint8_t *)calloc(rawSampleSize * 2 * aCodecContext->channels, 1);
 
     // Attempt to open an output file in the case that an output file is used
     // for this format.
@@ -542,6 +675,60 @@ bool vsMovieWriter::openFile(char *filename)
     {
         if (url_fopen(&movieContext->pb, filename, URL_WRONLY) < 0)
         {
+            // Free the video output buffer if exists.
+            if (vOutputBuffer)
+            {
+                free(vOutputBuffer);
+            }
+
+            // First, ensure the conversion and resample frames are not deleted
+            // twice if they share the same frame data as the rgb frame.
+            if (conversionFrame == rgbFrame)
+            {
+                conversionFrame = NULL;
+            }
+
+            if (resampleFrame == rgbFrame)
+            {
+                resampleFrame = NULL;
+            }
+
+            // Now free the rgb frame and its data buffer.
+            free(rgbFrame->data[0]);
+            av_free(rgbFrame);
+
+            if (conversionFrame)
+            {
+                // Ensure the resample frame is not deleted twice if it shares
+                // the same frame data as the output frame.
+                if (resampleFrame == conversionFrame)
+                {
+                    resampleFrame = NULL;
+                }
+
+                free(conversionFrame->data[0]);
+                av_free(conversionFrame);
+            }
+
+            if (resampleFrame)
+            {
+                free(resampleFrame->data[0]);
+                av_free(resampleFrame);
+            }
+
+            // Free the resampling context if it exists.
+            if (resampleContext)
+            {
+                img_resample_close(resampleContext);
+            }
+
+            // Free the audio output buffer in all cases.
+            free(aOutputBuffer);
+
+            // Free the raw and null sample buffer memory.
+            free(rawSamples);
+            free(nullSamples);
+
             fprintf(stderr, "vsMovieWriter::openFile: "
                 "Unable to open output file %s!\n", filename);
             return false;
@@ -609,7 +796,13 @@ void vsMovieWriter::closeFile()
     // Close the movie file.
     if (vStream)
     {
+        // Close the codec associated with this context. Note that this leaves
+        // the context intact.
         avcodec_close(vStream->codec);
+
+        // Technically there should always be an rgbFrame, but in case the
+        // input stream type changes from rgb format to something else this
+        // check may be necessary.
         if (rgbFrame)
         {
             // First, ensure the output and resample frames are not deleted
@@ -624,26 +817,26 @@ void vsMovieWriter::closeFile()
             }
 
             // Now free the rgb frame and its data buffer.
-            av_free(rgbFrame->data[0]);
+            free(rgbFrame->data[0]);
             av_free(rgbFrame);
         }
 
         if (conversionFrame)
         {
-            // First, ensure the resample frame is not deleted twice if it
-            // shares the same frame data as the output frame.
+            // Ensure the resample frame is not deleted twice if it shares the
+            // same frame data as the output frame.
             if (resampleFrame == conversionFrame)
             {
                 resampleFrame = NULL;
             }
 
-            av_free(conversionFrame->data[0]);
+            free(conversionFrame->data[0]);
             av_free(conversionFrame);
         }
 
         if (resampleFrame)
         {
-            av_free(resampleFrame->data[0]);
+            free(resampleFrame->data[0]);
             av_free(resampleFrame);
         }
 
@@ -654,16 +847,16 @@ void vsMovieWriter::closeFile()
 
         if (vOutputBuffer)
         {
-            av_free(vOutputBuffer);
+            free(vOutputBuffer);
         }
     }
 
     if (aStream)
     {
         avcodec_close(aStream->codec);
-        av_free(rawSamples);
-        av_free(nullSamples);
-        av_free(aOutputBuffer);
+        free(rawSamples);
+        free(nullSamples);
+        free(aOutputBuffer);
     }
 
     // Officially close the output file.
