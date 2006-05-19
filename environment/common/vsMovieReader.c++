@@ -97,6 +97,10 @@ vsMovieReader::~vsMovieReader()
     // Set the playMode to QUIT to inform the threads to terminate
     playMode = VS_MOVIE_QUIT;
 
+    // Wait for the threads to finish
+    pthread_join(fileThread, NULL);
+    pthread_join(audioThread, NULL);
+
     // Delete the video decoder object
     if (videoCodecContext)
         avcodec_close(videoCodecContext);
@@ -118,9 +122,6 @@ vsMovieReader::~vsMovieReader()
     // Free the current frame structures
     av_free(videoFrame);
     av_free(audioFrame);
-
-    // Wait for the threads to finish
-    pthread_join(fileThread, NULL);
 }
 
 // ------------------------------------------------------------------------
