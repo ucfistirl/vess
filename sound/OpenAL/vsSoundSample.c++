@@ -85,7 +85,7 @@ vsSoundSample::vsSoundSample(char *fileName)
                 break;
 
             default:
-                // Don't print anything extra
+                printf("    Unknown error\n");
                 break;
         }
     }
