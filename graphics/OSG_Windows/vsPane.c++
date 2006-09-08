@@ -208,6 +208,13 @@ vsPane::vsPane(vsWindow *parent)
 // ------------------------------------------------------------------------
 vsPane::~vsPane()
 {
+    osgDB::DatabasePager *dbPager;
+
+    // If there is a database pager created, stop this pane from using it
+    dbPager = osgDB::Registry::instance()->getDatabasePager();
+    if (dbPager)
+        osgSceneView->getCullVisitor()->setDatabaseRequestHandler(NULL);
+
     // Unreference the SceneView and scene Group
     osgSceneView->setSceneData(NULL);
     osgSceneView->unref();

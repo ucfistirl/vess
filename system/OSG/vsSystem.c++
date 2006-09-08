@@ -94,6 +94,8 @@ vsSystem::vsSystem()
 // ------------------------------------------------------------------------
 vsSystem::~vsSystem()
 {
+    osgDB::DatabasePager *osgDBPager;
+
     // Do nothing if this isn't a real system object
     if (!validObject)
         return;
@@ -128,6 +130,11 @@ vsSystem::~vsSystem()
 
     vsObject::deleteObjectList();
 #endif
+
+    // Clean up the database pager
+    osgDBPager = osgDB::Registry::instance()->getDatabasePager();
+    if (osgDBPager)
+        osgDB::Registry::instance()->setDatabasePager(NULL);
 
     // Delete the scent manager
     vsScentManager::deleteInstance();
