@@ -37,7 +37,7 @@
 
 #define VS_ITS_MAX_TRACKERS ISD_MAX_STATIONS
 
-class vsIntersenseTrackingSystem : public vsTrackingSystem
+class VS_IO_DLL vsIntersenseTrackingSystem : public vsTrackingSystem
 {
 private:
 
