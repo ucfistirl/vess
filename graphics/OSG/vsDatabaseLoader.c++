@@ -47,6 +47,7 @@
 #include "vsDatabaseLoader.h++"
 #include "vsGeometry.h++"
 #include "vsComponent.h++"
+#include "vsUnmanagedNode.h++"
 #include "vsLODAttribute.h++"
 #include "vsSequenceAttribute.h++"
 #include "vsSwitchAttribute.h++"
@@ -633,6 +634,13 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
         
         result = newComponent;
     } // if (dynamic_cast<osg::Group *>(node))
+    else
+    {
+       // If the node is neither a Geode nor a Group, then we don't know how
+       // to handle it explicitly. Instead of just leaving it out of the
+       // result, create a vsUnmanagedNode to visualize it in the scene graph.
+       result = new vsUnmanagedNode(node);
+    }
 
     // Return NULL if the conversion didn't go correctly (in which case
     // we'll have a NULL result here)
@@ -657,8 +665,11 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
     // want to try adding the same component to a second parent if
     // we run across it again, but rather we'll just treat it as one
     // we've never seen before and convert it again.
-    if (result->getNodeType() == VS_NODE_TYPE_GEOMETRY)
+    if ((result->getNodeType() == VS_NODE_TYPE_GEOMETRY) ||
+        (result->getNodeType() == VS_NODE_TYPE_UNMANAGED))
+    {
         nodeMap->registerLink(result, node);
+    }
 
     return result;
 }
@@ -675,10 +686,11 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     // vsComponents (the Geometries), each with any number of child
     // vsGeometries (the PrimitiveSets).
 
-    vsComponent *geodeComponent, *childComponent;
+    vsComponent *geodeComponent, *geometryComponent, *childComponent;
     vsGeometry *geometry;
     int loop, sloop, tloop;
     osg::Geometry *osgGeometry;
+    osg::Drawable *osgDrawable;
     osg::Billboard *osgBillboard;
     vsBillboardAttribute *billboardAttr;
     osg::PrimitiveSet *osgPrimitiveSet;
@@ -702,13 +714,13 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
 
     osgUtil::SmoothingVisitor *smoother;
 
-    // Create the component that represents the osg Geode
-    geodeComponent = new vsComponent();
+    // Create the component that represents geometry in the osg Geode.
+    geometryComponent = new vsComponent();
 
     // Convert the attributes on the Geode's StateSet into vess attributes
     // on the new component
     if (geode->getStateSet())
-        convertAttrs(geodeComponent, geode->getStateSet(), attrMap);
+        convertAttrs(geometryComponent, geode->getStateSet(), attrMap);
 
     // If the OSG Geode is actually a Billboard, add a vsBillboardAttribute
     // to the master component
@@ -742,7 +754,7 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
             billboardAttr->setAxis(vsVector(osgVec3[0], osgVec3[1],
                 osgVec3[2]));
 
-        geodeComponent->addAttribute(billboardAttr);
+        geometryComponent->addAttribute(billboardAttr);
     }
 
     // Decal stuff
@@ -758,13 +770,16 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     // per PrimitiveSet)
     for (loop = 0; loop < (int)geode->getNumDrawables(); loop++)
     {
-        // Obtain the loop'th Geometry. (If it's not a Geometry, ignore it.)
-        osgGeometry = dynamic_cast<osg::Geometry *>(geode->getDrawable(loop));
+        // Obtain the loop'th Drawable. See if it's a geometry, first.
+        osgDrawable = geode->getDrawable(loop);
+
+        // See if the drawable is a geometry.
+        osgGeometry = dynamic_cast<osg::Geometry *>(osgDrawable);
         if (osgGeometry)
         {
             // Create a new component to represent the Geometry
             childComponent = new vsComponent();
-            geodeComponent->addChild(childComponent);
+            geometryComponent->addChild(childComponent);
 
             // Check for the presence of normals; if none, and the 
             // AUTOGEN_NORMALS mode is on, use the osgUtil::SmoothingVisitor 
@@ -939,15 +954,45 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
                 // vsComponent
                 childComponent->addChild(geometry);
             } // loop (sloop < osgGeometry->getNumPrimitiveSets())
+
+            // Remove the Geometry Drawable from the Geode. This is done
+            // because any non-Geometry Drawables still need to be represented
+            // in the scene graph and should remain in the Geode for those
+            // purposes.
+            geode->removeDrawable(osgGeometry);
+            loop--;
         } // if (osgGeometry)
     } // loop (loop < geode->getNumDrawables())
-    
+
     // Add a decal attribute to the resulting component if needed
     if (needsDecal)
-        convertDecal(geodeComponent, offsetArray, offsetArraySize);
+        convertDecal(geometryComponent, offsetArray, offsetArraySize);
 
     // We're done with the polygon offset values
     free(offsetArray);
+
+    // If the geode still has any drawables remaining, they were not of the
+    // osg::Geometry type and were not converted to vsGeometry. Represent them
+    // in the scene graph by creating a new node to hold the Geode and adding
+    // it to the geode component.
+    if ((int)geode->getNumDrawables() > 0)
+    {
+        // Print a warning message.
+        printf("vsDatabaseLoader::convertGeode: Found %d non-Geometry "
+            "drawable(s)...\n", (int)geode->getNumDrawables());
+
+        // Create a component to return that will NOT be affected by the
+        // Attributes extracted from the geode state set. Add the geometry
+        // component to it, as well as the unmanaged part of the geode.
+        geodeComponent = new vsComponent();
+        geodeComponent->addChild(geometryComponent);
+        geodeComponent->addChild(new vsUnmanagedNode(geode));
+    }
+    else
+    {
+        // Simply use the geometry component as the total geode component.
+        geodeComponent = geometryComponent;
+    }
 
     // Return the component
     return geodeComponent;
