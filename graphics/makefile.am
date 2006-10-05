@@ -42,6 +42,7 @@ libvsGraphics_a_SOURCES = \
                           @SG@/vsTextureRectangleAttribute.c++ \
                           @SG@/vsTransformAttribute.c++ \
                           @SG@/vsTransparencyAttribute.c++ \
+                          @SG@/vsUnmanagedNode.c++ \
                           @SG@/vsView.c++ \
                           @SG@/vsViewpointAttribute.c++ \
                           @SG@/vsWireframeAttribute.c++ \
@@ -115,6 +116,7 @@ include_HEADERS = \
                   @SG@/vsTextureRectangleAttribute.h++ \
                   @SG@/vsTransformAttribute.h++ \
                   @SG@/vsTransparencyAttribute.h++ \
+                  @SG@/vsUnmanagedNode.h++ \
                   @SG@/vsView.h++ \
                   @SG@/vsViewpointAttribute.h++ \
                   @SG@/vsWireframeAttribute.h++ \
