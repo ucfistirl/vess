@@ -571,18 +571,13 @@ void vsPane::hidePane()
 }
 
 // ------------------------------------------------------------------------
-// Sets the color of the pane's background.  The background color is used 
+// Sets the color of the pane's background.  The background color is used
 // when no earth/sky is enabled.
 // ------------------------------------------------------------------------
 void vsPane::setBackgroundColor(double r, double g, double b)
 {
-    osg::Vec4 bgColor;
-
     // Set up an OSG vector with the given color
-    bgColor.set((float)r, (float)g, (float)b, 1.0f);
-    
-    // Set the background color of the OSG SceneView object
-    osgSceneView->setClearColor(bgColor);
+    backgroundColor.set((float)r, (float)g, (float)b, 1.0f);
 }
 
 // ------------------------------------------------------------------------
@@ -591,78 +586,13 @@ void vsPane::setBackgroundColor(double r, double g, double b)
 // ------------------------------------------------------------------------
 void vsPane::getBackgroundColor(double *r, double *g, double *b)
 {
-    osg::Vec4 bgColor;
-
-    // Get the background color of the OSG SceneView object
-    bgColor = osgSceneView->getClearColor();
-
     // Return each color component if the corresponding parameter is valid
     if (r != NULL)
-        *r = bgColor[0];
+        *r = backgroundColor[0];
     if (g != NULL)
-        *g = bgColor[1];
+        *g = backgroundColor[1];
     if (b != NULL)
-        *b = bgColor[2];
-}
-
-// ------------------------------------------------------------------------
-// Enables drawing of the earth/sky background in this channel
-// ------------------------------------------------------------------------
-void vsPane::enableEarthSky()
-{
-    // No earth/sky support in OSG, do nothing
-}
-
-// ------------------------------------------------------------------------
-// Disables drawing of the earth/sky background in this channel
-// ------------------------------------------------------------------------
-void vsPane::disableEarthSky()
-{
-    // No earth/sky support in OSG, do nothing
-}
-
-// ------------------------------------------------------------------------
-// Sets the altitude of the ground plane in the earth/sky background
-// ------------------------------------------------------------------------
-void vsPane::setESGroundHeight(double newHeight)
-{
-    // No earth/sky support in OSG, do nothing
-}
-
-// ------------------------------------------------------------------------
-// Retrieves the altitude of the ground plane in the earth/sky background
-// ------------------------------------------------------------------------
-double vsPane::getESGroundHeight()
-{
-    // No earth/sky support in OSG, so just return 0.0 as the ground 
-    // height
-    return 0.0;
-}
-
-// ------------------------------------------------------------------------
-// Sets the aspect of the earth/sky background color specified by which to
-// the specified color
-// ------------------------------------------------------------------------
-void vsPane::setESColor(int which, double r, double g, double b)
-{
-    // No earth/sky support in OSG, do nothing.
-}
-
-// ------------------------------------------------------------------------
-// Retrieves the aspect of the earth/sky background color specified by
-// which. NULL pointers may be passed in for unneeded return values.
-// ------------------------------------------------------------------------
-void vsPane::getESColor(int which, double *r, double *g, double *b)
-{
-    // No earth/sky support in OSG.  Always return zeroes.
-
-    // Return zero for each non-NULL parameter
-    if (r != NULL)
-        *r = 0.0;
-    if (g != NULL)
-        *g = 0.0;
-    if (b != NULL)
-        *b = 0.0;
+        *b = backgroundColor[2];
 }
 
 // ------------------------------------------------------------------------
@@ -917,6 +847,34 @@ void vsPane::updateView()
 
         // Record the change number
         viewChangeNum = sceneView->getChangeNum();
+    }
+}
+
+// ------------------------------------------------------------------------
+// Internal function
+// Updates the background color with the Earth/Sky color specified in the
+// vsScene object.
+// ------------------------------------------------------------------------
+void vsPane::updateClearState()
+{
+    double esUniform[3];
+    osg::Vec4 esClearColor;
+
+    // See if the scene has EarthSky enabled.
+    if ((sceneRoot != NULL) && (sceneRoot->isEarthSkyEnabled()))
+    {
+        sceneRoot->getESColor(VS_SCENE_ESCOLOR_UNIFORM, &(esUniform[0]),
+            &(esUniform[1]), &(esUniform[2]));
+        esClearColor[0] = esUniform[0];
+        esClearColor[1] = esUniform[1];
+        esClearColor[2] = esUniform[2];
+        esClearColor[3] = 1.0;
+        osgSceneView->setClearColor(esClearColor);
+    }
+    else
+    {
+        // Set the background color of the OSG SceneView object
+        osgSceneView->setClearColor(backgroundColor);
     }
 }
 

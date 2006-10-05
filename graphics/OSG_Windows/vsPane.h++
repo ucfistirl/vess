@@ -45,15 +45,6 @@ enum vsPanePlacement
     VS_PANE_PLACEMENT_BOTTOM_LEFT_QUADRANT
 };
 
-enum vsPaneEarthSkyColor
-{
-    VS_PANE_ESCOLOR_SKY_NEAR,
-    VS_PANE_ESCOLOR_SKY_FAR,
-    VS_PANE_ESCOLOR_SKY_HORIZON,
-    VS_PANE_ESCOLOR_GROUND_FAR,
-    VS_PANE_ESCOLOR_GROUND_NEAR
-};
-
 enum vsPaneBufferMode
 {
     VS_PANE_BUFFER_MONO,
@@ -100,6 +91,9 @@ private:
     double                  eyeSeparation;
     double                  screenDistance;
 
+    // Background color
+    osg::Vec4               backgroundColor;
+
 VS_INTERNAL:
 
     // Checks the visibility flag of the pane
@@ -112,6 +106,9 @@ VS_INTERNAL:
     // Updates the viewpoint based on changes to the vsView
     // object
     void           updateView();
+
+    // Update the clear color and earth/sky parameters.
+    void           updateClearState();
 
 public:
 
@@ -150,15 +147,6 @@ public:
     // Background color
     void                  setBackgroundColor(double r, double g, double b);
     void                  getBackgroundColor(double *r, double *g, double *b);
-
-    // Earth/sky operations
-    void                  enableEarthSky();
-    void                  disableEarthSky();
-    void                  setESGroundHeight(double newHeight);
-    double                getESGroundHeight();
-    void                  setESColor(int which, double r, double g, double b);
-    void                  getESColor(int which, double *r, double *g, 
-                                     double *b);
 
     void                  enableStats();
     void                  disableStats();
