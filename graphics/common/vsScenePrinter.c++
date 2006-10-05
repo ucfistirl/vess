@@ -1021,6 +1021,9 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
         case VS_NODE_TYPE_SKELETON_MESH_GEOMETRY:
             fprintf(outfile, "Skeleton Mesh Geometry: ");
             break;
+        case VS_NODE_TYPE_UNMANAGED:
+            fprintf(outfile, "Unmanaged Node: ");
+            break;
     }
     
     // Print the node's name (if configured)
