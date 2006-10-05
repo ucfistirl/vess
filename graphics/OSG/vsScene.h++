@@ -29,6 +29,16 @@ class vsLightAttribute;
 #include "vsNode.h++"
 #include "vsLightAttribute.h++"
 
+enum vsSceneEarthSkyColor
+{
+    VS_SCENE_ESCOLOR_SKY_NEAR,
+    VS_SCENE_ESCOLOR_SKY_FAR,
+    VS_SCENE_ESCOLOR_SKY_HORIZON,
+    VS_SCENE_ESCOLOR_GROUND_FAR,
+    VS_SCENE_ESCOLOR_GROUND_NEAR,
+    VS_SCENE_ESCOLOR_UNIFORM
+};
+
 class VS_GRAPHICS_DLL vsScene : public vsNode
 {
 private:
@@ -40,8 +50,11 @@ private:
     
     osg::Group          *osgGroup;
 
+    bool                esEnabled;
+    vsVector            esUniformColor;
+
 VS_INTERNAL:
-                
+
     int         addLight(vsLightAttribute *light);
     void        removeLight(vsLightAttribute *light);
 
@@ -49,7 +62,7 @@ public:
 
                             vsScene();
     virtual                 ~vsScene();
-    
+
     virtual const char      *getClassName();
 
     virtual vsNode          *cloneTree();
@@ -57,7 +70,7 @@ public:
     virtual bool            addChild(vsNode *newChild);
     virtual bool            insertChild(vsNode *newChild, int index);
     virtual bool            removeChild(vsNode *targetChild);
-    virtual bool            replaceChild(vsNode *targetChild, 
+    virtual bool            replaceChild(vsNode *targetChild,
                                          vsNode *newChild);
 
     virtual int             getChildCount();
@@ -65,7 +78,7 @@ public:
 
     virtual int             getNodeType();
 
-    virtual void            getBoundSphere(vsVector *centerPoint, 
+    virtual void            getBoundSphere(vsVector *centerPoint,
                                            double *radius);
     virtual vsMatrix        getGlobalXform();
 
@@ -73,9 +86,19 @@ public:
     virtual unsigned int    getIntersectValue();
 
     virtual void            addAttribute(vsAttribute *newAttribute);
-    
+
     virtual void            enableLighting();
     virtual void            disableLighting();
+
+    virtual void            enableEarthSky();
+    virtual void            disableEarthSky();
+    virtual bool            isEarthSkyEnabled();
+    virtual void            setESGroundHeight(double newHeight);
+    virtual double          getESGroundHeight();
+    virtual void            setESColor(vsSceneEarthSkyColor which, double r,
+                                       double g, double b);
+    virtual void            getESColor(vsSceneEarthSkyColor which, double *r,
+                                       double *g, double *b);
 
     virtual void            enableCull();
     virtual void            disableCull();

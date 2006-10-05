@@ -28,6 +28,7 @@
 #include "vsTextureAttribute.h++"
 #include "vsTextureCubeAttribute.h++"
 #include "vsTextureRectangleAttribute.h++"
+#include "vsUnmanagedNode.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Set the light list and child pointer to NULL,
@@ -52,6 +53,9 @@ vsScene::vsScene()
 
     // Set the child count to reflect that it has no children now.
     childCount = 0;
+
+    // EarthSky is disabled by default.
+    esEnabled = false;
 }
 
 // ------------------------------------------------------------------------
@@ -136,6 +140,7 @@ bool vsScene::addChild(vsNode *newChild)
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
     vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
+    vsUnmanagedNode *childUnmanagedNode;
 
     // Make sure we don't already have a child
     if (child)
@@ -177,6 +182,11 @@ bool vsScene::addChild(vsNode *newChild)
         childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)newChild;
         osgGroup->addChild(childSkeletonMeshGeometry->getBaseLibraryObject());
     }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_UNMANAGED)
+    {
+        childUnmanagedNode = (vsUnmanagedNode *)newChild;
+        osgGroup->addChild(childUnmanagedNode->getBaseLibraryObject());
+    }
 
     // Set the newChild node as our child
     child = newChild;
@@ -198,6 +208,7 @@ bool vsScene::insertChild(vsNode *newChild, int index)
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
     vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
+    vsUnmanagedNode *childUnmanagedNode;
 
     // Make sure we don't already have a child
     if (child)
@@ -246,6 +257,11 @@ bool vsScene::insertChild(vsNode *newChild, int index)
         childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)newChild;
         osgGroup->addChild(childSkeletonMeshGeometry->getBaseLibraryObject());
     }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_UNMANAGED)
+    {
+        childUnmanagedNode = (vsUnmanagedNode *)newChild;
+        osgGroup->addChild(childUnmanagedNode->getBaseLibraryObject());
+    }
 
     // Set the newChild node as our child
     child = newChild;
@@ -266,6 +282,7 @@ bool vsScene::removeChild(vsNode *targetChild)
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
     vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
+    vsUnmanagedNode *childUnmanagedNode;
 
     // Make sure the target child is actually our child
     if (child != targetChild)
@@ -305,6 +322,11 @@ bool vsScene::removeChild(vsNode *targetChild)
         osgGroup->removeChild(
             childSkeletonMeshGeometry->getBaseLibraryObject());
     }
+    else if (targetChild->getNodeType() == VS_NODE_TYPE_UNMANAGED)
+    {
+        childUnmanagedNode = (vsUnmanagedNode *)targetChild;
+        osgGroup->removeChild(childUnmanagedNode->getBaseLibraryObject());
+    }
 
     // Finish the VESS detachment
     child = NULL;
@@ -330,6 +352,7 @@ bool vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
     vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
+    vsUnmanagedNode *childUnmanagedNode;
     osg::Node *oldNode, *newNode;
 
     // Make sure the target child is actually our child
@@ -378,6 +401,11 @@ bool vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
         childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)targetChild;
         oldNode = childSkeletonMeshGeometry->getBaseLibraryObject();
     }
+    else if (targetChild->getNodeType() == VS_NODE_TYPE_UNMANAGED)
+    {
+        childUnmanagedNode = (vsUnmanagedNode *)targetChild;
+        oldNode = childUnmanagedNode->getBaseLibraryObject();
+    }
 
     // Next, get the new child node.
     if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
@@ -399,6 +427,11 @@ bool vsScene::replaceChild(vsNode *targetChild, vsNode *newChild)
     {
         childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)newChild;
         newNode = childSkeletonMeshGeometry->getBaseLibraryObject();
+    }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_UNMANAGED)
+    {
+        childUnmanagedNode = (vsUnmanagedNode *)newChild;
+        newNode = childUnmanagedNode->getBaseLibraryObject();
     }
 
     // Finally, replace the child on the osg::Group node
@@ -658,6 +691,90 @@ void vsScene::disableLighting()
     {
         child->disableLighting();
     } 
+}
+
+// ------------------------------------------------------------------------
+// Enables drawing of the earth/sky background in this channel
+// ------------------------------------------------------------------------
+void vsScene::enableEarthSky()
+{
+    esEnabled = true;
+}
+
+// ------------------------------------------------------------------------
+// Disables drawing of the earth/sky background in this channel
+// ------------------------------------------------------------------------
+void vsScene::disableEarthSky()
+{
+    esEnabled = false;
+}
+
+// ------------------------------------------------------------------------
+// Returns whether the drawing pane should use the vsScene EarthSky colors.
+// ------------------------------------------------------------------------
+bool vsScene::isEarthSkyEnabled()
+{
+    return esEnabled;
+}
+
+// ------------------------------------------------------------------------
+// Sets the altitude of the ground plane in the earth/sky background
+// ------------------------------------------------------------------------
+void vsScene::setESGroundHeight(double newHeight)
+{
+    // No earth/sky ground height support in OSG, do nothing.
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the altitude of the ground plane in the earth/sky background
+// ------------------------------------------------------------------------
+double vsScene::getESGroundHeight()
+{
+    // No earth/sky support in OSG, so just return 0.0 as the ground height.
+    return 0.0;
+}
+
+// ------------------------------------------------------------------------
+// Sets the aspect of the earth/sky background color specified by which to
+// the specified color
+// ------------------------------------------------------------------------
+void vsScene::setESColor(vsSceneEarthSkyColor which, double r, double g,
+    double b)
+{
+    // Only the UNIFORM color is supported in OSG.
+    if (which == VS_SCENE_ESCOLOR_UNIFORM)
+    {
+        esUniformColor.set(r, g, b, 1.0);
+    }
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the aspect of the earth/sky background color specified by
+// which. NULL pointers may be passed in for unneeded return values.
+// ------------------------------------------------------------------------
+void vsScene::getESColor(vsSceneEarthSkyColor which, double *r, double *g,
+    double *b)
+{
+    if (which == VS_SCENE_ESCOLOR_UNIFORM)
+    {
+        // Return each non-NULL parameter
+        if (r != NULL)
+            *r = esUniformColor[0];
+        if (g != NULL)
+            *g = esUniformColor[1];
+        if (b != NULL)
+            *b = esUniformColor[2];
+    }
+    else
+    {
+        // Return each non-NULL parameter
+        if (r != NULL)
+            *r = 0.0;
+        if (g != NULL)
+            *g = 0.0;
+        if (b != NULL)
+            *b = 0.0;
+    }
 }
 
 // ------------------------------------------------------------------------
