@@ -25,6 +25,7 @@
 #include "vsDynamicGeometry.h++"
 #include "vsSkeletonMeshGeometry.h++"
 #include "vsScene.h++"
+#include "vsUnmanagedNode.h++"
 
 // ------------------------------------------------------------------------
 // Constructor - Initializes save and owner lists
@@ -114,6 +115,9 @@ osg::StateSet *vsStateAttribute::getOSGStateSet(vsNode *node)
             break;
         case VS_NODE_TYPE_SCENE:
             osgNode = ((vsScene *)node)->getBaseLibraryObject();
+            break;
+        case VS_NODE_TYPE_UNMANAGED:
+            osgNode = ((vsUnmanagedNode *)node)->getBaseLibraryObject();
             break;
     }
 
