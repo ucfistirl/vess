@@ -35,6 +35,7 @@
 #include "vsTextureAttribute.h++"
 #include "vsTextureCubeAttribute.h++"
 #include "vsTextureRectangleAttribute.h++"
+#include "vsUnmanagedNode.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Sets up the OSG objects associated with
@@ -152,6 +153,7 @@ bool vsComponent::addChild(vsNode *newChild)
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
     vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
+    vsUnmanagedNode *childUnmanagedNode;
     vsSwitchAttribute *switchAttr;
 
     // Notify the newChild node that it is getting a new parent. This might
@@ -186,6 +188,11 @@ bool vsComponent::addChild(vsNode *newChild)
         bottomGroup->addChild(
             childSkeletonMeshGeometry->getBaseLibraryObject());
     }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_UNMANAGED)
+    {
+        childUnmanagedNode = (vsUnmanagedNode *)newChild;
+        bottomGroup->addChild(childUnmanagedNode->getBaseLibraryObject());
+    }
 
     // Add the newChild node to our child node list
     childList[childCount++] = newChild;
@@ -216,6 +223,7 @@ bool vsComponent::insertChild(vsNode *newChild, int index)
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
     vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
+    vsUnmanagedNode *childUnmanagedNode;
     osg::Node *newNode, *displacedNode;
     int loop;
     vsSwitchAttribute *switchAttr;
@@ -264,6 +272,11 @@ bool vsComponent::insertChild(vsNode *newChild, int index)
     {
         childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)newChild;
         newNode = childSkeletonMeshGeometry->getBaseLibraryObject();
+    }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_UNMANAGED)
+    {
+        childUnmanagedNode = (vsUnmanagedNode *)newChild;
+        newNode = childUnmanagedNode->getBaseLibraryObject();
     }
 
     // Now, we replace the node at index and shove the rest of the nodes
@@ -317,6 +330,7 @@ bool vsComponent::removeChild(vsNode *targetChild)
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
     vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
+    vsUnmanagedNode *childUnmanagedNode;
     vsSwitchAttribute *switchAttr;
     
     // Search the child list for the target child
@@ -357,6 +371,12 @@ bool vsComponent::removeChild(vsNode *targetChild)
                     (vsSkeletonMeshGeometry *)targetChild;
                 bottomGroup->removeChild(
                     childSkeletonMeshGeometry->getBaseLibraryObject());
+            }
+            else if (targetChild->getNodeType() == VS_NODE_TYPE_UNMANAGED)
+            {
+                childUnmanagedNode = (vsUnmanagedNode *)targetChild;
+                bottomGroup->removeChild(
+                    childUnmanagedNode->getBaseLibraryObject());
             }
 
 
@@ -402,6 +422,7 @@ bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
     vsGeometry *childGeometry;
     vsDynamicGeometry *childDynamicGeometry;
     vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
+    vsUnmanagedNode *childUnmanagedNode;
     osg::Node *oldNode, *newNode;
     
     // Search the child list for the target child
@@ -449,6 +470,11 @@ bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
                     (vsSkeletonMeshGeometry *)targetChild;
                 oldNode = childSkeletonMeshGeometry->getBaseLibraryObject();
             }
+            else if (targetChild->getNodeType() == VS_NODE_TYPE_UNMANAGED)
+            {
+                childUnmanagedNode = (vsUnmanagedNode *)targetChild;
+                oldNode = childUnmanagedNode->getBaseLibraryObject();
+            }
 
             if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
             {
@@ -470,6 +496,11 @@ bool vsComponent::replaceChild(vsNode *targetChild, vsNode *newChild)
             {
                 childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)newChild;
                 newNode = childSkeletonMeshGeometry->getBaseLibraryObject();
+            }
+            else if (newChild->getNodeType() == VS_NODE_TYPE_UNMANAGED)
+            {
+                childUnmanagedNode = (vsUnmanagedNode *)newChild;
+                newNode = childUnmanagedNode->getBaseLibraryObject();
             }
 
             // Replace the old child with the new one on this component's
