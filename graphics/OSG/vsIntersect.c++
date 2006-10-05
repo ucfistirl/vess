@@ -26,6 +26,7 @@
 #include "vsDynamicGeometry.h++"
 #include "vsSkeletonMeshGeometry.h++"
 #include "vsScene.h++"
+#include "vsUnmanagedNode.h++"
 
 // ------------------------------------------------------------------------
 // Constructor - Initializes the segment list
@@ -531,6 +532,8 @@ void vsIntersect::intersect(vsNode *targetNode)
         osgNode = ((vsComponent *)targetNode)->getBaseLibraryObject();
     else if (targetNode->getNodeType() == VS_NODE_TYPE_SCENE)
         osgNode = ((vsScene *)targetNode)->getBaseLibraryObject();
+    else if (targetNode->getNodeType() == VS_NODE_TYPE_UNMANAGED)
+        osgNode = ((vsUnmanagedNode *)targetNode)->getBaseLibraryObject();
 
     // Reset the IntersectVisitor for the new traversal
     traverser->reset();
