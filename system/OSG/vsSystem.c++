@@ -536,6 +536,9 @@ void vsSystem::drawFrame()
                 // vsView data
                 targetPane->updateView();
 
+                // See if the background color needs to be updated.
+                targetPane->updateClearState();
+
                 // Get the scene from this pane
                 scene = targetPane->getScene();
 
