@@ -1,3 +1,4 @@
+
 //------------------------------------------------------------------------
 //
 //    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
@@ -93,6 +94,12 @@ vsTCPNetworkInterface::vsTCPNetworkInterface(u_short port)
 // ------------------------------------------------------------------------
 vsTCPNetworkInterface::~vsTCPNetworkInterface()
 {
+    u_long   i;
+
+    // Close the client sockets
+    for (i=0; i < numClientSockets; i++)
+        close(clientSockets[i]);
+
     // Close the socket
     close(socketValue);
 }
@@ -153,9 +160,10 @@ int vsTCPNetworkInterface::acceptConnection()
     // If we had an error and it wasn't that we would block on a non-blocking
     // socket (a blocking socket shouldn't generate an EWOULDBLOCK error), then
     // notify the user; otherwise, store the socket and return an ID to the user
-    if ( (newSocket == -1) && (errno != EWOULDBLOCK) )
+    if (newSocket == -1)
     {
-        printf("Could not accept a connection.\n");
+        if (errno != EWOULDBLOCK)
+           printf("Could not accept a connection.\n");
         return -1;
     }
     else
@@ -191,7 +199,7 @@ void vsTCPNetworkInterface::enableBlockingOnClient(int clientID)
                   statusFlags & (~FNONBLOCK)) < 0)
         {
             // If there was error, notify the user
-            printf("Unable to disable blocking on socket.\n");
+            printf("Unable to enable blocking on socket.\n");
         }
     }
 }

@@ -160,9 +160,10 @@ int vsTCPNetworkInterface::acceptConnection()
     // If we had an error and it wasn't that we would block on a non-blocking
     // socket (a blocking socket shouldn't generate an EWOULDBLOCK error), then
     // notify the user; otherwise, store the socket and return an ID to the user
-    if ( (newSocket == -1) && (errno != EWOULDBLOCK) )
+    if (newSocket == -1)
     {
-        printf("Could not accept a connection.\n");
+        if (errno != EWOULDBLOCK)
+           printf("Could not accept a connection.\n");
         return -1;
     }
     else
