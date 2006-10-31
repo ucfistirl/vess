@@ -33,7 +33,7 @@ protected:
     SOCKET                clientSockets[VS_MAX_TCP_CLIENTS];
     struct sockaddr_in    clientNames[VS_MAX_TCP_CLIENTS];
     int                   clientNameLengths[VS_MAX_TCP_CLIENTS];
-    int                   numClientSockets;
+    u_long                numClientSockets;
     u_long                nonblockingMode;
 
 public:
