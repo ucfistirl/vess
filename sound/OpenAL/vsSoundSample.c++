@@ -32,12 +32,9 @@
 vsSoundSample::vsSoundSample(char *fileName)
              : vsSoundBuffer()
 {
-    ALsizei   size;
-    ALfloat   freq;
-    ALenum    format;
-    ALenum    error;
-
-    void      *soundData;
+    ALenum  error;
+    ALint   bufferChannels;
+    ALint   bufferBits;
 
     // Clear any OpenAL or alut error conditions
     alGetError();
@@ -49,12 +46,12 @@ vsSoundSample::vsSoundSample(char *fileName)
     bufferFrequency = 0;
     bufferFormat = 0;
 
-    // Load the WAV file, keep track of the data format parameters as well
-    soundData = alutLoadMemoryFromFile(fileName, &format, &size, &freq);
+    // Get an OpenAL buffer using the WAV file for data
+    bufferID = alutCreateBufferFromFile(fileName);
 
     // Make sure the load succeeds
     error = alutGetError();
-    if ((soundData == NULL) && (error != ALUT_ERROR_NO_ERROR))
+    if ((bufferID == AL_NONE) && (error != ALUT_ERROR_NO_ERROR))
     {
         // Load failed, print an error
         printf("vsSoundSample::vsSoundSample:  Unable to load file: %s\n", 
@@ -91,50 +88,66 @@ vsSoundSample::vsSoundSample(char *fileName)
     }
     else
     {
-        // Generate an OpenAL buffer
-        alGenBuffers(1, &bufferID);
-
-        // Check for error
+        // Query and store the sound parameters for later retrieval
+        alGetBufferiv(bufferID, AL_SIZE, &bufferSize);
+        alGetBufferiv(bufferID, AL_FREQUENCY, &bufferFrequency);
+        alGetBufferiv(bufferID, AL_BITS, &bufferBits);
+        alGetBufferiv(bufferID, AL_CHANNELS, &bufferChannels);
+        
+        // Check for errors
         if (alGetError() != AL_NO_ERROR)
         {
-            printf("vsSoundSample::vsSoundSample:  Unable to generate a buffer"
-                " to store audio data.");
-            printf("    Make sure a valid vsSoundPipe has been created.\n");
-
-            // Free the audio data we loaded before bailing out
-            if (soundData != NULL)
-                free(soundData);
-
-            // Now, bail out
-            return;
+            // Print a warning that we may have bad attributes
+            printf("vsSoundSample::vsSoundSample:  Unable to query audio "
+                "attributes for file %s\n", fileName);
         }
         
-        // Pass the WAV file data and parameters to the buffer
-        alBufferData(bufferID, format, soundData, size, (ALuint)freq);
-
-        // Check for error
-        if (alGetError() != AL_NO_ERROR)
+        // Convert the bits/channels attributes to a "format"
+        if (bufferChannels == 1)
         {
-            printf("vsSoundSample::vsSoundSample:  Unable to fill the audio "
-                "buffer with data.");
-            printf("    Make sure a valid vsSoundPipe has been created.\n");
-
-            // Free the audio data we loaded before bailing out
-            if (soundData != NULL)
-                free(soundData);
-
-            // Now, bail out
-            return;
+            // This is a mono sound, figure out the sample width and
+            // set the format
+            if (bufferBits == 8)
+            {
+                // 8-bit mono sound
+                bufferFormat = VS_SBUF_FORMAT_MONO8;
+            }
+            else if (bufferBits == 16)
+            {
+                // 16-bit mono sound
+                bufferFormat = VS_SBUF_FORMAT_MONO16;
+            }
+            else
+            {
+                // This is either an error or unsupported format
+                bufferFormat = VS_SBUF_FORMAT_UNKNOWN;
+            }
         }
-        
-        // OpenAL makes a local copy of the sound data once we fill an 
-        // alBuffer so we can discard the local copy of the sound data.
-        free(soundData);
-
-        // Store the sound parameters for later retrieval
-        bufferSize = size;
-        bufferFrequency = (int)freq;
-        bufferFormat = format;
+        else if (bufferChannels == 2)
+        {
+            // This is a stereo sound, figure out the sample width and
+            // set the format
+            if (bufferBits == 8)
+            {
+                // 8-bit stereo sound
+                bufferFormat = VS_SBUF_FORMAT_STEREO8;
+            }
+            else if (bufferBits == 16)
+            {
+                // 16-bit stereo sound
+                bufferFormat = VS_SBUF_FORMAT_STEREO16;
+            }
+            else
+            {
+                // This is either an error or an unsupported format
+                bufferFormat = VS_SBUF_FORMAT_UNKNOWN;
+            }
+        }
+        else
+        {
+            // This is either an error or an unsupported format
+            bufferFormat = VS_SBUF_FORMAT_UNKNOWN;
+        }
     }
 }
 
