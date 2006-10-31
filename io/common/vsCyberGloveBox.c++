@@ -44,6 +44,10 @@ vsCyberGloveBox::vsCyberGloveBox(int portNum, long baud, int nSensors)
     sprintf(portDevice, "/dev/ttyS%d", portNum - 1);
 #endif
 
+#ifdef WIN32
+    sprintf(portDevice, "COM%d", portNum);
+#endif
+
     // Open the serial port
     port = new vsSerialPort(portDevice, baud, 8, 'N', 1);
     port->ref();
