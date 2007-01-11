@@ -358,20 +358,18 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
     // Get the OSG SceneView
     osgSceneView = pane->getBaseLibraryObject();
 
-    // Convert the x, y coordinates to use integer pixel addresses with
-    // the origin at the upper-left corner (VESS standard)
+    // Convert -1 to 1 coordinate range to the 
+    // 0 to (height or width) pixel range
     pane->getParentWindow()->getDrawableSize(&winWidth, &winHeight);
     winX = (int)(x * (double)winWidth / 2.0);
     winX += winWidth / 2;
     winY = (int)(y * (double)winHeight / 2.0);
     winY += winHeight / 2;
 
-    // We now have x and y window coordinates (in pixels) which need to
-    // be converted to pixels in the pane in lower-left (OpenGL) standard
-    pane->getPosition(&paneX, &paneY);
-    pane->getSize(&paneWidth, &paneHeight);
-    winX = winX - paneX;
-    winY = (paneY + paneHeight) - winY;
+    // The origin of the VESS coordinate system is in the upper-left corner,
+    // but OSG and OpenGL use the lower-left corner. Perform this conversion.
+    winY = winHeight - winY;
+
 
     // Get the points on the near and far planes that correspond to the
     // given x,y window coordinates
