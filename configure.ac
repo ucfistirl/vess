@@ -434,7 +434,7 @@ case "$SG" in
         fi
 
         dnl Add the extra objects that OSG requires
-        EXTRA_GRAPHICS_OBJECTS="$EXTRA_GRAPHICS_OBJECTS vsBillboardCallback.$OBJEXT vsDecalCallback.$OBJEXT vsIntersectTraverser.$OBJEXT vsLocalLightCallback.$OBJEXT vsSequenceCallback.$OBJEXT"
+        EXTRA_GRAPHICS_OBJECTS="$EXTRA_GRAPHICS_OBJECTS vsBillboardCallback.$OBJEXT vsClipAttribute.$OBJEXT vsDecalCallback.$OBJEXT vsIntersectTraverser.$OBJEXT vsLineWidthAttribute.$OBJEXT vsLocalLightCallback.$OBJEXT vsSequenceCallback.$OBJEXT"
         ;;
     *)
         dnl Unknown graphics library
