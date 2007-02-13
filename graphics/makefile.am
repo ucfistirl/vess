@@ -65,8 +65,10 @@ EXTRA_libvsGraphics_a_SOURCES = \
                                 OSG/vsCgStateMatrixParameter.c++ \
                                 OSG/vsCgTextureParameter.c++ \
                                 OSG/vsCgVectorParameter.c++ \
+                                OSG/vsClipAttribute.c++ \
                                 OSG/vsDecalCallback.c++ \
                                 OSG/vsIntersectTraverser.c++ \
+                                OSG/vsLineWidthAttribute.c++ \
                                 OSG/vsLocalLightCallback.c++ \
                                 OSG/vsSequenceCallback.c++ \
                                 Performer/vsCallbackList.c++
@@ -136,8 +138,10 @@ EXTRA_HEADERS = \
                 OSG/vsCgStateMatrixParameter.h++ \
                 OSG/vsCgTextureParameter.h++ \
                 OSG/vsCgVectorParameter.h++ \
+                OSG/vsClipAttribute.h++ \
                 OSG/vsDecalCallback.h++ \
                 OSG/vsIntersectTraverser.h++ \
+                OSG/vsLineWidthAttribute.h++ \
                 OSG/vsLocalLightCallback.h++ \
                 OSG/vsSequenceCallback.h++ \
                 Performer/vsCallbackList.h++
