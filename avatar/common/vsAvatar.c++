@@ -804,6 +804,7 @@ void *vsAvatar::makeIODevice()
     vsIODevice *result = NULL;
     char objName[256];
     int objNum;
+    int axisNum;
     vsJoystickBox *joyBox;
     vsTrackingSystem *trackSys;
     vsPinchGloveBox *pinchBox;
@@ -916,6 +917,16 @@ void *vsAvatar::makeIODevice()
             cyberBox = (vsCyberGloveBox *)(findObject(objName));
             if (cyberBox)
                 result = cyberBox->getGlove();
+        }
+        else if (!strcmp(token, "invertAxis"))
+        {
+            // Invert one of the result device's axes
+            sscanf(cfgLine, "%*s %d", &axisNum);
+
+            // Don't try this unless we've already found the device
+            // we're returning
+            if ((result) && (axisNum < result->getNumAxes()))
+                result->getAxis(axisNum)->setInverted(true);
         }
         else
             printf("vsAvatar::makeIODevice: Unrecognized token '%s'\n",
