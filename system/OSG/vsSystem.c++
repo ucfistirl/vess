@@ -440,6 +440,34 @@ vsSequencer *vsSystem::getSequencer()
 }
 
 // ------------------------------------------------------------------------
+// This function returns the number of outstanding database pages that have
+// yet to be loaded into memory. This value is calculated as the number of 
+// page requests that have been made plus the number of pages that remain 
+// to be compiled. If a negative value is returned, then there was a 
+// problem obtaining an instance of the OSG database pager.
+// ------------------------------------------------------------------------
+int vsSystem::getNumDBPagesToLoad()
+{
+    osgDB::DatabasePager *osgDBPager;
+
+    // Get an instance of the OSG database pager that will be used to 
+    // determine if there are any pages left to be loaded.
+    osgDBPager = osgDB::Registry::instance()->getDatabasePager();
+
+    // If we receive a valid instance of the database pager, return the 
+    // number of pages that remain to be loaded.
+    if (osgDBPager)
+    {
+       return osgDBPager->getFileRequestListSize() +
+              osgDBPager->getDataToCompileListSize();
+    }
+
+    // Return a default value in the case that an instance of the database
+    // pager could not be obtained.
+    return -1;
+}
+
+// ------------------------------------------------------------------------
 // The main function for any VESS program. Prompts each active pane object
 // to render its attached geometry into its parent window.
 // ------------------------------------------------------------------------

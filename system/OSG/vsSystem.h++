@@ -81,6 +81,8 @@ public:
 
     vsSequencer         *getSequencer();
 
+    int                 getNumDBPagesToLoad();
+
     void                drawFrame();
 };
 
