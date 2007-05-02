@@ -1738,7 +1738,7 @@ void *vsAvatar::makeVsEthernetMotionStar()
             // Set the active hemisphere for the trackers
             sscanf(cfgLine, "%*s %s", strValue);
             
-            if (!strcmp(strValue, "VS_BN_FRONT_HEMISHPERE"))
+            if (!strcmp(strValue, "VS_BN_FRONT_HEMISPHERE"))
                 hemisphere = VS_BN_FRONT_HEMISHPERE;
             else if (!strcmp(strValue, "VS_BN_REAR_HEMISPHERE"))
                 hemisphere = VS_BN_REAR_HEMISPHERE;
