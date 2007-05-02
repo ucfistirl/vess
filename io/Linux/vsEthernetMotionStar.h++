@@ -166,7 +166,7 @@ enum
 
 // Bird hemisphere
 
-#define VS_BN_FRONT_HEMISHPERE 0
+#define VS_BN_FRONT_HEMISPHERE 0
 #define VS_BN_REAR_HEMISPHERE  1
 #define VS_BN_UPPER_HEMISPHERE 2
 #define VS_BN_LOWER_HEMISPHERE 3
