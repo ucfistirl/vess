@@ -21,7 +21,10 @@
 
 #include "vsSoundCapture.h++"
 
-#include <unistd.h>
+#ifndef _MSC_VER
+   #include <unistd.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -417,5 +420,7 @@ void *vsSoundCapture::captureLoop(void *userData)
 
     // Close the thread so the destructor can execute.
     pthread_exit(NULL);
+
+    return NULL;
 }
 
