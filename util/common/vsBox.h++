@@ -28,7 +28,7 @@
 #include "vsShape.h++"
 #include "vsVector.h++"
 
-enum VS_UTIL_DLL vsBoxCorner
+enum vsBoxCorner
 {
     VS_BOX_CORNER_FBL,
     VS_BOX_CORNER_FBR,

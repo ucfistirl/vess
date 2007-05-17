@@ -30,7 +30,7 @@
 #include "vsQuat.h++"
 #include "vsVector.h++"
 
-enum VS_UTIL_DLL vsScaleType
+enum vsScaleType
 {
     VS_SCALE_TYPE_X,
     VS_SCALE_TYPE_Y,
