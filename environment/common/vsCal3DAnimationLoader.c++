@@ -342,33 +342,44 @@ vsPathMotionManager *vsCal3DAnimationLoader::parseXML(char *filename,
             boneKinematics = skeletonKinematics->getBoneKinematics(
                 currentBoneID);
 
-            // Get the relative position of the current bone from its parent.
-            relativeBoneTransform = ((vsTransformAttribute *)
-                boneKinematics->getComponent()->getTypedAttribute(
-                VS_ATTRIBUTE_TYPE_TRANSFORM, 0))->getPreTransform();
+            // Make sure we actually have a bone with this ID
+            if (boneKinematics)
+            {
+                // Get the relative position of the current bone from its
+                // parent.
+                relativeBoneTransform = ((vsTransformAttribute *)
+                    boneKinematics->getComponent()->getTypedAttribute(
+                    VS_ATTRIBUTE_TYPE_TRANSFORM, 0))->getPreTransform();
 
-            // Get the inverse rotation information and place in a vsQuat.
-            // The rotation is concidered the inverse of what the animation
-            // is using because we end up having to invert it when we load
-            // the bone anyways.
-            // The whole idea here is to extract the rotation which converts
-            // the default bone's rotation to the animated frame's...
-            // A(-1) = Default Bone rotation (what is in PreTransform)
-            // B = Current frame rotation
-            // C = A * B(-1)
-            // C = The rotation to convert A(-1) to B(-1), which is what we
-            // want to give to the PathMotion.
-            inverseRelativeBoneRotation.setMatrixRotation(
-                relativeBoneTransform);
-            inverseRelativeBoneRotation.invert(); 
+                // Get the inverse rotation information and place in a vsQuat.
+                // The rotation is concidered the inverse of what the animation
+                // is using because we end up having to invert it when we load
+                // the bone anyways.
+                // The whole idea here is to extract the rotation which converts
+                // the default bone's rotation to the animated frame's...
+                // A(-1) = Default Bone rotation (what is in PreTransform)
+                // B = Current frame rotation
+                // C = A * B(-1)
+                // C = The rotation to convert A(-1) to B(-1), which is what we
+                // want to give to the PathMotion.
+                inverseRelativeBoneRotation.setMatrixRotation(
+                    relativeBoneTransform);
+                inverseRelativeBoneRotation.invert(); 
 
-            // Get the translation information to calculate the change from
-            // default to the frames translation.  The frame data specifies it
-            // as an absolute translation, like the rotation, instead of a
-            // relative one based on the default translation.
-            relativeBoneTransform.getTranslation(&x, &y, &z);
-            relativeBonePosition.setSize(3);
-            relativeBonePosition.set(x, y, z);
+                // Get the translation information to calculate the change from
+                // default to the frames translation.  The frame data specifies it
+                // as an absolute translation, like the rotation, instead of a
+                // relative one based on the default translation.
+                relativeBoneTransform.getTranslation(&x, &y, &z);
+                relativeBonePosition.setSize(3);
+                relativeBonePosition.set(x, y, z);
+            }
+            else
+            {
+                fprintf(stderr, "vsCal3DAnimationLoader::parseXML: Keyframe "
+                    "track specified for invalid bone ID (%d)\n", 
+                    currentBoneID);
+            }
 
             // If the kinematics is valid, create and setup the path motion.
             if (boneKinematics)
