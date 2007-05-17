@@ -25,7 +25,7 @@
 
 #include "vsObject.h++"
 
-enum  vsChromaKeyEquationType
+enum vsChromaKeyEquationType
 {
     VS_CHROMAKEY_DIFF_SUM         = 0,
     VS_CHROMAKEY_DIFF_SUM_SQUARED = 1,
