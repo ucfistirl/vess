@@ -2223,3 +2223,36 @@ void vsSkeletonMeshGeometry::applySkin(vsGrowableArray *boneMatrices,
         rebuildPrimitives();
     }
 }
+
+// ------------------------------------------------------------------------
+// This method resets the mesh to the original vertex and normal
+// coordinates.  That is, it resets the mesh to its default pose, as if
+// all bones in the skeleton were set to identity.
+// ------------------------------------------------------------------------
+void vsSkeletonMeshGeometry::resetSkin()
+{
+    osg::Vec3Array *vertexList;
+    osg::Vec3Array *normalList;
+    int vertexListSize;
+    int i;
+
+    // Get references and cast the needed arrays, better to do once than
+    // several hundred times per frame.  Makes it easier to read as well.
+    vertexList = (osg::Vec3Array *) dataList[VS_GEOMETRY_VERTEX_COORDS];
+    normalList = (osg::Vec3Array *) dataList[VS_GEOMETRY_NORMALS];
+    vertexListSize = dataListSize[VS_GEOMETRY_VERTEX_COORDS];
+
+    // For each vertex in the mesh...
+    for (i = 0; i < vertexListSize; i++)
+    {
+        // Reset the vertex to the original vertex value.
+        ((*vertexList)[i])[0] = ((*originalVertexList)[i])[0];
+        ((*vertexList)[i])[1] = ((*originalVertexList)[i])[1];
+        ((*vertexList)[i])[2] = ((*originalVertexList)[i])[2];
+
+        // Reset the normal to the original normal value.
+        ((*normalList)[i])[0] = ((*originalNormalList)[i])[0];
+        ((*normalList)[i])[1] = ((*originalNormalList)[i])[1];
+        ((*normalList)[i])[2] = ((*originalNormalList)[i])[2];
+    }
+}

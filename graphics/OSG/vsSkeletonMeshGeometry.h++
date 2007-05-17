@@ -141,6 +141,7 @@ public:
 
     void                  applySkin(vsGrowableArray *boneMatrices,
                                     vsGrowableArray *ITBoneMatrices);
+    void                  resetSkin();
 };
 
 #endif
