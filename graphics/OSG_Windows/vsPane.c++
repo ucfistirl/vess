@@ -31,6 +31,8 @@
 #include <osg/ShadeModel>
 #include <osg/StateSet>
 #include <osg/TexEnv>
+#include <osgDB/Registry>
+#include <osgDB/DatabasePager>
 #include <osgUtil/GLObjectsVisitor>
 #include <osgUtil/UpdateVisitor>
 #include <osgUtil/CullVisitor>
@@ -54,6 +56,7 @@ vsPane::vsPane(vsWindow *parent)
     osgUtil::UpdateVisitor *updateVisitor;
     osgUtil::CullVisitor *cullVisitor;
     osgUtil::StateGraph *renderGraph;
+    osgDB::DatabasePager *dbPager;
     int contextID;
 
     // Initialize the viewpoint and scene to NULL
@@ -201,6 +204,16 @@ vsPane::vsPane(vsWindow *parent)
 
     // Initialize the scene
     osgSceneView->setSceneData(NULL);
+
+    // If there is a database pager created, set up this pane for paging
+    // requests
+    dbPager = osgDB::Registry::instance()->getDatabasePager();
+    if (dbPager)
+    {
+        osgSceneView->getCullVisitor()->setDatabaseRequestHandler(dbPager);
+        dbPager->setCompileGLObjectsForContextID(osgSceneView->getState()->
+            getContextID(), true);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -274,6 +287,8 @@ vsView *vsPane::getView()
 // ------------------------------------------------------------------------
 void vsPane::setScene(vsScene *newScene)
 {
+    osgDB::DatabasePager *osgDBPager;
+
     // Reference the new scene
     if (newScene != NULL)
         newScene->ref();
@@ -290,6 +305,12 @@ void vsPane::setScene(vsScene *newScene)
         osgSceneView->setSceneData(newScene->getBaseLibraryObject());
     else
         osgSceneView->setSceneData(NULL);
+
+    // If a database pager exists, let it know about the new scene
+    // data
+    osgDBPager = osgDB::Registry::instance()->getDatabasePager();
+    if ((newScene != NULL) && (osgDBPager != NULL))
+        osgDBPager->registerPagedLODs(newScene->getBaseLibraryObject());
 }
 
 // ------------------------------------------------------------------------
