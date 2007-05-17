@@ -182,7 +182,7 @@ void vsCal3DLoader::parseFile(char *filename)
     char *fileLine;
     char *fields;
     char *fieldValue;
-    char *delimiter = " =\r";
+    char *delimiter = " =\r\n";
     char *meshFilename;
     char *animationFilename;
     double scaleValue;
@@ -222,11 +222,10 @@ void vsCal3DLoader::parseFile(char *filename)
 
     // Allocate a token and line buffer, to the maximum possible line size.
     fileLine = new char[fileSize];
-    maxRead = fileSize;
 
     // While there are still lines to read, process them.
     // This pass looks for everything but meshes.
-    while (fgets(fileLine, maxRead, filePointer))
+    while (fgets(fileLine, fileSize, filePointer))
     {
         // Get the length of the line.
         fileLineLength = strlen(fileLine);
