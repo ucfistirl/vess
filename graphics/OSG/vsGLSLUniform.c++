@@ -31,6 +31,29 @@ vsGLSLUniform::vsGLSLUniform(const char *name, vsGLSLUniformType type)
     osgUniform = new osg::Uniform((osg::Uniform::Type)type, name);
     osgUniform->ref();
 
+    // Set the number of uniform elements (1 in this case, since it is a
+    // scalar uniform)
+    elementCount = 1;
+
+    // Save a copy of the name
+    strncpy(uniformName, name, sizeof(char) * VS_UNIFORM_NAME_LENGTH);
+    uniformName[VS_UNIFORM_NAME_LENGTH - 1];
+}
+
+// ------------------------------------------------------------------------
+// Constructs a vsGLSLUniform array with a the given type and number of
+// elements
+// ------------------------------------------------------------------------
+vsGLSLUniform::vsGLSLUniform(const char *name, vsGLSLUniformType type,
+                             u_long numElements)
+{
+    // Create the OSG Uniform object
+    osgUniform = new osg::Uniform((osg::Uniform::Type)type, name, numElements);
+    osgUniform->ref();
+
+    // Set the number of uniform elements (i.e.: the length of the array)
+    elementCount = numElements;
+
     // Save a copy of the name
     strncpy(uniformName, name, sizeof(char) * VS_UNIFORM_NAME_LENGTH);
     uniformName[VS_UNIFORM_NAME_LENGTH - 1];
@@ -238,6 +261,184 @@ void vsGLSLUniform::set(int size, vsMatrix mat)
 
             // Create the osg::Uniform using the Matrixd
             osgUniform->set(mat4);
+            break;
+
+        default:
+            // Do nothing but print an error
+            printf("vsGLSLUniform::vsGLSLUniform:  Invalid matrix size!\n");
+            break;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Sets the uniform array element at the given index to the new given value
+// ------------------------------------------------------------------------
+void vsGLSLUniform::setEntry(u_long index, bool b1)
+{
+    osgUniform->setElement(index, b1);
+}
+
+// ------------------------------------------------------------------------
+// Sets the uniform array element at the given index to the new given value
+// ------------------------------------------------------------------------
+void vsGLSLUniform::setEntry(u_long index, bool b1, bool b2)
+{
+    osgUniform->setElement(index, b1, b2);
+}
+
+// ------------------------------------------------------------------------
+// Sets the uniform array element at the given index to the new given value
+// ------------------------------------------------------------------------
+void vsGLSLUniform::setEntry(u_long index, bool b1, bool b2, bool b3)
+{
+    osgUniform->setElement(index, b1, b2, b3);
+}
+
+// ------------------------------------------------------------------------
+// Sets the uniform array element at the given index to the new given value
+// ------------------------------------------------------------------------
+void vsGLSLUniform::setEntry(u_long index, bool b1, bool b2, 
+                             bool b3, bool b4)
+{
+    osgUniform->setElement(index, b1, b2, b3, b4);
+}
+
+// ------------------------------------------------------------------------
+// Sets the uniform array element at the given index to the new given value
+// ------------------------------------------------------------------------
+void vsGLSLUniform::setEntry(u_long index, int i1)
+{
+    osgUniform->setElement(index, i1);
+}
+
+// ------------------------------------------------------------------------
+// Sets the uniform array element at the given index to the new given value
+// ------------------------------------------------------------------------
+void vsGLSLUniform::setEntry(u_long index, int i1, int i2)
+{
+    osgUniform->setElement(index, i1, i2);
+}
+
+// ------------------------------------------------------------------------
+// Sets the uniform array element at the given index to the new given value
+// ------------------------------------------------------------------------
+void vsGLSLUniform::setEntry(u_long index, int i1, int i2, int i3)
+{
+    osgUniform->setElement(index, i1, i2, i3);
+}
+
+// ------------------------------------------------------------------------
+// Sets the uniform array element at the given index to the new given value
+// ------------------------------------------------------------------------
+void vsGLSLUniform::setEntry(u_long index, int i1, int i2, int i3, int i4)
+{
+    osgUniform->setElement(index, i1, i2, i3, i4);
+}
+
+// ------------------------------------------------------------------------
+// Sets the uniform array element at the given index to the new given value
+// ------------------------------------------------------------------------
+void vsGLSLUniform::setEntry(u_long index, float floatVal)
+{
+    osgUniform->setElement(index, floatVal);
+}
+
+// ------------------------------------------------------------------------
+// Sets the uniform array element at the given index to the new given value
+// ------------------------------------------------------------------------
+void vsGLSLUniform::setEntry(u_long index, double doubleVal)
+{
+    osgUniform->setElement(index, (float)doubleVal);
+}
+
+// ------------------------------------------------------------------------
+// Sets the uniform array element at the given index to the new given value
+// ------------------------------------------------------------------------
+void vsGLSLUniform::setEntry(u_long index, vsVector vec)
+{
+    osg::Vec2 vec2;
+    osg::Vec3 vec3;
+    osg::Vec4 vec4;
+
+    // Create the correct size of vector based on the vsVector's size
+    switch (vec.getSize())
+    {
+        case 2: 
+            vec2.set(vec[0], vec[1]);
+            osgUniform->setElement(index, vec2);
+            break;
+
+        case 3: 
+            vec3.set(vec[0], vec[1], vec[2]);
+            osgUniform->setElement(index, vec3);
+            break;
+
+        case 4: 
+            vec4.set(vec[0], vec[1], vec[2], vec[3]);
+            osgUniform->setElement(index, vec4);
+            break;
+
+        default:
+            // Do nothing but print an error
+            printf("vsGLSLUniform::set:  Invalid vector size!\n");
+            break;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Sets the uniform array element at the given index to the new given value
+// ------------------------------------------------------------------------
+void vsGLSLUniform::setEntry(u_long index, vsMatrix mat)
+{
+    // Call the alternate form of this setter with a size of 4
+    setEntry(index, 4, mat);
+}
+
+// ------------------------------------------------------------------------
+// Sets the uniform array element at the given index to the new given value
+// ------------------------------------------------------------------------
+void vsGLSLUniform::setEntry(u_long index, int size, vsMatrix mat)
+{
+    osg::Matrix2 mat2;
+    osg::Matrix3 mat3;
+    osg::Matrixd mat4;
+    int i, j;
+
+    // Copy the matrix into a suitable form
+    // Construct the OSG Uniform with the appropriate constructor based
+    // on the matrix size
+    switch (size)
+    {
+        case 2:
+            // Create an osg::Matrix2 from the upper 2x2 portion of the
+            // VESS matrix 
+            for (i = 0; i < 2; i++)
+                for (j = 0; j < 2; j++)
+                    mat2(i, j) = mat[j][i];
+
+            // Create the osg::Uniform using the Matrix2
+            osgUniform->setElement(index, mat2);
+            break;
+
+        case 3:
+            // Create an osg::Matrix2 from the upper 3x3 portion of the
+            // VESS matrix 
+            for (i = 0; i < 3; i++)
+                for (j = 0; j < 3; j++)
+                    mat3(i, j) = mat[j][i];
+
+            // Create the osg::Uniform using the Matrix3
+            osgUniform->setElement(index, mat3);
+            break;
+
+        case 4:
+            // Create an osg::Matrixd from the VESS matrix 
+            for (i = 0; i < 4; i++)
+                for (j = 0; j < 4; j++)
+                    mat4(i, j) = mat[j][i];
+
+            // Create the osg::Uniform using the Matrixd
+            osgUniform->setElement(index, mat4);
             break;
 
         default:

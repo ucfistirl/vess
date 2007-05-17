@@ -61,12 +61,17 @@ private:
 
     osg::Uniform    *osgUniform;
 
+    u_long          elementCount;
+
     char            uniformName[VS_UNIFORM_NAME_LENGTH];
 
 public:
 
                          vsGLSLUniform(const char *name, 
                                        vsGLSLUniformType type);
+                         vsGLSLUniform(const char *name, 
+                                       vsGLSLUniformType type,
+                                       u_long numElements);
                          ~vsGLSLUniform();
 
     const char           *getClassName();
@@ -88,6 +93,21 @@ public:
     void                 set(vsVector vec);
     void                 set(vsMatrix mat);
     void                 set(int size, vsMatrix mat);
+
+    void                 setEntry(u_long index, bool b1);
+    void                 setEntry(u_long index, bool b1, bool b2);
+    void                 setEntry(u_long index, bool b1, bool b2, bool b3);
+    void                 setEntry(u_long index, bool b1, bool b2, bool b3,
+                                  bool b4);
+    void                 setEntry(u_long index, int i1);
+    void                 setEntry(u_long index, int i1, int i2);
+    void                 setEntry(u_long index, int i1, int i2, int i3);
+    void                 setEntry(u_long index, int i1, int i2, int i3, int i4);
+    void                 setEntry(u_long index, float floatVal);
+    void                 setEntry(u_long index, double doubleVal);
+    void                 setEntry(u_long index, vsVector vec);
+    void                 setEntry(u_long index, vsMatrix mat);
+    void                 setEntry(u_long index, int size, vsMatrix mat);
 
     osg::Uniform         *getBaseLibraryObject();
 };
