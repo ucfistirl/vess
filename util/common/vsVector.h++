@@ -92,6 +92,6 @@ public:
     void            print(FILE *fp) const;
 };
 
-vsVector operator*(double multiplier, vsVector operand);
+VS_UTIL_DLL vsVector operator*(double multiplier, vsVector operand);
 
 #endif

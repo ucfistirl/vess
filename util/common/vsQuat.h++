@@ -106,6 +106,6 @@ public:
     void        print(FILE *fp) const;
 };
 
-vsQuat operator*(double multiplier, vsQuat operand);
+VS_UTIL_DLL vsQuat operator*(double multiplier, vsQuat operand);
 
 #endif
