@@ -27,6 +27,7 @@
 
 #include "vsUpdatable.h++"
 #include "vsTimer.h++"
+#include "vsGlobals.h++"
 
 // Maximum length of a name of a vsUpdatable in the sequencer.
 // This includes space for the \0 ending character (all names are
