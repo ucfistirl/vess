@@ -56,6 +56,7 @@ public:
     vsSkeleton                *getSkeleton();
 
     virtual void              update();
+    void                      reset();
 };
 
 #endif

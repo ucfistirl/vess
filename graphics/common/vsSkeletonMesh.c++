@@ -175,3 +175,18 @@ void vsSkeletonMesh::update()
             boneMatrixList, ITBoneMatrixList);
     }
 }
+
+// ------------------------------------------------------------------------
+// Reset the skin to its default pose (as if all bones were set to identity
+// matrices)
+// ------------------------------------------------------------------------
+void vsSkeletonMesh::reset()
+{
+    int index;
+
+    // Cycle through the meshes and reset the skin on them.
+    for (index = 0; index < subMeshCount; index++)
+    {
+        ((vsSkeletonMeshGeometry *) meshList->getData(index))->resetSkin();
+    }
+}
