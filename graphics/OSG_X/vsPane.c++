@@ -680,32 +680,34 @@ double vsPane::getLODScale()
     return osgSceneView->getLODScale();
 }
 
+//-------------------------------------------------------------------------
+// Returns the projection matrix from the current OSG SceneView
+//-------------------------------------------------------------------------
+vsMatrix vsPane::getProjectionMatrix()
+{
+    osg::Matrixd projMat;
+    int i, j;
+    vsMatrix result;
+
+    // Retrieve the projection matrix from OSG
+    projMat = osgSceneView->getProjectionMatrix();
+
+    // Transpose the matrix to get a vsMatrix (OSG flips them as
+    // compared to VESS)
+    for (i = 0; i < 4; i++)
+        for (j = 0; j < 4; j++)
+            result[i][j] = projMat(j,i);
+
+    // Return the vsMatrix
+    return result;
+}
+
 // ------------------------------------------------------------------------
 // Returns the Open Scene Graph object associated with this object
 // ------------------------------------------------------------------------
 osgUtil::SceneView *vsPane::getBaseLibraryObject()
 {
     return osgSceneView;
-}
-
-//-------------------------------------------------------------------------
-// Returns the projection matrix from the current OSG SceneView
-//-------------------------------------------------------------------------
-vsMatrix vsPane::getProjectionMatrix()
-{
-   osg::Matrixd projMat;
-   vsMatrix result;
-
-   // Retrieve the projection matrix from OSG
-   projMat = osgSceneView->getProjectionMatrix();
-
-  // Invert the matrix to get a vsMatrix
-  for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 4; j++)
-         result[i][j] = projMat(j,i);
-
-   // Return the vsMatrix
-   return result;
 }
 
 // ------------------------------------------------------------------------
