@@ -688,6 +688,26 @@ osgUtil::SceneView *vsPane::getBaseLibraryObject()
     return osgSceneView;
 }
 
+//-------------------------------------------------------------------------
+// Returns the projection matrix from the current OSG SceneView
+//-------------------------------------------------------------------------
+vsMatrix vsPane::getProjectionMatrix()
+{
+   osg::Matrixd projMat;
+   vsMatrix result;
+
+   // Retrieve the projection matrix from OSG
+   projMat = osgSceneView->getProjectionMatrix();
+
+  // Invert the matrix to get a vsMatrix
+  for (int i = 0; i < 4; i++)
+      for (int j = 0; j < 4; j++)
+         result[i][j] = projMat(j,i);
+
+   // Return the vsMatrix
+   return result;
+}
+
 // ------------------------------------------------------------------------
 // Internal function
 // Returns whether or not this pane is visible (i.e.: should be drawn)
@@ -926,3 +946,4 @@ void vsPane::resize()
     // Update the OSG SceneView's viewport
     osgSceneView->setViewport(x, y, width, height);
 }
+

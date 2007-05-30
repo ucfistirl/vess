@@ -160,6 +160,8 @@ public:
     void                  setLODScale(double newScale);
     double                getLODScale();
 
+    vsMatrix              getProjectionMatrix();
+
     // OSG object accessor
     osgUtil::SceneView    *getBaseLibraryObject();
 };
