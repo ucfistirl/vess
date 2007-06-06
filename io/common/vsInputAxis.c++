@@ -351,7 +351,7 @@ void vsInputAxis::setRange(double minPos, double maxPos)
 void vsInputAxis::getRange(double *minPos, double *maxPos)
 {
     // Only return a range if the range is valid
-    if (minPos >= maxPos)
+    if (axisMin >= axisMax)
     {
         *minPos = 0;
         *maxPos = 0;
