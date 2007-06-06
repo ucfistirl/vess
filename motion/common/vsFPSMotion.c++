@@ -168,7 +168,7 @@ void vsFPSMotion::setMaxReverseSpeed(double max)
 // ------------------------------------------------------------------------
 double vsFPSMotion::getMaxStrafeSpeed()
 {
-    return maxReverseSpeed;
+    return maxStrafeSpeed;
 }
 
 // ------------------------------------------------------------------------
@@ -176,7 +176,7 @@ double vsFPSMotion::getMaxStrafeSpeed()
 // ------------------------------------------------------------------------
 void vsFPSMotion::setMaxStrafeSpeed(double max)
 {
-    maxReverseSpeed = max;
+    maxStrafeSpeed = max;
 }
 
 // ------------------------------------------------------------------------
