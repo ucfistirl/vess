@@ -54,6 +54,12 @@ vsTextureAttribute::vsTextureAttribute()
     osgTexture->setBorderColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
     osgTexture->setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
 
+    // Assume there is hardware support for non-power of two (NPOT) texture
+    // sizes and tell OSG not to resize these textures (OSG will still
+    // resize them if the ARB_texture_non_power_of_two extension is not
+    // reported by the hardware)
+    osgTexture->setResizeNonPowerOfTwoHint(false);
+
     // Initialize the texture attribute
     setBoundaryMode(VS_TEXTURE_DIRECTION_ALL, VS_TEXTURE_BOUNDARY_CLAMP);
     setApplyMode(VS_TEXTURE_APPLY_DECAL);
@@ -101,6 +107,12 @@ vsTextureAttribute::vsTextureAttribute(unsigned int unit)
     setMagFilter(VS_TEXTURE_MAGFILTER_LINEAR);
     setMinFilter(VS_TEXTURE_MINFILTER_LINEAR);
 
+    // Assume there is hardware support for non-power of two (NPOT) texture
+    // sizes and tell OSG not to resize these textures (OSG will still
+    // resize them if the ARB_texture_non_power_of_two extension is not
+    // reported by the hardware)
+    osgTexture->setResizeNonPowerOfTwoHint(false);
+
     // Initialize the apply mode to MODULATE, if this texture is on a
     // texture unit higher than zero.  This ensures that the textures are
     // blended together by default.
@@ -143,6 +155,12 @@ vsTextureAttribute::vsTextureAttribute(unsigned int unit,
         osgTexGen->ref();
     osgTexImage = osgTexture->getImage();
     osgTexImage->ref();
+
+    // Assume there is hardware support for non-power of two (NPOT) texture
+    // sizes and tell OSG not to resize these textures (OSG will still
+    // resize them if the ARB_texture_non_power_of_two extension is not
+    // reported by the hardware)
+    osgTexture->setResizeNonPowerOfTwoHint(false);
 
     // Save (or create) and reference the TexMat object
     osgTexMat = texMatObject;
