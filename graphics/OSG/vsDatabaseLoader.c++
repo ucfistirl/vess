@@ -43,6 +43,7 @@
 #include <osg/TexMat>
 #include <osg/PolygonMode>
 #include <osg/PolygonOffset>
+#include <osg/BlendFunc>
 #include <osgUtil/SmoothingVisitor>
 #include "vsDatabaseLoader.h++"
 #include "vsGeometry.h++"
@@ -196,6 +197,9 @@ void vsDatabaseLoader::addPath(char *filePath)
     // Delete the old path string and store the new one
     free(loaderFilePath);
     loaderFilePath = fullPath;
+
+    // Set the new database search path in the OSG registry
+    (osgDB::Registry::instance())->setDataFilePathList(loaderFilePath);
 }
 
 // ------------------------------------------------------------------------
@@ -216,6 +220,9 @@ void vsDatabaseLoader::clearPath()
         loaderFilePath = stringDup(envPath);
     else
         loaderFilePath = stringDup(".");
+
+    // Set the new database search path in the OSG registry
+    (osgDB::Registry::instance())->setDataFilePathList(loaderFilePath);
 }
 
 // ------------------------------------------------------------------------
@@ -264,9 +271,6 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
     vsObjectMap *nodeMap, *attrMap;
     vsOptimizer *optimizer;
 
-    // Set the file search path
-    (osgDB::Registry::instance())->setDataFilePathList(loaderFilePath);
-    
     // Load the specified file into an OSG scene graph
     osgScene = osgDB::readNodeFile(databaseFilename);
     if (!osgScene)
@@ -386,7 +390,7 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
 
     if (!node)
         return NULL;
-    
+
     // Determine if we've seen (and converted) this node before; just
     // return the already-converted node if we have.
     result = (vsNode *)(nodeMap->mapSecondToFirst(node));
@@ -1024,6 +1028,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     vsTextureAttribute *vsTextureAttr;
     vsTextureCubeAttribute *vsTextureCubeAttr;
 
+    int blendMode;
     vsTransparencyAttribute *vsTransparencyAttr;
 
     osg::CullFace *osgCullFace;
@@ -1291,14 +1296,17 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
 
     // Transparency
     // Check to see if a render bin has been specified for this node
-    if (stateSet->useRenderBinDetails())
+    blendMode = stateSet->getMode(GL_BLEND);
+    if ((stateSet->useRenderBinDetails()) ||
+        (!(blendMode & osg::StateAttribute::INHERIT)))
     {
         // Create a new transparency attribute on the node
         vsTransparencyAttr = new vsTransparencyAttribute();
         node->addAttribute(vsTransparencyAttr);
 
         // Copy the transparency setting
-        if (stateSet->getRenderingHint() == osg::StateSet::TRANSPARENT_BIN)
+        if ((stateSet->getRenderingHint() == osg::StateSet::TRANSPARENT_BIN) ||
+            (strcmp(stateSet->getBinName().c_str(), "DepthSortedBin") == 0))
             vsTransparencyAttr->enable();
         else
             vsTransparencyAttr->disable();
