@@ -394,3 +394,11 @@ void vsUnmanagedNode::restoreSavedAttributes()
 {
 }
 
+// ------------------------------------------------------------------------
+// Internal function
+// Does nothing.
+// ------------------------------------------------------------------------
+void vsUnmanagedNode::getAxisAlignedBoxBounds(vsVector  *minValues,
+    vsVector *maxValues)
+{
+}

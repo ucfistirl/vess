@@ -35,6 +35,7 @@
 #include "vsTextureAttribute.h++"
 #include "vsTextureCubeAttribute.h++"
 #include "vsTextureRectangleAttribute.h++"
+#include "vsTransformAttribute.h++"
 #include "vsTransparencyAttribute.h++"
 #include "vsWireframeAttribute.h++"
 #include "vsGraphicsState.h++"
@@ -1820,5 +1821,80 @@ void vsDynamicGeometry::applyAttributes()
             osgStateSet->setRenderBinDetails(renderBin, "DepthSortedBin");
         else
             osgStateSet->setRenderBinDetails(renderBin, "RenderBin");
+    }
+}
+
+// ------------------------------------------------------------------------
+// Internal function
+// Figures out what the top left and bottom right coordinates of this
+// particular geometry is
+// ------------------------------------------------------------------------
+void vsDynamicGeometry::getAxisAlignedBoxBounds(vsVector *minValues,
+    vsVector *maxValues)
+{
+    int childCount = getChildCount();
+    int cntChild;
+    int attrCount;
+    int cntAttr;
+    int dataCount;
+    int cntGData;
+    int column, row;
+    vsVector tempMinValues;
+    vsVector tempMaxValues;
+    vsVector passMinValues;
+    vsVector passMaxValues;
+    vsVector oldPoint;
+    vsVector newPoint;
+    vsTransformAttribute *transform = NULL;
+    vsMatrix dynamicMatrix;
+    bool minNotSet = true;
+    bool maxNotSet = true;
+
+    // Grab the geometry's transform attribute if it has one 
+    transform = (vsTransformAttribute *)
+        getTypedAttribute(VS_ATTRIBUTE_TYPE_TRANSFORM, 0);
+
+    // If I have no transform attribute set the dynamicMatrix (which stores the
+    // transformation) to the identity matrix, otherwise take the one from the
+    // transformAttribute.
+    if (transform == NULL)
+    {
+        dynamicMatrix.setIdentity();
+    }
+    else
+    {
+        dynamicMatrix = transform->getCombinedTransform();
+    }
+
+    // Loop through all of the verticies in the geometry and set the
+    // max and min bounds.
+    dataCount = getDataListSize(VS_GEOMETRY_VERTEX_COORDS);
+    for (cntGData = 0; cntGData < dataCount; cntGData++)
+    {
+        // Get the current data point
+        oldPoint = getData(VS_GEOMETRY_VERTEX_COORDS, cntGData);
+
+        // Apply the dynamic transform in order to get the new 
+        // location of the point in 3d space.
+        newPoint = dynamicMatrix.getPointXform(oldPoint);
+
+        // Check the new point to see if it's points are 
+        // minimum or maximum.
+        for (column = 0; column < 3; column++)
+        {
+            // Check to see if this point is minimum
+            if (minNotSet || (newPoint[column] < (*minValues)[column]))
+            {
+                (*minValues)[column] = newPoint[column];
+                minNotSet = false;
+            }
+
+            // Check to see if this point is maximum
+            if (maxNotSet || (newPoint[column] > (*maxValues)[column]))
+            {
+                (*maxValues)[column] = newPoint[column];
+                maxNotSet = false;
+            }
+        }
     }
 }

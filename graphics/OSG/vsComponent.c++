@@ -601,6 +601,7 @@ void vsComponent::getBoundSphere(vsVector *centerPoint, double *radius)
         *radius = boundSphere.radius();
 }
 
+
 // ------------------------------------------------------------------------
 // Computes the global coordinate transform at this component by
 // multiplying together all of the transforms at nodes at and above this
@@ -955,4 +956,104 @@ bool vsComponent::removeParent(vsNode *targetParent)
     // Remove the parent and return success
     parentNode = NULL;
     return true;
+}
+
+// ------------------------------------------------------------------------
+// Internal function
+// Recursively finds the topLeft and bottomRight of the geometry that is
+// represented by this component (all the objects in the children list).
+// ------------------------------------------------------------------------
+void vsComponent::getAxisAlignedBoxBounds(vsVector  *minValues,
+    vsVector *maxValues)
+{
+    int childCount = getChildCount();
+    int cntChild;
+    int dataCount;
+    int cntGData;
+    int column, row;
+    vsVector tempMinValues;
+    vsVector tempMaxValues;
+    vsVector passMinValues;
+    vsVector passMaxValues;
+    vsVector oldPoint;
+    vsVector newPoint;
+    vsTransformAttribute *transform = NULL;
+    vsMatrix dynamicMatrix;
+    bool minNotSet = true;
+    bool maxNotSet = true;
+
+    // Get the transformation attribute from myself.
+    transform = (vsTransformAttribute *)
+        getTypedAttribute(VS_ATTRIBUTE_TYPE_TRANSFORM, 0);
+
+    // If I have no transform attribute set the dynamicMatrix (which stores the
+    // transformation) to the identity matrix, otherwise take the one from the
+    // transformAttribute.
+    if (transform == NULL)
+    {
+        dynamicMatrix.setIdentity();
+    }
+    else
+    {
+        dynamicMatrix = transform->getCombinedTransform();
+    }
+
+    // If there are no children, then save time and leave.
+    if (childCount == 0)
+    {
+        // Since there are no children associated with this node
+        // this should just return from here since there is nothing to do
+        return;
+    }
+
+    // Loop through all of the children and get their bounds.
+    // While looping set the bounds for this function
+    minNotSet = true;
+    maxNotSet = true;
+    for (cntChild = 0; cntChild < childCount; cntChild++)
+    {
+        // Grab this child's min/max values
+        getChild(cntChild)->getAxisAlignedBoxBounds(
+            &passMinValues, &passMaxValues);
+        
+        // Get the min and max of the children values
+        for (column = 0; column < 3; column++)
+        {
+            // Check to see if this is the minimum point
+            if (minNotSet || (passMinValues[column] < tempMinValues[column]))
+            {
+                tempMinValues[column] = passMinValues[column];
+                minNotSet = false;
+            }
+
+            // Check to see if this is the maximum point
+            if (maxNotSet || (passMaxValues[column] > tempMaxValues[column]))
+            {
+                tempMaxValues[column] = passMaxValues[column];
+                maxNotSet = false;
+            }
+        }
+    }
+
+    // Transform the points 
+    passMaxValues = dynamicMatrix.getPointXform(tempMaxValues);
+    passMinValues = dynamicMatrix.getPointXform(tempMinValues);
+
+    // Set the min and max values for this component
+    for (column = 0; column < 3; column++)
+    {
+        if (passMinValues[column] < (*minValues)[column])
+        {
+            (*minValues)[column] = passMinValues[column];
+        }
+
+        if (passMaxValues[column] > (*maxValues)[column])
+        {
+            (*maxValues)[column] = passMaxValues[column];
+        }    
+    }
+
+    // At this point (the exit of the function) the minValues and maxValues
+    // vsMatricies have been set to the new bounds if that is at all
+    // applicable.
 }

@@ -186,6 +186,9 @@ VS_INTERNAL:
 
     virtual void    applyAttributes();
 
+    virtual void    getAxisAlignedBoxBounds(vsVector *minValues, 
+                                            vsVector *maxValues);
+
 public:
 
                           vsGeometry();

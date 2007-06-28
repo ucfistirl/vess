@@ -70,6 +70,9 @@ VS_INTERNAL:
     virtual bool    removeParent(vsNode *targetParent);
 
     virtual void    applyAttributes();
+    
+    virtual void    getAxisAlignedBoxBounds(vsVector *minValues, 
+                                            vsVector *maxValues);
 
 public:
 

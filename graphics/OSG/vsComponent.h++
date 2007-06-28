@@ -23,10 +23,11 @@
 #ifndef VS_COMPONENT_HPP
 #define VS_COMPONENT_HPP
 
-#include "vsGrowableArray.h++"
-#include "vsVector.h++"
 #include "vsAttribute.h++"
+#include "vsBox.h++"
+#include "vsGrowableArray.h++"
 #include "vsNode.h++"
+#include "vsVector.h++"
 #include <osg/Group>
 
 class VS_GRAPHICS_DLL vsComponent : public vsNode
@@ -51,6 +52,9 @@ VS_INTERNAL:
 
     virtual bool      addParent(vsNode *newParent);
     virtual bool      removeParent(vsNode *targetParent);
+
+    virtual void      getAxisAlignedBoxBounds(vsVector * minValues,
+                                              vsVector * maxValues);
 
 public:
 

@@ -58,6 +58,9 @@ VS_INTERNAL:
     int         addLight(vsLightAttribute *light);
     void        removeLight(vsLightAttribute *light);
 
+    virtual void    getAxisAlignedBoxBounds(vsVector *minValues, 
+                                            vsVector *maxValues);
+
 public:
 
                             vsScene();
