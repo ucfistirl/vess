@@ -231,6 +231,41 @@ vsNode *vsNode::findNodeByName(const char *targetName, int index)
 }
 
 // ------------------------------------------------------------------------
+// Retrieves the axis aligned bounding box that encompasses all of the
+// geometry within this object
+// ------------------------------------------------------------------------
+vsBox vsNode::getAxisAlignedBoundingBox()
+{
+    vsBox theBox;
+    vsVector minCorner, maxCorner; 
+    double xLength, yLength, zLength;
+
+    // Set the minCorner and maxCorner to the size of 3 just in case
+    minCorner.setSize(3);
+    maxCorner.setSize(3);
+
+    // Call recursive function that computes the top left and bottom
+    // right coordinates of this bounding box
+    getAxisAlignedBoxBounds(&minCorner, &maxCorner); 
+
+    // Get the length of each dimension
+    xLength = maxCorner[VS_X] - minCorner[VS_X];
+    yLength = maxCorner[VS_Y] - minCorner[VS_Y];
+    zLength = maxCorner[VS_Z] - minCorner[VS_Z];
+
+    // Do the absolute values
+    if (xLength < 0) xLength *= -1.0;
+    if (yLength < 0) yLength *= -1.0;
+    if (zLength < 0) zLength *= -1.0;
+
+    // Store the translated value and the lengths in the vsBox
+    theBox.setBox(xLength, yLength, zLength, minCorner,
+        vsQuat(0, 0, 0, 1));
+
+    return theBox;
+}
+
+// ------------------------------------------------------------------------
 // Adds the specified attribute to the node's list, and notifies the
 // attribute that it has been added.
 // ------------------------------------------------------------------------

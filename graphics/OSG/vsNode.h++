@@ -30,6 +30,7 @@ class vsAttribute;
 #include "vsVector.h++"
 #include "vsMatrix.h++"
 #include "vsAttribute.h++"
+#include "vsBox.h++"
 
 #define VS_NODE_NAME_MAX_LENGTH 80
 
@@ -82,6 +83,9 @@ VS_INTERNAL:
     void               dirtyUp();
     void               dirtyDown();
 
+    virtual void       getAxisAlignedBoxBounds(vsVector * minValues,
+                                               vsVector * maxValues) = 0;
+
 public:
 
                         vsNode();
@@ -109,6 +113,7 @@ public:
 
     virtual void        getBoundSphere(vsVector *centerPoint,
                                        double *radius) = 0;
+    virtual vsBox       getAxisAlignedBoundingBox();                                       
     virtual vsMatrix    getGlobalXform() = 0;
 
     virtual void            setIntersectValue(unsigned int newValue) = 0;
