@@ -1419,19 +1419,19 @@ void vsDynamicGeometry::rebuildPrimitives()
         {
             case VS_GEOMETRY_TYPE_POINTS:
                 osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::POINTS, 0, dataListSize[0]);
+                    osg::PrimitiveSet::POINTS, 0, primitiveCount);
                 break;
             case VS_GEOMETRY_TYPE_LINES:
                 osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::LINES, 0, dataListSize[0]);
+                    osg::PrimitiveSet::LINES, 0, primitiveCount * 2);
                 break;
             case VS_GEOMETRY_TYPE_TRIS:
                 osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::TRIANGLES, 0, dataListSize[0]);
+                    osg::PrimitiveSet::TRIANGLES, 0, primitiveCount * 3);
                 break;
             case VS_GEOMETRY_TYPE_QUADS:
                 osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::QUADS, 0, dataListSize[0]);
+                    osg::PrimitiveSet::QUADS, 0, primitiveCount * 4);
                 break;
         }
         
@@ -1833,12 +1833,9 @@ void vsDynamicGeometry::getAxisAlignedBoxBounds(vsVector *minValues,
     vsVector *maxValues)
 {
     int childCount = getChildCount();
-    int cntChild;
-    int attrCount;
-    int cntAttr;
     int dataCount;
     int cntGData;
-    int column, row;
+    int column;
     vsVector tempMinValues;
     vsVector tempMaxValues;
     vsVector passMinValues;
