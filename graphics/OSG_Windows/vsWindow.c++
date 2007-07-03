@@ -579,7 +579,7 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
 vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
 {
     vsPipe *parentPipe;
-    PIXELFORMATDESCRIPTOR pixelFormatDesc, stereoPFD;
+    PIXELFORMATDESCRIPTOR pixelFormatDesc;
     
     // Initialize the pane count
     childPaneCount = 0;
@@ -630,16 +630,6 @@ vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
     // Search the window's device context for the pixel format that most
     // closely matches the format we described
     pixelFormat = ChoosePixelFormat(deviceContext, &pixelFormatDesc);
-    
-    // See if we succeeded in getting a stereo pixel format.  If not,
-    // continue normally but inform the user of the potential problem.
-    DescribePixelFormat(deviceContext, pixelFormat, 
-        sizeof(PIXELFORMATDESCRIPTOR), &stereoPFD);
-    if ((stereoPFD.dwFlags & PFD_STEREO) == 0)
-    {
-        printf("vsWindow::vsWindow:  WARNING -- Unable to obtain a stereo "
-            "pixel format!\n");
-    }
     
     // Set the window's pixel format
     SetPixelFormat(deviceContext, pixelFormat, &pixelFormatDesc);
