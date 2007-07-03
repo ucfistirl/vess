@@ -887,9 +887,7 @@ void vsScene::getAxisAlignedBoxBounds(vsVector  *minValues,
 {
     int childCount = getChildCount();
     int cntChild;
-    int dataCount;
-    int cntGData;
-    int column, row;
+    int column;
     vsVector tempMinValues;
     vsVector tempMaxValues;
     vsVector passMinValues;

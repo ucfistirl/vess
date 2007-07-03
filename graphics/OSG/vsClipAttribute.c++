@@ -114,7 +114,6 @@ void vsClipAttribute::setOSGAttrModes(vsNode *node)
 void vsClipAttribute::setClipPlane(int planeIndex, double a, double b,
                                    double c, double d)
 {
-    osg::StateSet *stateset;
     osg::ClipPlane *plane;
     int i;
 

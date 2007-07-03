@@ -982,8 +982,8 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     if ((int)geode->getNumDrawables() > 0)
     {
         // Print a warning message.
-        printf("vsDatabaseLoader::convertGeode: Found %d non-Geometry "
-            "drawable(s)...\n", (int)geode->getNumDrawables());
+        // printf("vsDatabaseLoader::convertGeode: Found %d non-Geometry "
+        //    "drawable(s)...\n", (int)geode->getNumDrawables());
 
         // Create a component to return that will NOT be affected by the
         // Attributes extracted from the geode state set. Add the geometry

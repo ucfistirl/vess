@@ -342,8 +342,6 @@ double vsIntersect::getSegLength(int segNum)
 void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
 {
     osgUtil::SceneView *osgSceneView;;
-    int paneWidth, paneHeight;
-    int paneX, paneY;
     int winWidth, winHeight;
     int winX, winY;
     osg::Vec3 nearPt, farPt;
