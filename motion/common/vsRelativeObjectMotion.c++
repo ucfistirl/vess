@@ -307,7 +307,6 @@ void vsRelativeObjectMotion::update()
             // Get the dot product of the rotation axis with the 
             // constraint axis
             rotationDot = deltaAxis.getDotProduct(rotAxis);
-            printf("rotationDot is %g\n", rotationDot);
 
             // Scale the rotation angle by the dot product
             deltaAngle *= rotationDot;
