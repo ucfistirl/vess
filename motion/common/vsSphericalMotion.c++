@@ -384,7 +384,7 @@ void vsSphericalMotion::update()
 
     // If the radius is very small, adjust the target vector and radius
     // to the minimum radius based on the current orientation
-    if (fabs(radius) < 1.0E-6)
+    if (radius < minRadius)
     {
         // Create the new target vector (vector from the target to the 
         // viewpoint) and scale it to the minimum radius
@@ -395,6 +395,9 @@ void vsSphericalMotion::update()
         rotationQuat = kinematics->getOrientation();
         targetVec = rotationQuat.rotatePoint(targetVec);
         radius = minRadius;
+
+        // Plant the kinematics at the new correct position.
+        kinematics->setPosition(targetPos + targetVec);
     }
 
     // Determine the azimuth and elevation of the viewpoint on the
