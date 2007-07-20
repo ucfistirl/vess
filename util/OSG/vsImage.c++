@@ -19,9 +19,9 @@
 //
 //------------------------------------------------------------------------
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
 
 #ifdef WIN32
     // Need this for the JPEG library headers to work properly
@@ -29,7 +29,7 @@
     #define XMD_H
 #endif
 
-extern "C"
+extern "C" 
 {
     #include "jpeglib.h"
 }
@@ -85,9 +85,14 @@ vsImage::vsImage( vsImage & image )
     }
 }
 
+// ---------------------------------------------------------------------------
+// Constructor:
+// Load image info directly from a file
+// ---------------------------------------------------------------------------
 vsImage::vsImage( FILE * input )
+    : data( NULL ), width( 0 ), height( 0 ), imageFormat( VS_IMAGE_FORMAT_RGB )
 {
-    // load the given filename here
+    // Load the given file here
     loadFromFile( input );
 }
 
@@ -119,7 +124,8 @@ void vsImage::clear()
     data = NULL;
 
     // Reset the size of the image
-    width = height = 0;
+    width = 0;
+    height = 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -282,7 +288,7 @@ void vsImage::saveToFile( FILE * output )
 
     // How many bytes wide is each of our rows
     int rowStride = width * getBytesPerPixel();
-
+    
     // save to jpeg only works for RGB formats which isn't a problem right
     // now since we only support RGB images. But if we ever needed to
     // support alpha values... we'd need to drop them before writing the
@@ -302,7 +308,7 @@ void vsImage::saveToFile( FILE * output )
     // Tell libjpeg we're using an RGB format
     cinfo.input_components = 3;
     cinfo.in_color_space = JCS_RGB;
-    
+
     jpeg_set_defaults( &cinfo );
 
     jpeg_set_quality( &cinfo, 75, TRUE );
@@ -310,12 +316,12 @@ void vsImage::saveToFile( FILE * output )
     // Start compressing the JPEG
     jpeg_start_compress( &cinfo, TRUE );
 
-    for( int row=0; row<height; row++ )
+    for(int row = cinfo.image_height - 1; row >= 0; row--)
     {
         // Mark a pointer to our data (libjpeg expects the first row to be
         // from the top left corner of the picture while we store the lower
         // left corner of the picture first - see note in header file)
-        row_pointer[0] = & data[ (height-row-1) * rowStride ];
+        row_pointer[0] = &(data[row * rowStride]);
 
         // Pass a single row to libjpeg at a time
         jpeg_write_scanlines( &cinfo, row_pointer, 1 );
