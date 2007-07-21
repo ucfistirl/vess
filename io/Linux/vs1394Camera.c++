@@ -99,6 +99,10 @@ vs1394Camera::~vs1394Camera()
     // If we're currently connected to a camera, dispose of that connection
     if (validCamera)
         disconnectFromCamera();
+
+    // Destroy the semaphores.
+    pthread_mutex_destroy(&signalMutex);
+    pthread_mutex_destroy(&cameraMutex);
 }
 
 // ------------------------------------------------------------------------
@@ -379,7 +383,7 @@ int vs1394Camera::getFrameRate()
 // Sets the devfs device name to connect to for video streaming
 // * Note that if a stream is already open, that this change will not take
 // effect immediately; the stream must be closed and then reopened to
-// change its speed.
+// change its name.
 //------------------------------------------------------------------------
 void vs1394Camera::setDeviceName(char *deviceName)
 {
@@ -515,17 +519,6 @@ bool vs1394Camera::isStreamGoing()
 {
     return activeStream;
 }
-
-/*
-//------------------------------------------------------------------------
-// Returns the vsVideoStream of the current active stream, or NULL if
-// there is no stream.
-//------------------------------------------------------------------------
-vsVideoStream *vs1394Camera::getVideoStream()
-{
-    return videoStream;
-}
-*/
 
 //------------------------------------------------------------------------
 // Returns the vsVideoQueue of the current active stream, or NULL if there
