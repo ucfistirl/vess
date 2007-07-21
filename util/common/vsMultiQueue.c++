@@ -118,7 +118,6 @@ const char *vsMultiQueue::getClassName()
 // ------------------------------------------------------------------------
 bool vsMultiQueue::setCapacity(int capacity)
 {
-fprintf(stdout, "vsMultiQueue::setCapacity: Called\n");
     unsigned char *newBuffer;
     vsMQRefNode *traversalNode;
     int bufferNeeded;
