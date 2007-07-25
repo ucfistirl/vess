@@ -244,6 +244,9 @@ void vsTextureAttribute::setImage(unsigned char *imageData, int xSize,
         case VS_TEXTURE_DFORMAT_RGBA:
             format = GL_RGBA;
             break;
+        case VS_TEXTURE_DFORMAT_BGRA:
+            format = GL_BGRA;
+            break;
         default:
             printf("vsTextureAttribute::setImage: Bad data format value");
             return;
@@ -294,6 +297,9 @@ void vsTextureAttribute::getImage(unsigned char **imageData, int *xSize,
             break;
         case GL_RGBA:
             format = VS_TEXTURE_DFORMAT_RGBA;
+            break;
+        case GL_BGRA:
+            format = VS_TEXTURE_DFORMAT_BGRA;
             break;
         default:
             format = -1;
