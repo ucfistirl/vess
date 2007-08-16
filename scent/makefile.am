@@ -53,7 +53,8 @@ INCLUDES = \
            -I../llio/@OS@ \
            @SOUND_INCLUDE_DIR@ \
            -I../scent/common \
-           -I../scent/@OS@
+           -I../scent/@OS@ \
+           @ATLAS_INCLUDE_DIR@
 
 # Extra object files.  If any conditionally-compiled sources are used, this
 # rule adds the object files to libvsIO.a.

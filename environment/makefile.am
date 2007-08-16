@@ -54,6 +54,7 @@ INCLUDES = \
            -I../llio/@OS@ \
            -I../motion/common \
            @XML_INCLUDE_DIR@ \
+           @ATLAS_INCLUDE_DIR@ \
            @ENV_INCLUDE_DIR@
 
 # Rule to make libvsEnvironment.so

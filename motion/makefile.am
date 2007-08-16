@@ -83,7 +83,8 @@ INCLUDES = \
            -I../llio/@OS@ \
            -I../util/common \
            -I../util/@OS@ \
-           -I../util/@SG@
+           -I../util/@SG@ \
+           @ATLAS_INCLUDE_DIR@
 
 # Rule to make libvsMotion.so
 libvsMotion.so: libvsMotion.a

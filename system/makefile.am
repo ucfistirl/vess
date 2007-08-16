@@ -40,6 +40,7 @@ INCLUDES = \
            -I../util/common \
            -I../util/@OS@ \
            -I../util/@SG@ \
+           @ATLAS_INCLUDE_DIR@ \
            @XML_INCLUDE_DIR@ 
 
 # Rule to make libvsSystem.so

@@ -189,6 +189,12 @@ GFX_INCLUDE_DIR=
 GFX_LIB_DIR=
 GFX_LIB=
 
+dnl Provide the option to use ATLAS
+dnl Set the ATLAS variable to the given directory
+AC_ARG_WITH(atlas,
+[[  --with-atlas=[PREFIX]        Path for ATLAS library [/usr/local]]],
+, with_atlas=/usr/local)
+
 dnl Provide the option to use Performer.  Set the scene graph variable
 dnl to indicate Performer if this option is chosen.
 AC_ARG_WITH(performer,
@@ -212,6 +218,36 @@ dnl Provide the option to use osgNV for programmable shader support under
 dnl Open Scene Graph
 AC_ARG_WITH(osgnv,
 [[  --with-osgnv=[PREFIX]   Path for osgNV library [no]]],, with_osgnv=no)
+
+
+dnl Check to see if it can find ATLAS
+dnl Check to make sure that the OpenThreads library is present. Use the path specified
+dnl in --with-openthreads, or default to /usr/local if not specified. (Only checks for
+dnl the existance of the library file, as there isn't any good C function in the library
+dnl to check for.)
+AC_CHECK_FILE($with_atlas/libatlas.so,,ATLAS_ERROR=yes)
+
+dnl If there was an error, abort; this library is required for OSG to compile.
+if test x$ATLAS_ERROR = xyes ; then
+   AC_MSG_ERROR([
+
+There is a problem with the ATLAS library.  ATLAS is required 
+for VESS to work properly.
+
+For further support, consult the VESS User's Guide or join the 
+vess-users mailing list at:
+
+http://lists.sourceforge.net/lists/listinfo/vess-users
+
+]
+   )
+fi
+
+ATLAS_INCLUDE_DIR="-I$x_includes -I$with_atlas/communication -I$with_atlas/container -I$with_atlas/foundation -I$with_atlas/math -I$with_atlas/xml -I$with_atlas/util"
+ATLAS_LIB_DIR="-L$x_libraries -L$with_atlas"
+ATLAS_LIB="-latlas"
+
+
 
 dnl Figure out which graphics library we're using
 AC_MSG_CHECKING([which graphics library to use])
@@ -875,6 +911,9 @@ fi
 
 
 dnl Export all of the important variables
+AC_SUBST(ATLAS_INCLUDE_DIR)
+AC_SUBST(ATLAS_LIB_DIR)
+AC_SUBST(ATLAS_LIB)
 AC_SUBST(GFX_INCLUDE_DIR)
 AC_SUBST(GFX_LIB_DIR)
 AC_SUBST(GFX_LIB)

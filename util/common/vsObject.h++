@@ -22,12 +22,13 @@
 #ifndef VS_OBJECT_HPP
 #define VS_OBJECT_HPP
 
+#include <atItem.h++>
 #include <stdio.h>
 #include "vsTreeMap.h++"
 
 #define VS_OBJ_MAGIC_NUMBER 0xFEEDF00D
 
-class VS_UTIL_DLL vsObject
+class VS_UTIL_DLL vsObject : public atItem
 {
 private:
 

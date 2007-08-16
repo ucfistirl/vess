@@ -54,7 +54,8 @@ INCLUDES = \
            -I../util/common \
            -I../util/@OS@ \
            -I../util/@SG@ \
-           @XML_INCLUDE_DIR@
+           @XML_INCLUDE_DIR@ \
+           @ATLAS_INCLUDE_DIR@
 
 # Rule to make libvsMenu.so
 libvsMenu.so: libvsMenu.a
