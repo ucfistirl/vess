@@ -25,10 +25,10 @@
 #ifndef VS_MASS_PROPERTIES_HPP
 #define VS_MASS_PROPERTIES_HPP
 
-#include "vsGlobals.h++"
-
 #include "atMatrix.h++"
 #include "atVector.h++"
+
+#include "vsGlobals.h++"
 
 class VS_DYNAMICS_DLL vsMassProperties
 {

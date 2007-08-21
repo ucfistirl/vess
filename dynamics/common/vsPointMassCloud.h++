@@ -23,13 +23,13 @@
 #ifndef VS_POINT_MASS_CLOUD_HPP
 #define VS_POINT_MASS_CLOUD_HPP
 
-#include "vsGlobals.h++"
-
 #include "vsMassProperties.h++"
 
 #include "atList.h++"
 #include "atMatrix.h++"
 #include "atVector.h++"
+
+#include "vsGlobals.h++"
 
 class VS_DYNAMICS_DLL vsPointMassCloud : public vsMassProperties
 {
