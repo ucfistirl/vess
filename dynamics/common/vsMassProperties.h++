@@ -28,10 +28,12 @@
 #include "vsMatrix.h++"
 #include "vsVector.h++"
 
-#define VS_MASS_DEFAULT_INERTIA vsMatrix({{0.4, 0.0, 0.0, 0.0}, {0.0, 0.4, 0.0, 0.0}, {0.0, 0.0, 0.4, 0.0}, {0.0, 0.0, 0.0, 0.0}})
-
 class VS_DYNAMICS_DLL vsMassProperties
 {
+protected:
+
+    virtual vsMatrix   getDefaultInertiaMatrix();
+
 public:
 
                         vsMassProperties();
