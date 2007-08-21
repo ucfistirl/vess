@@ -22,13 +22,16 @@
 #ifndef VS_DYNAMIC_UNIT_HPP
 #define VS_DYNAMIC_UNIT_HPP
 
+#include "vsGlobals.h++"
+
 #include <ode/ode.h>
 
 #include "vsBoundingVolume.h++"
 #include "vsDynamicWorld.h++"
 #include "vsMassProperties.h++"
-#include "vsQuat.h++"
-#include "vsVector.h++"
+
+#include "atQuat.h++"
+#include "atVector.h++"
 
 class VS_DYNAMICS_DLL vsDynamicUnit
 {
@@ -51,28 +54,28 @@ public:
     void        enable();
     void        disable();
 
-    void        setPosition(vsVector newPosition);
-    vsVector    getPosition();
+    void        setPosition(atVector newPosition);
+    atVector    getPosition();
 
-    void        setOrientation(vsQuat newOrientation);
-    vsQuat      getOrientation();
+    void        setOrientation(atQuat newOrientation);
+    atQuat      getOrientation();
 
-    void        setVelocity(vsVector newVelocity);
-    vsVector    getVelocity();
+    void        setVelocity(atVector newVelocity);
+    atVector    getVelocity();
 
-    void        setAngularVelocity(vsVector rotAxis,
+    void        setAngularVelocity(atVector rotAxis,
                     double degreesPerSec);
-    vsVector    getAngularVelocity();
+    atVector    getAngularVelocity();
 
     void        setMassProperties(vsMassProperties *mass);
 
     void        setBoundingVolume(vsBoundingVolume *volume);
 
-    void        applyForce(vsVector force);
-    void        applyTorque(vsVector torque);
+    void        applyForce(atVector force);
+    void        applyTorque(atVector torque);
 
-    vsVector    getForces();
-    vsVector    getTorques();
+    atVector    getForces();
+    atVector    getTorques();
 
     void        clearForces();
     void        clearTorques();

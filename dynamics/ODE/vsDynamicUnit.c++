@@ -58,7 +58,7 @@ void vsDynamicUnit::disable()
 // ------------------------------------------------------------------------
 // Set the position of this vsDynamicUnit.
 // ------------------------------------------------------------------------
-void vsDynamicUnit::setPosition(vsVector position)
+void vsDynamicUnit::setPosition(atVector position)
 {
     // Set the new position on the dBody.
     dBodySetPosition(odeBodyID,
@@ -68,25 +68,25 @@ void vsDynamicUnit::setPosition(vsVector position)
 // ------------------------------------------------------------------------
 // Return the position of this vsDynamicUnit.
 // ------------------------------------------------------------------------
-vsVector vsDynamicUnit::getPosition()
+atVector vsDynamicUnit::getPosition()
 {
     const dReal *position;
 
     // Get the current position from the dBody.
     position = dBodyGetPosition(odeBodyID);
 
-    // Return a new vsVector with the appropriate data.
-    return vsVector(position[0], position[1], position[2]);
+    // Return a new atVector with the appropriate data.
+    return atVector(position[0], position[1], position[2]);
 }
 
 // ------------------------------------------------------------------------
 // Set the orientation of this vsDynamicUnit.
 // ------------------------------------------------------------------------
-void vsDynamicUnit::setOrientation(vsQuat orientation)
+void vsDynamicUnit::setOrientation(atQuat orientation)
 {
     dQuaternion quaternion;
 
-    // Fill the quaternion with the vsQuat data. dQuaternions store data in
+    // Fill the quaternion with the atQuat data. dQuaternions store data in
     // the format w, x, y, z.
     quaternion[0] = orientation[3];
     quaternion[1] = orientation[VS_X];
@@ -100,22 +100,22 @@ void vsDynamicUnit::setOrientation(vsQuat orientation)
 // ------------------------------------------------------------------------
 // Return the orientation of this vsDynamicUnit.
 // ------------------------------------------------------------------------
-vsQuat vsDynamicUnit::getOrientation()
+atQuat vsDynamicUnit::getOrientation()
 {
     const dReal *quaternion;
 
     // Fetch the other quaternion.
     quaternion = dBodyGetQuaternion(odeBodyID);
 
-    // Return a new vsQuat with the appropriate data. The ODE representation
+    // Return a new atQuat with the appropriate data. The ODE representation
     // places the W component first, hence the offset.
-    return vsQuat(quaternion[1], quaternion[2], quaternion[3], quaternion[0]);
+    return atQuat(quaternion[1], quaternion[2], quaternion[3], quaternion[0]);
 }
 
 // ------------------------------------------------------------------------
 // Set the linear velocity of this vsDynamicUnit.
 // ------------------------------------------------------------------------
-void vsDynamicUnit::setVelocity(vsVector velocity)
+void vsDynamicUnit::setVelocity(atVector velocity)
 {
     // Set the new linear velocity on the dBody.
     dBodySetLinearVel(odeBodyID,
@@ -125,21 +125,21 @@ void vsDynamicUnit::setVelocity(vsVector velocity)
 // ------------------------------------------------------------------------
 // Return the linear velocity of this vsDynamicUnit.
 // ------------------------------------------------------------------------
-vsVector vsDynamicUnit::getVelocity()
+atVector vsDynamicUnit::getVelocity()
 {
     const dReal *velocity;
 
     // Fetch the linear velocity of the dBody.
     velocity = dBodyGetLinearVel(odeBodyID);
 
-    // Return a new vsVector with the appropriate data.
-    return vsVector(velocity[0], velocity[1], velocity[2]);
+    // Return a new atVector with the appropriate data.
+    return atVector(velocity[0], velocity[1], velocity[2]);
 }
 
 // ------------------------------------------------------------------------
 // Set the angular velocity of this vsDynamicUnit.
 // ------------------------------------------------------------------------
-void vsDynamicUnit::setAngularVelocity(vsVector rotAxis, double degreesPerSec)
+void vsDynamicUnit::setAngularVelocity(atVector rotAxis, double degreesPerSec)
 {
     // Normalize the rotation axis, then scale it by the magnitude of the
     // rotation.
@@ -155,11 +155,11 @@ void vsDynamicUnit::setAngularVelocity(vsVector rotAxis, double degreesPerSec)
 // is defined by the first three points of the vector, with the magnitude
 // of rotation stored in the fourth.
 // ------------------------------------------------------------------------
-vsVector vsDynamicUnit::getAngularVelocity()
+atVector vsDynamicUnit::getAngularVelocity()
 {
     const dReal *velocity;
     double magnitude;
-    vsVector returnVector;
+    atVector returnVector;
 
     // Fetch the angular velocity of the dBody.
     velocity = dBodyGetLinearVel(odeBodyID);
@@ -181,8 +181,8 @@ vsVector vsDynamicUnit::getAngularVelocity()
 // ------------------------------------------------------------------------
 void vsDynamicUnit::setMassProperties(vsMassProperties *mass)
 {
-    vsVector center;
-    vsMatrix inertia;
+    atVector center;
+    atMatrix inertia;
 
     // Fetch the values from the mass properties.
     center = mass->getCenterOfMass();
@@ -223,7 +223,7 @@ void vsDynamicUnit::setBoundingVolume(vsBoundingVolume *volume)
 // ------------------------------------------------------------------------
 // Apply a force directly to the center of mass of this vsDynamicUnit.
 // ------------------------------------------------------------------------
-void vsDynamicUnit::applyForce(vsVector force)
+void vsDynamicUnit::applyForce(atVector force)
 {
     dBodyAddForce(odeBodyID, force[VS_X], force[VS_Y], force[VS_Z]);
 }
@@ -231,7 +231,7 @@ void vsDynamicUnit::applyForce(vsVector force)
 // ------------------------------------------------------------------------
 // Apply a torque directly about the center of mass of this vsDynamicUnit.
 // ------------------------------------------------------------------------
-void vsDynamicUnit::applyTorque(vsVector torque)
+void vsDynamicUnit::applyTorque(atVector torque)
 {
     dBodyAddTorque(odeBodyID, torque[VS_X], torque[VS_Y], torque[VS_Z]);
 }
@@ -239,29 +239,29 @@ void vsDynamicUnit::applyTorque(vsVector torque)
 // ------------------------------------------------------------------------
 // Returns the accumulation of forces applied to this vsDynamicUnit.
 // ------------------------------------------------------------------------
-vsVector vsDynamicUnit::getForces()
+atVector vsDynamicUnit::getForces()
 {
     const dReal *force;
 
     // Fetch the force acting upon the dBody of this vsDynamicUnit.
     force = dBodyGetForce(odeBodyID);
 
-    // Return a vsVector containing the result.
-    return vsVector(force[0], force[1], force[2]);
+    // Return a atVector containing the result.
+    return atVector(force[0], force[1], force[2]);
 }
 
 // ------------------------------------------------------------------------
 // Returns the accumulation of torques applied to this vsDynamicUnit.
 // ------------------------------------------------------------------------
-vsVector vsDynamicUnit::getTorques()
+atVector vsDynamicUnit::getTorques()
 {
     const dReal *torque;
 
     // Fetch the torque acting upon the dBody of this vsDynamicUnit.
     torque = dBodyGetTorque(odeBodyID);
 
-    // Return a vsVector containing the result.
-    return vsVector(torque[0], torque[1], torque[2]);
+    // Return a atVector containing the result.
+    return atVector(torque[0], torque[1], torque[2]);
 }
 
 // ------------------------------------------------------------------------
