@@ -25,22 +25,24 @@
 #ifndef VS_MASS_PROPERTIES_HPP
 #define VS_MASS_PROPERTIES_HPP
 
-#include "vsMatrix.h++"
-#include "vsVector.h++"
+#include "vsGlobals.h++"
+
+#include "atMatrix.h++"
+#include "atVector.h++"
 
 class VS_DYNAMICS_DLL vsMassProperties
 {
 protected:
 
-    virtual vsMatrix   getDefaultInertiaMatrix();
+    virtual atMatrix   getDefaultInertiaMatrix();
 
 public:
 
                         vsMassProperties();
     virtual             ~vsMassProperties();
 
-    virtual vsVector    getCenterOfMass() = 0;
-    virtual vsMatrix    getInertiaMatrix() = 0;
+    virtual atVector    getCenterOfMass() = 0;
+    virtual atMatrix    getInertiaMatrix() = 0;
 };
 
 #endif
