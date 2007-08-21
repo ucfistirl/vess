@@ -22,8 +22,6 @@
 #ifndef VS_DYNAMIC_UNIT_HPP
 #define VS_DYNAMIC_UNIT_HPP
 
-#include "vsGlobals.h++"
-
 #include <ode/ode.h>
 
 #include "vsBoundingVolume.h++"
@@ -32,6 +30,8 @@
 
 #include "atQuat.h++"
 #include "atVector.h++"
+
+#include "vsGlobals.h++"
 
 class VS_DYNAMICS_DLL vsDynamicUnit
 {
