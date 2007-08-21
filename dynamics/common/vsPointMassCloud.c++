@@ -56,7 +56,7 @@ vsPointMassCloud::~vsPointMassCloud()
 // The position should be relative to the origin of the object's coordinate
 // space.
 // ------------------------------------------------------------------------
-void vsPointMassCloud::addPointMass(vsVector position, double mass)
+void vsPointMassCloud::addPointMass(atVector position, double mass)
 {
     atVector *newPoint;
 
@@ -115,7 +115,7 @@ void vsPointMassCloud::clear()
 // masses that have been added (relative to the origin of the object). The
 // fourth parameter contains the magnitude of that mass.
 // ------------------------------------------------------------------------
-vsVector vsPointMassCloud::getCenterOfMass()
+atVector vsPointMassCloud::getCenterOfMass()
 {
     return centerOfMass;
 }
@@ -125,10 +125,9 @@ vsVector vsPointMassCloud::getCenterOfMass()
 // masses that have been added (relative to the origin of the object). The
 // fourth parameter contains the magnitude of that mass.
 // ------------------------------------------------------------------------
-vsMatrix vsPointMassCloud::getInertiaMatrix()
+atMatrix vsPointMassCloud::getInertiaMatrix()
 {
     atVector *pointData;
-    atVector atCenterOfMass;
     atVector pointDelta;
     int i;
 
@@ -140,17 +139,12 @@ vsMatrix vsPointMassCloud::getInertiaMatrix()
         // Clear the old inertia matrix.
         inertiaMatrix.clear();
 
-        // Store, for conversion convenience, the center of mass as an
-        // atVector.
-        atCenterOfMass.set(centerOfMass[0], centerOfMass[1], centerOfMass[2],
-            centerOfMass[3]);
-
         // Sum all of the points.
         pointData = (atVector *)pointList->getFirstEntry();
         while (pointData)
         {
             // Calculate the difference to the point.
-            pointDelta = pointData->getDifference(atCenterOfMass);
+            pointDelta = pointData->getDifference(centerOfMass);
 
             // Adjust the moment of inertia matrix according to the following:
             //              /(y^2 + z^2)      -xy         -xz    \

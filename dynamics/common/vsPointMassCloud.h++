@@ -23,11 +23,13 @@
 #ifndef VS_POINT_MASS_CLOUD_HPP
 #define VS_POINT_MASS_CLOUD_HPP
 
+#include "vsGlobals.h++"
+
 #include "vsMassProperties.h++"
-#include "vsMatrix.h++"
-#include "vsVector.h++"
 
 #include "atList.h++"
+#include "atMatrix.h++"
+#include "atVector.h++"
 
 class VS_DYNAMICS_DLL vsPointMassCloud : public vsMassProperties
 {
@@ -35,8 +37,8 @@ protected:
 
     atList      *pointList;
 
-    vsVector    centerOfMass;
-    vsMatrix    inertiaMatrix;
+    atVector    centerOfMass;
+    atMatrix    inertiaMatrix;
     bool        inertiaValid;
 
 public:
@@ -44,11 +46,11 @@ public:
                 vsPointMassCloud();
     virtual     ~vsPointMassCloud();
 
-    void        addPointMass(vsVector position, double mass);
+    void        addPointMass(atVector position, double mass);
     void        clear();
 
-    virtual vsVector    getCenterOfMass();
-    virtual vsMatrix    getInertiaMatrix();
+    virtual atVector    getCenterOfMass();
+    virtual atMatrix    getInertiaMatrix();
 };
 
 #endif
