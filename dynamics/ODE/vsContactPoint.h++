@@ -24,13 +24,13 @@
 
 #include <ode/ode.h>
 
+#include "vsGlobals.h++"
+
 #define VS_CONTACT_DEFAULT_MU            100.0
 #define VS_CONTACT_DEFAULT_SOFT_ERP      0.99
 #define VS_CONTACT_DEFAULT_SOFT_CFM      0.01
 #define VS_CONTACT_DEFAULT_BOUNCE        0.2
 #define VS_CONTACT_DEFAULT_BOUNCE_VEL    0.01
-
-#include "vsGlobals.h++"
 
 class VS_DYNAMICS_DLL vsContactPoint
 {
