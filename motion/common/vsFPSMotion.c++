@@ -302,7 +302,7 @@ void vsFPSMotion::update()
     if (pitch != NULL)
     {
         // Compute the desired change in pitch, based on the axis mode
-        if (headingMode == VS_FPSM_MODE_INCREMENTAL)
+        if (pitchMode == VS_FPSM_MODE_INCREMENTAL)
             dPitch = -(pitch->getPosition()) * pitchRate * interval;
         else
             dPitch = -(pitch->getDelta()) * pitchRate;
