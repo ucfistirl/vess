@@ -24,6 +24,8 @@
 
 #include <ode/ode.h>
 
+#include "vsObject.h++"
+
 #include "vsGlobals.h++"
 
 #define VS_CONTACT_DEFAULT_MU            100.0
@@ -32,7 +34,7 @@
 #define VS_CONTACT_DEFAULT_BOUNCE        0.2
 #define VS_CONTACT_DEFAULT_BOUNCE_VEL    0.01
 
-class VS_DYNAMICS_DLL vsContactPoint
+class VS_DYNAMICS_DLL vsContactPoint : public vsObject
 {
 private:
 
@@ -50,6 +52,8 @@ public:
 
                    vsContactPoint();
     virtual        ~vsContactPoint();
+
+    virtual const char    *getClassName();
 
     void           setBounce(bool bounce, double factor, double threshold);
     void           setConstraintForceMixing(double cfm);

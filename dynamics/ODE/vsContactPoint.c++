@@ -57,6 +57,14 @@ vsContactPoint::~vsContactPoint()
 }
 
 // ------------------------------------------------------------------------
+// Gets a string representation of this object's class name.
+// ------------------------------------------------------------------------
+const char *vsContactPoint::getClassName()
+{
+    return "vsContactPoint";
+}
+
+// ------------------------------------------------------------------------
 // This method sets the bounce properties. The factor indicates the
 // magnitude of the velocity after the bounce (relative to the initial
 // velocity). Any incident velocity below the threshold value will be
