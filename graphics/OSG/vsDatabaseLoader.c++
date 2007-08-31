@@ -983,7 +983,7 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     {
         // Print a warning message.
         // printf("vsDatabaseLoader::convertGeode: Found %d non-Geometry "
-        //    "drawable(s)...\n", (int)geode->getNumDrawables());
+        //     "drawable(s)...\n", (int)geode->getNumDrawables());
 
         // Create a component to return that will NOT be affected by the
         // Attributes extracted from the geode state set. Add the geometry
@@ -1164,14 +1164,8 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
                 {
                     osgTexEnv = new osg::TexEnv();
 
-                    // If this is the first texture layer (texture unit 0), 
-                    // use DECAL for the apply mode, otherwise default to
-                    // MODULATE, so the texture layers are properly
-                    // blended.
-                    if (textureUnit > 0)
-                        osgTexEnv->setMode(osg::TexEnv::MODULATE);
-                    else
-                        osgTexEnv->setMode(osg::TexEnv::DECAL);
+                    // Set the default apply mode to MODULATE
+                    osgTexEnv->setMode(osg::TexEnv::MODULATE);
                 }
                 else if (osgTexEnv)
                     osgTexEnv = new osg::TexEnv(*osgTexEnv);
@@ -1236,14 +1230,8 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
                 {
                     osgTexEnv = new osg::TexEnv();
 
-                    // If this is the first texture layer (texture unit 0), 
-                    // use DECAL for the apply mode, otherwise default to
-                    // MODULATE, so the texture layers are properly
-                    // blended.
-                    if (textureUnit > 0)
-                        osgTexEnv->setMode(osg::TexEnv::MODULATE);
-                    else
-                        osgTexEnv->setMode(osg::TexEnv::DECAL);
+                    // Set the default apply mode to MODULATE
+                    osgTexEnv->setMode(osg::TexEnv::MODULATE);
                 }
                 else if (osgTexEnv)
                     osgTexEnv = new osg::TexEnv(*osgTexEnv);
