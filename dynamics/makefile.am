@@ -1,0 +1,87 @@
+# Libraries to make
+lib_LIBRARIES = libvsDynamics.a libvsDynamics.so
+
+# Sources for libvsDynamics.a
+libvsDynamics_a_SOURCES = \
+                       @DL@/vsBallJoint.c++ \
+                       @DL@/vsBoundingBox.c++ \
+                       @DL@/vsBoundingPlane.c++ \
+                       @DL@/vsBoundingSphere.c++ \
+                       @DL@/vsBoundingSurface.c++ \
+                       @DL@/vsBoundingVolume.c++ \
+                       @DL@/vsContactPoint.c++ \
+                       @DL@/vsDynamicJoint.c++ \
+                       @DL@/vsDynamicUnit.c++ \
+                       @DL@/vsDynamicWorld.c++ \
+                       @DL@/vsFixedJoint.c++ \
+                       @DL@/vsHingeJoint.c++ \
+                       @DL@/vsUniversalJoint.c++ \
+                       common/vsMassProperties.c++ \
+                       common/vsPointMassCloud.c++
+
+# Sources for libvsDynamics.so (same as libvsDynamics.a)
+libvsDynamics_so_SOURCES = $(libvsDynamics_a_SOURCES)
+
+# Header files
+include_HEADERS = \
+                  @DL@/vsBallJoint.h++ \
+                  @DL@/vsBoundingBox.h++ \
+                  @DL@/vsBoundingPlane.h++ \
+                  @DL@/vsBoundingSphere.h++ \
+                  @DL@/vsBoundingSurface.h++ \
+                  @DL@/vsBoundingVolume.h++ \
+                  @DL@/vsContactPoint.h++ \
+                  @DL@/vsDynamicJoint.h++ \
+                  @DL@/vsDynamicUnit.h++ \
+                  @DL@/vsDynamicWorld.h++ \
+                  @DL@/vsFixedJoint.h++ \
+                  @DL@/vsHingeJoint.h++ \
+                  @DL@/vsUniversalJoint.h++ \
+                  common/vsMassProperties.h++ \
+                  common/vsPointMassCloud.h++
+
+# Include directives for the compiler
+INCLUDES = \
+           -I../util/common \
+           -I../util/@OS@ \
+           -I../util/@SG@ \
+           -I../llio/@OS@ \
+           -I../graphics/common \
+           -I../graphics/@SG@ \
+           -I../graphics/@SG@_@WS@ \
+           -I../dynamics/common \
+           -I../dynamics/@DL@ \
+           @ATLAS_INCLUDE_DIR@ \
+           @DYNAMICS_INCLUDE_DIR@ \
+           @GFX_INCLUDE_DIR@ \
+           @SOUND_INCLUDE_DIR@
+
+# Rule to make libvsDynamics.so
+libvsDynamics.so: libvsDynamics.a
+	rm -f $@
+	$(CXX) $(LDFLAGS) $(AM_LDFLAGS) -shared -o $@ @SO_LINK@ libvsDynamics.a @SO_NO_LINK@
+
+# Override automake's install rule for the libraries.  This is done to
+# keep automake from running ranlib on the shared library (since we're
+# not using libtool, automake doesn't know that libvess.so is a shared
+# library).
+install-libLIBRARIES: $(lib_LIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f="`echo $$p | sed -e 's|^.*/||'`"; \
+	    echo " $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f"; \
+	    $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f; \
+	  else :; fi; \
+	done
+	@$(POST_INSTALL)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test x`echo $$p | awk -F \. '{print $$NF}'` != xso ; then \
+	    if test -f $$p; then \
+	      p="`echo $$p | sed -e 's|^.*/||'`"; \
+	      echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
+	      $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
+	    fi; \
+	  fi;\
+	done
