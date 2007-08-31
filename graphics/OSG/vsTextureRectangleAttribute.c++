@@ -57,7 +57,7 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute()
 
     // Initialize the texture attribute
     setBoundaryMode(VS_TEXTURE_DIRECTION_ALL, VS_TEXTURE_BOUNDARY_CLAMP);
-    setApplyMode(VS_TEXTURE_APPLY_DECAL);
+    setApplyMode(VS_TEXTURE_APPLY_MODULATE);
 }
 
 // ------------------------------------------------------------------------
@@ -97,13 +97,7 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit)
 
     // Initialize the texture attribute
     setBoundaryMode(VS_TEXTURE_DIRECTION_ALL, VS_TEXTURE_BOUNDARY_CLAMP);
-
-    // Initialize the apply mode to modulate if we're on a texture unit other
-    // than 0, so that textures are blended together by default.
-    if (unit > 0)
-        setApplyMode(VS_TEXTURE_APPLY_MODULATE);
-    else
-        setApplyMode(VS_TEXTURE_APPLY_DECAL);
+    setApplyMode(VS_TEXTURE_APPLY_MODULATE);
 }
 
 
