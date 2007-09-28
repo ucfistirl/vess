@@ -72,13 +72,17 @@ public:
 
     virtual void            clearBanks();
     
-    virtual void            playSound(char *key, vsComponent *source);
+    virtual int             playSound(char *key, vsComponent *source);
 
     virtual void            pauseAllSound();
     virtual void            resumeAllSound();
     virtual void            stopAllSound();
 
-    virtual bool            isSoundPlaying();
+	 virtual bool            pauseSound(int id);
+	 virtual bool            resumeSound(int id);
+	 virtual bool            stopSound(int id);
+
+    virtual bool            isSoundPlaying(int id = -1);
 
     const char              *getClassName();
 

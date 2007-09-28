@@ -23,6 +23,10 @@
 
 #include "vsSoundAttributeComponentTuple.h++"
 
+// Static variable
+int vsSoundAttributeComponentTuple::tupleIDCount = 0;
+
+
 //------------------------------------------------------------------------
 // Constructor that sets the local variables to those that are passed in
 // it also references the variables
@@ -36,6 +40,9 @@ vsSoundAttributeComponentTuple::vsSoundAttributeComponentTuple(
 
     this->component = component;
     this->component->ref();
+
+	 // Set the id and increment the counter
+	 tupleID = tupleIDCount++;
 }
 
 //------------------------------------------------------------------------
@@ -70,4 +77,12 @@ vsSoundSourceAttribute *
 {
    // Return the stored attribute
    return soundSourceAttribute;
+}
+
+//------------------------------------------------------------------------
+// Returns the tuple ID
+//------------------------------------------------------------------------
+int vsSoundAttributeComponentTuple::getTupleID()
+{
+	return tupleID;
 }

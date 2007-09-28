@@ -218,13 +218,14 @@ void vsSoundBank::clearBanks()
 // the component/attribute pair is added to the playing sounds list for
 // updating later.  Play is then called on the attribute
 //------------------------------------------------------------------------
-void vsSoundBank::playSound(char *key, vsComponent *source)
+int vsSoundBank::playSound(char *key, vsComponent *source)
 {
     // Make the key to use to look up the object
     atString *atKey = new atString(key);
     vsSoundAttributeComponentTuple *tuple;
     vsSoundSample *sample;
     vsSoundSourceAttribute *soundSourceAttribute;
+    int ID = -1;
 
     // Only proceed if the sound cache has the key
     if (soundCache->containsKey(atKey))
@@ -259,6 +260,9 @@ void vsSoundBank::playSound(char *key, vsComponent *source)
             tuple = 
                 new vsSoundAttributeComponentTuple(
                     soundSourceAttribute, source);
+            
+            // Store the id to return
+            ID = tuple->getTupleID();
 
             // Add the tuple to the list of playing sounds
             playingSounds->addEntry(tuple);
@@ -270,6 +274,8 @@ void vsSoundBank::playSound(char *key, vsComponent *source)
 
     // Delete the key that we created
     delete atKey;
+
+     return ID;
 }
 
 //------------------------------------------------------------------------
@@ -352,6 +358,98 @@ void vsSoundBank::stopAllSound()
     update();
 }
 
+//------------------------------------------------------------------------
+// Loop through all of the sounds in the playingSounds list and 
+// if it is the one passed in pause it.  Returns true if sound found
+// false if not.
+//------------------------------------------------------------------------
+bool vsSoundBank::pauseSound(int ID)
+{
+    vsSoundAttributeComponentTuple *tuple;
+
+    // Start at the head of the list and find the one to pause
+    tuple = (vsSoundAttributeComponentTuple *)playingSounds->getFirstEntry();
+    while (tuple != NULL)
+    {
+        // Check to see if this is the correct sound to pause
+        if (tuple->getTupleID() == ID)
+        {
+           // Pause the sound
+           tuple->getSoundSourceAttribute()->pause();
+
+           return true;
+        }
+
+        // Move to the next entry in the list
+        tuple = (vsSoundAttributeComponentTuple *)playingSounds->getNextEntry();
+    }
+
+    return false;
+}
+
+
+//------------------------------------------------------------------------
+// Loop through all of the sounds in the playingSounds list and
+// if it is the one passed in, resume the sound play.  Returns true
+// if the sound was found and false otherwise.
+//------------------------------------------------------------------------
+bool vsSoundBank::resumeSound(int ID)
+{
+    vsSoundAttributeComponentTuple *tuple;
+
+    // Start at the head of the list and find the one to resume
+    tuple = (vsSoundAttributeComponentTuple *)playingSounds->getFirstEntry();
+    while (tuple != NULL)
+    {
+        // Check to see if this is the correct sound to resume
+        if (tuple->getTupleID() == ID)
+        {
+              // Tell the sound to play
+            tuple->getSoundSourceAttribute()->play();
+
+            return true;
+        }
+
+        // Move to the next entry in the list
+        tuple = (vsSoundAttributeComponentTuple *)playingSounds->getNextEntry();
+    }
+
+    return false;
+}
+
+
+//------------------------------------------------------------------------
+// Go through the list and stop the sound that is passed in
+// and then call the update command in order to clear the list of that
+// sound
+//------------------------------------------------------------------------
+bool vsSoundBank::stopSound(int ID)
+{
+    vsSoundAttributeComponentTuple *tuple;
+
+    // Find the sound source that we are looking for
+    tuple = (vsSoundAttributeComponentTuple *)playingSounds->getFirstEntry();
+    while (tuple != NULL)
+    {
+        // Check to see if this is the correct sound to stop
+        if (tuple->getTupleID() == ID)
+        {
+           // Tell the sound to stop
+           tuple->getSoundSourceAttribute()->stop();
+
+           // Call the update function in order to purge sounds
+           update();
+
+           return true;
+        }
+
+        // Move to the next entry in the list
+        tuple = (vsSoundAttributeComponentTuple *)playingSounds->getNextEntry();
+    }
+
+    return false;
+}
+
 // ------------------------------------------------------------------------
 // Return the name of this class
 // ------------------------------------------------------------------------
@@ -365,10 +463,33 @@ const char * vsSoundBank::getClassName()
 // return false.  This is done by a check on the number of items in 
 // the playing sound list
 // ------------------------------------------------------------------------
-bool vsSoundBank::isSoundPlaying()
+bool vsSoundBank::isSoundPlaying(int id)
 {
-    // If there are any sounds in the playingSounds list then return true
-    return playingSounds->getNumEntries() > 0;
+	 vsSoundAttributeComponentTuple *tuple;
+
+	 // If the id is negative one, then the user just wants to know if
+	 // any sound is playing
+	 if (id == -1)
+	 {
+		 return playingSounds->getNumEntries() > 0;
+	 }
+	 // Otherwise continue and search through the list to find the sound
+	 // they are requesting
+	 
+	 // Find the sound in the list and return true if it is there
+	 tuple = (vsSoundAttributeComponentTuple *)playingSounds->getFirstEntry();
+	 while (tuple != NULL)
+	 {
+		 // Check to see if this is the sound
+		 if (tuple->getTupleID() == id)
+		 {
+			 // Return true since the sound was found
+			 return true;
+		 }
+	 }
+
+	 // Sound wasn't found in the list, there for it is not playing
+    return false;
 }
 
 //------------------------------------------------------------------------
