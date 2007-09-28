@@ -32,9 +32,9 @@
 class VS_SOUND_DLL vsSoundAttributeComponentTuple : public atItem
 {
 protected:
-	 static int                tupleIDCount;
+    static int                tupleIDCount;
 
-	 int                       tupleID;
+    int                       tupleID;
 
     vsSoundSourceAttribute    *soundSourceAttribute;
     vsComponent               *component;
@@ -48,7 +48,7 @@ public:
 
     virtual vsSoundSourceAttribute    *getSoundSourceAttribute();
 
-	 virtual int   getTupleID();
+    virtual int   getTupleID();
 };
 
 #endif

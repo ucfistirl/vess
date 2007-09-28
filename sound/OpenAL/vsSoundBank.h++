@@ -78,9 +78,9 @@ public:
     virtual void            resumeAllSound();
     virtual void            stopAllSound();
 
-	 virtual bool            pauseSound(int id);
-	 virtual bool            resumeSound(int id);
-	 virtual bool            stopSound(int id);
+    virtual bool            pauseSound(int id);
+    virtual bool            resumeSound(int id);
+    virtual bool            stopSound(int id);
 
     virtual bool            isSoundPlaying(int id = -1);
 

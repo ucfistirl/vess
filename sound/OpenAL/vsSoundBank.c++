@@ -465,30 +465,30 @@ const char * vsSoundBank::getClassName()
 // ------------------------------------------------------------------------
 bool vsSoundBank::isSoundPlaying(int id)
 {
-	 vsSoundAttributeComponentTuple *tuple;
+    vsSoundAttributeComponentTuple *tuple;
 
-	 // If the id is negative one, then the user just wants to know if
-	 // any sound is playing
-	 if (id == -1)
-	 {
-		 return playingSounds->getNumEntries() > 0;
-	 }
-	 // Otherwise continue and search through the list to find the sound
-	 // they are requesting
-	 
-	 // Find the sound in the list and return true if it is there
-	 tuple = (vsSoundAttributeComponentTuple *)playingSounds->getFirstEntry();
-	 while (tuple != NULL)
-	 {
-		 // Check to see if this is the sound
-		 if (tuple->getTupleID() == id)
-		 {
-			 // Return true since the sound was found
-			 return true;
-		 }
-	 }
+    // If the id is negative one, then the user just wants to know if
+    // any sound is playing
+    if (id == -1)
+    {
+       return playingSounds->getNumEntries() > 0;
+    }
+    // Otherwise continue and search through the list to find the sound
+    // they are requesting
+    
+    // Find the sound in the list and return true if it is there
+    tuple = (vsSoundAttributeComponentTuple *)playingSounds->getFirstEntry();
+    while (tuple != NULL)
+    {
+       // Check to see if this is the sound
+       if (tuple->getTupleID() == id)
+       {
+          // Return true since the sound was found
+          return true;
+       }
+    }
 
-	 // Sound wasn't found in the list, there for it is not playing
+    // Sound wasn't found in the list, there for it is not playing
     return false;
 }
 

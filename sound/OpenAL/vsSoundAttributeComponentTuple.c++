@@ -41,8 +41,8 @@ vsSoundAttributeComponentTuple::vsSoundAttributeComponentTuple(
     this->component = component;
     this->component->ref();
 
-	 // Set the id and increment the counter
-	 tupleID = tupleIDCount++;
+    // Set the id and increment the counter
+    tupleID = tupleIDCount++;
 }
 
 //------------------------------------------------------------------------
@@ -84,5 +84,5 @@ vsSoundSourceAttribute *
 //------------------------------------------------------------------------
 int vsSoundAttributeComponentTuple::getTupleID()
 {
-	return tupleID;
+   return tupleID;
 }
