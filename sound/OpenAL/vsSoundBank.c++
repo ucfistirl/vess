@@ -523,7 +523,8 @@ void vsSoundBank::update()
         // If the sound is not playing then delete it from the list
         // This must be done by removing the entry from the list and then
         // calling delete on the object manually
-        if (tuple->getSoundSourceAttribute()->isPlaying() == false)
+        if (tuple->getSoundSourceAttribute()->isPlaying() == false &&
+            tuple->getSoundSourceAttribute()->isPaused() == false)
         {
             // Remove the entry from the list of playing sounds
             playingSounds->removeCurrentEntry();
