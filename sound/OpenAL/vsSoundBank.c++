@@ -471,7 +471,20 @@ bool vsSoundBank::isSoundPlaying(int id)
     // any sound is playing
     if (id == -1)
     {
-       return playingSounds->getNumEntries() > 0;
+       // Loop through all sounds to see if any of them are playing
+       tuple = 
+         (vsSoundAttributeComponentTuple *)playingSounds->getFirstEntry();
+       while (tuple != NULL)
+       {
+          // If the sample is playing return true
+          if (tuple->getSoundSourceAttribute()->isPlaying())
+          {
+             return true;
+          }
+       }
+
+       // No sounds where playing
+       return false;
     }
     // Otherwise continue and search through the list to find the sound
     // they are requesting
@@ -483,8 +496,8 @@ bool vsSoundBank::isSoundPlaying(int id)
        // Check to see if this is the sound
        if (tuple->getTupleID() == id)
        {
-          // Return true since the sound was found
-          return true;
+          // Return true since the sound is paused
+          return tuple->getSoundSourceAttribute()->isPlaying();
        }
     }
 
