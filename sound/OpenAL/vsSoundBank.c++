@@ -39,10 +39,6 @@
 //------------------------------------------------------------------------
 vsSoundBank::vsSoundBank()
 {
-    // Initialize the soundPaused variable to false to indicate that
-    // there are no sounds currently paused
-    soundPaused = false;
-
     // Initialize the priority to 1, so that everything in this bank with
     // have a priority of 1
     soundAttributesPriority = 1;
@@ -64,10 +60,6 @@ vsSoundBank::vsSoundBank()
 //------------------------------------------------------------------------
 vsSoundBank::vsSoundBank(int priority)
 {
-    // Initialize the soundPaused variable to false to indicate that
-    // there are no sounds currently paused
-    soundPaused = false;
-
     // Initialize the priority to whatever the user passed in for this bank
     soundAttributesPriority = priority;
 
@@ -280,7 +272,7 @@ int vsSoundBank::playSound(char *key, vsComponent *source)
 
 //------------------------------------------------------------------------
 // Loop through all of the sounds in the playingSounds list and pause
-// them, then toggle the soundPaused boolean
+// them
 //------------------------------------------------------------------------
 void vsSoundBank::pauseAllSound()
 {
@@ -296,9 +288,6 @@ void vsSoundBank::pauseAllSound()
         // Move to the next entry in the list
         tuple = (vsSoundAttributeComponentTuple *)playingSounds->getNextEntry();
     }
-
-    // Tell this bank that all sound is paused at the moment
-    soundPaused = true;
 }
 
 //------------------------------------------------------------------------
@@ -309,26 +298,23 @@ void vsSoundBank::resumeAllSound()
 {
     vsSoundAttributeComponentTuple *tuple;
 
-    // If the sound is not paused then exit this function
-    if (soundPaused == false)
-    {
-        // Don't do anything.  Just leave.
-        return;
-    }
-
     // Start at the head of the list and loop through unpausing all samples
     tuple = (vsSoundAttributeComponentTuple *)playingSounds->getFirstEntry();
     while (tuple != NULL)
     {
-        // Tel the sound to play
-        tuple->getSoundSourceAttribute()->play();
+        // If the sound is paused, then play it.
+        // It checks to make sure, because we don't want this call accidentally
+        // playing sounds that weren't originally playing.
+
+        if (tuple->getSoundSourceAttribute()->isPaused())
+        {
+           // Tell the sound to play
+           tuple->getSoundSourceAttribute()->play();
+        }
 
         // Move to the next entry in the list
         tuple = (vsSoundAttributeComponentTuple *)playingSounds->getNextEntry();
     }
-
-    // Tell the system that the sound is no longer paused
-    soundPaused = false;
 }
 
 //------------------------------------------------------------------------
@@ -350,9 +336,6 @@ void vsSoundBank::stopAllSound()
         // Move to the next entry in the list
         tuple = (vsSoundAttributeComponentTuple *)playingSounds->getNextEntry();
     }
-
-    // Make sure that the system is no longer paused since it has no sounds
-    soundPaused = false;
 
     // Call the update function in order to purge sounds
     update();

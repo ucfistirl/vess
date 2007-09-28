@@ -43,10 +43,6 @@ class VS_SOUND_DLL vsSoundBank : public vsObject
 {
 protected:
 
-    // Start the private variables here make sure to leave a blank line after
-    // all declarations
-    bool               soundPaused;  
-
     int                soundAttributesPriority;
 
     atList             *playingSounds;
