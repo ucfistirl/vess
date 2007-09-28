@@ -482,6 +482,9 @@ bool vsSoundBank::isSoundPlaying(int id)
           // Return true since the sound is paused
           return tuple->getSoundSourceAttribute()->isPlaying();
        }
+
+       // Get the next tuple
+       tuple = (vsSoundAttributeComponentTuple *)playingSounds->getNextEntry();
     }
 
     // Sound wasn't found in the list, there for it is not playing
