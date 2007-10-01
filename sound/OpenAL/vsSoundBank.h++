@@ -44,6 +44,9 @@ class VS_SOUND_DLL vsSoundBank : public vsObject
 protected:
 
     int                soundAttributesPriority;
+    double             soundRolloffFactor;
+    double             soundReferenceDistance;
+    double             soundMaxDistance;
 
     atList             *playingSounds;
     atMap              *soundCache;
@@ -54,6 +57,9 @@ public:
 
                             vsSoundBank();
                             vsSoundBank(int priority);
+                            vsSoundBank(int priority,
+                              double rolloff, double referenceDistance,
+                              double maxDistance);
     virtual                 ~vsSoundBank();
 
     virtual void            setRootComponent(vsComponent *root);
@@ -61,6 +67,16 @@ public:
 
     virtual void            setPriority(int priority);
     virtual int             getPriority();
+
+    virtual void            setRolloffFactor(double rolloff);
+    virtual double          getRolloffFactor();
+
+    virtual void            setReferenceDistance(double reference);
+    virtual double          getReferenceDistance();
+
+    virtual void            setMaxDistance(double max);
+    virtual double          getMaxDistance();
+
 
     virtual void            addSoundSample(char *key, vsSoundSample *sample);
     virtual void            addSoundSample(char *key, char *filename);

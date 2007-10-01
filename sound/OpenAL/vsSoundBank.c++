@@ -26,7 +26,16 @@
 //
 //------------------------------------------------------------------------
 
+#ifdef __linux__
+    #include <values.h>
+#endif
+
+#ifdef WIN32
+    #include <float.h>
+#endif
+
 #include <atString.h++>
+
 #include "vsSoundAttributeComponentTuple.h++"
 #include "vsSoundBank.h++"
 #include "vsSoundSampleRef.h++"
@@ -34,6 +43,8 @@
 //------------------------------------------------------------------------
 // Constructor for the vsSoundBank
 // Sets default values for sound pause (false), priority 1,
+// sound rolloff factor 1, soundReferenceDistance 1, soundMaxDistance 
+// MAX_FLOAT.
 // also sets the root component to null
 // and creates the needed list and map for this classes
 //------------------------------------------------------------------------
@@ -42,6 +53,11 @@ vsSoundBank::vsSoundBank()
     // Initialize the priority to 1, so that everything in this bank with
     // have a priority of 1
     soundAttributesPriority = 1;
+
+    // Initialize the default sound properties for distance attenuation
+    soundRolloffFactor = 1.0;
+    soundReferenceDistance = 1.0;
+    soundMaxDistance = FLT_MAX;
 
     // Initialize the root component to NULL, so we aren't accessing random
     // memory
@@ -55,6 +71,8 @@ vsSoundBank::vsSoundBank()
 //------------------------------------------------------------------------
 // Constructor for the vsSoundBank
 // Sets default values for sound pause (false), priority (passed in value),
+// sound rolloff factor 1, soundReferenceDistance 1, soundMaxDistance 
+// MAX_FLOAT.
 // also sets the root component to null
 // and creates the needed list and map for this classes
 //------------------------------------------------------------------------
@@ -62,6 +80,39 @@ vsSoundBank::vsSoundBank(int priority)
 {
     // Initialize the priority to whatever the user passed in for this bank
     soundAttributesPriority = priority;
+    
+    // Initialize the default sound properties for distance attenuation
+    soundRolloffFactor = 1.0;
+    soundReferenceDistance = 1.0;
+    soundMaxDistance = FLT_MAX;
+
+    // Initialize the root component to NULL, so we aren't accessing random
+    // memory
+    rootComponent = NULL;
+
+    // Create the list and maps that are required for this classes
+    playingSounds = new atList();
+    soundCache = new atMap();
+}
+
+//------------------------------------------------------------------------
+// Constructor for the vsSoundBank
+// Sets default values for sound pause (false), priority (passed in value),
+// rolloff factor(passed in value), sound reference distance 
+// (passed in value) and sound max distance (passed in value)
+// also sets the root component to null
+// and creates the needed list and map for this classes
+//------------------------------------------------------------------------
+vsSoundBank::vsSoundBank(int priority, double rolloff, 
+    double referenceDistance, double maxDistance)
+{
+    // Initialize the priority to whatever the user passed in for this bank
+    soundAttributesPriority = priority;
+
+    // Initialize the default sound properties for distance attenuation
+    soundRolloffFactor = rolloff;
+    soundReferenceDistance = referenceDistance;
+    soundMaxDistance = maxDistance;
 
     // Initialize the root component to NULL, so we aren't accessing random
     // memory
@@ -147,6 +198,60 @@ void vsSoundBank::setPriority(int priority)
 int vsSoundBank::getPriority()
 {
     return soundAttributesPriority;
+}
+
+//------------------------------------------------------------------------
+// Sets the rolloff factor that will be placed on the attributes that 
+// will be generated from this point out
+//------------------------------------------------------------------------
+void vsSoundBank::setRolloffFactor(double rolloff)
+{
+   soundRolloffFactor = rolloff;
+}
+
+//------------------------------------------------------------------------
+// Gets the rolloff factor that will be placed on the attributes 
+// that will be created from this point out
+//------------------------------------------------------------------------
+double vsSoundBank::getRolloffFactor()
+{
+   return soundRolloffFactor;
+}
+
+//------------------------------------------------------------------------
+// Sets the reference distance that will be placed on the attributes that 
+// will be generated from this point out
+//------------------------------------------------------------------------
+void vsSoundBank::setReferenceDistance(double referenceDistance)
+{
+   soundReferenceDistance = referenceDistance;
+}
+
+//------------------------------------------------------------------------
+// Gets the reference distance that will be placed on the attributes 
+// that will be created from this point out
+//------------------------------------------------------------------------
+double vsSoundBank::getReferenceDistance()
+{
+   return soundReferenceDistance;
+}
+
+//------------------------------------------------------------------------
+// Sets the max distance that will be placed on the attributes that 
+// will be generated from this point out
+//------------------------------------------------------------------------
+void vsSoundBank::setMaxDistance(double maxDistance)
+{
+   soundMaxDistance = maxDistance;
+}
+
+//------------------------------------------------------------------------
+// Gets the max distance that will be placed on the attributes 
+// that will be created from this point out
+//------------------------------------------------------------------------
+double vsSoundBank::getMaxDistance()
+{
+   return soundMaxDistance;
 }
 
 //------------------------------------------------------------------------
@@ -244,6 +349,11 @@ int vsSoundBank::playSound(char *key, vsComponent *source)
 
             // Set it's priority to that of this bank
             soundSourceAttribute->setPriority(soundAttributesPriority);
+
+            // Set it's distance attenuation properties
+            soundSourceAttribute->setRolloffFactor(soundRolloffFactor);
+            soundSourceAttribute->setReferenceDistance(soundReferenceDistance);
+            soundSourceAttribute->setMaxDistance(soundMaxDistance);
 
             // Add the attribute to the component
             source->addAttribute(soundSourceAttribute);
