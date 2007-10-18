@@ -217,17 +217,6 @@ bool vsSoundCapture::openDevice(char *device)
         return false;
     }
 
-    // Start capturing from the device.
-    alcCaptureStart(captureDevice);
-
-    // Make sure everything is working.
-    if (alcGetError(captureDevice) != ALC_NO_ERROR)
-    {
-        fprintf(stderr, "vsSoundCapture::vsSoundCapture - "
-            "alcCaptureStart failed! Invalid device!\n");
-        return false;
-    }
-
     // Begin with the buffer mutex locked and capture in a paused state.
     pthread_mutex_lock(&bufferMutex);
     capturePaused = true;
@@ -279,7 +268,6 @@ void vsSoundCapture::closeDevice()
     pthread_join(captureThread, NULL);
 
     // Release OpenAL's resources.
-    alcCaptureStop(captureDevice);
     alcCaptureCloseDevice(captureDevice);
 
     // Mark that the device has been closed.
@@ -335,6 +323,20 @@ void vsSoundCapture::startResume()
     // Only resume if currently in a pause state.
     if (capturePaused)
     {
+        // Make sure the device is open before manipulating it
+        if (deviceOpen)
+        {
+            // Start capturing from the device
+            alcCaptureStart(captureDevice);
+
+            // Make sure everything is working.
+            if (alcGetError(captureDevice) != ALC_NO_ERROR)
+            {
+                fprintf(stderr, "vsSoundCapture::startResume: "
+                    "alcCaptureStart failed! Invalid device!\n");
+            }
+        }
+
         // Release the buffer mutex. This will allow the capture loop to
         // resume processing data.
         pthread_mutex_unlock(&bufferMutex);
@@ -352,6 +354,20 @@ void vsSoundCapture::pause()
     // Only pause if not already in a pause state.
     if (!capturePaused)
     {
+        // Make sure the device is open before manipulating it
+        if (deviceOpen)
+        {
+            // Stop capturing from the device
+            alcCaptureStop(captureDevice);
+
+            // Make sure everything is working.
+            if (alcGetError(captureDevice) != ALC_NO_ERROR)
+            {
+                fprintf(stderr, "vsSoundCapture::pause: "
+                    "alcCaptureStop failed! Invalid device!\n");
+            }
+        }
+
         // Take control of the buffer mutex. This will prevent the capture loop
         // from processing further data.
         pthread_mutex_lock(&bufferMutex);
