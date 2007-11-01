@@ -39,7 +39,8 @@
 enum
 {
     VS_SOUND_BUFFER_SAMPLE,
-    VS_SOUND_BUFFER_STREAM
+    VS_SOUND_BUFFER_STREAM,
+    VS_SOUND_BUFFER_PACKET_STREAM
 };
 
 class VS_SOUND_DLL vsSoundBuffer : public vsObject
