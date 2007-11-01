@@ -72,6 +72,8 @@ public:
     bool             peek(void *data, int size, int id);
 
     void             clear(int id);
+
+    int              getLength(int id);
 };
 
 #endif

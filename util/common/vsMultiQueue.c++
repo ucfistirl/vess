@@ -512,6 +512,75 @@ void vsMultiQueue::clear(int id)
 }
 
 // ------------------------------------------------------------------------
+// Returns the amount of data available for the provided reference ID
+// ------------------------------------------------------------------------
+int vsMultiQueue::getLength(int id)
+{
+    vsMQRefNode *traversalNode;
+    vsMQRefNode *referenceNode;
+    int bytesAvailable;
+
+    // Acquire exclusive access to the list for reference ID lookup.
+    pthread_mutex_lock(&listMutex);
+
+    // Initialize the reference node to NULL as a sentinel.
+    referenceNode = NULL;
+
+    // Look up the reference ID from the list, starting at the head.
+    traversalNode = referenceListHead;
+    while (traversalNode)
+    {
+        if (traversalNode->refID == id)
+        {
+            // Overwrite the sentinel value and break from the loop.
+            referenceNode = traversalNode;
+            traversalNode = NULL;
+        }
+        else
+        {
+            traversalNode = traversalNode->next;
+        }
+    }
+
+    // See if the lookup operation failed.
+    if (referenceNode == NULL)
+    {
+        // Yield list access before returning false to indicate that the
+        // reference ID could not be found.
+        pthread_mutex_unlock(&listMutex);
+
+        // Print a message indicating the failure and return.
+        fprintf(stderr, "vsMultiQueue::getLength: Invalid reference ID! "
+            "(%d)\n", id);
+        return false;
+    }
+
+    // Sieze access to the buffer before giving up access to the list. This
+    // checkpoint operation is safe because and only because the list will
+    // never be siezed by a thread already claiming access to the buffer. The
+    // checkpoint operation is needed to ensure that threads that were able to
+    // successfully look up the head are always allowed access to the buffer
+    // before any modifications by other threads can be made.
+    pthread_mutex_lock(&bufferMutex);
+
+    // Fix the position of the head if it had previously been left behind.
+    if (bufferTail - referenceNode->bufferHead > bufferCapacity)
+    {
+        referenceNode->bufferHead = bufferTail - bufferCapacity;
+    }
+
+    // Calculate the number of bytes available in the buffer
+    bytesAvailable = bufferTail - referenceNode->bufferHead;
+
+    // Yield list and buffer access before returning our answer
+    pthread_mutex_unlock(&listMutex);
+    pthread_mutex_unlock(&bufferMutex);
+
+    // Return the number of bytes available
+    return bytesAvailable;
+}
+
+// ------------------------------------------------------------------------
 // Private function
 // This method will fill 'data' with the first 'size' bytes of the ring
 // buffer starting at the head attributed to reference ID 'id'. The call
