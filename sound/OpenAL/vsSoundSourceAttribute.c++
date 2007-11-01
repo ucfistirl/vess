@@ -164,6 +164,71 @@ vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundStream *buffer)
 }
 
 // ------------------------------------------------------------------------
+// Constructor -  creates a packet streaming sound source.  The play()
+// method must be explicitly called to start playing because we cannot
+// assume that the buffer contains valid data at the end of this
+// constructor.
+// ------------------------------------------------------------------------
+vsSoundSourceAttribute::vsSoundSourceAttribute(vsSoundPacketStream *buffer)
+{
+    // Keep a handle to the vsSoundPacketStream
+    soundBuffer = buffer;
+    soundBuffer->ref();
+
+    // Remember whether we are streaming or not
+    streamingSource = true;
+
+    // Assume that the stream has no data available to start with
+    outOfData = false;
+
+    // Start with no OpenAL source assigned
+    sourceID = 0;
+    sourceValid = false;
+
+    // Initialize class members
+    offsetMatrix.setIdentity();
+    parentComponent = NULL;
+    lastPos.set(0.0, 0.0, 0.0);
+    lastDir.set(0.0, 0.0, 0.0);
+
+    // Create a timer to measure playback time
+    playTimer = new vsTimer();
+
+    // Initialize priority to always on (playback emulation is not yet
+    // supported for this buffer type)
+    priority = VS_SSRC_PRIORITY_ALWAYS_ON;
+
+    // Initialize all source parameters to their defaults
+    gain = 1.0;
+    minGain = 0.0;
+    maxGain = 1.0;
+    refDistance = 1.0;
+    maxDistance = FLT_MAX;
+    rolloffFactor = 1.0;
+    pitch = 1.0;
+    baseDirection.set(0.0, 0.0, 0.0);
+    innerConeAngle = 360.0;
+    outerConeAngle = 360.0;
+    outerConeGain = 0.0;
+    loopSource = false;
+
+    // Default to stopped (not playing)
+    playState = AL_STOPPED;
+
+    // Set up a coordinate conversion quaternion
+    coordXform.setAxisAngleRotation(1, 0, 0, -90.0);
+    coordXformInv = coordXform;
+    coordXformInv.conjugate();
+
+    // Create a mutex to synchronize the source state between voice 
+    // management, updates, and stream operations
+    pthread_mutex_init(&sourceMutex, NULL);
+
+    // Register with the sound manager
+    vsSoundManager::getInstance()->addSoundSource(this);
+}
+
+// ------------------------------------------------------------------------
 // Destructor
 // ------------------------------------------------------------------------
 vsSoundSourceAttribute::~vsSoundSourceAttribute()
@@ -289,8 +354,10 @@ void vsSoundSourceAttribute::assignVoice(int voiceID)
     sourceValid = true;
 
     // Attach the sound sample or stream to the OpenAL source
-    if (streamingSource)
+    if (soundBuffer->getBufferType() == VS_SOUND_BUFFER_STREAM)
         ((vsSoundStream *)soundBuffer)->assignSource(sourceID);
+    else if (soundBuffer->getBufferType() == VS_SOUND_BUFFER_PACKET_STREAM)
+        ((vsSoundPacketStream *)soundBuffer)->assignSource(sourceID);
     else
         alSourcei(sourceID, AL_BUFFER, 
             ((vsSoundSample *)soundBuffer)->getBufferID());
@@ -307,10 +374,10 @@ void vsSoundSourceAttribute::assignVoice(int voiceID)
     alSourcef(sourceID, AL_CONE_OUTER_ANGLE, (ALfloat)outerConeAngle);
     alSourcef(sourceID, AL_CONE_OUTER_GAIN, (ALfloat)outerConeGain);
     alSourcei(sourceID, AL_LOOPING, (ALuint)loopSource);
-    alSource3f(sourceID, AL_POSITION, (ALfloat)lastPos[VS_X],
-        (ALfloat)lastPos[VS_Y], (ALfloat)lastPos[VS_Z]);
-    alSource3f(sourceID, AL_DIRECTION, (ALfloat)lastDir[VS_X],
-        (ALfloat)lastDir[VS_Y], (ALfloat)lastDir[VS_Z]);
+    alSource3f(sourceID, AL_POSITION, (ALfloat)lastPos[AT_X],
+        (ALfloat)lastPos[AT_Y], (ALfloat)lastPos[AT_Z]);
+    alSource3f(sourceID, AL_DIRECTION, (ALfloat)lastDir[AT_X],
+        (ALfloat)lastDir[AT_Y], (ALfloat)lastDir[AT_Z]);
 
     // If the source should be playing, start playing now.  With OpenAL
     // 1.1, we'll be able to start playback at the right time (using
@@ -334,8 +401,10 @@ void vsSoundSourceAttribute::revokeVoice()
     // If streaming, detach the stream from the OpenAL source, but keep
     // the data in the stream intact, so we can emulate playback while
     // the source is swapped out.
-    if (streamingSource)
+    if (soundBuffer->getBufferType() == VS_SOUND_BUFFER_STREAM)
         ((vsSoundStream *)soundBuffer)->revokeSource();
+    else if (soundBuffer->getBufferType() == VS_SOUND_BUFFER_PACKET_STREAM)
+        ((vsSoundPacketStream *)soundBuffer)->revokeSource();
 
     // Flush the source's buffer queue
     alSourcei(sourceID, AL_BUFFER, 0);
@@ -358,12 +427,12 @@ int vsSoundSourceAttribute::getVoiceID()
 // Return the effective gain for this source, computed in the last call
 // to update()
 // ------------------------------------------------------------------------
-double vsSoundSourceAttribute::getEffectiveGain(vsVector listenerPos)
+double vsSoundSourceAttribute::getEffectiveGain(atVector listenerPos)
 {
     double distance;
     double distScale;
     double effectiveGain;
-    vsVector listenerDir;
+    atVector listenerDir;
     double angle;
     double proportion;
 
@@ -421,7 +490,7 @@ double vsSoundSourceAttribute::getEffectiveGain(vsVector listenerPos)
 // ------------------------------------------------------------------------
 // Return the last computed position of the source
 // ------------------------------------------------------------------------
-vsVector vsSoundSourceAttribute::getLastPosition()
+atVector vsSoundSourceAttribute::getLastPosition()
 {
     return lastPos;
 }
@@ -467,18 +536,27 @@ void vsSoundSourceAttribute::updateStream()
     // that OpenAL considers the source ID valid
     if ((sourceValid) && (alIsSource(sourceID)))
     {
-        // Get the number of buffers processed
-        alGetSourcei(sourceID, AL_BUFFERS_PROCESSED, &buffersProcessed);
-
-        // Swap buffers if the front buffer is done
-        if (buffersProcessed > 0)
+        // See what kind of stream this is
+        if (soundBuffer->getBufferType() == VS_SOUND_BUFFER_STREAM)
         {
-            // The current buffer is done, swap buffers.  NOTE:
-            // The user is responsible for making sure the buffers stay
-            // filled and ready
-            bufferID = ((vsSoundStream *)soundBuffer)->getFrontBufferID();
-            alSourceUnqueueBuffers(sourceID, 1, &bufferID);
-            ((vsSoundStream *)soundBuffer)->swapBuffers();
+            // Get the number of buffers processed
+            alGetSourcei(sourceID, AL_BUFFERS_PROCESSED, &buffersProcessed);
+
+            // Swap buffers if the front buffer is done
+            if (buffersProcessed > 0)
+            {
+                // The current buffer is done, swap buffers.  NOTE:
+                // The user is responsible for making sure the buffers stay
+                // filled and ready
+                bufferID = ((vsSoundStream *)soundBuffer)->getFrontBufferID();
+                alSourceUnqueueBuffers(sourceID, 1, &bufferID);
+                ((vsSoundStream *)soundBuffer)->swapBuffers();
+            }
+        }
+        else if (soundBuffer->getBufferType() == VS_SOUND_BUFFER_PACKET_STREAM)
+        {
+            // Just update the stream
+            ((vsSoundPacketStream *)soundBuffer)->update();
         }
 
         // Compare the vsSourceAttribute's play state with the real
@@ -496,6 +574,16 @@ void vsSoundSourceAttribute::updateStream()
     }
     else
     {
+        // Playback emulation is not yet supported on packet streams, so
+        // skip this part if this is a packet stream
+        if (soundBuffer->getBufferType() == VS_SOUND_BUFFER_PACKET_STREAM)
+        {
+            // Unlock the source mutex and bail
+            unlockSource();
+
+            return;
+        }
+
         // The source is swapped out, so we need to emulate playback and
         // still consume audio.  Check the play time of the source 
         // and see if it has exceeded the length of the buffer.
@@ -623,7 +711,7 @@ vsSoundBuffer *vsSoundSourceAttribute::getSoundBuffer()
 // multiplied into the overall transform matrix before it is sent to the 
 // OpenAL sound source.
 // ------------------------------------------------------------------------
-void vsSoundSourceAttribute::setOffsetMatrix(vsMatrix newMatrix)
+void vsSoundSourceAttribute::setOffsetMatrix(atMatrix newMatrix)
 {
     offsetMatrix = newMatrix;
 }
@@ -631,7 +719,7 @@ void vsSoundSourceAttribute::setOffsetMatrix(vsMatrix newMatrix)
 // ------------------------------------------------------------------------
 // Retrieves the offset matrix for this attribute
 // ------------------------------------------------------------------------
-vsMatrix vsSoundSourceAttribute::getOffsetMatrix()
+atMatrix vsSoundSourceAttribute::getOffsetMatrix()
 {
     return offsetMatrix;
 }
@@ -642,11 +730,11 @@ vsMatrix vsSoundSourceAttribute::getOffsetMatrix()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::update()
 {
-    vsMatrix       result;
-    vsQuat         tempQuat;
-    vsVector       posVec;
-    vsVector       deltaVec;
-    vsVector       dirVec;
+    atMatrix       result;
+    atQuat         tempQuat;
+    atVector       posVec;
+    atVector       deltaVec;
+    atVector       dirVec;
     double         interval;
 
     // If we're not attached to a component, we have nothing to do
@@ -661,7 +749,7 @@ void vsSoundSourceAttribute::update()
     
     // Apply the VESS-to-OpenAL coordinate transformation
     posVec.setSize(3);
-    result.getTranslation(&posVec[VS_X], &posVec[VS_Y], &posVec[VS_Z]);
+    result.getTranslation(&posVec[AT_X], &posVec[AT_Y], &posVec[AT_Z]);
     posVec = coordXform.rotatePoint(posVec);
 
     // Update the velocity (based on the last frame's position)
@@ -714,16 +802,16 @@ void vsSoundSourceAttribute::update()
     if ((sourceValid) && (alIsSource(sourceID)))
     {
         // Update the OpenAL source's position
-        alSource3f(sourceID, AL_POSITION, (float)posVec[VS_X],
-            (float)posVec[VS_Y], (float)posVec[VS_Z]); 
+        alSource3f(sourceID, AL_POSITION, (float)posVec[AT_X],
+            (float)posVec[AT_Y], (float)posVec[AT_Z]); 
 
         // Set the source's velocity
-        alSource3f(sourceID, AL_VELOCITY, (float)deltaVec[VS_X],
-            (float)deltaVec[VS_Y], (float)deltaVec[VS_Z]);
+        alSource3f(sourceID, AL_VELOCITY, (float)deltaVec[AT_X],
+            (float)deltaVec[AT_Y], (float)deltaVec[AT_Z]);
 
         // Apply the direction to the OpenAL source
-        alSource3f(sourceID, AL_DIRECTION, dirVec[VS_X], dirVec[VS_Y], 
-            dirVec[VS_Z]);
+        alSource3f(sourceID, AL_DIRECTION, dirVec[AT_X], dirVec[AT_Y], 
+            dirVec[AT_Z]);
     }
 
     // Check the validity of the OpenAL source
@@ -779,7 +867,11 @@ void vsSoundSourceAttribute::stop()
         if (streamingSource)
         {
             // Flush the data from the streaming buffers
-            ((vsSoundStream *)soundBuffer)->flushBuffers();
+            if (soundBuffer->getBufferType() == VS_SOUND_BUFFER_STREAM)
+                ((vsSoundStream *)soundBuffer)->flushBuffers();
+            else if (soundBuffer->getBufferType() == 
+                         VS_SOUND_BUFFER_PACKET_STREAM)
+                ((vsSoundPacketStream *)soundBuffer)->flushBuffers();
 
             // Set the current buffer for this source to the zero (empty)
             // buffer
@@ -1117,9 +1209,9 @@ void vsSoundSourceAttribute::setPitchShift(double shift)
 // Returns the source's base direction of sound radiation (in VESS 
 // coordinates) (default = (0.0, 0.0, 0.0), i.e. non-directional)
 // ------------------------------------------------------------------------
-vsVector vsSoundSourceAttribute::getDirection()
+atVector vsSoundSourceAttribute::getDirection()
 {
-    vsVector direction;
+    atVector direction;
 
     // Initialize the direction vector with the current base direction
     // (see the setDirection() method below for more about the locally-
@@ -1140,7 +1232,7 @@ vsVector vsSoundSourceAttribute::getDirection()
 // ------------------------------------------------------------------------
 // Sets the source's base direction of sound radiation
 // ------------------------------------------------------------------------
-void vsSoundSourceAttribute::setDirection(vsVector direction)
+void vsSoundSourceAttribute::setDirection(atVector direction)
 {
     // The direction set on the OpenAL source will also include any 
     // transformations that apply to the component where this attribute is 

@@ -28,10 +28,11 @@
 #include "vsAttribute.h++"
 #include "vsSoundSample.h++"
 #include "vsSoundStream.h++"
+#include "vsSoundPacketStream.h++"
 
-#include "vsVector.h++"
-#include "vsMatrix.h++"
-#include "vsQuat.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
+#include "atQuat.h++"
 #include "vsTimer.h++"
  
 // Sound source priorities, used for voice management
@@ -66,21 +67,21 @@ protected:
     bool               outOfData;
 
     // Offset transform from the component to the sound listener
-    vsMatrix           offsetMatrix;
+    atMatrix           offsetMatrix;
 
     // Base direction of radiation (prior to transforms)
-    vsVector           baseDirection;
+    atVector           baseDirection;
 
     // The vsComponent we're attached to
     vsComponent        *parentComponent;
 
     // Previous location/direction
-    vsVector           lastPos;
-    vsVector           lastDir;
+    atVector           lastPos;
+    atVector           lastDir;
 
     // Coordinate conversion quaternions
-    vsQuat             coordXform;
-    vsQuat             coordXformInv;
+    atQuat             coordXform;
+    atQuat             coordXformInv;
 
     // Playing state of the source
     int                playState;
@@ -115,8 +116,8 @@ VS_INTERNAL:
     void            revokeVoice();
     int             getVoiceID();
 
-    double          getEffectiveGain(vsVector listenerPos);
-    vsVector        getLastPosition();
+    double          getEffectiveGain(atVector listenerPos);
+    atVector        getLastPosition();
 
     void            lockSource();
     void            unlockSource();
@@ -134,6 +135,9 @@ public:
     // Constructor for a streaming sound source
                           vsSoundSourceAttribute(vsSoundStream *buffer);
 
+    // Constructor for a packet streaming sound source
+                          vsSoundSourceAttribute(vsSoundPacketStream *buffer);
+
     // Destructor
     virtual               ~vsSoundSourceAttribute();
 
@@ -147,8 +151,8 @@ public:
     vsSoundBuffer         *getSoundBuffer();
 
     // Offset from the component's global transform
-    void                  setOffsetMatrix(vsMatrix newMatrix);
-    vsMatrix              getOffsetMatrix();
+    void                  setOffsetMatrix(atMatrix newMatrix);
+    atMatrix              getOffsetMatrix();
 
     // Update function.  Sets the new source position, velocity, and direction
     // based on the attached component's global transform
@@ -189,8 +193,8 @@ public:
     void                  setPitchShift(double shift);
 
     // Directional sound parameters
-    vsVector              getDirection();
-    void                  setDirection(vsVector direction);
+    atVector              getDirection();
+    void                  setDirection(atVector direction);
     double                getInnerConeAngle();
     void                  setInnerConeAngle(double angle);
     double                getOuterConeAngle();
