@@ -1128,6 +1128,10 @@ void vsSphereIntersect::setSphere(int sphNum, atVector center, double radius)
     {
         ((vsSphere *)(sphereList[sphNum]))->setSphere(sphCenter, radius);
     }
+
+    // Mark the sphere's intersection invalid (in case intersect() is never
+    // called)
+    validFlag[sphNum] = false;
 }
 
 // ------------------------------------------------------------------------
