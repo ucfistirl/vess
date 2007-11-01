@@ -24,6 +24,7 @@
 #define VS_GLOBALS_HPP
 
 #include <math.h>
+#include "atGlobals.h++"
 
 // Functions under this access specifier are for VESS internal use
 // only and should not be called by the end user.
@@ -39,6 +40,8 @@
 // nothing.
 //
 #ifdef WIN32
+
+    #include <windows.h>
 
     // vsUtil library
     #ifdef VS_UTIL_EXPORTS
