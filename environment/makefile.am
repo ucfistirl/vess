@@ -4,19 +4,7 @@ lib_LIBRARIES = libvsEnvironment.a libvsEnvironment.so
 # Sources for libvsEnvironment.a
 libvsEnvironment_a_SOURCES = \
                        common/vsCal3DAnimationLoader.c++ \
-                       common/vsCal3DLoader.c++ \
-common/vsCOLLADABoolArray.c++ \
-common/vsCOLLADADataArray.c++ \
-common/vsCOLLADADataSource.c++ \
-common/vsCOLLADAEffect.c++ \
-common/vsCOLLADAEffectParameter.c++ \
-common/vsCOLLADAFixedEffect.c++ \
-common/vsCOLLADAFloatArray.c++ \
-common/vsCOLLADAIDREFArray.c++ \
-common/vsCOLLADAInputEntry.c++ \
-common/vsCOLLADAIntArray.c++ \
-common/vsCOLLADALoader.c++ \
-common/vsCOLLADANameArray.c++
+                       common/vsCal3DLoader.c++
 
 # Sources for libvsEnvironment.so (same as libvsEnvironment.a)
 libvsEnvironment_so_SOURCES = $(libvsEnvironment_a_SOURCES)
@@ -33,19 +21,7 @@ EXTRA_libvsEnvironment_so_SOURCES = $(EXTRA_libvsEnvironment_a_SOURCES)
 # Header files
 include_HEADERS = \
                   common/vsCal3DAnimationLoader.h++ \
-                  common/vsCal3DLoader.h++ \
-common/vsCOLLADABoolArray.h++ \
-common/vsCOLLADADataArray.h++ \
-common/vsCOLLADADataSource.h++ \
-common/vsCOLLADAEffect.h++ \
-common/vsCOLLADAEffectParameter.h++ \
-common/vsCOLLADAFixedEffect.h++ \
-common/vsCOLLADAFloatArray.h++ \
-common/vsCOLLADAIDREFArray.h++ \
-common/vsCOLLADAInputEntry.h++ \
-common/vsCOLLADAIntArray.h++ \
-common/vsCOLLADALoader.h++ \
-common/vsCOLLADANameArray.h++
+                  common/vsCal3DLoader.h++
 
 # Header files for the above EXTRA sources
 EXTRA_HEADERS = \
