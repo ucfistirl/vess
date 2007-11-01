@@ -70,7 +70,7 @@ const char *vsSpaceball::getClassName()
 // ------------------------------------------------------------------------
 // Set the position of the Spaceball
 // ------------------------------------------------------------------------
-void vsSpaceball::setPosition(vsVector posVec)
+void vsSpaceball::setPosition(atVector posVec)
 {
     int i;
 
@@ -84,8 +84,8 @@ void vsSpaceball::setPosition(vsVector posVec)
 // ------------------------------------------------------------------------
 // Set the orientation of the Spaceball
 // ------------------------------------------------------------------------
-void vsSpaceball::setOrientation(vsVector ornVec, 
-                                 vsMathEulerAxisOrder axisOrder)
+void vsSpaceball::setOrientation(atVector ornVec, 
+                                 atMathEulerAxisOrder axisOrder)
 {
     // Set the ball's orientation to the Euler angles specified in the 
     // orientation vector, using the given axis order
@@ -96,7 +96,7 @@ void vsSpaceball::setOrientation(vsVector ornVec,
 // ------------------------------------------------------------------------
 // Set the orientation of the Spaceball
 // ------------------------------------------------------------------------
-void vsSpaceball::setOrientation(vsMatrix ornMat)
+void vsSpaceball::setOrientation(atMatrix ornMat)
 {
     // Set the ball's orientation to the given rotation matrix
     orientation.setMatrixRotation(ornMat);
@@ -105,7 +105,7 @@ void vsSpaceball::setOrientation(vsMatrix ornMat)
 // ------------------------------------------------------------------------
 // Set the orientation of the Spaceball
 // ------------------------------------------------------------------------
-void vsSpaceball::setOrientation(vsQuat ornQuat)
+void vsSpaceball::setOrientation(atQuat ornQuat)
 {
     // Set the ball's orientation to the given quaternion
     orientation = ornQuat;

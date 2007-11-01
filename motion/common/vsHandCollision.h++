@@ -82,9 +82,9 @@ public:
     unsigned long         getCollisionState();
 
     bool                  getIsectValid(int sensorIndex);
-    vsVector              getIsectPoint(int sensorIndex);
-    vsVector              getIsectNorm(int sensorIndex);
-    vsMatrix              getIsectXform(int sensorIndex);
+    atVector              getIsectPoint(int sensorIndex);
+    atVector              getIsectNorm(int sensorIndex);
+    atMatrix              getIsectXform(int sensorIndex);
     vsGeometry            *getIsectGeometry(int sensorIndex);
     int                   getIsectPrimNum(int sensorIndex);
     vsGrowableArray       *getIsectPath(int sensorIndex);

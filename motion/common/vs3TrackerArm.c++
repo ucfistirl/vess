@@ -78,7 +78,7 @@ const char *vs3TrackerArm::getClassName()
 // Sets the offset, in tracker space, from the back-mounted tracker to the
 // shoulder joint
 // ------------------------------------------------------------------------
-void vs3TrackerArm::setShoulderOffset(vsVector newOffset)
+void vs3TrackerArm::setShoulderOffset(atVector newOffset)
 {
     // Copy the offset from the specified vector, and force the resulting
     // vector to have a size of 3.
@@ -89,7 +89,7 @@ void vs3TrackerArm::setShoulderOffset(vsVector newOffset)
 // ------------------------------------------------------------------------
 // Retrieves the shoulder joint offset
 // ------------------------------------------------------------------------
-vsVector vs3TrackerArm::getShoulderOffset()
+atVector vs3TrackerArm::getShoulderOffset()
 {
     return shoulderOffset;
 }
@@ -98,7 +98,7 @@ vsVector vs3TrackerArm::getShoulderOffset()
 // Sets the offset, in tracker space, from the elbow tracker to the elbow
 // joint
 // ------------------------------------------------------------------------
-void vs3TrackerArm::setElbowOffset(vsVector newOffset)
+void vs3TrackerArm::setElbowOffset(atVector newOffset)
 {
     // Copy the offset from the specified vector, and force the resulting
     // vector to have a size of 3.
@@ -109,7 +109,7 @@ void vs3TrackerArm::setElbowOffset(vsVector newOffset)
 // ------------------------------------------------------------------------
 // Retrieves the elbow joint offset
 // ------------------------------------------------------------------------
-vsVector vs3TrackerArm::getElbowOffset()
+atVector vs3TrackerArm::getElbowOffset()
 {
     return elbowOffset;
 }
@@ -118,7 +118,7 @@ vsVector vs3TrackerArm::getElbowOffset()
 // Sets the offset, in tracker space, from the handheld tracker to the
 // wrist joint
 // ------------------------------------------------------------------------
-void vs3TrackerArm::setWristOffset(vsVector newOffset)
+void vs3TrackerArm::setWristOffset(atVector newOffset)
 {
     // Copy the offset from the specified vector, and force the resulting
     // vector to have a size of 3.
@@ -129,7 +129,7 @@ void vs3TrackerArm::setWristOffset(vsVector newOffset)
 // ------------------------------------------------------------------------
 // Retrieves the wrist joint offset
 // ------------------------------------------------------------------------
-vsVector vs3TrackerArm::getWristOffset()
+atVector vs3TrackerArm::getWristOffset()
 {
     return wristOffset;
 }
@@ -137,7 +137,7 @@ vsVector vs3TrackerArm::getWristOffset()
 // ------------------------------------------------------------------------
 // Sets the pre-multiplied shoulder rotation offset
 // ------------------------------------------------------------------------
-void vs3TrackerArm::setShoulderPreRot(vsQuat rotQuat)
+void vs3TrackerArm::setShoulderPreRot(atQuat rotQuat)
 {
     shoulderPreRot = rotQuat;
 }
@@ -145,7 +145,7 @@ void vs3TrackerArm::setShoulderPreRot(vsQuat rotQuat)
 // ------------------------------------------------------------------------
 // Gets the pre-multiplied shoulder rotation offset
 // ------------------------------------------------------------------------
-vsQuat vs3TrackerArm::getShoulderPreRot()
+atQuat vs3TrackerArm::getShoulderPreRot()
 {
     return shoulderPreRot;
 }
@@ -153,7 +153,7 @@ vsQuat vs3TrackerArm::getShoulderPreRot()
 // ------------------------------------------------------------------------
 // Sets the post-multiplied shoulder rotation offset
 // ------------------------------------------------------------------------
-void vs3TrackerArm::setShoulderPostRot(vsQuat rotQuat)
+void vs3TrackerArm::setShoulderPostRot(atQuat rotQuat)
 {
     shoulderPostRot = rotQuat;
 }
@@ -161,7 +161,7 @@ void vs3TrackerArm::setShoulderPostRot(vsQuat rotQuat)
 // ------------------------------------------------------------------------
 // Gets the pre-multiplied shoulder rotation offset
 // ------------------------------------------------------------------------
-vsQuat vs3TrackerArm::getShoulderPostRot()
+atQuat vs3TrackerArm::getShoulderPostRot()
 {
     return shoulderPostRot;
 }
@@ -169,7 +169,7 @@ vsQuat vs3TrackerArm::getShoulderPostRot()
 // ------------------------------------------------------------------------
 // Sets the pre-multiplied elbow rotation offset
 // ------------------------------------------------------------------------
-void vs3TrackerArm::setElbowPreRot(vsQuat rotQuat)
+void vs3TrackerArm::setElbowPreRot(atQuat rotQuat)
 {
     elbowPreRot = rotQuat;
 }
@@ -177,7 +177,7 @@ void vs3TrackerArm::setElbowPreRot(vsQuat rotQuat)
 // ------------------------------------------------------------------------
 // Gets the pre-multiplied elbow rotation offset
 // ------------------------------------------------------------------------
-vsQuat vs3TrackerArm::getElbowPreRot()
+atQuat vs3TrackerArm::getElbowPreRot()
 {
     return elbowPreRot;
 }
@@ -185,7 +185,7 @@ vsQuat vs3TrackerArm::getElbowPreRot()
 // ------------------------------------------------------------------------
 // Sets the post-multiplied elbow rotation offset
 // ------------------------------------------------------------------------
-void vs3TrackerArm::setElbowPostRot(vsQuat rotQuat)
+void vs3TrackerArm::setElbowPostRot(atQuat rotQuat)
 {
     elbowPostRot = rotQuat;
 }
@@ -193,7 +193,7 @@ void vs3TrackerArm::setElbowPostRot(vsQuat rotQuat)
 // ------------------------------------------------------------------------
 // Gets the post-multiplied elbow rotation offset
 // ------------------------------------------------------------------------
-vsQuat vs3TrackerArm::getElbowPostRot()
+atQuat vs3TrackerArm::getElbowPostRot()
 {
     return elbowPostRot;
 }
@@ -201,7 +201,7 @@ vsQuat vs3TrackerArm::getElbowPostRot()
 // ------------------------------------------------------------------------
 // Sets the pre-multiplied wrist rotation offset
 // ------------------------------------------------------------------------
-void vs3TrackerArm::setWristPreRot(vsQuat rotQuat)
+void vs3TrackerArm::setWristPreRot(atQuat rotQuat)
 {
     wristPreRot = rotQuat;
 }
@@ -209,7 +209,7 @@ void vs3TrackerArm::setWristPreRot(vsQuat rotQuat)
 // ------------------------------------------------------------------------
 // Gets the pre-multiplied wrist rotation offset
 // ------------------------------------------------------------------------
-vsQuat vs3TrackerArm::getWristPreRot()
+atQuat vs3TrackerArm::getWristPreRot()
 {
     return wristPreRot;
 }
@@ -217,7 +217,7 @@ vsQuat vs3TrackerArm::getWristPreRot()
 // ------------------------------------------------------------------------
 // Sets the post-multiplied wrist rotation offset
 // ------------------------------------------------------------------------
-void vs3TrackerArm::setWristPostRot(vsQuat rotQuat)
+void vs3TrackerArm::setWristPostRot(atQuat rotQuat)
 {
     wristPostRot = rotQuat;
 }
@@ -225,7 +225,7 @@ void vs3TrackerArm::setWristPostRot(vsQuat rotQuat)
 // ------------------------------------------------------------------------
 // Gets the post-multiplied wrist rotation offset
 // ------------------------------------------------------------------------
-vsQuat vs3TrackerArm::getWristPostRot()
+atQuat vs3TrackerArm::getWristPostRot()
 {
     return wristPostRot;
 }
@@ -236,18 +236,18 @@ vsQuat vs3TrackerArm::getWristPostRot()
 // ------------------------------------------------------------------------
 void vs3TrackerArm::update()
 {
-    vsVector backPos, elbowPos, handPos;
-    vsQuat backOri, elbowOri, handOri;
+    atVector backPos, elbowPos, handPos;
+    atQuat backOri, elbowOri, handOri;
     
-    vsVector shoulderPoint, elbowPoint, wristPoint;
-    vsVector shoulderToElbowVec, elbowToWristVec;
-    vsVector elbowToShoulderVec;
-    vsVector forwardVec, upVec;
+    atVector shoulderPoint, elbowPoint, wristPoint;
+    atVector shoulderToElbowVec, elbowToWristVec;
+    atVector elbowToShoulderVec;
+    atVector forwardVec, upVec;
     double rotVal;
     
-    vsQuat shoulderRot, elbowRot, wristRot;
+    atQuat shoulderRot, elbowRot, wristRot;
     
-    vsQuat coordFix;
+    atQuat coordFix;
 
     // * Determine where each of the person's joints is in real-space by
     // transforming each joint's tracker-to-joint offset by the current
@@ -280,7 +280,7 @@ void vs3TrackerArm::update()
     elbowToShoulderVec = shoulderPoint - elbowPoint;
 
     // * Compute the shoulder rotation
-    // The rotation is determined by using the vsQuat class'
+    // The rotation is determined by using the atQuat class'
     // setVecsRotation() function, which takes two pairs of vectors and
     // returns the rotation that rotates the first pair to the second.
     // In this case, the first pair are the default directions for the

@@ -36,10 +36,10 @@ private:
     vsMotionTracker    *backTrack, *elbowTrack, *handTrack;
     vsKinematics       *shoulderKin, *elbowKin, *wristKin;
 
-    vsVector           shoulderOffset, elbowOffset, wristOffset;
-    vsQuat	       shoulderPreRot, shoulderPostRot;
-    vsQuat	       elbowPreRot, elbowPostRot;
-    vsQuat	       wristPreRot, wristPostRot;
+    atVector           shoulderOffset, elbowOffset, wristOffset;
+    atQuat	       shoulderPreRot, shoulderPostRot;
+    atQuat	       elbowPreRot, elbowPostRot;
+    atQuat	       wristPreRot, wristPostRot;
 
 public:
 
@@ -53,25 +53,25 @@ public:
 
     virtual const char    *getClassName();
 
-    void                  setShoulderOffset(vsVector newOffset);
-    vsVector              getShoulderOffset();
-    void                  setElbowOffset(vsVector newOffset);
-    vsVector              getElbowOffset();
-    void                  setWristOffset(vsVector newOffset);
-    vsVector              getWristOffset();
+    void                  setShoulderOffset(atVector newOffset);
+    atVector              getShoulderOffset();
+    void                  setElbowOffset(atVector newOffset);
+    atVector              getElbowOffset();
+    void                  setWristOffset(atVector newOffset);
+    atVector              getWristOffset();
     
-    void	              setShoulderPreRot(vsQuat rotQuat);
-    vsQuat                getShoulderPreRot();
-    void                  setShoulderPostRot(vsQuat rotQuat);
-    vsQuat                getShoulderPostRot();
-    void                  setElbowPreRot(vsQuat rotQuat);
-    vsQuat                getElbowPreRot();
-    void                  setElbowPostRot(vsQuat rotQuat);
-    vsQuat                getElbowPostRot();
-    void                  setWristPreRot(vsQuat rotQuat);
-    vsQuat                getWristPreRot();
-    void                  setWristPostRot(vsQuat rotQuat);
-    vsQuat                getWristPostRot();
+    void	              setShoulderPreRot(atQuat rotQuat);
+    atQuat                getShoulderPreRot();
+    void                  setShoulderPostRot(atQuat rotQuat);
+    atQuat                getShoulderPostRot();
+    void                  setElbowPreRot(atQuat rotQuat);
+    atQuat                getElbowPreRot();
+    void                  setElbowPostRot(atQuat rotQuat);
+    atQuat                getElbowPostRot();
+    void                  setWristPreRot(atQuat rotQuat);
+    atQuat                getWristPreRot();
+    void                  setWristPostRot(atQuat rotQuat);
+    atQuat                getWristPostRot();
 
     void                  update();
 };

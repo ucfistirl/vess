@@ -332,15 +332,15 @@ void vsSphereIntersect::computePointInRegion(int regionNum)
 // where a = E0 . E0, b = E0 . E1, c = E1 . E1, d = E0 . (A-P),
 //       e = E1 . (A-P) and f = (A-P) . (A-P)
 // ------------------------------------------------------------------------
-bool vsSphereIntersect::getClosestPoint(vsVector sphereCenter, vsVector A,
-                                        vsVector B, vsVector C, 
-                                        vsVector *closestPoint)
+bool vsSphereIntersect::getClosestPoint(atVector sphereCenter, atVector A,
+                                        atVector B, atVector C, 
+                                        atVector *closestPoint)
 {
     // Compute the edge vectors and distance vector (vector from vertex A
     // to the center of the test sphere)
-    vsVector E0 = B-A;
-    vsVector E1 = C-A;
-    vsVector D = A - sphereCenter;
+    atVector E0 = B-A;
+    atVector E1 = C-A;
+    atVector D = A - sphereCenter;
 
     // Compute several dot products that will be used along the way:
 
@@ -464,9 +464,9 @@ bool vsSphereIntersect::intersectWithBox(vsSphere sphere, osg::BoundingBox box)
 {
     double sqrDist;
     double sqrRadius;
-    vsMatrix invXform;
-    vsVector center;
-    vsVector radiusVec;
+    atMatrix invXform;
+    atVector center;
+    atVector radiusVec;
     double centerX, centerY, centerZ;
 
     // Initialize the square distance accumulator.  We use the squared
@@ -486,9 +486,9 @@ bool vsSphereIntersect::intersectWithBox(vsSphere sphere, osg::BoundingBox box)
 
     // Get the x,y,z coordinates of the sphere (mainly for
     // readability)
-    centerX = center[VS_X];
-    centerY = center[VS_Y];
-    centerZ = center[VS_Z];
+    centerX = center[AT_X];
+    centerY = center[AT_Y];
+    centerZ = center[AT_Z];
 
     // Initialize the distance accumulator
     sqrDist = 0.0;
@@ -496,21 +496,21 @@ bool vsSphereIntersect::intersectWithBox(vsSphere sphere, osg::BoundingBox box)
     // Check the x-axis, if the center is outside the range of the
     // bounding box, compute the square of the x distance.
     if (centerX < box.xMin())
-        sqrDist += VS_SQR(centerX - box.xMin());
+        sqrDist += AT_SQR(centerX - box.xMin());
     else if (centerX > box.xMax())
-        sqrDist += VS_SQR(centerX - box.xMax());
+        sqrDist += AT_SQR(centerX - box.xMax());
   
     // Check the y-axis, same procedure
     if (centerY < box.yMin())
-        sqrDist += VS_SQR(centerY - box.yMin());
+        sqrDist += AT_SQR(centerY - box.yMin());
     else if (centerY > box.yMax())
-        sqrDist += VS_SQR(centerY - box.yMax());
+        sqrDist += AT_SQR(centerY - box.yMax());
 
     // Check the z-axis, same procedure
     if (centerZ < box.zMin())
-        sqrDist += VS_SQR(centerZ - box.zMin());
+        sqrDist += AT_SQR(centerZ - box.zMin());
     else if (centerZ > box.zMax())
-        sqrDist += VS_SQR(centerZ - box.zMax());
+        sqrDist += AT_SQR(centerZ - box.zMax());
 
     // See if the sphere touches the box
     if (sqrDist < sqrRadius)
@@ -523,13 +523,13 @@ bool vsSphereIntersect::intersectWithBox(vsSphere sphere, osg::BoundingBox box)
 // VESS internal function.  Retrieves the normal of the triangle given
 // by the specified geometry object and indices.
 // ------------------------------------------------------------------------
-vsVector vsSphereIntersect::getNormal(vsGeometry *geometry, int aIndex,
+atVector vsSphereIntersect::getNormal(vsGeometry *geometry, int aIndex,
                                       int bIndex, int cIndex, int primIndex)
 {
-    vsVector normal;
-    vsVector aVertex, bVertex, cVertex;
-    vsVector aNorm, bNorm, cNorm;
-    vsVector abDelta, acDelta;
+    atVector normal;
+    atVector aVertex, bVertex, cVertex;
+    atVector aNorm, bNorm, cNorm;
+    atVector abDelta, acDelta;
 
     // Extract the vertices in the closestVertices array to the A,B,C 
     // vectors (mainly for readability).  A, B, and C are the vertices
@@ -591,25 +591,25 @@ void vsSphereIntersect::intersectWithGeometry(int sphIndex,
                                               vsGeometry *geometry)
 {
     vsSphere *sphere;
-    vsVector center;
+    atVector center;
     double radius;
     int i, j;
     int primCount;
     int triCount;
     int lengthSum;
-    vsVector a, b, c;
+    atVector a, b, c;
     int aIndex, bIndex, cIndex;
-    vsVector point;
-    vsVector normal;
+    atVector point;
+    atVector normal;
     double sqrDist;
     int result;
     double oldDot, newDot;
-    vsVector closestPoint;
+    atVector closestPoint;
     double localSqrDist;
     int closestPrim;
-    vsVector closestNormal;
+    atVector closestNormal;
     int closestVertIndices[3];
-    vsVector distVec;
+    atVector distVec;
 
     // Get the center point and radius of the sphere
     sphere = (vsSphere *)sphereList[sphIndex];
@@ -819,7 +819,7 @@ void vsSphereIntersect::intersectWithGeometry(int sphIndex,
 
     // Evaluate the closest point and see if we've found a collision
     if ((localSqrDist < closestSqrDist[sphIndex]) && 
-        (localSqrDist < VS_SQR(radius)))
+        (localSqrDist < AT_SQR(radius)))
     {
         // Set all the intersection parameters (valid flag, point, normal,
         // transform, geometry, and primitive index)
@@ -861,17 +861,17 @@ void vsSphereIntersect::intersectSpheres(vsNode *targetNode)
 {
     osg::Geode *osgGeode;
     osg::BoundingBox osgBox;
-    vsVector center;
+    atVector center;
     double radius;
     int i;
     vsSphere nodeSphere;
-    vsMatrix previousXform;
-    vsMatrix localXform;
+    atMatrix previousXform;
+    atMatrix localXform;
     vsSphere previousBoundSphere;
-    vsVector currentCenter, radiusVec;
+    atVector currentCenter, radiusVec;
     double currentRadius;
     vsTransformAttribute *nodeXformAttr;
-    vsMatrix nodeXform;
+    atMatrix nodeXform;
     vsAttribute *groupAttr;
     vsSwitchAttribute *switchAttr;
     vsSequenceAttribute *sequenceAttr;
@@ -1104,9 +1104,9 @@ int vsSphereIntersect::getSphereListSize()
 // point, direction, and length. The sphNum value determines which sphere
 // is to be set; the number of the first sphere is 0.
 // ------------------------------------------------------------------------
-void vsSphereIntersect::setSphere(int sphNum, vsVector center, double radius)
+void vsSphereIntersect::setSphere(int sphNum, atVector center, double radius)
 {
-    vsVector sphCenter;
+    atVector sphCenter;
 
     // Make sure the sphere number is valid
     if ((sphNum < 0) || (sphNum >= sphereListSize))
@@ -1134,16 +1134,16 @@ void vsSphereIntersect::setSphere(int sphNum, vsVector center, double radius)
 // Retrieves the center point of the indicated sphere. The number of the
 // first sphere is 0.
 // ------------------------------------------------------------------------
-vsVector vsSphereIntersect::getSphereCenter(int sphNum)
+atVector vsSphereIntersect::getSphereCenter(int sphNum)
 {
-    vsVector center;
+    atVector center;
     
     // Make sure the sphere number is valid
     if ((sphNum < 0) || (sphNum >= sphereListSize))
     {
         printf("vsSphereIntersect::getSphereStartPt: Sphere number out "
             "of bounds\n");
-        return vsVector(0.0, 0.0, 0.0);
+        return atVector(0.0, 0.0, 0.0);
     }
     
     // Get the sphere's center point
@@ -1277,7 +1277,7 @@ void vsSphereIntersect::intersect(vsNode *targetNode)
     vsSphere sphereArray[VS_SPH_ISECT_MAX_SPHERES];
     int i;
     vsSphere nodeBound;
-    vsVector center;
+    atVector center;
     double radius;
 
     // Make sure we have at least one sphere to intersect with
@@ -1339,9 +1339,9 @@ bool vsSphereIntersect::getIsectValid(int sphNum)
 // during the last intersection traversal for the specified sphere. The
 // number of the first sphere is 0.
 // ------------------------------------------------------------------------
-vsVector vsSphereIntersect::getIsectPoint(int sphNum)
+atVector vsSphereIntersect::getIsectPoint(int sphNum)
 {
-    vsVector errResult(3);
+    atVector errResult(3);
 
     // Make sure the sphere number is valid
     if ((sphNum < 0) || (sphNum >= sphereListSize))
@@ -1360,9 +1360,9 @@ vsVector vsSphereIntersect::getIsectPoint(int sphNum)
 // intersection determined during the last intersection traversal for the
 // specified sphere. The number of the first sphere is 0.
 // ------------------------------------------------------------------------
-vsVector vsSphereIntersect::getIsectNorm(int sphNum)
+atVector vsSphereIntersect::getIsectNorm(int sphNum)
 {
-    vsVector errResult(3);
+    atVector errResult(3);
 
     // Make sure the sphere number is valid
     if ((sphNum < 0) || (sphNum >= sphereListSize))
@@ -1383,9 +1383,9 @@ vsVector vsSphereIntersect::getIsectNorm(int sphNum)
 // same sphere already have this data multiplied in. The number of the
 // first sphere is 0.
 // ------------------------------------------------------------------------
-vsMatrix vsSphereIntersect::getIsectXform(int sphNum)
+atMatrix vsSphereIntersect::getIsectXform(int sphNum)
 {
-    vsMatrix errResult;
+    atMatrix errResult;
 
     // Make sure this sphere number is valid
     if ((sphNum < 0) || (sphNum >= sphereListSize))

@@ -75,8 +75,8 @@ protected:
     vsPhantom                *phantom;
     bool                     initialized;
     bool                     forces;
-    vsMatrix                 gstToVsRotation;
-    vsMatrix                 vsToGstRotation;
+    atMatrix                 gstToVsRotation;
+    atMatrix                 vsToGstRotation;
     double                   positionScale;
     u_char                   *receiveBuffer;
     int                      receiveBufferLength;
@@ -105,7 +105,7 @@ public:
     void                  setScale(double newScale);
     double                getScale(void);
 
-    bool                  setForce(vsVector force);
+    bool                  setForce(atVector force);
     bool                  enableForces(void);
     bool                  disableForces(void);
     bool                  resetPhantom(void);

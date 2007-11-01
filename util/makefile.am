@@ -6,17 +6,14 @@ libvsUtil_a_SOURCES = \
                       common/vsBox.c++ \
                       common/vsChromaKey.c++ \
                       common/vsGrowableArray.c++ \
-                      common/vsMatrix.c++ \
                       common/vsMultiQueue.c++ \
                       common/vsObject.c++ \
                       common/vsObjectMap.c++ \
-                      common/vsQuat.c++ \
                       common/vsShape.c++ \
                       common/vsSphere.c++ \
                       common/vsSequencer.c++ \
                       common/vsTreeMap.c++ \
                       common/vsUpdatable.c++ \
-                      common/vsVector.c++ \
                       common/vsVideoQueue.c++ \
                       @OS@/vsTimer.c++ \
                       @SG@/vsImage.c++
@@ -30,17 +27,14 @@ include_HEADERS = \
                   common/vsChromaKey.h++ \
                   common/vsGlobals.h++ \
                   common/vsGrowableArray.h++ \
-                  common/vsMatrix.h++ \
                   common/vsMultiQueue.h++ \
                   common/vsObject.h++ \
                   common/vsObjectMap.h++ \
-                  common/vsQuat.h++ \
                   common/vsShape.h++ \
                   common/vsSphere.h++ \
                   common/vsSequencer.h++ \
                   common/vsTreeMap.h++ \
                   common/vsUpdatable.h++ \
-                  common/vsVector.h++ \
                   common/vsVideoQueue.h++ \
                   @OS@/vsTimer.h++ \
                   @SG@/vsImage.h++

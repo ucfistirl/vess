@@ -52,13 +52,13 @@ protected:
     int             translationMode;
     int             rotationMode;
 
-    vsVector        transVector;
-    vsVector        rotAxis;
+    atVector        transVector;
+    atVector        rotAxis;
 
     bool            attachedFlag;
 
-    vsVector        positionOffset;
-    vsQuat          orientationOffset;
+    atVector        positionOffset;
+    atQuat          orientationOffset;
 
 public:
 
@@ -69,12 +69,12 @@ public:
     virtual const char    *getClassName();
 
     void                  lockTranslation();
-    void                  constrainTranslationToLine(vsVector axis);
-    void                  constrainTranslationToPlane(vsVector normal);
+    void                  constrainTranslationToLine(atVector axis);
+    void                  constrainTranslationToPlane(atVector normal);
     void                  freeTranslation();
       
     void                  lockRotation();
-    void                  constrainRotationToAxis(vsVector axis);
+    void                  constrainRotationToAxis(atVector axis);
     void                  freeRotation();
 
     void                  attachObject();

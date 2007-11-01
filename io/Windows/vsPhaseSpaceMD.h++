@@ -45,8 +45,8 @@ enum vsPSMDTrackerType
 struct vsPSMDCamera
 {
     int id;
-    vsVector position;
-    vsQuat orientation;
+    atVector position;
+    atQuat orientation;
 };
 
 
@@ -97,8 +97,8 @@ public:
     int                        getTrackerMode();
 
     void                       setScale(float newScale);
-    void                       setReferenceFrame(vsVector position, 
-                                                 vsQuat orientation);
+    void                       setReferenceFrame(atVector position, 
+                                                 atQuat orientation);
 
     void                       enableButtonData();
     void                       disableButtonData();
@@ -115,7 +115,7 @@ public:
 
     void                       createPointTracker(int ledIndex);
     void                       createRigidTracker(int ledCount, int *ledIndices,
-                                                  vsVector *ledOffsets);
+                                                  atVector *ledOffsets);
 
     void                       enableTracker(int trackerIndex);
     void                       disableTracker(int trackerIndex);

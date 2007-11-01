@@ -25,8 +25,8 @@
 
 #include "osg/Uniform"
 #include "vsObject.h++"
-#include "vsVector.h++"
-#include "vsMatrix.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
 
 enum vsGLSLUniformType
 {
@@ -90,9 +90,9 @@ public:
     void                 set(int i1, int i2, int i3, int i4);
     void                 set(float floatVal);
     void                 set(double doubleVal);
-    void                 set(vsVector vec);
-    void                 set(vsMatrix mat);
-    void                 set(int size, vsMatrix mat);
+    void                 set(atVector vec);
+    void                 set(atMatrix mat);
+    void                 set(int size, atMatrix mat);
 
     void                 setEntry(u_long index, bool b1);
     void                 setEntry(u_long index, bool b1, bool b2);
@@ -105,9 +105,9 @@ public:
     void                 setEntry(u_long index, int i1, int i2, int i3, int i4);
     void                 setEntry(u_long index, float floatVal);
     void                 setEntry(u_long index, double doubleVal);
-    void                 setEntry(u_long index, vsVector vec);
-    void                 setEntry(u_long index, vsMatrix mat);
-    void                 setEntry(u_long index, int size, vsMatrix mat);
+    void                 setEntry(u_long index, atVector vec);
+    void                 setEntry(u_long index, atMatrix mat);
+    void                 setEntry(u_long index, int size, atMatrix mat);
 
     osg::Uniform         *getBaseLibraryObject();
 };

@@ -76,10 +76,10 @@ int vsTransformAttribute::getAttributeCategory()
 // ------------------------------------------------------------------------
 // Sets the pre-transform matrix
 // ------------------------------------------------------------------------
-void vsTransformAttribute::setPreTransform(vsMatrix newTransform)
+void vsTransformAttribute::setPreTransform(atMatrix newTransform)
 {
     pfSCS *performerTransform;
-    vsMatrix identityMatrix;
+    atMatrix identityMatrix;
     pfMatrix performerMatrix;
     pfGroup *aboveGroup, *belowGroup;
     int loop, sloop;
@@ -158,7 +158,7 @@ void vsTransformAttribute::setPreTransform(vsMatrix newTransform)
 // ------------------------------------------------------------------------
 // Retrieves the pre-transform matrix
 // ------------------------------------------------------------------------
-vsMatrix vsTransformAttribute::getPreTransform()
+atMatrix vsTransformAttribute::getPreTransform()
 {
     return preMatrix;
 }
@@ -166,10 +166,10 @@ vsMatrix vsTransformAttribute::getPreTransform()
 // ------------------------------------------------------------------------
 // Sets the dynamic transform matrix
 // ------------------------------------------------------------------------
-void vsTransformAttribute::setDynamicTransform(vsMatrix newTransform)
+void vsTransformAttribute::setDynamicTransform(atMatrix newTransform)
 {
     pfDCS *performerTransform;
-    vsMatrix identityMatrix;
+    atMatrix identityMatrix;
     pfMatrix performerMatrix;
     pfGroup *aboveGroup, *belowGroup;
     int loop, sloop;
@@ -242,7 +242,7 @@ void vsTransformAttribute::setDynamicTransform(vsMatrix newTransform)
 // ------------------------------------------------------------------------
 // Retrieves the dynamic transform matrix
 // ------------------------------------------------------------------------
-vsMatrix vsTransformAttribute::getDynamicTransform()
+atMatrix vsTransformAttribute::getDynamicTransform()
 {
     return dynMatrix;
 }
@@ -250,10 +250,10 @@ vsMatrix vsTransformAttribute::getDynamicTransform()
 // ------------------------------------------------------------------------
 // Sets the post-transform matrix
 // ------------------------------------------------------------------------
-void vsTransformAttribute::setPostTransform(vsMatrix newTransform)
+void vsTransformAttribute::setPostTransform(atMatrix newTransform)
 {
     pfSCS *performerTransform;
-    vsMatrix identityMatrix;
+    atMatrix identityMatrix;
     pfMatrix performerMatrix;
     pfGroup *aboveGroup, *belowGroup;
     int loop, sloop;
@@ -341,7 +341,7 @@ void vsTransformAttribute::setPostTransform(vsMatrix newTransform)
 // ------------------------------------------------------------------------
 // Retrieves the post-transform matrix
 // ------------------------------------------------------------------------
-vsMatrix vsTransformAttribute::getPostTransform()
+atMatrix vsTransformAttribute::getPostTransform()
 {
     return postMatrix;
 }
@@ -430,7 +430,7 @@ void vsTransformAttribute::attach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsTransformAttribute::detach(vsNode *theNode)
 {
-    vsMatrix tempPre, tempDyn, tempPost, identityMatrix;
+    atMatrix tempPre, tempDyn, tempPost, identityMatrix;
 
     // Can't detach an attribute that is not attached
     if (!attachedCount)
@@ -477,7 +477,7 @@ void vsTransformAttribute::detach(vsNode *theNode)
 void vsTransformAttribute::attachDuplicate(vsNode *theNode)
 {
     vsTransformAttribute *newAttrib;
-    vsMatrix xformMat;
+    atMatrix xformMat;
     
     // Create a duplicate transform attribute
     newAttrib = new vsTransformAttribute();
@@ -497,9 +497,9 @@ void vsTransformAttribute::attachDuplicate(vsNode *theNode)
 // Performer, this simply multiplies the three component matrices and 
 // returns them.
 // ------------------------------------------------------------------------
-vsMatrix vsTransformAttribute::getCombinedTransform()
+atMatrix vsTransformAttribute::getCombinedTransform()
 {
-    vsMatrix identityMatrix, productMatrix;
+    atMatrix identityMatrix, productMatrix;
 
     // Initialize the identity matrix
     identityMatrix.setIdentity();

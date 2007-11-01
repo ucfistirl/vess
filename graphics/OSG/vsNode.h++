@@ -27,8 +27,8 @@ class vsAttribute;
 
 #include "vsObject.h++"
 #include "vsGrowableArray.h++"
-#include "vsVector.h++"
-#include "vsMatrix.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
 #include "vsAttribute.h++"
 #include "vsBox.h++"
 
@@ -83,8 +83,8 @@ VS_INTERNAL:
     void               dirtyUp();
     void               dirtyDown();
 
-    virtual void       getAxisAlignedBoxBounds(vsVector * minValues,
-                                               vsVector * maxValues) = 0;
+    virtual void       getAxisAlignedBoxBounds(atVector * minValues,
+                                               atVector * maxValues) = 0;
 
 public:
 
@@ -111,10 +111,10 @@ public:
     virtual vsNode      *findNodeByName(const char *targetName);
     virtual vsNode      *findNodeByName(const char *targetName, int index);
 
-    virtual void        getBoundSphere(vsVector *centerPoint,
+    virtual void        getBoundSphere(atVector *centerPoint,
                                        double *radius) = 0;
     virtual vsBox       getAxisAlignedBoundingBox();                                       
-    virtual vsMatrix    getGlobalXform() = 0;
+    virtual atMatrix    getGlobalXform() = 0;
 
     virtual void            setIntersectValue(unsigned int newValue) = 0;
     virtual unsigned int    getIntersectValue() = 0;

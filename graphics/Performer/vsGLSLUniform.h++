@@ -24,8 +24,8 @@
 #define VS_GLSL_UNIFORM_HPP
 
 #include "vsObject.h++"
-#include "vsVector.h++"
-#include "vsMatrix.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
 #include <Performer/pr/pfShaderProgram.h>
 
 enum vsGLSLUniformType
@@ -104,9 +104,9 @@ public:
     void                 set(int i1, int i2, int i3, int i4);
     void                 set(float floatVal);
     void                 set(double doubleVal);
-    void                 set(vsVector vec);
-    void                 set(vsMatrix mat);
-    void                 set(int size, vsMatrix mat);
+    void                 set(atVector vec);
+    void                 set(atMatrix mat);
+    void                 set(int size, atMatrix mat);
 };
 
 #endif

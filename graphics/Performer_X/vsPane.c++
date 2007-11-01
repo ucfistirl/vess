@@ -702,12 +702,12 @@ pfChannel *vsPane::getBaseLibraryObject()
 // ------------------------------------------------------------------------
 void vsPane::updateView()
 {
-    vsMatrix viewMatrix, xformMatrix;
+    atMatrix viewMatrix, xformMatrix;
     pfMatrix performerMatrix, transMatrix;
     pfMatrix chanMatrix;
     int loop, sloop;
     pfVec3 stereoOffset;
-    vsVector viewPos;
+    atVector viewPos;
     double near, far;
     int projMode;
     double projHval, projVval;

@@ -23,8 +23,8 @@
 #ifndef VS_PATH_MOTION_HPP
 #define VS_PATH_MOTION_HPP
 
-#include "vsVector.h++"
-#include "vsQuat.h++"
+#include "atVector.h++"
+#include "atQuat.h++"
 #include "vsKinematics.h++"
 #include "vsMotionModel.h++"
 
@@ -63,8 +63,8 @@ enum  vsPathPlayMode
 
 struct VS_MOTION_DLL vsPathMotionSegment
 {
-    vsVector    position;
-    vsQuat      orientation;
+    atVector    position;
+    atQuat      orientation;
     double      travelTime;
     double      pauseTime;
 };
@@ -86,48 +86,48 @@ private:
 
     double             roundCornerRadius;
 
-    vsVector           lookPoint;
+    atVector           lookPoint;
 
-    vsVector           upDirection;
+    atVector           upDirection;
 
     int                pointCount;
     vsGrowableArray    pointList;
 
-    vsVector           currentPos;
-    vsQuat             currentOri;
+    atVector           currentPos;
+    atQuat             currentOri;
 
     int                currentSegmentIdx;
     double             currentSegmentTime;
     double             totalTime;
     double             totalPathTime;
 
-    double             calcSegLengthLinear(vsVector *vec1, vsVector *vec2);
-    double             calcSegLengthRoundCorner(vsVector *vec0, vsVector *vec1,
-                                                vsVector *vec2, vsVector *vec3);
-    double             calcSegLengthSpline(vsVector *vec0, vsVector *vec1,
-                                           vsVector *vec2, vsVector *vec3);
-    double             calcSubsegLengthSpline(vsVector *vec0, vsVector *vec1,
-                                              vsVector *vec2, vsVector *vec3,
+    double             calcSegLengthLinear(atVector *vec1, atVector *vec2);
+    double             calcSegLengthRoundCorner(atVector *vec0, atVector *vec1,
+                                                atVector *vec2, atVector *vec3);
+    double             calcSegLengthSpline(atVector *vec0, atVector *vec1,
+                                           atVector *vec2, atVector *vec3);
+    double             calcSubsegLengthSpline(atVector *vec0, atVector *vec1,
+                                              atVector *vec2, atVector *vec3,
                                               double start, double end);
 
-    vsVector           interpolatePosLinear(vsVector *vec1, vsVector *vec2,
+    atVector           interpolatePosLinear(atVector *vec1, atVector *vec2,
                                             double parameter);
-    vsVector           interpolatePosRoundCorner(vsVector *vec0, vsVector *vec1,
-                                                 vsVector *vec2, vsVector *vec3,
+    atVector           interpolatePosRoundCorner(atVector *vec0, atVector *vec1,
+                                                 atVector *vec2, atVector *vec3,
                                                  double parameter);
-    vsVector           interpolatePosSpline(vsVector *vec0, vsVector *vec1,
-                                            vsVector *vec2, vsVector *vec3,
+    atVector           interpolatePosSpline(atVector *vec0, atVector *vec1,
+                                            atVector *vec2, atVector *vec3,
                                             double parameter);
 
-    vsQuat             interpolateOriSlerp(vsQuat *ori1, vsQuat *ori2,
+    atQuat             interpolateOriSlerp(atQuat *ori1, atQuat *ori2,
                                            double parameter);
-    vsQuat             interpolateOriSpline(vsQuat *ori0, vsQuat *ori1,
-                                            vsQuat *ori2, vsQuat *ori3,
+    atQuat             interpolateOriSpline(atQuat *ori0, atQuat *ori1,
+                                            atQuat *ori2, atQuat *ori3,
                                             double parameter);
-    vsQuat             interpolateOriToPt(vsVector currentPt,
-                                          vsVector facePt);
+    atQuat             interpolateOriToPt(atVector currentPt,
+                                          atVector facePt);
 
-    vsQuat             quatHalfway(vsQuat a, vsQuat b, vsQuat c);
+    atQuat             quatHalfway(atQuat a, atQuat b, atQuat c);
 
     vsPathMotionSegment    *getSegmentData(int idx);
 
@@ -153,22 +153,22 @@ public:
     void                  setCornerRadius(double radius);
     double                getCornerRadius();
 
-    void                  setLookAtPoint(vsVector point);
-    vsVector              getLookAtPoint();
+    void                  setLookAtPoint(atVector point);
+    atVector              getLookAtPoint();
 
-    void                  setUpDirection(vsVector up);
-    vsVector              getUpDirection();
+    void                  setUpDirection(atVector up);
+    atVector              getUpDirection();
 
     void                  setPointListSize(int size);
     int                   getPointListSize();
 
-    void                  setPosition(int point, vsVector position);
-    void                  setOrientation(int point, vsQuat orientation);
+    void                  setPosition(int point, atVector position);
+    void                  setOrientation(int point, atQuat orientation);
     void                  setTime(int point, double seconds);
     void                  setPauseTime(int point, double seconds);
 
-    vsVector              getPosition(int point);
-    vsQuat                getOrientation(int point);
+    atVector              getPosition(int point);
+    atQuat                getOrientation(int point);
     double                getTime(int point);
     double                getPauseTime(int point);
 
@@ -184,8 +184,8 @@ public:
     virtual void          update();
     virtual void          update(double deltaTime);
 
-    vsVector              getCurrentPosition();
-    vsQuat                getCurrentOrientation();
+    atVector              getCurrentPosition();
+    atQuat                getCurrentOrientation();
 
     void                  setKinematics(vsKinematics *newKin);
 };

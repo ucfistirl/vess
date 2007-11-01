@@ -73,7 +73,7 @@ void vsView::setViewpoint(double xPosition, double yPosition, double zPosition)
 // ------------------------------------------------------------------------
 // Sets the current viewpoint
 // ------------------------------------------------------------------------
-void vsView::setViewpoint(vsVector newPosition)
+void vsView::setViewpoint(atVector newPosition)
 {
     // Set the viewpoint, forcing the vector size to 3
     viewpoint.clearCopy(newPosition);
@@ -102,7 +102,7 @@ void vsView::getViewpoint(double *xPosition, double *yPosition,
 // ------------------------------------------------------------------------
 // Retrieves the current viewpoint
 // ------------------------------------------------------------------------
-vsVector vsView::getViewpoint()
+atVector vsView::getViewpoint()
 {
     return viewpoint;
 }
@@ -111,7 +111,7 @@ vsVector vsView::getViewpoint()
 // Sets the current orientation, using a 'forward' vector and an 'up'
 // vector.
 // ------------------------------------------------------------------------
-void vsView::setDirectionFromVector(vsVector direction, vsVector upDirection)
+void vsView::setDirectionFromVector(atVector direction, atVector upDirection)
 {
     // Copy the forward direction, forcing its size to 3 and normalizing it
     forwardDir.clearCopy(direction);
@@ -129,9 +129,9 @@ void vsView::setDirectionFromVector(vsVector direction, vsVector upDirection)
 // Sets the current orientation, using a 'target' location as the desired
 // place to look in the direction of, and an 'up' direction vector.
 // ------------------------------------------------------------------------
-void vsView::lookAtPoint(vsVector targetPoint, vsVector upDirection)
+void vsView::lookAtPoint(atVector targetPoint, atVector upDirection)
 {
-    vsVector dir;
+    atVector dir;
 
     // Calculate the direction of view as the difference of the current
     // viewpoint and the target point
@@ -151,9 +151,9 @@ void vsView::lookAtPoint(vsVector targetPoint, vsVector upDirection)
 // ------------------------------------------------------------------------
 // Sets the current orientation directly from a rotational quaternion
 // ------------------------------------------------------------------------
-void vsView::setDirectionFromRotation(vsQuat rotQuat)
+void vsView::setDirectionFromRotation(atQuat rotQuat)
 {
-    vsVector forward, up;
+    atVector forward, up;
 
     // Set up two base vectors
     forward.set(0.0, 1.0, 0.0);
@@ -175,9 +175,9 @@ void vsView::setDirectionFromRotation(vsQuat rotQuat)
 // Sets the current orientation directly from a rotation matrix. Removes
 // any scaling and translation on the new matrix.
 // ------------------------------------------------------------------------
-void vsView::setDirectionFromRotation(vsMatrix rotMatrix)
+void vsView::setDirectionFromRotation(atMatrix rotMatrix)
 {
-    vsVector forward, up;
+    atVector forward, up;
 
     // Set up two base vectors
     forward.set(0.0, 1.0, 0.0);
@@ -291,7 +291,7 @@ void vsView::setOffAxisPerspective(double left, double right, double bottom,
 // ------------------------------------------------------------------------
 // Returns a vector indicating the current view direction
 // ------------------------------------------------------------------------
-vsVector vsView::getDirection()
+atVector vsView::getDirection()
 {
     return forwardDir;
 }
@@ -299,7 +299,7 @@ vsVector vsView::getDirection()
 // ------------------------------------------------------------------------
 // Returns a vector indicating the current perceived up direction
 // ------------------------------------------------------------------------
-vsVector vsView::getUpDirection()
+atVector vsView::getUpDirection()
 {
     return upDir;
 }
@@ -307,15 +307,15 @@ vsVector vsView::getUpDirection()
 // ------------------------------------------------------------------------
 // Retrieves the current view rotation quaternion
 // ------------------------------------------------------------------------
-vsMatrix vsView::getRotationMat()
+atMatrix vsView::getRotationMat()
 {
-    vsQuat rotationQuat;
-    vsMatrix result;
+    atQuat rotationQuat;
+    atMatrix result;
 
     // Find the quaternion that rotates the origin directions to the
     // current directions
-    rotationQuat.setVecsRotation(vsVector(0.0, 1.0, 0.0),
-                                 vsVector(0.0, 0.0, 1.0),
+    rotationQuat.setVecsRotation(atVector(0.0, 1.0, 0.0),
+                                 atVector(0.0, 0.0, 1.0),
                                  forwardDir,
                                  upDir);
 

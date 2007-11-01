@@ -142,7 +142,7 @@ void vsWSSpaceball::update()
     XDeviceButtonEvent *buttonEvent;
     int                i;
     int                sbData[6];
-    vsVector           tempVec;
+    atVector           tempVec;
     int                buttonNumber;
 
     vsInputButton      *button;
@@ -168,16 +168,16 @@ void vsWSSpaceball::update()
 
                 // Process position
                 tempVec.setSize(3);
-                tempVec[VS_X] = (float)sbData[0] / 32767.0f;
-                tempVec[VS_Y] = (float)sbData[1] / 32767.0f;
-                tempVec[VS_Z] = (float)sbData[2] / 32767.0f;
+                tempVec[AT_X] = (float)sbData[0] / 32767.0f;
+                tempVec[AT_Y] = (float)sbData[1] / 32767.0f;
+                tempVec[AT_Z] = (float)sbData[2] / 32767.0f;
                 spaceball->setPosition(tempVec);
 
                 // Process orientation
-                tempVec[VS_H] = (float)sbData[3] / 32767.0f;
-                tempVec[VS_P] = (float)sbData[4] / 32767.0f;
-                tempVec[VS_R] = (float)sbData[5] / 32767.0f;
-                spaceball->setOrientation(tempVec, VS_EULER_ANGLES_ZXY_R);
+                tempVec[AT_H] = (float)sbData[3] / 32767.0f;
+                tempVec[AT_P] = (float)sbData[4] / 32767.0f;
+                tempVec[AT_R] = (float)sbData[5] / 32767.0f;
+                spaceball->setOrientation(tempVec, AT_EULER_ANGLES_ZXY_R);
             }
         }
     }

@@ -188,8 +188,8 @@ void vsHandCollision::loadConfiguration(FILE *fp)
     char segmentCompName[VS_HC_MAX_SENSORS][100];
     vsNode *searchNode;
     vsComponent *sideComp;
-    vsVector center, side;
-    vsMatrix globalMat;
+    atVector center, side;
+    atMatrix globalMat;
     int i;
 
     // Initialize error-checking variables
@@ -605,7 +605,7 @@ bool vsHandCollision::getIsectValid(int sensorIndex)
 // ------------------------------------------------------------------------
 // Pass-through function for low-level access to the intersection point
 // ------------------------------------------------------------------------
-vsVector vsHandCollision::getIsectPoint(int sensorIndex)
+atVector vsHandCollision::getIsectPoint(int sensorIndex)
 {
     return sphIsect->getIsectPoint(sensorIndex);
 }
@@ -613,7 +613,7 @@ vsVector vsHandCollision::getIsectPoint(int sensorIndex)
 // ------------------------------------------------------------------------
 // Pass-through function for low-level access to the intersection normal
 // ------------------------------------------------------------------------
-vsVector vsHandCollision::getIsectNorm(int sensorIndex)
+atVector vsHandCollision::getIsectNorm(int sensorIndex)
 {
     return sphIsect->getIsectNorm(sensorIndex);
 }
@@ -621,7 +621,7 @@ vsVector vsHandCollision::getIsectNorm(int sensorIndex)
 // ------------------------------------------------------------------------
 // Pass-through function for low-level access to the intersection transform
 // ------------------------------------------------------------------------
-vsMatrix vsHandCollision::getIsectXform(int sensorIndex)
+atMatrix vsHandCollision::getIsectXform(int sensorIndex)
 {
     return sphIsect->getIsectXform(sensorIndex);
 }
@@ -681,8 +681,8 @@ void vsHandCollision::disableHighlighting()
 // ------------------------------------------------------------------------
 void vsHandCollision::update()
 {
-    vsMatrix globalTransform;
-    vsVector center, side;
+    atMatrix globalTransform;
+    atVector center, side;
     int i;
     bool hit;
 

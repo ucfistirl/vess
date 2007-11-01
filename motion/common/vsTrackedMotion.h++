@@ -53,13 +53,13 @@ protected:
     bool               orientationEnabled;
     
     // User-specified offsets from the actual tracker position
-    vsVector           positionOffset;
-    vsQuat             orientationOffset;
+    atVector           positionOffset;
+    atQuat             orientationOffset;
     
     // Calibration offsets from the actual tracker position (set with the
     // reset method)
-    vsVector           resetPosition;
-    vsQuat             resetOrientation;
+    atVector           resetPosition;
+    atQuat             resetOrientation;
 
     // Scale factor to convert tracker units to database units
     double             positionScale;
@@ -83,10 +83,10 @@ public:
     void                  disableOrientationTracking();
     
     // Accessors for the user-specified offsets
-    void                  setPositionOffset(vsVector newOffset);
-    vsVector              getPositionOffset();
-    void                  setOrientationOffset(vsQuat newOffset);
-    vsQuat                getOrientationOffset();
+    void                  setPositionOffset(atVector newOffset);
+    atVector              getPositionOffset();
+    void                  setOrientationOffset(atQuat newOffset);
+    atQuat                getOrientationOffset();
 
     // Position scaling
     void                  setPositionScale(double scale);

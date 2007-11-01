@@ -60,19 +60,19 @@ vsPhantomSystem::vsPhantomSystem(char *serverName, u_short port,
     sendBuffer = (u_char *) malloc(sendBufferLength);
 
     // Matrix to convert from coordinate systems, GHOST to VESS.
-    gstToVsRotation = vsMatrix();
-    gstToVsRotation.setEulerRotation(VS_EULER_ANGLES_XYZ_R, 90.0, 0.0, 0.0);
+    gstToVsRotation = atMatrix();
+    gstToVsRotation.setEulerRotation(AT_EULER_ANGLES_XYZ_R, 90.0, 0.0, 0.0);
 
     // Matrix to convert from coordinate systems, VESS to GHOST.
-    vsToGstRotation = vsMatrix();
-    vsToGstRotation.setEulerRotation(VS_EULER_ANGLES_XYZ_R, -90.0, 0.0, 0.0);
+    vsToGstRotation = atMatrix();
+    vsToGstRotation.setEulerRotation(AT_EULER_ANGLES_XYZ_R, -90.0, 0.0, 0.0);
 
     // Create the phantom object which will store all the phantom information.
     phantom = new vsPhantom();
 
     // Initialize its position and orientation to nothing (zero).
-    phantom->setPosition(vsVector(0.0, 0.0, 0.0));
-    phantom->setOrientation(vsVector(0.0, 0.0, 0.0), VS_EULER_ANGLES_XYZ_R);
+    phantom->setPosition(atVector(0.0, 0.0, 0.0));
+    phantom->setOrientation(atVector(0.0, 0.0, 0.0), AT_EULER_ANGLES_XYZ_R);
 
     // If a connection was established, perform initialization for the phantom.
     if (connected)
@@ -331,7 +331,7 @@ double vsPhantomSystem::getScale(void)
     return(positionScale);
 }
 
-bool vsPhantomSystem::setForce(vsVector force)
+bool vsPhantomSystem::setForce(atVector force)
 {
     double vectorValues[3];
     bool   status;
@@ -550,8 +550,8 @@ bool vsPhantomSystem::resetPhantom(void)
         printf("Resetting Phantom to its current position.\n");
 
         // Set the phantom device information to reset values.
-        phantom->setPosition(vsVector(0.0, 0.0, 0.0));
-        phantom->setOrientation(vsVector(0.0, 0.0, 0.0), VS_EULER_ANGLES_XYZ_R);
+        phantom->setPosition(atVector(0.0, 0.0, 0.0));
+        phantom->setOrientation(atVector(0.0, 0.0, 0.0), AT_EULER_ANGLES_XYZ_R);
 
         // Attempt to reset, if there is an error, handle it.
         writeCommand(PS_PROTOCOL_VERSION, PS_COMMAND_RESET, 0, NULL);
@@ -574,9 +574,9 @@ void vsPhantomSystem::update(void)
     u_short      dataLength;
     u_char       *data;
     PhantomState *phantomState;
-    vsVector     position;
-    vsVector     velocity;
-    vsMatrix     vsStylusMatrix;
+    atVector     position;
+    atVector     velocity;
+    atMatrix     vsStylusMatrix;
     int          i;
     int          j;
 
@@ -601,7 +601,7 @@ void vsPhantomSystem::update(void)
             }
 
             // Create the velocity vector.
-            velocity = vsVector(ntohd(phantomState->velocityData[0]),
+            velocity = atVector(ntohd(phantomState->velocityData[0]),
               ntohd(phantomState->velocityData[1]),
               ntohd(phantomState->velocityData[2]));
 
@@ -630,9 +630,9 @@ void vsPhantomSystem::update(void)
             // position.  This can be done since they are a translation from
             // the origin.
             position.setSize(3);
-            position[VS_X] = vsStylusMatrix.getValue(0,3);
-            position[VS_Y] = vsStylusMatrix.getValue(1,3);
-            position[VS_Z] = vsStylusMatrix.getValue(2,3);
+            position[AT_X] = vsStylusMatrix.getValue(0,3);
+            position[AT_Y] = vsStylusMatrix.getValue(1,3);
+            position[AT_Z] = vsStylusMatrix.getValue(2,3);
 
             // Set the phantom position values to the VESS device.
             // Scale it according to the set position scale.

@@ -42,7 +42,7 @@ vsFastrak::vsFastrak(int portNumber, long baud, int nTrackers)
 {
     char   portDevice[20];
     int    i;
-    vsQuat quat1, quat2;
+    atQuat quat1, quat2;
 
     // Determine the platform-dependent serial device
     // name
@@ -181,8 +181,8 @@ const char *vsFastrak::getClassName()
 void vsFastrak::serverLoop()
 {
     int               i;
-    vsVector          posVec;
-    vsQuat            ornQuat;
+    atVector          posVec;
+    atQuat            ornQuat;
     unsigned char     buf;
 
     // Set up the signal handler
@@ -486,9 +486,9 @@ void vsFastrak::setBinaryOutput()
 }
 
 // ------------------------------------------------------------------------
-// Update the given tracker's position with the given vsVector
+// Update the given tracker's position with the given atVector
 // ------------------------------------------------------------------------
-void vsFastrak::updatePosition(int trackerNum, vsVector positionVec)
+void vsFastrak::updatePosition(int trackerNum, atVector positionVec)
 {
     // Validate the tracker number
     if (trackerNum < numTrackers)
@@ -502,20 +502,20 @@ void vsFastrak::updatePosition(int trackerNum, vsVector positionVec)
 }
 
 // ------------------------------------------------------------------------
-// Update the given tracker's orientation with the given vsVector of Euler
+// Update the given tracker's orientation with the given atVector of Euler
 // angles
 // ------------------------------------------------------------------------
-void vsFastrak::updateRelativePosition(int trackerNum, vsVector deltaVec)
+void vsFastrak::updateRelativePosition(int trackerNum, atVector deltaVec)
 {
-    vsVector currentPosVec;
+    atVector currentPosVec;
 
     // Validate the tracker number
     if (trackerNum < numTrackers)
     {
         // Get the tracker's current position
-        currentPosVec[VS_X] = tracker[trackerNum]->getAxis(VS_X)->getPosition();
-        currentPosVec[VS_Y] = tracker[trackerNum]->getAxis(VS_Y)->getPosition();
-        currentPosVec[VS_Z] = tracker[trackerNum]->getAxis(VS_Z)->getPosition();
+        currentPosVec[AT_X] = tracker[trackerNum]->getAxis(AT_X)->getPosition();
+        currentPosVec[AT_Y] = tracker[trackerNum]->getAxis(AT_Y)->getPosition();
+        currentPosVec[AT_Z] = tracker[trackerNum]->getAxis(AT_Z)->getPosition();
 
         // Convert deltaVec to VESS coordinates before adding
         deltaVec = coordXform.rotatePoint(deltaVec);
@@ -529,19 +529,19 @@ void vsFastrak::updateRelativePosition(int trackerNum, vsVector deltaVec)
 }
 
 // ------------------------------------------------------------------------
-// Update the given tracker's orientation with the given vsVector of Euler
+// Update the given tracker's orientation with the given atVector of Euler
 // angles
 // ------------------------------------------------------------------------
-void vsFastrak::updateAngles(int trackerNum, vsVector orientationVec)
+void vsFastrak::updateAngles(int trackerNum, atVector orientationVec)
 {
-    vsQuat ornQuat;
+    atQuat ornQuat;
 
     // Validate the tracker number
     if (trackerNum < numTrackers)
     {
         // Convert to VESS coordinates
-        ornQuat.setEulerRotation(VS_EULER_ANGLES_ZYX_R, orientationVec[VS_H],
-            orientationVec[VS_P], orientationVec[VS_R]);
+        ornQuat.setEulerRotation(AT_EULER_ANGLES_ZYX_R, orientationVec[AT_H],
+            orientationVec[AT_P], orientationVec[AT_R]);
         ornQuat = coordXform * ornQuat * coordXform;
 
         // Update the tracker
@@ -550,11 +550,11 @@ void vsFastrak::updateAngles(int trackerNum, vsVector orientationVec)
 }
 
 // ------------------------------------------------------------------------
-// Update the given tracker's orientation with the given vsMatrix
+// Update the given tracker's orientation with the given atMatrix
 // ------------------------------------------------------------------------
-void vsFastrak::updateMatrix(int trackerNum, vsMatrix orientationMat)
+void vsFastrak::updateMatrix(int trackerNum, atMatrix orientationMat)
 {
-    vsQuat ornQuat;
+    atQuat ornQuat;
 
     // Validate the tracker number
     if (trackerNum < numTrackers)
@@ -569,11 +569,11 @@ void vsFastrak::updateMatrix(int trackerNum, vsMatrix orientationMat)
 }
 
 // ------------------------------------------------------------------------
-// Update the given tracker's orientation with the given vsQuat
+// Update the given tracker's orientation with the given atQuat
 // ------------------------------------------------------------------------
-void vsFastrak::updateQuat(int trackerNum, vsQuat quat)
+void vsFastrak::updateQuat(int trackerNum, atQuat quat)
 {
-    vsQuat ornQuat;
+    atQuat ornQuat;
 
     // Validate the tracker number
     if (trackerNum < numTrackers)
@@ -615,10 +615,10 @@ void vsFastrak::updateSystem()
     short         lsb, msb;
     short         tempShort;
     float         tempFloat;
-    vsVector      tempVec;
-    vsVector      deltaVec;
-    vsMatrix      tempMat;
-    vsQuat        tempQuat;
+    atVector      tempVec;
+    atVector      deltaVec;
+    atMatrix      tempMat;
+    atQuat        tempQuat;
 
     // Check to see if the FASTRAK streaming
     if (streaming)
@@ -748,7 +748,7 @@ void vsFastrak::updateSystem()
 
                         case VS_FT_FORMAT_POSITION:
                             // Extract the position elements and form a
-                            // vsVector
+                            // atVector
                             for (j = 0; j < 3; j++)
                             {
                                 endianSwap((float *)(&buf[bufIndex]),
@@ -763,7 +763,7 @@ void vsFastrak::updateSystem()
 
                         case VS_FT_FORMAT_REL_POS:
                             // Extract the position elements and form a
-                            // vsVector
+                            // atVector
                             for (j = 0; j < 3; j++)
                             {
                                 endianSwap((float *)(&buf[bufIndex]),
@@ -791,7 +791,7 @@ void vsFastrak::updateSystem()
                             break;
 
                         case VS_FT_FORMAT_MATRIX:
-                            // Extract the matrix elements into a vsMatrix
+                            // Extract the matrix elements into a atMatrix
                             for (j = 0; j < 9; j++)
                             {
                                 endianSwap((float *)(&buf[bufIndex]), 
@@ -805,14 +805,14 @@ void vsFastrak::updateSystem()
                             break;
 
                         case VS_FT_FORMAT_QUAT:
-                            // Extract the quaternion elements into a vsQuat
+                            // Extract the quaternion elements into a atQuat
                             for (j = 0; j < 4; j++)
                             {
                                 endianSwap((float *)&buf[bufIndex], 
                                     &tempFloat);
 
                                 // The Fastrak sends the scalar part first,
-                                // but the vsQuat expects it last, so we have
+                                // but the atQuat expects it last, so we have
                                 // to account for this by shifting the indices
                                 tempQuat[(j+1) % 4] = tempFloat;
 
@@ -824,7 +824,7 @@ void vsFastrak::updateSystem()
                             break;
 
                         case VS_FT_FORMAT_16BIT_POS:
-                            // Extract the coordinates into a vsVector
+                            // Extract the coordinates into a atVector
                             // The method is described in the FASTRAK
                             // manual
                             for (j = 0; j < 3; j++)
@@ -852,7 +852,7 @@ void vsFastrak::updateSystem()
                             break;
 
                         case VS_FT_FORMAT_16BIT_ANGLES:
-                            // Extract the matrix elements into a vsVector
+                            // Extract the matrix elements into a atVector
                             // The method is described in the FASTRAK
                             // manual
                             for (j = 0; j < 3; j++)
@@ -875,7 +875,7 @@ void vsFastrak::updateSystem()
                             break;
 
                         case VS_FT_FORMAT_16BIT_QUAT:
-                            // Extract the elements into a vsQuat
+                            // Extract the elements into a atQuat
                             // The method is described in the FASTRAK
                             // manual
                             for (j = 0; j < 4; j++)
@@ -990,8 +990,8 @@ void vsFastrak::stopStream()
 // ------------------------------------------------------------------------
 // Adjust the alignment frame for the specified station
 // ------------------------------------------------------------------------
-void vsFastrak::setAlignment(int station, vsVector origin, vsVector positiveX, 
-                             vsVector positiveY)
+void vsFastrak::setAlignment(int station, atVector origin, atVector positiveX, 
+                             atVector positiveY)
 {
     unsigned char buf[VS_FT_SIZE_CMD_PACKET];
     int           index;
@@ -1010,15 +1010,15 @@ void vsFastrak::setAlignment(int station, vsVector origin, vsVector positiveX,
 
     // Set the new alignment frame
     index = 2;
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", origin[VS_X]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", origin[VS_Y]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", origin[VS_Z]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveX[VS_X]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveX[VS_Y]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveX[VS_Z]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveY[VS_X]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveY[VS_Y]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveY[VS_Z]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", origin[AT_X]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", origin[AT_Y]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", origin[AT_Z]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveX[AT_X]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveX[AT_Y]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveX[AT_Z]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveY[AT_X]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveY[AT_Y]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveY[AT_Z]);
     buf[index] = '\r';
 
     // Send the packet
@@ -1046,7 +1046,7 @@ void vsFastrak::resetAlignment(int station)
 // Adjust the transmitter mounting frame for the given station to the given 
 // orientation.
 // ------------------------------------------------------------------------
-void vsFastrak::setMountingFrame(int station, vsVector orientation)
+void vsFastrak::setMountingFrame(int station, atVector orientation)
 {
     unsigned char buf[VS_FT_SIZE_CMD_PACKET];
     int           index;
@@ -1057,9 +1057,9 @@ void vsFastrak::setMountingFrame(int station, vsVector orientation)
 
     // Set up the mounting frame
     index = 2;
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", orientation[VS_H]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", orientation[VS_P]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", orientation[VS_R]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", orientation[AT_H]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", orientation[AT_P]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", orientation[AT_R]);
     buf[index] = '\r';
 
     // Send the command
@@ -1087,7 +1087,7 @@ void vsFastrak::setSyncMode(int syncMode)
 // Set the active hemisphere of the given station to the one specified by 
 // the given vector
 // ------------------------------------------------------------------------
-void vsFastrak::setActiveHemisphere(int station, vsVector zenithVec)
+void vsFastrak::setActiveHemisphere(int station, atVector zenithVec)
 {
     unsigned char buf[VS_FT_SIZE_CMD_PACKET];
     int           index;
@@ -1098,9 +1098,9 @@ void vsFastrak::setActiveHemisphere(int station, vsVector zenithVec)
 
     // Set the zenith vector of the new hemisphere
     index = 2;
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", zenithVec[VS_X]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", zenithVec[VS_Y]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", zenithVec[VS_Z]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", zenithVec[AT_X]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", zenithVec[AT_Y]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", zenithVec[AT_Z]);
     buf[index] = '\r';
 
     // Send the command
@@ -1341,8 +1341,8 @@ vsMotionTracker *vsFastrak::getTracker(int index)
 void vsFastrak::update()
 {
     int i;
-    vsVector posVec;
-    vsQuat   ornQuat;
+    atVector posVec;
+    atQuat   ornQuat;
 
     // Check to see if we've forked a server process
     if (forked)

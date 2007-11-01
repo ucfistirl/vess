@@ -27,7 +27,7 @@
 
 #include "vsFPSMotion.h++"
 #include <stdio.h>
-#include "vsMatrix.h++"
+#include "atMatrix.h++"
 #include "vsTimer.h++"
 
 // ------------------------------------------------------------------------
@@ -272,14 +272,14 @@ void vsFPSMotion::update()
 {
     double   interval;
     double   dHeading, dPitch;
-    vsQuat   headingQuat, pitchQuat;
+    atQuat   headingQuat, pitchQuat;
     double   currentPitch, newPitch;
-    vsVector deltaV;
-    vsQuat   orn;
-    vsQuat   inverseOrn;
-    vsVector dPos;
-    vsMatrix transMat, rotMat;
-    vsMatrix movement;
+    atVector deltaV;
+    atQuat   orn;
+    atQuat   inverseOrn;
+    atVector dPos;
+    atMatrix transMat, rotMat;
+    atMatrix movement;
 
     // Get elapsed time
     interval = vsTimer::getSystemTimer()->getInterval();
@@ -312,7 +312,7 @@ void vsFPSMotion::update()
         // restrictions.  First, decompose the orientation quaternion, and get 
         // the quaternion that represents current rotation around the X axis.
         pitchQuat = viewKinematics->getOrientation().
-            getDecomposition(vsVector(1,0,0));
+            getDecomposition(atVector(1,0,0));
 
         // Now, we can retrieve the degrees rotated around the X axis
         pitchQuat.getAxisAngleRotation(NULL, NULL, NULL, &currentPitch);
@@ -345,9 +345,9 @@ void vsFPSMotion::update()
         // Compute the new speed from the axis position and maximum
         // speed values
         if (forward->getPosition() > 0.0)
-            deltaV[VS_Y] = forward->getPosition() * maxForwardSpeed;
+            deltaV[AT_Y] = forward->getPosition() * maxForwardSpeed;
         else
-            deltaV[VS_Y] = forward->getPosition() * maxReverseSpeed;
+            deltaV[AT_Y] = forward->getPosition() * maxReverseSpeed;
     }
 
     // Handle the strafe axis
@@ -355,12 +355,12 @@ void vsFPSMotion::update()
     {
         // Compute the new speed from the axis position and maximum
         // speed value
-        deltaV[VS_X] = strafe->getPosition() * maxStrafeSpeed;
+        deltaV[AT_X] = strafe->getPosition() * maxStrafeSpeed;
     }
 
     // Get the current heading
     orn = rootKinematics->getOrientation();
-    headingQuat = orn.getDecomposition(vsVector(0,0,1));
+    headingQuat = orn.getDecomposition(atVector(0,0,1));
 
     // Rotate the velocity change vector, based on the kinematics current
     // heading

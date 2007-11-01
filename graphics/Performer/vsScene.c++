@@ -472,7 +472,7 @@ int vsScene::getNodeType()
 // Retrieves the center point and radius of a sphere that encompasses all
 // of the geometry within this object.
 // ------------------------------------------------------------------------
-void vsScene::getBoundSphere(vsVector *centerPoint, double *radius)
+void vsScene::getBoundSphere(atVector *centerPoint, double *radius)
 {
     pfSphere boundSphere;
     pfVec3 center;
@@ -480,7 +480,7 @@ void vsScene::getBoundSphere(vsVector *centerPoint, double *radius)
     // Get the bounding sphere from Performer
     performerScene->getBound(&boundSphere);
 
-    // Convert the center to a vsVector, if the center is requested
+    // Convert the center to a atVector, if the center is requested
     if (centerPoint)
     {
         center = boundSphere.center;
@@ -495,9 +495,9 @@ void vsScene::getBoundSphere(vsVector *centerPoint, double *radius)
 // ------------------------------------------------------------------------
 // Returns the global transformation matrix of the scene
 // ------------------------------------------------------------------------
-vsMatrix vsScene::getGlobalXform()
+atMatrix vsScene::getGlobalXform()
 {
-    vsMatrix mat;
+    atMatrix mat;
 
     // Scenes aren't allowed transform attributes, so the scene's global
     // transform will always be identity

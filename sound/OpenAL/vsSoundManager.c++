@@ -190,7 +190,7 @@ void vsSoundManager::sortSources()
     bool playing1, playing2;
     int priority1, priority2;
     vsSoundSourceListItem *tempSrc;
-    vsVector listenerPos;
+    atVector listenerPos;
 
     // Get the listener's position (for gain computation)
     listenerPos = soundListener->getLastPosition();

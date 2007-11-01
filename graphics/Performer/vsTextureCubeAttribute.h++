@@ -99,8 +99,8 @@ public:
     void                  setMinFilter(int newFilter);
     int                   getMinFilter();
 
-    void                  setTextureMatrix(vsMatrix newMatrix);
-    vsMatrix              getTextureMatrix();
+    void                  setTextureMatrix(atMatrix newMatrix);
+    atMatrix              getTextureMatrix();
 
     void                  setGenMode(int genMode);
     int                   getGenMode();

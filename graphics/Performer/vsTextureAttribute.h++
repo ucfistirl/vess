@@ -27,7 +27,7 @@
 #include <Performer/pr/pfLinMath.h>
 #include <Performer/pr/pfTexture.h>
 #include "vsStateAttribute.h++"
-#include "vsMatrix.h++"
+#include "atMatrix.h++"
 
 enum vsTextureDirection
 {
@@ -144,8 +144,8 @@ public:
     void                  setGenMode(int genMode);
     int                   getGenMode();
 
-    void                  setTextureMatrix(vsMatrix newMatrix);
-    vsMatrix              getTextureMatrix();
+    void                  setTextureMatrix(atMatrix newMatrix);
+    atMatrix              getTextureMatrix();
 
     unsigned int          getTextureUnit();
 

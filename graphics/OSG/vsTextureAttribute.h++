@@ -30,7 +30,7 @@
 #include <osg/TexGen>
 #include <osg/TexMat>
 #include <osg/Image>
-#include "vsMatrix.h++"
+#include "atMatrix.h++"
 #include "vsStateAttribute.h++"
 
 enum vsTextureDirection
@@ -155,15 +155,16 @@ public:
     void                  setMinFilter(int newFilter);
     int                   getMinFilter();
     
-    void                  setBaseColor(vsVector color);
-    vsVector              getBaseColor();
+    void                  setBaseColor(atVector color);
+    atVector              getBaseColor();
 
     void                  setGenMode(int genMode);
     int                   getGenMode();
     
-    void                  setTextureMatrix(vsMatrix newTransform);
-    vsMatrix              getTextureMatrix();
+    void                  setTextureMatrix(atMatrix newTransform);
+    atMatrix              getTextureMatrix();
 
+    void                  setTextureUnit(unsigned int unit);
     unsigned int          getTextureUnit();
 };
 

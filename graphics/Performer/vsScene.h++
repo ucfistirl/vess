@@ -59,9 +59,9 @@ public:
 
     virtual int             getNodeType();
 
-    virtual void            getBoundSphere(vsVector *centerPoint,
+    virtual void            getBoundSphere(atVector *centerPoint,
                                            double *radius);
-    virtual vsMatrix        getGlobalXform();
+    virtual atMatrix        getGlobalXform();
 
     virtual void            setIntersectValue(unsigned int newValue);
     virtual unsigned int    getIntersectValue();

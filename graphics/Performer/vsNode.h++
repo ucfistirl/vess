@@ -28,8 +28,8 @@
 #include "vsObject.h++"
 #include "vsGrowableArray.h++"
 #include "vsAttribute.h++"
-#include "vsVector.h++"
-#include "vsMatrix.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
 
 #define VS_NODE_NAME_MAX_LENGTH 80
 
@@ -106,9 +106,9 @@ public:
     virtual vsNode      *findNodeByName(const char *targetName);
     virtual vsNode      *findNodeByName(const char *targetName, int index);
 
-    virtual void        getBoundSphere(vsVector *centerPoint,
+    virtual void        getBoundSphere(atVector *centerPoint,
                                        double *radius) = 0;
-    virtual vsMatrix    getGlobalXform() = 0;
+    virtual atMatrix    getGlobalXform() = 0;
 
     virtual void            setIntersectValue(unsigned int newValue) = 0;
     virtual unsigned int    getIntersectValue() = 0;

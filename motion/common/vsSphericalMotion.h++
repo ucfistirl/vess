@@ -74,7 +74,7 @@ protected:
     vsKinematics                   *kinematics;
 
     // Targets
-    vsVector                       targetPoint;
+    atVector                       targetPoint;
     vsComponent                    *targetComp;
 
     // Targeting mode
@@ -114,8 +114,8 @@ public:
     virtual const char    *getClassName();
 
     // Targeting functions
-    void                  setTargetPoint(vsVector targetPt);
-    vsVector              getTargetPoint();
+    void                  setTargetPoint(atVector targetPt);
+    atVector              getTargetPoint();
 
     void                  setTargetComponent(vsComponent *targetCmp);
     vsComponent           *getTargetComponent();

@@ -39,7 +39,7 @@ vsPolaris::vsPolaris(int portNumber, long baud, int nTrackers)
 {
     int i;
     char portDevice[30];
-    vsQuat quat1, quat2;
+    atQuat quat1, quat2;
 
     // Initialize data members
     memset(tracker, 0, sizeof(tracker));
@@ -1152,8 +1152,8 @@ void vsPolaris::printError(char *method, char *header, int code)
 void vsPolaris::serverLoop()
 {
     int      i;
-    vsVector posVec;
-    vsQuat   ornQuat;
+    atVector posVec;
+    atQuat   ornQuat;
 
     // Set up the signal handler
     signal(SIGUSR1, vsPolaris::quitServer);
@@ -1279,9 +1279,9 @@ void vsPolaris::processTrackerData()
     float tx, ty, tz;
     float error;
     int trackerIndex;
-    vsVector translation;
-    vsQuat rotation;
-    vsQuat translationXform;
+    atVector translation;
+    atQuat rotation;
+    atQuat translationXform;
     bool foundIt;
     unsigned char statusByte;
     vsInputButton *button;
@@ -1653,7 +1653,7 @@ double vsPolaris::getTrackingError(int index)
 void vsPolaris::setReferenceFrame(double h, double p, double r)
 {
     // Set up a quaternion representing the given Euler angles
-    referenceFrame.setEulerRotation(VS_EULER_ANGLES_ZXY_R, h, p, r);
+    referenceFrame.setEulerRotation(AT_EULER_ANGLES_ZXY_R, h, p, r);
 }
 
 // ------------------------------------------------------------------------
@@ -1713,8 +1713,8 @@ vsMotionTracker *vsPolaris::getTracker(int index)
 void vsPolaris::update()
 {
     int      i;
-    vsVector posVec;
-    vsQuat   ornQuat;
+    atVector posVec;
+    atQuat   ornQuat;
 
     // Check to see if we're using a forked server process
     if (forked)

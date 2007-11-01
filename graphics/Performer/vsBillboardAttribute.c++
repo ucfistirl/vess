@@ -22,7 +22,7 @@
 
 #include "vsBillboardAttribute.h++"
 
-#include "vsQuat.h++"
+#include "atQuat.h++"
 #include "vsComponent.h++"
 
 // ------------------------------------------------------------------------
@@ -93,7 +93,7 @@ int vsBillboardAttribute::getMode()
 // ------------------------------------------------------------------------
 // Sets the center point of the billboard
 // ------------------------------------------------------------------------
-void vsBillboardAttribute::setCenterPoint(vsVector newCenter)
+void vsBillboardAttribute::setCenterPoint(atVector newCenter)
 {
     centerPoint.clearCopy(newCenter);
     centerPoint.setSize(3);
@@ -106,7 +106,7 @@ void vsBillboardAttribute::setCenterPoint(vsVector newCenter)
 // ------------------------------------------------------------------------
 // Retrieves the center point of the billboard
 // ------------------------------------------------------------------------
-vsVector vsBillboardAttribute::getCenterPoint()
+atVector vsBillboardAttribute::getCenterPoint()
 {
     return centerPoint;
 }
@@ -114,7 +114,7 @@ vsVector vsBillboardAttribute::getCenterPoint()
 // ------------------------------------------------------------------------
 // Sets the 'forward' direction vector for the billboard
 // ------------------------------------------------------------------------
-void vsBillboardAttribute::setFrontDirection(vsVector newFront)
+void vsBillboardAttribute::setFrontDirection(atVector newFront)
 {
     frontDirection.clearCopy(newFront);
     frontDirection.setSize(3);
@@ -124,7 +124,7 @@ void vsBillboardAttribute::setFrontDirection(vsVector newFront)
 // ------------------------------------------------------------------------
 // Retrieves the 'forward' direction vector for the billboard
 // ------------------------------------------------------------------------
-vsVector vsBillboardAttribute::getFrontDirection()
+atVector vsBillboardAttribute::getFrontDirection()
 {
     return frontDirection;
 }
@@ -134,7 +134,7 @@ vsVector vsBillboardAttribute::getFrontDirection()
 // either an axis of rotation, for axially rotating billboards, or an 'up'
 // direction vector, for point rotation billboards.
 // ------------------------------------------------------------------------
-void vsBillboardAttribute::setAxis(vsVector newAxis)
+void vsBillboardAttribute::setAxis(atVector newAxis)
 {
     upAxis.clearCopy(newAxis);
     upAxis.setSize(3);
@@ -144,7 +144,7 @@ void vsBillboardAttribute::setAxis(vsVector newAxis)
 // ------------------------------------------------------------------------
 // Retrieves the axis value for the billboard
 // ------------------------------------------------------------------------
-vsVector vsBillboardAttribute::getAxis()
+atVector vsBillboardAttribute::getAxis()
 {
     return upAxis;
 }
@@ -251,7 +251,7 @@ int vsBillboardAttribute::travCallback(pfTraverser *_trav, void *_userData)
 {
     pfChannel *currentChannel;
     pfMatrix performerMatrix;
-    vsMatrix viewMatrix, xformMatrix;
+    atMatrix viewMatrix, xformMatrix;
     int loop, sloop;
     
     currentChannel = _trav->getChan();
@@ -276,21 +276,21 @@ int vsBillboardAttribute::travCallback(pfTraverser *_trav, void *_userData)
 // Finds the optimal rotation to cause the billboard to face the viewer,
 // and sets the Performer transform to that rotation.
 // ------------------------------------------------------------------------
-void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
-                                           vsMatrix currentXform)
+void vsBillboardAttribute::adjustTransform(atMatrix viewMatrix,
+                                           atMatrix currentXform)
 {
-    vsVector viewpoint, viewDir;
-    vsVector center, front, up;
-    vsVector midAxis, worldUp;
+    atVector viewpoint, viewDir;
+    atVector center, front, up;
+    atVector midAxis, worldUp;
     double theta;
-    vsQuat resultQuat;
-    vsMatrix resultMat, tempMat;
+    atQuat resultQuat;
+    atMatrix resultMat, tempMat;
     pfMatrix performerMat;
     int loop, sloop;
     double dotValue;
-    vsVector cross;
-    vsMatrix invMat;
-    vsVector viewUp;
+    atVector cross;
+    atMatrix invMat;
+    atVector viewUp;
 
     // Transform each important data value about the billboarded object
     // by the series of transforms in the scene above this component
@@ -320,7 +320,7 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
 
         // Calculate the angle between the view vector and the object's
         // forward vector; adjust for the sign change when the cross
-        // product of the two goes negative. (The vsVector.getAngleBetween
+        // product of the two goes negative. (The atVector.getAngleBetween
         // function doesn't take this into account.)
         theta = front.getAngleBetween(viewDir);
         cross = front.getCrossProduct(viewDir);
@@ -366,7 +366,7 @@ void vsBillboardAttribute::adjustTransform(vsMatrix viewMatrix,
 
         // Calculate the angle between the two 'up' vectors; adjust for the
         // sign change when the cross product of the two goes negative. (The
-        // vsVector.getAngleBetween function doesn't take this into account.)
+        // atVector.getAngleBetween function doesn't take this into account.)
         theta = up.getAngleBetween(worldUp);
         cross = up.getCrossProduct(worldUp);
         cross.normalize();

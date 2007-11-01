@@ -683,22 +683,22 @@ double vsPane::getLODScale()
 //-------------------------------------------------------------------------
 // Returns the projection matrix from the current OSG SceneView
 //-------------------------------------------------------------------------
-vsMatrix vsPane::getProjectionMatrix()
+atMatrix vsPane::getProjectionMatrix()
 {
     osg::Matrixd projMat;
     int i, j;
-    vsMatrix result;
+    atMatrix result;
 
     // Retrieve the projection matrix from OSG
     projMat = osgSceneView->getProjectionMatrix();
 
-    // Transpose the matrix to get a vsMatrix (OSG flips them as
+    // Transpose the matrix to get a atMatrix (OSG flips them as
     // compared to VESS)
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             result[i][j] = projMat(j,i);
 
-    // Return the vsMatrix
+    // Return the atMatrix
     return result;
 }
 
@@ -726,19 +726,19 @@ bool vsPane::isVisible()
 // ------------------------------------------------------------------------
 void vsPane::updateView()
 {
-    vsMatrix viewMatrix, xformMatrix;
+    atMatrix viewMatrix, xformMatrix;
     osg::Matrix osgMatrix;
-    vsVector viewPos;
+    atVector viewPos;
     int projMode;
     double projHval, projVval;
     double hFOV, vFOV;
     int paneWidth, paneHeight;
     double aspectMatch;
     vsViewpointAttribute *viewAttr;
-    vsVector eyePoint;
-    vsVector lookDirection;
-    vsVector lookAtPoint;
-    vsVector upDirection;
+    atVector eyePoint;
+    atVector lookDirection;
+    atVector lookAtPoint;
+    atVector upDirection;
     osg::Vec3 osgEyePoint;
     osg::Vec3 osgLookAtPoint;
     osg::Vec3 osgUpDirection;
@@ -790,28 +790,28 @@ void vsPane::updateView()
             {
                 // No FOV specified, so horizontal defaults to 
                 // VS_PANE_DEFAULT_FOV and vertical is aspect-matched
-                hFOV = VS_DEG2RAD(VS_PANE_DEFAULT_FOV);
+                hFOV = AT_DEG2RAD(VS_PANE_DEFAULT_FOV);
                 vFOV = 2 * atan2( tan(0.5 * hFOV), aspectMatch);
-                hFOV = VS_RAD2DEG(hFOV);
-                vFOV = VS_RAD2DEG(vFOV);
+                hFOV = AT_RAD2DEG(hFOV);
+                vFOV = AT_RAD2DEG(vFOV);
             }
             else if (projHval <= 0.0)
             {
                 // Vertical FOV specified, but no horizontal, so 
                 // aspect-match horizontal to vertical
-                vFOV = VS_DEG2RAD(projVval);
+                vFOV = AT_DEG2RAD(projVval);
                 hFOV = 2 * atan(tan(0.5 * vFOV) * aspectMatch);
-                hFOV = VS_RAD2DEG(hFOV);
-                vFOV = VS_RAD2DEG(vFOV);
+                hFOV = AT_RAD2DEG(hFOV);
+                vFOV = AT_RAD2DEG(vFOV);
             }
             else if (projVval <= 0.0)
             {
                 // Horizontal FOV specified, but no vertical, so 
                 // aspect-match vertical to horizontal
-                hFOV = VS_DEG2RAD(projHval);
+                hFOV = AT_DEG2RAD(projHval);
                 vFOV = 2 * atan2( tan(0.5 * hFOV), aspectMatch);
-                hFOV = VS_RAD2DEG(hFOV);
-                vFOV = VS_RAD2DEG(vFOV);
+                hFOV = AT_RAD2DEG(hFOV);
+                vFOV = AT_RAD2DEG(vFOV);
             }
             else
             {
@@ -882,11 +882,11 @@ void vsPane::updateView()
         upDirection = sceneView->getUpDirection();
 
         // Copy the relevant vectors into OSG vectors
-        osgEyePoint.set(eyePoint[VS_X], eyePoint[VS_Y], eyePoint[VS_Z]);
-        osgLookAtPoint.set(lookAtPoint[VS_X], lookAtPoint[VS_Y], 
-            lookAtPoint[VS_Z]);
-        osgUpDirection.set(upDirection[VS_X], upDirection[VS_Y], 
-            upDirection[VS_Z]);
+        osgEyePoint.set(eyePoint[AT_X], eyePoint[AT_Y], eyePoint[AT_Z]);
+        osgLookAtPoint.set(lookAtPoint[AT_X], lookAtPoint[AT_Y], 
+            lookAtPoint[AT_Z]);
+        osgUpDirection.set(upDirection[AT_X], upDirection[AT_Y], 
+            upDirection[AT_Z]);
 
         // Set the current view matrix using the 'look at' interface
         osgSceneView->setViewMatrixAsLookAt(osgEyePoint, osgLookAtPoint, 

@@ -60,8 +60,8 @@ protected:
 
     bool                 bigEndian;
 
-    vsQuat               coordXform, coordXformInv;
-    vsQuat               referenceFrame;
+    atQuat               coordXform, coordXformInv;
+    atQuat               referenceFrame;
 
     vsSharedInputData    *sharedData;
     bool                 forked;

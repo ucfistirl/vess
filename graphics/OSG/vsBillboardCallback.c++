@@ -51,10 +51,10 @@ vsBillboardCallback::~vsBillboardCallback()
 void vsBillboardCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
 {
     osg::Matrix osgMatrix;
-    vsMatrix viewMatrix, xformMatrix;
+    atMatrix viewMatrix, xformMatrix;
     int loop, sloop;
     osgUtil::CullVisitor *osgCullVisitor;
-    vsMatrix coordXform, coordXformInv;
+    atMatrix coordXform, coordXformInv;
     
     // Verify that the NodeVisitor parameter is actually an osg
     // CullVisitor object; bail out if it isn't.

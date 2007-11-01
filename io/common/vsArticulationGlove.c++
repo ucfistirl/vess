@@ -87,7 +87,7 @@ void vsArticulationGlove::update()
     int    i;
     double deg1, deg2;
     double middleRingAbd;
-    vsQuat quat1, quat2;
+    atQuat quat1, quat2;
 
     // A calibrated glove has all axis idle positions at the beginning of
     // the range of motion (joints fully extended).  If we're currently 
@@ -347,9 +347,9 @@ vsInputButton *vsArticulationGlove::getButton(int index)
 }
 
 // ------------------------------------------------------------------------
-// Returns the vsQuat corresponding to the given joint index
+// Returns the atQuat corresponding to the given joint index
 // ------------------------------------------------------------------------
-vsQuat vsArticulationGlove::getJoint(int index)
+atQuat vsArticulationGlove::getJoint(int index)
 {
     // Verify the index is valid, return NULL if not
     if ((index >= 0) && (index < VS_AG_NUM_JOINTS))

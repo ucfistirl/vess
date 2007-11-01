@@ -71,7 +71,7 @@ void vsRelativeObjectMotion::lockTranslation()
 // along the given line).  The axis must be specified in world coordinates.
 // The line is assumed to originate at the object's current position.
 // ------------------------------------------------------------------------
-void vsRelativeObjectMotion::constrainTranslationToLine(vsVector axis)
+void vsRelativeObjectMotion::constrainTranslationToLine(atVector axis)
 {
     // Set the new mode
     translationMode = VS_ROM_TRANS_LINE;
@@ -88,7 +88,7 @@ void vsRelativeObjectMotion::constrainTranslationToLine(vsVector axis)
 // constraint plane, thus the plane originates at the object's current
 // position.
 // ------------------------------------------------------------------------
-void vsRelativeObjectMotion::constrainTranslationToPlane(vsVector normal)
+void vsRelativeObjectMotion::constrainTranslationToPlane(atVector normal)
 {
     // Set the new mode
     translationMode = VS_ROM_TRANS_PLANE;
@@ -122,7 +122,7 @@ void vsRelativeObjectMotion::lockRotation()
 // Sets the rotation constraint mode to axis (rotation allowed only around
 // the given axis)
 // ------------------------------------------------------------------------
-void vsRelativeObjectMotion::constrainRotationToAxis(vsVector axis)
+void vsRelativeObjectMotion::constrainRotationToAxis(atVector axis)
 {
     // Set the new mode
     rotationMode = VS_ROM_ROT_AXIS;
@@ -147,13 +147,13 @@ void vsRelativeObjectMotion::freeRotation()
 // ------------------------------------------------------------------------
 void vsRelativeObjectMotion::attachObject()
 {
-    vsMatrix manipulatorMat, invManipulatorMat;
-    vsQuat invManipulatorQuat;
-    vsMatrix objectMat;
-    vsVector objectPos;
-    vsVector objectManipulatorPos;
-    vsQuat objectOrn;
-    vsQuat objectManipulatorOrn;
+    atMatrix manipulatorMat, invManipulatorMat;
+    atQuat invManipulatorQuat;
+    atMatrix objectMat;
+    atVector objectPos;
+    atVector objectManipulatorPos;
+    atQuat objectOrn;
+    atQuat objectManipulatorOrn;
 
     // Get the global and inverse global transform for the manipulator
     manipulatorMat = manipulatorKin->getComponent()->getGlobalXform();
@@ -162,7 +162,7 @@ void vsRelativeObjectMotion::attachObject()
     
     // Get the object's position in manipulator coordinates
     objectMat = objectKin->getComponent()->getGlobalXform();
-    objectPos = objectMat.getPointXform(vsVector(0,0,0));
+    objectPos = objectMat.getPointXform(atVector(0,0,0));
     objectManipulatorPos = invManipulatorMat.getPointXform(objectPos);
 
     // Get the object's orientation in manipulator coordinates
@@ -204,18 +204,18 @@ bool vsRelativeObjectMotion::isObjectAttached()
 // ------------------------------------------------------------------------
 void vsRelativeObjectMotion::update()
 {
-    vsMatrix manipulatorMat, invManipulatorMat;
-    vsQuat manipulatorQuat, invManipulatorQuat;
-    vsMatrix objectMat;
-    vsVector objectPos;
-    vsVector objectManipulatorPos;
-    vsQuat objectOrn;
-    vsQuat objectManipulatorOrn;
-    vsQuat invObjectManipulatorOrn;
-    vsVector deltaPos;
-    vsQuat deltaOrn;
-    vsVector orthoVec;
-    vsVector deltaAxis;
+    atMatrix manipulatorMat, invManipulatorMat;
+    atQuat manipulatorQuat, invManipulatorQuat;
+    atMatrix objectMat;
+    atVector objectPos;
+    atVector objectManipulatorPos;
+    atQuat objectOrn;
+    atQuat objectManipulatorOrn;
+    atQuat invObjectManipulatorOrn;
+    atVector deltaPos;
+    atQuat deltaOrn;
+    atVector orthoVec;
+    atVector deltaAxis;
     double deltaAngle;
     double rotationDot;
 
@@ -232,7 +232,7 @@ void vsRelativeObjectMotion::update()
     
         // Get the object's position in manipulator coordinates
         objectMat = objectKin->getComponent()->getGlobalXform();
-        objectPos = objectMat.getPointXform(vsVector(0,0,0));
+        objectPos = objectMat.getPointXform(atVector(0,0,0));
         objectManipulatorPos = invManipulatorMat.getPointXform(objectPos);
 
         // Get the object's orientation in manipulator coordinates
@@ -298,8 +298,8 @@ void vsRelativeObjectMotion::update()
         {
             // Get the axis and angle of the delta rotation
             deltaAxis.setSize(3);
-            deltaOrn.getAxisAngleRotation(&deltaAxis[VS_X], &deltaAxis[VS_Y], 
-                &deltaAxis[VS_Z], &deltaAngle);
+            deltaOrn.getAxisAngleRotation(&deltaAxis[AT_X], &deltaAxis[AT_Y], 
+                &deltaAxis[AT_Z], &deltaAngle);
 
             // Make sure the axis is normalized
             deltaAxis.normalize();
@@ -313,8 +313,8 @@ void vsRelativeObjectMotion::update()
 
             // Create a new delta rotation using the constraint axis and
             // the scaled rotation angle
-            deltaOrn.setAxisAngleRotation(rotAxis[VS_X], rotAxis[VS_Y],
-                rotAxis[VS_Z], deltaAngle);
+            deltaOrn.setAxisAngleRotation(rotAxis[AT_X], rotAxis[AT_Y],
+                rotAxis[AT_Z], deltaAngle);
         }
 
         // Modify the object's kinematics

@@ -27,7 +27,7 @@
 #include "vsBox.h++"
 #include "vsGrowableArray.h++"
 #include "vsNode.h++"
-#include "vsVector.h++"
+#include "atVector.h++"
 #include <osg/Group>
 
 class VS_GRAPHICS_DLL vsComponent : public vsNode
@@ -53,8 +53,8 @@ VS_INTERNAL:
     virtual bool      addParent(vsNode *newParent);
     virtual bool      removeParent(vsNode *targetParent);
 
-    virtual void      getAxisAlignedBoxBounds(vsVector * minValues,
-                                              vsVector * maxValues);
+    virtual void      getAxisAlignedBoxBounds(atVector * minValues,
+                                              atVector * maxValues);
 
 public:
 
@@ -77,8 +77,8 @@ public:
     virtual int           getChildCount();
     virtual vsNode        *getChild(int index);
 
-    virtual void          getBoundSphere(vsVector *centerPoint, double *radius);
-    virtual vsMatrix      getGlobalXform();
+    virtual void          getBoundSphere(atVector *centerPoint, double *radius);
+    virtual atMatrix      getGlobalXform();
 
     virtual void            setIntersectValue(unsigned int newValue);
     virtual unsigned int    getIntersectValue();

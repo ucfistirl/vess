@@ -44,14 +44,14 @@ private:
     vsTransformAttribute  *skeletonTransform;
     int                   boneCount;
     int                   lastFoundIndex;
-    vsMatrix              offsetMatrix;
+    atMatrix              offsetMatrix;
     
     void                  copySkeletonTree(vsNode *newNode, vsNode *origNode,
                                            vsGrowableArray *origMap);
 VS_INTERNAL:
 
     void                  updateMatrices(vsNode *node,
-                                         vsMatrix currentMatrix);
+                                         atMatrix currentMatrix);
 
     void                  makeBoneGeometry(vsComponent *currentBone,
                                            vsGeometry *currentBoneLine);
@@ -69,9 +69,9 @@ public:
 
     vsComponent           *getBone(int boneID);
 
-    vsMatrix              *getBoneMatrix(int boneID);
-    vsMatrix              *getITBoneMatrix(int boneID);
-    vsMatrix              *getBoneSpaceMatrix(int boneID);
+    atMatrix              *getBoneMatrix(int boneID);
+    atMatrix              *getITBoneMatrix(int boneID);
+    atMatrix              *getBoneSpaceMatrix(int boneID);
 
     vsGrowableArray       *getBoneMatrixList();
     vsGrowableArray       *getITBoneMatrixList();
@@ -86,8 +86,8 @@ public:
 
     void                  makeBoneGeometry();
 
-    void                  setOffsetMatrix(vsMatrix newOffsetMatrix);
-    vsMatrix              getOffsetMatrix();
+    void                  setOffsetMatrix(atMatrix newOffsetMatrix);
+    atMatrix              getOffsetMatrix();
 
     void                  update();
 };

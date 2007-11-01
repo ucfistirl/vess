@@ -42,9 +42,9 @@
 #include "vsSerialPort.h++"
 #include "vsMotionTracker.h++"
 #include "vsTrackingSystem.h++"
-#include "vsVector.h++"
-#include "vsMatrix.h++"
-#include "vsQuat.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
+#include "atQuat.h++"
 #include "vsSharedInputData.h++"
 
 // Maximum number of receivers when in Standard, Expanded, and
@@ -241,7 +241,7 @@ protected:
     char                 errorString[80];
 
     // Conversion from tracker to VESS coordinates
-    vsQuat               coordXform;
+    atQuat               coordXform;
 
     // Functions for multi-process operation
     void                 serverLoop();

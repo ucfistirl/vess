@@ -497,7 +497,7 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_AMBIENT,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Compare the back ambient colors
@@ -505,7 +505,7 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_AMBIENT,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Compare the front diffuse colors
@@ -513,7 +513,7 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_DIFFUSE,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Compare the back diffuse colors
@@ -521,7 +521,7 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_DIFFUSE,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Compare the front specular colors
@@ -529,7 +529,7 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_SPECULAR,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Compare the back specular colors
@@ -537,7 +537,7 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_SPECULAR,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Compare the front emissive colors
@@ -545,7 +545,7 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_EMISSIVE,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Compare the back emissive colors
@@ -553,31 +553,31 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_EMISSIVE,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Compare the front alpha values
     val1 = getAlpha(VS_MATERIAL_SIDE_FRONT);
     val2 = attr->getAlpha(VS_MATERIAL_SIDE_FRONT);
-    if (!VS_EQUAL(val1,val2))
+    if (!AT_EQUAL(val1,val2))
         return false;
 
     // Compare the back alpha values
     val1 = getAlpha(VS_MATERIAL_SIDE_BACK);
     val2 = attr->getAlpha(VS_MATERIAL_SIDE_BACK);
-    if (!VS_EQUAL(val1,val2))
+    if (!AT_EQUAL(val1,val2))
         return false;
 
     // Compare the front shininess values
     val1 = getShininess(VS_MATERIAL_SIDE_FRONT);
     val2 = attr->getShininess(VS_MATERIAL_SIDE_FRONT);
-    if (!VS_EQUAL(val1,val2))
+    if (!AT_EQUAL(val1,val2))
         return false;
 
     // Compare the back shininess values
     val1 = getShininess(VS_MATERIAL_SIDE_BACK);
     val2 = attr->getShininess(VS_MATERIAL_SIDE_BACK);
-    if (!VS_EQUAL(val1,val2))
+    if (!AT_EQUAL(val1,val2))
         return false;
 
     // Compare the front color mode values

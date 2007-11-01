@@ -257,7 +257,7 @@ double vsPathMotion::getCornerRadius()
 // Sets the point to keep the orientation pointed towards when in ATPOINT
 // orientation interpolation mode
 //------------------------------------------------------------------------
-void vsPathMotion::setLookAtPoint(vsVector point)
+void vsPathMotion::setLookAtPoint(atVector point)
 {
     lookPoint.clearCopy(point);
 }
@@ -266,7 +266,7 @@ void vsPathMotion::setLookAtPoint(vsVector point)
 // Gets the point to keep the orientation pointed towards when in ATPOINT
 // orientation interpolation mode
 //------------------------------------------------------------------------
-vsVector vsPathMotion::getLookAtPoint()
+atVector vsPathMotion::getLookAtPoint()
 {
     return lookPoint;
 }
@@ -279,7 +279,7 @@ vsVector vsPathMotion::getLookAtPoint()
 // up direction causes the path to use the up direction from the previous
 // orientation each frame, causing a sort of 'free-rolling' effect.
 //------------------------------------------------------------------------
-void vsPathMotion::setUpDirection(vsVector up)
+void vsPathMotion::setUpDirection(atVector up)
 {
     upDirection.clearCopy(up);
 }
@@ -287,7 +287,7 @@ void vsPathMotion::setUpDirection(vsVector up)
 //------------------------------------------------------------------------
 // Gets the 'up' direction for the path
 //------------------------------------------------------------------------
-vsVector vsPathMotion::getUpDirection()
+atVector vsPathMotion::getUpDirection()
 {
     return upDirection;
 }
@@ -366,7 +366,7 @@ int vsPathMotion::getPointListSize()
 //------------------------------------------------------------------------
 // Sets the position of one of the key points of the path
 //------------------------------------------------------------------------
-void vsPathMotion::setPosition(int point, vsVector position)
+void vsPathMotion::setPosition(int point, atVector position)
 {
     vsPathMotionSegment *segData;
 
@@ -388,7 +388,7 @@ void vsPathMotion::setPosition(int point, vsVector position)
 //------------------------------------------------------------------------
 // Sets the orientation of the of the key points of the path
 //------------------------------------------------------------------------
-void vsPathMotion::setOrientation(int point, vsQuat orientation)
+void vsPathMotion::setOrientation(int point, atQuat orientation)
 {
     vsPathMotionSegment *segData;
 
@@ -458,7 +458,7 @@ void vsPathMotion::setPauseTime(int point, double seconds)
 //------------------------------------------------------------------------
 // Gets the position of one of the key points of the path
 //------------------------------------------------------------------------
-vsVector vsPathMotion::getPosition(int point)
+atVector vsPathMotion::getPosition(int point)
 {
     vsPathMotionSegment *segData;
 
@@ -467,7 +467,7 @@ vsVector vsPathMotion::getPosition(int point)
     {
         printf("vsPathMotion::getPosition: 'point' parameter (%d) out of "
             "bounds\n", point);
-        return vsVector(0.0, 0.0, 0.0);
+        return atVector(0.0, 0.0, 0.0);
     }
 
     // Get the segment structure from the points array
@@ -480,7 +480,7 @@ vsVector vsPathMotion::getPosition(int point)
 //------------------------------------------------------------------------
 // Gets the orientation of the of the key points of the path
 //------------------------------------------------------------------------
-vsQuat vsPathMotion::getOrientation(int point)
+atQuat vsPathMotion::getOrientation(int point)
 {
     vsPathMotionSegment *segData;
 
@@ -489,7 +489,7 @@ vsQuat vsPathMotion::getOrientation(int point)
     {
         printf("vsPathMotion::getOrientation: 'point' parameter (%d) out "
             "of bounds\n", point);
-        return vsQuat(0.0, 0.0, 0.0, 0.0);
+        return atQuat(0.0, 0.0, 0.0, 0.0);
     }
 
     // Get the segment structure from the points array
@@ -561,7 +561,7 @@ void vsPathMotion::autoSetTimes(double totalPathSeconds)
     double totalPathLength;
     int loop;
     vsPathMotionSegment *segment;
-    vsVector *prevPos, *currentPos, *nextPos, *nextNextPos;
+    atVector *prevPos, *currentPos, *nextPos, *nextNextPos;
 
     // Check for NONE position interpolation mode
     if (posMode == VS_PATH_POS_IMODE_NONE)
@@ -705,8 +705,8 @@ void vsPathMotion::configureFromFile(char *filename)
     char lineBuf[256], commandStr[256], constantStr[256];
     int intValue;
     double doubleValue;
-    vsVector vector(3);
-    vsQuat quat;
+    atVector vector(3);
+    atQuat quat;
 
     // Attempt to open the specified file
     infile = fopen(filename, "r");
@@ -831,7 +831,7 @@ void vsPathMotion::configureFromFile(char *filename)
             // orientation
             sscanf(lineBuf, "%*s %d %lf %lf %lf", &intValue, &(vector[0]),
                 &(vector[1]), &(vector[2]));
-            quat.setEulerRotation(VS_EULER_ANGLES_ZXY_R, vector[0], vector[1],
+            quat.setEulerRotation(AT_EULER_ANGLES_ZXY_R, vector[0], vector[1],
                 vector[2]);
             setOrientation(intValue, quat);
         }
@@ -900,11 +900,11 @@ void vsPathMotion::update()
 void vsPathMotion::update(double deltaTime)
 {
     vsPathMotionSegment *prevSeg, *currentSeg, *nextSeg, *nextNextSeg;
-    vsVector *prevSegPos, *currentSegPos, *nextSegPos, *nextNextSegPos;
-    vsQuat *prevSegOri, *currentSegOri, *nextSegOri, *nextNextSegOri;
+    atVector *prevSegPos, *currentSegPos, *nextSegPos, *nextNextSegPos;
+    atQuat *prevSegOri, *currentSegOri, *nextSegOri, *nextNextSegOri;
     double frameTime, segmentTotalTime;
-    vsVector newPosition;
-    vsQuat newOrientation;
+    atVector newPosition;
+    atQuat newOrientation;
     double parameter;
 
     // If the current play mode is STOPPED, then don't do anything
@@ -1210,7 +1210,7 @@ void vsPathMotion::update(double deltaTime)
     // kinematics object, and also keep a copy of it for next time
     objectKin->setPosition(newPosition);
     currentPos = newPosition;
-    if (!VS_EQUAL(newOrientation.getMagnitude(), 0.0))
+    if (!AT_EQUAL(newOrientation.getMagnitude(), 0.0))
     {
         objectKin->setOrientation(newOrientation);
         currentOri = newOrientation;
@@ -1220,7 +1220,7 @@ void vsPathMotion::update(double deltaTime)
 //------------------------------------------------------------------------
 // Gets the current position
 //------------------------------------------------------------------------
-vsVector vsPathMotion::getCurrentPosition()
+atVector vsPathMotion::getCurrentPosition()
 {
     return currentPos;
 }
@@ -1228,7 +1228,7 @@ vsVector vsPathMotion::getCurrentPosition()
 //------------------------------------------------------------------------
 // Gets the current orientation
 //------------------------------------------------------------------------
-vsQuat vsPathMotion::getCurrentOrientation()
+atQuat vsPathMotion::getCurrentOrientation()
 {
     return currentOri;
 }
@@ -1238,7 +1238,7 @@ vsQuat vsPathMotion::getCurrentOrientation()
 // Calculates the linear (straight line) length of the path segment
 // defined by the two points. Returns zero if either parameter is NULL.
 //------------------------------------------------------------------------
-double vsPathMotion::calcSegLengthLinear(vsVector *vec1, vsVector *vec2)
+double vsPathMotion::calcSegLengthLinear(atVector *vec1, atVector *vec2)
 {
     // NULL parameter check
     if (!vec1 || !vec2)
@@ -1257,11 +1257,11 @@ double vsPathMotion::calcSegLengthLinear(vsVector *vec1, vsVector *vec2)
 // are NULL. Assumes no arc for the beginning or end of the segment if
 // vec0 or vec3 are NULL, respectively.
 //------------------------------------------------------------------------
-double vsPathMotion::calcSegLengthRoundCorner(vsVector *vec0, vsVector *vec1,
-    vsVector *vec2, vsVector *vec3)
+double vsPathMotion::calcSegLengthRoundCorner(atVector *vec0, atVector *vec1,
+    atVector *vec2, atVector *vec3)
 {
     double result;
-    vsVector vecA, vecB;
+    atVector vecA, vecB;
     double theta, arcedOverLength, roundRadius, arcLength;
     double tempDouble;
 
@@ -1290,8 +1290,8 @@ double vsPathMotion::calcSegLengthRoundCorner(vsVector *vec0, vsVector *vec1,
         // segments is being ignored in favor of the round-corner arc. This
         // value cannot be more than half of the straight-line length of the
         // segments, so clip to those half-lengths if needed.
-        arcedOverLength = (roundCornerRadius * sin(VS_DEG2RAD(theta / 2.0))) /
-            sin(VS_DEG2RAD(90 - (theta / 2.0)));
+        arcedOverLength = (roundCornerRadius * sin(AT_DEG2RAD(theta / 2.0))) /
+            sin(AT_DEG2RAD(90 - (theta / 2.0)));
 
         tempDouble = vecA.getMagnitude() / 2.0;
         if (tempDouble < arcedOverLength)
@@ -1303,11 +1303,11 @@ double vsPathMotion::calcSegLengthRoundCorner(vsVector *vec0, vsVector *vec1,
 
         // Now that we know the ignored segment length, compute the actual
         // arc radius from that value
-        roundRadius = (arcedOverLength * sin(VS_DEG2RAD(90 - (theta / 2.0)))) /
-            sin(VS_DEG2RAD(theta / 2.0));
+        roundRadius = (arcedOverLength * sin(AT_DEG2RAD(90 - (theta / 2.0)))) /
+            sin(AT_DEG2RAD(theta / 2.0));
 
         // Compute the actual arc length for the arc segment
-        arcLength = VS_DEG2RAD(theta / 2.0) * roundRadius;
+        arcLength = AT_DEG2RAD(theta / 2.0) * roundRadius;
 
         // Correct the total length of the segment by subtracting the
         // arcedOverLength and adding in instead the arc length of
@@ -1334,8 +1334,8 @@ double vsPathMotion::calcSegLengthRoundCorner(vsVector *vec0, vsVector *vec1,
         // segments is being ignored in favor of the round-corner arc. This
         // value cannot be more than half of the straight-line length of the
         // segments, so clip to those half-lengths if needed.
-        arcedOverLength = (roundCornerRadius * sin(VS_DEG2RAD(theta / 2.0))) /
-            sin(VS_DEG2RAD(90 - (theta / 2.0)));
+        arcedOverLength = (roundCornerRadius * sin(AT_DEG2RAD(theta / 2.0))) /
+            sin(AT_DEG2RAD(90 - (theta / 2.0)));
 
         tempDouble = vecA.getMagnitude() / 2.0;
         if (tempDouble < arcedOverLength)
@@ -1347,11 +1347,11 @@ double vsPathMotion::calcSegLengthRoundCorner(vsVector *vec0, vsVector *vec1,
 
         // Now that we know the ignored segment length, compute the actual
         // arc radius from that value
-        roundRadius = (arcedOverLength * sin(VS_DEG2RAD(90 - (theta / 2.0)))) /
-            sin(VS_DEG2RAD(theta / 2.0));
+        roundRadius = (arcedOverLength * sin(AT_DEG2RAD(90 - (theta / 2.0)))) /
+            sin(AT_DEG2RAD(theta / 2.0));
 
         // Compute the actual arc length for the arc segment
-        arcLength = VS_DEG2RAD(theta / 2.0) * roundRadius;
+        arcLength = AT_DEG2RAD(theta / 2.0) * roundRadius;
 
         // Correct the total length of the segment by subtracting the
         // arcedOverLength and adding in instead the arc length of
@@ -1371,8 +1371,8 @@ double vsPathMotion::calcSegLengthRoundCorner(vsVector *vec0, vsVector *vec1,
 // end points of the segment. Returns zero if vec1 or vec2 are NULL.
 // Assumes values for vec0 and vec3 if either is NULL.
 //------------------------------------------------------------------------
-double vsPathMotion::calcSegLengthSpline(vsVector *vec0, vsVector *vec1,
-    vsVector *vec2, vsVector *vec3)
+double vsPathMotion::calcSegLengthSpline(atVector *vec0, atVector *vec1,
+    atVector *vec2, atVector *vec3)
 {
     // NULL parameter check
     if (!vec1 || !vec2)
@@ -1394,14 +1394,14 @@ double vsPathMotion::calcSegLengthSpline(vsVector *vec0, vsVector *vec1,
 // Private function
 // Helper function used by spline arc length calculations
 //------------------------------------------------------------------------
-double vsPathMotion::calcSubsegLengthSpline(vsVector *vec0, vsVector *vec1,
-    vsVector *vec2, vsVector *vec3, double start, double end)
+double vsPathMotion::calcSubsegLengthSpline(atVector *vec0, atVector *vec1,
+    atVector *vec2, atVector *vec3, double start, double end)
 {
     // This function uses a recursive algorithm to find the arc length
     // of the spline segment located between the two indicated parameters
     // on the spline defined by the given control points.
 
-    vsVector startPt, midPt, endPt;
+    atVector startPt, midPt, endPt;
     double mid;
     double fullLength, firstHalfLength, secondHalfLength;
 
@@ -1427,7 +1427,7 @@ double vsPathMotion::calcSubsegLengthSpline(vsVector *vec0, vsVector *vec1,
     // If the sum of the two half-lengths is 'close enough' to the full
     // straight-line length, then we assume that we don't need to recurse
     // any more and just return the half-lengths sum.
-    if (VS_EQUAL(fullLength, (firstHalfLength + secondHalfLength)))
+    if (AT_EQUAL(fullLength, (firstHalfLength + secondHalfLength)))
         return (firstHalfLength + secondHalfLength);
 
     // The full straight-line estimate is not close enough; break the
@@ -1442,10 +1442,10 @@ double vsPathMotion::calcSubsegLengthSpline(vsVector *vec0, vsVector *vec1,
 // using linear interpolation. Returns one of the points if the other
 // point is NULL, or a zero vector if both points are NULL.
 //------------------------------------------------------------------------
-vsVector vsPathMotion::interpolatePosLinear(vsVector *vec1, vsVector *vec2,
+atVector vsPathMotion::interpolatePosLinear(atVector *vec1, atVector *vec2,
     double parameter)
 {
-    vsVector result(0.0, 0.0, 0.0);
+    atVector result(0.0, 0.0, 0.0);
 
     // NULL parameter check
     if (!vec1 && !vec2)
@@ -1468,15 +1468,15 @@ vsVector vsPathMotion::interpolatePosLinear(vsVector *vec1, vsVector *vec2,
 // is NULL, or a zero vector if both are NULL. Assumes no arc for the
 // beginning or end of the segment of vec0 or vec3 are NULL, respectively.
 //------------------------------------------------------------------------
-vsVector vsPathMotion::interpolatePosRoundCorner(vsVector *vec0, vsVector *vec1,
-    vsVector *vec2, vsVector *vec3, double parameter)
+atVector vsPathMotion::interpolatePosRoundCorner(atVector *vec0, atVector *vec1,
+    atVector *vec2, atVector *vec3, double parameter)
 {
-    vsVector result(0.0, 0.0, 0.0);
+    atVector result(0.0, 0.0, 0.0);
     double roundRadius;
     double theta;
-    vsVector mainControlPoint;
-    vsVector vecA, vecB;
-    vsVector vecAArcVec, vecBArcVec, arcCenter;
+    atVector mainControlPoint;
+    atVector vecA, vecB;
+    atVector vecAArcVec, vecBArcVec, arcCenter;
     double arcAngle;
     double arcedOverLength, arcLength, halfSegmentLength;
     double arcEndParameter, subsegmentParameter;
@@ -1538,8 +1538,8 @@ vsVector vsPathMotion::interpolatePosRoundCorner(vsVector *vec0, vsVector *vec1,
     // segments is being ignored in favor of the round-corner arc. This
     // value cannot be more than half of the straight-line length of the
     // segments, so clip to those half-lengths if needed.
-    arcedOverLength = (roundCornerRadius * sin(VS_DEG2RAD(theta / 2.0))) /
-        sin(VS_DEG2RAD(90 - (theta / 2.0)));
+    arcedOverLength = (roundCornerRadius * sin(AT_DEG2RAD(theta / 2.0))) /
+        sin(AT_DEG2RAD(90 - (theta / 2.0)));
 
     tempDouble = vecA.getMagnitude() / 2.0;
     if (tempDouble < arcedOverLength)
@@ -1551,11 +1551,11 @@ vsVector vsPathMotion::interpolatePosRoundCorner(vsVector *vec0, vsVector *vec1,
 
     // Now that we know the ignored segment length, compute the actual
     // arc radius from that value
-    roundRadius = (arcedOverLength * sin(VS_DEG2RAD(90 - (theta / 2.0)))) /
-        sin(VS_DEG2RAD(theta / 2.0));
+    roundRadius = (arcedOverLength * sin(AT_DEG2RAD(90 - (theta / 2.0)))) /
+        sin(AT_DEG2RAD(theta / 2.0));
 
     // Compute the actual arc length for the arc segment
-    arcLength = VS_DEG2RAD(theta / 2.0) * roundRadius;
+    arcLength = AT_DEG2RAD(theta / 2.0) * roundRadius;
 
     // Compute the total length of the half-segment
     halfSegmentLength =
@@ -1610,7 +1610,7 @@ vsVector vsPathMotion::interpolatePosRoundCorner(vsVector *vec0, vsVector *vec1,
         // of units away equal to the arcedOverLength divided by the
         // sine of half of theta.
         arcCenter = (vecAArcVec + vecBArcVec).getNormalized();
-        arcCenter.scale(arcedOverLength / sin(VS_DEG2RAD(theta / 2.0)));
+        arcCenter.scale(arcedOverLength / sin(AT_DEG2RAD(theta / 2.0)));
 
         // Translate the two arc segment endpoints into the coordinate
         // system defined by the arc center as the origin
@@ -1627,11 +1627,11 @@ vsVector vsPathMotion::interpolatePosRoundCorner(vsVector *vec0, vsVector *vec1,
 
         // slerp
         result = vecAArcVec.getScaled(
-                sin(VS_DEG2RAD((1.0 - subsegmentParameter) * arcAngle)) /
-                sin(VS_DEG2RAD(arcAngle))) +
+                sin(AT_DEG2RAD((1.0 - subsegmentParameter) * arcAngle)) /
+                sin(AT_DEG2RAD(arcAngle))) +
             vecBArcVec.getScaled(
-                sin(VS_DEG2RAD(subsegmentParameter * arcAngle)) /
-                sin(VS_DEG2RAD(arcAngle)));
+                sin(AT_DEG2RAD(subsegmentParameter * arcAngle)) /
+                sin(AT_DEG2RAD(arcAngle)));
 
         // Scale the resulting vector so that it is roundRadius in length
         result.normalize();
@@ -1657,15 +1657,15 @@ vsVector vsPathMotion::interpolatePosRoundCorner(vsVector *vec0, vsVector *vec1,
 // or vec2 if the other is NULL, or a zero vector if both are NULL.
 // Assumes values for vec0 and vec3 if either is NULL.
 //------------------------------------------------------------------------
-vsVector vsPathMotion::interpolatePosSpline(vsVector *vec0, vsVector *vec1,
-    vsVector *vec2, vsVector *vec3, double parameter)
+atVector vsPathMotion::interpolatePosSpline(atVector *vec0, atVector *vec1,
+    atVector *vec2, atVector *vec3, double parameter)
 {
     // Uses a Catmull-Rom derivation of a spline, which is essentially
     // just a Hermite spline, with a special formula for calculating the
     // curve tangents at the control points.
 
-    vsVector result(0.0, 0.0, 0.0);
-    vsVector startTangent, endTangent;
+    atVector result(0.0, 0.0, 0.0);
+    atVector startTangent, endTangent;
     double paramSqr, paramCube;
 
     // NULL parameter check
@@ -1719,10 +1719,10 @@ vsVector vsPathMotion::interpolatePosSpline(vsVector *vec0, vsVector *vec1,
 // one of the quaterions if the other is NULL, or a no-rotation quaternion
 // if they are both NULL.
 //------------------------------------------------------------------------
-vsQuat vsPathMotion::interpolateOriSlerp(vsQuat *ori1, vsQuat *ori2,
+atQuat vsPathMotion::interpolateOriSlerp(atQuat *ori1, atQuat *ori2,
     double parameter)
 {
-    vsQuat result(0.0, 0.0, 0.0, 1.0);
+    atQuat result(0.0, 0.0, 0.0, 1.0);
 
     // NULL parameter check
     if (!ori1 && !ori2)
@@ -1745,18 +1745,18 @@ vsQuat vsPathMotion::interpolateOriSlerp(vsQuat *ori1, vsQuat *ori2,
 // ori2 if the other is NULL, or a no-rotation quaternion if they are both
 // NULL. Assumes values for ori0 or ori3 if either is NULL.
 //------------------------------------------------------------------------
-vsQuat vsPathMotion::interpolateOriSpline(vsQuat *ori0, vsQuat *ori1,
-    vsQuat *ori2, vsQuat *ori3, double parameter)
+atQuat vsPathMotion::interpolateOriSpline(atQuat *ori0, atQuat *ori1,
+    atQuat *ori2, atQuat *ori3, double parameter)
 {
     // Based on the algorithm for spline interpolation described in
     // 'Animating Rotation with Quaternion Curves', Ken Shoemake, SIGGRAPH
     // 1985.
 
-    vsQuat result(0.0, 0.0, 0.0, 1.0);
-    vsQuat oriZero, oriThree;
-    vsQuat aQuat, bQuat;
-    vsQuat tempQuat;
-    vsQuat q11, q12, q13, q21, q22;
+    atQuat result(0.0, 0.0, 0.0, 1.0);
+    atQuat oriZero, oriThree;
+    atQuat aQuat, bQuat;
+    atQuat tempQuat;
+    atQuat q11, q12, q13, q21, q22;
 
     // NULL parameter check
     if (!ori1 && !ori2)
@@ -1800,17 +1800,17 @@ vsQuat vsPathMotion::interpolateOriSpline(vsQuat *ori0, vsQuat *ori1,
 // orientation to an orientation that points an object at currentPt in the
 // direction of facePt.
 //------------------------------------------------------------------------
-vsQuat vsPathMotion::interpolateOriToPt(vsVector currentPt, vsVector facePt)
+atQuat vsPathMotion::interpolateOriToPt(atVector currentPt, atVector facePt)
 {
-    vsQuat result(0.0, 0.0, 0.0, 0.0);
-    vsVector forwardVec, upVec;
-    vsVector yVec, zVec;
+    atQuat result(0.0, 0.0, 0.0, 0.0);
+    atVector forwardVec, upVec;
+    atVector yVec, zVec;
 
     // Determine the forward-facing direction by computing the vector from
     // the current poing to the face point. If this vector is zero-length,
     // abort.
     forwardVec = facePt - currentPt;
-    if (VS_EQUAL(forwardVec.getMagnitude(), 0.0))
+    if (AT_EQUAL(forwardVec.getMagnitude(), 0.0))
         return result;
     forwardVec.normalize();
 
@@ -1822,7 +1822,7 @@ vsQuat vsPathMotion::interpolateOriToPt(vsVector currentPt, vsVector facePt)
     // vector set by the user. If it is zero, get the up direction from
     // the current orientation. Otherwise, copy the up direction and
     // normalize it.
-    if (VS_EQUAL(upDirection.getMagnitude(), 0.0))
+    if (AT_EQUAL(upDirection.getMagnitude(), 0.0))
     {
         // Rotate a generic up vector by the current orientation to get
         // the current up vector
@@ -1846,7 +1846,7 @@ vsQuat vsPathMotion::interpolateOriToPt(vsVector currentPt, vsVector facePt)
 // Private function
 // Helper function used by quaternion spline calculations
 //------------------------------------------------------------------------
-vsQuat vsPathMotion::quatHalfway(vsQuat a, vsQuat b, vsQuat c)
+atQuat vsPathMotion::quatHalfway(atQuat a, atQuat b, atQuat c)
 {
     // This function creates a new spline control point, based on the
     // rotations in the q[n-1], q[n], and q[n+1] control points. This new
@@ -1856,7 +1856,7 @@ vsQuat vsPathMotion::quatHalfway(vsQuat a, vsQuat b, vsQuat c)
     // reduced by a factor fo three, to account for how much effect the
     // extra control point has on the final shape of the rotation curve.
 
-    vsQuat abQuat, bcQuat, bisect;
+    atQuat abQuat, bcQuat, bisect;
     double x, y, z, degrees;
 
     // Find the relative rotations from q[n-1] to q[n] and from q[n] to

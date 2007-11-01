@@ -37,7 +37,7 @@ private:
     vsKinematics    *kinematics;
     vsNode          *scene;
     
-    vsVector        pointOffset;
+    atVector        pointOffset;
     double          stepHeight;
     
     vsIntersect     *intersect;
@@ -49,8 +49,8 @@ public:
 
     virtual const char    *getClassName();
 
-    void                  setBaseOffset(vsVector newOffset);
-    vsVector              getBaseOffset();
+    void                  setBaseOffset(atVector newOffset);
+    atVector              getBaseOffset();
     
     void                  setStepHeight(double newHeight);
     double                getStepHeight();

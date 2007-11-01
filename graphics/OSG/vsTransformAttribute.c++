@@ -72,7 +72,7 @@ int vsTransformAttribute::getAttributeCategory()
 // ------------------------------------------------------------------------
 // Sets the pre-transform matrix
 // ------------------------------------------------------------------------
-void vsTransformAttribute::setPreTransform(vsMatrix newTransform)
+void vsTransformAttribute::setPreTransform(atMatrix newTransform)
 {
     preMatrix = newTransform;
     
@@ -87,7 +87,7 @@ void vsTransformAttribute::setPreTransform(vsMatrix newTransform)
 // ------------------------------------------------------------------------
 // Retrieves the pre-transform matrix
 // ------------------------------------------------------------------------
-vsMatrix vsTransformAttribute::getPreTransform()
+atMatrix vsTransformAttribute::getPreTransform()
 {
     return preMatrix;
 }
@@ -95,7 +95,7 @@ vsMatrix vsTransformAttribute::getPreTransform()
 // ------------------------------------------------------------------------
 // Sets the dynamic transform matrix
 // ------------------------------------------------------------------------
-void vsTransformAttribute::setDynamicTransform(vsMatrix newTransform)
+void vsTransformAttribute::setDynamicTransform(atMatrix newTransform)
 {
     dynMatrix = newTransform;
     
@@ -110,7 +110,7 @@ void vsTransformAttribute::setDynamicTransform(vsMatrix newTransform)
 // ------------------------------------------------------------------------
 // Retrieves the dynamic transform matrix
 // ------------------------------------------------------------------------
-vsMatrix vsTransformAttribute::getDynamicTransform()
+atMatrix vsTransformAttribute::getDynamicTransform()
 {
     return dynMatrix;
 }
@@ -118,7 +118,7 @@ vsMatrix vsTransformAttribute::getDynamicTransform()
 // ------------------------------------------------------------------------
 // Sets the post-transform matrix
 // ------------------------------------------------------------------------
-void vsTransformAttribute::setPostTransform(vsMatrix newTransform)
+void vsTransformAttribute::setPostTransform(atMatrix newTransform)
 {
     postMatrix = newTransform;
     
@@ -133,7 +133,7 @@ void vsTransformAttribute::setPostTransform(vsMatrix newTransform)
 // ------------------------------------------------------------------------
 // Retrieves the post-transform matrix
 // ------------------------------------------------------------------------
-vsMatrix vsTransformAttribute::getPostTransform()
+atMatrix vsTransformAttribute::getPostTransform()
 {
     return postMatrix;
 }
@@ -145,8 +145,8 @@ vsMatrix vsTransformAttribute::getPostTransform()
 // ------------------------------------------------------------------------
 void vsTransformAttribute::applyTransformations()
 {
-    vsMatrix identityMatrix;
-    vsMatrix productMatrix;
+    atMatrix identityMatrix;
+    atMatrix productMatrix;
     osg::Matrix osgMatrix;
     int loop, sloop;
 
@@ -273,7 +273,7 @@ void vsTransformAttribute::detach(vsNode *theNode)
 void vsTransformAttribute::attachDuplicate(vsNode *theNode)
 {
     vsTransformAttribute *newAttrib;
-    vsMatrix xformMat;
+    atMatrix xformMat;
     
     // Create a new transformAttribute.
     newAttrib = new vsTransformAttribute();
@@ -292,11 +292,11 @@ void vsTransformAttribute::attachDuplicate(vsNode *theNode)
 // Returns the combined transform matrix (pre/dynamic/post).  Useful to
 // obtain the entire transform without multiplying the three parts.
 // ------------------------------------------------------------------------
-vsMatrix vsTransformAttribute::getCombinedTransform()
+atMatrix vsTransformAttribute::getCombinedTransform()
 {
     int loop, sloop;
     osg::Matrix osgMatrix;
-    vsMatrix resultMatrix;
+    atMatrix resultMatrix;
 
     // Update the osg MatrixTransform with the new value.
     osgMatrix = transform->getMatrix();

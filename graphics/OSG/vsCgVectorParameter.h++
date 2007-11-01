@@ -26,7 +26,7 @@
 
 #include <osgNVCg/VectorParameter>
 #include "vsCgParameter.h++"
-#include "vsVector.h++"
+#include "atVector.h++"
 
 class vsCgVectorParameter : public vsCgParameter
 {
@@ -49,7 +49,7 @@ public:
     void                         set(double x, double y);
     void                         set(double x, double y, double z);
     void                         set(double x, double y, double z, double w);
-    void                         set(const vsVector &value);
+    void                         set(const atVector &value);
 };
 
 #endif

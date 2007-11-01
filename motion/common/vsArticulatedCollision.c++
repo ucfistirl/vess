@@ -72,19 +72,19 @@ const char *vsArticulatedCollision::getClassName()
 void vsArticulatedCollision::update()
 {
     bool hitSomething;
-    vsVector collisionPoint;
-    vsMatrix tempMat;
+    atVector collisionPoint;
+    atMatrix tempMat;
     int loop, sloop;
-    vsVector startPt, endPt;
-    vsVector segmentVec;
+    atVector startPt, endPt;
+    atVector segmentVec;
     double dotProd;
     int chainSize;
     vsKinematics *jointKin;
     double angle;
-    vsVector upVec, rightVec;
-    vsVector segOffsetVec;
+    atVector upVec, rightVec;
+    atVector segOffsetVec;
     double isectDist, tempDist;
-    vsVector isectPt, tempPt;
+    atVector isectPt, tempPt;
     int isectIdx;
     bool done;
 
@@ -129,7 +129,7 @@ void vsArticulatedCollision::update()
         // - Create a vector that isn't parallel to the segment vector
         upVec.set(0.0, 0.0, 1.0);
         dotProd = segmentVec.getDotProduct(upVec);
-        if (VS_EQUAL(fabs(dotProd), 1.0))
+        if (AT_EQUAL(fabs(dotProd), 1.0))
         {
             upVec.set(0.0, 1.0, 0.0);
             dotProd = segmentVec.getDotProduct(upVec);
@@ -150,8 +150,8 @@ void vsArticulatedCollision::update()
             // Compute the offset from the joint segment center to the
             // intersection segment
             angle = (double)sloop  * (360.0 / (double)(VS_ARTCOL_SEGMENT_COUNT));
-            segOffsetVec = rightVec * cos(VS_DEG2RAD(angle));
-            segOffsetVec += upVec * sin(VS_DEG2RAD(angle));
+            segOffsetVec = rightVec * cos(AT_DEG2RAD(angle));
+            segOffsetVec += upVec * sin(AT_DEG2RAD(angle));
             segOffsetVec *= segmentRadius;
 
             // Set the segment in the intersection object
@@ -249,7 +249,7 @@ vsIntersect *vsArticulatedCollision::getIntersectionObject()
 // Process a collision between the articulated object and the surrounding
 // environment
 // ------------------------------------------------------------------------
-bool vsArticulatedCollision::processCollision(vsVector collisionPoint,
+bool vsArticulatedCollision::processCollision(atVector collisionPoint,
     int jointSegmentIdx, int isectSegmentIdx)
 {
     // Call the interverse kinematics object to reposition the end effector of

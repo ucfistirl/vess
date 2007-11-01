@@ -411,7 +411,7 @@ void vsGeometry::convertToPerVertex(int list)
 // Emulates setting an overall-bound data element on the normal or color
 // list
 // ------------------------------------------------------------------------
-void vsGeometry::setOverallData(int list, vsVector data)
+void vsGeometry::setOverallData(int list, atVector data)
 {
     int i, j;
 
@@ -446,7 +446,7 @@ void vsGeometry::setOverallData(int list, vsVector data)
 // Emulates setting a per-primitive-bound data element on the normal or
 // color list
 // ------------------------------------------------------------------------
-void vsGeometry::setPerPrimitiveData(int list, int index, vsVector data)
+void vsGeometry::setPerPrimitiveData(int list, int index, atVector data)
 {
     int baseIndex, i, j;
     int elementSize;
@@ -1148,7 +1148,7 @@ int vsGeometry::getBinding(int whichData)
 // the index specifies which data point is to be altered. The index of
 // the first data point is 0.
 // ------------------------------------------------------------------------
-void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
+void vsGeometry::setData(int whichData, int dataIndex, atVector data)
 {
     int list;
     int loop;
@@ -1334,9 +1334,9 @@ void vsGeometry::setData(int whichData, int dataIndex, vsVector data)
 // specifies which point is desired. The index of the first data point is
 // 0.
 // ------------------------------------------------------------------------
-vsVector vsGeometry::getData(int whichData, int dataIndex)
+atVector vsGeometry::getData(int whichData, int dataIndex)
 {
-    vsVector result;
+    atVector result;
     int loop;
     int list;
     int listSize;
@@ -1462,7 +1462,7 @@ vsVector vsGeometry::getData(int whichData, int dataIndex)
 // to the values in dataList. The dataList array must be at least as large
 // as the size of particular list in question.
 // ------------------------------------------------------------------------
-void vsGeometry::setDataList(int whichData, vsVector *newDataList)
+void vsGeometry::setDataList(int whichData, atVector *newDataList)
 {
     int loop, sloop;
     int list;
@@ -1580,7 +1580,7 @@ void vsGeometry::setDataList(int whichData, vsVector *newDataList)
 // array must be at least as large as the size of particular list in
 // question.
 // ------------------------------------------------------------------------
-void vsGeometry::getDataList(int whichData, vsVector *dataBuffer)
+void vsGeometry::getDataList(int whichData, atVector *dataBuffer)
 {
     int list;
     int loop, sloop;
@@ -2242,7 +2242,7 @@ void vsGeometry::clearBinSortModes()
 // Retrieves the center point and radius of a sphere that encompasses all
 // of the geometry within this object.
 // ------------------------------------------------------------------------
-void vsGeometry::getBoundSphere(vsVector *centerPoint, double *radius)
+void vsGeometry::getBoundSphere(atVector *centerPoint, double *radius)
 {
     pfSphere boundSphere;
     
@@ -2263,12 +2263,12 @@ void vsGeometry::getBoundSphere(vsVector *centerPoint, double *radius)
 // Computes the global coordinate transform at this geometry by multiplying
 // together all of the transforms at nodes above this one.
 // ------------------------------------------------------------------------
-vsMatrix vsGeometry::getGlobalXform()
+atMatrix vsGeometry::getGlobalXform()
 {
     pfNode *nodePtr;
     pfMatrix xform;
     const pfMatrix *scsMatPtr;
-    vsMatrix result;
+    atMatrix result;
     int loop, sloop;
 
     // Start at this geometry's geode with an identity matrix
@@ -2299,8 +2299,8 @@ vsMatrix vsGeometry::getGlobalXform()
         nodePtr = nodePtr->getParent(0);
     }
     
-    // Copy the pfMatrix into a vsMatrix.  Recall that a pfMatrix is
-    // transposed with respect to a vsMatrix (this is why the indices
+    // Copy the pfMatrix into a atMatrix.  Recall that a pfMatrix is
+    // transposed with respect to a atMatrix (this is why the indices
     // below are reversed)
     for (loop = 0; loop < 4; loop++)
         for (sloop = 0; sloop < 4; sloop++)

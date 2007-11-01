@@ -31,7 +31,7 @@
 #include "vsGLSLShader.h++"
 #include "vsGLSLUniform.h++"
 #include "vsGrowableArray.h++"
-#include "vsVector.h++"
+#include "atVector.h++"
 
 
 #define VS_GPROG_MAX_SHADERS 8

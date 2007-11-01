@@ -112,9 +112,9 @@ void vsCgVectorParameter::set(double x, double y, double z, double w)
 }
 
 // ------------------------------------------------------------------------
-// Set the values according to the given vsVector.
+// Set the values according to the given atVector.
 // ------------------------------------------------------------------------
-void vsCgVectorParameter::set(const vsVector &value)
+void vsCgVectorParameter::set(const atVector &value)
 {
     double v[4];
     int loop, size;

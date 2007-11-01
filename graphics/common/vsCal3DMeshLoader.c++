@@ -425,9 +425,14 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
     int                    vertexInfluences;
     double                 vertexInfluenceWeight;
     double                 weightSum;
-    vsGrowableArray        *vertexDataArray;
-    vsSkinVertexData       *vertexData;
+    atVector               position;
+    atVector               normal;
+    atVector               textureCoords[VS_MAXIMUM_TEXTURE_UNITS];
+    atVector               weights;
+    atVector               boneIDs;
     vsSkinMaterialData     *materialData;
+    int                    i; 
+    int                    meshIndicesProcessed;
     char                   *tempString;
     int                    tx, ty, tz;
     int                    index;
@@ -606,12 +611,119 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                 attribute = attribute->next;
             }
 
-            // Create array with enough space to store the specified set of
-            // vertices.
-            vertexDataArray = new vsGrowableArray(meshVertices, 1);
-
             // Initialize to no vertices processed.
             meshVerticesProcessed = 0;
+
+            // Create the mesh geometry object, setup to take in however
+            // many faces (triangles) have been defined in the file.
+            resultMesh = new vsSkeletonMeshGeometry();
+            resultMesh->beginNewState();
+            resultMesh->setPrimitiveType(VS_GEOMETRY_TYPE_TRIS);
+            resultMesh->setPrimitiveCount(meshFaces);
+            resultMesh->enableLighting();
+
+            // Copy the filename and remove the file ending to make it the
+            // geometry node name.
+            strncpy(geometryName, filename, VS_NODE_NAME_MAX_LENGTH);
+            geometryName[VS_NODE_NAME_MAX_LENGTH - 1] = 0;
+            for (index = strlen(geometryName);
+                 ((index > 0) && (geometryName[index] != '.')); index--);
+            if (index > 0)
+                geometryName[index] = 0;
+
+            // Search for the last / or \.
+            for (index = strlen(geometryName);
+                 ((index > 0) && (geometryName[index] != '/') &&
+                  (geometryName[index] != '\'')); index--);
+
+            // Set the name string from the last / or \ onwards. (filename)
+            resultMesh->setName(&geometryName[index+1]);
+
+            // If no component is defined, make a new one.
+            if (!resultComponent)
+            {
+                resultComponent = new vsComponent();
+            }
+
+            // Add the new mesh to the component.
+            resultComponent->addChild(resultMesh);
+
+            // Set the list sizes and bindings.  All lists will be sized
+            // to the number of vertices in the mesh (except the colors)
+            resultMesh->setDataListSize(VS_GEOMETRY_SKIN_VERTEX_COORDS,
+                meshVertices);
+            resultMesh->setBinding(VS_GEOMETRY_SKIN_VERTEX_COORDS,
+                VS_GEOMETRY_BIND_PER_VERTEX);
+
+            resultMesh->setDataListSize(VS_GEOMETRY_SKIN_NORMALS,
+                meshVertices);
+            resultMesh->setBinding(VS_GEOMETRY_SKIN_NORMALS,
+                VS_GEOMETRY_BIND_PER_VERTEX);
+
+            resultMesh->setDataListSize(VS_GEOMETRY_VERTEX_WEIGHTS,
+                meshVertices);
+            resultMesh->setBinding(VS_GEOMETRY_VERTEX_WEIGHTS,
+                VS_GEOMETRY_BIND_PER_VERTEX);
+
+            resultMesh->setDataListSize(VS_GEOMETRY_BONE_INDICES,
+                meshVertices);
+            resultMesh->setBinding(VS_GEOMETRY_BONE_INDICES,
+                VS_GEOMETRY_BIND_PER_VERTEX);
+
+            // Set color data binding and data information.
+            resultMesh->setDataListSize(VS_GEOMETRY_COLORS, 1);
+            resultMesh->setBinding(VS_GEOMETRY_COLORS,
+                VS_GEOMETRY_BIND_OVERALL);
+
+            // Set the mesh color to white.
+            resultMesh->setData(VS_GEOMETRY_COLORS, 0,
+                atVector(1.0, 1.0, 1.0, 1.0));
+
+            // Get and apply the mesh material to this geometry, if it has one.
+            materialData = (vsSkinMaterialData *)
+                materialList->getData(meshMaterial);
+            if (materialData)
+            {
+                for (index = 0; index < materialData->textureCount; index++)
+                {
+                    // Set the size and binding of current texture coordinate
+                    // list.
+                    resultMesh->setDataListSize(
+                        VS_GEOMETRY_TEXTURE0_COORDS+index, meshVertices);
+                    resultMesh->setBinding(VS_GEOMETRY_TEXTURE0_COORDS+index,
+                        VS_GEOMETRY_BIND_PER_VERTEX);
+
+                    // Hand the mesh the prepared vsTextureAttribute.
+                    resultMesh->addAttribute(materialData->texture[index]);
+                }
+
+                materialAttribute = new vsMaterialAttribute();
+                materialAttribute->setColor(VS_MATERIAL_SIDE_BOTH,
+                    VS_MATERIAL_COLOR_AMBIENT, materialData->ambient[0],
+                    materialData->ambient[1], materialData->ambient[2]);
+                materialAttribute->setColor(VS_MATERIAL_SIDE_BOTH,
+                    VS_MATERIAL_COLOR_DIFFUSE, materialData->diffuse[0],
+                    materialData->diffuse[1], materialData->diffuse[2]);
+                materialAttribute->setColor(VS_MATERIAL_SIDE_BOTH,
+                    VS_MATERIAL_COLOR_SPECULAR, materialData->specular[0],
+                    materialData->specular[1], materialData->specular[2]);
+                materialAttribute->setShininess(VS_MATERIAL_SIDE_BOTH,
+                    materialData->shininess);
+                materialAttribute->setColorMode(VS_MATERIAL_SIDE_BOTH,
+                    VS_MATERIAL_CMODE_NONE);
+
+                resultMesh->addAttribute(materialAttribute);
+            }
+
+            meshVerticesProcessed = 0;
+
+            // Set the sizes of each data vector to the correct size
+            position.setSize(3);
+            normal.setSize(3);
+            weights.setSize(4);
+            boneIDs.setSize(4);
+            for (i = 0; i < VS_MAXIMUM_TEXTURE_UNITS; i++)
+                textureCoords[i].setSize(2);
 
             // Process all of the SUBMESH's VERTEX children now.
             currentSubMeshChild = current->children;
@@ -621,6 +733,12 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                 // processed.
                 meshTexCoordsProcessed = 0;
                 vertexInfluencesProcessed = 0;
+
+                // Since we accumulate weight and bone ID data one influence
+                // at a time, we need to clear these vectors for each new
+                // vertex 
+                weights.clear();
+                boneIDs.clear();
 
                 // Process the VERTEX child.
                 if (xmlStrcmp(currentSubMeshChild->name,
@@ -658,27 +776,6 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                         attribute = attribute->next;
                     }
 
-                    // Get an entry from the array with vertex information.
-                    vertexData = (vsSkinVertexData *)
-                        vertexDataArray->getData(vertexID);
-
-                    // If that entry has data in it, print an error and
-                    // clear it out.  Vertices should not be defined more than
-                    // once.
-                    if (vertexData)
-                    {
-                        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: "
-                            "Error: multiple definitions for vertex: %d\n",
-                            vertexID);
-                        delete vertexData;
-                    }
-
-                    // Create a new data structure for this vertex and place
-                    // it in the array.
-                    vertexData = new vsSkinVertexData;
-                    memset(vertexData, 0, sizeof(vsSkinVertexData));
-                    vertexDataArray->setData(vertexID, vertexData);
-
                     // Process all of the VERTEX's children.
                     currentVertexChild = currentSubMeshChild->children;
                     while (currentVertexChild != NULL)
@@ -689,10 +786,8 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                         {
                             tempString = (char *) xmlNodeGetContent(
                                 currentVertexChild->children);
-                            sscanf(tempString, "%lf %lf %lf",
-                                &(vertexData->position[0]),
-                                &(vertexData->position[1]),
-                                &(vertexData->position[2]));
+                            sscanf(tempString, "%lf %lf %lf", &(position[0]),
+                                &(position[1]), &(position[2]));
 
                             // Free the XML string.
                             xmlFree(tempString);
@@ -703,10 +798,8 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                         {
                             tempString = (char *) xmlNodeGetContent(
                                 currentVertexChild->children);
-                            sscanf(tempString, "%lf %lf %lf",
-                                &(vertexData->normal[0]),
-                                &(vertexData->normal[1]),
-                                &(vertexData->normal[2]));
+                            sscanf(tempString, "%lf %lf %lf", &(normal[0]),
+                                &(normal[1]), &(normal[2]));
 
                             // Free the XML string.
                             xmlFree(tempString);
@@ -724,10 +817,8 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                                     currentVertexChild->children);
 
                                 sscanf(tempString, "%lf %lf",
-                                    &(vertexData->textureCoords[
-                                    meshTexCoordsProcessed][0]),
-                                    &(vertexData->textureCoords[
-                                    meshTexCoordsProcessed][1]));
+                                   &(textureCoords[meshTexCoordsProcessed][0]),
+                                   &(textureCoords[meshTexCoordsProcessed][1]));
 
                                 // Free the XML string.
                                 xmlFree(tempString);
@@ -776,9 +867,9 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                                     currentVertexChild->children));
 
                                 // Store the bone id and weight values.
-                                vertexData->boneIDs[vertexInfluencesProcessed] =
+                                boneIDs[vertexInfluencesProcessed] =
                                     (double) vertexInfluenceID;
-                                vertexData->weights[vertexInfluencesProcessed] =
+                                weights[vertexInfluencesProcessed] =
                                     vertexInfluenceWeight;
 
                                 // Increment the processed influences.
@@ -804,7 +895,7 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                     if (meshTexCoords != meshTexCoordsProcessed)
                     {
                         fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: "
-                            "Missmatched texcoordinate data\n"
+                            "Mismatched texcoordinate data\n"
                             "\tExpected: %d  Got: %d\n", meshTexCoords,
                             meshTexCoordsProcessed);
                     }
@@ -814,25 +905,37 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                     if (vertexInfluences != vertexInfluencesProcessed)
                     {
                         fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: "
-                            "Missmatched vertex influences data\n"
+                            "Mismatched vertex influences data\n"
                             "\tExpected: %d  Got: %d\n", vertexInfluences,
                             vertexInfluencesProcessed);
                     }
 
-                    // Insure weights are normalized [0, 1].
+                    // Ensure weights are normalized [0, 1].
                     weightSum = 0.0;
                     for (index = 0; index < 4; index++)
                     {
-                        weightSum += vertexData->weights[index];
+                        weightSum += weights[index];
                     }
                     for (index = 0; index < 4; index++)
                     {
-                        vertexData->weights[index] =
-                            vertexData->weights[index] / weightSum;
+                        weights[index] /= weightSum;
                     }
 
-                    // Store the number of textures used by this vertex.
-                    vertexData->textures = meshTexCoordsProcessed;
+                    // Apply all the attributes we just collected to the
+                    // geometry
+                    resultMesh->setData(VS_GEOMETRY_SKIN_VERTEX_COORDS,
+                        vertexID, position);
+                    resultMesh->setData(VS_GEOMETRY_SKIN_NORMALS,
+                        vertexID, normal);
+                    resultMesh->setData(VS_GEOMETRY_VERTEX_WEIGHTS,
+                        vertexID, weights);
+                    resultMesh->setData(VS_GEOMETRY_BONE_INDICES,
+                        vertexID, boneIDs);
+                    for (i = 0; i < meshTexCoordsProcessed; i++)
+                    {
+                       resultMesh->setData(VS_GEOMETRY_TEXTURE0_COORDS+i,
+                          vertexID, textureCoords[i]);
+                    }
 
                     // Increment the number of vertices processed.
                     meshVerticesProcessed++;
@@ -846,126 +949,15 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
             // do not match, print an error.
             if (meshVerticesProcessed != meshVertices)
             {
-                fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: Missmatched "
-                    "vertex data\n\tExpected: %d  Got: %d\n", meshVertices,
+                fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: Mismatched "
+                    "vertex data\n");
+                fprintf(stderr, "\tExpected: %d  Got: %d\n", meshVertices,
                     meshVerticesProcessed);
             }
 
-/*
-printf("Submesh Vertices: %d\n", meshVertices);
-totalVertices += meshVertices;
-*/
-
-            // Create the mesh geometry object, setup to take in however
-            // many faces (triangles) have been defined in the file.
-            resultMesh = new vsSkeletonMeshGeometry();
-            resultMesh->beginNewState();
-            resultMesh->setPrimitiveType(VS_GEOMETRY_TYPE_TRIS);
-            resultMesh->setPrimitiveCount(meshFaces);
-            resultMesh->enableLighting();
-
-            // Copy the filename and remove the file ending to make it the
-            // geometry node name.
-            strncpy(geometryName, filename, VS_NODE_NAME_MAX_LENGTH);
-            geometryName[VS_NODE_NAME_MAX_LENGTH - 1] = 0;
-            for (index = strlen(geometryName);
-                 ((index > 0) && (geometryName[index] != '.')); index--);
-            if (index > 0)
-                geometryName[index] = 0;
-
-            // Search for the last / or \.
-            for (index = strlen(geometryName);
-                 ((index > 0) && (geometryName[index] != '/') &&
-                  (geometryName[index] != '\'')); index--);
-
-            // Set the name string from the last / or \ onwards. (filename)
-            resultMesh->setName(&geometryName[index+1]);
-
-//printf("Mesh Geometry Loaded: %s\n", geometryName);
-
-            // If no component is defined, make a new one.
-            if (!resultComponent)
-            {
-                resultComponent = new vsComponent();
-            }
-
-            // Add the new mesh to the component.
-            resultComponent->addChild(resultMesh);
-
-            // Number of vertices are 3 times the faces, 3 vertices per face.
-            // Many vertices are shared but this is the fast easy way for now.
-            // Set the list sizes and bindings.
-            resultMesh->setDataListSize(VS_GEOMETRY_SKIN_VERTEX_COORDS,
-                (meshFaces * 3));
-            resultMesh->setBinding(VS_GEOMETRY_SKIN_VERTEX_COORDS,
-                VS_GEOMETRY_BIND_PER_VERTEX);
-
-            resultMesh->setDataListSize(VS_GEOMETRY_SKIN_NORMALS,
-                (meshFaces * 3));
-            resultMesh->setBinding(VS_GEOMETRY_SKIN_NORMALS,
-                VS_GEOMETRY_BIND_PER_VERTEX);
-
-            resultMesh->setDataListSize(VS_GEOMETRY_VERTEX_WEIGHTS,
-                (meshFaces * 3));
-            resultMesh->setBinding(VS_GEOMETRY_VERTEX_WEIGHTS,
-                VS_GEOMETRY_BIND_PER_VERTEX);
-
-            resultMesh->setDataListSize(VS_GEOMETRY_BONE_INDICES,
-                (meshFaces * 3));
-            resultMesh->setBinding(VS_GEOMETRY_BONE_INDICES,
-                VS_GEOMETRY_BIND_PER_VERTEX);
-
-            // Set color data binding and data information.
-/*
-// For coloring vertices according to influences.
-resultMesh->setDataListSize(VS_GEOMETRY_COLORS, (meshFaces * 3));
-resultMesh->setBinding(VS_GEOMETRY_COLORS, VS_GEOMETRY_BIND_PER_VERTEX);
-*/
-            resultMesh->setDataListSize(VS_GEOMETRY_COLORS, 1);
-            resultMesh->setBinding(VS_GEOMETRY_COLORS,
-                VS_GEOMETRY_BIND_OVERALL);
-
-            // Set the mesh color to white.
-            resultMesh->setData(VS_GEOMETRY_COLORS, 0,
-                vsVector(1.0, 1.0, 1.0, 1.0));
-
-            // Get and apply the mesh material to this geometry, if it has one.
-            materialData = (vsSkinMaterialData *)
-                materialList->getData(meshMaterial);
-            if (materialData)
-            {
-                for (index = 0; index < materialData->textureCount; index++)
-                {
-                    // Set the size and binding of current texture coordinate
-                    // list.
-                    resultMesh->setDataListSize(
-                        VS_GEOMETRY_TEXTURE0_COORDS+index, (meshFaces * 3));
-                    resultMesh->setBinding(VS_GEOMETRY_TEXTURE0_COORDS+index,
-                        VS_GEOMETRY_BIND_PER_VERTEX);
-
-                    // Hand the mesh the prepared vsTextureAttribute.
-                    resultMesh->addAttribute(materialData->texture[index]);
-                }
-
-                materialAttribute = new vsMaterialAttribute();
-                materialAttribute->setColor(VS_MATERIAL_SIDE_BOTH,
-                    VS_MATERIAL_COLOR_AMBIENT, materialData->ambient[0],
-                    materialData->ambient[1], materialData->ambient[2]);
-                materialAttribute->setColor(VS_MATERIAL_SIDE_BOTH,
-                    VS_MATERIAL_COLOR_DIFFUSE, materialData->diffuse[0],
-                    materialData->diffuse[1], materialData->diffuse[2]);
-                materialAttribute->setColor(VS_MATERIAL_SIDE_BOTH,
-                    VS_MATERIAL_COLOR_SPECULAR, materialData->specular[0],
-                    materialData->specular[1], materialData->specular[2]);
-                materialAttribute->setShininess(VS_MATERIAL_SIDE_BOTH,
-                    materialData->shininess);
-                materialAttribute->setColorMode(VS_MATERIAL_SIDE_BOTH,
-                    VS_MATERIAL_CMODE_NONE);
-
-                resultMesh->addAttribute(materialAttribute);
-            }
-
-            meshVerticesProcessed = 0;
+            // Set up the mesh's index list
+            resultMesh->setIndexListSize(meshFaces * 3);
+            meshIndicesProcessed = 0;
 
             // Process all of the SUBMESH's FACE children now.
             currentSubMeshChild = current->children;
@@ -984,234 +976,14 @@ resultMesh->setBinding(VS_GEOMETRY_COLORS, VS_GEOMETRY_BIND_PER_VERTEX);
                                 attribute->children);
                             sscanf(tempString, "%d %d %d", &tx, &ty, &tz);
 
-                            // Setup the first vertex.
-                            vertexData = (vsSkinVertexData *)
-                                vertexDataArray->getData(tx);
-
-                            resultMesh->setData(VS_GEOMETRY_SKIN_VERTEX_COORDS,
-                                meshVerticesProcessed,
-                                vsVector(3, vertexData->position));
-
-                            resultMesh->setData(VS_GEOMETRY_SKIN_NORMALS,
-                                meshVerticesProcessed,
-                                vsVector(3,vertexData->normal).getNormalized());
-
-                            resultMesh->setData(VS_GEOMETRY_VERTEX_WEIGHTS,
-                                meshVerticesProcessed,
-                                vsVector(4, vertexData->weights));
-
-                            // Set all the texture coordinates defined for
-                            // this vertex, if we found a material above.
-                            if (materialData)
-                            {
-                                for (meshTexCoordsProcessed = 0;
-                                     meshTexCoordsProcessed <
-                                       vertexData->textures;
-                                     meshTexCoordsProcessed++)
-                                {
-                                    resultMesh->setData(
-                                        (VS_GEOMETRY_TEXTURE0_COORDS+
-                                        meshTexCoordsProcessed),
-                                        meshVerticesProcessed,
-                                        vsVector(2, vertexData->textureCoords[
-                                        meshTexCoordsProcessed]));
-                                }
-                            }
-
-/*
-// Color vertex according to influences.
-double sum;
-int count;
-int debugIndex;
-
-sum = 0.0;
-count = 0;
-for (debugIndex = 0; debugIndex < 4; debugIndex++)
-{
-    sum += vertexData->weights[debugIndex];
-    if (vertexData->weights[debugIndex] > 0.0)
-        count++;
-}
-switch (count)
-{
-    case 1:
-        resultMesh->setData(VS_GEOMETRY_COLORS, meshVerticesProcessed,
-          vsVector(1.0, 0.0, 0.0, 1.0));
-        break;
-    case 2:
-        resultMesh->setData(VS_GEOMETRY_COLORS, meshVerticesProcessed,
-          vsVector(0.0, 1.0, 0.0, 1.0));
-        break;
-    case 3:
-        resultMesh->setData(VS_GEOMETRY_COLORS, meshVerticesProcessed,
-          vsVector(0.0, 0.0, 1.0, 1.0));
-        break;
-    case 4:
-        resultMesh->setData(VS_GEOMETRY_COLORS, meshVerticesProcessed,
-          vsVector(1.0, 1.0, 0.0, 1.0));
-        break;
-    default:
-        resultMesh->setData(VS_GEOMETRY_COLORS, meshVerticesProcessed,
-          vsVector(1.0, 1.0, 1.0, 1.0));
-}
-*/
-
-                            resultMesh->setData(VS_GEOMETRY_BONE_INDICES,
-                                meshVerticesProcessed,
-                                vsVector(4, vertexData->boneIDs));
-
-                            meshVerticesProcessed++;
-                            // Finished with first vertex.
-
-                            // Setup the second vertex.
-                            vertexData = (vsSkinVertexData *)
-                                vertexDataArray->getData(ty);
-
-                            resultMesh->setData(VS_GEOMETRY_SKIN_VERTEX_COORDS,
-                                meshVerticesProcessed,
-                                vsVector(3, vertexData->position));
-
-                            resultMesh->setData(VS_GEOMETRY_SKIN_NORMALS,
-                                meshVerticesProcessed,
-                                vsVector(3,vertexData->normal).getNormalized());
-
-                            resultMesh->setData(VS_GEOMETRY_VERTEX_WEIGHTS,
-                                meshVerticesProcessed,
-                                vsVector(4, vertexData->weights));
-
-                            // Set all the texture coordinates defined for
-                            // this vertex, if we found a material above.
-                            if (materialData)
-                            {
-                                for (meshTexCoordsProcessed = 0;
-                                     meshTexCoordsProcessed <
-                                       vertexData->textures;
-                                     meshTexCoordsProcessed++)
-                                {
-                                    resultMesh->setData(
-                                        (VS_GEOMETRY_TEXTURE0_COORDS+
-                                        meshTexCoordsProcessed),
-                                        meshVerticesProcessed,
-                                        vsVector(2, vertexData->textureCoords[
-                                        meshTexCoordsProcessed]));
-                                }
-                            }
-
-/*
-// Color vertex according to influences.
-sum = 0.0;
-count = 0;
-for (debugIndex = 0; debugIndex < 4; debugIndex++)
-{
-    sum += vertexData->weights[debugIndex];
-    if (vertexData->weights[debugIndex] > 0.0)
-        count++;
-}
-switch (count)
-{
-    case 1:
-        resultMesh->setData(VS_GEOMETRY_COLORS, meshVerticesProcessed,
-          vsVector(1.0, 0.0, 0.0, 1.0));
-        break;
-    case 2:
-        resultMesh->setData(VS_GEOMETRY_COLORS, meshVerticesProcessed,
-          vsVector(0.0, 1.0, 0.0, 1.0));
-        break;
-    case 3:
-        resultMesh->setData(VS_GEOMETRY_COLORS, meshVerticesProcessed,
-          vsVector(0.0, 0.0, 1.0, 1.0));
-        break;
-    case 4:
-        resultMesh->setData(VS_GEOMETRY_COLORS, meshVerticesProcessed,
-          vsVector(1.0, 1.0, 0.0, 1.0));
-        break;
-    default:
-        resultMesh->setData(VS_GEOMETRY_COLORS, meshVerticesProcessed,
-          vsVector(1.0, 1.0, 1.0, 1.0));
-}
-*/
-
-                            resultMesh->setData(VS_GEOMETRY_BONE_INDICES,
-                                meshVerticesProcessed,
-                                vsVector(4, vertexData->boneIDs));
-                            
-                            meshVerticesProcessed++;
-                            // Finished with second vertex.
-
-                            // Setup the third vertex.
-                            vertexData = (vsSkinVertexData *)
-                                vertexDataArray->getData(tz);
-
-                            resultMesh->setData(VS_GEOMETRY_SKIN_VERTEX_COORDS,
-                                meshVerticesProcessed,
-                                vsVector(3, vertexData->position));
-
-                            resultMesh->setData(VS_GEOMETRY_SKIN_NORMALS,
-                                meshVerticesProcessed,
-                                vsVector(3,vertexData->normal).getNormalized());
-
-                            resultMesh->setData(VS_GEOMETRY_VERTEX_WEIGHTS,
-                                meshVerticesProcessed,
-                                vsVector(4, vertexData->weights));
-
-                            // Set all the texture coordinates defined for
-                            // this vertex, if we found a material above.
-                            if (materialData)
-                            {
-                                for (meshTexCoordsProcessed = 0;
-                                     meshTexCoordsProcessed <
-                                       vertexData->textures;
-                                     meshTexCoordsProcessed++)
-                                {
-                                    resultMesh->setData(
-                                        (VS_GEOMETRY_TEXTURE0_COORDS+
-                                        meshTexCoordsProcessed),
-                                        meshVerticesProcessed,
-                                        vsVector(2, vertexData->textureCoords[
-                                        meshTexCoordsProcessed]));
-                                }
-                            }
-
-/*
-// Color vertex accoring to influences.
-sum = 0.0;
-count = 0;
-for (debugIndex = 0; debugIndex < 4; debugIndex++)
-{
-    sum += vertexData->weights[debugIndex];
-    if (vertexData->weights[debugIndex] > 0.0)
-        count++;
-}
-switch (count)
-{
-    case 1:
-        resultMesh->setData(VS_GEOMETRY_COLORS, meshVerticesProcessed,
-          vsVector(1.0, 0.0, 0.0, 1.0));
-        break;
-    case 2:
-        resultMesh->setData(VS_GEOMETRY_COLORS, meshVerticesProcessed,
-          vsVector(0.0, 1.0, 0.0, 1.0));
-        break;
-    case 3:
-        resultMesh->setData(VS_GEOMETRY_COLORS, meshVerticesProcessed,
-          vsVector(0.0, 0.0, 1.0, 1.0));
-        break;
-    case 4:
-        resultMesh->setData(VS_GEOMETRY_COLORS, meshVerticesProcessed,
-          vsVector(1.0, 1.0, 0.0, 1.0));
-        break;
-    default:
-        resultMesh->setData(VS_GEOMETRY_COLORS, meshVerticesProcessed,
-          vsVector(1.0, 1.0, 1.0, 1.0));
-}
-*/
-
-                            resultMesh->setData(VS_GEOMETRY_BONE_INDICES,
-                                meshVerticesProcessed,
-                                vsVector(4, vertexData->boneIDs));
-
-                            meshVerticesProcessed++;
-                            // Finished with third vertex.
+                            // Copy the vertex indices into the mesh index
+                            // list
+                            resultMesh->setIndex(meshIndicesProcessed, tx);
+                            meshIndicesProcessed++;
+                            resultMesh->setIndex(meshIndicesProcessed, ty);
+                            meshIndicesProcessed++;
+                            resultMesh->setIndex(meshIndicesProcessed, tz);
+                            meshIndicesProcessed++;
 
                             // Free the XML string.
                             xmlFree(tempString);
@@ -1219,11 +991,20 @@ switch (count)
 
                         attribute = attribute->next;
                     }
-//totalFaces++;
                 }
 
                 // Move to next node.
                 currentSubMeshChild = currentSubMeshChild->next;
+            }
+
+            // If the number of indices processed and the number specified
+            // do not match, print an error.
+            if (meshIndicesProcessed != (meshFaces * 3))
+            {
+                fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: Mismatched "
+                    "face/index data\n");
+                fprintf(stderr, "\tExpected: %d  Got: %d\n", meshFaces*3,
+                    meshIndicesProcessed);
             }
 
             // Finalize the changes to the mesh geometry.
@@ -1242,37 +1023,9 @@ switch (count)
         current = current->next;
     }
 
-    // If we did not process the same number of bones as specified in the
-    // SKELETON property, then assume an error.
-    if (subMeshesProcessed != subMeshCount)
-    {
-        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: Mesh processing "
-            "error!\n");
-        xmlFreeDoc(document);
-        delete [] fileBuffer;
-        for (index = 0; index < vertexDataArray->getSize(); index++)
-        {
-            delete (vsSkinVertexData *) vertexDataArray->getData(index);
-        }
-        delete vertexDataArray;
-        return NULL;
-    }
-
-/*
-printf("subMeshCount: %d\n", subMeshCount);
-printf("subMeshes Processed: %d\n", subMeshesProcessed);
-printf("Total Vertices Processed: %ld\n", totalVertices);
-printf("Total Faces Processed: %ld\n", totalFaces);
-*/
-
     // Free the document and the buffer.
     xmlFreeDoc(document);
     delete [] fileBuffer;
-    for (index = 0; index < vertexDataArray->getSize(); index++)
-    {
-        delete (vsSkinVertexData *) vertexDataArray->getData(index);
-    }
-    delete vertexDataArray;
 
     return resultComponent;
 }

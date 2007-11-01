@@ -43,9 +43,9 @@
 #include "vsSerialPort.h++"
 #include "vsMotionTracker.h++"
 #include "vsTrackingSystem.h++"
-#include "vsVector.h++"
-#include "vsMatrix.h++"
-#include "vsQuat.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
+#include "atQuat.h++"
 
 // Maximum number of receivers when in Standard, Expanded, and
 // Super-Expanded addressing modes
@@ -240,7 +240,7 @@ protected:
     char                   errorString[80];
 
     // Conversion from tracker to VESS coordinates
-    vsQuat                 coordXform;
+    atQuat                 coordXform;
 
     // Functions for multi-threaded operation
     static DWORD WINAPI    serverLoop(void *parameter);

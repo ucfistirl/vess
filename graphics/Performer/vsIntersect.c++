@@ -129,10 +129,10 @@ int vsIntersect::getSegListSize()
 // and ending points. The segNum value determines which segment is to be
 // set; the number of the first segment is 0.
 // ------------------------------------------------------------------------
-void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector endPt)
+void vsIntersect::setSeg(int segNum, atVector startPt, atVector endPt)
 {
     int loop;
-    vsVector start, end;
+    atVector start, end;
     pfVec3 pstart, pend;
 
     // Bounds check
@@ -148,7 +148,7 @@ void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector endPt)
     end.clearCopy(endPt);
     end.setSize(3);
     
-    // Convert vsVector to Performer pfVec3
+    // Convert atVector to Performer pfVec3
     for (loop = 0; loop < 3; loop++)
     {
         pstart[loop] = start[loop];
@@ -164,11 +164,11 @@ void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector endPt)
 // point, direction, and length. The segNum value determines which segment
 // is to be set; the number of the first segment is 0.
 // ------------------------------------------------------------------------
-void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector directionVec,
+void vsIntersect::setSeg(int segNum, atVector startPt, atVector directionVec,
                          double length)
 {
     int loop;
-    vsVector start, dir;
+    atVector start, dir;
 
     // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
@@ -199,10 +199,10 @@ void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector directionVec,
 // Retrieves the starting point of the indicated segment. The number of the
 // first segment is 0.
 // ------------------------------------------------------------------------
-vsVector vsIntersect::getSegStartPt(int segNum)
+atVector vsIntersect::getSegStartPt(int segNum)
 {
     int loop;
-    vsVector result(3);
+    atVector result(3);
     
     // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
@@ -211,7 +211,7 @@ vsVector vsIntersect::getSegStartPt(int segNum)
         return result;
     }
     
-    // Copy pfVec3 to vsVector
+    // Copy pfVec3 to atVector
     for (loop = 0; loop < 3; loop++)
         result[loop] = performerSegSet.segs[segNum].pos[loop];
 
@@ -223,10 +223,10 @@ vsVector vsIntersect::getSegStartPt(int segNum)
 // Retrieves the ending point of the indicated segment. The number of the
 // first segment is 0.
 // ------------------------------------------------------------------------
-vsVector vsIntersect::getSegEndPt(int segNum)
+atVector vsIntersect::getSegEndPt(int segNum)
 {
     int loop;
-    vsVector result(3);
+    atVector result(3);
     
     // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
@@ -251,10 +251,10 @@ vsVector vsIntersect::getSegEndPt(int segNum)
 // to the end point of the indicated segment. The number of the first
 // segment is 0.
 // ------------------------------------------------------------------------
-vsVector vsIntersect::getSegDirection(int segNum)
+atVector vsIntersect::getSegDirection(int segNum)
 {
     int loop;
-    vsVector result(3);
+    atVector result(3);
     
     // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
@@ -263,7 +263,7 @@ vsVector vsIntersect::getSegDirection(int segNum)
         return result;
     }
     
-    // Copy pfVec3 to vsVector
+    // Copy pfVec3 to atVector
     for (loop = 0; loop < 3; loop++)
         result[loop] = performerSegSet.segs[segNum].dir[loop];
 
@@ -302,9 +302,9 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
 {
     pfChannel *paneChannel;
     pfVec3 ll, lr, ul, ur;
-    vsVector upperLeft, upperRight, lowerLeft;
-    vsVector rightDirection, downDirection;
-    vsVector nearPt, farPt;
+    atVector upperLeft, upperRight, lowerLeft;
+    atVector rightDirection, downDirection;
+    atVector nearPt, farPt;
 
     // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
@@ -829,9 +829,9 @@ bool vsIntersect::getIsectValid(int segNum)
 // during the last intersection traversal for the specified segment. The
 // number of the first segment is 0.
 // ------------------------------------------------------------------------
-vsVector vsIntersect::getIsectPoint(int segNum)
+atVector vsIntersect::getIsectPoint(int segNum)
 {
-    vsVector errResult(3);
+    atVector errResult(3);
 
     // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
@@ -849,9 +849,9 @@ vsVector vsIntersect::getIsectPoint(int segNum)
 // intersection determined during the last intersection traversal for the
 // specified segment. The number of the first segment is 0.
 // ------------------------------------------------------------------------
-vsVector vsIntersect::getIsectNorm(int segNum)
+atVector vsIntersect::getIsectNorm(int segNum)
 {
-    vsVector errResult(3);
+    atVector errResult(3);
 
     // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))
@@ -871,9 +871,9 @@ vsVector vsIntersect::getIsectNorm(int segNum)
 // same segment already have this data multiplied in. The number of the
 // first segment is 0.
 // ------------------------------------------------------------------------
-vsMatrix vsIntersect::getIsectXform(int segNum)
+atMatrix vsIntersect::getIsectXform(int segNum)
 {
-    vsMatrix errResult;
+    atMatrix errResult;
 
     // Bounds check
     if ((segNum < 0) || (segNum >= segListSize))

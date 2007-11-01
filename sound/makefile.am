@@ -9,6 +9,7 @@ libvsSound_a_SOURCES = \
                        @AL@/vsSoundCapture.c++ \
                        @AL@/vsSoundListenerAttribute.c++ \
                        @AL@/vsSoundManager.c++ \
+                       @AL@/vsSoundPacketStream.c++ \
                        @AL@/vsSoundPipe.c++ \
                        @AL@/vsSoundSample.c++ \
                        @AL@/vsSoundSampleRef.c++ \
@@ -26,6 +27,7 @@ include_HEADERS = \
                   @AL@/vsSoundCapture.h++ \
                   @AL@/vsSoundListenerAttribute.h++ \
                   @AL@/vsSoundManager.h++ \
+                  @AL@/vsSoundPacketStream.h++ \
                   @AL@/vsSoundPipe.h++ \
                   @AL@/vsSoundSample.h++ \
                   @AL@/vsSoundSampleRef.h++ \

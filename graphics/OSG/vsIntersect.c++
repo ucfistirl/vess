@@ -134,9 +134,9 @@ int vsIntersect::getSegListSize()
 // and ending points. The segNum value determines which segment is to be
 // set; the number of the first segment is 0.
 // ------------------------------------------------------------------------
-void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector endPt)
+void vsIntersect::setSeg(int segNum, atVector startPt, atVector endPt)
 {
-    vsVector start, end;
+    atVector start, end;
     osg::Vec3 pstart, pend;
 
     // Make sure the segment number is valid
@@ -146,15 +146,15 @@ void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector endPt)
         return;
     }
     
-    // Copy the points and ensure the size of each vsVector is 3
+    // Copy the points and ensure the size of each atVector is 3
     start.clearCopy(startPt);
     start.setSize(3);
     end.clearCopy(endPt);
     end.setSize(3);
 
     // Convert to OSG vectors
-    pstart.set(start[VS_X], start[VS_Y], start[VS_Z]);
-    pend.set(end[VS_X], end[VS_Y], end[VS_Z]);
+    pstart.set(start[AT_X], start[AT_Y], start[AT_Z]);
+    pend.set(end[AT_X], end[AT_Y], end[AT_Z]);
     
     // Create the segment structure if one is not already present
     if (segList[segNum] == NULL)
@@ -172,10 +172,10 @@ void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector endPt)
 // point, direction, and length. The segNum value determines which segment
 // is to be set; the number of the first segment is 0.
 // ------------------------------------------------------------------------
-void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector directionVec,
+void vsIntersect::setSeg(int segNum, atVector startPt, atVector directionVec,
                          double length)
 {
-    vsVector start, dir;
+    atVector start, dir;
     osg::Vec3 pstart, pdir;
 
     // Make sure the segment number is valid
@@ -195,8 +195,8 @@ void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector directionVec,
     dir.normalize();
     
     // Convert to OSG vectors
-    pstart.set(start[VS_X], start[VS_Y], start[VS_Z]);
-    pdir.set(dir[VS_X], dir[VS_Y], dir[VS_Z]);
+    pstart.set(start[AT_X], start[AT_Y], start[AT_Z]);
+    pdir.set(dir[AT_X], dir[AT_Y], dir[AT_Z]);
     
     // Create the segment structure if one is not already present
     if (segList[segNum] == NULL)
@@ -215,10 +215,10 @@ void vsIntersect::setSeg(int segNum, vsVector startPt, vsVector directionVec,
 // Retrieves the starting point of the indicated segment. The number of the
 // first segment is 0.
 // ------------------------------------------------------------------------
-vsVector vsIntersect::getSegStartPt(int segNum)
+atVector vsIntersect::getSegStartPt(int segNum)
 {
     osg::Vec3 segStart;
-    vsVector result;
+    atVector result;
     
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
@@ -230,7 +230,7 @@ vsVector vsIntersect::getSegStartPt(int segNum)
     // Get the segment start point
     segStart = ((osg::LineSegment *)segList[segNum])->start();
 
-    // Convert to a vsVector
+    // Convert to a atVector
     result.set(segStart.x(), segStart.y(), segStart.z());
 
     // Return the result
@@ -241,10 +241,10 @@ vsVector vsIntersect::getSegStartPt(int segNum)
 // Retrieves the ending point of the indicated segment. The number of the
 // first segment is 0.
 // ------------------------------------------------------------------------
-vsVector vsIntersect::getSegEndPt(int segNum)
+atVector vsIntersect::getSegEndPt(int segNum)
 {
     osg::Vec3 segEnd;
-    vsVector result;
+    atVector result;
     
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
@@ -256,7 +256,7 @@ vsVector vsIntersect::getSegEndPt(int segNum)
     // Get the segment end point
     segEnd = ((osg::LineSegment *)segList[segNum])->end();
 
-    // Convert to a vsVector
+    // Convert to a atVector
     result.set(segEnd.x(), segEnd.y(), segEnd.z());
 
     // Return the result
@@ -268,24 +268,24 @@ vsVector vsIntersect::getSegEndPt(int segNum)
 // to the end point of the indicated segment. The number of the first
 // segment is 0.
 // ------------------------------------------------------------------------
-vsVector vsIntersect::getSegDirection(int segNum)
+atVector vsIntersect::getSegDirection(int segNum)
 {
     osg::Vec3 start, end;
-    vsVector startPt, endPt;
-    vsVector dir;
+    atVector startPt, endPt;
+    atVector dir;
     
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getSegDirection: Segment number out of bounds\n");
-        return vsVector(0.0, 0.0, 0.0);
+        return atVector(0.0, 0.0, 0.0);
     }
 
     // Get the start and end points of the segment
     start = ((osg::LineSegment *)segList[segNum])->start();
     end = ((osg::LineSegment *)segList[segNum])->end();
 
-    // Convert to vsVectors
+    // Convert to atVectors
     startPt.set(start.x(), start.y(), start.z());
     endPt.set(end.x(), end.y(), end.z());
 
@@ -304,8 +304,8 @@ vsVector vsIntersect::getSegDirection(int segNum)
 double vsIntersect::getSegLength(int segNum)
 {
     osg::Vec3 start, end;
-    vsVector startPt, endPt;
-    vsVector dir;
+    atVector startPt, endPt;
+    atVector dir;
 
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
@@ -318,7 +318,7 @@ double vsIntersect::getSegLength(int segNum)
     start = ((osg::LineSegment *)segList[segNum])->start();
     end = ((osg::LineSegment *)segList[segNum])->end();
 
-    // Convert to vsVectors
+    // Convert to atVectors
     startPt.set(start.x(), start.y(), start.z());
     endPt.set(end.x(), end.y(), end.z());
 
@@ -513,7 +513,7 @@ void vsIntersect::intersect(vsNode *targetNode)
     osg::NodePath hitNodePath;
     int pathLength;
     vsNode *vessNode;
-    vsVector viewVec, normalVec;
+    atVector viewVec, normalVec;
     double viewDot;
 
     // This is where the fun begins.  First figure out what kind of node
@@ -589,7 +589,7 @@ void vsIntersect::intersect(vsNode *targetNode)
                 // Find the normal 
                 polyNormal = hit.getWorldIntersectNormal();
 
-                // Convert the normal into a vsVector
+                // Convert the normal into a atVector
                 normalVec.set(polyNormal.x(), polyNormal.y(), polyNormal.z());
 
                 // Get the dot product of the view vector with the normal of
@@ -654,7 +654,7 @@ void vsIntersect::intersect(vsNode *targetNode)
                 // intersection
                 xformMat = *(hit._matrix.get());
             
-                // Convert to a vsMatrix
+                // Convert to a atMatrix
                 for (sloop = 0; sloop < 4; sloop++)
                     for (tloop = 0; tloop < 4; tloop++)
                         sectXform[loop][sloop][tloop] = xformMat(tloop, sloop);
@@ -666,7 +666,7 @@ void vsIntersect::intersect(vsNode *targetNode)
                 sectXform[loop].setIdentity();
             }
 
-            // Convert the point and normal to vsVectors
+            // Convert the point and normal to atVectors
             sectPoint[loop].set(hitPoint[0], hitPoint[1], hitPoint[2]);
             sectNorm[loop].set(polyNormal[0], polyNormal[1], polyNormal[2]);
 
@@ -751,9 +751,9 @@ bool vsIntersect::getIsectValid(int segNum)
 // during the last intersection traversal for the specified segment. The
 // number of the first segment is 0.
 // ------------------------------------------------------------------------
-vsVector vsIntersect::getIsectPoint(int segNum)
+atVector vsIntersect::getIsectPoint(int segNum)
 {
-    vsVector errResult(3);
+    atVector errResult(3);
 
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
@@ -771,9 +771,9 @@ vsVector vsIntersect::getIsectPoint(int segNum)
 // intersection determined during the last intersection traversal for the
 // specified segment. The number of the first segment is 0.
 // ------------------------------------------------------------------------
-vsVector vsIntersect::getIsectNorm(int segNum)
+atVector vsIntersect::getIsectNorm(int segNum)
 {
-    vsVector errResult(3);
+    atVector errResult(3);
 
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
@@ -793,9 +793,9 @@ vsVector vsIntersect::getIsectNorm(int segNum)
 // same segment already have this data multiplied in. The number of the
 // first segment is 0.
 // ------------------------------------------------------------------------
-vsMatrix vsIntersect::getIsectXform(int segNum)
+atMatrix vsIntersect::getIsectXform(int segNum)
 {
-    vsMatrix errResult;
+    atMatrix errResult;
 
     // Make sure this segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))

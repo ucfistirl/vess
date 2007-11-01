@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 #include <math.h>
-#include "vsMatrix.h++"
+#include "atMatrix.h++"
 #include "vsSphere.h++"
 
 //------------------------------------------------------------------------
@@ -37,7 +37,7 @@ vsSphere::vsSphere()
 // Constructor - Sets the sphere to have the designated center point and
 // radius
 //------------------------------------------------------------------------
-vsSphere::vsSphere(const vsVector &centerPoint, const double &sphereRadius)
+vsSphere::vsSphere(const atVector &centerPoint, const double &sphereRadius)
 {
     setSphere(centerPoint, sphereRadius);
 }
@@ -62,14 +62,14 @@ const char *vsSphere::getClassName()
 //------------------------------------------------------------------------
 void vsSphere::setEmpty()
 {
-    setSphere(vsVector(0.0, 0.0, 0.0), -1.0);
+    setSphere(atVector(0.0, 0.0, 0.0), -1.0);
 }
 
 //------------------------------------------------------------------------
 // Virtual function
 // Sets the sphere to have the designated center point and radius
 //------------------------------------------------------------------------
-void vsSphere::setSphere(const vsVector &centerPoint,
+void vsSphere::setSphere(const atVector &centerPoint,
     const double &sphereRadius)
 {
     translationVector.clearCopy(centerPoint);
@@ -108,7 +108,7 @@ double vsSphere::getScale(vsScaleType type) const
 //------------------------------------------------------------------------
 // Gets the center point of the sphere
 //------------------------------------------------------------------------
-vsVector vsSphere::getCenterPoint() const
+atVector vsSphere::getCenterPoint() const
 {
     return translationVector;
 }
@@ -127,11 +127,11 @@ double vsSphere::getRadius() const
 // it previously was an empty sphere. Has no effect if the specified point
 // is already inside of the sphere.
 //------------------------------------------------------------------------
-void vsSphere::addPoint(const vsVector &point)
+void vsSphere::addPoint(const atVector &point)
 {
-    vsVector pt;
+    atVector pt;
     double distSqr, dist;
-    vsVector moveDir(3);
+    atVector moveDir(3);
     double moveDist;
 
     // Clean up the point by making a size-3 copy of it
@@ -153,7 +153,7 @@ void vsSphere::addPoint(const vsVector &point)
         // Comparing the squares of the distances is just as effective as
         // comparing the distances themselves, and it doesn't require taking a
         // square root.
-        if (distSqr < VS_SQR(radius))
+        if (distSqr < AT_SQR(radius))
             return;
 
         // * Extend the sphere around the new point. This involves moving the
@@ -186,9 +186,9 @@ void vsSphere::addPoint(const vsVector &point)
 //------------------------------------------------------------------------
 void vsSphere::addSphere(const vsSphere &sphere)
 {
-    vsVector pt;
+    atVector pt;
     double dist, rad;
-    vsVector moveDir(3);
+    atVector moveDir(3);
     double moveDist;
 
     // Copy the input sphere's data to temporary variables for convenience
@@ -242,7 +242,7 @@ void vsSphere::addSphere(const vsSphere &sphere)
 // process.  If you need the points to remain in order, make a backup
 // copy of your list before calling this method.
 //------------------------------------------------------------------------
-void vsSphere::enclosePoints(vsVector *points, int pointCount)
+void vsSphere::enclosePoints(atVector *points, int pointCount)
 {
     vsSphere result;
     int ssize;
@@ -306,7 +306,7 @@ void vsSphere::enclosePoints(vsVector *points, int pointCount)
         // If the farthest away point is outside of the result sphere, then
         // run the move-to-front algorithm to calculate a new sphere with the
         // new point in it.
-        if (maxSqrDist > (VS_SQR(result.getRadius()) + 1E-6))
+        if (maxSqrDist > (AT_SQR(result.getRadius()) + 1E-6))
         {
             // Run the algorithm with the new point
             result = moveToFront(points, ssize, &(points[maxIdx]), 1,
@@ -432,9 +432,9 @@ void vsSphere::encloseSpheres(vsSphere *spheres, int sphereCount)
 // Determines if the given point is within or on the boundary of this
 // sphere. If this sphere is empty, the function always returns false.
 //------------------------------------------------------------------------
-bool vsSphere::isPointInside(const vsVector &point) const
+bool vsSphere::isPointInside(const atVector &point) const
 {
-    vsVector pt;
+    atVector pt;
     double distSqr;
 
     // If the sphere is empty, return false
@@ -452,7 +452,7 @@ bool vsSphere::isPointInside(const vsVector &point) const
     // Comparing the squares of the distances is just as effective as
     // comparing the distances themselves, and it doesn't require
     // taking a square root.
-    if (distSqr > VS_SQR(radius))
+    if (distSqr > AT_SQR(radius))
         return false;
 
     // If we've gotten this far, then the point must be inside
@@ -479,7 +479,7 @@ bool vsSphere::isSphereInside(const vsSphere &sphere) const
     // The sphere is considered inside if the distance between the two
     // spheres' centers plus the radius of the sphere parameter is less
     // than the radius of this sphere.
-    if ((dist + sphere.getRadius()) > (radius + VS_DEFAULT_TOLERANCE))
+    if ((dist + sphere.getRadius()) > (radius + AT_DEFAULT_TOLERANCE))
         return false;
 
     // If we've gotten this far, then the sphere must be inside
@@ -491,12 +491,12 @@ bool vsSphere::isSphereInside(const vsSphere &sphere) const
 // the sphere. If this sphere is empty, this function always returns
 // false.
 //------------------------------------------------------------------------
-bool vsSphere::isSegIsect(const vsVector &segStart, const vsVector &segEnd)
+bool vsSphere::isSegIsect(const atVector &segStart, const atVector &segEnd)
     const
 {
-    vsVector start, end;
-    vsVector v0, v1;
-    vsVector norm;
+    atVector start, end;
+    atVector v0, v1;
+    atVector norm;
     double param, distSqr;
 
     // If the sphere is empty, return false
@@ -531,13 +531,13 @@ bool vsSphere::isSegIsect(const vsVector &segStart, const vsVector &segEnd)
     // increase the point-center distance by the square of the distance
     // from the key point to the closest end of the segment
     if (param > 1.0)
-        distSqr += VS_SQR((param - 1.0) * v0.getMagnitude());
+        distSqr += AT_SQR((param - 1.0) * v0.getMagnitude());
     else if (param < 0.0)
-        distSqr += VS_SQR(param * v0.getMagnitude());
+        distSqr += AT_SQR(param * v0.getMagnitude());
 
     // Compare the final (squared) distance to the (square of the) radius
     // of the circle
-    if (distSqr > VS_SQR(radius))
+    if (distSqr > AT_SQR(radius))
         return false;
 
     // If we've gotten this far, the segment must intersect the sphere
@@ -574,7 +574,7 @@ bool vsSphere::isSphereIsect(const vsSphere &sphere) const
 //------------------------------------------------------------------------
 void vsSphere::print() const
 {
-    // Use vsVector's print function to print the center point
+    // Use atVector's print function to print the center point
     translationVector.print();
 
     // Print the radius
@@ -586,7 +586,7 @@ void vsSphere::print() const
 //------------------------------------------------------------------------
 void vsSphere::print(FILE *fp) const
 {
-    // Use vsVector's print function to print the center point
+    // Use atVector's print function to print the center point
     translationVector.print(fp);
 
     // Print the radius
@@ -597,9 +597,9 @@ void vsSphere::print(FILE *fp) const
 // Internal function
 // Moves the point at the specified index to the front of the list
 //------------------------------------------------------------------------
-void vsSphere::promote(vsVector *points, int index)
+void vsSphere::promote(atVector *points, int index)
 {
-    vsVector temp;
+    atVector temp;
     int loop;
 
     // No work to do if the index refers to the first entry
@@ -623,16 +623,16 @@ void vsSphere::promote(vsVector *points, int index)
 // Calculates the smallest sphere that has the specified points exactly
 // on its boundary
 //------------------------------------------------------------------------
-vsSphere vsSphere::calcSphereOn(vsVector *points, int pointCount,
+vsSphere vsSphere::calcSphereOn(atVector *points, int pointCount,
     bool *errorFlag)
 {
     vsSphere result;
     int loop, sloop;
-    vsMatrix linSysMat;
-    vsVector linSysVec;
-    vsVector qvec[3];
-    vsVector cvec;
-    vsVector resultCenter;
+    atMatrix linSysMat;
+    atVector linSysVec;
+    atVector qvec[3];
+    atVector cvec;
+    atVector resultCenter;
     double resultRadius;
 
     *errorFlag = false;
@@ -682,7 +682,7 @@ vsSphere vsSphere::calcSphereOn(vsVector *points, int pointCount,
     // Sanity check: Make sure that the determinant of the linear system
     // matrix is not (virtually) zero; if it is, then the matrix can't be
     // inverted, and this function fails.
-    if (VS_EQUAL(linSysMat.getDeterminant(), 0.0))
+    if (AT_EQUAL(linSysMat.getDeterminant(), 0.0))
     {
         printf("vsSphere::calcSphereOn: Can't solve singular matrix "
             "(data underflow)\n");
@@ -723,12 +723,12 @@ vsSphere vsSphere::calcSphereOn(vsVector *points, int pointCount,
 // selecting the points that lie on the boundary of the smallest sphere
 // that encompasses all of the points.
 //------------------------------------------------------------------------
-vsSphere vsSphere::moveToFront(vsVector *points, int pointCount,
-    vsVector *basis, int basisCount, int *supportSize, bool *errorFlag)
+vsSphere vsSphere::moveToFront(atVector *points, int pointCount,
+    atVector *basis, int basisCount, int *supportSize, bool *errorFlag)
 {
     vsSphere result;
     int loop;
-    vsVector basisStore[4];
+    atVector basisStore[4];
     int ssize;
     bool err;
 
@@ -826,13 +826,13 @@ vsSphere vsSphere::calcSphereAround(vsSphere *spheres, int sphereCount,
 {
     vsSphere result;
     int loop, sloop;
-    vsMatrix dotMatrix, dotMatrixInv;
-    vsVector mvec, vvec;
+    atMatrix dotMatrix, dotMatrixInv;
+    atVector mvec, vvec;
     double a, b, c, disc;
 
-    vsVector qvec[3];
-    vsVector cvec;
-    vsVector resultCenter;
+    atVector qvec[3];
+    atVector cvec;
+    atVector resultCenter;
     double resultRadius;
 
     *errorFlag = false;
@@ -880,15 +880,15 @@ vsSphere vsSphere::calcSphereAround(vsSphere *spheres, int sphereCount,
         }
 
         mvec[loop] = spheres[0].getRadius() - spheres[loop+1].getRadius();
-        vvec[loop] = ( (VS_SQR(spheres[0].getRadius()) -
-                        VS_SQR(spheres[loop+1].getRadius()) +
+        vvec[loop] = ( (AT_SQR(spheres[0].getRadius()) -
+                        AT_SQR(spheres[loop+1].getRadius()) +
                         dotMatrix[loop][loop]) / 2.0 );
     }
 
     // Sanity check: Make sure that the determinant of the dot product
     // matrix is not (virtually) zero; if it is, then the matrix can't be
     // inverted, and this function fails.
-    if (VS_EQUAL(dotMatrix.getDeterminant(), 0.0))
+    if (AT_EQUAL(dotMatrix.getDeterminant(), 0.0))
     {
         printf("vsSphere::calcSphereAround: Can't solve singular matrix "
             "(data underflow)\n");
@@ -917,10 +917,10 @@ vsSphere vsSphere::calcSphereAround(vsSphere *spheres, int sphereCount,
         }
     a = 1.0 - a;
     b = -2.0 * (spheres[0].getRadius() - b);
-    c = VS_SQR(spheres[0].getRadius()) - c;
+    c = AT_SQR(spheres[0].getRadius()) - c;
 
     // Solve the quadratic equation for the enclosing sphere's radius
-    disc = VS_SQR(b) - (4.0 * a * c);
+    disc = AT_SQR(b) - (4.0 * a * c);
     resultRadius = (sqrt(disc) - b) / (2.0 * a);
 
     // Compute the (center - first point) vector by taking a weighted

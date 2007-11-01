@@ -64,7 +64,7 @@ const char *vsPhantom::getClassName()
 // ------------------------------------------------------------------------
 // Set the position of the PHANToM
 // ------------------------------------------------------------------------
-void vsPhantom::setPosition(vsVector posVec)
+void vsPhantom::setPosition(atVector posVec)
 {
     int i;
 
@@ -78,7 +78,7 @@ void vsPhantom::setPosition(vsVector posVec)
 // ------------------------------------------------------------------------
 // Set the velocity of the PHANToM's motion
 // ------------------------------------------------------------------------
-void vsPhantom::setVelocity(vsVector velVec)
+void vsPhantom::setVelocity(atVector velVec)
 {
     velocity = velVec;
 }
@@ -86,8 +86,8 @@ void vsPhantom::setVelocity(vsVector velVec)
 // ------------------------------------------------------------------------
 // Set the orientation of the PHANToM stylus.
 // ------------------------------------------------------------------------
-void vsPhantom::setOrientation(vsVector ornVec,
-                                 vsMathEulerAxisOrder axisOrder)
+void vsPhantom::setOrientation(atVector ornVec,
+                                 atMathEulerAxisOrder axisOrder)
 {
     // Set the stylus' orientation to the Euler angles specified in the
     // orientation vector, using the given axis order.
@@ -98,7 +98,7 @@ void vsPhantom::setOrientation(vsVector ornVec,
 // ------------------------------------------------------------------------
 // Set the orientation of the PHANToM stylus.
 // ------------------------------------------------------------------------
-void vsPhantom::setOrientation(vsMatrix ornMat)
+void vsPhantom::setOrientation(atMatrix ornMat)
 {
     // Set the stylus' orientation to the given rotation matrix.
     orientation.setMatrixRotation(ornMat);
@@ -107,7 +107,7 @@ void vsPhantom::setOrientation(vsMatrix ornMat)
 // ------------------------------------------------------------------------
 // Set the orientation of the PHANToM stylus.
 // ------------------------------------------------------------------------
-void vsPhantom::setOrientation(vsQuat ornQuat)
+void vsPhantom::setOrientation(atQuat ornQuat)
 {
     // Set the stylus' orientation to the given quaternion.
     orientation = ornQuat;
@@ -139,7 +139,7 @@ vsInputButton *vsPhantom::getButton(int index)
     }
 }
 
-vsVector vsPhantom::getVelocityVec(void)
+atVector vsPhantom::getVelocityVec(void)
 {
     return(velocity);
 }

@@ -176,7 +176,7 @@ vsNode *vsUnmanagedNode::getChild(int index)
 // Retrieves the center point and radius of a sphere that encompasses all
 // of the geometry within this object.
 // ------------------------------------------------------------------------
-void vsUnmanagedNode::getBoundSphere(vsVector *centerPoint, double *radius)
+void vsUnmanagedNode::getBoundSphere(atVector *centerPoint, double *radius)
 {
     osg::BoundingSphere boundSphere;
     osg::Vec3 center;
@@ -200,12 +200,12 @@ void vsUnmanagedNode::getBoundSphere(vsVector *centerPoint, double *radius)
 // Computes the global coordinate transform at this node by multiplying
 // together all of the transforms at nodes at and above this one.
 // ------------------------------------------------------------------------
-vsMatrix vsUnmanagedNode::getGlobalXform()
+atMatrix vsUnmanagedNode::getGlobalXform()
 {
     osg::Node *nodePtr;
     osg::Matrix xform;
     osg::Matrix matRef;
-    vsMatrix result;
+    atMatrix result;
     int loop, sloop;
 
     // Start at this node, computing all transforms up to the root.
@@ -398,7 +398,7 @@ void vsUnmanagedNode::restoreSavedAttributes()
 // Internal function
 // Does nothing.
 // ------------------------------------------------------------------------
-void vsUnmanagedNode::getAxisAlignedBoxBounds(vsVector  *minValues,
-    vsVector *maxValues)
+void vsUnmanagedNode::getAxisAlignedBoxBounds(atVector  *minValues,
+    atVector *maxValues)
 {
 }

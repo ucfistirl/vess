@@ -417,7 +417,7 @@ void vsOptimizer::mergeLODs(vsComponent *componentNode)
         
         for (loop = 0; loop < rangeListSize-1; loop++)
         {
-            if (VS_EQUAL(rangeList[loop], rangeList[loop+1]))
+            if (AT_EQUAL(rangeList[loop], rangeList[loop+1]))
             {
                 // Delete one of the equal range values by copying
                 // the last range value over it; the sorting process
@@ -586,7 +586,7 @@ void vsOptimizer::mergeGeometry(vsComponent *componentNode)
 bool vsOptimizer::isSimilarGeometry(vsGeometry *firstGeo, vsGeometry *secondGeo)
 {
     int firstVal, secondVal;
-    vsVector firstVec, secondVec;
+    atVector firstVec, secondVec;
     int loop, firstType;
     vsAttribute *firstAttr, *secondAttr;
     vsStateAttribute *stateAttr;
@@ -718,7 +718,7 @@ void vsOptimizer::addGeometry(vsGeometry *destGeo, vsGeometry *srcGeo)
     int loop;
     int srcPrimCount, destPrimCount;
     int srcVertCount, destVertCount;
-    vsVector tempData;
+    atVector tempData;
     int tempLength;
     
     // Don't trust the vertex data list size values; determine the actual
@@ -875,7 +875,7 @@ void vsOptimizer::addGeometry(vsGeometry *destGeo, vsGeometry *srcGeo)
 // ------------------------------------------------------------------------
 void vsOptimizer::condenseGeoData(vsGeometry *geometry, int whichData)
 {
-    vsVector keyValue;
+    atVector keyValue;
     int dataListSize;
     bool allSame;
     int loop;

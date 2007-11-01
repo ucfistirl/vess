@@ -29,7 +29,7 @@
 #include <Performer/pr/pfGProgramParms.h>
 #include "vsStateAttribute.h++"
 #include "vsGrowableArray.h++"
-#include "vsVector.h++"
+#include "atVector.h++"
 
 class VS_GRAPHICS_DLL vsShaderAttribute : public vsStateAttribute
 {
@@ -84,8 +84,8 @@ public:
     void                  setVertexLocalParameter(int index, float x, float y,
                                                   float z, float w);
     void                  setVertexLocalParameter(int index,
-                                                  const vsVector &value);
-    vsVector              getVertexLocalParameter(int index);
+                                                  const atVector &value);
+    atVector              getVertexLocalParameter(int index);
 
     void                  setFragmentLocalParameter(int index, float x);
     void                  setFragmentLocalParameter(int index, float x,
@@ -95,8 +95,8 @@ public:
     void                  setFragmentLocalParameter(int index, float x, float y,
                                                     float z, float w);
     void                  setFragmentLocalParameter(int index,
-                                                    const vsVector &value);
-    vsVector              getFragmentLocalParameter(int index);
+                                                    const atVector &value);
+    atVector              getFragmentLocalParameter(int index);
 };
 
 #endif

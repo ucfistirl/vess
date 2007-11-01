@@ -25,8 +25,8 @@
 
 #include "vsGrowableArray.h++"
 #include "vsSphere.h++"
-#include "vsMatrix.h++"
-#include "vsVector.h++"
+#include "atMatrix.h++"
+#include "atVector.h++"
 #include "vsGeometry.h++"
 
 #define VS_SPH_ISECT_MAX_SPHERES 32
@@ -69,15 +69,15 @@ private:
 
     unsigned int       intersectMask;
 
-    vsMatrix           currentXform;
+    atMatrix           currentXform;
     vsGrowableArray    currentPath;
     int                currentPathLength;
 
     // Intersection results
     bool               validFlag[VS_SPH_ISECT_MAX_SPHERES];
-    vsVector           sectPoint[VS_SPH_ISECT_MAX_SPHERES];
-    vsVector           sectNorm[VS_SPH_ISECT_MAX_SPHERES];
-    vsMatrix           sectXform[VS_SPH_ISECT_MAX_SPHERES];
+    atVector           sectPoint[VS_SPH_ISECT_MAX_SPHERES];
+    atVector           sectNorm[VS_SPH_ISECT_MAX_SPHERES];
+    atMatrix           sectXform[VS_SPH_ISECT_MAX_SPHERES];
     vsGeometry         *sectGeom[VS_SPH_ISECT_MAX_SPHERES];
     int                sectPrim[VS_SPH_ISECT_MAX_SPHERES];
     vsGrowableArray    *sectPath[VS_SPH_ISECT_MAX_SPHERES];
@@ -98,11 +98,11 @@ private:
 
     // Intersection subroutines
     void               computePointInRegion(int regionNum);
-    bool               getClosestPoint(vsVector testPoint, vsVector A,
-                                       vsVector B, vsVector C, 
-                                       vsVector *closestPoint);
+    bool               getClosestPoint(atVector testPoint, atVector A,
+                                       atVector B, atVector C, 
+                                       atVector *closestPoint);
     bool               intersectWithBox(vsSphere sphere, osg::BoundingBox box);
-    vsVector           getNormal(vsGeometry *geometry, int aIndex, int bIndex,
+    atVector           getNormal(vsGeometry *geometry, int aIndex, int bIndex,
                                  int cIndex, int primIndex);
     void               intersectWithGeometry(int sphIndex, 
                                              vsGeometry *geometry);
@@ -116,8 +116,8 @@ public:
     void               setSphereListSize(int newSize);
     int                getSphereListSize();
 
-    void               setSphere(int sphNum, vsVector center, double radius);
-    vsVector           getSphereCenter(int sphNum);
+    void               setSphere(int sphNum, atVector center, double radius);
+    atVector           getSphereCenter(int sphNum);
     double             getSphereRadius(int sphNum);
 
     void               setMask(unsigned int newMask);
@@ -138,9 +138,9 @@ public:
     void               intersect(vsNode *targetNode);
 
     bool               getIsectValid(int sphNum);
-    vsVector           getIsectPoint(int sphNum);
-    vsVector           getIsectNorm(int sphNum);
-    vsMatrix           getIsectXform(int sphNum);
+    atVector           getIsectPoint(int sphNum);
+    atVector           getIsectNorm(int sphNum);
+    atMatrix           getIsectXform(int sphNum);
     vsGeometry         *getIsectGeometry(int sphNum);
     int                getIsectPrimNum(int sphNum);
     vsGrowableArray    *getIsectPath(int sphNum);

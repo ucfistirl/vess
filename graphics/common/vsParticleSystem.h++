@@ -61,10 +61,10 @@ struct vsParticle
     double                  ageSeconds;
     double                  lifetimeSeconds;
 
-    vsMatrix                emitterMatrix;
+    atMatrix                emitterMatrix;
 
-    vsVector                position;
-    vsVector                velocity;
+    atVector                position;
+    atVector                velocity;
 
     double                  orbitAngle;
     double                  orbitVelocity;
@@ -77,8 +77,8 @@ struct vsParticle
     double                  rotation;
     double                  rotationSpeed;
 
-    vsVector                initialColor;
-    vsVector                finalColor;
+    atVector                initialColor;
+    atVector                finalColor;
 };
 
 class VS_GRAPHICS_DLL vsParticleSystem : public vsUpdatable
@@ -88,10 +88,10 @@ protected:
     vsComponent               *parentComponent;
 
     // Emitter data
-    vsVector                  emitterPosition;
-    vsVector                  emitterVelocity;
-    vsQuat                    emitterOrientation;
-    vsVector                  emitterAngularVelocityAxis;
+    atVector                  emitterPosition;
+    atVector                  emitterVelocity;
+    atQuat                    emitterOrientation;
+    atVector                  emitterAngularVelocityAxis;
     double                    emitterAngularVelocitySpeed;
     vsComponent               *emitterFollowNode;
 
@@ -120,7 +120,7 @@ protected:
     vsTextureAttribute        *tex2;
     vsTextureAttribute        *tex3;
 
-    vsVector                  globalAcceleration;
+    atVector                  globalAcceleration;
 
     // Hardware shading mode
     vsShaderAttribute         *arbShader;
@@ -133,7 +133,7 @@ protected:
     double                    lifetime;
     double                    lifetimeVariance;
 
-    vsVector                  initialVelocity;
+    atVector                  initialVelocity;
     double                    velocityMinAngleVariance;
     double                    velocityMaxAngleVariance;
     double                    velocitySpeedVariance;
@@ -154,19 +154,19 @@ protected:
     double                    rotationSpeed;
     double                    rotationSpeedVariance;
 
-    vsVector                  initialColor;
-    vsVector                  initialColorVariance;
-    vsVector                  finalColor;
-    vsVector                  finalColorVariance;
+    atVector                  initialColor;
+    atVector                  initialColorVariance;
+    atVector                  finalColor;
+    atVector                  finalColorVariance;
     bool                      lockIntraColorVariance;
     bool                      lockInterColorVariance;
 
     // Follow node extra data
-    vsVector                  prevFollowNodePos;
-    vsQuat                    prevFollowNodeOri;
+    atVector                  prevFollowNodePos;
+    atQuat                    prevFollowNodeOri;
     bool                      prevFollowDataValid;
-    vsVector                  currentFollowNodePos;
-    vsQuat                    currentFollowNodeOri;
+    atVector                  currentFollowNodePos;
+    atQuat                    currentFollowNodeOri;
 
     vsTimer *                 updateTimer;
 
@@ -219,15 +219,15 @@ public:
     bool           isEmitterExpired();
 
     // Emitter parameters get/set
-    void           setEmitterPosition(vsVector position);
-    vsVector       getEmitterPosition();
-    void           setEmitterVelocity(vsVector velocity);
-    vsVector       getEmitterVelocity();
-    void           setEmitterOrientation(vsQuat orientation);
-    vsQuat         getEmitterOrientation();
-    void           setEmitterAngularVelocity(vsVector rotationAxis,
+    void           setEmitterPosition(atVector position);
+    atVector       getEmitterPosition();
+    void           setEmitterVelocity(atVector velocity);
+    atVector       getEmitterVelocity();
+    void           setEmitterOrientation(atQuat orientation);
+    atQuat         getEmitterOrientation();
+    void           setEmitterAngularVelocity(atVector rotationAxis,
                                              double degreesPerSecond);
-    void           getEmitterAngularVelocity(vsVector *rotationAxis,
+    void           getEmitterAngularVelocity(atVector *rotationAxis,
                                              double *degreesPerSecond);
 
     void           setEmitterFollowComponent(vsComponent *component);
@@ -250,18 +250,18 @@ public:
     // Global particle parameters get/set
     void           setParticleTexture(char *textureFilename);
 
-    void           setParticleAcceleration(vsVector acceleration);
-    vsVector       getParticleAcceleration();
+    void           setParticleAcceleration(atVector acceleration);
+    atVector       getParticleAcceleration();
 
     // Individual particle parameters get/set
     void           setParticleLifetime(double seconds, double variance);
     void           getParticleLifetime(double *seconds, double *variance);
 
-    void           setParticleVelocity(vsVector velocity,
+    void           setParticleVelocity(atVector velocity,
                                        double minAngleVariance,
                                        double maxAngleVariance,
                                        double speedVariance);
-    void           getParticleVelocity(vsVector *velocity,
+    void           getParticleVelocity(atVector *velocity,
                                        double *minAngleVariance,
                                        double *maxAngleVariance,
                                        double *speedVariance);
@@ -288,13 +288,13 @@ public:
     void           getParticleRotationSpeed(double *degreesPerSecond,
                                             double *variance);
 
-    void           setParticleColor(vsVector initial,
-                                    vsVector initialVariance, vsVector final,
-                                    vsVector finalVariance, bool uniformIntra,
+    void           setParticleColor(atVector initial,
+                                    atVector initialVariance, atVector final,
+                                    atVector finalVariance, bool uniformIntra,
                                     bool uniformInter);
-    void           getParticleColor(vsVector *initial,
-                                    vsVector *initialVariance,
-                                    vsVector *final, vsVector *finalVariance,
+    void           getParticleColor(atVector *initial,
+                                    atVector *initialVariance,
+                                    atVector *final, atVector *finalVariance,
                                     bool *uniformIntra, bool *uniformInter);
 };
 

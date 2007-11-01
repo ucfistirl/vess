@@ -75,7 +75,7 @@ const char *vsHandArticulation::getClassName()
 void vsHandArticulation::update()
 {
     int i;
-    vsQuat joint;
+    atQuat joint;
 
     // Update all hand joint kinematics based on the latest joint
     // orientations stored in the glove object

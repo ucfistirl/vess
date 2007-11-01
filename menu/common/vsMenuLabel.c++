@@ -145,7 +145,7 @@ vsTextBuilder *vsMenuLabel::getTextBuilder()
 // ------------------------------------------------------------------------
 void vsMenuLabel::setText(char *text)
 {
-    vsVector centerOfMass;
+    atVector centerOfMass;
     double radius;
 
     // Remove the old text object from this component
@@ -206,7 +206,7 @@ void vsMenuLabel::setText(char *text)
     }
 
 /*
-    vsVector centerOfMass;
+    atVector centerOfMass;
     double radius;
 
     // Remove the old text object from this component

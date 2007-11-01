@@ -237,7 +237,7 @@ vsNode *vsNode::findNodeByName(const char *targetName, int index)
 vsBox vsNode::getAxisAlignedBoundingBox()
 {
     vsBox theBox;
-    vsVector minCorner, maxCorner; 
+    atVector minCorner, maxCorner; 
     double xLength, yLength, zLength;
 
     // Set the minCorner and maxCorner to the size of 3 just in case
@@ -249,9 +249,9 @@ vsBox vsNode::getAxisAlignedBoundingBox()
     getAxisAlignedBoxBounds(&minCorner, &maxCorner); 
 
     // Get the length of each dimension
-    xLength = maxCorner[VS_X] - minCorner[VS_X];
-    yLength = maxCorner[VS_Y] - minCorner[VS_Y];
-    zLength = maxCorner[VS_Z] - minCorner[VS_Z];
+    xLength = maxCorner[AT_X] - minCorner[AT_X];
+    yLength = maxCorner[AT_Y] - minCorner[AT_Y];
+    zLength = maxCorner[AT_Z] - minCorner[AT_Z];
 
     // Do the absolute values
     if (xLength < 0) xLength *= -1.0;
@@ -260,7 +260,7 @@ vsBox vsNode::getAxisAlignedBoundingBox()
 
     // Store the translated value and the lengths in the vsBox
     theBox.setBox(xLength, yLength, zLength, minCorner,
-        vsQuat(0, 0, 0, 1));
+        atQuat(0, 0, 0, 1));
 
     return theBox;
 }

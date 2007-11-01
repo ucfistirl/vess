@@ -127,8 +127,8 @@ public:
     void                  setGenMode(int genMode);
     int                   getGenMode();
 
-    void                  setTextureMatrix(vsMatrix newMatrix);
-    vsMatrix              getTextureMatrix();
+    void                  setTextureMatrix(atMatrix newMatrix);
+    atMatrix              getTextureMatrix();
 
     unsigned int          getTextureUnit();
 };

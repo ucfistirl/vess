@@ -219,8 +219,8 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
     vsWindow *defaultWindow;
     vsPane *defaultPane;
     vsView *defaultView;
-    vsVector upDir;
-    vsVector dbCenter;
+    atVector upDir;
+    atVector dbCenter;
     double dbRadius;
     vsScene *scene;
     vsComponent *database;

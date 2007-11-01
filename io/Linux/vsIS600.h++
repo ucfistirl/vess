@@ -35,9 +35,9 @@
 #include "vsSerialPort.h++"
 #include "vsMotionTracker.h++"
 #include "vsTrackingSystem.h++"
-#include "vsVector.h++"
-#include "vsMatrix.h++"
-#include "vsQuat.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
+#include "atQuat.h++"
 #include "vsSharedInputData.h++"
 
 // Maximum number of trackers in an IS-600 system
@@ -201,7 +201,7 @@ protected:
     int                  outputUnits;
 
     // Coordinate conversion quaternion
-    vsQuat               coordXform;
+    atQuat               coordXform;
 
     // Utility functions
     void                 enumerateTrackers();
@@ -211,12 +211,12 @@ protected:
     void                 setBinaryOutput();
 
     // Internal update functions
-    void                 updatePosition(int trackerNum, vsVector posVec);
+    void                 updatePosition(int trackerNum, atVector posVec);
     void                 updateRelativePosition(int trackerNum, 
-                                                vsVector posVec);
-    void                 updateAngles(int trackerNum, vsVector orientationVec);
-    void                 updateMatrix(int trackerNum, vsMatrix orientationMat);
-    void                 updateQuat(int trackerNum, vsQuat orientationQuat);
+                                                atVector posVec);
+    void                 updateAngles(int trackerNum, atVector orientationVec);
+    void                 updateMatrix(int trackerNum, atMatrix orientationMat);
+    void                 updateQuat(int trackerNum, atQuat orientationQuat);
 
     // Multi-process functions
     void                 serverLoop();
@@ -245,12 +245,12 @@ public:
     void                       addInertiaCube(int stationNum, int cubeNum);
     void                       removeInertiaCube(int stationNum, int cubeNum);
     void                       addSoniDisc(int stationNum, int discNum,
-                                           vsVector pos, vsVector normal,
+                                           atVector pos, atVector normal,
                                            int discID);
     void                       removeSoniDisc(int stationNum, int discNum,
                                               int discID);
-    void                       addReceiverPod(int podNum, vsVector pos,
-                                              vsVector normal, int podID);
+    void                       addReceiverPod(int podNum, atVector pos,
+                                              atVector normal, int podID);
     void                       removeReceiverPod(int podNum, int podID);
     void                       applyConfig();
     void                       cancelConfig();
@@ -259,12 +259,12 @@ public:
     void                       forkTracking();
 
     // Other useful IS-600 functions
-    void                       setAlignment(int station, vsVector origin, 
-                                            vsVector positiveX, 
-                                            vsVector positiveY);
+    void                       setAlignment(int station, atVector origin, 
+                                            atVector positiveX, 
+                                            atVector positiveY);
     void                       resetAlignment(int station);
     void                       setMountingFrame(int station, 
-                                   vsVector orientation);
+                                   atVector orientation);
     void                       setGenlock(int syncMode, int rate);
     void                       setGenlockPhase(int phase);
     void                       setOutputFormat(int newFormat[], 

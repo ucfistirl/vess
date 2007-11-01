@@ -73,7 +73,7 @@ int vsLODAttribute::getAttributeCategory()
 // Sets a user-defined center for this LOD.  The default center is
 // the center of the parent node's bounding sphere.
 // ------------------------------------------------------------------------
-void vsLODAttribute::setCenter(vsVector newCenter)
+void vsLODAttribute::setCenter(atVector newCenter)
 {
     osg::Vec3 osgVec;
 
@@ -86,14 +86,14 @@ void vsLODAttribute::setCenter(vsVector newCenter)
     }
 
     // Set the new center on the OSG LOD node
-    osgVec.set(newCenter[VS_X], newCenter[VS_Y], newCenter[VS_Z]);
+    osgVec.set(newCenter[AT_X], newCenter[AT_Y], newCenter[AT_Z]);
     osgLOD->setCenter(osgVec);
 }
 
 // ------------------------------------------------------------------------
 // Returns the current center of this LOD.
 // ------------------------------------------------------------------------
-vsVector vsLODAttribute::getCenter()
+atVector vsLODAttribute::getCenter()
 {
     osg::Vec3 osgVec;
 
@@ -102,14 +102,14 @@ vsVector vsLODAttribute::getCenter()
     {
         printf("vsLODAttribute::setRangeEnd: Attribute must be attached "
             "before LOD can be manipulated\n");
-        return vsVector(0,0,0);
+        return atVector(0,0,0);
     }
 
     // Get the current center from the LOD node
     osgVec = osgLOD->getCenter();
 
-    // Return it in vsVector form
-    return vsVector(osgVec[0], osgVec[1], osgVec[2]);
+    // Return it in atVector form
+    return atVector(osgVec[0], osgVec[1], osgVec[2]);
 }
 
 // ------------------------------------------------------------------------

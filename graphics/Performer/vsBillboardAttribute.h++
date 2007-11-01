@@ -26,7 +26,7 @@
 #include "vsGlobals.h++"
 #include <Performer/pf/pfBillboard.h>
 #include <Performer/pf/pfDCS.h>
-#include "vsMatrix.h++"
+#include "atMatrix.h++"
 #include "vsAttribute.h++"
 
 enum vsBillboardRotationMode
@@ -40,14 +40,14 @@ class VS_GRAPHICS_DLL vsBillboardAttribute : public vsAttribute
 {
 private:
 
-    vsVector    centerPoint;
-    vsVector    frontDirection;
-    vsVector    upAxis;
+    atVector    centerPoint;
+    atVector    frontDirection;
+    atVector    upAxis;
     
     int         billboardMode;
     
-    vsMatrix    preTranslate;
-    vsMatrix    postTranslate;
+    atMatrix    preTranslate;
+    atMatrix    postTranslate;
     pfDCS       *billboardTransform;
 
 VS_INTERNAL:
@@ -59,7 +59,7 @@ VS_INTERNAL:
     virtual void    attachDuplicate(vsNode *theNode);
 
     static int      travCallback(pfTraverser *_trav, void *_userData);
-    void            adjustTransform(vsMatrix viewMatrix, vsMatrix currentXform);
+    void            adjustTransform(atMatrix viewMatrix, atMatrix currentXform);
     
 public:
 
@@ -74,14 +74,14 @@ public:
     void                  setMode(int mode);
     int                   getMode();
 
-    void                  setCenterPoint(vsVector newCenter);
-    vsVector              getCenterPoint();
+    void                  setCenterPoint(atVector newCenter);
+    atVector              getCenterPoint();
 
-    void                  setFrontDirection(vsVector newFront);
-    vsVector              getFrontDirection();
+    void                  setFrontDirection(atVector newFront);
+    atVector              getFrontDirection();
 
-    void                  setAxis(vsVector newAxis);
-    vsVector              getAxis();
+    void                  setAxis(atVector newAxis);
+    atVector              getAxis();
 };
 
 #endif

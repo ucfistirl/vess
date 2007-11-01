@@ -581,7 +581,7 @@ vsNode *vsComponent::getChild(int index)
 // Retrieves the center point and radius of a sphere that encompasses all
 // of the geometry within this object.
 // ------------------------------------------------------------------------
-void vsComponent::getBoundSphere(vsVector *centerPoint, double *radius)
+void vsComponent::getBoundSphere(atVector *centerPoint, double *radius)
 {
     osg::BoundingSphere boundSphere;
     osg::Vec3 center;
@@ -607,12 +607,12 @@ void vsComponent::getBoundSphere(vsVector *centerPoint, double *radius)
 // multiplying together all of the transforms at nodes at and above this
 // one.
 // ------------------------------------------------------------------------
-vsMatrix vsComponent::getGlobalXform()
+atMatrix vsComponent::getGlobalXform()
 {
     osg::Node *nodePtr;
     osg::Matrix xform;
     osg::Matrix matRef;
-    vsMatrix result;
+    atMatrix result;
     int loop, sloop;
 
     // Start at the group on the bottom of this component, and work
@@ -963,20 +963,20 @@ bool vsComponent::removeParent(vsNode *targetParent)
 // Recursively finds the topLeft and bottomRight of the geometry that is
 // represented by this component (all the objects in the children list).
 // ------------------------------------------------------------------------
-void vsComponent::getAxisAlignedBoxBounds(vsVector  *minValues,
-    vsVector *maxValues)
+void vsComponent::getAxisAlignedBoxBounds(atVector  *minValues,
+    atVector *maxValues)
 {
     int childCount = getChildCount();
     int cntChild;
     int column;
-    vsVector tempMinValues;
-    vsVector tempMaxValues;
-    vsVector passMinValues;
-    vsVector passMaxValues;
-    vsVector oldPoint;
-    vsVector newPoint;
+    atVector tempMinValues;
+    atVector tempMaxValues;
+    atVector passMinValues;
+    atVector passMaxValues;
+    atVector oldPoint;
+    atVector newPoint;
     vsTransformAttribute *transform = NULL;
-    vsMatrix dynamicMatrix;
+    atMatrix dynamicMatrix;
     bool minNotSet = true;
     bool maxNotSet = true;
 

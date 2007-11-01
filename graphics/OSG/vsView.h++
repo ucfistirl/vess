@@ -23,8 +23,8 @@
 #ifndef VS_VIEW_HPP
 #define VS_VIEW_HPP
 
-#include "vsVector.h++"
-#include "vsMatrix.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
 #include "vsObject.h++"
 
 enum vsViewProjectionMode
@@ -39,8 +39,8 @@ class VS_GRAPHICS_DLL vsView : public vsObject
 private:
 
     // Current viewpoint and orientation values
-    vsVector    viewpoint;
-    vsVector    forwardDir, upDir;
+    atVector    viewpoint;
+    atVector    forwardDir, upDir;
 
     // Near/far clipping plane distances
     double      nearClipDist, farClipDist;
@@ -73,17 +73,17 @@ public:
     // Position manipulations
     void        setViewpoint(double xPosition, double yPosition,
                              double zPosition);
-    void        setViewpoint(vsVector newPosition);
+    void        setViewpoint(atVector newPosition);
     void        getViewpoint(double *xPosition, double *yPosition,
                              double *zPosition);
-    vsVector    getViewpoint();
+    atVector    getViewpoint();
 
     // Orientation manipulations
-    void        setDirectionFromVector(vsVector direction,
-                                       vsVector upDirection);
-    void        lookAtPoint(vsVector targetPoint, vsVector upDirection);
-    void        setDirectionFromRotation(vsQuat rotQuat);
-    void        setDirectionFromRotation(vsMatrix rotMatrix);
+    void        setDirectionFromVector(atVector direction,
+                                       atVector upDirection);
+    void        lookAtPoint(atVector targetPoint, atVector upDirection);
+    void        setDirectionFromRotation(atQuat rotQuat);
+    void        setDirectionFromRotation(atMatrix rotMatrix);
     
     // Near/far clip plane functions
     void        setClipDistances(double nearPlane, double farPlane);
@@ -96,10 +96,10 @@ public:
                                       double top);
 
     // Orientation accessors
-    vsVector    getDirection();
-    vsVector    getUpDirection();
+    atVector    getDirection();
+    atVector    getUpDirection();
 
-    vsMatrix    getRotationMat();
+    atMatrix    getRotationMat();
 };
 
 #endif

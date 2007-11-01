@@ -383,7 +383,7 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
     // Transform vars
     vsTransformAttribute *xformAttr;
     osg::Matrix osgMat;
-    vsMatrix xformMat, tempMat;
+    atMatrix xformMat, tempMat;
     osgSim::DOFTransform *dofXformGroup;
     osg::MatrixTransform *matrixXformGroup;
     osg::PositionAttitudeTransform *posAttXformGroup;
@@ -456,7 +456,7 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
                     // If the final computed offset is non-zero, then we're
                     // going to need to put a decal attribute on the
                     // component at some point later
-                    if (!(VS_EQUAL(offsetArray[offsetArraySize-1], 0.0)))
+                    if (!(AT_EQUAL(offsetArray[offsetArraySize-1], 0.0)))
                         needsDecal = true;
                 }
                 else
@@ -597,7 +597,7 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
 
                 // Add the rotation
                 rotation = posAttXformGroup->getAttitude();
-                tempMat.setQuatRotation(vsQuat(rotation[0], rotation[1],
+                tempMat.setQuatRotation(atQuat(rotation[0], rotation[1],
                     rotation[2], rotation[3]));
                 xformMat = tempMat * xformMat;
                 
@@ -748,14 +748,14 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
         }
         
         osgVec3 = osgBillboard->getNormal();
-        billboardAttr->setFrontDirection(vsVector(osgVec3[0], osgVec3[1],
+        billboardAttr->setFrontDirection(atVector(osgVec3[0], osgVec3[1],
             osgVec3[2]));
         
         osgVec3 = osgBillboard->getAxis();
-        if (VS_EQUAL(osgVec3.length(),0.0))
-            billboardAttr->setAxis(vsVector(0.0, 0.0, 1.0));
+        if (AT_EQUAL(osgVec3.length(),0.0))
+            billboardAttr->setAxis(atVector(0.0, 0.0, 1.0));
         else
-            billboardAttr->setAxis(vsVector(osgVec3[0], osgVec3[1],
+            billboardAttr->setAxis(atVector(osgVec3[0], osgVec3[1],
                 osgVec3[2]));
 
         geometryComponent->addAttribute(billboardAttr);
@@ -821,7 +821,7 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
                     // If the final computed offset is non-zero, then we're
                     // going to need to put a decal attribute on the
                     // component at some point later
-                    if (!(VS_EQUAL(offsetArray[offsetArraySize-1], 0.0)))
+                    if (!(AT_EQUAL(offsetArray[offsetArraySize-1], 0.0)))
                         needsDecal = true;
                 }
                 else
@@ -1470,7 +1470,7 @@ void vsDatabaseLoader::convertLOD(vsComponent *lodComponent, osg::LOD *osgLOD)
         
         for (loop = 0; loop < rangeListSize-1; loop++)
         {
-            if (VS_EQUAL(rangeList[loop], rangeList[loop+1]))
+            if (AT_EQUAL(rangeList[loop], rangeList[loop+1]))
             {
                 // Delete one of the equal range values by copying
                 // the last range value over it; the sorting process
@@ -1543,7 +1543,7 @@ void vsDatabaseLoader::convertLOD(vsComponent *lodComponent, osg::LOD *osgLOD)
     // configure the attribute's ranges with the values from the range list
     lodAttr = new vsLODAttribute();
     lodComponent->addAttribute(lodAttr);
-    lodAttr->setCenter(vsVector(lodCenter[0], lodCenter[1], lodCenter[2]));
+    lodAttr->setCenter(atVector(lodCenter[0], lodCenter[1], lodCenter[2]));
     for (loop = 0; loop < (rangeListSize-1); loop++)
         lodAttr->setRangeEnd(loop, rangeList[loop+1]);
 
@@ -1605,7 +1605,7 @@ void vsDatabaseLoader::convertDecal(vsComponent *decalComponent,
         flag = false;
         for (loop = 0; loop < offsetArraySize-1; loop++)
         {
-            if (VS_EQUAL(offsetArray[loop], offsetArray[loop+1]))
+            if (AT_EQUAL(offsetArray[loop], offsetArray[loop+1]))
             {
                 // Copy the last entry in the list over the entry to
                 // be deleted, and shrink the list. The sorting mechanism
@@ -1851,19 +1851,19 @@ int vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
             case 2:
                 osgVec2 = (*osgVec2Array)[idx];
                 targetGeometry->setData(targetDataType, loop,
-                    vsVector(osgVec2[0], osgVec2[1]));
+                    atVector(osgVec2[0], osgVec2[1]));
                 break;
 
             case 3:
                 osgVec3 = (*osgVec3Array)[idx];
                 targetGeometry->setData(targetDataType, loop,
-                    vsVector(osgVec3[0], osgVec3[1], osgVec3[2]));
+                    atVector(osgVec3[0], osgVec3[1], osgVec3[2]));
                 break;
 
             case 4:
                 osgVec4 = (*osgVec4Array)[idx];
                 targetGeometry->setData(targetDataType, loop,
-                    vsVector(osgVec4[0], osgVec4[1], osgVec4[2], osgVec4[3]));
+                    atVector(osgVec4[0], osgVec4[1], osgVec4[2], osgVec4[3]));
                 break;
         }
     } // for (loop = 0; loop < copySize; loop++)

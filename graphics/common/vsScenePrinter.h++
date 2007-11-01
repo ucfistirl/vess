@@ -51,6 +51,10 @@ private:
     void        writeSkeletonMeshGeometryList(vsSkeletonMeshGeometry *geometry,
                                   int dataList, int treeDepth, 
                                   FILE *outputFile);
+    void        writeIndexList(u_int *indexList, int indexListSize,
+                               int primitiveCount, int primitiveType,
+                               int *primitiveLengths, int treeDepth,
+                               FILE *outputFile);
     void        writeGeometry(vsGeometry *geometry, FILE *outFile,
                               int treeDepth);
     void        writeDynamicGeometry(vsDynamicGeometry *geometry, 

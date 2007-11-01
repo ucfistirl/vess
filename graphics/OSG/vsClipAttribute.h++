@@ -61,15 +61,15 @@ public:
     void                  setClipPlane(int planeIndex, double a, double b,
                                        double c, double d);
     void                  setClipPlane(int planeIndex,
-                                       vsVector pointOnPlane,
-                                       vsVector normal);
+                                       atVector pointOnPlane,
+                                       atVector normal);
     void                  removeClipPlane(int planeIndex);
 
     bool                  isClipPlaneActive(int planeIndex);
     void                  getClipPlaneCoeffs(int planeIndex,
                                              double *a, double *b,
                                              double *c, double *d);
-    vsVector              getClipPlaneNormal(int planeIndex);
+    atVector              getClipPlaneNormal(int planeIndex);
 };
 
 #endif

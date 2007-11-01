@@ -172,21 +172,21 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
     double                  localTranslationY;
     double                  localTranslationZ;
     double                  x, y, z, w;
-    vsQuat                  rotationQuat;
-    vsMatrix                transformMatrix;
-    vsMatrix                rotationMatrix;
-    vsMatrix                translationMatrix;
-    vsQuat                  localRotationQuat;
-    vsMatrix                localTransformMatrix;
-    vsMatrix                localRotationMatrix;
-    vsMatrix                localTranslationMatrix;
+    atQuat                  rotationQuat;
+    atMatrix                transformMatrix;
+    atMatrix                rotationMatrix;
+    atMatrix                translationMatrix;
+    atQuat                  localRotationQuat;
+    atMatrix                localTransformMatrix;
+    atMatrix                localRotationMatrix;
+    atMatrix                localTranslationMatrix;
     vsComponent             *rootComponent;
     vsComponent             *currentComponent;
     vsComponent             *childComponent;
     vsGrowableArray         *boneList;
     vsTransformAttribute    *boneTransform;
     vsGrowableArray         *boneSpaceMatrixList;
-    vsMatrix                *currentBoneSpaceMatrix;
+    atMatrix                *currentBoneSpaceMatrix;
 
     boneCount = 0;
     boneChildrenCount = 0;
@@ -330,7 +330,7 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
         currentComponent->ref();
         boneList->setData(boneID, currentComponent);
 
-        currentBoneSpaceMatrix = new vsMatrix();
+        currentBoneSpaceMatrix = new atMatrix();
         boneSpaceMatrixList->setData(boneID, currentBoneSpaceMatrix);
     }
 
@@ -380,11 +380,11 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
             }
 
             // Get the Bone Space matrix pointer for this bone.
-            currentBoneSpaceMatrix = (vsMatrix *)
+            currentBoneSpaceMatrix = (atMatrix *)
                 boneSpaceMatrixList->getData(boneID);
             if (!currentBoneSpaceMatrix)
             {
-                currentBoneSpaceMatrix = new vsMatrix();
+                currentBoneSpaceMatrix = new atMatrix();
                 boneSpaceMatrixList->setData(boneID, currentBoneSpaceMatrix);
             }
 

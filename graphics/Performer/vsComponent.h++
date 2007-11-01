@@ -26,7 +26,7 @@
 #include "vsGlobals.h++"
 #include <Performer/pf/pfGroup.h>
 #include "vsGrowableArray.h++"
-#include "vsVector.h++"
+#include "atVector.h++"
 #include "vsAttribute.h++"
 #include "vsNode.h++"
 
@@ -76,8 +76,8 @@ public:
     virtual int           getChildCount();
     virtual vsNode        *getChild(int index);
 
-    virtual void          getBoundSphere(vsVector *centerPoint, double *radius);
-    virtual vsMatrix      getGlobalXform();
+    virtual void          getBoundSphere(atVector *centerPoint, double *radius);
+    virtual atMatrix      getGlobalXform();
 
     virtual void            setIntersectValue(unsigned int newValue);
     virtual unsigned int    getIntersectValue();

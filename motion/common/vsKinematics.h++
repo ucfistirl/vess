@@ -26,8 +26,8 @@
 #include "vsUpdatable.h++"
 #include "vsComponent.h++"
 #include "vsTransformAttribute.h++"
-#include "vsVector.h++"
-#include "vsQuat.h++"
+#include "atVector.h++"
+#include "atQuat.h++"
 
 class VS_MOTION_DLL vsKinematics : public vsUpdatable
 {
@@ -38,26 +38,26 @@ private:
     vsTransformAttribute    *transform;
 
     // Current physical state
-    vsVector                position;
-    vsQuat                  orientation;
+    atVector                position;
+    atQuat                  orientation;
 
-    vsVector                velocity;
-    vsVector                angularVelocity;
+    atVector                velocity;
+    atVector                angularVelocity;
 
     // Inertia on or off
     bool                    inertia;
 
     // Orientation constraints
     bool                    constrainOnUpdate;
-    vsVector                constraintAxis[3];
+    atVector                constraintAxis[3];
     double                  constraintMinAngle[3];
     double                  constraintMaxAngle[3];
     
     double                  constrainAngle(double value,
                                            double minDegrees,
                                            double maxDegrees);
-    double                  calculateAxisRotation(vsQuat rotation,
-                                                  vsVector axis);
+    double                  calculateAxisRotation(atQuat rotation,
+                                                  atVector axis);
 
 public:
 
@@ -75,35 +75,35 @@ public:
     void                  disableInertia();
 
     // Adjust the current position
-    void                  setPosition(vsVector newPosition);
-    vsVector              getPosition();
-    void                  modifyPosition(vsVector deltaPosition);
+    void                  setPosition(atVector newPosition);
+    atVector              getPosition();
+    void                  modifyPosition(atVector deltaPosition);
 
     // Adjust the current orientation
-    void                  setOrientation(vsQuat newOrientation);
-    vsQuat                getOrientation();
-    void                  preModifyOrientation(vsQuat deltaOrientation);
-    void                  postModifyOrientation(vsQuat deltaOrientation);
+    void                  setOrientation(atQuat newOrientation);
+    atQuat                getOrientation();
+    void                  preModifyOrientation(atQuat deltaOrientation);
+    void                  postModifyOrientation(atQuat deltaOrientation);
 
     // Adjust the current linear velocity
-    void                  setVelocity(vsVector newVelocity);
-    vsVector              getVelocity();
-    void                  modifyVelocity(vsVector deltaVelocity);
+    void                  setVelocity(atVector newVelocity);
+    atVector              getVelocity();
+    void                  modifyVelocity(atVector deltaVelocity);
 
     // Adjust the current angular velocity
-    void                  setAngularVelocity(vsVector rotAxis, double degreesPerSec);
-    vsVector              getAngularVelocity();
-    void                  modifyAngularVelocity(vsVector rotAxis, 
+    void                  setAngularVelocity(atVector rotAxis, double degreesPerSec);
+    atVector              getAngularVelocity();
+    void                  modifyAngularVelocity(atVector rotAxis, 
                                                 double degreesPerSec);
 
     // Adjust the center of mass for rotational purposes
-    void                  setCenterOfMass(vsVector newCenter);
-    vsVector              getCenterOfMass();
+    void                  setCenterOfMass(atVector newCenter);
+    atVector              getCenterOfMass();
 
     // Adjust/apply the orientation constraints
-    void                  setConstraint(int idx, vsVector axis,
+    void                  setConstraint(int idx, atVector axis,
                                         double minAngle, double maxAngle);
-    void                  getConstraint(int idx, vsVector *axis,
+    void                  getConstraint(int idx, atVector *axis,
                                         double *minAngle, double *maxAngle);
 
     void                  enableConstrainOnUpdate();

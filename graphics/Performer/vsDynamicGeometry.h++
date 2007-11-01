@@ -29,7 +29,7 @@
 #include <Performer/pr/pfFlux.h>
 #include <Performer/pf/pfGeode.h>
 #include <Performer/pr/pfGeoArray.h>
-#include "vsVector.h++"
+#include "atVector.h++"
 #include "vsAttribute.h++"
 #include "vsGeometry.h++"
 
@@ -81,9 +81,9 @@ private:
     int                renderBin;
 
     void               convertToPerVertex(int list);
-    void               setOverallData(int list, vsVector data);
+    void               setOverallData(int list, atVector data);
     void               setPerPrimitiveData(int list, int index,
-                                           vsVector data);
+                                           atVector data);
 
     static int         initFluxedGeoArray(pfFluxMemory *fluxMem);
 
@@ -125,10 +125,10 @@ public:
     void                  setBinding(int whichData, int binding);
     int                   getBinding(int whichData);
 
-    void                  setData(int whichData, int dataIndex, vsVector data);
-    vsVector              getData(int whichData, int dataIndex);
-    void                  setDataList(int whichData, vsVector *dataList);
-    void                  getDataList(int whichData, vsVector *dataBuffer);
+    void                  setData(int whichData, int dataIndex, atVector data);
+    atVector              getData(int whichData, int dataIndex);
+    void                  setDataList(int whichData, atVector *dataList);
+    void                  getDataList(int whichData, atVector *dataBuffer);
     void                  setDataListSize(int whichData, int newSize);
     int                   getDataListSize(int whichData);
 
@@ -139,9 +139,9 @@ public:
     void                  setRenderBin(int binNum);
     int                   getRenderBin();
     
-    virtual void          getBoundSphere(vsVector *centerPoint, 
+    virtual void          getBoundSphere(atVector *centerPoint, 
                                          double *radius);
-    virtual vsMatrix      getGlobalXform();
+    virtual atMatrix      getGlobalXform();
 
     virtual void            setIntersectValue(unsigned int newValue);
     virtual unsigned int    getIntersectValue();

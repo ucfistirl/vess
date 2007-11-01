@@ -61,13 +61,13 @@ vsInputAxis *vs6DInputDevice::getAxis(int index)
 }
 
 // ------------------------------------------------------------------------
-// Returns the position of the device in a vsVector
+// Returns the position of the device in a atVector
 // ------------------------------------------------------------------------
-vsVector vs6DInputDevice::getPositionVec()
+atVector vs6DInputDevice::getPositionVec()
 {
-    vsVector vec;
+    atVector vec;
    
-    // Create a vsVector with the current device position as read from
+    // Create a atVector with the current device position as read from
     // the input axes
     vec.setSize(3);
     vec.set(position[0].getPosition(), position[1].getPosition(),
@@ -79,15 +79,15 @@ vsVector vs6DInputDevice::getPositionVec()
 
 // ------------------------------------------------------------------------
 // Returns the orientation of the device represented as Euler Angles in a
-// vsVector
+// atVector
 // ------------------------------------------------------------------------
-vsVector vs6DInputDevice::getOrientationVec(vsMathEulerAxisOrder axisOrder)
+atVector vs6DInputDevice::getOrientationVec(atMathEulerAxisOrder axisOrder)
 {
     double   h, p, r;
-    vsVector vec;
+    atVector vec;
     orientation.getEulerRotation(axisOrder, &h, &p, &r);
 
-    // Create a vsVector with the current device orientation represented
+    // Create a atVector with the current device orientation represented
     // as Euler angles
     vec.setSize(3);
     vec.set(h, p, r);
@@ -97,13 +97,13 @@ vsVector vs6DInputDevice::getOrientationVec(vsMathEulerAxisOrder axisOrder)
 }
 
 // ------------------------------------------------------------------------
-// Returns the orientation of the device as a vsMatrix
+// Returns the orientation of the device as a atMatrix
 // ------------------------------------------------------------------------
-vsMatrix vs6DInputDevice::getOrientationMat()
+atMatrix vs6DInputDevice::getOrientationMat()
 {
-    vsMatrix mat;
+    atMatrix mat;
 
-    // Create a vsMatrix with the current device orientation
+    // Create a atMatrix with the current device orientation
     mat.setQuatRotation(orientation);
 
     // Return the orientation matrix
@@ -111,9 +111,9 @@ vsMatrix vs6DInputDevice::getOrientationMat()
 }
 
 // ------------------------------------------------------------------------
-// Returns the orientation of the device as a vsQuat
+// Returns the orientation of the device as a atQuat
 // ------------------------------------------------------------------------
-vsQuat vs6DInputDevice::getOrientationQuat()
+atQuat vs6DInputDevice::getOrientationQuat()
 {
     return orientation;
 }

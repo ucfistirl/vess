@@ -168,7 +168,7 @@ void vsSoundListenerAttribute::attachDuplicate(vsNode *theNode)
 // Returns the effective position of the listener, after applying global
 // transform and offset matrices
 // ------------------------------------------------------------------------
-vsVector vsSoundListenerAttribute::getLastPosition()
+atVector vsSoundListenerAttribute::getLastPosition()
 {
     return lastPos;
 }
@@ -178,7 +178,7 @@ vsVector vsSoundListenerAttribute::getLastPosition()
 // Returns the effective orientation of the listener, after applying global
 // transform and offset matrices
 // ------------------------------------------------------------------------
-vsQuat vsSoundListenerAttribute::getLastOrientation()
+atQuat vsSoundListenerAttribute::getLastOrientation()
 {
     return lastOrn;
 }
@@ -188,7 +188,7 @@ vsQuat vsSoundListenerAttribute::getLastOrientation()
 // multiplied into the overall transform matrix before it is sent to the 
 // OpenAL sound source.
 // ------------------------------------------------------------------------
-void vsSoundListenerAttribute::setOffsetMatrix(vsMatrix newMatrix)
+void vsSoundListenerAttribute::setOffsetMatrix(atMatrix newMatrix)
 {
     offsetMatrix = newMatrix;
 }
@@ -196,7 +196,7 @@ void vsSoundListenerAttribute::setOffsetMatrix(vsMatrix newMatrix)
 // ------------------------------------------------------------------------
 // Retrieves the offset matrix for this attribute
 // ------------------------------------------------------------------------
-vsMatrix vsSoundListenerAttribute::getOffsetMatrix()
+atMatrix vsSoundListenerAttribute::getOffsetMatrix()
 {
     return offsetMatrix;
 }
@@ -207,12 +207,12 @@ vsMatrix vsSoundListenerAttribute::getOffsetMatrix()
 // -----------------------------------------------------------------------
 void vsSoundListenerAttribute::update()
 {
-    vsMatrix       result;
-    vsQuat         tempQuat;
-    vsVector       tempVec;
-    vsVector       deltaVec;
+    atMatrix       result;
+    atQuat         tempQuat;
+    atVector       tempVec;
+    atVector       deltaVec;
     double         interval;
-    vsVector       atVec, upVec;
+    atVector       atVec, upVec;
     ALfloat        orientation[6];
 
     // If the attribute is not attached to a component, we have nothing
@@ -228,14 +228,14 @@ void vsSoundListenerAttribute::update()
     
     // Apply the VESS-to-OpenAL coordinate conversion
     tempVec.setSize(3);
-    tempVec[VS_X] = result[0][3];
-    tempVec[VS_Y] = result[1][3];
-    tempVec[VS_Z] = result[2][3];
+    tempVec[AT_X] = result[0][3];
+    tempVec[AT_Y] = result[1][3];
+    tempVec[AT_Z] = result[2][3];
     tempVec = coordXform.rotatePoint(tempVec);
 
     // Update the OpenAL listener's position
-    alListener3f(AL_POSITION, (float)tempVec[VS_X], (float)tempVec[VS_Y], 
-        (float)tempVec[VS_Z]); 
+    alListener3f(AL_POSITION, (float)tempVec[AT_X], (float)tempVec[AT_Y], 
+        (float)tempVec[AT_Z]); 
 
     // Update the velocity (based on the last frame's position)
     deltaVec.setSize(3);
@@ -250,8 +250,8 @@ void vsSoundListenerAttribute::update()
         deltaVec.scale(1/interval);
 
         // Update the listener's velocity
-        alListener3f(AL_VELOCITY, (float)deltaVec[VS_X], (float)deltaVec[VS_Y], 
-            (float)deltaVec[VS_Z]);
+        alListener3f(AL_VELOCITY, (float)deltaVec[AT_X], (float)deltaVec[AT_Y], 
+            (float)deltaVec[AT_Z]);
 
         // Save the current position for the next frame
         lastPos = tempVec;
@@ -261,7 +261,7 @@ void vsSoundListenerAttribute::update()
     tempQuat.setMatrixRotation(result);
     tempQuat = coordXform * tempQuat * coordXformInv;
 
-    // Convert the vsQuat rotation to at/up vectors
+    // Convert the atQuat rotation to at/up vectors
     // In OpenAL (like OpenGL) -Z is forward (at) and +Y is up
     atVec.set(0.0, 0.0, -1.0);
     upVec.set(0.0, 1.0, 0.0);
@@ -275,12 +275,12 @@ void vsSoundListenerAttribute::update()
     upVec = tempQuat.rotatePoint(upVec);
 
     // Update the alListener's orientation
-    orientation[0] = (ALfloat)(atVec[VS_X]);
-    orientation[1] = (ALfloat)(atVec[VS_Y]);
-    orientation[2] = (ALfloat)(atVec[VS_Z]);
-    orientation[3] = (ALfloat)(upVec[VS_X]);
-    orientation[4] = (ALfloat)(upVec[VS_Y]);
-    orientation[5] = (ALfloat)(upVec[VS_Z]);
+    orientation[0] = (ALfloat)(atVec[AT_X]);
+    orientation[1] = (ALfloat)(atVec[AT_Y]);
+    orientation[2] = (ALfloat)(atVec[AT_Z]);
+    orientation[3] = (ALfloat)(upVec[AT_X]);
+    orientation[4] = (ALfloat)(upVec[AT_Y]);
+    orientation[5] = (ALfloat)(upVec[AT_Z]);
     alListenerfv(AL_ORIENTATION, orientation);
 }
 

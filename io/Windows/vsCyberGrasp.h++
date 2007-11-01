@@ -123,7 +123,7 @@ protected:
     vhtTrackerEmulator     *vhtTrackerEmu;
     
     // Coordinate system transforms
-    vsQuat                 coordXform, coordXformInv;
+    atQuat                 coordXform, coordXformInv;
 
     // Indicates whether or not we're using a tracker controlled locally
     // or one controlled by the CyberGrasp FCU
@@ -171,8 +171,8 @@ public:
 
     // Sets a contact patch (a plane of intersection) on the CyberGrasp
     // (must be in IMPEDANCE mode)
-    void                   setContactPatch(int finger, vsVector point, 
-                                           vsVector normal, double stiffness, 
+    void                   setContactPatch(int finger, atVector point, 
+                                           atVector normal, double stiffness, 
                                            double damping);
 
     // Removes the contact patch on the given joint (must be in IMPEDANCE 

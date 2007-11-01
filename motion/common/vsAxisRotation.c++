@@ -106,7 +106,7 @@ void vsAxisRotation::update()
     double headingPos;
     double pitchPos;
     double h, p, r;
-    vsQuat tempQuat;
+    atQuat tempQuat;
 
     // Initialize axis position variables
     headingPos = 0.0;
@@ -164,7 +164,7 @@ void vsAxisRotation::update()
 
     // Get the current orientation of the kinematics in Euler angles
     tempQuat = kinematics->getOrientation();
-    tempQuat.getEulerRotation(VS_EULER_ANGLES_ZXY_R, &h, &p, &r);
+    tempQuat.getEulerRotation(AT_EULER_ANGLES_ZXY_R, &h, &p, &r);
 
     // Ensure that the heading rotation doesn't exceed the limits
     if (((headingPos < 0) && (h > -headingHalfWidth)) || 
@@ -176,7 +176,7 @@ void vsAxisRotation::update()
             // Update the angular velocity of the kinematics based
             // on the position of the heading axis and the heading 
             // rotation speed
-            kinematics->modifyAngularVelocity(vsVector(0.0, 0.0, 1.0),
+            kinematics->modifyAngularVelocity(atVector(0.0, 0.0, 1.0),
                 headingPos * headingSpeed);
         }
     }
@@ -191,7 +191,7 @@ void vsAxisRotation::update()
             // Update the angular velocity of the kinematics based
             // on the position of the pitch axis and the pitch 
             // rotation speed
-            kinematics->modifyAngularVelocity(vsVector(1.0, 0.0, 0.0),
+            kinematics->modifyAngularVelocity(atVector(1.0, 0.0, 0.0),
                 pitchPos * pitchSpeed);
         }
     }
@@ -280,7 +280,7 @@ double vsAxisRotation::getPitchSpeed()
 // Sets the default orientation for the kinematics.  Calling center() will
 // return the kinematics to the orientation specified.
 // ------------------------------------------------------------------------
-void vsAxisRotation::setStartingOrientation(vsQuat orientation)
+void vsAxisRotation::setStartingOrientation(atQuat orientation)
 {
     startingOrientation = orientation;
 }
@@ -288,7 +288,7 @@ void vsAxisRotation::setStartingOrientation(vsQuat orientation)
 // ------------------------------------------------------------------------
 // Returns the default orientation for the kinematics
 // ------------------------------------------------------------------------
-vsQuat vsAxisRotation::getStartingOrientation()
+atQuat vsAxisRotation::getStartingOrientation()
 {
     return startingOrientation;
 }

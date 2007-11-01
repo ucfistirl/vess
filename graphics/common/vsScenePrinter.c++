@@ -25,6 +25,7 @@
 #include "vsGeometry.h++"
 #include "vsComponent.h++"
 #include "vsBackfaceAttribute.h++"
+#include "vsClipAttribute.h++"
 #include "vsMaterialAttribute.h++"
 #include "vsShadingAttribute.h++"
 #include "vsTransparencyAttribute.h++"
@@ -145,7 +146,7 @@ void vsScenePrinter::writeGeometryList(vsGeometry *geometry, int dataList,
 {
     int size;
     int loop;
-    vsVector geoVec;
+    atVector geoVec;
 
     // Get the length of the list
     size = geometry->getDataListSize(dataList);
@@ -182,7 +183,7 @@ void vsScenePrinter::writeDynamicGeometryList(vsDynamicGeometry *geometry,
 {
     int size;
     int loop;
-    vsVector geoVec;
+    atVector geoVec;
 
     // Get the length of the list
     size = geometry->getDataListSize(dataList);
@@ -220,7 +221,7 @@ void vsScenePrinter::writeSkeletonMeshGeometryList(
 {
     int size;
     int loop;
-    vsVector geoVec;
+    atVector geoVec;
 
     // Get the length of the list
     size = geometry->getDataListSize(dataList);
@@ -248,6 +249,61 @@ void vsScenePrinter::writeSkeletonMeshGeometryList(
 }
 
 // ------------------------------------------------------------------------
+// Prints a given index list
+// ------------------------------------------------------------------------
+void vsScenePrinter::writeIndexList(u_int *indexList, int indexListSize,
+                                    int primitiveCount, int primitiveType,
+                                    int *lengthsList, int treeDepth,
+                                    FILE *outputFile)
+{
+   int i, j;
+   int length;
+   int currentIndex;
+
+   // Print the index list header
+   writeBlanks(outputFile, (treeDepth * 2) + 1);
+   fprintf(outputFile, "INDICES (%d):\n", indexListSize);
+   writeBlanks(outputFile, (treeDepth * 2) + 3);
+   fprintf(outputFile, "{\n");
+
+   // Initialize the index counter
+   currentIndex = 0;
+
+   // Iterate over the primitives
+   for (i = 0; i < primitiveCount; i++)
+   {
+      // Get the length of this primitive
+      if (primitiveType == VS_GEOMETRY_TYPE_POINTS)
+         length = 1;
+      else if (primitiveType == VS_GEOMETRY_TYPE_LINES)
+         length = 2;
+      else if (primitiveType == VS_GEOMETRY_TYPE_TRIS)
+         length = 3;
+      else if (primitiveType == VS_GEOMETRY_TYPE_QUADS)
+         length = 4;
+      else
+         length = lengthsList[i];
+
+      // Indent for the next primitive's indices
+      writeBlanks(outputFile, (treeDepth * 2) + 5);
+
+      // Write the primitive indices on this line
+      for (j = 0; j < length; j++)
+      {
+         fprintf(outputFile, "%d, ", indexList[currentIndex]);
+         currentIndex++;
+      }
+
+      // Go to the next line for the next primitive
+      fprintf(outputFile, "\n");
+   }
+
+   // Finish off the list
+   writeBlanks(outputFile, (treeDepth * 2) + 3);
+   fprintf(outputFile, "}\n");
+}
+
+// ------------------------------------------------------------------------
 // Prints the information for the given geometry
 // ------------------------------------------------------------------------
 void vsScenePrinter::writeGeometry(vsGeometry *geometry, FILE *outfile, 
@@ -255,10 +311,12 @@ void vsScenePrinter::writeGeometry(vsGeometry *geometry, FILE *outfile,
 {
     int geoType, geoCount;
     int geoBinding;
-    vsVector geoVec;
+    atVector geoVec;
     int size, length;
     int loop;
     int textureUnit;
+    u_int * indices;
+    int *lengths;
 
     // Print the primitive type and count
     writeBlanks(outfile, (treeDepth * 2) + 1);
@@ -302,24 +360,13 @@ void vsScenePrinter::writeGeometry(vsGeometry *geometry, FILE *outfile,
             break;
     }
 
-    // Now, print the binding
-    fprintf(outfile, "  Vertex binding: ");
-    geoBinding = geometry->getBinding(VS_GEOMETRY_VERTEX_COORDS);
-    switch (geoBinding)
-    {
-        case VS_GEOMETRY_BIND_NONE:
-            fprintf(outfile, "NONE");
-            break;
-        case VS_GEOMETRY_BIND_OVERALL:
-            fprintf(outfile, "OVERALL");
-            break;
-        case VS_GEOMETRY_BIND_PER_PRIMITIVE:
-            fprintf(outfile, "PER PRIMITIVE");
-            break;
-        case VS_GEOMETRY_BIND_PER_VERTEX:
-            fprintf(outfile, "PER VERTEX");
-            break;
-    }
+    // If the list is indexed, print the vertex and index count
+    if (geometry->getIndexListSize() > 0)
+       fprintf(outfile, "   (%d Vertices, %d Indices)",
+          geometry->getDataListSize(VS_GEOMETRY_VERTEX_COORDS),
+          geometry->getIndexListSize());
+
+    // Finish the line
     fprintf(outfile, "\n");
 
     // Print vertex coordinates (if configured and there is geometry
@@ -357,6 +404,28 @@ void vsScenePrinter::writeGeometry(vsGeometry *geometry, FILE *outfile,
             writeBlanks(outfile, (treeDepth * 2) + 3);
             fprintf(outfile, "}\n");
         }
+    }
+
+    // If this geometry is indexed, print the index list
+    if ((geometry->getIndexListSize() > 0) && 
+        (printerMode & VS_PRINTER_GEOMETRY_LISTS))
+    {
+       // Get the index list
+       indices = new u_int[geometry->getIndexListSize()];
+       geometry->getIndexList(indices);
+
+       // Get lengths list
+       lengths = new int[geometry->getPrimitiveCount()];
+       geometry->getPrimitiveLengths(lengths);
+
+       // Write the list to the file
+       writeIndexList(indices, geometry->getIndexListSize(),
+           geometry->getPrimitiveCount(), geometry->getPrimitiveType(),
+           lengths, treeDepth, outfile);
+
+       // Clean up the lists
+       delete [] indices;
+       delete [] lengths;
     }
     
     // Print geometry bindings (if configured)
@@ -489,10 +558,12 @@ void vsScenePrinter::writeDynamicGeometry(vsDynamicGeometry *geometry,
 {
     int geoType, geoCount;
     int geoBinding;
-    vsVector geoVec;
+    atVector geoVec;
     int size, length;
     int loop;
     int textureUnit;
+    u_int * indices;
+    int *lengths;
 
     // Print the primitive type and count
     writeBlanks(outfile, (treeDepth * 2) + 1);
@@ -535,6 +606,14 @@ void vsScenePrinter::writeDynamicGeometry(vsDynamicGeometry *geometry,
             fprintf(outfile, "?");
             break;
     }
+
+    // If the list is indexed, print the vertex and index count
+    if (geometry->getIndexListSize() > 0)
+       fprintf(outfile, "   (%d Vertices, %d Indices)",
+          geometry->getDataListSize(VS_GEOMETRY_VERTEX_COORDS),
+          geometry->getIndexListSize());
+
+    // Finish the line
     fprintf(outfile, "\n");
 
     // Print vertex coordinates (if configured and there is geometry
@@ -572,6 +651,28 @@ void vsScenePrinter::writeDynamicGeometry(vsDynamicGeometry *geometry,
             writeBlanks(outfile, (treeDepth * 2) + 3);
             fprintf(outfile, "}\n");
         }
+    }
+    
+    // If this geometry is indexed, print the index list
+    if ((geometry->getIndexListSize() > 0) && 
+        (printerMode & VS_PRINTER_GEOMETRY_LISTS))
+    {
+       // Get the index list
+       indices = new u_int[geometry->getIndexListSize()];
+       geometry->getIndexList(indices);
+
+       // Get lengths list
+       lengths = new int[geometry->getPrimitiveCount()];
+       geometry->getPrimitiveLengths(lengths);
+
+       // Write the list to the file
+       writeIndexList(indices, geometry->getIndexListSize(),
+           geometry->getPrimitiveCount(), geometry->getPrimitiveType(),
+           lengths, treeDepth, outfile);
+
+       // Clean up the lists
+       delete [] indices;
+       delete [] lengths;
     }
     
     // Print geometry bindings (if configured)
@@ -695,10 +796,12 @@ void vsScenePrinter::writeSkeletonMeshGeometry(
 {
     int geoType, geoCount;
     int geoBinding;
-    vsVector geoVec;
+    atVector geoVec;
     int size, length;
     int loop;
     int textureUnit;
+    u_int * indices;
+    int *lengths;
 
     // Print the primitive type and count
     writeBlanks(outfile, (treeDepth * 2) + 1);
@@ -741,6 +844,14 @@ void vsScenePrinter::writeSkeletonMeshGeometry(
             fprintf(outfile, "?");
             break;
     }
+
+    // If the list is indexed, print the vertex and index count
+    if (geometry->getIndexListSize() > 0)
+       fprintf(outfile, "   (%d Vertices, %d Indices)",
+          geometry->getDataListSize(VS_GEOMETRY_VERTEX_COORDS),
+          geometry->getIndexListSize());
+
+    // Finish the line
     fprintf(outfile, "\n");
 
     // Print vertex coordinates (if configured and there is geometry
@@ -778,6 +889,28 @@ void vsScenePrinter::writeSkeletonMeshGeometry(
             writeBlanks(outfile, (treeDepth * 2) + 3);
             fprintf(outfile, "}\n");
         }
+    }
+    
+    // If this geometry is indexed, print the index list
+    if ((geometry->getIndexListSize() > 0) && 
+        (printerMode & VS_PRINTER_GEOMETRY_LISTS))
+    {
+       // Get the index list
+       indices = new u_int[geometry->getIndexListSize()];
+       geometry->getIndexList(indices);
+
+       // Get lengths list
+       lengths = new int[geometry->getPrimitiveCount()];
+       geometry->getPrimitiveLengths(lengths);
+
+       // Write the list to the file
+       writeIndexList(indices, geometry->getIndexListSize(),
+           geometry->getPrimitiveCount(), geometry->getPrimitiveType(),
+           lengths, treeDepth, outfile);
+
+       // Clean up the lists
+       delete [] indices;
+       delete [] lengths;
     }
     
     // Print geometry bindings (if configured)
@@ -993,7 +1126,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
     vsSkeletonMeshGeometry *smGeometry;
     vsAttribute *attribute;
     int loop, sloop;
-    vsMatrix mat;
+    atMatrix mat;
     double r, g, b, a;
     double nearFog, farFog;
     int mode;
@@ -1002,6 +1135,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
     double quadratic, linear, constant;
     double x, y, z;
     double exponent, angle;
+    vsClipAttribute *clipAttr;
     
     // Print which node type
     switch (targetNode->getNodeType())
@@ -1859,6 +1993,43 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                                 default:
                                     fprintf(outfile, "UNDEFINED\n");
                                     break;
+                            }
+                        }
+                    }
+                    break;
+
+                case VS_ATTRIBUTE_TYPE_CLIP:
+                    fprintf(outfile, "CLIP\n");
+
+                    // Print the clip plane details, if we're configured to
+                    // do so
+                    if (printerMode & VS_PRINTER_ATTRIBUTE_DETAILS)
+                    {
+                        int i;
+                        double a, b, c, d;
+
+                        // Cast the attribute
+                        clipAttr = (vsClipAttribute *)attribute;
+
+                        // Iterate over the possible clipping planes used
+                        // by this attribute
+                        for (i = 0; i < VS_CLIPATTR_MAX_PLANES; i++)
+                        {
+                            // Only print this plane's details if it's active
+                            if (clipAttr->isClipPlaneActive(i))
+                            {
+                                // Print the plane number
+                                writeBlanks(outfile, (treeDepth * 2) + 3);
+                                fprintf(outfile, "Plane %d:\n", i);
+
+                                // Get and print the plane's coefficients
+                                clipAttr->
+                                    getClipPlaneCoeffs(i, &a, &b, &c, &d);
+                                writeBlanks(outfile, (treeDepth * 2) + 5);
+                                fprintf(outfile, "A = %0.2lf  ", a);
+                                fprintf(outfile, "B = %0.2lf  ", b);
+                                fprintf(outfile, "C = %0.2lf  ", c);
+                                fprintf(outfile, "D = %0.2lf\n", d);
                             }
                         }
                     }

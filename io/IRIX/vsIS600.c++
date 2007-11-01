@@ -42,7 +42,7 @@ vsIS600::vsIS600(int portNumber, long baud, int nTrackers)
 {
     char   portDevice[20];
     int    i;
-    vsQuat quat1, quat2;
+    atQuat quat1, quat2;
 
     // Determine the platform-dependent serial device
     // name
@@ -182,8 +182,8 @@ const char *vsIS600::getClassName()
 void vsIS600::serverLoop()
 {
     int               i;
-    vsVector          posVec;
-    vsQuat            ornQuat;
+    atVector          posVec;
+    atQuat            ornQuat;
     unsigned char     buf;
 
     // Set up the signal handler
@@ -437,9 +437,9 @@ void vsIS600::setBinaryOutput()
 }
 
 // ------------------------------------------------------------------------
-// Update the given tracker's position with the given vsVector
+// Update the given tracker's position with the given atVector
 // ------------------------------------------------------------------------
-void vsIS600::updatePosition(int trackerNum, vsVector positionVec)
+void vsIS600::updatePosition(int trackerNum, atVector positionVec)
 {
     // Validate the tracker number
     if (trackerNum < numTrackers)
@@ -453,20 +453,20 @@ void vsIS600::updatePosition(int trackerNum, vsVector positionVec)
 }
 
 // ------------------------------------------------------------------------
-// Update the given tracker's orientation with the given vsVector of Euler
+// Update the given tracker's orientation with the given atVector of Euler
 // angles
 // ------------------------------------------------------------------------
-void vsIS600::updateRelativePosition(int trackerNum, vsVector deltaVec)
+void vsIS600::updateRelativePosition(int trackerNum, atVector deltaVec)
 {
-    vsVector currentPosVec;
+    atVector currentPosVec;
 
     // Validate the tracker number
     if (trackerNum < numTrackers)
     {
         // Get the tracker's current position
-        currentPosVec[VS_X] = tracker[trackerNum]->getAxis(VS_X)->getPosition();
-        currentPosVec[VS_Y] = tracker[trackerNum]->getAxis(VS_Y)->getPosition();
-        currentPosVec[VS_Z] = tracker[trackerNum]->getAxis(VS_Z)->getPosition();
+        currentPosVec[AT_X] = tracker[trackerNum]->getAxis(AT_X)->getPosition();
+        currentPosVec[AT_Y] = tracker[trackerNum]->getAxis(AT_Y)->getPosition();
+        currentPosVec[AT_Z] = tracker[trackerNum]->getAxis(AT_Z)->getPosition();
 
         // Convert deltaVec to VESS coordinates before adding
         deltaVec = coordXform.rotatePoint(deltaVec);
@@ -480,18 +480,18 @@ void vsIS600::updateRelativePosition(int trackerNum, vsVector deltaVec)
 }
 
 // ------------------------------------------------------------------------
-// Update the given tracker's orientation with the given vsVector of Euler
+// Update the given tracker's orientation with the given atVector of Euler
 // angles
 // ------------------------------------------------------------------------
-void vsIS600::updateAngles(int trackerNum, vsVector orientationVec)
+void vsIS600::updateAngles(int trackerNum, atVector orientationVec)
 {
-    vsQuat ornQuat;
+    atQuat ornQuat;
 
     // Validate the tracker number
     if (trackerNum < numTrackers)
     {
         // Convert to VESS coordinates
-        ornQuat.setEulerRotation(VS_EULER_ANGLES_ZYX_R, orientationVec[VS_H],
+        ornQuat.setEulerRotation(AT_EULER_ANGLES_ZYX_R, orientationVec[VS_H],
             orientationVec[VS_P], orientationVec[VS_R]);
         ornQuat = coordXform * ornQuat * coordXform;
 
@@ -501,11 +501,11 @@ void vsIS600::updateAngles(int trackerNum, vsVector orientationVec)
 }
 
 // ------------------------------------------------------------------------
-// Update the given tracker's orientation with the given vsMatrix
+// Update the given tracker's orientation with the given atMatrix
 // ------------------------------------------------------------------------
-void vsIS600::updateMatrix(int trackerNum, vsMatrix orientationMat)
+void vsIS600::updateMatrix(int trackerNum, atMatrix orientationMat)
 {
-    vsQuat ornQuat;
+    atQuat ornQuat;
 
     // Validate the tracker number
     if (trackerNum < numTrackers)
@@ -520,11 +520,11 @@ void vsIS600::updateMatrix(int trackerNum, vsMatrix orientationMat)
 }
 
 // ------------------------------------------------------------------------
-// Update the given tracker's orientation with the given vsQuat
+// Update the given tracker's orientation with the given atQuat
 // ------------------------------------------------------------------------
-void vsIS600::updateQuat(int trackerNum, vsQuat quat)
+void vsIS600::updateQuat(int trackerNum, atQuat quat)
 {
-    vsQuat ornQuat;
+    atQuat ornQuat;
 
     // Validate the tracker number
     if (trackerNum < numTrackers)
@@ -566,10 +566,10 @@ void vsIS600::updateSystem()
     short         lsb, msb;
     short         tempShort;
     float         tempFloat;
-    vsVector      tempVec;
-    vsVector      deltaVec;
-    vsMatrix      tempMat;
-    vsQuat        tempQuat;
+    atVector      tempVec;
+    atVector      deltaVec;
+    atMatrix      tempMat;
+    atQuat        tempQuat;
 
     // Check to see if the IS-600 is streaming
     if (streaming)
@@ -702,7 +702,7 @@ void vsIS600::updateSystem()
 
                         case VS_IS_FORMAT_POSITION:
                             // Extract the position elements and form a
-                            // vsVector
+                            // atVector
                             for (j = 0; j < 3; j++)
                             {
                                 endianSwap((float *)(&buf[bufIndex]),
@@ -717,7 +717,7 @@ void vsIS600::updateSystem()
 
                         case VS_IS_FORMAT_REL_POS:
                             // Extract the position elements and form a
-                            // vsVector
+                            // atVector
                             for (j = 0; j < 3; j++)
                             {
                                 endianSwap((float *)(&buf[bufIndex]),
@@ -731,7 +731,7 @@ void vsIS600::updateSystem()
                             break;
 
                         case VS_IS_FORMAT_ANGLES:
-                            // Extract the Euler angles and form a vsVector
+                            // Extract the Euler angles and form a atVector
                             for (j = 0; j < 3; j++)
                             {
                                 endianSwap((float *)(&buf[bufIndex]), 
@@ -746,7 +746,7 @@ void vsIS600::updateSystem()
 
                         case VS_IS_FORMAT_MATRIX:
                             // Extract the matrix elements and form a
-                            // vsMatrix
+                            // atMatrix
                             for (j = 0; j < 9; j++)
                             {
                                 endianSwap((float *)(&buf[bufIndex]), 
@@ -761,14 +761,14 @@ void vsIS600::updateSystem()
 
                         case VS_IS_FORMAT_QUAT:
                             // Extract the quaternion elements and form a
-                            // vsQuat
+                            // atQuat
                             for (j = 0; j < 4; j++)
                             {
                                 endianSwap((float *)&buf[bufIndex], 
                                     &tempFloat);
 
                                 // The IS-600 sends the scalar part first,
-                                // but the vsQuat expects it last, so we have
+                                // but the atQuat expects it last, so we have
                                 // to account for this by shifting the indices
                                 tempQuat[(j + 1) % 4] = tempFloat;
 
@@ -781,7 +781,7 @@ void vsIS600::updateSystem()
 
                         case VS_IS_FORMAT_16BIT_POS:
                             // Extract the position elements and form a
-                            // vsVector.  The method for extracting the
+                            // atVector.  The method for extracting the
                             // 16-bit data is described in the IS-600
                             // manual.
                             for (j = 0; j < 3; j++)
@@ -810,7 +810,7 @@ void vsIS600::updateSystem()
 
                         case VS_IS_FORMAT_16BIT_ANGLES:
                             // Extract the Euler angles and form a
-                            // vsVector.  The method for extracting the
+                            // atVector.  The method for extracting the
                             // 16-bit data is described in the IS-600
                             // manual.
                             for (j = 0; j < 3; j++)
@@ -834,7 +834,7 @@ void vsIS600::updateSystem()
 
                         case VS_IS_FORMAT_16BIT_QUAT:
                             // Extract the quaternion elements and form a
-                            // vsQuat.  The method for extracting the
+                            // atQuat.  The method for extracting the
                             // 16-bit data is described in the IS-600
                             // manual.
                             for (j = 0; j < 4; j++)
@@ -1029,8 +1029,8 @@ void vsIS600::removeInertiaCube(int stationNum, int cubeNum)
 // Adds the given SoniDisc to the given station with the offset and normal
 // provided.
 // ------------------------------------------------------------------------
-void vsIS600::addSoniDisc(int stationNum, int discNum, vsVector pos, 
-                          vsVector normal, int discID)
+void vsIS600::addSoniDisc(int stationNum, int discNum, atVector pos, 
+                          atVector normal, int discID)
 {
     unsigned char buf[40];
     int           index;
@@ -1045,10 +1045,10 @@ void vsIS600::addSoniDisc(int stationNum, int discNum, vsVector pos,
     index += sprintf((char *)&buf[index], "%d,%d,", stationNum, discNum);
 
     // Append the SoniDisc parameters
-    index += sprintf((char *)&buf[index], "%0.4lf,%0.4lf,%0.4lf,", pos[VS_X],
-                     pos[VS_Y], pos[VS_Z]);
+    index += sprintf((char *)&buf[index], "%0.4lf,%0.4lf,%0.4lf,", pos[AT_X],
+                     pos[AT_Y], pos[AT_Z]);
     index += sprintf((char *)&buf[index], "%0.4lf,%0.4lf,%0.4lf,", 
-                     normal[VS_X], normal[VS_Y], normal[VS_Z]);
+                     normal[AT_X], normal[AT_Y], normal[AT_Z]);
     index += sprintf((char *)&buf[index], "%d\r", discID);
 
     // Send the packet
@@ -1080,7 +1080,7 @@ void vsIS600::removeSoniDisc(int stationNum, int discNum, int discID)
 // ------------------------------------------------------------------------
 // Adds a ReceiverPod to the system at the given position and orientation
 // ------------------------------------------------------------------------
-void vsIS600::addReceiverPod(int podNum, vsVector pos, vsVector normal,
+void vsIS600::addReceiverPod(int podNum, atVector pos, atVector normal,
                              int podID)
 {
     unsigned char buf[40];
@@ -1096,10 +1096,10 @@ void vsIS600::addReceiverPod(int podNum, vsVector pos, vsVector normal,
     index += sprintf((char *)&buf[index], "%d,", podNum);
 
     // Append the pod parameters
-    index += sprintf((char *)&buf[index], "%0.4lf,%0.4lf, %0.4lf,", pos[VS_X], 
-        pos[VS_Y], pos[VS_Z]);
+    index += sprintf((char *)&buf[index], "%0.4lf,%0.4lf, %0.4lf,", pos[AT_X], 
+        pos[AT_Y], pos[AT_Z]);
     index += sprintf((char *)&buf[index], "%0.4lf,%0.4lf, %0.4lf,",
-        normal[VS_X], normal[VS_Y], normal[VS_Z]);
+        normal[AT_X], normal[AT_Y], normal[AT_Z]);
     index += sprintf((char *)&buf[index], "%d\r", podID);
 
     // Send the packet
@@ -1164,8 +1164,8 @@ void vsIS600::cancelConfig()
 // ------------------------------------------------------------------------
 // Adjust the alignment frame for the specified station
 // ------------------------------------------------------------------------
-void vsIS600::setAlignment(int station, vsVector origin, vsVector positiveX, 
-                             vsVector positiveY)
+void vsIS600::setAlignment(int station, atVector origin, atVector positiveX, 
+                             atVector positiveY)
 {
     unsigned char buf[VS_IS_SIZE_CMD_PACKET];
     int           index;
@@ -1184,15 +1184,15 @@ void vsIS600::setAlignment(int station, vsVector origin, vsVector positiveX,
 
     // Append the new alignment frame
     index = 2;
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", origin[VS_X]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", origin[VS_Y]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", origin[VS_Z]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveX[VS_X]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveX[VS_Y]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveX[VS_Z]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveY[VS_X]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveY[VS_Y]);
-    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveY[VS_Z]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", origin[AT_X]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", origin[AT_Y]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", origin[AT_Z]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveX[AT_X]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveX[AT_Y]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveX[AT_Z]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveY[AT_X]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveY[AT_Y]);
+    index += sprintf((char *)(&buf[index]), ",%0.2lf", positiveY[AT_Z]);
     buf[index] = '\r';
 
     // Send the packet
@@ -1478,8 +1478,8 @@ vsMotionTracker *vsIS600::getTracker(int index)
 void vsIS600::update()
 {
     int i;
-    vsVector posVec;
-    vsQuat   ornQuat;
+    atVector posVec;
+    atQuat   ornQuat;
 
     // See if we're running a forked server process
     if (forked)

@@ -559,7 +559,7 @@ int vsTextureRectangleAttribute::getMinFilter()
 // ------------------------------------------------------------------------
 // Set the base color of the texture environment
 // ------------------------------------------------------------------------
-void vsTextureRectangleAttribute::setBaseColor(vsVector color)
+void vsTextureRectangleAttribute::setBaseColor(atVector color)
 {
     osg::Vec4 osgColor;
 
@@ -576,7 +576,7 @@ void vsTextureRectangleAttribute::setBaseColor(vsVector color)
 // ------------------------------------------------------------------------
 // Get the base color of the texture environment
 // ------------------------------------------------------------------------
-vsVector vsTextureRectangleAttribute::getBaseColor()
+atVector vsTextureRectangleAttribute::getBaseColor()
 {
     osg::Vec4 osgColor;
 
@@ -586,8 +586,8 @@ vsVector vsTextureRectangleAttribute::getBaseColor()
     else
         osgColor = osgTexEnv->getColor();
 
-    // Return the color as a vsVector
-    return vsVector(osgColor[0], osgColor[1], osgColor[2], osgColor[3]);
+    // Return the color as a atVector
+    return atVector(osgColor[0], osgColor[1], osgColor[2], osgColor[3]);
 }
 
 // ------------------------------------------------------------------------
@@ -700,12 +700,12 @@ int vsTextureRectangleAttribute::getGenMode()
 // ------------------------------------------------------------------------
 // Sets the texture matrix
 // ------------------------------------------------------------------------
-void vsTextureRectangleAttribute::setTextureMatrix(vsMatrix newTransform)
+void vsTextureRectangleAttribute::setTextureMatrix(atMatrix newTransform)
 {
     osg::Matrixf osgMatrix;
     bool createdMat;
 
-    // Convert the vsMatrix into an osg::Matrix
+    // Convert the atMatrix into an osg::Matrix
     for (int loop = 0; loop < 4; loop++)
         for (int sloop = 0; sloop < 4; sloop++)
             osgMatrix(loop, sloop) = newTransform[sloop][loop];
@@ -739,10 +739,10 @@ void vsTextureRectangleAttribute::setTextureMatrix(vsMatrix newTransform)
 // ------------------------------------------------------------------------
 // Retrieves the texture matrix
 // ------------------------------------------------------------------------
-vsMatrix vsTextureRectangleAttribute::getTextureMatrix()
+atMatrix vsTextureRectangleAttribute::getTextureMatrix()
 {
     osg::Matrixf osgMatrix;
-    vsMatrix vsMat;
+    atMatrix vsMat;
 
     // If we don't have a texture matrix, just return an identity matrix
     if (!osgTexMat)
@@ -754,7 +754,7 @@ vsMatrix vsTextureRectangleAttribute::getTextureMatrix()
     // Get the current texture matrix
     osgMatrix = osgTexMat->getMatrix();
 
-    // Convert the osg::Matrix into a vsMatrix and return it
+    // Convert the osg::Matrix into a atMatrix and return it
     for (int loop = 0; loop < 4; loop++)
         for (int sloop = 0; sloop < 4; sloop++)
             vsMat[sloop][loop] = osgMatrix(loop, sloop);
@@ -888,7 +888,7 @@ bool vsTextureRectangleAttribute::isEquivalent(vsAttribute *attribute)
     vsTextureRectangleAttribute *attr;
     unsigned char *image1, *image2;
     int xval1, yval1, xval2, yval2, val1, val2;
-    vsMatrix mat1, mat2;
+    atMatrix mat1, mat2;
     
     // Make sure the given attribute is valid
     if (!attribute)

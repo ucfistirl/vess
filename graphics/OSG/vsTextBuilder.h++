@@ -30,8 +30,8 @@
 
 #include "osgText/Font"
 
-#include "vsVector.h++"
-#include "vsMatrix.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
 #include "vsComponent.h++"
 #include "vsTextureAttribute.h++"
 
@@ -58,11 +58,11 @@ private:
 
     osgText::Font           *osgFont;
 
-    vsVector                fontColor;
-    vsMatrix                transformMatrix;
+    atVector                fontColor;
+    atMatrix                transformMatrix;
     int                     fontJustification;
 
-    vsMatrix                scaleMatrix;
+    atMatrix                scaleMatrix;
 
     osgText::Font::Glyph    *osgGlyphArray[256];
     vsTextureAttribute      *textureAttrArray[256];
@@ -80,17 +80,17 @@ public:
 
                    vsTextBuilder();
                    vsTextBuilder(char *newFont);
-                   vsTextBuilder(char *newFont, vsVector newColor);
-                   vsTextBuilder(char *newFont, vsVector newColor,
-                                 vsMatrix newTransform);
+                   vsTextBuilder(char *newFont, atVector newColor);
+                   vsTextBuilder(char *newFont, atVector newColor,
+                                 atMatrix newTransform);
     virtual        ~vsTextBuilder();
 
     virtual const char    *getClassName();
 
     void           setFont(char *newFont);
     void           setScale(double xScale, double yScale, double zScale);
-    void           setColor(vsVector newColor);
-    void           setTransformMatrix(vsMatrix newTransform);
+    void           setColor(atVector newColor);
+    void           setTransformMatrix(atMatrix newTransform);
     void           setJustification(int newJustification);
 
     int            getJustification();

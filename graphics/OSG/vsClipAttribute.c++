@@ -158,17 +158,17 @@ void vsClipAttribute::setClipPlane(int planeIndex, double a, double b,
 // Sets the given clip plane to the plane formed by the given point and
 // normal.
 // ------------------------------------------------------------------------
-void vsClipAttribute::setClipPlane(int planeIndex, vsVector pointOnPlane,
-                                   vsVector normal)
+void vsClipAttribute::setClipPlane(int planeIndex, atVector pointOnPlane,
+                                   atVector normal)
 {
     double d;
     double a, b, c;
 
     // Compute the plane equation coefficients from the given point and
     // normal
-    a = normal[VS_X];
-    b = normal[VS_Y];
-    c = normal[VS_Z];
+    a = normal[AT_X];
+    b = normal[AT_Y];
+    c = normal[AT_Z];
     d = -(normal.getDotProduct(pointOnPlane));
 
     // Construct the plane using the coefficients
@@ -228,7 +228,7 @@ bool vsClipAttribute::isClipPlaneActive(int planeIndex)
 }
 
 // ------------------------------------------------------------------------
-// Retrieve the plane of a certain index as a 4-dimensional vsVector
+// Retrieve the plane of a certain index as a 4-dimensional atVector
 // ------------------------------------------------------------------------
 void vsClipAttribute::getClipPlaneCoeffs(int planeIndex, double *a,
                                          double *b, double *c, double *d)
@@ -279,7 +279,7 @@ void vsClipAttribute::getClipPlaneCoeffs(int planeIndex, double *a,
 // just a normalized vector of the A, B, C coefficients of the plane
 // equation
 // ------------------------------------------------------------------------
-vsVector vsClipAttribute::getClipPlaneNormal(int planeIndex)
+atVector vsClipAttribute::getClipPlaneNormal(int planeIndex)
 {
     osg::Vec4d vec;
 
@@ -288,14 +288,14 @@ vsVector vsClipAttribute::getClipPlaneNormal(int planeIndex)
     {
         printf("vsClipAttribute::getClipPlaneCoeffs: Clip Plane index %d is "
            "invalid\n", planeIndex);
-        return vsVector(0.0, 0.0, 0.0);
+        return atVector(0.0, 0.0, 0.0);
     }
 
     // If there is no plane at the given index, return all zeroes
     if (planeArray[planeIndex] == NULL)
     {
         // Return a zero vector for the normal
-        return vsVector(0.0, 0.0, 0.0);
+        return atVector(0.0, 0.0, 0.0);
     }
     else
     {
@@ -304,7 +304,7 @@ vsVector vsClipAttribute::getClipPlaneNormal(int planeIndex)
 
         // Return the plane's normal, as determined by the A, B, and C
         // coefficients of the clip plane in question
-        return vsVector(vec.x(), vec.y(), vec.z()).getNormalized();
+        return atVector(vec.x(), vec.y(), vec.z()).getNormalized();
     }
 }
 

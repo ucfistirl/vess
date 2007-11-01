@@ -50,7 +50,7 @@ private:
  
     vsSphereIntersect  *intersect;
 
-    vsVector           offsetPoints[VS_PHANTOM_COLLISION_POINTS_MAX];
+    atVector           offsetPoints[VS_PHANTOM_COLLISION_POINTS_MAX];
     int                offsetCount;
 
 #ifdef VS_PHANTOM_COLLISION_DEBUG
@@ -63,8 +63,8 @@ private:
     double             sphereRadius;
     double             maximumForce;
  
-    double             getCollisionData(vsMatrix globalXform,
-                                        vsVector *hitNorm);
+    double             getCollisionData(atMatrix globalXform,
+                                        atVector *hitNorm);
  
 public:
 
@@ -78,8 +78,8 @@ public:
     void                  setPointCount(int numPoints);
     int                   getPointCount();
 
-    void                  setPoint(int index, vsVector newOffset);
-    vsVector              getPoint(int index);
+    void                  setPoint(int index, atVector newOffset);
+    atVector              getPoint(int index);
 
     void                  setIntersectMask(unsigned int newMask);
     unsigned int          getIntersectMask();

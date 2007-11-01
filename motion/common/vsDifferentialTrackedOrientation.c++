@@ -73,7 +73,7 @@ const char *vsDifferentialTrackedOrientation::getClassName()
 // Sets the orientation post-offset (applies to the final differential
 // orientation after being adjusted by the reference orientation)
 // ------------------------------------------------------------------------
-void vsDifferentialTrackedOrientation::setOrientationOffset(vsQuat newOffset)
+void vsDifferentialTrackedOrientation::setOrientationOffset(atQuat newOffset)
 {
     orientationOffset = newOffset;
 }
@@ -81,7 +81,7 @@ void vsDifferentialTrackedOrientation::setOrientationOffset(vsQuat newOffset)
 // ------------------------------------------------------------------------
 // Gets the orientation post-offset
 // ------------------------------------------------------------------------
-vsQuat vsDifferentialTrackedOrientation::getOrientationOffset()
+atQuat vsDifferentialTrackedOrientation::getOrientationOffset()
 {
     return orientationOffset;
 }
@@ -91,8 +91,8 @@ vsQuat vsDifferentialTrackedOrientation::getOrientationOffset()
 // ------------------------------------------------------------------------
 void vsDifferentialTrackedOrientation::update()
 {
-    vsQuat refOrn;
-    vsQuat diffOrn;
+    atQuat refOrn;
+    atQuat diffOrn;
 
     // Get tracker data
     refOrn = refTracker->getOrientationQuat();
@@ -120,8 +120,8 @@ void vsDifferentialTrackedOrientation::update()
 // ------------------------------------------------------------------------
 void vsDifferentialTrackedOrientation::reset()
 {
-    vsQuat refOrn;
-    vsQuat diffOrn;
+    atQuat refOrn;
+    atQuat diffOrn;
 
     // Get current tracker orientations
     refOrn = refTracker->getOrientationQuat();

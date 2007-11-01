@@ -29,7 +29,7 @@
 #include "vsKinematics.h++"
 #include "vsMenuObject.h++"
 #include "vsTextBuilder.h++"
-#include "vsVector.h++"
+#include "atVector.h++"
 
 class VS_MENU_DLL vsMenuLabel : public vsMenuObject
 {

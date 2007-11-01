@@ -33,7 +33,7 @@
 
 #include <osg/Geode>
 #include <osg/Geometry>
-#include "vsVector.h++"
+#include "atVector.h++"
 #include "vsAttribute.h++"
 #include "vsNode.h++"
 #include "vsGeometry.h++"
@@ -62,6 +62,9 @@ private:
     osg::Vec3Array      *originalVertexList;
     osg::Vec3Array      *originalNormalList;
 
+    u_int               *indexList;
+    int                 indexListSize;
+
     int                 *lengthsList;
     int                 primitiveCount;
     int                 primitiveType;
@@ -83,8 +86,8 @@ VS_INTERNAL:
 
     virtual void    applyAttributes();
 
-    virtual void    getAxisAlignedBoxBounds(vsVector *minValues, 
-                                            vsVector *maxValues);
+    virtual void    getAxisAlignedBoxBounds(atVector *minValues, 
+                                            atVector *maxValues);
 
 public:
 
@@ -115,12 +118,19 @@ public:
     void                  setBinding(int whichData, int binding);
     int                   getBinding(int whichData);
 
-    void                  setData(int whichData, int dataIndex, vsVector data);
-    vsVector              getData(int whichData, int dataIndex);
-    void                  setDataList(int whichData, vsVector *dataBuffer);
-    void                  getDataList(int whichData, vsVector *dataBuffer);
+    void                  setData(int whichData, int dataIndex, atVector data);
+    atVector              getData(int whichData, int dataIndex);
+    void                  setDataList(int whichData, atVector *dataBuffer);
+    void                  getDataList(int whichData, atVector *dataBuffer);
     void                  setDataListSize(int whichData, int newSize);
     int                   getDataListSize(int whichData);
+
+    void                  setIndex(int indexIndex, u_int index);
+    u_int                 getIndex(int indexIndex);
+    void                  setIndexList(u_int *indexBuffer);
+    void                  getIndexList(u_int *indexBuffer);
+    void                  setIndexListSize(int newSize);
+    int                   getIndexListSize();
     
     virtual void          enableLighting();
     virtual void          disableLighting();
@@ -129,8 +139,8 @@ public:
     void                  setRenderBin(int binNum);
     int                   getRenderBin();
     
-    virtual void          getBoundSphere(vsVector *centerPoint, double *radius);
-    virtual vsMatrix      getGlobalXform();
+    virtual void          getBoundSphere(atVector *centerPoint, double *radius);
+    virtual atMatrix      getGlobalXform();
 
     virtual void            setIntersectValue(unsigned int newValue);
     virtual unsigned int    getIntersectValue();

@@ -109,14 +109,14 @@ public:
     void                  setMinFilter(int newFilter);
     int                   getMinFilter();
 
-    void                  setBaseColor(vsVector color);
-    vsVector              getBaseColor();
+    void                  setBaseColor(atVector color);
+    atVector              getBaseColor();
 
     void                  setGenMode(int genMode);
     int                   getGenMode();
 
-    void                  setTextureMatrix(vsMatrix newMatrix);
-    vsMatrix              getTextureMatrix();
+    void                  setTextureMatrix(atMatrix newMatrix);
+    atMatrix              getTextureMatrix();
 
     unsigned int          getTextureUnit();
 };

@@ -91,7 +91,7 @@ vsKinematics *vsSkeletonKinematics::getBoneKinematics(int boneID)
 
     returnValue = NULL;
 
-    // If given a valid boneID, return the vsMatrix for that boneID.
+    // If given a valid boneID, return the atMatrix for that boneID.
     if ((boneID < kinematicsCount) && (boneID >= 0))
     {
         returnValue = kinematicsList[boneID];
@@ -177,8 +177,8 @@ void vsSkeletonKinematics::update(double deltaTime)
 // ------------------------------------------------------------------------
 void vsSkeletonKinematics::reset()
 {
-    vsVector resetVector;
-    vsQuat resetQuat;
+    atVector resetVector;
+    atQuat resetQuat;
     int index;
 
     // Set the rotations and position information to neutral values.

@@ -25,7 +25,7 @@
 
 #include "vsGlobals.h++"
 #include "vsShape.h++"
-#include "vsVector.h++"
+#include "atVector.h++"
 
 class VS_UTIL_DLL vsSphere : public vsShape
 {
@@ -33,12 +33,12 @@ private:
 
     double      radius;
 
-    void        promote(vsVector *points, int index);
+    void        promote(atVector *points, int index);
 
-    vsSphere    calcSphereOn(vsVector *points, int pointCount,
+    vsSphere    calcSphereOn(atVector *points, int pointCount,
                              bool *errorFlag);
-    vsSphere    moveToFront(vsVector *points, int pointCount,
-                            vsVector *basis, int basisCount,
+    vsSphere    moveToFront(atVector *points, int pointCount,
+                            atVector *basis, int basisCount,
                             int *supportSize, bool *errorFlag);
 
     void        promote(vsSphere *spheres, int index);
@@ -52,33 +52,33 @@ private:
 public:
 
                           vsSphere();
-                          vsSphere(const vsVector &centerPoint,
+                          vsSphere(const atVector &centerPoint,
                                    const double &sphereRadius);
                           ~vsSphere();
 
     virtual const char    *getClassName();
 
     void                  setEmpty();
-    virtual void          setSphere(const vsVector &center,
+    virtual void          setSphere(const atVector &center,
                               const double &radius);
 
     virtual void          setScale(vsScaleType type, double value);
 
     virtual double        getScale(vsScaleType type) const;
 
-    vsVector              getCenterPoint() const;
+    atVector              getCenterPoint() const;
     double                getRadius() const;
 
-    void                  addPoint(const vsVector &point);
+    void                  addPoint(const atVector &point);
     void                  addSphere(const vsSphere &sphere);
 
-    void                  enclosePoints(vsVector *points, int pointCount);
+    void                  enclosePoints(atVector *points, int pointCount);
     void                  encloseSpheres(vsSphere *spheres, int sphereCount);
 
-    bool                  isPointInside(const vsVector &point) const;
+    bool                  isPointInside(const atVector &point) const;
     bool                  isSphereInside(const vsSphere &sphere) const;
-    bool                  isSegIsect(const vsVector &segStart,
-                                     const vsVector &segEnd) const;
+    bool                  isSegIsect(const atVector &segStart,
+                                     const atVector &segEnd) const;
     bool                  isSphereIsect(const vsSphere &sphere) const;
 
     void                  print() const;

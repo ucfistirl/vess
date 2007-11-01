@@ -34,7 +34,7 @@ private:
     int                kinematicsArraySize;
 
     // Vector from last joint point to end effector
-    vsVector           endpointOffset;
+    atVector           endpointOffset;
 
     // Inverse kinematics processing parameters
     int                maxProcessLoops;
@@ -42,7 +42,7 @@ private:
     double             dampeningConstant;
 
     // Angle processing
-    vsQuat             applyDampening(vsQuat rotation, double dampeningFraction);
+    atQuat             applyDampening(atQuat rotation, double dampeningFraction);
 
 public:
 
@@ -62,8 +62,8 @@ public:
     vsKinematics    *getKinematicsObject(int jointIdx);
 
     // Other parameters
-    void            setEndpointOffset(vsVector offset);
-    vsVector        getEndpointOffset();
+    void            setEndpointOffset(atVector offset);
+    atVector        getEndpointOffset();
 
     void            setMaxLoops(int loops);
     int             getMaxLoops();
@@ -75,7 +75,7 @@ public:
     double          getDampeningConstant();
 
     // Main function
-    void            reachForPoint(vsVector targetPoint);
+    void            reachForPoint(atVector targetPoint);
 };
 
 #endif

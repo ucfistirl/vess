@@ -326,7 +326,7 @@ void vsLightAttribute::getSpotlightValues(double *exponent,
     if (exponent)
         *exponent = lightObject->getSpotExponent();
     if (cutoffDegrees)
-        *cutoffDegrees = VS_RAD2DEG(lightObject->getSpotCutoff());
+        *cutoffDegrees = AT_RAD2DEG(lightObject->getSpotCutoff());
 }
 
 // ------------------------------------------------------------------------

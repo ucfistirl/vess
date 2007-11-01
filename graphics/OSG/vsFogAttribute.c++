@@ -323,13 +323,13 @@ bool vsFogAttribute::isEquivalent(vsAttribute *attribute)
     // Color check
     getColor(&r1, &g1, &b1);
     attr->getColor(&r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Range check
     getRanges(&near1, &far1);
     attr->getRanges(&near2, &far2);
-    if (!VS_EQUAL(near1,near2) || !VS_EQUAL(far1,far2))
+    if (!AT_EQUAL(near1,near2) || !AT_EQUAL(far1,far2))
         return false;
 
     // Attributes are equivalent if all checks pass

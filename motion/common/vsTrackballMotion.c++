@@ -23,7 +23,7 @@
 
 #include "vsTrackballMotion.h++"
 #include <stdio.h>
-#include "vsMatrix.h++"
+#include "atMatrix.h++"
 #include "vsTimer.h++"
 
 // ------------------------------------------------------------------------
@@ -179,16 +179,16 @@ double vsTrackballMotion::getRotationConstant()
 void vsTrackballMotion::update()
 {
     double    interval;
-    vsVector  zero;
-    vsVector  origin;
-    vsVector  currentPos;
-    vsQuat    currentRot, invRot;
-    vsQuat    coordQuat;
+    atVector  zero;
+    atVector  origin;
+    atVector  currentPos;
+    atQuat    currentRot, invRot;
+    atQuat    coordQuat;
     double    dHoriz, dVert;
-    vsQuat    rot1, rot2, totalRot;
-    vsVector  rotAxis;
+    atQuat    rot1, rot2, totalRot;
+    atVector  rotAxis;
     double    rotAngle;
-    vsVector  dPos;
+    atVector  dPos;
 
     // Get the interval of elapsed time
     interval = vsTimer::getSystemTimer()->getInterval();
@@ -281,8 +281,8 @@ void vsTrackballMotion::update()
             coordQuat = invRot * totalRot * currentRot;
 
             // Get the rotation axis and amount of rotation
-            coordQuat.getAxisAngleRotation(&rotAxis[VS_X], &rotAxis[VS_Y],
-                &rotAxis[VS_Z], &rotAngle);
+            coordQuat.getAxisAngleRotation(&rotAxis[AT_X], &rotAxis[AT_Y],
+                &rotAxis[AT_Z], &rotAngle);
 
             // Convert the rotation to angular velocity by dividing by
             // time.  Use this to set the kinematics' angular velocity.
@@ -309,8 +309,8 @@ void vsTrackballMotion::update()
             coordQuat = invRot * totalRot * currentRot;
 
             // Get the rotation axis and the amount of rotation
-            coordQuat.getAxisAngleRotation(&rotAxis[VS_X], &rotAxis[VS_Y],
-                &rotAxis[VS_Z], &rotAngle);
+            coordQuat.getAxisAngleRotation(&rotAxis[AT_X], &rotAxis[AT_Y],
+                &rotAxis[AT_Z], &rotAngle);
 
             // Convert the rotation to angular velocity by dividing by time.
             // Use this to set the kinematics' angular velocity.

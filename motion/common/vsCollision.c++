@@ -97,7 +97,7 @@ int vsCollision::getPointCount()
 // Sets the position of one of the hot points of the collision object, in
 // the local coordinate system of the associated kinematics' component.
 // ------------------------------------------------------------------------
-void vsCollision::setPoint(int index, vsVector newOffset)
+void vsCollision::setPoint(int index, atVector newOffset)
 {
     // Boudns checking
     if ((index < 0) || (index >= VS_COLLISION_POINTS_MAX))
@@ -116,9 +116,9 @@ void vsCollision::setPoint(int index, vsVector newOffset)
 // Gets the position of one of the hot points of the collision object, in
 // the local coordinate system of the associated kinematics' component.
 // ------------------------------------------------------------------------
-vsVector vsCollision::getPoint(int index)
+atVector vsCollision::getPoint(int index)
 {
-    vsVector zero(0.0, 0.0, 0.0);
+    atVector zero(0.0, 0.0, 0.0);
 
     // Bounds checking
     if ((index < 0) || (index >= VS_COLLISION_POINTS_MAX))
@@ -193,20 +193,20 @@ double vsCollision::getMargin()
 void vsCollision::update()
 {
     vsComponent *objectComp;
-    vsMatrix globalXform;
-    vsVector currentVelocity;
-    vsVector currentDirection;
+    atMatrix globalXform;
+    atVector currentVelocity;
+    atVector currentDirection;
     double currentSpeed;
 
     int passCount = 0;
-    vsVector positionDelta;
+    atVector positionDelta;
     double distLeft;
     double distMoved;
-    vsVector collideNorm;
+    atVector collideNorm;
     
     double dotProd;
-    vsVector tempVec;
-    vsVector temp2;
+    atVector tempVec;
+    atVector temp2;
 
     // If there aren't any key points defined, then there's nothing we can do
     if (offsetCount == 0)
@@ -321,11 +321,11 @@ void vsCollision::update()
 // Private function
 // Utility function - calculates the raw distance between two points
 // ------------------------------------------------------------------------
-double vsCollision::distance(vsVector start, vsVector end)
+double vsCollision::distance(atVector start, atVector end)
 {
-    return sqrt(VS_SQR(start[0] - end[0]) +
-                VS_SQR(start[1] - end[1]) +
-                VS_SQR(start[2] - end[2]));
+    return sqrt(AT_SQR(start[0] - end[0]) +
+                AT_SQR(start[1] - end[1]) +
+                AT_SQR(start[2] - end[2]));
 }
 
 // ------------------------------------------------------------------------
@@ -335,8 +335,8 @@ double vsCollision::distance(vsVector start, vsVector end)
 // intersection ray. Used to correct for intersections with the back faces
 // of geometry.
 // ------------------------------------------------------------------------
-vsVector vsCollision::fixNormal(vsVector sourcePt, vsVector isectPt,
-    vsVector isectNorm)
+atVector vsCollision::fixNormal(atVector sourcePt, atVector isectPt,
+    atVector isectNorm)
 {
     // The intersection 'ray' is the vector from the start point of the
     // intersection segment to the point of intersection for that segment.
@@ -355,20 +355,20 @@ vsVector vsCollision::fixNormal(vsVector sourcePt, vsVector isectPt,
 // movement in the desired direction is possible, given the presence or
 // absence of any obstacles within the scene.
 // ------------------------------------------------------------------------
-double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
-                                    vsVector moveDir, double maxMove,
-                                    vsVector *hitNorm)
+double vsCollision::calcMoveAllowed(atMatrix globalXform, atVector posOffset,
+                                    atVector moveDir, double maxMove,
+                                    atVector *hitNorm)
 {
     int loop;
-    vsVector startPoints[VS_COLLISION_POINTS_MAX];
-    vsVector hitPoints1[VS_COLLISION_POINTS_MAX];
-    vsVector normals[VS_COLLISION_POINTS_MAX];
-    vsVector hitPoints2[VS_COLLISION_POINTS_MAX];
+    atVector startPoints[VS_COLLISION_POINTS_MAX];
+    atVector hitPoints1[VS_COLLISION_POINTS_MAX];
+    atVector normals[VS_COLLISION_POINTS_MAX];
+    atVector hitPoints2[VS_COLLISION_POINTS_MAX];
     int valid1[VS_COLLISION_POINTS_MAX];
     int valid2[VS_COLLISION_POINTS_MAX];
     double resultDist, newDist;
-    vsVector segmentDir;
-    vsVector secondNormal;
+    atVector segmentDir;
+    atVector secondNormal;
     double dotProd;
     
     // Clear the reported intersection normal
@@ -496,7 +496,7 @@ double vsCollision::calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
             // don't bother computing how far away it is.
             dotProd = moveDir.getDotProduct(secondNormal);
 
-            if (dotProd < -VS_DEFAULT_TOLERANCE)
+            if (dotProd < -AT_DEFAULT_TOLERANCE)
             {
                 // Figure out the distance from the hot point to the
                 // intersection point, accounting for the margin distance

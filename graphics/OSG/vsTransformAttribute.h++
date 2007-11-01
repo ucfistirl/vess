@@ -27,7 +27,7 @@
 #include <osg/MatrixTransform>
 #include <osgSim/DOFTransform>
 #include <osg/Group>
-#include "vsMatrix.h++"
+#include "atMatrix.h++"
 #include "vsComponent.h++"
 #include "vsAttribute.h++"
 
@@ -38,9 +38,9 @@ private:
     osg::Group              *componentTop;
     osg::MatrixTransform    *transform;
     
-    vsMatrix                preMatrix;
-    vsMatrix                dynMatrix;
-    vsMatrix                postMatrix;
+    atMatrix                preMatrix;
+    atMatrix                dynMatrix;
+    atMatrix                postMatrix;
     
     void                    applyTransformations();
 
@@ -52,7 +52,7 @@ VS_INTERNAL:
 
     virtual void    attachDuplicate(vsNode *theNode);
 
-    vsMatrix        getCombinedTransform();
+    atMatrix        getCombinedTransform();
 
 public:
 
@@ -64,12 +64,12 @@ public:
     virtual int           getAttributeType();
     virtual int           getAttributeCategory();
 
-    void                  setPreTransform(vsMatrix newTransform);
-    vsMatrix              getPreTransform();
-    void                  setDynamicTransform(vsMatrix newTransform);
-    vsMatrix              getDynamicTransform();
-    void                  setPostTransform(vsMatrix newTransform);
-    vsMatrix              getPostTransform();
+    void                  setPreTransform(atMatrix newTransform);
+    atMatrix              getPreTransform();
+    void                  setDynamicTransform(atMatrix newTransform);
+    atMatrix              getDynamicTransform();
+    void                  setPostTransform(atMatrix newTransform);
+    atMatrix              getPostTransform();
 };
 
 #endif

@@ -89,7 +89,7 @@ const char *vs8TrackerArm::getClassName()
 // Sets the offset, in tracker space, from the back-mounted tracker to the
 // shoulder joint
 // ------------------------------------------------------------------------
-void vs8TrackerArm::setShoulderOffset(vsVector newOffset)
+void vs8TrackerArm::setShoulderOffset(atVector newOffset)
 {
     // Copy the offset from the specified vector, and force the resulting
     // vector to have a size of 3.
@@ -100,7 +100,7 @@ void vs8TrackerArm::setShoulderOffset(vsVector newOffset)
 // ------------------------------------------------------------------------
 // Retrieves the shoulder joint offset
 // ------------------------------------------------------------------------
-vsVector vs8TrackerArm::getShoulderOffset()
+atVector vs8TrackerArm::getShoulderOffset()
 {
     return shoulderOffset;
 }
@@ -109,7 +109,7 @@ vsVector vs8TrackerArm::getShoulderOffset()
 // Sets the offset, in tracker space, from the elbow tracker to the elbow
 // joint
 // ------------------------------------------------------------------------
-void vs8TrackerArm::setElbowOffset(vsVector newOffset)
+void vs8TrackerArm::setElbowOffset(atVector newOffset)
 {
     // Copy the offset from the specified vector, and force the resulting
     // vector to have a size of 3.
@@ -120,7 +120,7 @@ void vs8TrackerArm::setElbowOffset(vsVector newOffset)
 // ------------------------------------------------------------------------
 // Retrieves the elbow joint offset
 // ------------------------------------------------------------------------
-vsVector vs8TrackerArm::getElbowOffset()
+atVector vs8TrackerArm::getElbowOffset()
 {
     return elbowOffset;
 }
@@ -129,7 +129,7 @@ vsVector vs8TrackerArm::getElbowOffset()
 // Sets the offset, in tracker space, from the handheld tracker to the
 // wrist joint
 // ------------------------------------------------------------------------
-void vs8TrackerArm::setWristOffset(vsVector newOffset)
+void vs8TrackerArm::setWristOffset(atVector newOffset)
 {
     // Copy the offset from the specified vector, and force the resulting
     // vector to have a size of 3.
@@ -140,7 +140,7 @@ void vs8TrackerArm::setWristOffset(vsVector newOffset)
 // ------------------------------------------------------------------------
 // Retrieves the wrist joint offset
 // ------------------------------------------------------------------------
-vsVector vs8TrackerArm::getWristOffset()
+atVector vs8TrackerArm::getWristOffset()
 {
     return wristOffset;
 }
@@ -148,7 +148,7 @@ vsVector vs8TrackerArm::getWristOffset()
 // ------------------------------------------------------------------------
 // Sets the pre-multiplied shoulder rotation offset
 // ------------------------------------------------------------------------
-void vs8TrackerArm::setShoulderPreRot(vsQuat rotQuat)
+void vs8TrackerArm::setShoulderPreRot(atQuat rotQuat)
 {
     shoulderPreRot = rotQuat;
 }
@@ -156,7 +156,7 @@ void vs8TrackerArm::setShoulderPreRot(vsQuat rotQuat)
 // ------------------------------------------------------------------------
 // Gets the pre-multiplied shoulder rotation offset
 // ------------------------------------------------------------------------
-vsQuat vs8TrackerArm::getShoulderPreRot()
+atQuat vs8TrackerArm::getShoulderPreRot()
 {
     return shoulderPreRot;
 }
@@ -164,7 +164,7 @@ vsQuat vs8TrackerArm::getShoulderPreRot()
 // ------------------------------------------------------------------------
 // Sets the post-multiplied shoulder rotation offset
 // ------------------------------------------------------------------------
-void vs8TrackerArm::setShoulderPostRot(vsQuat rotQuat)
+void vs8TrackerArm::setShoulderPostRot(atQuat rotQuat)
 {
     shoulderPostRot = rotQuat;
 }
@@ -172,7 +172,7 @@ void vs8TrackerArm::setShoulderPostRot(vsQuat rotQuat)
 // ------------------------------------------------------------------------
 // Gets the pre-multiplied shoulder rotation offset
 // ------------------------------------------------------------------------
-vsQuat vs8TrackerArm::getShoulderPostRot()
+atQuat vs8TrackerArm::getShoulderPostRot()
 {
     return shoulderPostRot;
 }
@@ -180,7 +180,7 @@ vsQuat vs8TrackerArm::getShoulderPostRot()
 // ------------------------------------------------------------------------
 // Sets the pre-multiplied elbow rotation offset
 // ------------------------------------------------------------------------
-void vs8TrackerArm::setElbowPreRot(vsQuat rotQuat)
+void vs8TrackerArm::setElbowPreRot(atQuat rotQuat)
 {
     elbowPreRot = rotQuat;
 }
@@ -188,7 +188,7 @@ void vs8TrackerArm::setElbowPreRot(vsQuat rotQuat)
 // ------------------------------------------------------------------------
 // Gets the pre-multiplied elbow rotation offset
 // ------------------------------------------------------------------------
-vsQuat vs8TrackerArm::getElbowPreRot()
+atQuat vs8TrackerArm::getElbowPreRot()
 {
     return elbowPreRot;
 }
@@ -196,7 +196,7 @@ vsQuat vs8TrackerArm::getElbowPreRot()
 // ------------------------------------------------------------------------
 // Sets the post-multiplied elbow rotation offset
 // ------------------------------------------------------------------------
-void vs8TrackerArm::setElbowPostRot(vsQuat rotQuat)
+void vs8TrackerArm::setElbowPostRot(atQuat rotQuat)
 {
     elbowPostRot = rotQuat;
 }
@@ -204,7 +204,7 @@ void vs8TrackerArm::setElbowPostRot(vsQuat rotQuat)
 // ------------------------------------------------------------------------
 // Gets the post-multiplied elbow rotation offset
 // ------------------------------------------------------------------------
-vsQuat vs8TrackerArm::getElbowPostRot()
+atQuat vs8TrackerArm::getElbowPostRot()
 {
     return elbowPostRot;
 }
@@ -212,7 +212,7 @@ vsQuat vs8TrackerArm::getElbowPostRot()
 // ------------------------------------------------------------------------
 // Sets the pre-multiplied wrist rotation offset
 // ------------------------------------------------------------------------
-void vs8TrackerArm::setWristPreRot(vsQuat rotQuat)
+void vs8TrackerArm::setWristPreRot(atQuat rotQuat)
 {
     wristPreRot = rotQuat;
 }
@@ -220,7 +220,7 @@ void vs8TrackerArm::setWristPreRot(vsQuat rotQuat)
 // ------------------------------------------------------------------------
 // Gets the pre-multiplied wrist rotation offset
 // ------------------------------------------------------------------------
-vsQuat vs8TrackerArm::getWristPreRot()
+atQuat vs8TrackerArm::getWristPreRot()
 {
     return wristPreRot;
 }
@@ -228,7 +228,7 @@ vsQuat vs8TrackerArm::getWristPreRot()
 // ------------------------------------------------------------------------
 // Sets the post-multiplied wrist rotation offset
 // ------------------------------------------------------------------------
-void vs8TrackerArm::setWristPostRot(vsQuat rotQuat)
+void vs8TrackerArm::setWristPostRot(atQuat rotQuat)
 {
     wristPostRot = rotQuat;
 }
@@ -236,7 +236,7 @@ void vs8TrackerArm::setWristPostRot(vsQuat rotQuat)
 // ------------------------------------------------------------------------
 // Gets the post-multiplied wrist rotation offset
 // ------------------------------------------------------------------------
-vsQuat vs8TrackerArm::getWristPostRot()
+atQuat vs8TrackerArm::getWristPostRot()
 {
     return wristPostRot;
 }
@@ -247,29 +247,29 @@ vsQuat vs8TrackerArm::getWristPostRot()
 // ------------------------------------------------------------------------
 void vs8TrackerArm::update()
 {
-    vsVector backPos, elbowPos, handPos;
-    vsQuat backOri, elbowOri, handOri;
+    atVector backPos, elbowPos, handPos;
+    atQuat backOri, elbowOri, handOri;
     
-    vsVector shoulderToElbowVec, elbowToWristVec, elbowToShoulderVec;
-    vsVector forwardVec, upVec, bodyForwardVec;
-    vsVector lShoulderFloor;
-    vsVector lShoulderPos, rShoulderPos;
-    vsVector handForward, handRight, handMidPt, handUp;
+    atVector shoulderToElbowVec, elbowToWristVec, elbowToShoulderVec;
+    atVector forwardVec, upVec, bodyForwardVec;
+    atVector lShoulderFloor;
+    atVector lShoulderPos, rShoulderPos;
+    atVector handForward, handRight, handMidPt, handUp;
     double rotVal;
     
-    vsQuat shoulderRot, elbowRot, wristRot, bodyOri;
+    atQuat shoulderRot, elbowRot, wristRot, bodyOri;
     
-    vsQuat coordFix;
+    atQuat coordFix;
 
     // Get the forward vector for the entire body (at shoulders)...
     lShoulderPos = lShoulderTracker->getPositionVec();
     rShoulderPos = rShoulderTracker->getPositionVec();
     lShoulderFloor = lShoulderPos;
-    lShoulderFloor[VS_Z] = 0.0;
+    lShoulderFloor[AT_Z] = 0.0;
     bodyForwardVec = (rShoulderPos - lShoulderPos).
         getCrossProduct(lShoulderFloor - lShoulderPos);
-    bodyOri.setVecsRotation(vsVector(0.0, 1.0, 0.0), vsVector(0.0, 0.0, 1.0),
-        bodyForwardVec, vsVector(0.0, 0.0, 1.0));
+    bodyOri.setVecsRotation(atVector(0.0, 1.0, 0.0), atVector(0.0, 0.0, 1.0),
+        bodyForwardVec, atVector(0.0, 0.0, 1.0));
     
 
     // Get the hand orientation (Note: hand tracker #1 is to left of #2)
@@ -278,7 +278,7 @@ void vs8TrackerArm::update()
     handMidPt = handTracker1->getPositionVec() + handRight.getScaled(.5); 
     handForward = handMidPt - forearm2Tracker->getPositionVec();
     handUp = handRight.getScaled(-1.0);
-    handOri.setVecsRotation(vsVector(0.0, 1.0, 0.0), vsVector(0.0, 0.0, 1.0),
+    handOri.setVecsRotation(atVector(0.0, 1.0, 0.0), atVector(0.0, 0.0, 1.0),
         handForward, handUp); 
     
 
@@ -293,7 +293,7 @@ void vs8TrackerArm::update()
         upArm1Tracker->getPositionVec() - upArm2Tracker->getPositionVec();
 
     // * Compute the shoulder rotation
-    // The rotation is determined by using the vsQuat class'
+    // The rotation is determined by using the atQuat class'
     // setVecsRotation() function, which takes two pairs of vectors and
     // returns the rotation that rotates the first pair to the second.
     // In this case, the first pair are the default directions for the

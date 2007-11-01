@@ -30,7 +30,7 @@
 // ------------------------------------------------------------------------
 vsKinematics::vsKinematics(vsComponent *theComponent)
 {
-    vsMatrix xform;
+    atMatrix xform;
     int loop;
 
     // Save the component passed in
@@ -118,9 +118,9 @@ void vsKinematics::disableInertia()
 // ------------------------------------------------------------------------
 // Sets the translation
 // ------------------------------------------------------------------------
-void vsKinematics::setPosition(vsVector newPosition)
+void vsKinematics::setPosition(atVector newPosition)
 {
-    vsMatrix xform;
+    atMatrix xform;
     int loop;
     
     // Copy the new position
@@ -141,7 +141,7 @@ void vsKinematics::setPosition(vsVector newPosition)
 // ------------------------------------------------------------------------
 // Retrieves the translation
 // ------------------------------------------------------------------------
-vsVector vsKinematics::getPosition()
+atVector vsKinematics::getPosition()
 {
     return position;
 }
@@ -149,10 +149,10 @@ vsVector vsKinematics::getPosition()
 // ------------------------------------------------------------------------
 // Adds the given vector to the current translation
 // ------------------------------------------------------------------------
-void vsKinematics::modifyPosition(vsVector deltaPosition)
+void vsKinematics::modifyPosition(atVector deltaPosition)
 {
-    vsVector dPos;
-    vsMatrix xform;
+    atVector dPos;
+    atMatrix xform;
     int loop;
     
     // Copy the position change and add it to the current position
@@ -174,10 +174,10 @@ void vsKinematics::modifyPosition(vsVector deltaPosition)
 // ------------------------------------------------------------------------
 // Sets the rotation
 // ------------------------------------------------------------------------
-void vsKinematics::setOrientation(vsQuat newOrientation)
+void vsKinematics::setOrientation(atQuat newOrientation)
 {
-    vsMatrix xform, tempMat;
-    vsQuat tempQuat;
+    atMatrix xform, tempMat;
+    atQuat tempQuat;
     
     // Copy the new orientation 
     orientation = newOrientation;
@@ -195,7 +195,7 @@ void vsKinematics::setOrientation(vsQuat newOrientation)
 // ------------------------------------------------------------------------
 // Retrieves the rotation
 // ------------------------------------------------------------------------
-vsQuat vsKinematics::getOrientation()
+atQuat vsKinematics::getOrientation()
 {
     return orientation;
 }
@@ -203,9 +203,9 @@ vsQuat vsKinematics::getOrientation()
 // ------------------------------------------------------------------------
 // Multiplies the current rotation by the given rotation on the left
 // ------------------------------------------------------------------------
-void vsKinematics::preModifyOrientation(vsQuat deltaOrientation)
+void vsKinematics::preModifyOrientation(atQuat deltaOrientation)
 {
-    vsMatrix xform, tempMat;
+    atMatrix xform, tempMat;
     
     // Modify the current orientation (preMultiply)
     orientation = deltaOrientation * orientation;
@@ -223,9 +223,9 @@ void vsKinematics::preModifyOrientation(vsQuat deltaOrientation)
 // ------------------------------------------------------------------------
 // Multiplies the current rotation by the given rotation on the right
 // ------------------------------------------------------------------------
-void vsKinematics::postModifyOrientation(vsQuat deltaOrientation)
+void vsKinematics::postModifyOrientation(atQuat deltaOrientation)
 {
-    vsMatrix xform, tempMat;
+    atMatrix xform, tempMat;
     
     // Modify the current orientation (postMultiply)
     orientation = orientation * deltaOrientation;
@@ -243,7 +243,7 @@ void vsKinematics::postModifyOrientation(vsQuat deltaOrientation)
 // ------------------------------------------------------------------------
 // Sets the positional velocity
 // ------------------------------------------------------------------------
-void vsKinematics::setVelocity(vsVector newVelocity)
+void vsKinematics::setVelocity(atVector newVelocity)
 {
     // Copy the new velocity to the kinematics velocity vector
     velocity.clearCopy(newVelocity);
@@ -255,7 +255,7 @@ void vsKinematics::setVelocity(vsVector newVelocity)
 // ------------------------------------------------------------------------
 // Retrieves the positional velocity
 // ------------------------------------------------------------------------
-vsVector vsKinematics::getVelocity()
+atVector vsKinematics::getVelocity()
 {
     return velocity;
 }
@@ -263,9 +263,9 @@ vsVector vsKinematics::getVelocity()
 // ------------------------------------------------------------------------
 // Adds the given velocity to the current positional velocity
 // ------------------------------------------------------------------------
-void vsKinematics::modifyVelocity(vsVector deltaVelocity)
+void vsKinematics::modifyVelocity(atVector deltaVelocity)
 {
-    vsVector dVel;
+    atVector dVel;
     
     // Copy the delta velocity
     dVel.clearCopy(deltaVelocity);
@@ -278,9 +278,9 @@ void vsKinematics::modifyVelocity(vsVector deltaVelocity)
 // ------------------------------------------------------------------------
 // Sets the angular velocity
 // ------------------------------------------------------------------------
-void vsKinematics::setAngularVelocity(vsVector rotAxis, double degreesPerSec)
+void vsKinematics::setAngularVelocity(atVector rotAxis, double degreesPerSec)
 {
-    vsVector axis;
+    atVector axis;
     double mag;
     
     // Copy the rotation axis
@@ -310,7 +310,7 @@ void vsKinematics::setAngularVelocity(vsVector rotAxis, double degreesPerSec)
 // rotation in the first three positions and a rotation speed, represented
 // as degrees per second, in the fourth position.
 // ------------------------------------------------------------------------
-vsVector vsKinematics::getAngularVelocity()
+atVector vsKinematics::getAngularVelocity()
 {
     return angularVelocity;
 }
@@ -319,10 +319,10 @@ vsVector vsKinematics::getAngularVelocity()
 // Modifies the current angular velocity to be a composite of the current
 // angular velocity and the given angular velocity
 // ------------------------------------------------------------------------
-void vsKinematics::modifyAngularVelocity(vsVector rotAxis,
+void vsKinematics::modifyAngularVelocity(atVector rotAxis,
     double degreesPerSec)
 {
-    vsVector avel1, avel2, result;
+    atVector avel1, avel2, result;
     double mag;
     
     // If the degrees per second of the current angular velocity is zero
@@ -373,10 +373,10 @@ void vsKinematics::modifyAngularVelocity(vsVector rotAxis,
 // ------------------------------------------------------------------------
 // Sets the center point for rotations of this object
 // ------------------------------------------------------------------------
-void vsKinematics::setCenterOfMass(vsVector newCenter)
+void vsKinematics::setCenterOfMass(atVector newCenter)
 {
-    vsMatrix xform;
-    vsVector nCenter;
+    atMatrix xform;
+    atVector nCenter;
     int loop;
     
     // Copy the center of mass and make sure it is a 3-component vector
@@ -401,10 +401,10 @@ void vsKinematics::setCenterOfMass(vsVector newCenter)
 // ------------------------------------------------------------------------
 // Retrieves the center point for rotations of this object
 // ------------------------------------------------------------------------
-vsVector vsKinematics::getCenterOfMass()
+atVector vsKinematics::getCenterOfMass()
 {
-    vsMatrix xform;
-    vsVector result;
+    atMatrix xform;
+    atVector result;
 
     // Get the post-transform of the kinematics transform attribute
     xform = transform->getPostTransform();
@@ -425,7 +425,7 @@ vsVector vsKinematics::getCenterOfMass()
 // specifies which of the three constraints is being set, with the first
 // constraint having a value of zero.
 // ------------------------------------------------------------------------
-void vsKinematics::setConstraint(int idx, vsVector axis, double minAngle,
+void vsKinematics::setConstraint(int idx, atVector axis, double minAngle,
     double maxAngle)
 {
     // Bounds/sanity checking
@@ -467,7 +467,7 @@ void vsKinematics::setConstraint(int idx, vsVector axis, double minAngle,
 // specifies which of the three constraints is being retrieved, with the
 // first constraint having a value of zero.
 // ------------------------------------------------------------------------
-void vsKinematics::getConstraint(int idx, vsVector *axis, double *minAngle,
+void vsKinematics::getConstraint(int idx, atVector *axis, double *minAngle,
     double *maxAngle)
 {
     // Bounds checking
@@ -518,9 +518,9 @@ bool vsKinematics::isConstrainOnUpdateEnabled()
 // ------------------------------------------------------------------------
 void vsKinematics::applyConstraints()
 {
-    vsQuat currentRot, newRot;
-    vsQuat resultRot;
-    vsVector axis;
+    atQuat currentRot, newRot;
+    atQuat resultRot;
+    atVector axis;
     double rotAngle;
     int loop;
 
@@ -595,7 +595,7 @@ void vsKinematics::update()
 // ------------------------------------------------------------------------
 void vsKinematics::update(double deltaTime)
 {
-    vsQuat deltaOrient;
+    atQuat deltaOrient;
     double degrees;
 
     // Make sure we have a valid deltaTime
@@ -677,9 +677,9 @@ double vsKinematics::constrainAngle(double value, double minDegrees,
 // Determine the amount of rotation that the specified rotation rotates
 // around the specified rotation axis
 // ------------------------------------------------------------------------
-double vsKinematics::calculateAxisRotation(vsQuat rotation, vsVector axis)
+double vsKinematics::calculateAxisRotation(atQuat rotation, atVector axis)
 {
-    vsVector planeVec, rotVec, axisVec;
+    atVector planeVec, rotVec, axisVec;
     double dotProd, rotDegrees;
 
     // * Create a vector that is in the plane perpendicular to the axis vector
@@ -689,7 +689,7 @@ double vsKinematics::calculateAxisRotation(vsQuat rotation, vsVector axis)
     // The vector must not point in the same (or opposite) direction as the
     // axis vector; pick a new vector if that is the case
     dotProd = planeVec.getDotProduct(axis);
-    if (VS_EQUAL(fabs(dotProd), 1.0))
+    if (AT_EQUAL(fabs(dotProd), 1.0))
     {
         planeVec.set(0.0, 0.0, 1.0);
         dotProd = planeVec.getDotProduct(axis);
@@ -708,7 +708,7 @@ double vsKinematics::calculateAxisRotation(vsQuat rotation, vsVector axis)
     // If the result is parallel to the axis, then this information doesn't
     // help us any; try again with another vector in the plane
     dotProd = rotVec.getDotProduct(axis);
-    if (VS_EQUAL(fabs(dotProd), 1.0))
+    if (AT_EQUAL(fabs(dotProd), 1.0))
     {
         // Make a new in-plane vector
         planeVec = planeVec.getCrossProduct(axis);

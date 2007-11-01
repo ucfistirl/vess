@@ -452,7 +452,7 @@ void vsSkeletonMeshGeometry::convertToPerVertex(int list)
 // Emulates setting an overall-bound data element on the normal or color
 // list
 // ------------------------------------------------------------------------
-void vsSkeletonMeshGeometry::setOverallData(int list, vsVector data)
+void vsSkeletonMeshGeometry::setOverallData(int list, atVector data)
 {
     int i, j;
 
@@ -478,7 +478,7 @@ void vsSkeletonMeshGeometry::setOverallData(int list, vsVector data)
 // Emulates setting a per-primitive-bound data element on the normal or
 // color list
 // ------------------------------------------------------------------------
-void vsSkeletonMeshGeometry::setPerPrimitiveData(int list, int index, vsVector data)
+void vsSkeletonMeshGeometry::setPerPrimitiveData(int list, int index, atVector data)
 {
     int baseIndex, i, j;
     int elementSize;
@@ -1564,7 +1564,7 @@ int vsSkeletonMeshGeometry::getBinding(int whichData)
 // the first data point is 0.
 // ------------------------------------------------------------------------
 void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
-                                     vsVector data)
+                                     atVector data)
 {
     int loop, list;
     int listSize;
@@ -1771,9 +1771,9 @@ void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
 // specifies which point is desired. The index of the first data point is
 // 0.
 // ------------------------------------------------------------------------
-vsVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
+atVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
 {
-    vsVector result;
+    atVector result;
     int loop;
     int list;
     int listSize;
@@ -1932,7 +1932,7 @@ vsVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
 // to the values in dataList. The dataList array must be at least as large
 // as the size of particular list in question.
 // ------------------------------------------------------------------------
-void vsSkeletonMeshGeometry::setDataList(int whichData, vsVector *newDataList)
+void vsSkeletonMeshGeometry::setDataList(int whichData, atVector *newDataList)
 {
     int loop, sloop;
     int list;
@@ -2075,7 +2075,7 @@ void vsSkeletonMeshGeometry::setDataList(int whichData, vsVector *newDataList)
 // array must be at least as large as the size of particular list in
 // question.
 // ------------------------------------------------------------------------
-void vsSkeletonMeshGeometry::getDataList(int whichData, vsVector *dataBuffer)
+void vsSkeletonMeshGeometry::getDataList(int whichData, atVector *dataBuffer)
 {
     int list;
     int loop, sloop;
@@ -2895,7 +2895,7 @@ int vsSkeletonMeshGeometry::getRenderBin()
 // Retrieves the center point and radius of a sphere that encompasses all
 // of the geometry within this object.
 // ------------------------------------------------------------------------
-void vsSkeletonMeshGeometry::getBoundSphere(vsVector *centerPoint,
+void vsSkeletonMeshGeometry::getBoundSphere(atVector *centerPoint,
                                             double *radius)
 {
     pfSphere boundSphere;
@@ -2917,12 +2917,12 @@ void vsSkeletonMeshGeometry::getBoundSphere(vsVector *centerPoint,
 // Computes the global coordinate transform at this geometry by multiplying
 // together all of the transforms at nodes above this one.
 // ------------------------------------------------------------------------
-vsMatrix vsSkeletonMeshGeometry::getGlobalXform()
+atMatrix vsSkeletonMeshGeometry::getGlobalXform()
 {
     pfNode *nodePtr;
     pfMatrix xform;
     const pfMatrix *scsMatPtr;
-    vsMatrix result;
+    atMatrix result;
     int loop, sloop;
 
     // Start at this geometry's geode with an identity matrix
@@ -2953,14 +2953,14 @@ vsMatrix vsSkeletonMeshGeometry::getGlobalXform()
         nodePtr = nodePtr->getParent(0);
     }
     
-    // Copy the pfMatrix into a vsMatrix.  Recall that a pfMatrix is
-    // transposed with respect to a vsMatrix (this is why the indices
+    // Copy the pfMatrix into a atMatrix.  Recall that a pfMatrix is
+    // transposed with respect to a atMatrix (this is why the indices
     // below are reversed)
     for (loop = 0; loop < 4; loop++)
         for (sloop = 0; sloop < 4; sloop++)
             result[loop][sloop] = xform[sloop][loop];
 
-    // Return the vsMatrix
+    // Return the atMatrix
     return result;
 }
 
@@ -3202,11 +3202,11 @@ void vsSkeletonMeshGeometry::applySkin(vsGrowableArray *boneMatrices,
     int dataIndex;
     double weight;
     int bone;
-    vsVector vertex;
-    vsVector normal;
-    vsMatrix *boneMatrix, *itBoneMatrix;
-    vsMatrix finalVertexMatrix;
-    vsMatrix finalNormalMatrix;
+    atVector vertex;
+    atVector normal;
+    atMatrix *boneMatrix, *itBoneMatrix;
+    atMatrix finalVertexMatrix;
+    atMatrix finalNormalMatrix;
     float *vertexList, *normalList, *boneList, *weightList;
     int vertexListSize, normalListSize, boneListSize, weightListSize;
 
@@ -3255,8 +3255,8 @@ void vsSkeletonMeshGeometry::applySkin(vsGrowableArray *boneMatrices,
 
                 // Get the bone matrix and the inverse transpose for this
                 // data index
-                boneMatrix = ((vsMatrix *)boneMatrices->getData(bone));
-                itBoneMatrix = ((vsMatrix *)ITBoneMatrices->getData(bone));
+                boneMatrix = ((atMatrix *)boneMatrices->getData(bone));
+                itBoneMatrix = ((atMatrix *)ITBoneMatrices->getData(bone));
 
                 // If the weight is zero, don't bother multiplying.
                 if (weight != 0.0)

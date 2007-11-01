@@ -501,7 +501,7 @@ int vsScene::getNodeType()
 // Retrieves the center point and radius of a sphere that encompasses all
 // of the geometry within this object.
 // ------------------------------------------------------------------------
-void vsScene::getBoundSphere(vsVector *centerPoint, double *radius)
+void vsScene::getBoundSphere(atVector *centerPoint, double *radius)
 {
     osg::BoundingSphere boundSphere;
     osg::Vec3 center;
@@ -509,7 +509,7 @@ void vsScene::getBoundSphere(vsVector *centerPoint, double *radius)
     // Get the bounding sphere from OSG
     boundSphere = osgGroup->getBound();
 
-    // Convert the center to a vsVector if the centerPoint pointer is
+    // Convert the center to a atVector if the centerPoint pointer is
     // valid
     if (centerPoint)
     {
@@ -525,9 +525,9 @@ void vsScene::getBoundSphere(vsVector *centerPoint, double *radius)
 // ------------------------------------------------------------------------
 // Returns the global transformation matrix of the scene
 // ------------------------------------------------------------------------
-vsMatrix vsScene::getGlobalXform()
+atMatrix vsScene::getGlobalXform()
 {
-    vsMatrix mat;
+    atMatrix mat;
 
     // A scene's transform will always be identity, since it is the
     // root node of the scene graph
@@ -882,20 +882,20 @@ void vsScene::removeLight(vsLightAttribute *light)
 // Recursively finds the topLeft and bottomRight of the geometry that is
 // represented by this scene (all the objects in the children list).
 // ------------------------------------------------------------------------
-void vsScene::getAxisAlignedBoxBounds(vsVector  *minValues,
-    vsVector *maxValues)
+void vsScene::getAxisAlignedBoxBounds(atVector  *minValues,
+    atVector *maxValues)
 {
     int childCount = getChildCount();
     int cntChild;
     int column;
-    vsVector tempMinValues;
-    vsVector tempMaxValues;
-    vsVector passMinValues;
-    vsVector passMaxValues;
-    vsVector oldPoint;
-    vsVector newPoint;
+    atVector tempMinValues;
+    atVector tempMaxValues;
+    atVector passMinValues;
+    atVector passMaxValues;
+    atVector oldPoint;
+    atVector newPoint;
     vsTransformAttribute *transform = NULL;
-    vsMatrix dynamicMatrix;
+    atMatrix dynamicMatrix;
     bool minNotSet = true;
     bool maxNotSet = true;
 

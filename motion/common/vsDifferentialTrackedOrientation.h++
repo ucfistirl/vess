@@ -50,11 +50,11 @@ protected:
     vsKinematics       *kinematics;
 
     // Offset from the tracked orientation
-    vsQuat             orientationOffset;
+    atQuat             orientationOffset;
     
     // Calibration values
-    vsQuat             resetRef;
-    vsQuat             resetDiff;
+    atQuat             resetRef;
+    atQuat             resetDiff;
 
 public:
 
@@ -68,8 +68,8 @@ public:
     virtual const char    *getClassName();
 
     // Accessors for the orientation offset
-    void                  setOrientationOffset(vsQuat newOffset);
-    vsQuat                getOrientationOffset();
+    void                  setOrientationOffset(atQuat newOffset);
+    atQuat                getOrientationOffset();
 
     // Updates the motion model
     virtual void          update();

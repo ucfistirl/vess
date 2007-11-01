@@ -158,7 +158,7 @@ vsKinematics* vsInverseKinematics::getKinematicsObject(int jointIdx)
 // Sets the translation offset from the last kinematics joint to the end
 // effector of the kinematics chain
 // ------------------------------------------------------------------------
-void vsInverseKinematics::setEndpointOffset(vsVector offset)
+void vsInverseKinematics::setEndpointOffset(atVector offset)
 {
     endpointOffset.clearCopy(offset);
 }
@@ -167,7 +167,7 @@ void vsInverseKinematics::setEndpointOffset(vsVector offset)
 // Gets the translation offset from the last kinematics joint to the end
 // effector of the kinematics chain
 // ------------------------------------------------------------------------
-vsVector vsInverseKinematics::getEndpointOffset()
+atVector vsInverseKinematics::getEndpointOffset()
 {
     return endpointOffset;
 }
@@ -261,24 +261,24 @@ double vsInverseKinematics::getDampeningConstant()
 // ------------------------------------------------------------------------
 #define VS_KINEMATICS_PRIME_LOOPS 1
 
-void vsInverseKinematics::reachForPoint(vsVector targetPoint)
+void vsInverseKinematics::reachForPoint(atVector targetPoint)
 {
     int iterationCount = 0;
     vsKinematics *endKinematics;
-    vsVector currentEndpoint;
+    atVector currentEndpoint;
     double currentDistance;
-    vsVector targetPt;
+    atVector targetPt;
 
-    vsMatrix tempMat;
+    atMatrix tempMat;
     int loop;
-    vsVector jointPoint;
+    atVector jointPoint;
     vsKinematics *jointKin;
-    vsQuat tempQuat;
+    atQuat tempQuat;
 
-    vsVector jointToEndVec, jointToTargetVec;
-    vsVector rotAxis;
+    atVector jointToEndVec, jointToTargetVec;
+    atVector rotAxis;
     double rotAngle;
-    vsQuat rotQuat;
+    atQuat rotQuat;
 
     // Force the target point vector to be the correct size
     targetPt.setSize(3);
@@ -288,7 +288,7 @@ void vsInverseKinematics::reachForPoint(vsVector targetPoint)
     for (loop = 0; loop < kinematicsArraySize; loop++)
     {
         jointKin = (vsKinematics *)(kinematicsArray[loop]);
-        jointKin->setOrientation(vsQuat(0.0, 0.0, 0.0, 1.0));
+        jointKin->setOrientation(atQuat(0.0, 0.0, 0.0, 1.0));
     }
 
     // Get the kinematics object corresponding to the last joint in the chain
@@ -379,11 +379,11 @@ void vsInverseKinematics::reachForPoint(vsVector targetPoint)
 // Scale the amount of rotation of the specified rotation quaternion by
 // one minus the specified fraction.
 // ------------------------------------------------------------------------
-vsQuat vsInverseKinematics::applyDampening(vsQuat rotation,
+atQuat vsInverseKinematics::applyDampening(atQuat rotation,
     double dampeningFraction)
 {
     double x, y, z, theta;
-    vsQuat result;
+    atQuat result;
 
     // Break the rotation down into axis and angle
     rotation.getAxisAngleRotation(&x, &y, &z, &theta);

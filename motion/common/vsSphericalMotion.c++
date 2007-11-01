@@ -27,7 +27,7 @@
 
 #include "vsSphericalMotion.h++"
 #include <stdio.h>
-#include "vsMatrix.h++"
+#include "atMatrix.h++"
 #include "vsTimer.h++"
 
 // ------------------------------------------------------------------------
@@ -168,7 +168,7 @@ const char *vsSphericalMotion::getClassName()
 // ------------------------------------------------------------------------
 // Sets the target of the spherical motion to be the given point
 // ------------------------------------------------------------------------
-void vsSphericalMotion::setTargetPoint(vsVector targetPt)
+void vsSphericalMotion::setTargetPoint(atVector targetPt)
 {
     // Set the target point to the point passed in
     targetPoint = targetPt;
@@ -184,7 +184,7 @@ void vsSphericalMotion::setTargetPoint(vsVector targetPt)
 // Retrieves the target point of the spherical motion.  Returns a zero
 // vector if not currently in VS_SPHM_TARGET_POINT targeting mode.
 // ------------------------------------------------------------------------
-vsVector vsSphericalMotion::getTargetPoint()
+atVector vsSphericalMotion::getTargetPoint()
 {
     // Check the target mode to see if we're in point mode
     if (targetMode == VS_SPHM_TARGET_POINT)
@@ -196,7 +196,7 @@ vsVector vsSphericalMotion::getTargetPoint()
     {
         // We're in component mode, return a zero vector for the target
         // point
-        return vsVector(0.0, 0.0, 0.0);
+        return atVector(0.0, 0.0, 0.0);
     }
 }
 
@@ -306,20 +306,20 @@ double vsSphericalMotion::getMinimumRadius()
 void vsSphericalMotion::update()
 {
     double    interval;
-    vsVector  zero;
-    vsVector  targetPos;
-    vsMatrix  targetXform;
-    vsVector  targetVec;
-    vsVector  currentPos;
-    vsVector  projectedVec;
+    atVector  zero;
+    atVector  targetPos;
+    atMatrix  targetXform;
+    atVector  targetVec;
+    atVector  currentPos;
+    atVector  projectedVec;
     double    radius;
     double    azimuth, elevation;
-    vsQuat    azimuthQuat, elevationQuat;
-    vsQuat    rotationQuat;
-    vsVector  tempVec;
-    vsVector  newPos;
+    atQuat    azimuthQuat, elevationQuat;
+    atQuat    rotationQuat;
+    atVector  tempVec;
+    atVector  newPos;
     double    dHoriz, dVert;
-    vsVector  dPos;
+    atVector  dPos;
     double    dRadius;
 
     // Get the interval of elapsed time
@@ -402,13 +402,13 @@ void vsSphericalMotion::update()
 
     // Determine the azimuth and elevation of the viewpoint on the
     // sphere
-    if ((targetVec.isEqual(vsVector(0, 0, 1))) || 
-        (targetVec.isEqual(vsVector(0, 0, -1))))
+    if ((targetVec.isEqual(atVector(0, 0, 1))) || 
+        (targetVec.isEqual(atVector(0, 0, -1))))
     {
         // If the vector is straight up or down, set the azimuth to 0
         // and the elevation accordingly
         azimuth = 0.0;
-        elevation = 90.0 * targetVec[VS_Z];
+        elevation = 90.0 * targetVec[AT_Z];
     }
     else
     {
@@ -420,7 +420,7 @@ void vsSphericalMotion::update()
         projectedVec.normalize();
 
         // Calculate the azimuth from the projected vector
-        azimuth = VS_RAD2DEG(atan2(projectedVec[VS_Y], projectedVec[VS_X]));
+        azimuth = AT_RAD2DEG(atan2(projectedVec[AT_Y], projectedVec[AT_X]));
         
         // Correct for VESS coordinates and make sure 0 <= azimuth < 360
         azimuth -= 90.0;
@@ -433,10 +433,10 @@ void vsSphericalMotion::update()
 
         // Calculate the angle between the Y axis and the target vector,
         // which is the elevation.
-        elevation = tempVec.getAngleBetween(vsVector(0, 1, 0));
+        elevation = tempVec.getAngleBetween(atVector(0, 1, 0));
         
         // Find the sign of the elevation
-        if (tempVec[VS_Z] < 0.0)
+        if (tempVec[AT_Z] < 0.0)
             elevation = -elevation;
     }
 
@@ -525,8 +525,8 @@ void vsSphericalMotion::update()
     if (tempVec.getMagnitude() > 1.0E-6)
     {
         // Compute the rotation quaternion from the direction vector
-        rotationQuat.setVecsRotation(vsVector(0, 1, 0), vsVector(0, 0, 1),
-            tempVec, vsVector(0, 0, 1));
+        rotationQuat.setVecsRotation(atVector(0, 1, 0), atVector(0, 0, 1),
+            tempVec, atVector(0, 0, 1));
 
         // Adjust the kinematics
         kinematics->setOrientation(rotationQuat);

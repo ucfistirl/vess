@@ -64,7 +64,7 @@ private:
     double           pitchSpeed;
 
     // Default orientation
-    vsQuat           startingOrientation;
+    atQuat           startingOrientation;
 
 public:
 
@@ -100,8 +100,8 @@ public:
     virtual void            setPitchSpeed(double pSpeed);
     virtual double          getPitchSpeed();
 
-    virtual void            setStartingOrientation(vsQuat orientation);
-    virtual vsQuat          getStartingOrientation();
+    virtual void            setStartingOrientation(atQuat orientation);
+    virtual atQuat          getStartingOrientation();
 };
 
 #endif

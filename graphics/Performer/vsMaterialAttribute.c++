@@ -460,7 +460,7 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_AMBIENT,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Back side ambient color check
@@ -468,7 +468,7 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_AMBIENT,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Front side diffuse color check
@@ -476,7 +476,7 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_DIFFUSE,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Back side diffuse color check
@@ -484,7 +484,7 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_DIFFUSE,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Front side specular color check
@@ -492,7 +492,7 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_SPECULAR,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Back side specular color check
@@ -500,7 +500,7 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_SPECULAR,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Front side emissive color check
@@ -508,7 +508,7 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_FRONT, VS_MATERIAL_COLOR_EMISSIVE,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Back side emissive color check
@@ -516,31 +516,31 @@ bool vsMaterialAttribute::isEquivalent(vsAttribute *attribute)
         &r1, &g1, &b1);
     attr->getColor(VS_MATERIAL_SIDE_BACK, VS_MATERIAL_COLOR_EMISSIVE,
         &r2, &g2, &b2);
-    if (!VS_EQUAL(r1,r2) || !VS_EQUAL(g1,g2) || !VS_EQUAL(b1,b2))
+    if (!AT_EQUAL(r1,r2) || !AT_EQUAL(g1,g2) || !AT_EQUAL(b1,b2))
         return false;
 
     // Front side alpha value check
     val1 = getAlpha(VS_MATERIAL_SIDE_FRONT);
     val2 = attr->getAlpha(VS_MATERIAL_SIDE_FRONT);
-    if (!VS_EQUAL(val1,val2))
+    if (!AT_EQUAL(val1,val2))
         return false;
 
     // Back side alpha value check
     val1 = getAlpha(VS_MATERIAL_SIDE_BACK);
     val2 = attr->getAlpha(VS_MATERIAL_SIDE_BACK);
-    if (!VS_EQUAL(val1,val2))
+    if (!AT_EQUAL(val1,val2))
         return false;
 
     // Front side shininess value check
     val1 = getShininess(VS_MATERIAL_SIDE_FRONT);
     val2 = attr->getShininess(VS_MATERIAL_SIDE_FRONT);
-    if (!VS_EQUAL(val1,val2))
+    if (!AT_EQUAL(val1,val2))
         return false;
 
     // Back side shininess value check
     val1 = getShininess(VS_MATERIAL_SIDE_BACK);
     val2 = attr->getShininess(VS_MATERIAL_SIDE_BACK);
-    if (!VS_EQUAL(val1,val2))
+    if (!AT_EQUAL(val1,val2))
         return false;
 
     // Front side color mode check

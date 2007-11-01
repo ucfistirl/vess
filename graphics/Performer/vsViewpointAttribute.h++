@@ -38,7 +38,7 @@ private:
     static vsObjectMap *viewObjectMap;
 
     vsView             *viewObject;
-    vsMatrix           offsetMatrix;
+    atMatrix           offsetMatrix;
     
     vsComponent        *parentComponent;
 
@@ -69,8 +69,8 @@ public:
     void                  setView(vsView *theView);
     vsView                *getView();
 
-    void                  setOffsetMatrix(vsMatrix newMatrix);
-    vsMatrix              getOffsetMatrix();
+    void                  setOffsetMatrix(atMatrix newMatrix);
+    atMatrix              getOffsetMatrix();
 };
 
 #endif

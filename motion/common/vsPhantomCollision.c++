@@ -92,10 +92,10 @@ vsPhantomCollision::vsPhantomCollision(vsPhantomSystem *thePhantomSys,
     vertThreeLine->setDataListSize(VS_GEOMETRY_COLORS, 1);
 
     // Set the color vector.
-    forceLine->setData(VS_GEOMETRY_COLORS, 0, vsVector(1.0, 0.0, 0.0, 1.0));
-    vertOneLine->setData(VS_GEOMETRY_COLORS, 0, vsVector(0.0, 1.0, 0.0, 1.0));
-    vertTwoLine->setData(VS_GEOMETRY_COLORS, 0, vsVector(0.0, 1.0, 0.0, 1.0));
-    vertThreeLine->setData(VS_GEOMETRY_COLORS, 0, vsVector(0.0, 1.0, 0.0, 1.0));
+    forceLine->setData(VS_GEOMETRY_COLORS, 0, atVector(1.0, 0.0, 0.0, 1.0));
+    vertOneLine->setData(VS_GEOMETRY_COLORS, 0, atVector(0.0, 1.0, 0.0, 1.0));
+    vertTwoLine->setData(VS_GEOMETRY_COLORS, 0, atVector(0.0, 1.0, 0.0, 1.0));
+    vertThreeLine->setData(VS_GEOMETRY_COLORS, 0, atVector(0.0, 1.0, 0.0, 1.0));
 
     // Add the lines to the scene.
     scene->addChild(vertOneLine);
@@ -158,7 +158,7 @@ int vsPhantomCollision::getPointCount()
 // Sets the position of one of the hot points of the collision object, in
 // the local coordinate system of the associated kinematics' component.
 // ------------------------------------------------------------------------
-void vsPhantomCollision::setPoint(int index, vsVector newOffset)
+void vsPhantomCollision::setPoint(int index, atVector newOffset)
 {
     // Bounds checking
     if ((index < 0) || (index >= VS_PHANTOM_COLLISION_POINTS_MAX))
@@ -177,9 +177,9 @@ void vsPhantomCollision::setPoint(int index, vsVector newOffset)
 // Gets the position of one of the hot points of the collision object, in
 // the local coordinate system of the associated kinematics' component.
 // ------------------------------------------------------------------------
-vsVector vsPhantomCollision::getPoint(int index)
+atVector vsPhantomCollision::getPoint(int index)
 {
-    vsVector zero(0.0, 0.0, 0.0);
+    atVector zero(0.0, 0.0, 0.0);
 
     // Bounds checking
     if ((index < 0) || (index >= VS_PHANTOM_COLLISION_POINTS_MAX))
@@ -257,11 +257,11 @@ double vsPhantomCollision::getMaxForce()
 void vsPhantomCollision::update()
 {
     vsComponent *objectComp;
-    vsMatrix globalXform;
+    atMatrix globalXform;
     double distFromCollision;
-    vsVector collideNormal;
-    vsVector forceVector;
-    vsVector positionDelta;
+    atVector collideNormal;
+    atVector forceVector;
+    atVector positionDelta;
 
 
     // If there aren't any key points defined, then there's nothing we can do
@@ -295,28 +295,28 @@ void vsPhantomCollision::update()
             // Elliptical function to have the magnitude curve some.
             forceVector = collideNormal *
               (maximumForce * (1 - sqrt(1 -
-              (VS_SQR(distFromCollision)/VS_SQR(sphereRadius)))));
+              (AT_SQR(distFromCollision)/AT_SQR(sphereRadius)))));
         }
 
         phantomSys->setForce(forceVector);
     }
     else
     {
-        phantomSys->setForce(vsVector(0.0, 0.0, 0.0));
+        phantomSys->setForce(atVector(0.0, 0.0, 0.0));
     }
 }
 
 // ------------------------------------------------------------------------
 // Private function
 // ------------------------------------------------------------------------
-double vsPhantomCollision::getCollisionData(vsMatrix globalXform,
-                                            vsVector *hitNorm)
+double vsPhantomCollision::getCollisionData(atMatrix globalXform,
+                                            atVector *hitNorm)
 {
     int loop;
     bool firstIntersection;
-    vsVector centerPoints[VS_PHANTOM_COLLISION_POINTS_MAX];
-    vsVector hitPoints1[VS_PHANTOM_COLLISION_POINTS_MAX];
-    vsVector normals[VS_PHANTOM_COLLISION_POINTS_MAX];
+    atVector centerPoints[VS_PHANTOM_COLLISION_POINTS_MAX];
+    atVector hitPoints1[VS_PHANTOM_COLLISION_POINTS_MAX];
+    atVector normals[VS_PHANTOM_COLLISION_POINTS_MAX];
     int valid1[VS_PHANTOM_COLLISION_POINTS_MAX];
     double resultDist, newDist;
 
@@ -411,10 +411,10 @@ double vsPhantomCollision::getCollisionData(vsMatrix globalXform,
     // Draw lines that represent the normals.
     else if (valid1[0])
     {
-        vsVector    startPoint;
-        vsVector    endPoint;
+        atVector    startPoint;
+        atVector    endPoint;
         vsGeometry  *sectGeometry;
-        vsMatrix    sectMatrix;
+        atMatrix    sectMatrix;
         int         indexOne;
         int         indexTwo;
         int         indexThree;

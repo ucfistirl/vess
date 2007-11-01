@@ -96,7 +96,7 @@ const char *vsMotionTracker::getClassName()
 // ------------------------------------------------------------------------
 // Set the position of this motion tracker
 // ------------------------------------------------------------------------
-void vsMotionTracker::setPosition(vsVector posVec)
+void vsMotionTracker::setPosition(atVector posVec)
 {
     int i;
 
@@ -111,8 +111,8 @@ void vsMotionTracker::setPosition(vsVector posVec)
 // ------------------------------------------------------------------------
 // Set the orientation of this motion tracker using Euler angles
 // ------------------------------------------------------------------------
-void vsMotionTracker::setOrientation(vsVector ornVec, 
-                                     vsMathEulerAxisOrder axisOrder)
+void vsMotionTracker::setOrientation(atVector ornVec, 
+                                     atMathEulerAxisOrder axisOrder)
 {
     orientation.setEulerRotation(axisOrder, ornVec.getValue(0),
                                  ornVec.getValue(1), ornVec.getValue(2));
@@ -121,7 +121,7 @@ void vsMotionTracker::setOrientation(vsVector ornVec,
 // ------------------------------------------------------------------------
 // Set the orientation of this motion tracker using a rotation matrix
 // ------------------------------------------------------------------------
-void vsMotionTracker::setOrientation(vsMatrix ornMat)
+void vsMotionTracker::setOrientation(atMatrix ornMat)
 {
     orientation.setMatrixRotation(ornMat);
 }
@@ -129,7 +129,7 @@ void vsMotionTracker::setOrientation(vsMatrix ornMat)
 // ------------------------------------------------------------------------
 // Set the orientation of this motion tracker using a quaternion
 // ------------------------------------------------------------------------
-void vsMotionTracker::setOrientation(vsQuat ornQuat)
+void vsMotionTracker::setOrientation(atQuat ornQuat)
 {
     orientation = ornQuat;
 }

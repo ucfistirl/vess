@@ -21,7 +21,7 @@
 
 #include "vsDrivingMotion.h++"
 #include <stdio.h>
-#include "vsMatrix.h++"
+#include "atMatrix.h++"
 #include "vsTimer.h++"
 
 // ------------------------------------------------------------------------
@@ -278,14 +278,14 @@ void vsDrivingMotion::update()
 {
     double              interval;
     double              dHeading;
-    vsVector            steeringAxis;
-    vsVector            v;
-    vsVector            tempV;
-    vsQuat              orn;
-    vsQuat              inverseOrn;
-    vsVector            dPos;
-    vsMatrix            transMat, rotMat;
-    vsMatrix            movement;
+    atVector            steeringAxis;
+    atVector            v;
+    atVector            tempV;
+    atQuat              orn;
+    atQuat              inverseOrn;
+    atVector            dPos;
+    atMatrix            transMat, rotMat;
+    atMatrix            movement;
 
     // Get elapsed time
     interval = vsTimer::getSystemTimer()->getInterval();
@@ -407,7 +407,7 @@ void vsDrivingMotion::update()
     }
 
     // Factor in the adjusted velocity
-    tempV[VS_Y] = currentSpeed;
+    tempV[AT_Y] = currentSpeed;
     v = orn.rotatePoint(tempV);
 
     // Modify the kinematics velocity

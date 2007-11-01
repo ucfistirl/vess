@@ -23,8 +23,8 @@
 //------------------------------------------------------------------------
 
 #include "vs4TrackerHead.h++"
-#include "vsVector.h++"
-#include "vsQuat.h++"
+#include "atVector.h++"
+#include "atQuat.h++"
 
 // ------------------------------------------------------------------------
 // Constructor.  Creates a 4-tracker head motion model using two position
@@ -81,13 +81,13 @@ const char *vs4TrackerHead::getClassName()
 // ------------------------------------------------------------------------
 void vs4TrackerHead::update()
 {
-    vsVector torsoForward;
-    vsVector lShoulderToChest, shoulderLeftToRight;
-    vsVector headForward, headForwardXY, headForwardYZ;
-    vsVector globalUp;
+    atVector torsoForward;
+    atVector lShoulderToChest, shoulderLeftToRight;
+    atVector headForward, headForwardXY, headForwardYZ;
+    atVector globalUp;
     double headZRot, headXRot;
-    vsQuat torsoOrient, headOrient;
-    vsQuat headZQuat, headXQuat;
+    atQuat torsoOrient, headOrient;
+    atQuat headZQuat, headXQuat;
     
     // Get orientation of torso
     shoulderLeftToRight = 
@@ -104,11 +104,11 @@ void vs4TrackerHead::update()
 
     // Get the z-axis rotation of the back to front head vector
     headForwardXY = headForward;
-    headForwardXY[VS_Z] = 0.0;
+    headForwardXY[AT_Z] = 0.0;
     headZRot = headForwardXY.getAngleBetween(torsoForward);    
 
     // Is the head turned left or right?
-    if (torsoForward.getCrossProduct(headForwardXY)[VS_Z] < 0.0)
+    if (torsoForward.getCrossProduct(headForwardXY)[AT_Z] < 0.0)
         headZRot = -headZRot;
 
     // Convert the Z rotation to a quaternion

@@ -49,20 +49,20 @@ private:
     
     vsIntersect     *intersect;
     
-    vsVector        offsetPoints[VS_COLLISION_POINTS_MAX];
+    atVector        offsetPoints[VS_COLLISION_POINTS_MAX];
     int             offsetCount;
     
     int             collisionMode;
     
     double          wallMargin;
     
-    double          distance(vsVector start, vsVector end);
-    vsVector        fixNormal(vsVector sourcePt, vsVector isectPt,
-                              vsVector isectNorm);
+    double          distance(atVector start, atVector end);
+    atVector        fixNormal(atVector sourcePt, atVector isectPt,
+                              atVector isectNorm);
     
-    double          calcMoveAllowed(vsMatrix globalXform, vsVector posOffset,
-                                    vsVector moveDir, double maxMove,
-                                    vsVector *hitNorm);
+    double          calcMoveAllowed(atMatrix globalXform, atVector posOffset,
+                                    atVector moveDir, double maxMove,
+                                    atVector *hitNorm);
     
 public:
 
@@ -74,8 +74,8 @@ public:
     void                  setPointCount(int numPoints);
     int                   getPointCount();
 
-    void                  setPoint(int index, vsVector newOffset);
-    vsVector              getPoint(int index);
+    void                  setPoint(int index, atVector newOffset);
+    atVector              getPoint(int index);
 
     void                  setCollisionMode(int newMode);
     int                   getCollisionMode();

@@ -22,7 +22,7 @@
 
 #include "vsFlyingMotion.h++"
 #include <stdio.h>
-#include "vsMatrix.h++"
+#include "atMatrix.h++"
 #include "vsTimer.h++"
 
 // ------------------------------------------------------------------------
@@ -280,10 +280,10 @@ void vsFlyingMotion::update()
 {
     double              interval;
     double              dHeading, dPitch, dSpeed;
-    vsQuat              orn, quat1, quat2;
-    vsQuat              currentRot;
+    atQuat              orn, quat1, quat2;
+    atQuat              currentRot;
     double              h, p, r;
-    vsVector            v;
+    atVector            v;
     double              newH, newP;
 
     // Get the frame time from the system timer
@@ -291,7 +291,7 @@ void vsFlyingMotion::update()
 
     // Get the current rotation
     currentRot = kinematics->getOrientation();   
-    currentRot.getEulerRotation(VS_EULER_ANGLES_ZXY_R, &h, &p, &r);
+    currentRot.getEulerRotation(AT_EULER_ANGLES_ZXY_R, &h, &p, &r);
 
     // Maintain the same heading and pitch, unless a control dictates
     // otherwise

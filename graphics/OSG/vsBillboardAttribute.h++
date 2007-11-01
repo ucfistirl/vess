@@ -24,7 +24,7 @@
 #define VS_BILLBOARD_ATTRIBUTE_HPP
 
 #include <osg/MatrixTransform>
-#include "vsMatrix.h++"
+#include "atMatrix.h++"
 #include "vsAttribute.h++"
 
 class vsBillboardCallback;
@@ -40,14 +40,14 @@ class VS_GRAPHICS_DLL vsBillboardAttribute : public vsAttribute
 {
 private:
 
-    vsVector                centerPoint;
-    vsVector                frontDirection;
-    vsVector                upAxis;
+    atVector                centerPoint;
+    atVector                frontDirection;
+    atVector                upAxis;
 
     int                     billboardMode;
 
-    vsMatrix                preTranslate;
-    vsMatrix                postTranslate;
+    atMatrix                preTranslate;
+    atMatrix                postTranslate;
     osg::MatrixTransform    *billboardTransform;
  
     vsBillboardCallback     *billboardCallback;
@@ -60,7 +60,7 @@ VS_INTERNAL:
  
     virtual void    attachDuplicate(vsNode *theNode);
 
-    void            adjustTransform(vsMatrix viewMatrix, vsMatrix currentXform);
+    void            adjustTransform(atMatrix viewMatrix, atMatrix currentXform);
  
 public:
 
@@ -75,14 +75,14 @@ public:
     void                  setMode(int mode);
     int                   getMode();
 
-    void                  setCenterPoint(vsVector newCenter);
-    vsVector              getCenterPoint();
+    void                  setCenterPoint(atVector newCenter);
+    atVector              getCenterPoint();
 
-    void                  setFrontDirection(vsVector newFront);
-    vsVector              getFrontDirection();
+    void                  setFrontDirection(atVector newFront);
+    atVector              getFrontDirection();
 
-    void                  setAxis(vsVector newAxis);
-    vsVector              getAxis();
+    void                  setAxis(atVector newAxis);
+    atVector              getAxis();
 };
 
 #endif

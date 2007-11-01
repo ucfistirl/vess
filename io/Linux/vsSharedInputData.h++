@@ -28,8 +28,8 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 
-#include "vsVector.h++"
-#include "vsQuat.h++"
+#include "atVector.h++"
+#include "atQuat.h++"
 #include "vsObject.h++"
 
 #ifdef _XOPEN_SOURCE
@@ -70,11 +70,11 @@ public:
 
     virtual const char    *getClassName();
 
-    void         storeVectorData(int index, vsVector vector);
-    void         storeQuatData(int index, vsQuat quat);
+    void         storeVectorData(int index, atVector vector);
+    void         storeQuatData(int index, atQuat quat);
 
-    void         retrieveVectorData(int index, vsVector *vector);
-    void         retrieveQuatData(int index, vsQuat *quat);
+    void         retrieveVectorData(int index, atVector *vector);
+    void         retrieveQuatData(int index, atQuat *quat);
 };
 
 

@@ -520,7 +520,7 @@ vsNode *vsComponent::getChild(int index)
 // Retrieves the center point and radius of a sphere that encompasses all
 // of the geometry within this object.
 // ------------------------------------------------------------------------
-void vsComponent::getBoundSphere(vsVector *centerPoint, double *radius)
+void vsComponent::getBoundSphere(atVector *centerPoint, double *radius)
 {
     pfSphere boundSphere;
     
@@ -542,12 +542,12 @@ void vsComponent::getBoundSphere(vsVector *centerPoint, double *radius)
 // multiplying together all of the transforms at nodes at and above this
 // one.
 // ------------------------------------------------------------------------
-vsMatrix vsComponent::getGlobalXform()
+atMatrix vsComponent::getGlobalXform()
 {
     pfNode *nodePtr;
     pfMatrix xform;
     const pfMatrix *scsMatPtr;
-    vsMatrix result;
+    atMatrix result;
     int loop, sloop;
 
     // Start at this component's bottomGroup with an identity matrix

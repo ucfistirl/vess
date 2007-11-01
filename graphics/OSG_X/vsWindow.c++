@@ -875,7 +875,8 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
 }
 
 // ------------------------------------------------------------------------
-// Destructor - Deletes any child panes that this window owns
+// Destructor - Deletes any child panes that this window owns, and cleans
+// up any rendering resources created
 // ------------------------------------------------------------------------
 vsWindow::~vsWindow()
 {
@@ -899,15 +900,20 @@ vsWindow::~vsWindow()
     // Treat off screen and on screen windows differently
     if (isOffScreenWindow)
     {
-        // Destroy the off screen component
+        // Destroy the off-screen GLX drawable
         glXDestroyPbuffer(display, drawable);
     }
-    else if (createdXWindow)
+    else
     {
-        // Destroy the window itself (but only if we created it in the
-        // first place)
+        // Destroy the on-screen GLX drawable
         glXDestroyWindow(display, drawable);
-        XDestroyWindow(display, xWindow);
+
+        // See if we created the main window
+        if (createdXWindow)
+        {
+           // Destroy the window itself
+           XDestroyWindow(display, xWindow);
+        }
     }
 }
     

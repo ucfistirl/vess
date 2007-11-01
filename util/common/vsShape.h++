@@ -27,8 +27,8 @@
 
 #include "vsGlobals.h++"
 #include "vsObject.h++"
-#include "vsQuat.h++"
-#include "vsVector.h++"
+#include "atQuat.h++"
+#include "atVector.h++"
 
 enum vsScaleType
 {
@@ -42,8 +42,8 @@ class VS_UTIL_DLL vsShape : public vsObject
 {
 protected:
 
-    vsVector    translationVector;
-    vsQuat      rotationQuat;
+    atVector    translationVector;
+    atQuat      rotationQuat;
 
 public:
 
@@ -52,15 +52,15 @@ public:
 
     virtual const char    *getClassName() = 0;
 
-    virtual void          setRotation(const vsQuat &rotation);
+    virtual void          setRotation(const atQuat &rotation);
     virtual void          setScale(vsScaleType type, double value) = 0;
-    virtual void          setTranslation(const vsVector &translation);
+    virtual void          setTranslation(const atVector &translation);
 
-    virtual vsQuat        getRotation() const;
+    virtual atQuat        getRotation() const;
     virtual double        getScale(vsScaleType type) const = 0;
-    virtual vsVector      getTranslation() const;
+    virtual atVector      getTranslation() const;
     
-    virtual bool          isPointInside(const vsVector &point) const = 0;
+    virtual bool          isPointInside(const atVector &point) const = 0;
 };
 
 #endif

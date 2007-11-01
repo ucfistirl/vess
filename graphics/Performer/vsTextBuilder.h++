@@ -29,8 +29,8 @@
 #include <Performer/pr/pfString.h>
 #include <Performer/pfdu.h>
 
-#include "vsVector.h++"
-#include "vsMatrix.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
 #include "vsComponent.h++"
 #include "vsGeometry.h++"
 #include "vsGrowableArray.h++"
@@ -49,9 +49,9 @@ class VS_GRAPHICS_DLL vsTextBuilder : public vsObject
 private:
     pfFont                  *font;
     vsDatabaseLoader        *loader;
-    vsVector                color;
-    vsMatrix                transformMatrix;
-    vsMatrix                scaleMatrix;
+    atVector                color;
+    atMatrix                transformMatrix;
+    atMatrix                scaleMatrix;
     int                     justification;
 
     void                    colorGraph(vsNode *node);
@@ -59,8 +59,8 @@ private:
 public:
                        vsTextBuilder();
                        vsTextBuilder(char *newFont);
-                       vsTextBuilder(char *newFont, vsVector newColor);
-                       vsTextBuilder(char *newFont, vsVector newColor, vsMatrix newTransform);
+                       vsTextBuilder(char *newFont, atVector newColor);
+                       vsTextBuilder(char *newFont, atVector newColor, atMatrix newTransform);
 
     virtual            ~vsTextBuilder();
 
@@ -68,8 +68,8 @@ public:
 
     void               setFont(char *newFont);
     void               setScale(double xScale, double yScale, double zScale);
-    void               setColor(vsVector newColor);
-    void               setTransformMatrix(vsMatrix newTransform);
+    void               setColor(atVector newColor);
+    void               setTransformMatrix(atMatrix newTransform);
     void               setJustification(int newJustification);
 
     int                getJustification();

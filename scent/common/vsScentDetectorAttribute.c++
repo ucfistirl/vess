@@ -115,7 +115,7 @@ void vsScentDetectorAttribute::attachDuplicate(vsNode *theNode)
 // Returns the current position of the scent source (as of the last
 // call to update() )
 // ------------------------------------------------------------------------
-vsVector vsScentDetectorAttribute::getPosition()
+atVector vsScentDetectorAttribute::getPosition()
 {
     return currentPosition;
 }
@@ -126,7 +126,7 @@ vsVector vsScentDetectorAttribute::getPosition()
 // ------------------------------------------------------------------------
 void vsScentDetectorAttribute::update()
 {
-    vsMatrix       result;
+    atMatrix       result;
 
     // If we're not attached to a component, we have nothing to do
     if (!attachedCount)
@@ -172,7 +172,7 @@ int vsScentDetectorAttribute::getAttributeCategory()
 // multiplied into the overall transform matrix before it is used to
 // set the source's global position.
 // ------------------------------------------------------------------------
-void vsScentDetectorAttribute::setOffsetMatrix(vsMatrix newMatrix)
+void vsScentDetectorAttribute::setOffsetMatrix(atMatrix newMatrix)
 {
     offsetMatrix = newMatrix;
 }
@@ -180,7 +180,7 @@ void vsScentDetectorAttribute::setOffsetMatrix(vsMatrix newMatrix)
 // ------------------------------------------------------------------------
 // Retrieves the offset matrix for this attribute
 // ------------------------------------------------------------------------
-vsMatrix vsScentDetectorAttribute::getOffsetMatrix()
+atMatrix vsScentDetectorAttribute::getOffsetMatrix()
 {
     return offsetMatrix;
 }

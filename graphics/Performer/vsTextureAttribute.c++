@@ -35,7 +35,7 @@ vsTextureAttribute::vsTextureAttribute()
     performerTexture->ref();
     performerTexEnv = new pfTexEnv();
     performerTexEnv->ref();
-    performerTexEnv->setMode(PFTE_DECAL);
+    performerTexEnv->setMode(PFTE_MODULATE);
     performerTexGen = NULL;
     textureMatrix.makeIdent();
     textureMatrixEnabled = false;
@@ -55,7 +55,7 @@ vsTextureAttribute::vsTextureAttribute(unsigned int unit)
     performerTexture->ref();
     performerTexEnv = new pfTexEnv();
     performerTexEnv->ref();
-    performerTexEnv->setMode(PFTE_DECAL);
+    performerTexEnv->setMode(PFTE_MODULATE);
     performerTexGen = NULL;
     textureMatrix.makeIdent();
     textureMatrixEnabled = false;
@@ -557,9 +557,9 @@ int vsTextureAttribute::getGenMode()
 // ------------------------------------------------------------------------
 // Set a new texture matrix
 // ------------------------------------------------------------------------
-void vsTextureAttribute::setTextureMatrix(vsMatrix newMatrix)
+void vsTextureAttribute::setTextureMatrix(atMatrix newMatrix)
 {
-    // Convert the vsMatrix into a pfMatrix
+    // Convert the atMatrix into a pfMatrix
     for (int loop = 0; loop < 4; loop++)
         for (int sloop = 0; sloop < 4; sloop++)
             textureMatrix[loop][sloop] = newMatrix[sloop][loop];
@@ -572,11 +572,11 @@ void vsTextureAttribute::setTextureMatrix(vsMatrix newMatrix)
 // ------------------------------------------------------------------------
 // Retrieve the current texture matrix
 // ------------------------------------------------------------------------
-vsMatrix vsTextureAttribute::getTextureMatrix()
+atMatrix vsTextureAttribute::getTextureMatrix()
 {
-    vsMatrix vsMat;
+    atMatrix vsMat;
 
-    // Convert the current texture matrix into a vsMatrix and return it
+    // Convert the current texture matrix into a atMatrix and return it
     for (int loop = 0; loop < 4; loop++)
         for (int sloop = 0; sloop < 4; sloop++)
             vsMat[sloop][loop] = textureMatrix[loop][sloop];
@@ -710,7 +710,7 @@ bool vsTextureAttribute::isEquivalent(vsAttribute *attribute)
     vsTextureAttribute *attr;
     unsigned char *image1, *image2;
     int xval1, yval1, xval2, yval2, val1, val2;
-    vsMatrix mat1, mat2;
+    atMatrix mat1, mat2;
     
     // NULL check
     if (!attribute)

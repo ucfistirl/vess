@@ -35,7 +35,7 @@ vsTextureCubeAttribute::vsTextureCubeAttribute()
     performerTexture->ref();
     performerTexEnv = new pfTexEnv();
     performerTexEnv->ref();
-    performerTexEnv->setMode(PFTE_DECAL);
+    performerTexEnv->setMode(PFTE_MODULATE);
     performerTexGen = new pfTexGen();
     performerTexGen->ref();
     textureMatrix.makeIdent();
@@ -62,7 +62,7 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit)
     performerTexture->ref();
     performerTexEnv = new pfTexEnv();
     performerTexEnv->ref();
-    performerTexEnv->setMode(PFTE_DECAL);
+    performerTexEnv->setMode(PFTE_MODULATE);
     performerTexGen = new pfTexGen();
     performerTexGen->ref();
     textureMatrix.makeIdent();
@@ -546,9 +546,9 @@ int vsTextureCubeAttribute::getGenMode()
 // ------------------------------------------------------------------------
 // Set a new texture matrix
 // ------------------------------------------------------------------------
-void vsTextureCubeAttribute::setTextureMatrix(vsMatrix newMatrix)
+void vsTextureCubeAttribute::setTextureMatrix(atMatrix newMatrix)
 {
-    // Convert the vsMatrix into a pfMatrix
+    // Convert the atMatrix into a pfMatrix
     for (int loop = 0; loop < 4; loop++)
         for (int sloop = 0; sloop < 4; sloop++)
             textureMatrix[loop][sloop] = newMatrix[sloop][loop];
@@ -561,11 +561,11 @@ void vsTextureCubeAttribute::setTextureMatrix(vsMatrix newMatrix)
 // ------------------------------------------------------------------------
 // Retrieve the current texture matrix
 // ------------------------------------------------------------------------
-vsMatrix vsTextureCubeAttribute::getTextureMatrix()
+atMatrix vsTextureCubeAttribute::getTextureMatrix()
 {
-    vsMatrix vsMat;
+    atMatrix vsMat;
 
-    // Convert the current texture matrix into a vsMatrix and return it
+    // Convert the current texture matrix into a atMatrix and return it
     for (int loop = 0; loop < 4; loop++)
         for (int sloop = 0; sloop < 4; sloop++)
             vsMat[sloop][loop] = textureMatrix[loop][sloop];
@@ -700,7 +700,7 @@ bool vsTextureCubeAttribute::isEquivalent(vsAttribute *attribute)
     vsTextureCubeAttribute *attr;
     unsigned char *image1, *image2;
     int xval1, yval1, xval2, yval2, val1, val2, loop;
-    vsMatrix mat1, mat2;
+    atMatrix mat1, mat2;
     
     // NULL check
     if (!attribute)

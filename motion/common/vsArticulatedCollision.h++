@@ -41,7 +41,7 @@ protected:
 
     // * Subclass and override THIS function if you want to modify how * 
     // * the object handles collisions                                 *
-    virtual bool           processCollision(vsVector collisionPoint,
+    virtual bool           processCollision(atVector collisionPoint,
                                             int jointSegmentIdx,
                                             int isectSegmentIdx);
 

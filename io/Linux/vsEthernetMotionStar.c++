@@ -44,10 +44,10 @@ vsEthernetMotionStar::vsEthernetMotionStar(char *serverName, int port,
 {
     int      i;
     bool     result;
-    vsQuat   quat1; 
-    vsQuat   quat2;
-    vsQuat   xformQuat;
-    vsMatrix headingMat;
+    atQuat   quat1; 
+    atQuat   quat2;
+    atQuat   xformQuat;
+    atMatrix headingMat;
 
     // Initialize state variables
     addressMode = 0;
@@ -203,8 +203,8 @@ const char *vsEthernetMotionStar::getClassName()
 void vsEthernetMotionStar::serverLoop()
 {
     int      i;
-    vsVector posVec;
-    vsQuat   ornQuat;
+    atVector posVec;
+    atQuat   ornQuat;
 
     // Set up the signal handler
     signal(SIGUSR1, vsEthernetMotionStar::quitServer);
@@ -943,14 +943,14 @@ void vsEthernetMotionStar::updateConfiguration()
 // ------------------------------------------------------------------------
 void vsEthernetMotionStar::updatePosition(int trackerIndex, short flockData[])
 {
-    vsVector posVec;
-    vsQuat   ornQuat;
+    atVector posVec;
+    atQuat   ornQuat;
 
     // Get the position data
     posVec.setSize(3);
-    posVec[VS_X] = flockData[0] * posScale;
-    posVec[VS_Y] = flockData[1] * posScale;
-    posVec[VS_Z] = flockData[2] * posScale;
+    posVec[AT_X] = flockData[0] * posScale;
+    posVec[AT_Y] = flockData[1] * posScale;
+    posVec[AT_Z] = flockData[2] * posScale;
 
     // Convert position to VESS coordinates
     posVec = coordXform.rotatePoint(posVec);
@@ -970,9 +970,9 @@ void vsEthernetMotionStar::updatePosition(int trackerIndex, short flockData[])
 // ------------------------------------------------------------------------
 void vsEthernetMotionStar::updateAngles(int trackerIndex, short flockData[])
 {
-    vsVector posVec;
+    atVector posVec;
     double   h, p, r;
-    vsQuat   ornQuat;
+    atQuat   ornQuat;
 
     // Initialize the position vector to zero
     posVec.setSize(3);
@@ -984,7 +984,7 @@ void vsEthernetMotionStar::updateAngles(int trackerIndex, short flockData[])
     r = flockData[2] * VS_MSTAR_SCALE_ANGLE;
 
     // Convert orientation to VESS coordinates
-    ornQuat.setEulerRotation(VS_EULER_ANGLES_ZYX_R, h, p, r);
+    ornQuat.setEulerRotation(AT_EULER_ANGLES_ZYX_R, h, p, r);
     ornQuat = coordXform * ornQuat * coordXform;
 
     // Update the motion tracker
@@ -998,10 +998,10 @@ void vsEthernetMotionStar::updateAngles(int trackerIndex, short flockData[])
 // ------------------------------------------------------------------------
 void vsEthernetMotionStar::updateMatrix(int trackerIndex, short flockData[])
 {
-    vsVector posVec;
-    vsMatrix ornMat;
+    atVector posVec;
+    atMatrix ornMat;
     int      i, j;
-    vsQuat   ornQuat;
+    atQuat   ornQuat;
 
     // Clear the position vector
     posVec.setSize(3);
@@ -1035,18 +1035,18 @@ void vsEthernetMotionStar::updateMatrix(int trackerIndex, short flockData[])
 // ------------------------------------------------------------------------
 void vsEthernetMotionStar::updateQuaternion(int trackerIndex, short flockData[])
 {
-    vsVector posVec;
-    vsQuat   ornQuat;
+    atVector posVec;
+    atQuat   ornQuat;
 
     // Clear the position vector
     posVec.setSize(3);
     posVec.clear();
 
     // Quaternion returned by the MotionStar has the scalar portion in front
-    ornQuat[VS_X] = flockData[1] * VS_MSTAR_SCALE_QUAT;
-    ornQuat[VS_Y] = flockData[2] * VS_MSTAR_SCALE_QUAT;
-    ornQuat[VS_Z] = flockData[3] * VS_MSTAR_SCALE_QUAT;
-    ornQuat[VS_W] = flockData[0] * VS_MSTAR_SCALE_QUAT;
+    ornQuat[AT_X] = flockData[1] * VS_MSTAR_SCALE_QUAT;
+    ornQuat[AT_Y] = flockData[2] * VS_MSTAR_SCALE_QUAT;
+    ornQuat[AT_Z] = flockData[3] * VS_MSTAR_SCALE_QUAT;
+    ornQuat[AT_W] = flockData[0] * VS_MSTAR_SCALE_QUAT;
 
     // The MotionStar's quaternion is the conjugate of what VESS expects
     ornQuat.conjugate();
@@ -1065,15 +1065,15 @@ void vsEthernetMotionStar::updateQuaternion(int trackerIndex, short flockData[])
 // ------------------------------------------------------------------------
 void vsEthernetMotionStar::updatePosAngles(int trackerIndex, short flockData[])
 {
-    vsVector posVec;
+    atVector posVec;
     double   h, p, r;
-    vsQuat   ornQuat;
+    atQuat   ornQuat;
 
     // Get the position data
     posVec.setSize(3);
-    posVec[VS_X] = flockData[0] * posScale;
-    posVec[VS_Y] = flockData[1] * posScale;
-    posVec[VS_Z] = flockData[2] * posScale;
+    posVec[AT_X] = flockData[0] * posScale;
+    posVec[AT_Y] = flockData[1] * posScale;
+    posVec[AT_Z] = flockData[2] * posScale;
 
     // Convert position to VESS coordinates
     posVec = coordXform.rotatePoint(posVec);
@@ -1084,7 +1084,7 @@ void vsEthernetMotionStar::updatePosAngles(int trackerIndex, short flockData[])
     r = flockData[5] * VS_MSTAR_SCALE_ANGLE;
 
     // Convert orientation to VESS coordinates
-    ornQuat.setEulerRotation(VS_EULER_ANGLES_ZYX_R, h, p, r);
+    ornQuat.setEulerRotation(AT_EULER_ANGLES_ZYX_R, h, p, r);
     ornQuat = coordXform * ornQuat * coordXform;
 
     // Update the motion tracker
@@ -1098,16 +1098,16 @@ void vsEthernetMotionStar::updatePosAngles(int trackerIndex, short flockData[])
 // ------------------------------------------------------------------------
 void vsEthernetMotionStar::updatePosMatrix(int trackerIndex, short flockData[])
 {
-    vsVector posVec;
-    vsMatrix ornMat;
+    atVector posVec;
+    atMatrix ornMat;
     int      i,j;
-    vsQuat   ornQuat;
+    atQuat   ornQuat;
 
     // Get the position data
     posVec.setSize(3);
-    posVec[VS_X] = flockData[0] * posScale;
-    posVec[VS_Y] = flockData[1] * posScale;
-    posVec[VS_Z] = flockData[2] * posScale;
+    posVec[AT_X] = flockData[0] * posScale;
+    posVec[AT_Y] = flockData[1] * posScale;
+    posVec[AT_Z] = flockData[2] * posScale;
 
     // Convert position to VESS coordinates
     posVec = coordXform.rotatePoint(posVec);
@@ -1139,23 +1139,23 @@ void vsEthernetMotionStar::updatePosMatrix(int trackerIndex, short flockData[])
 // ------------------------------------------------------------------------
 void vsEthernetMotionStar::updatePosQuat(int trackerIndex, short flockData[])
 {
-    vsVector posVec;
-    vsQuat   ornQuat;
+    atVector posVec;
+    atQuat   ornQuat;
 
     // Get the position data
     posVec.setSize(3);
-    posVec[VS_X] = flockData[0] * posScale;
-    posVec[VS_Y] = flockData[1] * posScale;
-    posVec[VS_Z] = flockData[2] * posScale;
+    posVec[AT_X] = flockData[0] * posScale;
+    posVec[AT_Y] = flockData[1] * posScale;
+    posVec[AT_Z] = flockData[2] * posScale;
 
     // Convert position to VESS coordinates
     posVec = coordXform.rotatePoint(posVec);
 
     // Get the quaternion
-    ornQuat[VS_X] = flockData[4] * VS_MSTAR_SCALE_QUAT;
-    ornQuat[VS_Y] = flockData[5] * VS_MSTAR_SCALE_QUAT;
-    ornQuat[VS_Z] = flockData[6] * VS_MSTAR_SCALE_QUAT;
-    ornQuat[VS_W] = flockData[3] * VS_MSTAR_SCALE_QUAT;
+    ornQuat[AT_X] = flockData[4] * VS_MSTAR_SCALE_QUAT;
+    ornQuat[AT_Y] = flockData[5] * VS_MSTAR_SCALE_QUAT;
+    ornQuat[AT_Z] = flockData[6] * VS_MSTAR_SCALE_QUAT;
+    ornQuat[AT_W] = flockData[3] * VS_MSTAR_SCALE_QUAT;
 
     // The MotionStar's quaternion is the conjugate of what VESS expects
     ornQuat.conjugate();
@@ -1706,8 +1706,8 @@ vsMotionTracker *vsEthernetMotionStar::getTracker(int index)
 void vsEthernetMotionStar::update()
 {
     int      i;
-    vsVector posVec;
-    vsQuat   ornQuat;
+    atVector posVec;
+    atQuat   ornQuat;
 
     // Check to see if we've forked a server process
     if (forked)

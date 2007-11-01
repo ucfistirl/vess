@@ -141,7 +141,7 @@ vsView *vsViewpointAttribute::getView()
 // multiplied into the view matrix before it is assigned to the view
 // object.
 // ------------------------------------------------------------------------
-void vsViewpointAttribute::setOffsetMatrix(vsMatrix newMatrix)
+void vsViewpointAttribute::setOffsetMatrix(atMatrix newMatrix)
 {
     offsetMatrix = newMatrix;
 }
@@ -149,7 +149,7 @@ void vsViewpointAttribute::setOffsetMatrix(vsMatrix newMatrix)
 // ------------------------------------------------------------------------
 // Retrieves the offset matrix for this attribute
 // ------------------------------------------------------------------------
-vsMatrix vsViewpointAttribute::getOffsetMatrix()
+atMatrix vsViewpointAttribute::getOffsetMatrix()
 {
     return offsetMatrix;
 }
@@ -268,7 +268,7 @@ void vsViewpointAttribute::attachDuplicate(vsNode *theNode)
 void vsViewpointAttribute::update()
 {
     pfMatrix xform;
-    vsMatrix result;
+    atMatrix result;
 
     // An update on an unattached viewpoint attribute does nothing
     if (!attachedCount)

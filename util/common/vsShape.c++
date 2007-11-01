@@ -45,7 +45,7 @@ vsShape::~vsShape()
 // Virtual function
 // Sets the rotation of this shape.
 //------------------------------------------------------------------------
-void vsShape::setRotation(const vsQuat &rotation)
+void vsShape::setRotation(const atQuat &rotation)
 {
     rotationQuat.copy(rotation);
 }
@@ -63,7 +63,7 @@ void vsShape::setScale(vsScaleType type, double value)
 // Virtual function
 // Sets the translation offset of this shape.
 //------------------------------------------------------------------------
-void vsShape::setTranslation(const vsVector &translation)
+void vsShape::setTranslation(const atVector &translation)
 {
     translationVector.clearCopy(translation);
 }
@@ -72,7 +72,7 @@ void vsShape::setTranslation(const vsVector &translation)
 // Virtual function
 // Returns the rotation of this shape.
 //------------------------------------------------------------------------
-vsQuat vsShape::getRotation() const
+atQuat vsShape::getRotation() const
 {
     return rotationQuat;
 }
@@ -91,7 +91,7 @@ double vsShape::getScale(vsScaleType type) const
 // Virtual function
 // Returns the translation offset of this shape.
 //------------------------------------------------------------------------
-vsVector vsShape::getTranslation() const
+atVector vsShape::getTranslation() const
 {
     return translationVector;
 }
@@ -102,7 +102,7 @@ vsVector vsShape::getTranslation() const
 // shape does not have complete geometric information, this always returns
 // false.
 //------------------------------------------------------------------------
-bool vsShape::isPointInside(const vsVector &point) const
+bool vsShape::isPointInside(const atVector &point) const
 {
     return false;
 }

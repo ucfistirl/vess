@@ -689,15 +689,15 @@ void *vsAvatar::makeViewpoint()
     vsComponent *geom = NULL;
     vsComponent *root;
     int lineLen;
-    vsVector posOffset(0.0, 0.0, 0.0);
-    vsQuat oriOffset(0.0, 0.0, 0.0, 1.0);
+    atVector posOffset(0.0, 0.0, 0.0);
+    atQuat oriOffset(0.0, 0.0, 0.0, 1.0);
     double xoffset = 0.0;
     double yoffset = 0.0;
     double zoffset = 0.0;
     double hoffset = 0.0;
     double poffset = 0.0;
     double roffset = 0.0;
-    vsMatrix offsetMat, tempMat;
+    atMatrix offsetMat, tempMat;
 
     // Try to read all the parameters
     while (lineType != VS_AVT_LINE_END)
@@ -782,7 +782,7 @@ void *vsAvatar::makeViewpoint()
     
     // Set the offsets for the vsViewpointAttribute
     offsetMat.setTranslation(xoffset, yoffset, zoffset);
-    tempMat.setEulerRotation(VS_EULER_ANGLES_ZXY_R, hoffset, poffset, roffset);
+    tempMat.setEulerRotation(AT_EULER_ANGLES_ZXY_R, hoffset, poffset, roffset);
     offsetMat = offsetMat * tempMat;
     result->setOffsetMatrix(offsetMat);
 
@@ -1482,7 +1482,7 @@ void *vsAvatar::makeVsFastrak()
     int nTrackers = 0;
     int intValue;
     bool forkFlag = false;
-    vsVector hemiVectors[VS_FT_MAX_TRACKERS];
+    atVector hemiVectors[VS_FT_MAX_TRACKERS];
     int stationNum, loop;
     double hemiX, hemiY, hemiZ;
     vsFastrak *result;
@@ -2200,9 +2200,9 @@ void *vsAvatar::makeVsKinematics()
     vsComponent *geom = NULL;
     int lineLen;
     int inertia = -1;
-    vsVector massCenter(0.0, 0.0, 0.0);
-    vsVector startPos(0.0, 0.0, 0.0);
-    vsQuat startOrient(0.0, 0.0, 0.0, 1.0);
+    atVector massCenter(0.0, 0.0, 0.0);
+    atVector startPos(0.0, 0.0, 0.0);
+    atQuat startOrient(0.0, 0.0, 0.0, 1.0);
     char geoObjectName[256], nodeName[256];
     vsKinematics *result;
     double a, b, c;
@@ -2263,7 +2263,7 @@ void *vsAvatar::makeVsKinematics()
         {
             // Set the initial orientation of the kinematics
             sscanf(cfgLine, "%*s %lf %lf %lf", &a, &b, &c);
-            startOrient.setEulerRotation(VS_EULER_ANGLES_ZXY_R, a, b, c);
+            startOrient.setEulerRotation(AT_EULER_ANGLES_ZXY_R, a, b, c);
         }
         else
             printf("vsAvatar::makeVsKinematics: Unrecognized token '%s'\n",
@@ -2308,9 +2308,9 @@ void *vsAvatar::makeVs3TrackerArm()
     vsTrackingSystem *tsys;
     vsMotionTracker *trackers[3];
     vsKinematics *kinematics[3];
-    vsVector offsets[3];
-    vsQuat preRotations[3];
-    vsQuat postRotations[3];
+    atVector offsets[3];
+    atQuat preRotations[3];
+    atQuat postRotations[3];
     char objName[256];
     int whichJoint, trackerNum;
     int loop;
@@ -2371,14 +2371,14 @@ void *vsAvatar::makeVs3TrackerArm()
         {
             // Set the pre-rotation for one of the joints
             sscanf(cfgLine, "%*s %d %lf %lf %lf", &whichJoint, &a, &b, &c);
-            preRotations[whichJoint].setEulerRotation(VS_EULER_ANGLES_ZXY_R,
+            preRotations[whichJoint].setEulerRotation(AT_EULER_ANGLES_ZXY_R,
                 a, b, c);
         }
         else if (!strcmp(token, "postRotate"))
         {
             // Set the post-rotation for one of the joints
             sscanf(cfgLine, "%*s %d %lf %lf %lf", &whichJoint, &a, &b, &c);
-            postRotations[whichJoint].setEulerRotation(VS_EULER_ANGLES_ZXY_R,
+            postRotations[whichJoint].setEulerRotation(AT_EULER_ANGLES_ZXY_R,
                 a, b, c);
         }
         else
@@ -2440,7 +2440,7 @@ void *vsAvatar::makeVsAxisRotation()
     double pitchWidth = VS_AR_DEFAULT_PITCH_WIDTH;
     double headingSpeed = VS_AR_DEFAULT_HEADING_SPEED;
     double pitchSpeed = VS_AR_DEFAULT_PITCH_SPEED;
-    vsQuat defaultOrient = vsQuat(0.0, 0.0, 0.0, 1.0);
+    atQuat defaultOrient = atQuat(0.0, 0.0, 0.0, 1.0);
     double heading, pitch, roll;
     vsAxisRotation *result;
     vsIODevice *inputDev;
@@ -2522,7 +2522,7 @@ void *vsAvatar::makeVsAxisRotation()
             sscanf(cfgLine, "%*s %lf %lf %lf\n", &heading, &pitch, &roll);
 
             // Set the default orientation quaternion using the angles
-            defaultOrient.setEulerRotation(VS_EULER_ANGLES_ZXY_R, heading, 
+            defaultOrient.setEulerRotation(AT_EULER_ANGLES_ZXY_R, heading, 
                 pitch, roll);
         }
         else
@@ -2620,8 +2620,8 @@ void *vsAvatar::makeVsCollision()
                     pointArray[loop] = NULL;
                 pointCount = pointIdx+1;
                 if (pointArray[pointIdx])
-                    delete ((vsVector *)(pointArray[pointIdx]));
-                pointArray[pointIdx] = new vsVector(x, y, z);
+                    delete ((atVector *)(pointArray[pointIdx]));
+                pointArray[pointIdx] = new atVector(x, y, z);
             }
             else
                 printf("vsAvatar::makeVsCollision (point): "
@@ -2690,11 +2690,11 @@ void *vsAvatar::makeVsCollision()
     for (loop = 0; loop < pointCount; loop++)
         if (pointArray[loop])
         {
-            result->setPoint(loop, *((vsVector *)(pointArray[loop])));
-            delete ((vsVector *)(pointArray[loop]));
+            result->setPoint(loop, *((atVector *)(pointArray[loop])));
+            delete ((atVector *)(pointArray[loop]));
         }
         else
-            result->setPoint(loop, vsVector(0.0, 0.0, 0.0));
+            result->setPoint(loop, atVector(0.0, 0.0, 0.0));
 
     // Set the remaining parameters
     result->setCollisionMode(cmode);
@@ -3161,7 +3161,7 @@ void *vsAvatar::makeVsDifferentialTrackedOrientation()
     char objName[256];
     vsTrackingSystem *tsys;
     vsMotionTracker *trackers[2];
-    vsQuat oriOffset(0.0, 0.0, 0.0, 1.0);
+    atQuat oriOffset(0.0, 0.0, 0.0, 1.0);
     int whichTracker, trackerNum;
     vsDifferentialTrackedOrientation *result;
     double h, p, r;
@@ -3213,7 +3213,7 @@ void *vsAvatar::makeVsDifferentialTrackedOrientation()
         {
             // Set the orientation offset
             sscanf(cfgLine, "%*s %lf %lf %lf", &h, &p, &r);
-            oriOffset.setEulerRotation(VS_EULER_ANGLES_ZXY_R, h, p, r);
+            oriOffset.setEulerRotation(AT_EULER_ANGLES_ZXY_R, h, p, r);
         }
         else
         {
@@ -3331,7 +3331,7 @@ void *vsAvatar::makeVsTerrainFollow()
     vsKinematics *kinematics = NULL;
     char objName[256];
     unsigned int isectMask = 0xFFFFFFFF;
-    vsVector offset(0.0, 0.0, 0.0);
+    atVector offset(0.0, 0.0, 0.0);
     double stepHeight = VS_TFOLLOW_DEFAULT_HEIGHT;
     double x, y, z;
     vsTerrainFollow *result;
@@ -3581,8 +3581,8 @@ void *vsAvatar::makeVsTrackedMotion()
     int intValue;
     bool posEnable = true;
     bool oriEnable = true;
-    vsVector posOffset(0.0, 0.0, 0.0);
-    vsQuat oriOffset(0.0, 0.0, 0.0, 1.0);
+    atVector posOffset(0.0, 0.0, 0.0);
+    atQuat oriOffset(0.0, 0.0, 0.0, 1.0);
     double a, b, c;
     double posScale = 1.0;
     vsTrackedMotion *result;
@@ -3643,7 +3643,7 @@ void *vsAvatar::makeVsTrackedMotion()
         {
             // Set the orientation offset
             sscanf(cfgLine, "%*s %lf %lf %lf", &a, &b, &c);
-            oriOffset.setEulerRotation(VS_EULER_ANGLES_ZXY_R, a, b, c);
+            oriOffset.setEulerRotation(AT_EULER_ANGLES_ZXY_R, a, b, c);
         }
         else if (!strcmp(token, "positionScale"))
         {

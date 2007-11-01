@@ -27,7 +27,7 @@
 #include "vsGlobals.h++"
 #include <Performer/pf/pfGeode.h>
 #include <Performer/pr/pfGeoArray.h>
-#include "vsVector.h++"
+#include "atVector.h++"
 #include "vsAttribute.h++"
 #include "vsNode.h++"
 
@@ -181,9 +181,9 @@ private:
     int                 renderBin;
 
     void                convertToPerVertex(int list);
-    void                setOverallData(int list, vsVector data);
+    void                setOverallData(int list, atVector data);
     void                setPerPrimitiveData(int list, int index, 
-                                            vsVector data);
+                                            atVector data);
 
 VS_INTERNAL:
 
@@ -223,10 +223,10 @@ public:
     void                  setBinding(int whichData, int binding);
     int                   getBinding(int whichData);
 
-    void                  setData(int whichData, int dataIndex, vsVector data);
-    vsVector              getData(int whichData, int dataIndex);
-    void                  setDataList(int whichData, vsVector *newDataList);
-    void                  getDataList(int whichData, vsVector *dataBuffer);
+    void                  setData(int whichData, int dataIndex, atVector data);
+    atVector              getData(int whichData, int dataIndex);
+    void                  setDataList(int whichData, atVector *newDataList);
+    void                  getDataList(int whichData, atVector *dataBuffer);
     void                  setDataListSize(int whichData, int newSize);
     int                   getDataListSize(int whichData);
     
@@ -241,8 +241,8 @@ public:
     static int            getBinSortMode(int binNum);
     static void           clearBinSortModes();
     
-    virtual void          getBoundSphere(vsVector *centerPoint, double *radius);
-    virtual vsMatrix      getGlobalXform();
+    virtual void          getBoundSphere(atVector *centerPoint, double *radius);
+    virtual atMatrix      getGlobalXform();
 
     virtual void            setIntersectValue(unsigned int newValue);
     virtual unsigned int    getIntersectValue();

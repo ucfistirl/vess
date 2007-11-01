@@ -26,27 +26,27 @@
 #include "vsSoundBuffer.h++"
 #include "vsComponent.h++"
 #include "vsAttribute.h++"
-#include "vsVector.h++"
-#include "vsMatrix.h++"
-#include "vsQuat.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
+#include "atQuat.h++"
 
 class VS_SOUND_DLL vsSoundListenerAttribute : public vsAttribute
 {
 protected:
 
     // Offset transform from the component to the sound listener
-    vsMatrix       offsetMatrix;
+    atMatrix       offsetMatrix;
 
     // The component we're attached to
     vsComponent    *parentComponent;
 
     // Previous location/orientation
-    vsVector       lastPos;
-    vsQuat         lastOrn;
+    atVector       lastPos;
+    atQuat         lastOrn;
 
     // Coordinate conversion quaternions
-    vsQuat         coordXform;
-    vsQuat         coordXformInv;
+    atQuat         coordXform;
+    atQuat         coordXformInv;
 
 VS_INTERNAL:
 
@@ -55,8 +55,8 @@ VS_INTERNAL:
 
     virtual void    attachDuplicate(vsNode *theNode);
 
-    vsVector        getLastPosition();
-    vsQuat          getLastOrientation();
+    atVector        getLastPosition();
+    atQuat          getLastOrientation();
 
 public:
 
@@ -70,8 +70,8 @@ public:
     virtual int           getAttributeCategory();
 
     // Offsets from the parentComponent's transform
-    void                  setOffsetMatrix(vsMatrix newMatrix);
-    vsMatrix              getOffsetMatrix();
+    void                  setOffsetMatrix(atMatrix newMatrix);
+    atMatrix              getOffsetMatrix();
 
     // Sets the new listener position, velocity, and orientation based on
     // the parentComponent's global transform

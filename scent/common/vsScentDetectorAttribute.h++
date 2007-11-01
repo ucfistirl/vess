@@ -26,8 +26,8 @@
 #include "vsObject.h++"
 #include "vsAttribute.h++"
 #include "vsComponent.h++"
-#include "vsMatrix.h++"
-#include "vsVector.h++"
+#include "atMatrix.h++"
+#include "atVector.h++"
 
 #define VS_SD_DEFAULT_SENSITIVITY 1.0
 
@@ -36,8 +36,8 @@ class VS_SCENT_DLL vsScentDetectorAttribute : public vsAttribute
 protected:
 
     vsComponent    *parentComponent;
-    vsMatrix       offsetMatrix;
-    vsVector       currentPosition;
+    atMatrix       offsetMatrix;
+    atVector       currentPosition;
 
     double         sensitivity;
 
@@ -48,7 +48,7 @@ VS_INTERNAL:
 
     virtual void    attachDuplicate(vsNode *theNode);
 
-    vsVector        getPosition();
+    atVector        getPosition();
 
     void            update();
 
@@ -61,8 +61,8 @@ public:
     virtual int           getAttributeType();
     virtual int           getAttributeCategory();
 
-    void                  setOffsetMatrix(vsMatrix newMatrix);
-    vsMatrix              getOffsetMatrix();
+    void                  setOffsetMatrix(atMatrix newMatrix);
+    atMatrix              getOffsetMatrix();
 
     double                getSensitivity();
     void                  setSensitivity(double newSensitivity);

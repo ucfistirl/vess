@@ -37,7 +37,7 @@
 #include "vsMenuTree.h++"
 #include "vsPane.h++"
 #include "vsTextureAttribute.h++"
-#include "vsVector.h++"
+#include "atVector.h++"
 #include "vsWindow.h++"
 #include "vsWindowSystem.h++"
 

@@ -462,7 +462,7 @@ void vsDynamicGeometry::convertToPerVertex(int list)
 // Emulates setting an overall-bound data element on the normal or color
 // list
 // ------------------------------------------------------------------------
-void vsDynamicGeometry::setOverallData(int list, vsVector data)
+void vsDynamicGeometry::setOverallData(int list, atVector data)
 {
     int i, j;
 
@@ -494,7 +494,7 @@ void vsDynamicGeometry::setOverallData(int list, vsVector data)
 // Emulates setting a per-primitive-bound data element on the normal or
 // color list
 // ------------------------------------------------------------------------
-void vsDynamicGeometry::setPerPrimitiveData(int list, int index, vsVector data)
+void vsDynamicGeometry::setPerPrimitiveData(int list, int index, atVector data)
 {
     int baseIndex, i, j;
     int elementSize;
@@ -1523,7 +1523,7 @@ int vsDynamicGeometry::getBinding(int whichData)
 // the index specifies which data point is to be altered. The index of
 // the first data point is 0.
 // ------------------------------------------------------------------------
-void vsDynamicGeometry::setData(int whichData, int dataIndex, vsVector data)
+void vsDynamicGeometry::setData(int whichData, int dataIndex, atVector data)
 {
     int list;
     int loop;
@@ -1707,9 +1707,9 @@ void vsDynamicGeometry::setData(int whichData, int dataIndex, vsVector data)
 // specifies which point is desired. The index of the first data point is
 // 0.
 // ------------------------------------------------------------------------
-vsVector vsDynamicGeometry::getData(int whichData, int dataIndex)
+atVector vsDynamicGeometry::getData(int whichData, int dataIndex)
 {
-    vsVector result;
+    atVector result;
     int loop;
     int list;
     int listSize;
@@ -1836,7 +1836,7 @@ vsVector vsDynamicGeometry::getData(int whichData, int dataIndex)
 // to the values in dataList. The dataList array must be at least as large
 // as the size of particular list in question.
 // ------------------------------------------------------------------------
-void vsDynamicGeometry::setDataList(int whichData, vsVector *newDataList)
+void vsDynamicGeometry::setDataList(int whichData, atVector *newDataList)
 {
     int loop, sloop;
     int list;
@@ -1951,7 +1951,7 @@ void vsDynamicGeometry::setDataList(int whichData, vsVector *newDataList)
 // array must be at least as large as the size of particular list in
 // question.
 // ------------------------------------------------------------------------
-void vsDynamicGeometry::getDataList(int whichData, vsVector *dataBuffer)
+void vsDynamicGeometry::getDataList(int whichData, atVector *dataBuffer)
 {
     int list;
     int loop, sloop;
@@ -2533,7 +2533,7 @@ int vsDynamicGeometry::getRenderBin()
 // Retrieves the center point and radius of a sphere that encompasses all
 // of the geometry within this object.
 // ------------------------------------------------------------------------
-void vsDynamicGeometry::getBoundSphere(vsVector *centerPoint, double *radius)
+void vsDynamicGeometry::getBoundSphere(atVector *centerPoint, double *radius)
 {
     pfSphere boundSphere;
     
@@ -2554,12 +2554,12 @@ void vsDynamicGeometry::getBoundSphere(vsVector *centerPoint, double *radius)
 // Computes the global coordinate transform at this geometry by multiplying
 // together all of the transforms at nodes above this one.
 // ------------------------------------------------------------------------
-vsMatrix vsDynamicGeometry::getGlobalXform()
+atMatrix vsDynamicGeometry::getGlobalXform()
 {
     pfNode *nodePtr;
     pfMatrix xform;
     const pfMatrix *scsMatPtr;
-    vsMatrix result;
+    atMatrix result;
     int loop, sloop;
 
     // Start at this geometry's geode with an identity matrix
@@ -2590,14 +2590,14 @@ vsMatrix vsDynamicGeometry::getGlobalXform()
         nodePtr = nodePtr->getParent(0);
     }
     
-    // Copy the pfMatrix into a vsMatrix.  Recall that a pfMatrix is
-    // transposed with respect to a vsMatrix (this is why the indices
+    // Copy the pfMatrix into a atMatrix.  Recall that a pfMatrix is
+    // transposed with respect to a atMatrix (this is why the indices
     // below are reversed)
     for (loop = 0; loop < 4; loop++)
         for (sloop = 0; sloop < 4; sloop++)
             result[loop][sloop] = xform[sloop][loop];
 
-    // Return the vsMatrix
+    // Return the atMatrix
     return result;
 }
 

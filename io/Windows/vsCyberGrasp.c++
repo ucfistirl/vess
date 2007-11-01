@@ -262,8 +262,8 @@ void vsCyberGrasp::setForces(double *newForces)
 // necessary to keep the finger from traveling through the plane of the
 // contact patch.
 // ------------------------------------------------------------------------
-void vsCyberGrasp::setContactPatch(int finger, vsVector point, 
-                                   vsVector normal, double stiffness, 
+void vsCyberGrasp::setContactPatch(int finger, atVector point, 
+                                   atVector normal, double stiffness, 
                                    double damping)
 {
     vhtVector3d vhtOffset, vhtNormal;
@@ -299,8 +299,8 @@ void vsCyberGrasp::setContactPatch(int finger, vsVector point,
     //normal = coordXformInv.rotatePoint(normal);
     
     // Get the parameters into VHT format
-    vhtOffset = vhtVector3d(point[VS_X], point[VS_Y], point[VS_Z]);
-    vhtNormal = vhtVector3d(normal[VS_X], normal[VS_Y], normal[VS_Z]);
+    vhtOffset = vhtVector3d(point[AT_X], point[AT_Y], point[AT_Z]);
+    vhtNormal = vhtVector3d(normal[AT_X], normal[AT_Y], normal[AT_Z]);
     
     // Set up the contact patch
     vhtPatch.setStiffness(stiffness);
@@ -334,14 +334,14 @@ void vsCyberGrasp::clearContactPatch(int finger)
 // ------------------------------------------------------------------------
 void vsCyberGrasp::update()
 {
-    vsVector position, orientation;
+    atVector position, orientation;
     double xRot, yRot, zRot;
     vhtTransform3D trackerXform;
     vhtVector3d vhtVec;
     vhtQuaternion vhtQuat;
-    vsVector trackerVec;
-    vsQuat trackerQuat;
-    vsQuat quat1, quat2, localCoordXform;
+    atVector trackerVec;
+    atQuat trackerQuat;
+    atQuat quat1, quat2, localCoordXform;
     double angle;
     int i, j;
     double sensorData;
@@ -360,20 +360,20 @@ void vsCyberGrasp::update()
     if (localTracker)
     {
         position = tracker->getPositionVec();
-        orientation = tracker->getOrientationVec(VS_EULER_ANGLES_ZXY_R);
+        orientation = tracker->getOrientationVec(AT_EULER_ANGLES_ZXY_R);
 
         // Set the tracker emulator's position
-        vhtTrackerEmu->setTrackerPosition(position[VS_X], position[VS_Y], 
-            position[VS_Z]);
+        vhtTrackerEmu->setTrackerPosition(position[AT_X], position[AT_Y], 
+            position[AT_Z]);
 
         // Set the orientation.  The setOrientation method in the
         // vhtTrackerEmulator class takes x, y, and z rotations in 
         // radians, which corresponds to the pitch, roll, and heading
         // of the tracker, respectively.  First, compute the rotation 
         // values:
-        xRot = VS_DEG2RAD(orientation[VS_P]);
-        yRot = VS_DEG2RAD(orientation[VS_R]);
-        zRot = VS_DEG2RAD(orientation[VS_H]);
+        xRot = AT_DEG2RAD(orientation[VS_P]);
+        yRot = AT_DEG2RAD(orientation[VS_R]);
+        zRot = AT_DEG2RAD(orientation[VS_H]);
 
         // Now, set the tracker's orientation
         vhtTrackerEmu->setTrackerOrientation(xRot, yRot, zRot);
@@ -395,7 +395,7 @@ void vsCyberGrasp::update()
 
         // Set the vsMotionTracker's orientation
         vhtQuat.getAxis(vhtVec);
-        angle = VS_RAD2DEG(vhtQuat.getAngle());
+        angle = AT_RAD2DEG(vhtQuat.getAngle());
         trackerQuat.setAxisAngleRotation(vhtVec.x, vhtVec.y, vhtVec.z, angle);
         //quat1.setAxisAngleRotation(1, 0, 0, -90);
         //quat2.setAxisAngleRotation(0, 1, 0, -90);

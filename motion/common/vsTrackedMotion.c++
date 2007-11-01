@@ -106,7 +106,7 @@ void vsTrackedMotion::disableOrientationTracking()
 // ------------------------------------------------------------------------
 // Sets the position offset
 // ------------------------------------------------------------------------
-void vsTrackedMotion::setPositionOffset(vsVector newOffset)
+void vsTrackedMotion::setPositionOffset(atVector newOffset)
 {
     // Copy the new position offset and make sure the vector is
     // the correct size
@@ -117,7 +117,7 @@ void vsTrackedMotion::setPositionOffset(vsVector newOffset)
 // ------------------------------------------------------------------------
 // Gets the position offset
 // ------------------------------------------------------------------------
-vsVector vsTrackedMotion::getPositionOffset()
+atVector vsTrackedMotion::getPositionOffset()
 {
     return positionOffset;
 }
@@ -125,7 +125,7 @@ vsVector vsTrackedMotion::getPositionOffset()
 // ------------------------------------------------------------------------
 // Sets the orientation post-offset
 // ------------------------------------------------------------------------
-void vsTrackedMotion::setOrientationOffset(vsQuat newOffset)
+void vsTrackedMotion::setOrientationOffset(atQuat newOffset)
 {
     orientationOffset = newOffset;
 }
@@ -133,7 +133,7 @@ void vsTrackedMotion::setOrientationOffset(vsQuat newOffset)
 // ------------------------------------------------------------------------
 // Gets the orientation post-offset
 // ------------------------------------------------------------------------
-vsQuat vsTrackedMotion::getOrientationOffset()
+atQuat vsTrackedMotion::getOrientationOffset()
 {
     return orientationOffset;
 }
@@ -159,8 +159,8 @@ double vsTrackedMotion::getPositionScale()
 // ------------------------------------------------------------------------
 void vsTrackedMotion::update()
 {
-    vsVector trackerPos;
-    vsQuat trackerOrn;
+    atVector trackerPos;
+    atQuat trackerOrn;
 
     // Get tracker data
     trackerPos = tracker->getPositionVec();
@@ -190,8 +190,8 @@ void vsTrackedMotion::update()
 // ------------------------------------------------------------------------
 void vsTrackedMotion::reset()
 {
-    vsVector trackerPos;
-    vsQuat trackerOrn;
+    atVector trackerPos;
+    atQuat trackerOrn;
 
     // Get tracker data
     trackerPos = tracker->getPositionVec();  

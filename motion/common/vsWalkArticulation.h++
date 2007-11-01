@@ -42,8 +42,8 @@ enum  vsWalkArticJoints
 
 struct VS_MOTION_DLL vsWalkArticData
 {
-    vsQuat leftHip, leftKnee, leftAnkle;
-    vsQuat rightHip, rightKnee, rightAnkle;
+    atQuat leftHip, leftKnee, leftAnkle;
+    atQuat rightHip, rightKnee, rightAnkle;
     double distance;
 };
 

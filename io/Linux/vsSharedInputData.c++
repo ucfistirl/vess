@@ -145,9 +145,9 @@ const char *vsSharedInputData::getClassName()
 }
 
 // ------------------------------------------------------------------------
-// Stores the vsVector's data in specified shared memory slot
+// Stores the atVector's data in specified shared memory slot
 // ------------------------------------------------------------------------
-void vsSharedInputData::storeVectorData(int index, vsVector vector)
+void vsSharedInputData::storeVectorData(int index, atVector vector)
 {
     struct sembuf semOps[2];
     int           i;
@@ -180,9 +180,9 @@ void vsSharedInputData::storeVectorData(int index, vsVector vector)
 
 
 // ------------------------------------------------------------------------
-// Stores the vsQuat's data in specified shared memory slot
+// Stores the atQuat's data in specified shared memory slot
 // ------------------------------------------------------------------------
-void vsSharedInputData::storeQuatData(int index, vsQuat quat)
+void vsSharedInputData::storeQuatData(int index, atQuat quat)
 {
     struct sembuf semOps[2];
 
@@ -201,10 +201,10 @@ void vsSharedInputData::storeQuatData(int index, vsQuat quat)
         semop(semID, semOps, 2);
 
         // Copy the data
-        data[index].quatData[VS_X] = quat[VS_X];
-        data[index].quatData[VS_Y] = quat[VS_Y];
-        data[index].quatData[VS_Z] = quat[VS_Z];
-        data[index].quatData[VS_W] = quat[VS_W];
+        data[index].quatData[AT_X] = quat[AT_X];
+        data[index].quatData[AT_Y] = quat[AT_Y];
+        data[index].quatData[AT_Z] = quat[AT_Z];
+        data[index].quatData[AT_W] = quat[AT_W];
 
         // Release the semaphore
         semOps[0].sem_num = index;
@@ -215,9 +215,9 @@ void vsSharedInputData::storeQuatData(int index, vsQuat quat)
 }
 
 // ------------------------------------------------------------------------
-// Retrieves the vsVector's data from specified shared memory slot
+// Retrieves the atVector's data from specified shared memory slot
 // ------------------------------------------------------------------------
-void vsSharedInputData::retrieveVectorData(int index, vsVector *vector)
+void vsSharedInputData::retrieveVectorData(int index, atVector *vector)
 {
     struct sembuf semOps[2];
     int           i;
@@ -249,9 +249,9 @@ void vsSharedInputData::retrieveVectorData(int index, vsVector *vector)
 }
 
 // ------------------------------------------------------------------------
-// Retrieves the vsQuat's data from specified shared memory slot
+// Retrieves the atQuat's data from specified shared memory slot
 // ------------------------------------------------------------------------
-void vsSharedInputData::retrieveQuatData(int index, vsQuat *quat)
+void vsSharedInputData::retrieveQuatData(int index, atQuat *quat)
 {
     struct sembuf semOps[2];
 
@@ -270,10 +270,10 @@ void vsSharedInputData::retrieveQuatData(int index, vsQuat *quat)
         semop(semID, semOps, 2);
 
         // Copy the data
-        (*(quat))[VS_X] = data[index].quatData[VS_X];
-        (*(quat))[VS_Y] = data[index].quatData[VS_Y];
-        (*(quat))[VS_Z] = data[index].quatData[VS_Z];
-        (*(quat))[VS_W] = data[index].quatData[VS_W]; 
+        (*(quat))[AT_X] = data[index].quatData[AT_X];
+        (*(quat))[AT_Y] = data[index].quatData[AT_Y];
+        (*(quat))[AT_Z] = data[index].quatData[AT_Z];
+        (*(quat))[AT_W] = data[index].quatData[AT_W]; 
 
         // Release the semaphore
         semOps[0].sem_num = index;

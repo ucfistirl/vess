@@ -26,7 +26,7 @@
 #include "vsGlobals.h++"
 #include <Performer/pr/pfGeoSet.h>
 #include <Performer/pf/pfNode.h>
-#include "vsVector.h++"
+#include "atVector.h++"
 #include "vsComponent.h++"
 #include "vsGeometry.h++"
 #include "vsGrowableArray.h++"
@@ -77,9 +77,9 @@ private:
 
     // Intersection results
     bool               validFlag[VS_INTERSECT_SEGS_MAX];
-    vsVector           sectPoint[VS_INTERSECT_SEGS_MAX];
-    vsVector           sectNorm[VS_INTERSECT_SEGS_MAX];
-    vsMatrix           sectXform[VS_INTERSECT_SEGS_MAX];
+    atVector           sectPoint[VS_INTERSECT_SEGS_MAX];
+    atVector           sectNorm[VS_INTERSECT_SEGS_MAX];
+    atMatrix           sectXform[VS_INTERSECT_SEGS_MAX];
     vsGeometry         *sectGeom[VS_INTERSECT_SEGS_MAX];
     int                sectPrim[VS_INTERSECT_SEGS_MAX];
     vsGrowableArray    *sectPath[VS_INTERSECT_SEGS_MAX];
@@ -94,12 +94,12 @@ public:
     void               setSegListSize(int newSize);
     int                getSegListSize();
 
-    void               setSeg(int segNum, vsVector startPt, vsVector endPt);
-    void               setSeg(int segNum, vsVector startPt,
-                              vsVector directionVec, double length);
-    vsVector           getSegStartPt(int segNum);
-    vsVector           getSegEndPt(int segNum);
-    vsVector           getSegDirection(int segNum);
+    void               setSeg(int segNum, atVector startPt, atVector endPt);
+    void               setSeg(int segNum, atVector startPt,
+                              atVector directionVec, double length);
+    atVector           getSegStartPt(int segNum);
+    atVector           getSegEndPt(int segNum);
+    atVector           getSegDirection(int segNum);
     double             getSegLength(int segNum);
     
     void               setPickSeg(int segNum, vsPane *pane, double x, double y);
@@ -125,9 +125,9 @@ public:
     void               intersect(vsNode *targetNode);
 
     bool               getIsectValid(int segNum);
-    vsVector           getIsectPoint(int segNum);
-    vsVector           getIsectNorm(int segNum);
-    vsMatrix           getIsectXform(int segNum);
+    atVector           getIsectPoint(int segNum);
+    atVector           getIsectNorm(int segNum);
+    atMatrix           getIsectXform(int segNum);
     vsGeometry         *getIsectGeometry(int segNum);
     int                getIsectPrimNum(int segNum);
     vsGrowableArray    *getIsectPath(int segNum);

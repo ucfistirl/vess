@@ -153,11 +153,11 @@ vsPathMotionManager *vsCal3DAnimationLoader::parseXML(char *filename,
     vsPathMotionManager     *pathMotionManager;
     vsPathMotion            *bonePathMotion;
     vsKinematics            *boneKinematics;
-    vsQuat                  rotation;
-    vsVector                position;
-    vsMatrix                relativeBoneTransform;
-    vsQuat                  inverseRelativeBoneRotation;
-    vsVector                relativeBonePosition;
+    atQuat                  rotation;
+    atVector                position;
+    atMatrix                relativeBoneTransform;
+    atQuat                  inverseRelativeBoneRotation;
+    atVector                relativeBonePosition;
 
     trackCount = 0;
     tracksProcessed = 0;
@@ -351,7 +351,7 @@ vsPathMotionManager *vsCal3DAnimationLoader::parseXML(char *filename,
                     boneKinematics->getComponent()->getTypedAttribute(
                     VS_ATTRIBUTE_TYPE_TRANSFORM, 0))->getPreTransform();
 
-                // Get the inverse rotation information and place in a vsQuat.
+                // Get the inverse rotation information and place in a atQuat.
                 // The rotation is concidered the inverse of what the animation
                 // is using because we end up having to invert it when we load
                 // the bone anyways.
@@ -469,7 +469,7 @@ vsPathMotionManager *vsCal3DAnimationLoader::parseXML(char *filename,
                             sscanf(tempString, "%lf %lf %lf %lf",
                                 &x, &y, &z, &w);
 
-                            // Set the vsQuat with the read rotation, and 
+                            // Set the atQuat with the read rotation, and 
                             // pass that to the vsPathMotion.
                             rotation.set(x, y, z, w);
 

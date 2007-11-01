@@ -63,7 +63,7 @@ const char *vsTerrainFollow::getClassName()
 // between the origin of the object to be terrain followed and the point
 // on the object which should be touching the ground.
 // ------------------------------------------------------------------------
-void vsTerrainFollow::setBaseOffset(vsVector newOffset)
+void vsTerrainFollow::setBaseOffset(atVector newOffset)
 {
     // Copy the offset value to our offset variable, forcing it to be
     // of size 3.
@@ -74,7 +74,7 @@ void vsTerrainFollow::setBaseOffset(vsVector newOffset)
 // ------------------------------------------------------------------------
 // Retrieves the base offset vector
 // ------------------------------------------------------------------------
-vsVector vsTerrainFollow::getBaseOffset()
+atVector vsTerrainFollow::getBaseOffset()
 {
     return pointOffset;
 }
@@ -127,12 +127,12 @@ unsigned int vsTerrainFollow::getIntersectMask()
 // ------------------------------------------------------------------------
 void vsTerrainFollow::update()
 {
-    vsVector basePoint, topPoint;
-    vsVector downVec;
-    vsMatrix globalXform;
+    atVector basePoint, topPoint;
+    atVector downVec;
+    atMatrix globalXform;
     vsComponent *objectComp;
-    vsVector hitPoint, groundOffset;
-    vsVector velocity;
+    atVector hitPoint, groundOffset;
+    atVector velocity;
     
     // Calculate the 'base' point; the point on the object (in global
     // coordinate space) which we want to be touching the ground at all times.

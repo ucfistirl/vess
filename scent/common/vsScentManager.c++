@@ -268,7 +268,7 @@ void vsScentManager::update()
     int i;
     int index;
     double strength;
-    vsVector scentVec;
+    atVector scentVec;
     double distance;
     double currentStrengths[VS_SM_MAX_SCENTS];
     vsScent *currentScent;

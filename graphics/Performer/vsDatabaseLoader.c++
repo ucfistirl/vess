@@ -485,7 +485,7 @@ vsNode *vsDatabaseLoader::convertNode(pfNode *node, vsObjectMap *nodeMap,
     pfLOD *lodGroup;
     vsLODAttribute *lodAttr;
     pfVec3 lodCenter;
-    vsVector center;
+    atVector center;
 
     pfSequence *sequenceGroup;
     vsSequenceAttribute *sequenceAttr;
@@ -501,7 +501,7 @@ vsNode *vsDatabaseLoader::convertNode(pfNode *node, vsObjectMap *nodeMap,
 
     pfSCS *scsGroup = (pfSCS *)node;
     pfMatrix performerMatrix;
-    vsMatrix vessMatrix;
+    atMatrix vessMatrix;
     pfDCS *dcsGroup;
     vsdbMatrixBlock *matrixBlock; 
 
@@ -786,18 +786,18 @@ vsNode *vsDatabaseLoader::convertGeode(pfGeode *geode, vsObjectMap *attrMap)
         }
 
         // Set the forward direction (always +Y in Performer)
-        billboardAttr->setFrontDirection(vsVector(0.0, -1.0, 0.0));
+        billboardAttr->setFrontDirection(atVector(0.0, -1.0, 0.0));
 
         // Set the rotation axis
         performerBillboard->getAxis(vec3);
-        if (VS_EQUAL(vec3.length(), 0.0))
-            billboardAttr->setAxis(vsVector(0.0, 0.0, 1.0));
+        if (AT_EQUAL(vec3.length(), 0.0))
+            billboardAttr->setAxis(atVector(0.0, 0.0, 1.0));
         else
-            billboardAttr->setAxis(vsVector(vec3[0], vec3[1], vec3[2]));
+            billboardAttr->setAxis(atVector(vec3[0], vec3[1], vec3[2]));
 
         // Set the center point
         performerBillboard->getPos(0, vec3);
-        billboardAttr->setCenterPoint(vsVector(vec3[0], vec3[1], vec3[2]));
+        billboardAttr->setCenterPoint(atVector(vec3[0], vec3[1], vec3[2]));
 
         // Add the billboard to the new component
         geodeComponent->addAttribute(billboardAttr);
@@ -975,7 +975,7 @@ void vsDatabaseLoader::convertAttrs(vsGeometry *geometry, pfGeoState *geoState,
     bool transpFlag;
     vsTransparencyAttribute *transpAttr;
     int loop;
-    vsVector color;
+    atVector color;
     int cullMode;
     vsBackfaceAttribute *backfaceAttr;
     int shadeMode;
@@ -1801,19 +1801,19 @@ void vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
             case 2:
                 vec2 = pfVec2Array[idx];
                 targetGeometry->setData(targetDataType, loop,
-                    vsVector(vec2[0], vec2[1]));
+                    atVector(vec2[0], vec2[1]));
                 break;
 
             case 3:
                 vec3 = pfVec3Array[idx];
                 targetGeometry->setData(targetDataType, loop,
-                    vsVector(vec3[0], vec3[1], vec3[2]));
+                    atVector(vec3[0], vec3[1], vec3[2]));
                 break;
 
             case 4:
                 vec4 = pfVec4Array[idx];
                 targetGeometry->setData(targetDataType, loop,
-                    vsVector(vec4[0], vec4[1], vec4[2], vec4[3]));
+                    atVector(vec4[0], vec4[1], vec4[2], vec4[3]));
                 break;
         }
     }

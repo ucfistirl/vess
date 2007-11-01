@@ -324,22 +324,22 @@ void vsWalkInPlace::disableMovementLimit()
 // ------------------------------------------------------------------------
 void vsWalkInPlace::update()
 {
-    vsVector             backOrient;
-    vsVector             lHipPos, rHipPos, lHipFloor;
-    vsVector             forwardVector;
-    vsVector             leftFoot, rightFoot;
+    atVector             backOrient;
+    atVector             lHipPos, rHipPos, lHipFloor;
+    atVector             forwardVector;
+    atVector             leftFoot, rightFoot;
     double               trackerHeading;
     double               deltaHeading;
-    vsQuat               headingQuat;
-    vsVector             separationVec;
+    atQuat               headingQuat;
+    atVector             separationVec;
     double               deltaX, deltaY, deltaZ;
     double               deltaTime;
     double               p, r;
-    vsVector             v;
+    atVector             v;
     bool                 motionFlag;
     double               moveSpeed;
     double               moveDistance;
-    vsQuat               currentOrientation;
+    atQuat               currentOrientation;
 
     // See whether we're using the hips' positions or the back's orientation,
     // to determine the body's orientation
@@ -353,26 +353,26 @@ void vsWalkInPlace::update()
         
         // Get projection on floor of left hip position
         lHipFloor = lHipPos;
-        lHipFloor[VS_Z] = leftFoot[VS_Z];
+        lHipFloor[AT_Z] = leftFoot[AT_Z];
     
         // Calculate the forward vector and get the body's heading
         forwardVector = 
             (rHipPos - lHipPos).getCrossProduct(lHipFloor - lHipPos);
         forwardVector.normalize();
-        headingQuat.setVecsRotation(vsVector(0.0, 1.0, 0.0),
-            vsVector(0.0, 0.0, 1.0), forwardVector, vsVector(0.0, 0.0, 1.0));
+        headingQuat.setVecsRotation(atVector(0.0, 1.0, 0.0),
+            atVector(0.0, 0.0, 1.0), forwardVector, atVector(0.0, 0.0, 1.0));
         headingQuat.getEulerRotation(
-            VS_EULER_ANGLES_ZXY_R, &trackerHeading, &p, &r);
+            AT_EULER_ANGLES_ZXY_R, &trackerHeading, &p, &r);
     }
     else
     {
         // Grab tracker data, including the feet
         leftFoot = lFootTracker->getPositionVec();
         rightFoot = rFootTracker->getPositionVec();
-        backOrient = backTracker->getOrientationVec(VS_EULER_ANGLES_ZXY_R);
+        backOrient = backTracker->getOrientationVec(AT_EULER_ANGLES_ZXY_R);
         
         // Get the body's heading using the back tracker data
-        trackerHeading = backOrient[VS_H];
+        trackerHeading = backOrient[AT_H];
         headingQuat.setAxisAngleRotation(0, 0, 1, trackerHeading);
     }
 
@@ -387,9 +387,9 @@ void vsWalkInPlace::update()
 
     // Extract the feet separation distances to their x, y, and z
     // scalar components
-    deltaX = separationVec[VS_X];
-    deltaY = separationVec[VS_Y];
-    deltaZ = separationVec[VS_Z];
+    deltaX = separationVec[AT_X];
+    deltaY = separationVec[AT_Y];
+    deltaZ = separationVec[AT_Z];
 
     // Compute the current heading relative to last frame's heading
     deltaHeading = trackerHeading - lastTrackerHeading;

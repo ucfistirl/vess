@@ -43,9 +43,9 @@
 #include "vsSerialPort.h++"
 #include "vsMotionTracker.h++"
 #include "vsTrackingSystem.h++"
-#include "vsVector.h++"
-#include "vsMatrix.h++"
-#include "vsQuat.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
+#include "atQuat.h++"
 #include "vsSharedInputData.h++"
 
 // Maximum number of trackers in a FASTRAK system
@@ -170,7 +170,7 @@ protected:
     int                  outputUnits;
 
     // Coordinate conversion quaternion
-    vsQuat               coordXform;
+    atQuat               coordXform;
 
     // Utility functions
     void                 enumerateTrackers();
@@ -180,12 +180,12 @@ protected:
     void                 setBinaryOutput();
 
     // Internal update functions
-    void                 updatePosition(int trackerNum, vsVector posVec);
+    void                 updatePosition(int trackerNum, atVector posVec);
     void                 updateRelativePosition(int trackerNum, 
-                                                vsVector posVec);
-    void                 updateAngles(int trackerNum, vsVector orientationVec);
-    void                 updateMatrix(int trackerNum, vsMatrix orientationMat);
-    void                 updateQuat(int trackerNum, vsQuat orientationQuat);
+                                                atVector posVec);
+    void                 updateAngles(int trackerNum, atVector orientationVec);
+    void                 updateMatrix(int trackerNum, atMatrix orientationMat);
+    void                 updateQuat(int trackerNum, atQuat orientationQuat);
 
     // Multi-process functions
     void                 serverLoop();
@@ -212,15 +212,15 @@ public:
     void                       forkTracking();
 
     // Other useful FASTRAK functions
-    void                       setAlignment(int station, vsVector origin, 
-                                            vsVector positiveX, 
-                                            vsVector positiveY);
+    void                       setAlignment(int station, atVector origin, 
+                                            atVector positiveX, 
+                                            atVector positiveY);
     void                       resetAlignment(int station);
     void                       setMountingFrame(int station, 
-                                   vsVector orientation);
+                                   atVector orientation);
     void                       setSyncMode(int syncMode);
     void                       setActiveHemisphere(int station, 
-                                                   vsVector zenithVec);
+                                                   atVector zenithVec);
     void                       setOutputFormat(int newFormat[], 
                                                int newFormatNum);
     void                       setBaudRate(long baud);

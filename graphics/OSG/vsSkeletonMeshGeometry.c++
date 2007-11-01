@@ -88,6 +88,8 @@ vsSkeletonMeshGeometry::vsSkeletonMeshGeometry() : parentList(5, 5)
     originalNormalList->ref();
 
     // Initialize other values
+    indexList = NULL;
+    indexListSize = 0;
     lengthsList = NULL;
     primitiveCount = 0;
     primitiveType = VS_GEOMETRY_TYPE_POINTS;
@@ -112,6 +114,10 @@ vsSkeletonMeshGeometry::~vsSkeletonMeshGeometry()
 
     // Remove all attributes
     deleteAttributes();
+
+    // If we're using vertex indices, unreference the index list now
+    if (indexList)
+        free(indexList);
 
     // Unlink and destroy the OSG objects
     for (loop = 0; loop < VS_GEOMETRY_LIST_COUNT; loop++)
@@ -635,7 +641,7 @@ int vsSkeletonMeshGeometry::getBinding(int whichData)
 // the first data point is 0.
 // ------------------------------------------------------------------------
 void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex, 
-                                     vsVector data)
+                                     atVector data)
 {
     int loop;
     int slotNum;
@@ -690,6 +696,7 @@ void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
     if ((dataIndex < 0) || (dataIndex >= dataListSize[slotNum]))
     {
         printf("vsSkeletonMeshGeometry::setData: Index out of bounds\n");
+abort();
         return;
     }
 
@@ -697,7 +704,8 @@ void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
     if (data.getSize() < dataSize)
     {
         printf("vsSkeletonMeshGeometry::setData: Insufficient data (data of "
-            "the given type requires at least %d values)\n", dataSize);
+            "the given type (%d) requires at least %d values)\n", whichData,
+            dataSize);
         return;
     }
 
@@ -794,9 +802,9 @@ void vsSkeletonMeshGeometry::setData(int whichData, int dataIndex,
 // specifies which point is desired. The index of the first data point is
 // 0.
 // ------------------------------------------------------------------------
-vsVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
+atVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
 {
-    vsVector result;
+    atVector result;
     int loop;
     int slotNum;
     int dataSize;
@@ -928,7 +936,7 @@ vsVector vsSkeletonMeshGeometry::getData(int whichData, int dataIndex)
 // to the values in dataList. The dataList array must be at least as large
 // as the size of particular list in question.
 // ------------------------------------------------------------------------
-void vsSkeletonMeshGeometry::setDataList(int whichData, vsVector *dataBuffer)
+void vsSkeletonMeshGeometry::setDataList(int whichData, atVector *dataBuffer)
 {
     int loop, sloop;
     int slotNum;
@@ -1082,7 +1090,7 @@ void vsSkeletonMeshGeometry::setDataList(int whichData, vsVector *dataBuffer)
 // array must be at least as large as the size of particular list in
 // question.
 // ------------------------------------------------------------------------
-void vsSkeletonMeshGeometry::getDataList(int whichData, vsVector *dataBuffer)
+void vsSkeletonMeshGeometry::getDataList(int whichData, atVector *dataBuffer)
 {
     int loop, sloop;
     int slotNum;
@@ -1410,6 +1418,129 @@ int vsSkeletonMeshGeometry::getDataListSize(int whichData)
 }
 
 // ------------------------------------------------------------------------
+// Sets one of the indexes in the geometry's index list
+// ------------------------------------------------------------------------
+void vsSkeletonMeshGeometry::setIndex(int indexIndex, u_int newIndex)
+{
+    // Make sure the index's index in the list is valid
+    if ((indexIndex < 0) || (indexIndex > indexListSize))
+    {
+        printf("vsSkeletonMeshGeometry::setIndex: Index is out of range\n");
+        return;
+    }
+
+    // Set the index
+    indexList[indexIndex] = newIndex;
+
+    // A change to the index list means the primitives need rebuilding
+    rebuildPrimitives();
+}
+
+// ------------------------------------------------------------------------
+// Retrieves one of the indexes in the geometry's index list
+// ------------------------------------------------------------------------
+u_int vsSkeletonMeshGeometry::getIndex(int indexIndex)
+{
+    // Make sure the index's index in the list is valid
+    if ((indexIndex < 0) || (indexIndex > indexListSize))
+    {
+        printf("vsSkeletonMeshGeometry::setIndex: Index is out of range\n");
+        return 0;
+    }
+
+    // Return the desired index
+    return indexList[indexIndex];
+}
+
+// ------------------------------------------------------------------------
+// Sets all of the indexes in the geometry's index list (the list provided
+// must contain enough indices to fill the current index list)
+// ------------------------------------------------------------------------
+void vsSkeletonMeshGeometry::setIndexList(u_int *indexBuffer)
+{
+    int i;
+
+    // Don't try to set it if it isn't there
+    if (indexList == NULL)
+    {
+        printf("vsSkeletonMeshGeometry::setIndexList: "
+            "Tried to set NULL index list!\n");
+        return;
+    }
+
+    // Set all indices
+    memcpy(indexList, indexBuffer, indexListSize * sizeof(u_int));
+
+    // A change to the index list means the primitives need rebuilding
+    rebuildPrimitives();
+}
+
+// ------------------------------------------------------------------------
+// Retrieves all of the indexes in the geometry's index list (the buffer
+// provided must be large enough to hold all index values)
+// ------------------------------------------------------------------------
+void vsSkeletonMeshGeometry::getIndexList(u_int *indexBuffer)
+{
+    int i;
+
+    // If we have no index list, don't try to retrieve anything
+    if (indexList == NULL)
+        return;
+
+    // Copy the indices from the index list to the buffer provided
+    memcpy(indexBuffer, indexList, indexListSize * sizeof(u_int));
+}
+
+// ------------------------------------------------------------------------
+// Sets the size of the list for vertex indices.  When using vertex 
+// indices, the vertices specified by the index list are used to render the
+// primitives, instead of pulling vertices from the data lists directly.
+// ------------------------------------------------------------------------
+void vsSkeletonMeshGeometry::setIndexListSize(int newSize)
+{
+    // See if the size is valid
+    if ((newSize < 0) || (newSize > VS_GEOMETRY_MAX_LIST_INDEX))
+    {
+        printf("vsSkeletonMeshGeometry::setIndexListSize:  "
+            "Index list size is invalid.\n");
+        return;
+    }
+
+    // See if we already have an index list
+    if ((newSize > 0) && (indexList == NULL))
+    {
+        // Create a new index list
+        indexList = (u_int *)calloc(newSize, sizeof(u_int));
+        indexListSize = newSize;
+    }
+    else if ((newSize == 0) && (indexList != NULL))
+    {
+        // Delete the existing index list
+        free(indexList);
+        indexList = NULL;
+        indexListSize = 0;
+    }
+    else
+    {
+        // Modify the current index list
+        indexList = (u_int *)realloc(indexList, sizeof(u_int) * newSize);
+        indexListSize = newSize;
+    }
+
+    // A change to the index list will most likely mean the primitive set
+    // needs rebuilding
+    rebuildPrimitives();
+}
+
+// ------------------------------------------------------------------------
+// Return the current size of the vertex index list
+// ------------------------------------------------------------------------
+int vsSkeletonMeshGeometry::getIndexListSize()
+{
+    return indexListSize;
+}
+
+// ------------------------------------------------------------------------
 // Enables lit rendering for this geometry
 // ------------------------------------------------------------------------
 void vsSkeletonMeshGeometry::enableLighting()
@@ -1467,7 +1598,7 @@ int vsSkeletonMeshGeometry::getRenderBin()
 // Retrieves the center point and radius of a sphere that encompasses all
 // of the geometry within this object.
 // ------------------------------------------------------------------------
-void vsSkeletonMeshGeometry::getBoundSphere(vsVector *centerPoint,
+void vsSkeletonMeshGeometry::getBoundSphere(atVector *centerPoint,
                                             double *radius)
 {
     osg::BoundingSphere boundSphere;
@@ -1488,12 +1619,12 @@ void vsSkeletonMeshGeometry::getBoundSphere(vsVector *centerPoint,
 // Computes the global coordinate transform at this geometry by multiplying
 // together all of the transforms at nodes above this one.
 // ------------------------------------------------------------------------
-vsMatrix vsSkeletonMeshGeometry::getGlobalXform()
+atMatrix vsSkeletonMeshGeometry::getGlobalXform()
 {
     osg::Node *nodePtr;
     osg::Matrix xform;
     osg::Matrix osgXformMat;
-    vsMatrix result;
+    atMatrix result;
     int loop, sloop;
 
     // Start with an identity matrix
@@ -1523,7 +1654,7 @@ vsMatrix vsSkeletonMeshGeometry::getGlobalXform()
         for (sloop = 0; sloop < 4; sloop++)
             result[loop][sloop] = xform(sloop, loop);
 
-    // Return the resulting vsMatrix
+    // Return the resulting atMatrix
     return result;
 }
 
@@ -1682,97 +1813,213 @@ void vsSkeletonMeshGeometry::rebuildPrimitives()
     int numSets;
     osg::DrawArrays *osgDrawArrays;
     osg::DrawArrayLengths *osgDrawArrayLengths;
+    osg::DrawElementsUInt *osgDrawElements;
+    int i, indexIndex;
 
     // Erase the current list of PrimitiveSets
     numSets = osgGeometry->getNumPrimitiveSets();
     if (numSets > 0)
         osgGeometry->removePrimitiveSet(0, numSets);
-    
-    // Create one or more new PrimitiveSet objects based on the type,
-    // number, and length data of the primitives stored in this
-    // vsSkeletonMeshGeometry
-    if ((primitiveType == VS_GEOMETRY_TYPE_POINTS) ||
-        (primitiveType == VS_GEOMETRY_TYPE_LINES) ||
-        (primitiveType == VS_GEOMETRY_TYPE_TRIS) ||
-        (primitiveType == VS_GEOMETRY_TYPE_QUADS))
+
+    // If we have an index list, we'll be using the DrawElementsUInt primitive
+    // set type
+    if (indexList != NULL)
     {
-        // If the primitive type is one of the fixed-length types, then
-        // we only need to make one DrawArrays object to represent all
-        // of the geometry.
-        osgDrawArrays = NULL;
-        
-        // Select the appropriate primitive type
-        switch (primitiveType)
+        // If we're using one of the fixed-length primitive types, we'll only
+        // need one DrawElementsUInt
+        if ((primitiveType == VS_GEOMETRY_TYPE_POINTS) ||
+            (primitiveType == VS_GEOMETRY_TYPE_LINES) ||
+            (primitiveType == VS_GEOMETRY_TYPE_TRIS) ||
+            (primitiveType == VS_GEOMETRY_TYPE_QUADS))
         {
-            case VS_GEOMETRY_TYPE_POINTS:
-                osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::POINTS, 0, primitiveCount);
-                break;
-            case VS_GEOMETRY_TYPE_LINES:
-                osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::LINES, 0, primitiveCount * 2);
-                break;
-            case VS_GEOMETRY_TYPE_TRIS:
-                osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::TRIANGLES, 0, primitiveCount * 3);
-                break;
-            case VS_GEOMETRY_TYPE_QUADS:
-                osgDrawArrays = new osg::DrawArrays(
-                    osg::PrimitiveSet::QUADS, 0, primitiveCount * 4);
-                break;
+            // Initialize the DrawElements variable
+            osgDrawElements = NULL;
+
+            // A single DrawElementsUInt primitive set is enough to
+            // handle all of our primitives in this case
+            switch (primitiveType)
+            {
+                case VS_GEOMETRY_TYPE_POINTS:
+                    osgDrawElements = 
+                        new osg::DrawElementsUInt(
+                           osg::PrimitiveSet::POINTS, indexListSize,
+                           indexList);
+                    break;
+                case VS_GEOMETRY_TYPE_LINES:
+                    osgDrawElements = 
+                        new osg::DrawElementsUInt(
+                           osg::PrimitiveSet::LINES, indexListSize,
+                           indexList);
+                    break;
+                case VS_GEOMETRY_TYPE_TRIS:
+                    osgDrawElements = 
+                        new osg::DrawElementsUInt(
+                           osg::PrimitiveSet::TRIANGLES, indexListSize,
+                           indexList);
+                    break;
+                case VS_GEOMETRY_TYPE_QUADS:
+                    osgDrawElements = 
+                        new osg::DrawElementsUInt(
+                           osg::PrimitiveSet::QUADS, indexListSize,
+                           indexList);
+                    break;
+            }
+
+            // Make sure the DrawElements is valid, and add the new
+            // primitive set to the OSG Geometry if so
+            if (osgDrawElements != NULL)
+                osgGeometry->addPrimitiveSet(osgDrawElements);
         }
-        
-        // Make sure the DrawArrays is valid, then add it to the Geometry
-        if (osgDrawArrays)
-            osgGeometry->addPrimitiveSet(osgDrawArrays);
+        else
+        {
+            // Start at the first index in the index list
+            indexIndex = 0;
+
+            // We'll need to add one DrawElementsUInt per primitive in this
+            // case
+            for (i = 0; i < primitiveCount; i++)
+            {
+                // Create a DrawElementsUInt primitive set for this
+                // primitive
+                switch (primitiveType)
+                {
+                    case VS_GEOMETRY_TYPE_LINE_STRIPS:
+                        osgDrawElements =
+                            new osg::DrawElementsUInt(
+                               osg::PrimitiveSet::LINE_STRIP,
+                               lengthsList[i], &indexList[indexIndex]);
+                        break;
+                    case VS_GEOMETRY_TYPE_LINE_LOOPS:
+                        osgDrawElements =
+                            new osg::DrawElementsUInt(
+                               osg::PrimitiveSet::LINE_LOOP,
+                               lengthsList[i], &indexList[indexIndex]);
+                        break;
+                    case VS_GEOMETRY_TYPE_TRI_STRIPS:
+                        osgDrawElements =
+                            new osg::DrawElementsUInt(
+                               osg::PrimitiveSet::TRIANGLE_STRIP,
+                               lengthsList[i], &indexList[indexIndex]);
+                        break;
+                    case VS_GEOMETRY_TYPE_TRI_FANS:
+                        osgDrawElements =
+                            new osg::DrawElementsUInt(
+                               osg::PrimitiveSet::TRIANGLE_FAN,
+                               lengthsList[i], &indexList[indexIndex]);
+                        break;
+                    case VS_GEOMETRY_TYPE_QUAD_STRIPS:
+                        osgDrawElements =
+                            new osg::DrawElementsUInt(
+                               osg::PrimitiveSet::QUAD_STRIP,
+                               lengthsList[i], &indexList[indexIndex]);
+                        break;
+                    case VS_GEOMETRY_TYPE_POLYS:
+                        osgDrawElements =
+                            new osg::DrawElementsUInt(
+                               osg::PrimitiveSet::POLYGON,
+                               lengthsList[i], &indexList[indexIndex]);
+                        break;
+                }
+
+                // Make sure the DrawElements is valid, and add the new
+                // primitive set to the OSG Geometry if so
+                if (osgDrawElements != NULL)
+                    osgGeometry->addPrimitiveSet(osgDrawElements);
+
+                // Advance in the index list by the length of the current
+                // primitive
+                indexIndex += lengthsList[i];
+            }
+        }
     }
     else
     {
-        // The primitive type must be one of the variable-lengths types.
-        // * An OSG DrawArrayLengths primitive set *should* work here,
-        // provided that the different entries in the lengths array
-        // are interpreted by OSG as different primitives.
-        osgDrawArrayLengths = NULL;
-        
-        // Select the appropriate primitive type
-        switch (primitiveType)
+        // Create one or more new PrimitiveSet objects based on the type,
+        // number, and length data of the primitives stored in this
+        // vsSkeletonMeshGeometry
+        if ((primitiveType == VS_GEOMETRY_TYPE_POINTS) ||
+            (primitiveType == VS_GEOMETRY_TYPE_LINES) ||
+            (primitiveType == VS_GEOMETRY_TYPE_TRIS) ||
+            (primitiveType == VS_GEOMETRY_TYPE_QUADS))
         {
-            case VS_GEOMETRY_TYPE_LINE_STRIPS:
-                osgDrawArrayLengths = new osg::DrawArrayLengths(
-                    osg::PrimitiveSet::LINE_STRIP, 0, primitiveCount,
-                    lengthsList);
-                break;
-            case VS_GEOMETRY_TYPE_LINE_LOOPS:
-                osgDrawArrayLengths = new osg::DrawArrayLengths(
-                    osg::PrimitiveSet::LINE_LOOP, 0, primitiveCount,
-                    lengthsList);
-                break;
-            case VS_GEOMETRY_TYPE_TRI_STRIPS:
-                osgDrawArrayLengths = new osg::DrawArrayLengths(
-                    osg::PrimitiveSet::TRIANGLE_STRIP, 0, primitiveCount,
-                    lengthsList);
-                break;
-            case VS_GEOMETRY_TYPE_TRI_FANS:
-                osgDrawArrayLengths = new osg::DrawArrayLengths(
-                    osg::PrimitiveSet::TRIANGLE_FAN, 0, primitiveCount,
-                    lengthsList);
-                break;
-            case VS_GEOMETRY_TYPE_QUAD_STRIPS:
-                osgDrawArrayLengths = new osg::DrawArrayLengths(
-                    osg::PrimitiveSet::QUAD_STRIP, 0, primitiveCount,
-                    lengthsList);
-                break;
-            case VS_GEOMETRY_TYPE_POLYS:
-                osgDrawArrayLengths = new osg::DrawArrayLengths(
-                    osg::PrimitiveSet::POLYGON, 0, primitiveCount,
-                    lengthsList);
-                break;
-        }
+            // If the primitive type is one of the fixed-length types, then
+            // we only need to make one DrawArrays object to represent all
+            // of the geometry.
+            osgDrawArrays = NULL;
         
-        // Make sure the DrawArrayLengths is valid, then add it to the 
-        // Geometry
-        if (osgDrawArrayLengths)
-            osgGeometry->addPrimitiveSet(osgDrawArrayLengths);
+            // Select the appropriate primitive type
+            switch (primitiveType)
+            {
+                case VS_GEOMETRY_TYPE_POINTS:
+                    osgDrawArrays = new osg::DrawArrays(
+                        osg::PrimitiveSet::POINTS, 0, primitiveCount);
+                    break;
+                case VS_GEOMETRY_TYPE_LINES:
+                    osgDrawArrays = new osg::DrawArrays(
+                        osg::PrimitiveSet::LINES, 0, primitiveCount * 2);
+                    break;
+                case VS_GEOMETRY_TYPE_TRIS:
+                    osgDrawArrays = new osg::DrawArrays(
+                        osg::PrimitiveSet::TRIANGLES, 0, primitiveCount * 3);
+                    break;
+                case VS_GEOMETRY_TYPE_QUADS:
+                    osgDrawArrays = new osg::DrawArrays(
+                        osg::PrimitiveSet::QUADS, 0, primitiveCount * 4);
+                    break;
+            }
+        
+            // Make sure the DrawArrays is valid, then add it to the Geometry
+            if (osgDrawArrays)
+                osgGeometry->addPrimitiveSet(osgDrawArrays);
+        }
+        else
+        {
+            // The primitive type must be one of the variable-lengths types.
+            // * An OSG DrawArrayLengths primitive set *should* work here,
+            // provided that the different entries in the lengths array
+            // are interpreted by OSG as different primitives.
+            osgDrawArrayLengths = NULL;
+        
+            // Select the appropriate primitive type
+            switch (primitiveType)
+            {
+                case VS_GEOMETRY_TYPE_LINE_STRIPS:
+                    osgDrawArrayLengths = new osg::DrawArrayLengths(
+                        osg::PrimitiveSet::LINE_STRIP, 0, primitiveCount,
+                        lengthsList);
+                    break;
+                case VS_GEOMETRY_TYPE_LINE_LOOPS:
+                    osgDrawArrayLengths = new osg::DrawArrayLengths(
+                        osg::PrimitiveSet::LINE_LOOP, 0, primitiveCount,
+                        lengthsList);
+                    break;
+                case VS_GEOMETRY_TYPE_TRI_STRIPS:
+                    osgDrawArrayLengths = new osg::DrawArrayLengths(
+                        osg::PrimitiveSet::TRIANGLE_STRIP, 0, primitiveCount,
+                        lengthsList);
+                    break;
+                case VS_GEOMETRY_TYPE_TRI_FANS:
+                    osgDrawArrayLengths = new osg::DrawArrayLengths(
+                        osg::PrimitiveSet::TRIANGLE_FAN, 0, primitiveCount,
+                        lengthsList);
+                    break;
+                case VS_GEOMETRY_TYPE_QUAD_STRIPS:
+                    osgDrawArrayLengths = new osg::DrawArrayLengths(
+                        osg::PrimitiveSet::QUAD_STRIP, 0, primitiveCount,
+                        lengthsList);
+                    break;
+                case VS_GEOMETRY_TYPE_POLYS:
+                    osgDrawArrayLengths = new osg::DrawArrayLengths(
+                        osg::PrimitiveSet::POLYGON, 0, primitiveCount,
+                        lengthsList);
+                    break;
+            }
+        
+            // Make sure the DrawArrayLengths is valid, then add it to the 
+            // Geometry
+            if (osgDrawArrayLengths)
+                osgGeometry->addPrimitiveSet(osgDrawArrayLengths);
+        }
     }
 }
 
@@ -2077,60 +2324,24 @@ bool vsSkeletonMeshGeometry::removeParent(vsNode *targetParent)
 
 // ------------------------------------------------------------------------
 // Internal function
-// Calls the apply function on all attached attributes, and then calls the
-// scene library's graphics state object to affect the changes to the
-// graphics library state. Also applies the geometry's current rendering
-// bin to the state set if specified for this object.
-// ------------------------------------------------------------------------
-void vsSkeletonMeshGeometry::applyAttributes()
-{
-    osg::StateSet *osgStateSet;
-    int sortMode;
-
-    // Call the inherited applyAttributes function
-    vsNode::applyAttributes();
-
-    // Instruct the current active attributes to apply themselves to this
-    // node's osg StateSet
-    osgStateSet = osgGeometry->getOrCreateStateSet();
-    (vsGraphicsState::getInstance())->applyState(osgStateSet);
-    
-    // If the render bin is specified, set the bin details in the state
-    // set. This overrides any bin set by attributes, notably transparency
-    // attributes.
-    if (renderBin >= 0)
-    {
-        // Get the bin's sort mode
-        sortMode = vsGeometry::getBinSortMode(renderBin);
-
-        // Set the sort order on the corresponding osg::RenderBin
-        if (sortMode == VS_GEOMETRY_SORT_DEPTH)
-            osgStateSet->setRenderBinDetails(renderBin, "DepthSortedBin");
-        else
-            osgStateSet->setRenderBinDetails(renderBin, "RenderBin");
-    }
-}
-
-// ------------------------------------------------------------------------
-// Internal function
 // Figures out what the top left and bottom right coordinates of this
 // particular geometry is
 // ------------------------------------------------------------------------
-void vsSkeletonMeshGeometry::getAxisAlignedBoxBounds(vsVector *minValues,
-    vsVector *maxValues)
+void vsSkeletonMeshGeometry::getAxisAlignedBoxBounds(atVector *minValues,
+    atVector *maxValues)
 {
     int childCount = getChildCount();
     int dataCount;
     int cntGData;
     int column;
-    vsVector tempMinValues;
-    vsVector tempMaxValues;
-    vsVector passMinValues;
-    vsVector passMaxValues;
-    vsVector oldPoint;
-    vsVector newPoint;
+    atVector tempMinValues;
+    atVector tempMaxValues;
+    atVector passMinValues;
+    atVector passMaxValues;
+    atVector oldPoint;
+    atVector newPoint;
     vsTransformAttribute *transform = NULL;
-    vsMatrix dynamicMatrix;
+    atMatrix dynamicMatrix;
     bool minNotSet = true;
     bool maxNotSet = true;
 
@@ -2184,6 +2395,42 @@ void vsSkeletonMeshGeometry::getAxisAlignedBoxBounds(vsVector *minValues,
 }
 
 // ------------------------------------------------------------------------
+// Internal function
+// Calls the apply function on all attached attributes, and then calls the
+// scene library's graphics state object to affect the changes to the
+// graphics library state. Also applies the geometry's current rendering
+// bin to the state set if specified for this object.
+// ------------------------------------------------------------------------
+void vsSkeletonMeshGeometry::applyAttributes()
+{
+    osg::StateSet *osgStateSet;
+    int sortMode;
+
+    // Call the inherited applyAttributes function
+    vsNode::applyAttributes();
+
+    // Instruct the current active attributes to apply themselves to this
+    // node's osg StateSet
+    osgStateSet = osgGeometry->getOrCreateStateSet();
+    (vsGraphicsState::getInstance())->applyState(osgStateSet);
+    
+    // If the render bin is specified, set the bin details in the state
+    // set. This overrides any bin set by attributes, notably transparency
+    // attributes.
+    if (renderBin >= 0)
+    {
+        // Get the bin's sort mode
+        sortMode = vsGeometry::getBinSortMode(renderBin);
+
+        // Set the sort order on the corresponding osg::RenderBin
+        if (sortMode == VS_GEOMETRY_SORT_DEPTH)
+            osgStateSet->setRenderBinDetails(renderBin, "DepthSortedBin");
+        else
+            osgStateSet->setRenderBinDetails(renderBin, "RenderBin");
+    }
+}
+
+// ------------------------------------------------------------------------
 // Apply the skin based on the bone matrix lists provided as arguments.
 // Also modifies the vertex normals using the inverse transpose of the bone
 // matrices.  The process is basically just a weighted sum of vertices.
@@ -2199,11 +2446,11 @@ void vsSkeletonMeshGeometry::applySkin(vsGrowableArray *boneMatrices,
     int dataIndex;
     double weight;
     int bone;
-    vsVector vertex;
-    vsVector normal;
-    vsMatrix *boneMatrix, *itBoneMatrix;
-    vsMatrix finalVertexMatrix;
-    vsMatrix finalNormalMatrix;
+    atVector vertex;
+    atVector normal;
+    atMatrix *boneMatrix, *itBoneMatrix;
+    atMatrix finalVertexMatrix;
+    atMatrix finalNormalMatrix;
     osg::Vec3Array *vertexList;
     osg::Vec3Array *normalList;
     osg::Vec4Array *weightList;
@@ -2258,8 +2505,8 @@ void vsSkeletonMeshGeometry::applySkin(vsGrowableArray *boneMatrices,
 
                 // Get the bone matrix and the inverse transpose for this
                 // data index
-                boneMatrix = ((vsMatrix *)boneMatrices->getData(bone));
-                itBoneMatrix = ((vsMatrix *)ITBoneMatrices->getData(bone));
+                boneMatrix = ((atMatrix *)boneMatrices->getData(bone));
+                itBoneMatrix = ((atMatrix *)ITBoneMatrices->getData(bone));
 
                 // If the weight is zero, don't bother multiplying.
                 if (weight != 0.0)

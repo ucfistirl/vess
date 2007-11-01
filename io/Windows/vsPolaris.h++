@@ -60,8 +60,8 @@ protected:
 
     bool                   bigEndian;
 
-    vsQuat                 coordXform, coordXformInv;
-    vsQuat                 referenceFrame;
+    atQuat                 coordXform, coordXformInv;
+    atQuat                 referenceFrame;
 
     // For multithreading, private copy of tracker data, thread
     // state variables, and synchronization structures

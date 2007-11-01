@@ -36,7 +36,7 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute()
     performerTexture->ref();
     performerTexEnv = new pfTexEnv();
     performerTexEnv->ref();
-    performerTexEnv->setMode(PFTE_DECAL);
+    performerTexEnv->setMode(PFTE_MODULATE);
     performerTexGen = NULL;
     textureMatrix.makeIdent();
     textureMatrixEnabled = false;
@@ -74,7 +74,7 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit)
     performerTexture->ref();
     performerTexEnv = new pfTexEnv();
     performerTexEnv->ref();
-    performerTexEnv->setMode(PFTE_DECAL);
+    performerTexEnv->setMode(PFTE_MODULATE);
     performerTexGen = NULL;
     textureMatrix.makeIdent();
     textureMatrixEnabled = false;
@@ -628,9 +628,9 @@ int vsTextureRectangleAttribute::getGenMode()
 // ------------------------------------------------------------------------
 // Set a new texture matrix
 // ------------------------------------------------------------------------
-void vsTextureRectangleAttribute::setTextureMatrix(vsMatrix newMatrix)
+void vsTextureRectangleAttribute::setTextureMatrix(atMatrix newMatrix)
 {
-    // Convert the vsMatrix into a pfMatrix
+    // Convert the atMatrix into a pfMatrix
     for (int loop = 0; loop < 4; loop++)
         for (int sloop = 0; sloop < 4; sloop++)
             textureMatrix[loop][sloop] = newMatrix[sloop][loop];
@@ -643,11 +643,11 @@ void vsTextureRectangleAttribute::setTextureMatrix(vsMatrix newMatrix)
 // ------------------------------------------------------------------------
 // Retrieve the current texture matrix
 // ------------------------------------------------------------------------
-vsMatrix vsTextureRectangleAttribute::getTextureMatrix()
+atMatrix vsTextureRectangleAttribute::getTextureMatrix()
 {
-    vsMatrix vsMat;
+    atMatrix vsMat;
 
-    // Convert the current texture matrix into a vsMatrix and return it
+    // Convert the current texture matrix into a atMatrix and return it
     for (int loop = 0; loop < 4; loop++)
         for (int sloop = 0; sloop < 4; sloop++)
             vsMat[sloop][loop] = textureMatrix[loop][sloop];
@@ -847,7 +847,7 @@ bool vsTextureRectangleAttribute::isEquivalent(vsAttribute *attribute)
     vsTextureRectangleAttribute *attr;
     unsigned char *image1, *image2;
     int xval1, yval1, xval2, yval2, val1, val2;
-    vsMatrix mat1, mat2;
+    atMatrix mat1, mat2;
     
     // NULL check
     if (!attribute)

@@ -24,7 +24,7 @@
 #ifndef VS_CG_MATRIX_PARAMETER_HPP
 #define VS_CG_MATRIX_PARAMETER_HPP
 
-#include "vsMatrix.h++"
+#include "atMatrix.h++"
 #include "vsCgParameter.h++"
 #include <osg/Matrix>
 #include <osgNVCg/MatrixParameter>
@@ -47,7 +47,7 @@ public:
     virtual const char           *getClassName();
     virtual vsCgParameterType    getCgParameterType();
 
-    void                         set(const vsMatrix &value);
+    void                         set(const atMatrix &value);
 };
 
 #endif

@@ -79,7 +79,7 @@ vsCgParameterType vsCgMatrixParameter::getCgParameterType()
 // Set the OSG matrix to the transpose of the VESS matrix, and then
 // hand it to the osgNV parameter object.
 // ------------------------------------------------------------------------
-void vsCgMatrixParameter::set(const vsMatrix &value)
+void vsCgMatrixParameter::set(const atMatrix &value)
 {
     // Set the OSG matrix to be a transpose of the VESS matrix.
     osgMatrix.set(value[0][0], value[1][0], value[2][0], value[3][0],

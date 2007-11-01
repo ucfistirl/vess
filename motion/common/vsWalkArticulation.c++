@@ -35,7 +35,7 @@ vsWalkArticulation::vsWalkArticulation(vsKinematics *objectKin,
     FILE *datafile;
     char lineBuffer[256];
     double h, p, r;
-    vsQuat jointRot;
+    atQuat jointRot;
     int loop;
     vsWalkArticData *keyData;
 
@@ -72,7 +72,7 @@ vsWalkArticulation::vsWalkArticulation(vsKinematics *objectKin,
                 // pitch roll', for each of the six supported joints
                 getLine(datafile, lineBuffer);
                 sscanf(lineBuffer, "%lf %lf %lf", &h, &p, &r);
-                jointRot.setEulerRotation(VS_EULER_ANGLES_ZXY_R, h, p, r);
+                jointRot.setEulerRotation(AT_EULER_ANGLES_ZXY_R, h, p, r);
                 switch (loop)
                 {
                     case 0:
@@ -331,7 +331,7 @@ void vsWalkArticulation::update()
 
     // * Interpolate the joint positions
     // For each active joint, compute that joint's orientation by using
-    // the vsQuat slerp() call to interpolate the joint's orientation
+    // the atQuat slerp() call to interpolate the joint's orientation
     // between the two currently active keyframes, using the distance that
     // the object has travelled as the interpolation value.
     if (leftHipKin)

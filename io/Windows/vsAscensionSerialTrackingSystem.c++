@@ -44,7 +44,7 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
     char   portDevice[20];
     int    i;
     int    result;
-    vsQuat quat1, quat2, xformQuat;
+    atQuat quat1, quat2, xformQuat;
 
     // Determine the platform-dependent serial device
     // name
@@ -187,7 +187,7 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
     char   portDevice[20];
     int    result;
     int    i;
-    vsQuat quat1, quat2, xformQuat;
+    atQuat quat1, quat2, xformQuat;
 
     // This constructor shouldn't be used if only one tracker exists
     if (nTrackers > 1)
@@ -1174,14 +1174,14 @@ void vsAscensionSerialTrackingSystem::fbbCommand(int address,
 void vsAscensionSerialTrackingSystem::updatePosition(int trackerIndex, 
                                                      short flockData[])
 {
-    vsVector posVec;
-    vsQuat   ornQuat;
+    atVector posVec;
+    atQuat   ornQuat;
 
     // Extract the position
     posVec.setSize(3);
-    posVec[VS_X] = flockData[0] * posScale;
-    posVec[VS_Y] = flockData[1] * posScale;
-    posVec[VS_Z] = flockData[2] * posScale;
+    posVec[AT_X] = flockData[0] * posScale;
+    posVec[AT_Y] = flockData[1] * posScale;
+    posVec[AT_Z] = flockData[2] * posScale;
 
     // Transform the position to the VESS coordinate system
     posVec = coordXform.rotatePoint(posVec);
@@ -1211,9 +1211,9 @@ void vsAscensionSerialTrackingSystem::updatePosition(int trackerIndex,
 void vsAscensionSerialTrackingSystem::updateAngles(int trackerIndex, 
                                                    short flockData[])
 {
-    vsVector posVec;
+    atVector posVec;
     double   h, p, r;
-    vsQuat   ornQuat;
+    atQuat   ornQuat;
 
     // Clear the position vector to zero
     posVec.setSize(3);
@@ -1225,7 +1225,7 @@ void vsAscensionSerialTrackingSystem::updateAngles(int trackerIndex,
     r = flockData[2] * VS_AS_SCALE_ANGLE;
 
     // Convert orientation to VESS coordinates
-    ornQuat.setEulerRotation(VS_EULER_ANGLES_ZYX_R, h, p, r);
+    ornQuat.setEulerRotation(AT_EULER_ANGLES_ZYX_R, h, p, r);
     ornQuat = coordXform * ornQuat * coordXform;
 
     // Update the tracker data.  Use the private tracker data and 
@@ -1252,10 +1252,10 @@ void vsAscensionSerialTrackingSystem::updateAngles(int trackerIndex,
 void vsAscensionSerialTrackingSystem::updateMatrix(int trackerIndex, 
                                                    short flockData[])
 {
-    vsVector posVec;
-    vsMatrix ornMat;
+    atVector posVec;
+    atMatrix ornMat;
     int      i, j;
-    vsQuat   ornQuat;
+    atQuat   ornQuat;
 
     // Clear the position vector to zero
     posVec.setSize(3);
@@ -1302,18 +1302,18 @@ void vsAscensionSerialTrackingSystem::updateMatrix(int trackerIndex,
 void vsAscensionSerialTrackingSystem::updateQuaternion(int trackerIndex, 
                                                        short flockData[])
 {
-    vsVector posVec;
-    vsQuat   ornQuat;
+    atVector posVec;
+    atQuat   ornQuat;
 
     // Clear the position vector to zero
     posVec.setSize(3);
     posVec.clear();
 
     // Quaternion returned by the Flock has the scalar portion in front
-    ornQuat[VS_X] = flockData[1] * VS_AS_SCALE_QUAT;
-    ornQuat[VS_Y] = flockData[2] * VS_AS_SCALE_QUAT;
-    ornQuat[VS_Z] = flockData[3] * VS_AS_SCALE_QUAT;
-    ornQuat[VS_W] = flockData[0] * VS_AS_SCALE_QUAT;
+    ornQuat[AT_X] = flockData[1] * VS_AS_SCALE_QUAT;
+    ornQuat[AT_Y] = flockData[2] * VS_AS_SCALE_QUAT;
+    ornQuat[AT_Z] = flockData[3] * VS_AS_SCALE_QUAT;
+    ornQuat[AT_W] = flockData[0] * VS_AS_SCALE_QUAT;
 
     // The flock's quaternion is the conjugate of what VESS expects
     ornQuat.conjugate();
@@ -1345,15 +1345,15 @@ void vsAscensionSerialTrackingSystem::updateQuaternion(int trackerIndex,
 void vsAscensionSerialTrackingSystem::updatePosAngles(int trackerIndex, 
                                                       short flockData[])
 {
-    vsVector posVec;
+    atVector posVec;
     double   h, p, r;
-    vsQuat   ornQuat;
+    atQuat   ornQuat;
 
     // Copy the position data
     posVec.setSize(3);
-    posVec[VS_X] = flockData[0] * posScale;
-    posVec[VS_Y] = flockData[1] * posScale;
-    posVec[VS_Z] = flockData[2] * posScale;
+    posVec[AT_X] = flockData[0] * posScale;
+    posVec[AT_Y] = flockData[1] * posScale;
+    posVec[AT_Z] = flockData[2] * posScale;
 
     // Convert position to VESS coordinates
     posVec = coordXform.rotatePoint(posVec);
@@ -1364,7 +1364,7 @@ void vsAscensionSerialTrackingSystem::updatePosAngles(int trackerIndex,
     r = flockData[5] * VS_AS_SCALE_ANGLE;
 
     // Convert orientation to VESS coordinates
-    ornQuat.setEulerRotation(VS_EULER_ANGLES_ZYX_R, h, p, r);
+    ornQuat.setEulerRotation(AT_EULER_ANGLES_ZYX_R, h, p, r);
     ornQuat = coordXform * ornQuat * coordXform;
 
     // Update the tracker data.  Use the private tracker data and 
@@ -1391,21 +1391,21 @@ void vsAscensionSerialTrackingSystem::updatePosAngles(int trackerIndex,
 void vsAscensionSerialTrackingSystem::updatePosMatrix(int trackerIndex, 
                                                       short flockData[])
 {
-    vsVector posVec;
-    vsMatrix ornMat;
+    atVector posVec;
+    atMatrix ornMat;
     int      i,j;
-    vsQuat   ornQuat;
+    atQuat   ornQuat;
 
     // Copy the position data
     posVec.setSize(3);
-    posVec[VS_X] = flockData[0] * posScale;
-    posVec[VS_Y] = flockData[1] * posScale;
-    posVec[VS_Z] = flockData[2] * posScale;
+    posVec[AT_X] = flockData[0] * posScale;
+    posVec[AT_Y] = flockData[1] * posScale;
+    posVec[AT_Z] = flockData[2] * posScale;
 
     // Convert position to VESS coordinates
     posVec = coordXform.rotatePoint(posVec);
 
-    // Convert the flock's matrix to a vsMatrix
+    // Convert the flock's matrix to a atMatrix
     for (i = 0; i < 3; i++)
     {
         for (j = 0; j < 3; j++)
@@ -1445,22 +1445,22 @@ void vsAscensionSerialTrackingSystem::updatePosMatrix(int trackerIndex,
 void vsAscensionSerialTrackingSystem::updatePosQuat(int trackerIndex, 
                                                     short flockData[])
 {
-    vsVector posVec;
-    vsQuat   ornQuat;
+    atVector posVec;
+    atQuat   ornQuat;
 
     // Copy the position data
     posVec.setSize(3);
-    posVec[VS_X] = flockData[0] * posScale;
-    posVec[VS_Y] = flockData[1] * posScale;
-    posVec[VS_Z] = flockData[2] * posScale;
+    posVec[AT_X] = flockData[0] * posScale;
+    posVec[AT_Y] = flockData[1] * posScale;
+    posVec[AT_Z] = flockData[2] * posScale;
 
     // Convert position to VESS coordinates
     posVec = coordXform.rotatePoint(posVec);
 
-    ornQuat[VS_X] = flockData[4] * VS_AS_SCALE_QUAT;
-    ornQuat[VS_Y] = flockData[5] * VS_AS_SCALE_QUAT;
-    ornQuat[VS_Z] = flockData[6] * VS_AS_SCALE_QUAT;
-    ornQuat[VS_W] = flockData[3] * VS_AS_SCALE_QUAT;
+    ornQuat[AT_X] = flockData[4] * VS_AS_SCALE_QUAT;
+    ornQuat[AT_Y] = flockData[5] * VS_AS_SCALE_QUAT;
+    ornQuat[AT_Z] = flockData[6] * VS_AS_SCALE_QUAT;
+    ornQuat[AT_W] = flockData[3] * VS_AS_SCALE_QUAT;
 
     // The flock's quaternion is the conjugate of what VESS expects
     ornQuat.conjugate();

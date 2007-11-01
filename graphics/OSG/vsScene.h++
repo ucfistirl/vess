@@ -51,15 +51,15 @@ private:
     osg::Group          *osgGroup;
 
     bool                esEnabled;
-    vsVector            esUniformColor;
+    atVector            esUniformColor;
 
 VS_INTERNAL:
 
     int         addLight(vsLightAttribute *light);
     void        removeLight(vsLightAttribute *light);
 
-    virtual void    getAxisAlignedBoxBounds(vsVector *minValues, 
-                                            vsVector *maxValues);
+    virtual void    getAxisAlignedBoxBounds(atVector *minValues, 
+                                            atVector *maxValues);
 
 public:
 
@@ -81,9 +81,9 @@ public:
 
     virtual int             getNodeType();
 
-    virtual void            getBoundSphere(vsVector *centerPoint,
+    virtual void            getBoundSphere(atVector *centerPoint,
                                            double *radius);
-    virtual vsMatrix        getGlobalXform();
+    virtual atMatrix        getGlobalXform();
 
     virtual void            setIntersectValue(unsigned int newValue);
     virtual unsigned int    getIntersectValue();

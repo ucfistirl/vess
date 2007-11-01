@@ -48,7 +48,7 @@
 vsIntersenseTrackingSystem::vsIntersenseTrackingSystem(int portNumber)
 {
     int i;
-    vsQuat quat1, quat2;
+    atQuat quat1, quat2;
 
     // Clear all of our status structures first
     systemHandle = 0;
@@ -560,8 +560,8 @@ void vsIntersenseTrackingSystem::update()
 {
     ISD_TRACKER_DATA_TYPE trackerData;
     int trackerNum;
-    vsVector position;
-    vsQuat orientation;
+    atVector position;
+    atQuat orientation;
     vsInputAxis *axis;
     int i, j;
 
@@ -576,9 +576,9 @@ void vsIntersenseTrackingSystem::update()
         if ((trackerNum >= 0) && (trackerNum < numTrackers))
         {
             // Extract and set the position for this tracker
-            position.set(trackerData.Station[i-1].Position[VS_X],
-                trackerData.Station[i-1].Position[VS_Y], 
-                trackerData.Station[i-1].Position[VS_Z]);
+            position.set(trackerData.Station[i-1].Position[AT_X],
+                trackerData.Station[i-1].Position[AT_Y], 
+                trackerData.Station[i-1].Position[AT_Z]);
             position = coordXform.rotatePoint(position);
             tracker[trackerNum]->setPosition(position);
 
@@ -593,7 +593,7 @@ void vsIntersenseTrackingSystem::update()
             }
             else
             {
-                orientation.setEulerRotation(VS_EULER_ANGLES_ZXY_R,
+                orientation.setEulerRotation(AT_EULER_ANGLES_ZXY_R,
                     -trackerData.Station[i-1].Orientation[0],
                     trackerData.Station[i-1].Orientation[1],
                     trackerData.Station[i-1].Orientation[2]);

@@ -131,10 +131,10 @@ void vsRemoteInterfaceBuffer::getPosition(xmlDocPtr doc, xmlNodePtr current,
 // Gets the orientation information at this level in the XML document
 // ------------------------------------------------------------------------
 void vsRemoteInterfaceBuffer::getOrientation(xmlDocPtr doc, xmlNodePtr current,
-                                             vsQuat *quat)
+                                             atQuat *quat)
 {
     xmlChar                *order;
-    vsMathEulerAxisOrder   ordering;
+    atMathEulerAxisOrder   ordering;
     double                 h;
     double                 p;
     double                 r;
@@ -144,53 +144,53 @@ void vsRemoteInterfaceBuffer::getOrientation(xmlDocPtr doc, xmlNodePtr current,
 
     // Determine the proper VESS constant for the string
     if (xmlStrcmp(order, (const xmlChar *) "XYZ_S") == 0)
-        ordering = VS_EULER_ANGLES_XYZ_S;
+        ordering = AT_EULER_ANGLES_XYZ_S;
     else if (xmlStrcmp(order, (const xmlChar *) "XZY_S") == 0)
-        ordering = VS_EULER_ANGLES_XZY_S;
+        ordering = AT_EULER_ANGLES_XZY_S;
     else if (xmlStrcmp(order, (const xmlChar *) "YXZ_S") == 0)
-        ordering = VS_EULER_ANGLES_YXZ_S;
+        ordering = AT_EULER_ANGLES_YXZ_S;
     else if (xmlStrcmp(order, (const xmlChar *) "YZX_S") == 0)
-        ordering = VS_EULER_ANGLES_YZX_S;
+        ordering = AT_EULER_ANGLES_YZX_S;
     else if (xmlStrcmp(order, (const xmlChar *) "ZXY_S") == 0)
-        ordering = VS_EULER_ANGLES_ZXY_S;
+        ordering = AT_EULER_ANGLES_ZXY_S;
     else if (xmlStrcmp(order, (const xmlChar *) "ZYX_S") == 0)
-        ordering = VS_EULER_ANGLES_ZYX_S;
+        ordering = AT_EULER_ANGLES_ZYX_S;
     else if (xmlStrcmp(order, (const xmlChar *) "XYX_S") == 0)
-        ordering = VS_EULER_ANGLES_XYX_S;
+        ordering = AT_EULER_ANGLES_XYX_S;
     else if (xmlStrcmp(order, (const xmlChar *) "XZX_S") == 0)
-        ordering = VS_EULER_ANGLES_XZX_S;
+        ordering = AT_EULER_ANGLES_XZX_S;
     else if (xmlStrcmp(order, (const xmlChar *) "YXY_S") == 0)
-        ordering = VS_EULER_ANGLES_YXY_S;
+        ordering = AT_EULER_ANGLES_YXY_S;
     else if (xmlStrcmp(order, (const xmlChar *) "YZY_S") == 0)
-        ordering = VS_EULER_ANGLES_YZY_S;
+        ordering = AT_EULER_ANGLES_YZY_S;
     else if (xmlStrcmp(order, (const xmlChar *) "ZXZ_S") == 0)
-        ordering = VS_EULER_ANGLES_ZXZ_S;
+        ordering = AT_EULER_ANGLES_ZXZ_S;
     else if (xmlStrcmp(order, (const xmlChar *) "ZYZ_S") == 0)
-        ordering = VS_EULER_ANGLES_ZYZ_S;
+        ordering = AT_EULER_ANGLES_ZYZ_S;
     else if (xmlStrcmp(order, (const xmlChar *) "XYZ_R") == 0)
-        ordering = VS_EULER_ANGLES_XYZ_R;
+        ordering = AT_EULER_ANGLES_XYZ_R;
     else if (xmlStrcmp(order, (const xmlChar *) "XZY_R") == 0)
-        ordering = VS_EULER_ANGLES_XZY_R;
+        ordering = AT_EULER_ANGLES_XZY_R;
     else if (xmlStrcmp(order, (const xmlChar *) "YXZ_R") == 0)
-        ordering = VS_EULER_ANGLES_YXZ_R;
+        ordering = AT_EULER_ANGLES_YXZ_R;
     else if (xmlStrcmp(order, (const xmlChar *) "YZX_R") == 0)
-        ordering = VS_EULER_ANGLES_YZX_R;
+        ordering = AT_EULER_ANGLES_YZX_R;
     else if (xmlStrcmp(order, (const xmlChar *) "ZXY_R") == 0)
-        ordering = VS_EULER_ANGLES_ZXY_R;
+        ordering = AT_EULER_ANGLES_ZXY_R;
     else if (xmlStrcmp(order, (const xmlChar *) "ZYX_R") == 0)
-        ordering = VS_EULER_ANGLES_ZYX_R;
+        ordering = AT_EULER_ANGLES_ZYX_R;
     else if (xmlStrcmp(order, (const xmlChar *) "XYX_R") == 0)
-        ordering = VS_EULER_ANGLES_XYX_R;
+        ordering = AT_EULER_ANGLES_XYX_R;
     else if (xmlStrcmp(order, (const xmlChar *) "XZX_R") == 0)
-        ordering = VS_EULER_ANGLES_XZX_R;
+        ordering = AT_EULER_ANGLES_XZX_R;
     else if (xmlStrcmp(order, (const xmlChar *) "YXY_R") == 0)
-        ordering = VS_EULER_ANGLES_YXY_R;
+        ordering = AT_EULER_ANGLES_YXY_R;
     else if (xmlStrcmp(order, (const xmlChar *) "YZY_R") == 0)
-        ordering = VS_EULER_ANGLES_YZY_R;
+        ordering = AT_EULER_ANGLES_YZY_R;
     else if (xmlStrcmp(order, (const xmlChar *) "ZXZ_R") == 0)
-        ordering = VS_EULER_ANGLES_ZXZ_R;
+        ordering = AT_EULER_ANGLES_ZXZ_R;
     else if (xmlStrcmp(order, (const xmlChar *) "ZYZ_R") == 0)
-        ordering = VS_EULER_ANGLES_ZYZ_R;
+        ordering = AT_EULER_ANGLES_ZYZ_R;
 
     // Don't need the order attribute anymore so free it
     xmlFree(order);
@@ -394,11 +394,11 @@ void vsRemoteInterfaceBuffer::processPlaceComponent(xmlDocPtr doc,
     char                   *name;
     vsNode                 *node;
     vsTransformAttribute   *xform;
-    vsMatrix               mat;
+    atMatrix               mat;
     double                 x;
     double                 y;
     double                 z;
-    vsQuat                 quat;
+    atQuat                 quat;
 
     // Initialize the quaternion that stores the orientation
     quat.set(0, 0, 0, 1);
@@ -495,11 +495,11 @@ void vsRemoteInterfaceBuffer::processQuerySequence(xmlDocPtr doc,
 void vsRemoteInterfaceBuffer::processSetKinematics(xmlDocPtr doc, 
                                                    xmlNodePtr current)
 {
-    vsQuat         quat;
+    atQuat         quat;
     char           *kinematicsName;
     vsSequencer    *rootSequencer;
     vsKinematics   *kinematics;
-    vsVector       positionVector;
+    atVector       positionVector;
     double         x;
     double         y;
     double         z;
@@ -525,9 +525,9 @@ void vsRemoteInterfaceBuffer::processSetKinematics(xmlDocPtr doc,
     {
         // Get the data out of the kinematics
         positionVector = kinematics->getPosition();
-        x = positionVector[VS_X];
-        y = positionVector[VS_Y];
-        z = positionVector[VS_Z];
+        x = positionVector[AT_X];
+        y = positionVector[AT_Y];
+        z = positionVector[AT_Z];
         quat = kinematics->getOrientation();
 
         // Go through the children and see what updates are there
@@ -562,9 +562,9 @@ void vsRemoteInterfaceBuffer::processSetKinematics(xmlDocPtr doc,
         }
 
         // Set the kinematics with the new data
-        positionVector[VS_X] = x;
-        positionVector[VS_Y] = y;
-        positionVector[VS_Z] = z;
+        positionVector[AT_X] = x;
+        positionVector[AT_Y] = y;
+        positionVector[AT_Z] = z;
         kinematics->setPosition(positionVector);
         kinematics->setOrientation(quat);
     }

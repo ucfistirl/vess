@@ -55,7 +55,7 @@
 // are not explicitly measured, their values will be estimated from the
 // PIJ and MPJ joint values.
 //
-// The computed joint angles are stored and returned as vsQuat's and can
+// The computed joint angles are stored and returned as atQuat's and can
 // be accessed with the getJoint() method.  The standard vsIODevice
 // getAxis() and getButton() methods are present as well.  In this case,
 // the getAxis() method returns the corresponding glove sensor data.
@@ -90,7 +90,7 @@
 #define VS_AG_WRIST_ABD_OFFSET   10.0
 
 #include "vsIODevice.h++"
-#include "vsQuat.h++"
+#include "atQuat.h++"
 
 // The glove sensors; use these for the getAxis() method.
 enum  
@@ -147,7 +147,7 @@ class VS_IO_DLL vsArticulationGlove : public vsIODevice
 protected:
 
     // The final rotation values
-    vsQuat           joints[VS_AG_NUM_JOINTS];
+    atQuat           joints[VS_AG_NUM_JOINTS];
 
     // Indicates whether or not to estimate the distal interphalangial
     // joints
@@ -187,7 +187,7 @@ public:
 
     // This method returns the computed articulation of the joint, which 
     // is probably more useful than the actual axis value
-    vsQuat           getJoint(int index);
+    atQuat           getJoint(int index);
 
     // Load/Save calibration data
     void             saveCalibration(char *filename);

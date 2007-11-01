@@ -22,7 +22,8 @@
 #ifndef VS_OBJECT_HPP
 #define VS_OBJECT_HPP
 
-#include <atItem.h++>
+#include "atItem.h++"
+#include "atGlobals.h++"
 #include <stdio.h>
 #include "vsTreeMap.h++"
 

@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 #include <math.h>
-#include "vsMatrix.h++"
+#include "atMatrix.h++"
 #include "vsBox.h++"
 
 //------------------------------------------------------------------------
@@ -43,7 +43,7 @@ vsBox::vsBox()
 // translation, and orientation.
 //------------------------------------------------------------------------
 vsBox::vsBox(const double &scaleX, const double &scaleY,
-    const double &scaleZ, const vsVector &translation, const vsQuat &rotation)
+    const double &scaleZ, const atVector &translation, const atQuat &rotation)
 {
     setBox(scaleX, scaleY, scaleZ, translation, rotation);
 }
@@ -52,8 +52,8 @@ vsBox::vsBox(const double &scaleX, const double &scaleY,
 // Constructor - Creates a box with the specified corner point and axis
 // vectors.
 //------------------------------------------------------------------------
-vsBox::vsBox(const vsVector &corner, const vsVector &axisX,
-    const vsVector &axisY, const vsVector &axisZ)
+vsBox::vsBox(const atVector &corner, const atVector &axisX,
+    const atVector &axisY, const atVector &axisZ)
 {
     setBox(corner, axisX, axisY, axisZ);
 }
@@ -96,7 +96,7 @@ void vsBox::setBox(const vsBox &box)
 // and rotation.
 //------------------------------------------------------------------------
 void vsBox::setBox(const double &scaleX, const double &scaleY,
-    const double &scaleZ, const vsVector &translation, const vsQuat &rotation)
+    const double &scaleZ, const atVector &translation, const atQuat &rotation)
 {
     // Copy the scale values.
     scaleVector.set(scaleX, scaleY, scaleZ);
@@ -112,8 +112,8 @@ void vsBox::setBox(const double &scaleX, const double &scaleY,
 // Virtual function
 // Set the box to have the specified corner point and axis vectors.
 //------------------------------------------------------------------------
-void vsBox::setBox(const vsVector &corner, const vsVector &axisX,
-    const vsVector &axisY, const vsVector &axisZ)
+void vsBox::setBox(const atVector &corner, const atVector &axisX,
+    const atVector &axisY, const atVector &axisZ)
 {
     // The translation is simply the location of the corner point.
     translationVector.clearCopy(corner);
@@ -123,8 +123,8 @@ void vsBox::setBox(const vsVector &corner, const vsVector &axisX,
         axisX.getMagnitude(), axisY.getMagnitude(), axisZ.getMagnitude());
 
     // Set the rotation quaternion based on the y- and z-axes.
-    rotationQuat.setVecsRotation(vsVector(0.0, 1.0, 0.0),
-        vsVector(0.0, 0.0, 1.0), axisY, axisZ);
+    rotationQuat.setVecsRotation(atVector(0.0, 1.0, 0.0),
+        atVector(0.0, 0.0, 1.0), axisY, axisZ);
 }
 
 //------------------------------------------------------------------------
@@ -137,15 +137,15 @@ void vsBox::setScale(vsScaleType type, double value)
     // Return the correct scale value.
     if (type == VS_SCALE_TYPE_X)
     {
-        scaleVector[VS_X] = value;
+        scaleVector[AT_X] = value;
     }
     else if (type == VS_SCALE_TYPE_Y)
     {
-        scaleVector[VS_Y] = value;
+        scaleVector[AT_Y] = value;
     }
     else if (type == VS_SCALE_TYPE_Z)
     {
-        scaleVector[VS_Z] = value;
+        scaleVector[AT_Z] = value;
     }
 }
 
@@ -161,15 +161,15 @@ double vsBox::getScale(vsScaleType type) const
     // Return the correct scale value.
     if (type == VS_SCALE_TYPE_X)
     {
-        return scaleVector[VS_X];
+        return scaleVector[AT_X];
     }
     else if (type == VS_SCALE_TYPE_Y)
     {
-        return scaleVector[VS_Y];
+        return scaleVector[AT_Y];
     }
     else if (type == VS_SCALE_TYPE_Z)
     {
-        return scaleVector[VS_Z];
+        return scaleVector[AT_Z];
     }
 
     // Return a default value.
@@ -179,11 +179,11 @@ double vsBox::getScale(vsScaleType type) const
 //------------------------------------------------------------------------
 // Virtual function
 // This method takes a value indicating one of the eight corners of the
-// box and returns the vsVector describing the point at that corner.
+// box and returns the atVector describing the point at that corner.
 //------------------------------------------------------------------------
-vsVector vsBox::getCorner(vsBoxCorner corner) const
+atVector vsBox::getCorner(vsBoxCorner corner) const
 {
-    vsVector returnPoint;
+    atVector returnPoint;
 
     // Determine which corner is to be returned. In the case of the front-
     // bottom-left corner, which is the origin of the box, the return is
@@ -197,32 +197,32 @@ vsVector vsBox::getCorner(vsBoxCorner corner) const
     }
     else if (corner == VS_BOX_CORNER_FBR)
     {
-        returnPoint.set(scaleVector[VS_X], 0.0, 0.0);
+        returnPoint.set(scaleVector[AT_X], 0.0, 0.0);
     }
     else if (corner == VS_BOX_CORNER_FTL)
     {
-        returnPoint.set(0.0, 0.0, scaleVector[VS_Z]);
+        returnPoint.set(0.0, 0.0, scaleVector[AT_Z]);
     }
     else if (corner == VS_BOX_CORNER_FTR)
     {
-        returnPoint.set(scaleVector[VS_X], 0.0, scaleVector[VS_Z]);
+        returnPoint.set(scaleVector[AT_X], 0.0, scaleVector[AT_Z]);
     }
     else if (corner == VS_BOX_CORNER_BBL)
     {
-        returnPoint.set(0.0, scaleVector[VS_Y], 0.0);
+        returnPoint.set(0.0, scaleVector[AT_Y], 0.0);
     }
     else if (corner == VS_BOX_CORNER_BBR)
     {
-        returnPoint.set(scaleVector[VS_X], scaleVector[VS_Y], 0.0);
+        returnPoint.set(scaleVector[AT_X], scaleVector[AT_Y], 0.0);
     }
     else if (corner == VS_BOX_CORNER_BTL)
     {
-        returnPoint.set(0.0, scaleVector[VS_Y], scaleVector[VS_Z]);
+        returnPoint.set(0.0, scaleVector[AT_Y], scaleVector[AT_Z]);
     }
     else if (corner == VS_BOX_CORNER_BTR)
     {
-        returnPoint.set(scaleVector[VS_X], scaleVector[VS_Y],
-            scaleVector[VS_Z]);
+        returnPoint.set(scaleVector[AT_X], scaleVector[AT_Y],
+            scaleVector[AT_Z]);
     }
 
     // Now rotate the return point by the orientation.
@@ -234,12 +234,12 @@ vsVector vsBox::getCorner(vsBoxCorner corner) const
 
 //------------------------------------------------------------------------
 // Virtual function
-// This method takes in a point as a vsVector and determines if it the 
+// This method takes in a point as a atVector and determines if it the 
 // point is inside the box
 //------------------------------------------------------------------------
-bool vsBox::isPointInside(const vsVector &point) const
+bool vsBox::isPointInside(const atVector &point) const
 {
-    vsVector transformedPoint, min, max;
+    atVector transformedPoint, min, max;
     
     // Must first transform point into object space
     // Rotate
@@ -251,10 +251,10 @@ bool vsBox::isPointInside(const vsVector &point) const
 	min = getCorner(VS_BOX_CORNER_FBL);
     max = getCorner(VS_BOX_CORNER_BTR);
     // Point is inside if it is bounded by the min/max extents
-    return (transformedPoint[VS_X] >= min[VS_X] && 
-            transformedPoint[VS_X] <= max[VS_X]) &&
-           (transformedPoint[VS_Y] >= min[VS_Y] &&
-            transformedPoint[VS_Y] <= max[VS_Y]) &&
-           (transformedPoint[VS_Z] >= min[VS_Z] &&
-            transformedPoint[VS_Z] <= max[VS_Z]);
+    return (transformedPoint[AT_X] >= min[AT_X] && 
+            transformedPoint[AT_X] <= max[AT_X]) &&
+           (transformedPoint[AT_Y] >= min[AT_Y] &&
+            transformedPoint[AT_Y] <= max[AT_Y]) &&
+           (transformedPoint[AT_Z] >= min[AT_Z] &&
+            transformedPoint[AT_Z] <= max[AT_Z]);
 }

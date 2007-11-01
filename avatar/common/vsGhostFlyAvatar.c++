@@ -107,9 +107,9 @@ void vsGhostFlyAvatar::setup()
     vsMouse *mouse;
     vsWindow *window;
     vsWindowSystem *wsys;
-    vsVector boundCenter;
+    atVector boundCenter;
     double boundRadius;
-    vsQuat initOrient;
+    atQuat initOrient;
 
     // There shouldn't be any objects in the object arrays; vsGhostFlyAvatar
     // doesn't need (or use) any.
@@ -148,11 +148,11 @@ void vsGhostFlyAvatar::setup()
     // sphere of the scene, and a default orientation pointing towards
     // the scene center.
     scene->getBoundSphere(&boundCenter, &boundRadius);
-    ghostKin->setPosition(vsVector(boundCenter[0] + boundRadius,
+    ghostKin->setPosition(atVector(boundCenter[0] + boundRadius,
 	boundCenter[1] + boundRadius, boundCenter[2] + boundRadius));
-    initOrient.setVecsRotation(vsVector(0.0, 1.0, 0.0),
-	vsVector(0.0, 0.0, 1.0), vsVector(-1.0, -1.0, -1.0),
-	vsVector(0.0, 0.0, 1.0));
+    initOrient.setVecsRotation(atVector(0.0, 1.0, 0.0),
+	atVector(0.0, 0.0, 1.0), atVector(-1.0, -1.0, -1.0),
+	atVector(0.0, 0.0, 1.0));
     ghostKin->setOrientation(initOrient);
 
     // Complete the process by adding the avatar's 'geometry' to the scene

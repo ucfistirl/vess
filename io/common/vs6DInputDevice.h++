@@ -22,9 +22,9 @@
 #ifndef VS_6D_INPUT_DEVICE_HPP
 #define VS_6D_INPUT_DEVICE_HPP
 
-#include "vsVector.h++"
-#include "vsMatrix.h++"
-#include "vsQuat.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
+#include "atQuat.h++"
 #include "vsIODevice.h++"
 #include "vsInputAxis.h++"
 
@@ -38,7 +38,7 @@ protected:
     vsInputAxis    position[VS_6DINPUT_NUM_AXES];
 
     // Quaternion for orientation values
-    vsQuat         orientation;   
+    atQuat         orientation;   
 
 public:
 
@@ -50,10 +50,10 @@ public:
     virtual vsInputAxis    *getAxis(int index);
 
     // Accessors
-    virtual vsVector       getPositionVec();
-    virtual vsVector       getOrientationVec(vsMathEulerAxisOrder axisOrder);
-    virtual vsMatrix       getOrientationMat();
-    virtual vsQuat         getOrientationQuat();
+    virtual atVector       getPositionVec();
+    virtual atVector       getOrientationVec(atMathEulerAxisOrder axisOrder);
+    virtual atMatrix       getOrientationMat();
+    virtual atQuat         getOrientationQuat();
 };
 
 #endif

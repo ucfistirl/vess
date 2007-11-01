@@ -599,7 +599,7 @@ void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y,
 // values.  Unspecified values are set to 0.0.
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setVertexLocalParameter(int index,
-                                                const vsVector &value)
+                                                const atVector &value)
 {
     float *data;
     int loop, size;
@@ -639,13 +639,13 @@ void vsShaderAttribute::setVertexLocalParameter(int index,
 }
 
 // ------------------------------------------------------------------------
-// Return a vsVector with the values currently set as the local vertex
+// Return a atVector with the values currently set as the local vertex
 // parameter at the specified index.
 // ------------------------------------------------------------------------
-vsVector vsShaderAttribute::getVertexLocalParameter(int index)
+atVector vsShaderAttribute::getVertexLocalParameter(int index)
 {
     float *data;
-    vsVector resultVector;
+    atVector resultVector;
 
     // Get the vector for the specified position.
     data = (float *) vertexParameterArray->getData(index);
@@ -823,7 +823,7 @@ void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y,
 // values.  Unspecified values are set to 0.0.
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setFragmentLocalParameter(int index,
-                                                  const vsVector &value)
+                                                  const atVector &value)
 {
     float *data;
     int loop, size;
@@ -863,13 +863,13 @@ void vsShaderAttribute::setFragmentLocalParameter(int index,
 }
 
 // ------------------------------------------------------------------------
-// Return a vsVector with the values currently set as the local fragment
+// Return a atVector with the values currently set as the local fragment
 // parameter at the specified index.
 // ------------------------------------------------------------------------
-vsVector vsShaderAttribute::getFragmentLocalParameter(int index)
+atVector vsShaderAttribute::getFragmentLocalParameter(int index)
 {
     float *data;
-    vsVector resultVector;
+    atVector resultVector;
 
     // Get the vector for the specified position.
     data = (float *) fragmentParameterArray->getData(index);

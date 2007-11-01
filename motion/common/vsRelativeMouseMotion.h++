@@ -112,7 +112,7 @@ public:
     void                  setAxisChange(int axis, double scaleFactor);
     double                getAxisChange(int axis);
 
-    // Which axis (VS_X, VS_Y, VS_Z) to rotate around
+    // Which axis (AT_X, AT_Y, AT_Z) to rotate around
     void                  setRotationAxis(int axis, int newRotationAxis);
     int                   getRotationAxis(int axis);
 

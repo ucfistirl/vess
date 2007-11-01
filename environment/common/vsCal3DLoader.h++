@@ -28,7 +28,7 @@
 #include "vsCal3DBoneLoader.h++"
 #include "vsCal3DAnimationLoader.h++"
 #include "vsSkeleton.h++"
-#include "vsMatrix.h++"
+#include "atMatrix.h++"
 #include "vsComponent.h++"
 #include "vsSequencer.h++"
 
@@ -56,7 +56,7 @@ private:
     vsCal3DMeshLoader       *meshLoader;
     vsCal3DBoneLoader       *boneLoader;
     vsCal3DAnimationLoader  *animationLoader;
-    vsMatrix                scaleMatrix;
+    atMatrix                scaleMatrix;
     vsGrowableArray         *meshList;
     int                     meshCount;
     vsGrowableArray         *animationList;

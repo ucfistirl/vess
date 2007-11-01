@@ -475,9 +475,9 @@ int vsChromaKey::calcDifference(unsigned char red, unsigned char green,
 
         // Sum of differences squared
         case VS_CHROMAKEY_DIFF_SUM_SQUARED:
-            result = VS_SQR(red - keyRed)
-                   + VS_SQR(green - keyGreen)
-                   + VS_SQR(blue - keyBlue);
+            result = AT_SQR(red - keyRed)
+                   + AT_SQR(green - keyGreen)
+                   + AT_SQR(blue - keyBlue);
             break;
 
         // Largest difference only

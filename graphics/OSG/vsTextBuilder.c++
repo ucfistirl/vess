@@ -99,7 +99,7 @@ vsTextBuilder::vsTextBuilder(char *newFont)
 // ------------------------------------------------------------------------
 // Constructor - Loads the specified font and sets the color to given color.
 // ------------------------------------------------------------------------
-vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor)
+vsTextBuilder::vsTextBuilder(char *newFont, atVector newColor)
 {
     int loop;
 
@@ -139,8 +139,8 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor)
 // Constructor - Loads the specified font and sets the color to given color.
 // Also set the transform that will be automatrically applied to the text.
 // ------------------------------------------------------------------------
-vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor,
-                             vsMatrix newTransform)
+vsTextBuilder::vsTextBuilder(char *newFont, atVector newColor,
+                             atMatrix newTransform)
 {
     int loop;
 
@@ -265,7 +265,7 @@ void vsTextBuilder::setScale(double xScale, double yScale, double zScale)
 // ------------------------------------------------------------------------
 // Set the color of this objects text.
 // ------------------------------------------------------------------------
-void vsTextBuilder::setColor(vsVector newColor)
+void vsTextBuilder::setColor(atVector newColor)
 {
     // Copy the font color to our internal variable. If the size of the given
     // color vector is less than four, then make sure that the fourth element
@@ -280,7 +280,7 @@ void vsTextBuilder::setColor(vsVector newColor)
 // Set the local transform matrix to the given one.  This matrix is
 // given to a transform attribute that is attached to all text components.
 // ------------------------------------------------------------------------
-void vsTextBuilder::setTransformMatrix(vsMatrix newTransform)
+void vsTextBuilder::setTransformMatrix(atMatrix newTransform)
 {
     transformMatrix = newTransform;
 }
@@ -327,7 +327,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
     int loop;
     char previousChar;
     int lineStartIdx;
-    vsVector currentPos, offset, bearing;
+    atVector currentPos, offset, bearing;
     osg::Vec2 osgFontKerning;
     vsTransformAttribute *xformAttr;
     int charWidth, charHeight;
@@ -378,11 +378,11 @@ vsComponent *vsTextBuilder::buildText(char *text)
             // the parent; subtracting the number of newlines encountered so
             // far accounts for the shift in numbering.
             justifyLine(result, lineStartIdx - newlines, loop - 1 - newlines,
-                currentPos[VS_X]);
+                currentPos[AT_X]);
 
             // Move the draw position to the beginning of the next line
-            currentPos[VS_X] = 0.0;
-            currentPos[VS_Z] -= 128.0;
+            currentPos[AT_X] = 0.0;
+            currentPos[AT_Z] -= 128.0;
 
             // Reset the line marker
             lineStartIdx = loop+1;
@@ -403,7 +403,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
                     osgText::KERNING_UNFITTED);
 
                 // Advance the draw position by the horizontal spacing value
-                currentPos[VS_X] += osgFontKerning[0];
+                currentPos[AT_X] += osgFontKerning[0];
             }
 
             // * Create a geometry object to hold the character, and set up
@@ -422,7 +422,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
             // Normal
             letterGeom->setBinding(VS_GEOMETRY_NORMALS, VS_GEOMETRY_BIND_OVERALL);
             letterGeom->setDataListSize(VS_GEOMETRY_NORMALS, 1);
-            letterGeom->setData(VS_GEOMETRY_NORMALS, 0, vsVector(0.0, -1.0, 0.0));
+            letterGeom->setData(VS_GEOMETRY_NORMALS, 0, atVector(0.0, -1.0, 0.0));
 
             // Vertex and texture coordinates
             letterGeom->setBinding(VS_GEOMETRY_TEXTURE_COORDS, VS_GEOMETRY_BIND_PER_VERTEX);
@@ -436,22 +436,22 @@ vsComponent *vsTextBuilder::buildText(char *text)
             // bottom left
             offset.set(0.0, 0.0, 0.0);
             letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 0, currentPos + bearing + offset);
-            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 0, vsVector(0.0, 0.0));
+            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 0, atVector(0.0, 0.0));
 
             // bottom right
             offset.set(charWidth, 0.0, 0.0);
             letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 1, currentPos + bearing + offset);
-            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 1, vsVector(1.0, 0.0));
+            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 1, atVector(1.0, 0.0));
 
             // top right
             offset.set(charWidth, 0.0, charHeight);
             letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 2, currentPos + bearing + offset);
-            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 2, vsVector(1.0, 1.0));
+            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 2, atVector(1.0, 1.0));
 
             // top left
             offset.set(0.0, 0.0, charHeight);
             letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 3, currentPos + bearing + offset);
-            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 3, vsVector(0.0, 1.0));
+            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 3, atVector(0.0, 1.0));
 
             // Get the texture for the character and attach it to the geometry
             letterTextureAttr = getTextureAttribute((unsigned char)(text[loop]));
@@ -461,7 +461,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
             result->addChild(letterGeom);
 
             // Advance the 'draw position'
-            currentPos[VS_X] += osgGlyph->getHorizontalAdvance();
+            currentPos[AT_X] += osgGlyph->getHorizontalAdvance();
         }
 
         // Record the current character for the next iteration
@@ -470,7 +470,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
 
     // Reposition the characters' geometry if the justification requires
     justifyLine(result, lineStartIdx - newlines, loop - 1 - newlines,
-        currentPos[VS_X]);
+        currentPos[AT_X]);
 
     // Create a transform attribute for the text component
     xformAttr = new vsTransformAttribute();
@@ -561,7 +561,7 @@ void vsTextBuilder::justifyLine(vsComponent *lineParent, int lineStartIdx,
     int loop, sloop;
     vsNode *childNode;
     vsGeometry *childGeom;
-    vsVector vertexCoord;
+    atVector vertexCoord;
 
     // If the current justification mode is LEFT justified, then there's no
     // work to do
@@ -594,11 +594,11 @@ void vsTextBuilder::justifyLine(vsComponent *lineParent, int lineStartIdx,
             switch (fontJustification)
             {
                 case VS_TEXTBUILDER_JUSTIFY_CENTER:
-                    vertexCoord[VS_X] -= (lineLength / 2.0);
+                    vertexCoord[AT_X] -= (lineLength / 2.0);
                     break;
 
                 case VS_TEXTBUILDER_JUSTIFY_RIGHT:
-                    vertexCoord[VS_X] -= lineLength;
+                    vertexCoord[AT_X] -= lineLength;
                     break;
             }
 

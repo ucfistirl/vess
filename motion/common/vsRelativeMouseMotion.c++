@@ -48,8 +48,8 @@ vsRelativeMouseMotion::vsRelativeMouseMotion(vsMouse *mouse,
     kinMax[1] = 90.0;
 
     // which axis to rotate around?
-    rotationAxis[0] = VS_Z;
-    rotationAxis[1] = VS_X;
+    rotationAxis[0] = AT_Z;
+    rotationAxis[1] = AT_X;
 
     // see header files - these reflect on the way that the calculated
     // orientation is combined with the current orientation on the kinematics
@@ -145,7 +145,7 @@ void vsRelativeMouseMotion::updateOrientation()
     {
         double delta;
         double currentRotation[3];
-        vsQuat q;
+        atQuat q;
 
         if (inputAxis[axis]==NULL)
             continue;
@@ -160,8 +160,8 @@ void vsRelativeMouseMotion::updateOrientation()
 
         // Get the current orientation so we can enforce axis limits
         q = kinematics->getOrientation();
-        q.getEulerRotation(VS_EULER_ANGLES_XYZ_S, &currentRotation[VS_X],
-            &currentRotation[VS_Y], &currentRotation[VS_Z]);
+        q.getEulerRotation(AT_EULER_ANGLES_XYZ_S, &currentRotation[AT_X],
+            &currentRotation[AT_Y], &currentRotation[AT_Z]);
 
         // enforce axis limits
         if (axisLimits[axis])
@@ -177,13 +177,13 @@ void vsRelativeMouseMotion::updateOrientation()
         // set up the rotation for the given axis
         switch (rotationAxis[axis])
         {
-            case VS_X:
+            case AT_X:
                 q.setAxisAngleRotation(1.0, 0.0, 0.0, delta);
                 break;
-            case VS_Y:
+            case AT_Y:
                 q.setAxisAngleRotation(0.0, 1.0, 0.0, delta);
                 break;
-            case VS_Z:
+            case AT_Z:
                 q.setAxisAngleRotation(0.0, 0.0, 1.0, delta);
                 break;
         }
@@ -286,7 +286,7 @@ double vsRelativeMouseMotion::getAxisChange(int axis)
 }
 
 // ------------------------------------------------------------------------
-// Set the axis which we will rotate around (VS_X, VS_Y, VS_Z)
+// Set the axis which we will rotate around (AT_X, AT_Y, AT_Z)
 // ------------------------------------------------------------------------
 void vsRelativeMouseMotion::setRotationAxis(int axis, int newRotationAxis)
 {
@@ -295,7 +295,7 @@ void vsRelativeMouseMotion::setRotationAxis(int axis, int newRotationAxis)
 }
 
 // ------------------------------------------------------------------------
-// Get the axis which we will rotate around (VS_X, VS_Y, VS_Z)
+// Get the axis which we will rotate around (AT_X, AT_Y, AT_Z)
 // ------------------------------------------------------------------------
 int vsRelativeMouseMotion::getRotationAxis(int axis)
 {
@@ -312,8 +312,8 @@ void vsRelativeMouseMotion::updateVelocity()
 {
     double              interval;
     double              dSpeed;
-    vsQuat              currentRot;
-    vsVector            v;
+    atQuat              currentRot;
+    atVector            v;
 
     // Get the frame time from the vsTimer object
     // interval = (vsSystem::systemObject)->getFrameTime();

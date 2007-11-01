@@ -380,7 +380,7 @@ void vsGLSLUniform::set(double doubleVal)
 // ------------------------------------------------------------------------
 // Sets the uniform to the new given value
 // ------------------------------------------------------------------------
-void vsGLSLUniform::set(vsVector vec)
+void vsGLSLUniform::set(atVector vec)
 {
     int i;
 
@@ -405,7 +405,7 @@ void vsGLSLUniform::set(vsVector vec)
 // ------------------------------------------------------------------------
 // Sets the uniform to the new given value
 // ------------------------------------------------------------------------
-void vsGLSLUniform::set(vsMatrix mat)
+void vsGLSLUniform::set(atMatrix mat)
 {
     int i, j;
 

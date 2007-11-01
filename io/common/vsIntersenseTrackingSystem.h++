@@ -62,7 +62,7 @@ private:
 
     bool                     valid;
 
-    vsQuat                   coordXform;
+    atQuat                   coordXform;
 
     bool                     configureSystem();
     void                     configureJoystick(int trackerNum);

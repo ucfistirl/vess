@@ -107,13 +107,13 @@ vsPhaseSpaceMD::vsPhaseSpaceMD(const char *serverName, bool master,
         for (i = 0; i < numCameras; i++)
         {
             cameras[i].id = cameraData[i].id;
-            cameras[i].position[VS_X] = cameraData[i].pose[0];
-            cameras[i].position[VS_Y] = cameraData[i].pose[1];
-            cameras[i].position[VS_Z] = cameraData[i].pose[2];
+            cameras[i].position[AT_X] = cameraData[i].pose[0];
+            cameras[i].position[AT_Y] = cameraData[i].pose[1];
+            cameras[i].position[AT_Z] = cameraData[i].pose[2];
             cameras[i].orientation[VS_W] = cameraData[i].pose[3];
-            cameras[i].orientation[VS_X] = cameraData[i].pose[4];
-            cameras[i].orientation[VS_Y] = cameraData[i].pose[5];
-            cameras[i].orientation[VS_Z] = cameraData[i].pose[6];
+            cameras[i].orientation[AT_X] = cameraData[i].pose[4];
+            cameras[i].orientation[AT_Y] = cameraData[i].pose[5];
+            cameras[i].orientation[AT_Z] = cameraData[i].pose[6];
         }
     
         // Clean up the OWLCamera structures
@@ -262,9 +262,9 @@ void vsPhaseSpaceMD::updateSystem()
     OWLMarker markers[VS_PSMD_MAX_TRACKERS];
     int markerCount, rigidCount;
     bool found;
-    vsVector position;
-    vsQuat orientation;
-    vsQuat rotQuat;
+    atVector position;
+    atQuat orientation;
+    atQuat rotQuat;
     int i, j;
 
     // Rotation quat
@@ -553,7 +553,7 @@ void vsPhaseSpaceMD::setScale(float newScale)
 // position and orientation.  Without any offsets, the origin of the 
 // tracked space is camera 0.
 // ------------------------------------------------------------------------
-void vsPhaseSpaceMD::setReferenceFrame(vsVector position, vsQuat orientation)
+void vsPhaseSpaceMD::setReferenceFrame(atVector position, atQuat orientation)
 {
     // Don't do anything here if we're not the master client
     if (!master)
@@ -563,13 +563,13 @@ void vsPhaseSpaceMD::setReferenceFrame(vsVector position, vsQuat orientation)
 
     // Convert the vector and quat to an array of seven floats in the right
     // order
-    pose[0] = position[VS_X];
-    pose[1] = position[VS_Y];
-    pose[2] = position[VS_Z];
+    pose[0] = position[AT_X];
+    pose[1] = position[AT_Y];
+    pose[2] = position[AT_Z];
     pose[3] = orientation[VS_W];
-    pose[4] = orientation[VS_X];
-    pose[5] = orientation[VS_Y];
-    pose[6] = orientation[VS_Z];
+    pose[4] = orientation[AT_X];
+    pose[5] = orientation[AT_Y];
+    pose[6] = orientation[AT_Z];
 
     // Send the new pose to the system
     owlLoadPose(pose);
@@ -771,7 +771,7 @@ void vsPhaseSpaceMD::createPointTracker(int ledIndex)
 // and/or the createPointTracker() method.
 // ------------------------------------------------------------------------
 void vsPhaseSpaceMD::createRigidTracker(int ledCount, int *ledIndices, 
-                                        vsVector *ledOffsets)
+                                        atVector *ledOffsets)
 {
     int i;
     float offset[3];
@@ -812,16 +812,16 @@ void vsPhaseSpaceMD::createRigidTracker(int ledCount, int *ledIndices,
         for (i = 0; i < ledCount; i++)
         {
             printf("   Adding marker using LED %d, (offset: %0.2lf, %0.2lf, "
-                "%0.2lf)... ", ledIndices[i], ledOffsets[i][VS_X], 
-                ledOffsets[i][VS_Y], ledOffsets[i][VS_Z]); 
+                "%0.2lf)... ", ledIndices[i], ledOffsets[i][AT_X], 
+                ledOffsets[i][AT_Y], ledOffsets[i][AT_Z]); 
 
             // Associate the LED with the tracker
             owlMarkeri(MARKER(numTrackers, i), OWL_SET_LED, ledIndices[i]);
 
             // Set the offset of this LED from the rigid body's origin
-            offset[VS_X] = ledOffsets[i][VS_X];
-            offset[VS_Y] = ledOffsets[i][VS_Y];
-            offset[VS_Z] = ledOffsets[i][VS_Z];
+            offset[AT_X] = ledOffsets[i][AT_X];
+            offset[AT_Y] = ledOffsets[i][AT_Y];
+            offset[AT_Z] = ledOffsets[i][AT_Z];
             owlMarkerfv(MARKER(numTrackers, i), OWL_SET_POSITION, offset);
 
             // Check for errors...

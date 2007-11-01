@@ -176,13 +176,13 @@ void vsGLSLUniform::set(double doubleVal)
 // ------------------------------------------------------------------------
 // Sets the uniform to the new given value
 // ------------------------------------------------------------------------
-void vsGLSLUniform::set(vsVector vec)
+void vsGLSLUniform::set(atVector vec)
 {
     osg::Vec2 vec2;
     osg::Vec3 vec3;
     osg::Vec4 vec4;
 
-    // Create the correct size of vector based on the vsVector's size
+    // Create the correct size of vector based on the atVector's size
     switch (vec.getSize())
     {
         case 2: 
@@ -210,7 +210,7 @@ void vsGLSLUniform::set(vsVector vec)
 // ------------------------------------------------------------------------
 // Sets the uniform to the new given value
 // ------------------------------------------------------------------------
-void vsGLSLUniform::set(vsMatrix mat)
+void vsGLSLUniform::set(atMatrix mat)
 {
     // Call the alternate form of this setter with a size of 4
     set(4, mat);
@@ -219,7 +219,7 @@ void vsGLSLUniform::set(vsMatrix mat)
 // ------------------------------------------------------------------------
 // Sets the uniform to the new given value
 // ------------------------------------------------------------------------
-void vsGLSLUniform::set(int size, vsMatrix mat)
+void vsGLSLUniform::set(int size, atMatrix mat)
 {
     osg::Matrix2 mat2;
     osg::Matrix3 mat3;
@@ -354,13 +354,13 @@ void vsGLSLUniform::setEntry(u_long index, double doubleVal)
 // ------------------------------------------------------------------------
 // Sets the uniform array element at the given index to the new given value
 // ------------------------------------------------------------------------
-void vsGLSLUniform::setEntry(u_long index, vsVector vec)
+void vsGLSLUniform::setEntry(u_long index, atVector vec)
 {
     osg::Vec2 vec2;
     osg::Vec3 vec3;
     osg::Vec4 vec4;
 
-    // Create the correct size of vector based on the vsVector's size
+    // Create the correct size of vector based on the atVector's size
     switch (vec.getSize())
     {
         case 2: 
@@ -388,7 +388,7 @@ void vsGLSLUniform::setEntry(u_long index, vsVector vec)
 // ------------------------------------------------------------------------
 // Sets the uniform array element at the given index to the new given value
 // ------------------------------------------------------------------------
-void vsGLSLUniform::setEntry(u_long index, vsMatrix mat)
+void vsGLSLUniform::setEntry(u_long index, atMatrix mat)
 {
     // Call the alternate form of this setter with a size of 4
     setEntry(index, 4, mat);
@@ -397,7 +397,7 @@ void vsGLSLUniform::setEntry(u_long index, vsMatrix mat)
 // ------------------------------------------------------------------------
 // Sets the uniform array element at the given index to the new given value
 // ------------------------------------------------------------------------
-void vsGLSLUniform::setEntry(u_long index, int size, vsMatrix mat)
+void vsGLSLUniform::setEntry(u_long index, int size, atMatrix mat)
 {
     osg::Matrix2 mat2;
     osg::Matrix3 mat3;

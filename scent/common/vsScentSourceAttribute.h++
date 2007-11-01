@@ -25,8 +25,8 @@
 
 #include "vsAttribute.h++"
 #include "vsComponent.h++"
-#include "vsVector.h++"
-#include "vsMatrix.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
 #include "vsScent.h++"
 
 #define VS_SA_DEFAULT_SCALE        1.0
@@ -41,10 +41,10 @@ class VS_SCENT_DLL vsScentSourceAttribute : public vsAttribute
 protected:
 
     vsComponent    *parentComponent;
-    vsMatrix       offsetMatrix;
+    atMatrix       offsetMatrix;
     vsScent        *scent;
 
-    vsVector       currentPosition;
+    atVector       currentPosition;
 
     double         scale;
     double         minStrength, maxStrength;
@@ -61,7 +61,7 @@ VS_INTERNAL:
 
     virtual void    attachDuplicate(vsNode *theNode);
 
-    vsVector        getPosition();
+    atVector        getPosition();
 
     void            update();
 
@@ -75,8 +75,8 @@ public:
     virtual int           getAttributeType();
     virtual int           getAttributeCategory();
 
-    void                  setOffsetMatrix(vsMatrix newMatrix);
-    vsMatrix              getOffsetMatrix();
+    void                  setOffsetMatrix(atMatrix newMatrix);
+    atMatrix              getOffsetMatrix();
 
     vsScent               *getScent();
 

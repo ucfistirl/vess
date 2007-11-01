@@ -41,7 +41,7 @@ vsTextBuilder::vsTextBuilder()
     setJustification(VS_TEXTBUILDER_JUSTIFY_CENTER);
 
     // Set the color to the default of white.
-    setColor(vsVector(1.0, 1.0, 1.0, 1.0));
+    setColor(atVector(1.0, 1.0, 1.0, 1.0));
 
     // Initialize the transforms to the identity so they do not alter
     // the appearance of the text.
@@ -64,7 +64,7 @@ vsTextBuilder::vsTextBuilder(char *newFont)
     setJustification(VS_TEXTBUILDER_JUSTIFY_CENTER);
 
     // Set the color to the default of white.
-    setColor(vsVector(1.0, 1.0, 1.0, 1.0));
+    setColor(atVector(1.0, 1.0, 1.0, 1.0));
 
     // Attempt to set the font to the given one.
     font = NULL;
@@ -79,7 +79,7 @@ vsTextBuilder::vsTextBuilder(char *newFont)
 // ------------------------------------------------------------------------
 // Constructor - Loads the specified font and sets the color to given color.
 // ------------------------------------------------------------------------
-vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor)
+vsTextBuilder::vsTextBuilder(char *newFont, atVector newColor)
 {
     // Create the loader that will be used to convert the
     // performer subgraph.
@@ -106,8 +106,8 @@ vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor)
 // Constructor - Loads the specified font and sets the color to given color.
 // Also set the transform that will be automatrically applied to the text.
 // ------------------------------------------------------------------------
-vsTextBuilder::vsTextBuilder(char *newFont, vsVector newColor,
-                             vsMatrix newTransform)
+vsTextBuilder::vsTextBuilder(char *newFont, atVector newColor,
+                             atMatrix newTransform)
 {
     // Create the loader that will be used to convert the
     // performer subgraph.
@@ -187,7 +187,7 @@ void vsTextBuilder::setScale(double xScale, double yScale, double zScale)
 // ------------------------------------------------------------------------
 // Set the color of this object's text.
 // ------------------------------------------------------------------------
-void vsTextBuilder::setColor(vsVector newColor)
+void vsTextBuilder::setColor(atVector newColor)
 {
     color = newColor;
 }
@@ -196,7 +196,7 @@ void vsTextBuilder::setColor(vsVector newColor)
 // Set the local transform matrix to the given one.  This matrix is
 // given to a transform attribute that is attached to all text components.
 // ------------------------------------------------------------------------
-void vsTextBuilder::setTransformMatrix(vsMatrix newTransform)
+void vsTextBuilder::setTransformMatrix(atMatrix newTransform)
 {
     transformMatrix = newTransform;
 }

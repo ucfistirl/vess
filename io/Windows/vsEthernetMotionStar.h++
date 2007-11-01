@@ -35,9 +35,9 @@
 #include "vsUDPNetworkInterface.h++"
 #include "vsMotionTracker.h++"
 #include "vsTrackingSystem.h++"
-#include "vsVector.h++"
-#include "vsMatrix.h++"
-#include "vsQuat.h++"
+#include "atVector.h++"
+#include "atMatrix.h++"
+#include "atQuat.h++"
 
 // Maximum number of receivers
 #define VS_MSTAR_MAX_TRACKERS     126
@@ -366,7 +366,7 @@ protected:
     int                     ornScale;
 
     // Coordinate conversion matrices
-    vsQuat                  coordXform;
+    atQuat                  coordXform;
 
     // MotionStar command state
     int                     currentSequence;
