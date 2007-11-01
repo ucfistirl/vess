@@ -332,7 +332,7 @@ void vsInverseKinematics::reachForPoint(atVector targetPoint)
             // Create the rotation quaternion that rotates the end effector
             // vector to the target point vector
             rotAxis = jointToEndVec.getCrossProduct(jointToTargetVec).getNormalized();
-            rotAngle = VS_RAD2DEG(acos(jointToEndVec.getDotProduct(jointToTargetVec)));
+            rotAngle = AT_RAD2DEG(acos(jointToEndVec.getDotProduct(jointToTargetVec)));
 
             rotQuat.setAxisAngleRotation(rotAxis[0], rotAxis[1], rotAxis[2],
                 rotAngle);
@@ -342,7 +342,7 @@ void vsInverseKinematics::reachForPoint(atVector targetPoint)
             rotQuat = tempQuat.getConjugate() * rotQuat * tempQuat;
 
             // Modify the joint's orientation by this new rotation
-            if (!VS_EQUAL(0.0, rotAngle))
+            if (!AT_EQUAL(0.0, rotAngle))
                 jointKin->preModifyOrientation(rotQuat);
 
             // Apply the dampening to the joint's orientation

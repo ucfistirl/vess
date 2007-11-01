@@ -493,8 +493,8 @@ void vsIS600::updateAngles(int trackerNum, atVector orientationVec)
     if (trackerNum < numTrackers)
     {
         // Convert to VESS coordinates
-        ornQuat.setEulerRotation(AT_EULER_ANGLES_ZYX_R, orientationVec[VS_H],
-            orientationVec[VS_P], orientationVec[VS_R]);
+        ornQuat.setEulerRotation(AT_EULER_ANGLES_ZYX_R, orientationVec[AT_H],
+            orientationVec[AT_P], orientationVec[AT_R]);
         ornQuat = coordXform * ornQuat * coordXform;
 
         // Update the tracker.  Use the private copy of the tracker
