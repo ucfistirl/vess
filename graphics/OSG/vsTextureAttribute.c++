@@ -316,12 +316,24 @@ void vsTextureAttribute::getImage(unsigned char **imageData, int *xSize,
 // ------------------------------------------------------------------------
 void vsTextureAttribute::loadImageFromFile(char *filename)
 {
+    osgDB::ReaderWriter::Options *options;
+
     // Unreference the current texture image (if any)
     if (osgTexImage)
         osgTexImage->unref();
 
-    // Read the image file into a new osg::Image object
-    osgTexImage = osgDB::readImageFile(filename);
+    // Create a ReaderWriter::Options object, specifying that we want .dds
+    // files to be vertically flipped (this accounts for the different
+    // texture coordinate systems between DirectX and OpenGL)
+    options = new osgDB::ReaderWriter::Options("dds_flip");
+    options->ref();
+
+    // Read the image file into a new osg::Image object, passing the options
+    // object
+    osgTexImage = osgDB::readImageFile(filename, options);
+
+    // Get rid of the options
+    options->unref();
 
     // If successful, set the Texture2D to use the new image and 
     // referenc the image locally

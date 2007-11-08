@@ -333,6 +333,8 @@ void vsTextureCubeAttribute::getImage(int face, unsigned char **imageData,
 // ------------------------------------------------------------------------
 void vsTextureCubeAttribute::loadImageFromFile(int face, char *filename)
 {
+    osgDB::ReaderWriter::Options *options;
+
     // Insure the face is a valid index
     if ((face < 0) || (face > (VS_TEXTURE_CUBE_SIDES - 1)))
     {
@@ -345,8 +347,17 @@ void vsTextureCubeAttribute::loadImageFromFile(int face, char *filename)
     if (osgTexImage[face])
         osgTexImage[face]->unref();
 
+    // Create a ReaderWriter::Options object specifying that we want .dds
+    // files to be flipped vertically (this handles the different texture
+    // coordinate systems between DirectX and OpenGL)
+    options = new osgDB::ReaderWriter::Options("dds_flip");
+    options->ref();
+
     // Read the image file into a new osg::Image object
-    osgTexImage[face] = osgDB::readImageFile(filename);
+    osgTexImage[face] = osgDB::readImageFile(filename, options);
+
+    // Get rid of the options object
+    options->unref();
 
     // If successful, set the Texture2D to use the new image and 
     // referenc the image locally

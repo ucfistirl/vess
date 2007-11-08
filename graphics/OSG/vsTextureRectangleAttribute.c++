@@ -288,12 +288,23 @@ void vsTextureRectangleAttribute::getImage(unsigned char **imageData,
 // ------------------------------------------------------------------------
 void vsTextureRectangleAttribute::loadImageFromFile(char *filename)
 {
+    osgDB::ReaderWriter::Options *options;
+
     // Unreference the current texture image (if any)
     if (osgTexImage)
         osgTexImage->unref();
 
+    // Create a ReaderWriter::Options object specifying that we want .dds
+    // files to be flipped vertically (this accounts for the different
+    // texture coordinate systems between DirectX and OpenGL)
+    options = new osgDB::ReaderWriter::Options("dds_flip");
+    options->ref();
+
     // Read the image file into a new osg::Image object
-    osgTexImage = osgDB::readImageFile(filename);
+    osgTexImage = osgDB::readImageFile(filename, options);
+
+    // Get rid of the options object
+    options->unref();
 
     // If successful, set the TextureRectangle to use the new image and 
     // reference the image locally
