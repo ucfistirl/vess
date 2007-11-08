@@ -266,13 +266,21 @@ bool vsDatabaseLoader::getLoaderMode(int whichMode)
 vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
 {
     vsNode *dbRoot;
+    osgDB::ReaderWriter::Options *options;
     vsComponent *result;
     osg::Node *osgScene;
     vsObjectMap *nodeMap, *attrMap;
     vsOptimizer *optimizer;
 
+    // Create a ReaderWriter options object to tell OSG that we want any
+    // .dds files we load to be flipped vertically (this accounts for the
+    // differences in texture coordinate systems between DirectX and
+    // OpenGL
+    options = new osgDB::ReaderWriter::Options("dds_flip");
+    options->ref();
+
     // Load the specified file into an OSG scene graph
-    osgScene = osgDB::readNodeFile(databaseFilename);
+    osgScene = osgDB::readNodeFile(databaseFilename, options);
     if (!osgScene)
     {
         printf("vsDatabaseLoader::loadDatabase: Load of '%s' failed\n",
@@ -280,6 +288,9 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
         return NULL;
     }
     osgScene->ref();
+
+    // Get rid of the options object
+    options->unref();
 
     // Create the object maps required for the OSG to VESS conversion
     // process to work
