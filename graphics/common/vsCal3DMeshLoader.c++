@@ -820,6 +820,12 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                                    &(textureCoords[meshTexCoordsProcessed][0]),
                                    &(textureCoords[meshTexCoordsProcessed][1]));
 
+                                // Invert the T coordinate (Cal3D textures
+                                // are flipped)
+                                textureCoords[meshTexCoordsProcessed][1] =
+                                    1.0 - 
+                                    textureCoords[meshTexCoordsProcessed][1];
+
                                 // Free the XML string.
                                 xmlFree(tempString);
 
