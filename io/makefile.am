@@ -47,7 +47,9 @@ EXTRA_libvsIO_a_SOURCES = \
                           Linux/vs1394Camera.c++ \
                           Linux/vsLinuxJoystickSystem.c++ \
                           Linux/vsPhaseSpaceMD.c++ \
-                          Linux/vsScentAirSystem.c++
+                          Linux/vsScentAirSystem.c++ \
+                          Linux/vsVRPNTrackingSystem.c++ \
+                          Linux/vsHiball.c++
 
 # Extra sources for libvsIO.so (same as libvsIO.a)
 EXTRA_libvsIO_so_SOURCES = $(EXTRA_libvsIO_a_SOURCES)

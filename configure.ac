@@ -721,6 +721,50 @@ if test x$with_raw1394 != xno ; then
     fi
 fi
 
+
+dnl Provide the option to use the VRPN library. Enables the compilation of the
+dnl vsVRPNTrackingSystem and vsHiball classes. The argument (if present) should
+dnl be the path to the library; assumes /usr/local if no argument is given.
+
+AC_ARG_WITH(vrpn,
+[[  --with-vrpn=[prefix]   Use the VRPN library for remote peripheral 
+                           communication (if necessary, the path to the library
+                           may be specified) [no]]],
+, with_vrpn=no)
+
+dnl Default to /usr/local if no argument given
+if test x$with_vrpn = xyes ; then
+    with_vrpn=/usr/local
+fi
+
+dnl Verify the VRPN path data if present
+if test x$with_vrpn != xno ; then
+
+
+    AC_MSG_CHECKING([path for OpenAL libraries])
+    if test -e "$with_vrpn/libs/libvrpn.a" ; then
+        AC_MSG_RESULT([$with_vrpn/libs])
+        VRPN_LIB_DIR=-L$with_vrpn/libs
+    else
+        AC_MSG_RESULT([not found])
+        AC_MSG_WARN([  
+
+            Unable to find the VRPN libraries (libvrpn.a). VESS may compile,
+            but any applications that use the VRPN peripherals will most likely
+            not compile or run.
+
+        ])
+    fi
+
+    dnl Add the VRPN path information to the variables that will eventually
+    dnl get exported to the IO makefile.
+    EXTRA_IO_OBJECTS="$EXTRA_IO_OBJECTS vsVRPNTrackingSystem.$OBJEXT vsHiball.$OBJEXT"
+    IO_INCLUDE_DIR="$IO_INCLUDE_DIR -I$with_vrpn/include"
+    IO_LIB_DIR="$IO_LIB_DIR -L$with_vrpn/libs"
+    IO_LIB="$IO_LIB -lvrpn"
+fi
+
+
 dnl Provide the option to use the PhaseSpace OWL API.  This is required for
 dnl VESS support of the PhaseSpace Motion Digitization tracking system.
 AC_ARG_WITH(phasespace,
