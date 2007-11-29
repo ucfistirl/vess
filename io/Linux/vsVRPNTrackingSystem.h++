@@ -64,6 +64,8 @@ class vsVRPNTrackingSystem : public vsTrackingSystem
 protected:
 
     atString               remoteHostname;
+
+    atString               localHostname;
     vrpn_Connection        *remoteConnection;
 
     int                    numRemoteTrackers;
@@ -77,10 +79,18 @@ protected:
     static void            remoteButtonChangeHandler(void *userData,
                                const vrpn_BUTTONCB button);
 
+VS_INTERNAL:
+
+    void        createRemoteObjects(atString hostName, atList * trackerNames,
+                    atList * buttonNames);
+
 public:
 
                           vsVRPNTrackingSystem(atString hostName,
                               atList * trackerNames, atList * buttonNames);
+                          vsVRPNTrackingSystem(atString hostName,
+                              atString localName, atList * trackerNames,
+                              atList * buttonNames);
     virtual               ~vsVRPNTrackingSystem();
 
     virtual const char    *getClassName() = 0;

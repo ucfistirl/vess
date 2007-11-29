@@ -27,16 +27,41 @@
 vsVRPNTrackingSystem::vsVRPNTrackingSystem(atString hostName,
     atList * trackerNames, atList * buttonNames)
 {
-    atString    *curName;
-    char        hostVRPNAddress[256];
-    int         i;
-
     // Store the hostname in a local variable.
     remoteHostname = hostName;
 
-    // Forge the connection.
+    // No remote connection is required under this constructor.
+    localHostname.setString("0.0.0.0");
+    remoteConnection = NULL;
+
+    // Now initialize the remote objects.
+    createRemoteObjects(hostName, trackerNames, buttonNames);
+}
+
+
+vsVRPNTrackingSystem::vsVRPNTrackingSystem(atString hostName,
+    atString localName, atList * trackerNames, atList * buttonNames)
+{
+    // Store the hostnames in a local variable.
+    remoteHostname = hostName;
+    localHostname = localName;
+
+    // Forge a special connection. If the local machine has more than one
+    // adapter, this is necessary to differentiate between them.
     remoteConnection = vrpn_get_connection_by_name(remoteHostname.getString(),
-        NULL, NULL, NULL, NULL, 1.0, 3, "172.16.0.2");
+        NULL, NULL, NULL, NULL, 1.0, 3, localHostname.getString());
+
+    // Now initialize the remote objects.
+    createRemoteObjects(hostName, trackerNames, buttonNames);
+}
+
+
+void vsVRPNTrackingSystem::createRemoteObjects(atString hostName,
+    atList *trackerNames, atList *buttonNames)
+{
+    atString    *curName;
+    char        hostVRPNAddress[256];
+    int         i;
 
     // Create the appropriate number of trackers.
     if (trackerNames != NULL)
@@ -135,8 +160,9 @@ void vsVRPNTrackingSystem::update()
 {
     int i;
 
-    // Perform an update on the connection.
-    remoteConnection->mainloop();
+    // Perform an update on the connection if it exists.
+    if (remoteConnection != NULL)
+        remoteConnection->mainloop();
 
     // Perform an update on each of the trackers.
     for (i = 0; i < numRemoteTrackers; i++)
