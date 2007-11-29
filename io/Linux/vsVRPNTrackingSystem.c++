@@ -34,6 +34,10 @@ vsVRPNTrackingSystem::vsVRPNTrackingSystem(atString hostName,
     // Store the hostname in a local variable.
     remoteHostname = hostName;
 
+    // Forge the connection.
+    remoteConnection = vrpn_get_connection_by_name(remoteHostname.getString(),
+        NULL, NULL, NULL, NULL, 1.0, 3, "172.16.0.2");
+
     // Create the appropriate number of trackers.
     if (trackerNames != NULL)
     {
@@ -56,6 +60,10 @@ vsVRPNTrackingSystem::vsVRPNTrackingSystem(atString hostName,
             // Generate the full address from the host and tracker names.
             sprintf(hostVRPNAddress,
                 "%s@%s", curName->getString(), remoteHostname.getString());
+
+            // ALLOCATE DATA FOOL.
+            remoteTrackers[i] = 
+                (vsVRPNRemoteTracker *)malloc(sizeof(vsVRPNRemoteTracker));
 
             // Create the remote tracker connection.
             remoteTrackers[i]->vrpnTracker =
@@ -97,6 +105,9 @@ vsVRPNTrackingSystem::vsVRPNTrackingSystem(atString hostName,
                 "%s@%s", curName->getString(), remoteHostname.getString());
 
             // Create the remote button connection.
+            remoteButtons[i] = 
+                (vsVRPNRemoteButton *)malloc(sizeof(vsVRPNRemoteButton));
+
             remoteButtons[i]->vrpnButton =
                 new vrpn_Button_Remote(hostVRPNAddress);
             remoteButtons[i]->vrpnButton->register_change_handler(
@@ -123,6 +134,9 @@ vsVRPNTrackingSystem::~vsVRPNTrackingSystem()
 void vsVRPNTrackingSystem::update()
 {
     int i;
+
+    // Perform an update on the connection.
+    remoteConnection->mainloop();
 
     // Perform an update on each of the trackers.
     for (i = 0; i < numRemoteTrackers; i++)

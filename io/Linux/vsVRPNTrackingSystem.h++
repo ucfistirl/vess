@@ -64,6 +64,7 @@ class vsVRPNTrackingSystem : public vsTrackingSystem
 protected:
 
     atString               remoteHostname;
+    vrpn_Connection        *remoteConnection;
 
     int                    numRemoteTrackers;
     vsVRPNRemoteTracker    *remoteTrackers[VS_VRPN_MAX_REMOTE_TRACKERS];
