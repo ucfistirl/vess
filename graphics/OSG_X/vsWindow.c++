@@ -701,6 +701,9 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
     XVisualInfo *visualList;
     GLXFBConfig *configList;
     int configCount;
+    int i;
+    XVisualInfo *fbVisual;
+    VisualID fbVisualID;
     Window xWindowID;
     Window *childPointer;
     unsigned int childCount;
@@ -772,13 +775,41 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
         // Invalid frame-buffer configuration list, print an error
         printf("vsWindow::vsWindow: Unable to choose an appropriate frame-"
                "buffer configuration!\n");
-                                                                                                                                                             
+
         // Bail out
         return;
     }
-                                                                                                                                                             
-    // Save the first element of the config list
-    fbConfig = configList[0];
+
+    // Look in the list of framebuffer configurations for the one that
+    // exactly matches the given window's visual ID
+    i = 0;
+    fbVisual = glXGetVisualFromFBConfig(xWindowDisplay, configList[i]);
+    fbVisualID = fbVisual->visualid;
+    while ((i < configCount) && (fbVisualID != visualID))
+    {
+        i++;
+        if (i < configCount)
+        {
+            fbVisual = glXGetVisualFromFBConfig(xWindowDisplay, configList[i]);
+            fbVisualID = fbVisual->visualid;
+        }
+    }
+
+    // See if we found an exact visual match
+    if (i < configCount)
+    {
+        // Use the framebuffer configuration that exactly matches the window
+        fbConfig = configList[i];
+    }
+    else
+    {
+        // Print a warning about the possible visual mismatch
+        printf("vsWindow::vsWindow:  Unable to to find exact visual match ");
+        printf("for given window\n");
+
+        // Use the first configuration chosen by the driver
+        fbConfig = configList[0];
+    }
 
     // Free the memory used for the config list
     XFree(configList);
@@ -786,13 +817,13 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
     // Create an OpenGL rendering context using direct rendering
     glContext = glXCreateNewContext(xWindowDisplay, fbConfig, GLX_RGBA_TYPE,
         NULL, GL_TRUE);
-                                                                                                                                                             
+
     // Make sure the context is valid
     if (glContext == NULL)
     {
         // Invalid context, print an error
         printf("vsWindow::vsWindow:  Unable to create an OpenGL context!\n");
-                                                                                                                                                             
+
         // Bail out
         return;
     }
@@ -1353,7 +1384,7 @@ int vsWindow::getWindowNumber()
 void vsWindow::makeCurrent()
 {
     Bool result;
-	
+
     // Try to make this window's GLX context current
     result = glXMakeCurrent(parentScreen->getParentPipe()->getXDisplay(), 
         drawable, glContext);
