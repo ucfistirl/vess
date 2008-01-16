@@ -198,24 +198,24 @@ AC_ARG_WITH(atlas,
 dnl Provide the option to use Performer.  Set the scene graph variable
 dnl to indicate Performer if this option is chosen.
 AC_ARG_WITH(performer,
-[[  --with-performer        Use OpenGL Performer for graphics [yes]]],
-SG=Performer, SG=Performer; with_performer=yes)
+[[  --with-performer        Use OpenGL Performer for graphics [no]]],
+SG=Performer, SG=Performer; with_performer=no)
 
 dnl Provide the option to use Open Scene Graph (and specify a path for it).
 dnl Set the scene graph variable to indicate OSG if this option is chosen.
 AC_ARG_WITH(osg,
 [[  --with-osg=[PREFIX]     Use Open Scene Graph for graphics (if necessary,
-                          the path to the libraries may be specified) [no]]],
-SG=OSG, with_osg=no)
+                          the path to the libraries may be specified)
+                          [/usr/local]]],
+SG=OSG, with_osg="/usr/local")
 
 dnl Provide the path for the OpenThreads library. This is required for OSG
-dnl operation. Defaults to /usr/local.
+dnl operation. Defaults to the same path as OSG.
 AC_ARG_WITH(openthreads,
-[[  --with-openthreads=[PREFIX]     Path for OpenThreads library [/usr/local]]],
-, with_openthreads="/usr/local")
+[[  --with-openthreads=[PREFIX]     Path for OpenThreads library [OSG path]]],
+, with_openthreads=$with_osg)
 
-dnl Provide the option to use osgNV for programmable shader support under
-dnl Open Scene Graph
+dnl Provide the option to use osgNV for Cg shader support under Open Scene Graph
 AC_ARG_WITH(osgnv,
 [[  --with-osgnv=[PREFIX]   Path for osgNV library [no]]],, with_osgnv=no)
 
