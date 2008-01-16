@@ -63,7 +63,7 @@ void vsBillboardCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
         return;
 
     // Obtain the view matrix
-    osgMatrix = osgCullVisitor->getModelViewMatrix();
+    osgMatrix = *(osgCullVisitor->getModelViewMatrix());
     for (loop = 0; loop < 4; loop++)
         for (sloop = 0; sloop < 4; sloop++)
             viewMatrix[loop][sloop] = osgMatrix(sloop, loop);
@@ -74,7 +74,7 @@ void vsBillboardCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
     
     // Obtain the accumulated global transform matrix
     osgMatrix.makeIdentity();
-    osgMatrix = osgCullVisitor->getModelViewMatrix();
+    osgMatrix = *(osgCullVisitor->getModelViewMatrix());
     for (loop = 0; loop < 4; loop++)
         for (sloop = 0; sloop < 4; sloop++)
             xformMatrix[loop][sloop] = osgMatrix(sloop, loop);

@@ -58,6 +58,7 @@ vsPane::vsPane(vsWindow *parent)
     osgUtil::UpdateVisitor *updateVisitor;
     osgUtil::CullVisitor *cullVisitor;
     osgUtil::StateGraph *stateGraph;
+    osgUtil::RenderStage *renderStage;
     osgDB::DatabasePager *dbPager;
     int contextID;
 
@@ -93,7 +94,6 @@ vsPane::vsPane(vsWindow *parent)
     cullVisitor = new osgUtil::CullVisitor();
     stateGraph = new osgUtil::StateGraph();
     renderStage = new osgUtil::RenderStage();
-    renderStage->ref();
 
     // Configure the CullVisitor to use the rendering objects we created
     cullVisitor->setStateGraph(stateGraph);
@@ -237,9 +237,6 @@ vsPane::~vsPane()
     // Unreference the display settings object
     osgDisplaySettings->unref();
 
-    // Unreference the RenderStage object
-    renderStage->unref();
-
     // Unreference the VESS scene
     if (sceneRoot != NULL)
         sceneRoot->unref();
@@ -330,9 +327,13 @@ void vsPane::setSize(int width, int height)
 {
     int x, y, oldWidth, oldHeight;
     int winWidth, winHeight;
+    osg::Viewport *viewport;
     
     // Get the old settings to obtain the pane's origin
-    osgSceneView->getViewport()->getViewport(x, y, oldWidth, oldHeight);
+    x = (int)osgSceneView->getViewport()->x();
+    y = (int)osgSceneView->getViewport()->y();
+    oldWidth = (int)osgSceneView->getViewport()->width();
+    oldHeight = (int)osgSceneView->getViewport()->height();
 
     // Compute the new normalized width and height
     parentWindow->getDrawableSize(&winWidth, &winHeight);
@@ -343,7 +344,8 @@ void vsPane::setSize(int width, int height)
     yPosNorm = (double)(y + oldHeight - height) / (double)winHeight;
 
     // Set the new width and height
-    osgSceneView->setViewport(x, y + oldHeight - height, width, height);
+    viewport = osgSceneView->getViewport();
+    viewport->setViewport(x, y + oldHeight - height, width, height);
 
     // Modify the view change value so that we recompute the projection
     // parameters on the next drawFrame
@@ -359,7 +361,10 @@ void vsPane::getSize(int *width, int *height)
     int x, y, paneWidth, paneHeight;
     
     // Get the viewport settings
-    osgSceneView->getViewport()->getViewport(x, y, paneWidth, paneHeight);
+    x = (int)osgSceneView->getViewport()->x();
+    y = (int)osgSceneView->getViewport()->y();
+    paneWidth = (int)osgSceneView->getViewport()->width();
+    paneHeight = (int)osgSceneView->getViewport()->height();
     
     // Return the size in the parameters
     if (width != NULL)
@@ -375,10 +380,14 @@ void vsPane::setPosition(int xPos, int yPos)
 {
     int x, y, width, height;
     int winWidth, winHeight;
+    osg::Viewport *viewport;
 
     // Get the current viewport settings to obtain the pane's width and
     // height
-    osgSceneView->getViewport()->getViewport(x, y, width, height);
+    x = (int)osgSceneView->getViewport()->x();
+    y = (int)osgSceneView->getViewport()->y();
+    width = (int)osgSceneView->getViewport()->width();
+    height = (int)osgSceneView->getViewport()->height();
 
     // Compute the new normalized origin
     parentWindow->getDrawableSize(&winWidth, &winHeight);
@@ -386,8 +395,8 @@ void vsPane::setPosition(int xPos, int yPos)
     yPosNorm = (double)(winHeight - (yPos + height)) / (double)winHeight;
 
     // Set the new origin (using the VESS standard upper-left origin)
-    osgSceneView->
-        setViewport(xPos, winHeight - (yPos + height), width, height);
+    viewport = osgSceneView->getViewport();
+    viewport->setViewport(xPos, winHeight - (yPos + height), width, height);
 }
 
 // ------------------------------------------------------------------------
@@ -400,7 +409,10 @@ void vsPane::getPosition(int *xPos, int *yPos)
     int winWidth, winHeight;
  
     // Obtain the viewport settings
-    osgSceneView->getViewport()->getViewport(x, y, width, height);
+    x = (int)osgSceneView->getViewport()->x();
+    y = (int)osgSceneView->getViewport()->y();
+    width = (int)osgSceneView->getViewport()->width();
+    height = (int)osgSceneView->getViewport()->height();
 
     // Convert the lower-left-origin-based OSG coordinates to upper-left
     // VESS coordinates. This requires manipulating only the y coordinate.
@@ -650,7 +662,7 @@ bool vsPane::areStatsEnabled()
 // ------------------------------------------------------------------------
 void vsPane::setGLClearMask(int clearMask)
 {
-    renderStage->setClearMask(clearMask);
+    osgSceneView->getCamera()->setClearMask(clearMask);
 }
 
 // ------------------------------------------------------------------------
@@ -659,7 +671,7 @@ void vsPane::setGLClearMask(int clearMask)
 // ------------------------------------------------------------------------
 int vsPane::getGLClearMask()
 {
-    return (renderStage->getClearMask());
+    return (osgSceneView->getCamera()->getClearMask());
 }
 
 // ------------------------------------------------------------------------
@@ -935,6 +947,7 @@ void vsPane::resize()
 {
     int winWidth, winHeight;
     int x, y, width, height;
+    osg::Viewport *viewport;
 
     // Get the current size of the window
     parentWindow->getDrawableSize(&winWidth, &winHeight);
@@ -946,6 +959,7 @@ void vsPane::resize()
     height = (int)(heightNorm * (double)winHeight);
 
     // Update the OSG SceneView's viewport
-    osgSceneView->setViewport(x, y, width, height);
+    viewport = osgSceneView->getViewport();
+    viewport->setViewport(x, y, width, height);
 }
 
