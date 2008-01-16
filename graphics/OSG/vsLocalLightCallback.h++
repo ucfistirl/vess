@@ -53,7 +53,7 @@ public:
 
     int             getLocalLightCount();
 
-    virtual void    drawImplementation(osg::State &state,
+    virtual void    drawImplementation(osg::RenderInfo &info,
                                        const osg::Drawable *drawable) const;
 };
 

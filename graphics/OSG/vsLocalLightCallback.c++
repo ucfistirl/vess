@@ -180,7 +180,7 @@ int vsLocalLightCallback::getLocalLightCount()
 // callback.  This will enable the given local lights, draw, and then
 // disable them.
 // ------------------------------------------------------------------------
-void vsLocalLightCallback::drawImplementation(osg::State &state, const
+void vsLocalLightCallback::drawImplementation(osg::RenderInfo &info, const
                                               osg::Drawable *drawable) const
 {
     int  loop;
@@ -197,11 +197,11 @@ void vsLocalLightCallback::drawImplementation(osg::State &state, const
             ((vsGrowableArray *)localLightList)->getData(loop);
 
         // Enable the local light
-        lightAttr->enableLocalLight(&state);
+        lightAttr->enableLocalLight(info.getState());
     }
 
     // Draw the drawable with this local light on.
-    drawable->drawImplementation(state);
+    drawable->drawImplementation(info);
 
     // Disable the local light.
     for (loop = 0; loop < localLightCount; loop++)
@@ -211,6 +211,6 @@ void vsLocalLightCallback::drawImplementation(osg::State &state, const
             ((vsGrowableArray *)localLightList)->getData(loop);
 
         // Disable the local light 
-        lightAttr->disableLocalLight(&state);
+        lightAttr->disableLocalLight(info.getState());
     }
 }
