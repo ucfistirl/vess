@@ -198,6 +198,7 @@ void vsSystem::init()
     simTime = 0.0;
     osgFrameStamp->setFrameNumber(frameNumber);
     osgFrameStamp->setReferenceTime(simTime);
+    osgFrameStamp->setSimulationTime(simTime);
     
     // Mark this vsSystem instance as initialized
     isInitted = 1;
@@ -297,6 +298,7 @@ void vsSystem::simpleInit(char *databaseFilename, char *windowName,
     simTime = 0.0;
     osgFrameStamp->setFrameNumber(frameNumber);
     osgFrameStamp->setReferenceTime(simTime);
+    osgFrameStamp->setSimulationTime(simTime);
 
     // Return the requested values and finish
     if (sceneGraph)
@@ -597,6 +599,7 @@ void vsSystem::drawFrame()
     simTime += lastFrameInterval;
     osgFrameStamp->setFrameNumber(frameNumber);
     osgFrameStamp->setReferenceTime(simTime);
+    osgFrameStamp->setSimulationTime(simTime);
 
     // Handle database paging
     availableTime = lastFrameInterval;
