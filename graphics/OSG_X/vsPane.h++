@@ -74,7 +74,6 @@ private:
     // Supporting Open Scene Graph objects
     osg::DisplaySettings    *osgDisplaySettings;
     osgUtil::SceneView      *osgSceneView;
-    osgUtil::RenderStage    *renderStage;
 
     // Buffer mode (mono/stereo and stereo mode)
     vsPaneBufferMode        bufferMode;
