@@ -243,6 +243,12 @@ vsPane::~vsPane()
     
     // Remove the pane from the its window
     parentWindow->removePane(this);
+    
+    // If a view has been set, clean up our reference
+    if (sceneView != NULL)
+    {
+    	 vsObject::unrefDelete(sceneView);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -266,11 +272,23 @@ vsWindow *vsPane::getParentWindow()
 // ------------------------------------------------------------------------
 void vsPane::setView(vsView *view)
 {
-    // Save the view object
+	 // If we previously had a different view, clean it up
+    if (sceneView != NULL)
+    {
+    	 sceneView->unref();
+    	 sceneView = NULL;
+    }
+    
+    // Save the new view object
     sceneView = view;
-
-    if (sceneView)
-        viewChangeNum = sceneView->getChangeNum() - 1;
+    
+    // If we were given a valid view, reference it, and force the pane to
+    // update the viewport based on the new view's settings
+    if (sceneView != NULL)
+    {
+    	 sceneView->ref();
+       viewChangeNum = sceneView->getChangeNum() - 1;
+    }
 }
 
 // ------------------------------------------------------------------------
