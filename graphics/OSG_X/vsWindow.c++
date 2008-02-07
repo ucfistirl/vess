@@ -925,6 +925,15 @@ vsWindow::~vsWindow()
     // Remove the window from its screen
     parentScreen->removeWindow(this);
 
+    // WORKAROUND:  Make this window's context current, so we can flush the
+    // GL pipeline before destroying it.  This step shouldn't be necessary,
+    // according to the GLX specification, but we need it to work around an
+    // issue with the OpenGL driver that can sometimes cause crashes when a
+    // GLX window or context is deleted
+    makeCurrent();
+    glFlush();
+    glXWaitGL();
+
     // Destroy the rendering context
     glXDestroyContext(display, glContext);
 
