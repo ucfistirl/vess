@@ -533,6 +533,24 @@ void vsSystem::drawFrame()
         vsGeometry::binModesChanged = false;
     }
     
+    // Mark the system timer for this frame
+    vsTimer::getSystemTimer()->mark();
+    lastFrameInterval = vsTimer::getSystemTimer()->getInterval();
+
+    // Update the OSG FrameStamp object
+    frameNumber++;
+    simTime += lastFrameInterval;
+    osgFrameStamp->setFrameNumber(frameNumber);
+    osgFrameStamp->setReferenceTime(simTime);
+    osgFrameStamp->setSimulationTime(simTime);
+
+    // If we're doing any database paging, merge any new database components
+    // that the pager has recently loaded with the appropriate scenes
+    availableTime = lastFrameInterval;
+    osgDBPager = osgDB::Registry::instance()->getDatabasePager();
+    if (osgDBPager != NULL)
+       osgDBPager->updateSceneGraph(simTime);
+
     // Update the viewpoint of each pane by its vsView object and
     // do a pre-frame traversal to set up the graphics state for each
     // pane's scene
@@ -590,23 +608,10 @@ void vsSystem::drawFrame()
         }
     }
 
-    // Mark the system timer for this frame
-    vsTimer::getSystemTimer()->mark();
-    lastFrameInterval = vsTimer::getSystemTimer()->getInterval();
-
-    // Update the OSG FrameStamp object
-    frameNumber++;
-    simTime += lastFrameInterval;
-    osgFrameStamp->setFrameNumber(frameNumber);
-    osgFrameStamp->setReferenceTime(simTime);
-    osgFrameStamp->setSimulationTime(simTime);
-
-    // Handle database paging
-    availableTime = lastFrameInterval;
-    osgDBPager = osgDB::Registry::instance()->getDatabasePager();
+    // Tell the database pager that we're starting to draw
     if (osgDBPager)
         osgDBPager->signalBeginFrame(osgFrameStamp);
-    
+
     // Perform update, cull, and draw traversals for each pane
     for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
     {
@@ -661,13 +666,9 @@ void vsSystem::drawFrame()
         }
     }
 
-    // If we're doing database paging, signal the pager that we're done
-    // with this frame
+    // Tell the database pager that we're done drawing
     if (osgDBPager)
-    {
-        osgDBPager->updateSceneGraph(simTime);
         osgDBPager->signalEndFrame();
-    }
 
 #ifdef WIN32
     // Windows only:  the message pump.  Check for Windows messages
