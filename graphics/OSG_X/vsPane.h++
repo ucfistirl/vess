@@ -131,6 +131,9 @@ public:
     void                  getPosition(int *xPos, int *yPos);
     void                  autoConfigure(int panePlacement);
 
+    void                  bringToFront();
+    void                  sendToBack();
+
     // Buffer mode functions
     void                  setBufferMode(vsPaneBufferMode newMode);
     vsPaneBufferMode      getBufferMode();

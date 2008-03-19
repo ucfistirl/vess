@@ -547,6 +547,24 @@ void vsPane::autoConfigure(int panePlacement)
 }
 
 // ------------------------------------------------------------------------
+// Bring the pane to the front of the window (so it's drawn last)
+// ------------------------------------------------------------------------
+void vsPane::bringToFront()
+{
+    // Call the related function on the pane's parent window
+    parentWindow->bringPaneToFront(this);
+}
+
+// ------------------------------------------------------------------------
+// Send the pane to the back of the window (so it's drawn first)
+// ------------------------------------------------------------------------
+void vsPane::sendToBack()
+{
+    // Call the related function on the pane's parent window
+    parentWindow->sendPaneToBack(this);
+}
+
+// ------------------------------------------------------------------------
 // Sets the buffer mode (mono or one of the stereo modes) of this pane.
 // ------------------------------------------------------------------------
 void vsPane::setBufferMode(vsPaneBufferMode newMode)

@@ -71,6 +71,9 @@ VS_INTERNAL:
     void          addPane(vsPane *newPane);
     void          removePane(vsPane *targetPane);
 
+    void          bringPaneToFront(vsPane *newPane);
+    void          sendPaneToBack(vsPane *newPane);
+
     int           getWindowNumber();
     void          makeCurrent();
     void          swapBuffers();

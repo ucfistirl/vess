@@ -1377,6 +1377,73 @@ void vsWindow::removePane(vsPane *targetPane)
 }
 
 // ------------------------------------------------------------------------
+// Brings the given pane to the front of the window (that is, it puts it
+// _last_ in the window's pane list, so it's drawn last)
+// ------------------------------------------------------------------------
+void vsWindow::bringPaneToFront(vsPane *targetPane)
+{
+    int loop, sloop;
+    
+    // Iterate through the child pane list and look for the pane in 
+    // question
+    for (loop = 0; loop < childPaneCount; loop++)
+    {
+        // See if the current pane is the pane we want
+        if (targetPane == childPaneList[loop])
+        {
+            // Found the target pane, slide the remaining panes down
+            // in the list
+            for (sloop = loop; sloop < (childPaneCount-1); sloop++)
+                childPaneList[sloop] = childPaneList[sloop+1];
+
+            // Put the target pane at the end of the list
+            childPaneList[childPaneCount-1] = targetPane;
+
+            // We're done
+            return;
+        }
+    }
+
+    // If we get here, we didn't find the requested pane, so print an
+    // error
+    printf("vsWindow::removePane: Specified pane not part of window\n");
+}
+
+// ------------------------------------------------------------------------
+// Sends the given pane to the back of the window (that is, it puts it
+// first in the window's pane list, so it's drawn first)
+// ------------------------------------------------------------------------
+void vsWindow::sendPaneToBack(vsPane *targetPane)
+{
+    int loop, sloop;
+
+    // Iterate through the child pane list and look for the pane in 
+    // question
+    for (loop = 0; loop < childPaneCount; loop++)
+    {
+        // See if the current pane is the pane we want
+        if (targetPane == childPaneList[loop])
+        {
+            // Found the target pane, slide the preceding panes up
+            // in the list to make room for the target pane at the
+            // beginning
+            for (sloop = loop; sloop > 0; sloop--)
+                childPaneList[sloop-1] = childPaneList[sloop];
+
+            // Put the target pane at the front of the list
+            childPaneList[0] = targetPane;
+
+            // We're done
+            return;
+        }
+    }
+
+    // If we get here, we didn't find the requested pane, so print an
+    // error
+    printf("vsWindow::removePane: Specified pane not part of window\n");
+}
+
+// ------------------------------------------------------------------------
 // Internal function
 // Return the index of this window
 // ------------------------------------------------------------------------
