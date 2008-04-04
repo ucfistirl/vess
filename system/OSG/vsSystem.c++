@@ -400,8 +400,10 @@ void vsSystem::preFrameTraverse(vsNode *node)
                     // Set this drawable's callback to NULL now.
                     drawable->setDrawCallback(NULL);
 
-                    // Set the drawable to use display lists now.
-                    drawable->setUseDisplayList(true);
+                    // If this is a static geometry node, set the drawable
+                    // to use display lists now.
+                    if (node->getNodeType() == VS_NODE_TYPE_GEOMETRY)
+                        drawable->setUseDisplayList(true);
 
                     // Unreference the callback.
                     localLightCallback->unref();
