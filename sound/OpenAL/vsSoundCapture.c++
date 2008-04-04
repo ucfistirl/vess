@@ -258,11 +258,7 @@ void vsSoundCapture::closeDevice()
 
     // If the thread was paused, unpause it now so it can get the new signal.
     if (capturePaused)
-    {
-        // Change the state and release the pause semaphore.
-        capturePaused = false;
-        pthread_mutex_unlock(&bufferMutex);
-    }
+        startResume();
 
     // Wait until the capture thread has closed, disregarding its return value.
     pthread_join(captureThread, NULL);
@@ -434,9 +430,7 @@ void *vsSoundCapture::captureLoop(void *userData)
     // Release the signal semaphore, as its signal has been passed.
     pthread_mutex_unlock(&capture->signalMutex);
 
-    // Close the thread so the destructor can execute.
-    pthread_exit(NULL);
-
+    // Return from the thread
     return NULL;
 }
 
