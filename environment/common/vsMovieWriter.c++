@@ -89,14 +89,17 @@ vsMovieWriter::vsMovieWriter(const char *format)
     vCodecContext->time_base.num = 1;
     vCodecContext->time_base.den = VS_MOVIE_WRITER_DEFAULT_FRAMERATE;
 
-    // FIXME: I don't know what this does, except that it has to do with intra
-    // frames being emitted at most once every gop_size frames.
+    // Set the GOP (MPEG group of pictures) size to 12.  This makes the
+    // encoder emit a full frame (I frame) every 12 frames or so, with
+    // the remaining frames being P or B frames (see the MPEG spec for a
+    // full description of frame types)
     vCodecContext->gop_size = 12;
 
     // The vsVideoStream uses YUV420P as its base format.
     vCodecContext->pix_fmt = PIX_FMT_YUV420P;
 
-    // FIXME: I'm not sure why B frames are important here.
+    // Don't put more than 2 B frames per group of pictures (this is an
+    // image quality vs. compression ratio tradeoff)
     if (vCodecContext->codec_id == CODEC_ID_MPEG2VIDEO)
     {
         vCodecContext->max_b_frames = 2;
@@ -377,9 +380,8 @@ bool vsMovieWriter::openFile(char *filename)
         return false;
     }
 
-    // FIXME: Use strncpy or snprintf to prevent overflow, but make sure this
-    // works in windows first. (check against sizeof(movieFile->filename))
-    strcpy(movieContext->filename, filename);
+    // Copy the filename
+    strncpy(movieContext->filename, filename, sizeof(movieContext->filename));
 
     // Set the parameters. This finalization must be done even though no
     // special parameters have been set.
