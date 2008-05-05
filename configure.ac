@@ -580,10 +580,12 @@ if test x$enable_sound = xyes; then
 
             dnl See if OpenAL is installed or just compiled in-place
             AC_MSG_CHECKING([path for OpenAL libraries])
-            if test -e "$with_openal/lib/libopenal.a" ; then
+            if test -e "$with_openal/lib/libopenal.a" ||
+               test -e "$with_openal/lib/libopenal.so" ; then
                 AC_MSG_RESULT([$with_openal/lib])
                 SOUND_LIB_DIR=-L$with_openal/lib
-            elif test -e "$with_openal/linux/src/libopenal.a" ; then
+            elif test -e "$with_openal/linux/src/libopenal.a" ||
+                 test -e "$with_openal/linux/src/libopenal.so" ; then
                 AC_MSG_RESULT([$with_openal/linux/src])
                 SOUND_LIB_DIR=-L$with_openal/linux/src
             else
