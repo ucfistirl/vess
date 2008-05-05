@@ -57,39 +57,6 @@ vsSoundManager::vsSoundManager()
         soundSources[i]->gain = 0.0;
     }
     
-    // Determine the hardware voice limit by generating OpenAL voices
-    // until OpenAL signals an error
-    alError = false;
-    while ((!alError) && (numVoices < VS_SDM_MAX_VOICES))
-    {
-        // Generate an OpenAL source (a new voice)
-        alGenSources(1, (ALuint *)&voices[numVoices]);
-
-        // See if we successfully generated the voice
-        if (alGetError() == AL_NO_ERROR)
-            numVoices++;
-        else
-            alError = true;
-    }
-    hardwareVoiceLimit = numVoices;
-
-    // Set the "soft" voice limit to the number of voices generated or to
-    // the default,  whichever is less.
-    voiceLimit = VS_SDM_DEFAULT_VOICE_LIMIT;
-    if (voiceLimit > hardwareVoiceLimit)
-        voiceLimit = hardwareVoiceLimit;
-
-    // Release excess voices so that we only have the default number of
-    // voices allocated (this limit can be changed by the user)
-    if ((numVoices - voiceLimit) > 0)
-    {
-        alDeleteSources(numVoices - voiceLimit, (ALuint *)&voices[voiceLimit]);
-        numVoices = voiceLimit;
-    }
-
-    // Set the source thread update rate to the default
-    setSourceUpdateRate(VS_SDM_SOURCE_THREAD_HZ);
-
     // Create a mutex to synchronize traversals of the sound source list
     // between threads
     pthread_mutex_init(&sourceListMutex, NULL);
@@ -101,6 +68,9 @@ vsSoundManager::vsSoundManager()
     // updates, and playback state).
     sourceThreadDone = false;
     pthread_create(&sourceThread, NULL, sourceThreadFunc, (void *)this);
+
+    // Set the source thread update rate to the default
+    setSourceUpdateRate(VS_SDM_SOURCE_THREAD_HZ);
 }
 
 // ------------------------------------------------------------------------
@@ -298,6 +268,8 @@ void vsSoundManager::deleteInstance()
 // ------------------------------------------------------------------------
 void vsSoundManager::setSoundPipe(vsSoundPipe *pipe)
 {
+    bool alError;
+
     // Ignore the request if there is already a sound pipe present
     if (soundPipe != NULL)
     {
@@ -309,6 +281,42 @@ void vsSoundManager::setSoundPipe(vsSoundPipe *pipe)
     // Set the sound pipe pointer to the given object and reference it
     soundPipe = pipe;
     soundPipe->ref();
+
+    // Lock the source list mutex
+    pthread_mutex_lock(&sourceListMutex);
+
+    // Determine the hardware voice limit by generating OpenAL voices
+    // until OpenAL signals an error
+    alError = false;
+    while ((!alError) && (numVoices < VS_SDM_MAX_VOICES))
+    {
+        // Generate an OpenAL source (a new voice)
+        alGenSources(1, (ALuint *)&voices[numVoices]);
+
+        // See if we successfully generated the voice
+        if (alGetError() == AL_NO_ERROR)
+            numVoices++;
+        else
+            alError = true;
+    }
+    hardwareVoiceLimit = numVoices;
+
+    // Set the "soft" voice limit to the number of voices generated or to
+    // the default,  whichever is less.
+    voiceLimit = VS_SDM_DEFAULT_VOICE_LIMIT;
+    if (voiceLimit > hardwareVoiceLimit)
+        voiceLimit = hardwareVoiceLimit;
+
+    // Release excess voices so that we only have the default number of
+    // voices allocated (this limit can be changed by the user)
+    if ((numVoices - voiceLimit) > 0)
+    {
+        alDeleteSources(numVoices - voiceLimit, (ALuint *)&voices[voiceLimit]);
+        numVoices = voiceLimit;
+    }
+
+    // Release the source list mutex
+    pthread_mutex_unlock(&sourceListMutex);
 }
 
 // ------------------------------------------------------------------------

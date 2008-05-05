@@ -131,15 +131,15 @@ vsSoundPipe::vsSoundPipe()
 // ------------------------------------------------------------------------
 vsSoundPipe::~vsSoundPipe()
 {
+    // Unregister from the sound manager
+    vsSoundManager::getInstance()->removeSoundPipe(this);
+
     // Destroy the OpenAL context
     alcDestroyContext(pipeHandle);
 
     // Close the device
     if (deviceHandle)
         alcCloseDevice(deviceHandle);
-
-    // Unregister from the sound manager
-    vsSoundManager::getInstance()->removeSoundPipe(this);
 
     // Clean up ALUT
     alutExit();
