@@ -74,7 +74,6 @@ private:
     // Supporting Open Scene Graph objects
     osg::DisplaySettings    *osgDisplaySettings;
     osgUtil::SceneView      *osgSceneView;
-    osgUtil::RenderStage    *renderStage;
 
     // Buffer mode (mono/stereo and stereo mode)
     vsPaneBufferMode        bufferMode;
@@ -131,6 +130,9 @@ public:
     void                  setPosition(int xPos, int yPos);
     void                  getPosition(int *xPos, int *yPos);
     void                  autoConfigure(int panePlacement);
+
+    void                  bringToFront();
+    void                  sendToBack();
 
     // Buffer mode functions
     void                  setBufferMode(vsPaneBufferMode newMode);
