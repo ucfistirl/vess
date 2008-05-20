@@ -1,209 +1,324 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="8.00"
 	Name="util"
 	ProjectGUID="{CB9451FD-1E11-480B-8D01-D925BC3BD4DD}"
-	Keyword="Win32Proj">
+	RootNamespace="util"
+	Keyword="Win32Proj"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="../lib"
 			IntermediateDirectory="Debug"
 			ConfigurationType="2"
-			CharacterSet="2">
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\util\common;..\..\util\Windows;..\..\util\OSG"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_UTIL_EXPORTS"
-				MinimalRebuild="TRUE"
+				AdditionalIncludeDirectories="&quot;$(TOOLS_DBG_DIR)\jpeg-6b-4\include&quot;;&quot;$(TOOLS_DBG_DIR)\opengl\include&quot;;&quot;$(TOOLS_DBG_DIR)\pthread-win32-2.8.0\include&quot;;..\..\..\atlas\foundation;..\..\..\atlas\util;..\..\..\atlas\math;..\..\..\atlas\container;..\..\..\atlas\communication;..\..\..\atlas\xml;..\..\util\common;..\..\util\Windows;..\..\util\OSG"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_UTIL_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				RuntimeTypeInfo="TRUE"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="4"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libjpeg.lib winmm.lib"
-				OutputFile="$(OutDir)/vsUtil.dll"
+				AdditionalDependencies="jpegd.lib winmm.lib pthreadVC2d.lib atlasd.lib"
+				OutputFile="$(OutDir)/vsUtild.dll"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="&quot;$(TOOLS_DBG_DIR)\jpeg-6b-4\lib&quot;;&quot;$(TOOLS_DBG_DIR)\pthread-win32-2.8.0\lib&quot;;..\..\..\atlas"
 				IgnoreDefaultLibraryNames="LIBC"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/util.pdb"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/vsUtil.lib"
-				TargetMachine="1"/>
+				ImportLibrary="$(OutDir)/vsUtild.lib"
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="../lib"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
-			CharacterSet="2">
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				OmitFramePointers="TRUE"
-				AdditionalIncludeDirectories="..\..\util\common;..\..\util\Windows;..\..\util\OSG"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_UTIL_EXPORTS"
-				StringPooling="TRUE"
+				OmitFramePointers="true"
+				AdditionalIncludeDirectories="&quot;$(TOOLS_DIR)\jpeg-6b-4\include&quot;;&quot;$(TOOLS_DIR)\opengl\include&quot;;&quot;$(TOOLS_DIR)\pthread-win32-2.8.0\include&quot;;..\..\..\atlas\foundation;..\..\..\atlas\util;..\..\..\atlas\math;..\..\..\atlas\container;..\..\..\atlas\communication;..\..\..\atlas\xml;..\..\util\common;..\..\util\Windows;..\..\util\OSG"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_UTIL_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
+				StringPooling="true"
 				RuntimeLibrary="2"
-				EnableFunctionLevelLinking="TRUE"
-				RuntimeTypeInfo="TRUE"
+				EnableFunctionLevelLinking="true"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libjpeg.lib winmm.lib"
+				AdditionalDependencies="jpeg.lib winmm.lib pthreadVC2.lib atlas.lib"
 				OutputFile="$(OutDir)/vsUtil.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\lib"
-				GenerateDebugInformation="TRUE"
+				AdditionalLibraryDirectories="$(TOOLS_DIR)\jpeg-6b-4\lib;$(TOOLS_DIR)\pthread-win32-2.8.0\lib;..\..\..\atlas"
+				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				ImportLibrary="$(OutDir)/vsUtil.lib"
-				TargetMachine="1"/>
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
+			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm"
+			>
 			<File
-				RelativePath="..\dummy.c">
+				RelativePath="..\..\util\common\vsBox.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsChromaKey.c++">
+				RelativePath="..\..\util\common\vsChromaKey.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsGrowableArray.c++">
+				RelativePath="..\..\util\common\vsGrowableArray.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\Performer\vsImage.c++">
+				RelativePath="..\..\util\Performer\vsImage.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsMatrix.c++">
+				RelativePath="..\..\util\common\vsMultiQueue.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsObject.c++">
+				RelativePath="..\..\util\common\vsObject.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsObjectMap.c++">
+				RelativePath="..\..\util\common\vsObjectMap.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsQuat.c++">
+				RelativePath="..\..\util\common\vsSequencer.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsSequencer.c++">
+				RelativePath="..\..\util\common\vsShape.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsSphere.c++">
+				RelativePath="..\..\util\common\vsSphere.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\Windows\vsTimer.c++">
+				RelativePath="..\..\util\Windows\vsTimer.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsTreeMap.c++">
+				RelativePath="..\..\util\common\vsTreeMap.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsUpdatable.c++">
+				RelativePath="..\..\util\common\vsUpdatable.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsVector.c++">
+				RelativePath="..\..\util\common\vsVideoQueue.c++"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h++;h;hpp;hxx;hm;inl;inc">
+			Filter="h++;h;hpp;hxx;hm;inl;inc"
+			>
 			<File
-				RelativePath="..\..\util\common\vsChromaKey.h++">
+				RelativePath="..\..\util\common\vsBox.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsGlobals.h++">
+				RelativePath="..\..\util\common\vsChromaKey.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsGrowableArray.h++">
+				RelativePath="..\..\util\common\vsGlobals.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\Performer\vsImage.h++">
+				RelativePath="..\..\util\common\vsGrowableArray.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsMatrix.h++">
+				RelativePath="..\..\util\Performer\vsImage.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsObject.h++">
+				RelativePath="..\..\util\common\vsMultiQueue.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsObjectMap.h++">
+				RelativePath="..\..\util\common\vsObject.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsQuat.h++">
+				RelativePath="..\..\util\common\vsObjectMap.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsSequencer.h++">
+				RelativePath="..\..\util\common\vsSequencer.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsSphere.h++">
+				RelativePath="..\..\util\common\vsShape.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\Windows\vsTimer.h++">
+				RelativePath="..\..\util\common\vsSphere.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsTreeMap.h++">
+				RelativePath="..\..\util\Windows\vsTimer.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsUpdatable.h++">
+				RelativePath="..\..\util\common\vsTreeMap.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\util\common\vsVector.h++">
+				RelativePath="..\..\util\common\vsUpdatable.h++"
+				>
+			</File>
+			<File
+				RelativePath="..\..\util\common\vsVideoQueue.h++"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
+			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+			>
 		</Filter>
 	</Files>
 	<Globals>

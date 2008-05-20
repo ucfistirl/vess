@@ -1,443 +1,652 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="8.00"
 	Name="graphics"
 	ProjectGUID="{54AF95B1-185C-422E-B506-E499CE55A7C5}"
-	Keyword="Win32Proj">
+	RootNamespace="graphics"
+	Keyword="Win32Proj"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="../lib"
 			IntermediateDirectory="Debug"
 			ConfigurationType="2"
-			CharacterSet="2">
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../llio/Windows;../../util/common;../../util/OSG;../../util/Windows"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_GRAPHICS_EXPORTS"
-				MinimalRebuild="TRUE"
+				AdditionalIncludeDirectories="&quot;$(TOOLS_DBG_DIR)\opengl\include&quot;;&quot;$(TOOLS_DBG_DIR)\OpenSceneGraph-2.2.0\include&quot;;&quot;$(TOOLS_DBG_DIR)\libxml2-2.6.27\include&quot;;&quot;$(TOOLS_DBG_DIR)\iconv-1.9.1\include&quot;;..\..\..\atlas\foundation;..\..\..\atlas\util;..\..\..\atlas\math;..\..\..\atlas\container;..\..\..\atlas\communication;..\..\..\atlas\xml;.;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../llio/Windows;../../util/common;../../util/OSG;../../util/Windows"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VS_GRAPHICS_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				RuntimeTypeInfo="TRUE"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="4"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="osg.lib osgDB.lib osgUtil.lib osgText.lib opengl32.lib glu32.lib freetype.lib libxml2.lib iconv.lib"
-				OutputFile="$(OutDir)/vsGraphics.dll"
+				AdditionalDependencies="osgd.lib osgDBd.lib osgUtild.lib osgTextd.lib osgSimd.lib opengl32.lib glu32.lib freetyped.lib libxml2.lib iconv.lib atlasd.lib"
+				OutputFile="$(OutDir)/vsGraphicsd.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="../lib"
+				AdditionalLibraryDirectories="&quot;$(TOOLS_DBG_DIR)\OpenSceneGraph-2.2.0\lib&quot;;&quot;$(TOOLS_DBG_DIR)\libxml2-2.6.27\lib&quot;;&quot;$(TOOLS_DBG_DIR)\iconv-1.9.1\lib&quot;;&quot;$(TOOLS_DBG_DIR)\freetype-2.1.10\lib&quot;;..\..\..\atlas"
 				IgnoreDefaultLibraryNames="libcmt.lib libcd.lib"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/graphics.pdb"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/vsGraphics.lib"
-				TargetMachine="1"/>
+				ImportLibrary="$(OutDir)/vsGraphicsd.lib"
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="../lib"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
-			CharacterSet="2">
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				OmitFramePointers="TRUE"
-				AdditionalIncludeDirectories=".;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../llio/Windows;../../util/common;../../util/OSG;../../util/Windows"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_GRAPHICS_EXPORTS"
-				StringPooling="TRUE"
+				OmitFramePointers="true"
+				AdditionalIncludeDirectories="&quot;$(TOOLS_DIR)\opengl\include&quot;;&quot;$(TOOLS_DIR)\OpenSceneGraph-2.2.0\include&quot;;&quot;$(TOOLS_DIR)\libxml2-2.6.27\include&quot;;&quot;$(TOOLS_DIR)\iconv-1.9.1\include&quot;;..\..\..\atlas\foundation;..\..\..\atlas\util;..\..\..\atlas\math;..\..\..\atlas\container;..\..\..\atlas\communication;..\..\..\atlas\xml;.;../../graphics/OSG_Windows;../../graphics/OSG;../../graphics/common;../../llio/Windows;../../util/common;../../util/OSG;../../util/Windows"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VS_GRAPHICS_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
+				StringPooling="true"
 				RuntimeLibrary="2"
-				EnableFunctionLevelLinking="TRUE"
-				RuntimeTypeInfo="TRUE"
+				EnableFunctionLevelLinking="true"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="osg.lib osgDB.lib osgUtil.lib osgText.lib osgSim.lib opengl32.lib glu32.lib freetype219.lib libjpeg.lib avcodec.lib avformat.lib avutil.lib libxml2.lib iconv.lib"
+				AdditionalDependencies="osg.lib osgDB.lib osgUtil.lib osgText.lib osgSim.lib opengl32.lib glu32.lib freetype.lib libxml2.lib iconv.lib atlas.lib"
 				OutputFile="$(OutDir)/vsGraphics.dll"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="&quot;$(TOOLS_DIR)\OpenSceneGraph-2.2.0\lib&quot;;&quot;$(TOOLS_DIR)\libxml2-2.6.27\lib&quot;;&quot;$(TOOLS_DIR)\iconv-1.9.1\lib&quot;;&quot;$(TOOLS_DIR)\freetype-2.1.10\lib&quot;;..\..\..\atlas"
 				IgnoreDefaultLibraryNames="libcd.lib"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				ImportLibrary="$(OutDir)/vsGraphics.lib"
-				TargetMachine="1"/>
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm">
+			Filter="c++;cpp;c;cxx;def;odl;idl;hpj;bat;asm"
+			>
 			<File
-				RelativePath="..\dummy.c">
+				RelativePath="..\..\graphics\OSG\vsAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsBackfaceAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsBackfaceAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsBillboardAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsBillboardAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsBillboardCallback.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsBillboardCallback.c++">
+				RelativePath="..\..\graphics\common\vsCal3DBoneLoader.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsCal3DBoneLoader.c++">
+				RelativePath="..\..\graphics\common\vsCal3DMeshLoader.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsCal3DMeshLoader.c++">
+				RelativePath="..\..\graphics\OSG\vsClipAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsComponent.c++">
+				RelativePath="..\..\graphics\OSG\vsComponent.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsDatabaseLoader.c++">
+				RelativePath="..\..\graphics\OSG\vsDatabaseLoader.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsDecalAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsDecalAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsDecalCallback.c++">
+				RelativePath="..\..\graphics\OSG\vsDecalCallback.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsDynamicGeometry.c++">
+				RelativePath="..\..\graphics\OSG\vsDynamicGeometry.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsFogAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsFogAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsGeometry.c++">
+				RelativePath="..\..\graphics\OSG\vsGeometry.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\Osg\vsGLSLProgramAttribute.c++">
+				RelativePath="..\..\graphics\Osg\vsGLSLProgramAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\Osg\vsGLSLShader.c++">
+				RelativePath="..\..\graphics\Osg\vsGLSLShader.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\Osg\vsGLSLUniform.c++">
+				RelativePath="..\..\graphics\Osg\vsGLSLUniform.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsGraphicsState.c++">
+				RelativePath="..\..\graphics\OSG\vsGraphicsState.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsIntersect.c++">
+				RelativePath="..\..\graphics\OSG\vsIntersect.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsIntersectTraverser.c++">
+				RelativePath="..\..\graphics\OSG\vsIntersectTraverser.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsLightAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsLightAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsLocalLightCallback.c++">
+				RelativePath="..\..\graphics\OSG\vsLineWidthAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsLODAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsLocalLightCallback.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsMaterialAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsLODAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsNode.c++">
+				RelativePath="..\..\graphics\OSG\vsMaterialAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsOptimizer.c++">
+				RelativePath="..\..\graphics\OSG\vsNode.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG_Windows\vsPane.c++">
+				RelativePath="..\..\graphics\common\vsOptimizer.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsParticleSystem.c++">
+				RelativePath="..\..\graphics\OSG_Windows\vsPane.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG_Windows\vsPipe.c++">
+				RelativePath="..\..\graphics\common\vsParticleSystem.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsScene.c++">
+				RelativePath="..\..\graphics\OSG_Windows\vsPipe.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsScenePrinter.c++">
+				RelativePath="..\..\graphics\OSG\vsScene.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG_Windows\vsScreen.c++">
+				RelativePath="..\..\graphics\common\vsScenePrinter.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsSequenceAttribute.c++">
+				RelativePath="..\..\graphics\OSG_Windows\vsScreen.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsSequenceCallback.c++">
+				RelativePath="..\..\graphics\OSG\vsSequenceAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsShaderAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsSequenceCallback.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsShadingAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsShaderAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsSkeleton.c++">
+				RelativePath="..\..\graphics\OSG\vsShadingAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsSkeletonMesh.c++">
+				RelativePath="..\..\graphics\common\vsSkeleton.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsSkeletonMeshGeometry.c++">
+				RelativePath="..\..\graphics\common\vsSkeletonMesh.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsSphereIntersect.c++">
+				RelativePath="..\..\graphics\OSG\vsSkeletonMeshGeometry.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsStateAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsSphereIntersect.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsSwitchAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsStateAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsTextBuilder.c++">
+				RelativePath="..\..\graphics\OSG\vsSwitchAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsTextureAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsTextBuilder.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsTextureCubeAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsTextureAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsTextureRectangleAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsTextureCubeAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsTransformAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsTextureRectangleAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsTransparencyAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsTransformAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsView.c++">
+				RelativePath="..\..\graphics\OSG\vsTransparencyAttribute.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsViewpointAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsUnmanagedNode.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG_Windows\vsWindow.c++">
+				RelativePath="..\..\graphics\OSG\vsView.c++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsWireframeAttribute.c++">
+				RelativePath="..\..\graphics\OSG\vsViewpointAttribute.c++"
+				>
+			</File>
+			<File
+				RelativePath="..\..\graphics\OSG_Windows\vsWindow.c++"
+				>
+			</File>
+			<File
+				RelativePath="..\..\graphics\OSG\vsWireframeAttribute.c++"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h++;h;hpp;hxx;hm;inl;inc">
+			Filter="h++;h;hpp;hxx;hm;inl;inc"
+			>
 			<File
-				RelativePath="resource.h">
+				RelativePath="resource.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsBackfaceAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsBackfaceAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsBillboardAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsBillboardAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsBillboardCallback.h++">
+				RelativePath="..\..\graphics\OSG\vsBillboardCallback.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsCal3DBoneLoader.h++">
+				RelativePath="..\..\graphics\common\vsCal3DBoneLoader.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsCal3DMeshLoader.h++">
+				RelativePath="..\..\graphics\common\vsCal3DMeshLoader.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsComponent.h++">
+				RelativePath="..\..\graphics\OSG\vsClipAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsDatabaseLoader.h++">
+				RelativePath="..\..\graphics\OSG\vsComponent.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsDecalAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsDatabaseLoader.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsDecalCallback.h++">
+				RelativePath="..\..\graphics\OSG\vsDecalAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsDynamicGeometry.h++">
+				RelativePath="..\..\graphics\OSG\vsDecalCallback.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsFogAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsDynamicGeometry.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsGeometry.h++">
+				RelativePath="..\..\graphics\OSG\vsFogAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\Osg\vsGLSLProgramAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsGeometry.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\Osg\vsGLSLShader.h++">
+				RelativePath="..\..\graphics\Osg\vsGLSLProgramAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\Osg\vsGLSLUniform.h++">
+				RelativePath="..\..\graphics\Osg\vsGLSLShader.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsGraphicsState.h++">
+				RelativePath="..\..\graphics\Osg\vsGLSLUniform.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsIntersect.h++">
+				RelativePath="..\..\graphics\OSG\vsGraphicsState.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsIntersectTraverser.h++">
+				RelativePath="..\..\graphics\OSG\vsIntersect.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsLightAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsIntersectTraverser.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsLocalLightCallback.h++">
+				RelativePath="..\..\graphics\OSG\vsLightAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsLODAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsLineWidthAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsMaterialAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsLocalLightCallback.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsNode.h++">
+				RelativePath="..\..\graphics\OSG\vsLODAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsOptimizer.h++">
+				RelativePath="..\..\graphics\OSG\vsMaterialAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG_Windows\vsPane.h++">
+				RelativePath="..\..\graphics\OSG\vsNode.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsParticleSystem.h++">
+				RelativePath="..\..\graphics\common\vsOptimizer.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG_Windows\vsPipe.h++">
+				RelativePath="..\..\graphics\OSG_Windows\vsPane.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsScene.h++">
+				RelativePath="..\..\graphics\common\vsParticleSystem.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsScenePrinter.h++">
+				RelativePath="..\..\graphics\OSG_Windows\vsPipe.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG_Windows\vsScreen.h++">
+				RelativePath="..\..\graphics\OSG\vsScene.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsSequenceAttribute.h++">
+				RelativePath="..\..\graphics\common\vsScenePrinter.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsSequenceCallback.h++">
+				RelativePath="..\..\graphics\OSG_Windows\vsScreen.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsShaderAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsSequenceAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsShadingAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsSequenceCallback.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsSkeleton.h++">
+				RelativePath="..\..\graphics\OSG\vsShaderAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\common\vsSkeletonMesh.h++">
+				RelativePath="..\..\graphics\OSG\vsShadingAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsSkeletonMeshGeometry.h++">
+				RelativePath="..\..\graphics\common\vsSkeleton.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsSphereIntersect.h++">
+				RelativePath="..\..\graphics\common\vsSkeletonMesh.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsStateAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsSkeletonMeshGeometry.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsSwitchAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsSphereIntersect.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsTextBuilder.h++">
+				RelativePath="..\..\graphics\OSG\vsStateAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsTextureAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsSwitchAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsTextureCubeAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsTextBuilder.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsTextureRectangleAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsTextureAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsTransformAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsTextureCubeAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsTransparencyAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsTextureRectangleAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsView.h++">
+				RelativePath="..\..\graphics\OSG\vsTransformAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsViewpointAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsTransparencyAttribute.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG_Windows\vsWindow.h++">
+				RelativePath="..\..\graphics\OSG\vsUnmanagedNode.h++"
+				>
 			</File>
 			<File
-				RelativePath="..\..\graphics\OSG\vsWireframeAttribute.h++">
+				RelativePath="..\..\graphics\OSG\vsView.h++"
+				>
+			</File>
+			<File
+				RelativePath="..\..\graphics\OSG\vsViewpointAttribute.h++"
+				>
+			</File>
+			<File
+				RelativePath="..\..\graphics\OSG_Windows\vsWindow.h++"
+				>
+			</File>
+			<File
+				RelativePath="..\..\graphics\OSG\vsWireframeAttribute.h++"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
+			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+			>
 			<File
-				RelativePath="graphics.rc">
+				RelativePath="graphics.rc"
+				>
 			</File>
 			<File
-				RelativePath="vess.ico">
+				RelativePath="vess.ico"
+				>
 			</File>
 		</Filter>
 	</Files>
