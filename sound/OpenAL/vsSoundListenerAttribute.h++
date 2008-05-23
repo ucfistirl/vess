@@ -60,26 +60,27 @@ VS_INTERNAL:
 
 public:
 
-                          vsSoundListenerAttribute();
-    virtual               ~vsSoundListenerAttribute();
+                           vsSoundListenerAttribute();
+    virtual                ~vsSoundListenerAttribute();
 
     // Inherited methods
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
 
-    virtual int           getAttributeType();
-    virtual int           getAttributeCategory();
+    virtual int            getAttributeType();
+    virtual int            getAttributeCategory();
+    virtual vsAttribute    *clone();
 
     // Offsets from the parentComponent's transform
-    void                  setOffsetMatrix(atMatrix newMatrix);
-    atMatrix              getOffsetMatrix();
+    void                   setOffsetMatrix(atMatrix newMatrix);
+    atMatrix               getOffsetMatrix();
 
     // Sets the new listener position, velocity, and orientation based on
     // the parentComponent's global transform
-    void                  update();
+    void                   update();
 
     // Listener attributes
-    double                getGain();
-    void                  setGain(double gain);
+    double                 getGain();
+    void                   setGain(double gain);
 };
 
 #endif

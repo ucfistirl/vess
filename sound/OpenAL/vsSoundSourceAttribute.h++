@@ -129,84 +129,85 @@ public:
 
     // Constructor for a static sound source (either a looping or triggered
     // sound)
-                          vsSoundSourceAttribute(vsSoundSample *buffer,
-                                                 bool loop);
+                           vsSoundSourceAttribute(vsSoundSample *buffer,
+                                                  bool loop);
 
     // Constructor for a streaming sound source
-                          vsSoundSourceAttribute(vsSoundStream *buffer);
+                           vsSoundSourceAttribute(vsSoundStream *buffer);
 
     // Constructor for a packet streaming sound source
-                          vsSoundSourceAttribute(vsSoundPacketStream *buffer);
+                           vsSoundSourceAttribute(vsSoundPacketStream *buffer);
 
     // Destructor
-    virtual               ~vsSoundSourceAttribute();
+    virtual                ~vsSoundSourceAttribute();
 
     // Inherited methods
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
 
-    virtual int           getAttributeType();
-    virtual int           getAttributeCategory();
+    virtual int            getAttributeType();
+    virtual int            getAttributeCategory();
+    virtual vsAttribute    *clone();
 
     // Accessor for the sound buffer
-    vsSoundBuffer         *getSoundBuffer();
+    vsSoundBuffer          *getSoundBuffer();
 
     // Offset from the component's global transform
-    void                  setOffsetMatrix(atMatrix newMatrix);
-    atMatrix              getOffsetMatrix();
+    void                   setOffsetMatrix(atMatrix newMatrix);
+    atMatrix               getOffsetMatrix();
 
     // Update function.  Sets the new source position, velocity, and direction
     // based on the attached component's global transform
-    void                  update();
+    void                   update();
 
     // Source control
-    void                  play();
-    void                  stop();
-    void                  pause();
-    void                  rewind();
-    bool                  isPlaying();
-    bool                  isStopped();
-    bool                  isPaused();
+    void                   play();
+    void                   stop();
+    void                   pause();
+    void                   rewind();
+    bool                   isPlaying();
+    bool                   isStopped();
+    bool                   isPaused();
 
     // Loop control
-    bool                  isLooping();
-    void                  setLooping(bool looping);
+    bool                   isLooping();
+    void                   setLooping(bool looping);
 
-    bool                  isStreaming();
+    bool                   isStreaming();
 
     // Volume and distance attenuation parameters
-    double                getGain();
-    void                  setGain(double gain);
-    double                getMinGain();
-    void                  setMinGain(double gain);
-    double                getMaxGain();
-    void                  setMaxGain(double gain);
+    double                 getGain();
+    void                   setGain(double gain);
+    double                 getMinGain();
+    void                   setMinGain(double gain);
+    double                 getMaxGain();
+    void                   setMaxGain(double gain);
 
-    double                getReferenceDistance();
-    void                  setReferenceDistance(double distance);
-    double                getMaxDistance();
-    void                  setMaxDistance(double distance);
-    double                getRolloffFactor();
-    void                  setRolloffFactor(double factor);
+    double                 getReferenceDistance();
+    void                   setReferenceDistance(double distance);
+    double                 getMaxDistance();
+    void                   setMaxDistance(double distance);
+    double                 getRolloffFactor();
+    void                   setRolloffFactor(double factor);
 
     // Pitch parameters
-    double                getPitchShift();
-    void                  setPitchShift(double shift);
+    double                 getPitchShift();
+    void                   setPitchShift(double shift);
 
     // Directional sound parameters
-    atVector              getDirection();
-    void                  setDirection(atVector direction);
-    double                getInnerConeAngle();
-    void                  setInnerConeAngle(double angle);
-    double                getOuterConeAngle();
-    void                  setOuterConeAngle(double angle);
-    double                getOuterConeGain();
-    void                  setOuterConeGain(double gain);
+    atVector               getDirection();
+    void                   setDirection(atVector direction);
+    double                 getInnerConeAngle();
+    void                   setInnerConeAngle(double angle);
+    double                 getOuterConeAngle();
+    void                   setOuterConeAngle(double angle);
+    double                 getOuterConeGain();
+    void                   setOuterConeGain(double gain);
 
     // Priority control
-    void                  setPriority(int newPriority);
-    int                   getPriority();
+    void                   setPriority(int newPriority);
+    int                    getPriority();
     
-    ALuint                getBaseLibraryObject();
+    ALuint                 getBaseLibraryObject();
 };
 
 #endif

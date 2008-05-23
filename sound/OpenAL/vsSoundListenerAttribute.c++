@@ -101,6 +101,15 @@ int vsSoundListenerAttribute::getAttributeCategory()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsSoundListenerAttribute::clone()
+{
+    // Only one sound listener is allowed per application
+    return NULL;
+}
+
+// ------------------------------------------------------------------------
 // Internal function
 // Notifies the attribute that it is being added to the given node's
 // attribute list

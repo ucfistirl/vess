@@ -67,40 +67,41 @@ VS_INTERNAL:
 
 public:
 
-                          vsScentSourceAttribute(vsScent *theScent);
-                          ~vsScentSourceAttribute();
+                           vsScentSourceAttribute(vsScent *theScent);
+                           ~vsScentSourceAttribute();
 
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
 
-    virtual int           getAttributeType();
-    virtual int           getAttributeCategory();
+    virtual int            getAttributeType();
+    virtual int            getAttributeCategory();
+    virtual vsAttribute    *clone();
 
-    void                  setOffsetMatrix(atMatrix newMatrix);
-    atMatrix              getOffsetMatrix();
+    void                   setOffsetMatrix(atMatrix newMatrix);
+    atMatrix               getOffsetMatrix();
 
-    vsScent               *getScent();
+    vsScent                *getScent();
 
-    void                  on();
-    void                  off();
-    bool                  isOn();
+    void                   on();
+    void                   off();
+    bool                   isOn();
 
-    void                  enableOcclusion();
-    void                  disableOcclusion();
-    bool                  isOcclusionEnabled();
+    void                   enableOcclusion();
+    void                   disableOcclusion();
+    bool                   isOcclusionEnabled();
 
-    double                getStrengthScale();
-    void                  setStrengthScale(double newScale);
-    double                getMinStrength();
-    void                  setMinStrength(double newMin);
-    double                getMaxStrength();
-    void                  setMaxStrength(double newMax);
+    double                 getStrengthScale();
+    void                   setStrengthScale(double newScale);
+    double                 getMinStrength();
+    void                   setMinStrength(double newMin);
+    double                 getMaxStrength();
+    void                   setMaxStrength(double newMax);
 
-    double                getReferenceDistance();
-    void                  setReferenceDistance(double distance);
-    double                getMaxDistance();
-    void                  setMaxDistance(double distance);
-    double                getRolloffFactor();
-    void                  setRolloffFactor(double factor);
+    double                 getReferenceDistance();
+    void                   setReferenceDistance(double distance);
+    double                 getMaxDistance();
+    void                   setMaxDistance(double distance);
+    double                 getRolloffFactor();
+    void                   setRolloffFactor(double factor);
 };
 
 #endif

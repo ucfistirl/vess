@@ -125,13 +125,8 @@ void vsScentSourceAttribute::detach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsScentSourceAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsScentSourceAttribute *source;
-
-    // Create a duplicate attribute
-    source = new vsScentSourceAttribute(scent);
-
-    // Attach it to the given node
-    theNode->addAttribute(source);
+    // Attach a clone of this attribute to the given node
+    theNode->addAttribute(this->clone());
 }
 
 // ------------------------------------------------------------------------
@@ -179,6 +174,20 @@ int vsScentSourceAttribute::getAttributeType()
 int vsScentSourceAttribute::getAttributeCategory()
 {
     return VS_ATTRIBUTE_CATEGORY_OTHER;
+}
+
+// ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsScentSourceAttribute::clone()
+{
+    vsScentSourceAttribute *source;
+
+    // Create a duplicate attribute
+    source = new vsScentSourceAttribute(scent);
+
+    // Return the clone
+    return source;
 }
 
 // ------------------------------------------------------------------------
