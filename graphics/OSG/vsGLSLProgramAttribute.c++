@@ -38,6 +38,9 @@ vsGLSLProgramAttribute::vsGLSLProgramAttribute()
     numShaders = 0;
     memset(uniforms, 0, sizeof(uniforms));
     numUniforms = 0;
+    memset(bindingName, 0, sizeof(bindingName));
+    memset(bindingLocation, 0, sizeof(bindingLocation));
+    numVertexAttrBindings = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -50,6 +53,8 @@ vsGLSLProgramAttribute::~vsGLSLProgramAttribute()
         removeShader(shaders[0]);
     while (numUniforms > 0)
         removeUniform(uniforms[0]);
+    while (numVertexAttrBindings > 0)
+        removeVertexAttrBinding(bindingName[0]);
 
     // Unreference the OSG Program object
     osgProgram->unref();
@@ -159,21 +164,8 @@ void vsGLSLProgramAttribute::detach(vsNode *node)
 // ------------------------------------------------------------------------
 void vsGLSLProgramAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsGLSLProgramAttribute *newAttrib;
-    int i;
-
-    // Create a new vsShadingAttribute and copy the data from this
-    // attribute to the new one
-    newAttrib = new vsGLSLProgramAttribute();
-
-    // Duplicate the data
-    for (i = 0; i < numShaders; i++)
-        newAttrib->addShader(shaders[i]);
-    for (i = 0; i < numUniforms; i++)
-        newAttrib->addUniform(uniforms[i]);
-
-    // Add the new attribute to the given node
-    theNode->addAttribute(newAttrib);
+    // Add the a clone of this attribute to the given node
+    theNode->addAttribute(this->clone());
 }
 
 // ------------------------------------------------------------------------
@@ -206,6 +198,34 @@ int vsGLSLProgramAttribute::getAttributeType()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsGLSLProgramAttribute::clone()
+{
+    vsGLSLProgramAttribute *newAttrib;
+    int i;
+
+    // Create a new vsShadingAttribute and copy the data from this
+    // attribute to the new one
+    newAttrib = new vsGLSLProgramAttribute();
+
+    // Attach our shaders and uniforms to the new attribute (the cloned
+    // program will reference them, so they won't disappear until
+    // we're both done with them)
+    for (i = 0; i < numShaders; i++)
+        newAttrib->addShader(shaders[i]);
+    for (i = 0; i < numUniforms; i++)
+        newAttrib->addUniform(uniforms[i]);
+
+    // Duplicate the vertex attribute bindings
+    for (i = 0; i < numVertexAttrBindings; i++)
+        newAttrib->bindVertexAttr(bindingName[i], bindingLocation[i]);
+
+    // Return the clone
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Adds a vsGLSLShader to this Program
 // ------------------------------------------------------------------------
 void vsGLSLProgramAttribute::addShader(vsGLSLShader *shader)
@@ -219,6 +239,7 @@ void vsGLSLProgramAttribute::addShader(vsGLSLShader *shader)
     
     // Add the shader to our array
     shaders[numShaders] = shader;
+    shaders[numShaders]->ref();
     numShaders++;
 
     // Add the shader to the OSG Program
@@ -257,6 +278,7 @@ void vsGLSLProgramAttribute::removeShader(vsGLSLShader *shader)
         osgProgram->removeShader(shader->getBaseLibraryObject());
 
         // Remove it from our array
+        vsObject::unrefDelete(shaders[i]);
         shaders[i] = NULL;
 
         // Slide the remaining shaders down into the removed shader's place
@@ -309,6 +331,7 @@ void vsGLSLProgramAttribute::addUniform(vsGLSLUniform *uniform)
     
     // Add the uniform to our array
     uniforms[numUniforms] = uniform;
+    uniforms[numUniforms]->ref();
     numUniforms++;
 
     // Add the uniform to the OSG StateSet, if the program is attached to
@@ -347,8 +370,8 @@ void vsGLSLProgramAttribute::removeUniform(vsGLSLUniform *uniform)
     }
     else
     {
-        // Add the uniform to the OSG StateSet, if the program is attached
-        // to something
+        // Remove the uniform from the OSG StateSet, if the program is
+        // attached to something
         if (attachedCount > 0)
         {
             for (j = 0; j < attachedCount; j++)
@@ -357,6 +380,7 @@ void vsGLSLProgramAttribute::removeUniform(vsGLSLUniform *uniform)
         }
 
         // Remove it from our array
+        vsObject::unrefDelete(uniforms[i]);
         uniforms[i] = NULL;
 
         // Slide the remaining uniforms down into the removed uniform's place
@@ -393,14 +417,39 @@ vsGLSLUniform *vsGLSLProgramAttribute::getUniform(int index)
 }
 
 // ------------------------------------------------------------------------
+// Return the uniform with the specified name
+// ------------------------------------------------------------------------
+vsGLSLUniform *vsGLSLProgramAttribute::getUniform(const char *name)
+{
+    int index;
+
+    // Search the uniforms array for the specified uniform
+    index = 0;
+    while ((index < numUniforms) &&
+           (strcmp(uniforms[index]->getName(), name) != 0))
+        index++;
+
+    // Return the uniform if we found it, or NULL if not
+    if (index < numUniforms)
+        return uniforms[index];
+    else
+        return NULL;
+}
+
+// ------------------------------------------------------------------------
 // Binds the given OpenGL vertex attribute list to the given variable name
 // in the GLSL program 
 // ------------------------------------------------------------------------
 void vsGLSLProgramAttribute::bindVertexAttr(const char *name, 
-                                            unsigned int index)
+                                            unsigned int loc)
 {
-    // Just pass this call along to the OSG object
-    osgProgram->addBindAttribLocation(std::string(name), (GLuint)index);
+    // Store the name and location
+    strcpy(bindingName[numVertexAttrBindings], name);
+    bindingLocation[numVertexAttrBindings] = loc;
+    numVertexAttrBindings++;
+    
+    // Then pass this call along to the OSG object
+    osgProgram->addBindAttribLocation(std::string(name), (GLuint)loc);
 }
 
 // ------------------------------------------------------------------------
@@ -408,6 +457,67 @@ void vsGLSLProgramAttribute::bindVertexAttr(const char *name,
 // ------------------------------------------------------------------------
 void vsGLSLProgramAttribute::removeVertexAttrBinding(const char *name)
 {
-    // Just pass this call along to the OSG object
-    osgProgram->removeBindAttribLocation(std::string(name));
+    int index;
+
+    // Search the binding name array for the specified name
+    index = 0;
+    while ((index < numUniforms) &&
+           (strcmp(bindingName[index], name) != 0))
+        index++;
+
+    // See if we found the binding
+    if (index >= numVertexAttrBindings)
+    {
+        printf("vsGLSLProgramAttribute::removeVertexAttrBinding:\n");
+        printf("    Binding %s not found in this program\n", name);
+    }
+    else
+    {
+        // Then pass this call along to the OSG object
+        osgProgram->removeBindAttribLocation(std::string(name));
+
+        // Slide the remaining bindings down into the removed binding's place
+        if (index < (numVertexAttrBindings-1))
+        {
+            memmove(&bindingName[index], &bindingName[index+1], 
+                (numVertexAttrBindings-index-1) * sizeof(bindingName[index]));
+            memmove(&bindingLocation[index], &bindingLocation[index+1], 
+                (numVertexAttrBindings-index-1) * 
+                sizeof(bindingLocation[index]));
+        }
+
+        // Decrement the binding count
+        numVertexAttrBindings--;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Return the number of vertex attributes bound to the program
+// ------------------------------------------------------------------------
+int vsGLSLProgramAttribute::getNumVertexAttrBindings()
+{
+    return numVertexAttrBindings;
+}
+
+// ------------------------------------------------------------------------
+// Return the name and attribute location of the given vertex attribute
+// binding
+// ------------------------------------------------------------------------
+void vsGLSLProgramAttribute::getVertexAttrBinding(int index, char **name,
+                                                  unsigned int *loc)
+{
+    // Validate the index
+    if ((index < 0) || (index >= numVertexAttrBindings))
+    {
+        printf("vsGLSLProgramAttribute::getVertexAttrBinding:  "
+            "Index out of bounds\n");
+        return;
+    }
+
+    // Return the name and/or location, provided the corresponding pointer
+    // is valid
+    if (name != NULL)
+        *name = bindingName[index];
+    if (loc != NULL)
+        *loc = bindingLocation[index];
 }

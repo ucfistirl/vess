@@ -30,6 +30,7 @@
 
 #define VS_GPROG_MAX_SHADERS 16
 #define VS_GPROG_MAX_UNIFORMS 256
+#define VS_GPROG_MAX_BINDINGS 16
 
 
 class VS_GRAPHICS_DLL vsGLSLProgramAttribute : public vsStateAttribute
@@ -44,6 +45,10 @@ private:
     vsGLSLUniform     *uniforms[VS_GPROG_MAX_UNIFORMS];
     int               numUniforms;
 
+    char              bindingName[VS_GPROG_MAX_BINDINGS][256];
+    int               bindingLocation[VS_GPROG_MAX_BINDINGS];
+    int               numVertexAttrBindings;
+
     vsGrowableArray   attachedNodes;
 
     virtual void     setOSGAttrModes(vsNode *node);
@@ -57,24 +62,29 @@ VS_INTERNAL:
 
 public:
 
-                          vsGLSLProgramAttribute();
-    virtual               ~vsGLSLProgramAttribute();
+                           vsGLSLProgramAttribute();
+    virtual                ~vsGLSLProgramAttribute();
 
-    virtual const char    *getClassName();
-    virtual int           getAttributeType();
+    virtual const char     *getClassName();
+    virtual int            getAttributeType();
+    virtual vsAttribute    *clone();
 
-    void                  addShader(vsGLSLShader *shader);
-    void                  removeShader(vsGLSLShader *shader);
-    int                   getNumShaders();
-    vsGLSLShader          *getShader(int index);
+    void                   addShader(vsGLSLShader *shader);
+    void                   removeShader(vsGLSLShader *shader);
+    int                    getNumShaders();
+    vsGLSLShader           *getShader(int index);
 
-    void                  addUniform(vsGLSLUniform *uniform);
-    void                  removeUniform(vsGLSLUniform *uniform);
-    int                   getNumUniforms();
-    vsGLSLUniform         *getUniform(int index);
+    void                   addUniform(vsGLSLUniform *uniform);
+    void                   removeUniform(vsGLSLUniform *uniform);
+    int                    getNumUniforms();
+    vsGLSLUniform          *getUniform(int index);
+    vsGLSLUniform          *getUniform(const char *name);
 
-    void                  bindVertexAttr(const char *name, unsigned int index);
-    void                  removeVertexAttrBinding(const char *name);
+    void                   bindVertexAttr(const char *name, unsigned int loc);
+    void                   removeVertexAttrBinding(const char *name);
+    int                    getNumVertexAttrBindings();
+    void                   getVertexAttrBinding(int index, char **name,
+                                                unsigned int *loc);
 };
 
 #endif
