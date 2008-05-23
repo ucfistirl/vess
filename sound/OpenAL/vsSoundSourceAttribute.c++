@@ -311,26 +311,14 @@ void vsSoundSourceAttribute::detach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsSoundSourceAttribute *source;
+    vsAttribute *source;
 
-    // If this is a streaming source, we can't duplicate it.  The user
-    // must duplicate the attribute and the vsSoundStream manually.  A
-    // vsSoundStream can only be attached to one source (for synchronization
-    // reasons).
-    if (streamingSource)
-    {
-        printf("vsSoundSourceAttribute::attachDuplicate:\n");
-        printf("    Cannot automatically duplicate streaming sound source "
-            "attributes!\n");
-        return;
-    }
+    // Get a clone of this attribute
+    source = this->clone();
 
-    // Create a duplicate attribute
-    source = new vsSoundSourceAttribute((vsSoundSample *)soundBuffer, 
-        loopSource);
-
-    // Attach it to the given node
-    theNode->addAttribute(source);
+    // If the clone is not NULL, attach it to the given node
+    if (source)
+        theNode->addAttribute(source);
 }
 
 // ------------------------------------------------------------------------
@@ -699,6 +687,33 @@ int vsSoundSourceAttribute::getAttributeCategory()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsSoundSourceAttribute::clone()
+{
+    vsSoundSourceAttribute *source;
+
+    // If this is a streaming source, we can't duplicate it.  The user
+    // must duplicate the attribute and the vsSoundStream manually.  A
+    // vsSoundStream can only be attached to one source (for synchronization
+    // reasons).
+    if (streamingSource)
+    {
+        printf("vsSoundSourceAttribute::attachDuplicate:\n");
+        printf("    Cannot automatically duplicate streaming sound source "
+            "attributes!\n");
+        return NULL;
+    }
+
+    // Create a duplicate attribute
+    source = new vsSoundSourceAttribute((vsSoundSample *)soundBuffer, 
+        loopSource);
+
+    // Return the clone
+    return source;
+}
+
+// ------------------------------------------------------------------------
 // Returns the sound buffer passed into the constructor
 // ------------------------------------------------------------------------
 vsSoundBuffer *vsSoundSourceAttribute::getSoundBuffer()
@@ -830,6 +845,11 @@ void vsSoundSourceAttribute::update()
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::play()
 {
+    int lastState;
+
+    // Get the current play state
+    lastState = playState;
+
     // Set the play state to playing
     playState = AL_PLAYING;
 
@@ -840,8 +860,13 @@ void vsSoundSourceAttribute::play()
     // Make sure we have a source
     if (sourceValid)
     {
-        // Stop the source in case it's already playing
-        alSourceStop(sourceID);
+        // See if the source was paused.  If so, we don't want to call
+        // stop first
+        if (lastState != AL_PAUSED)
+        {
+            // Stop the source in case it's already playing
+            alSourceStop(sourceID);
+        }
 
         // Start playing the source
         alSourcePlay(sourceID);
