@@ -54,42 +54,43 @@ VS_INTERNAL:
 
 public:
 
-                          vsShaderAttribute();
-    virtual               ~vsShaderAttribute();
+                           vsShaderAttribute();
+    virtual                ~vsShaderAttribute();
 
-    virtual const char    *getClassName();
-    virtual int           getAttributeType();
+    virtual const char     *getClassName();
+    virtual int            getAttributeType();
+    virtual vsAttribute    *clone();
 
-    void                  setVertexSourceFile(char *filename);
-    char                  *getVertexSourceFile();
-    void                  setVertexSource(char *source);
-    char                  *getVertexSource();
+    void                   setVertexSourceFile(char *filename);
+    char                   *getVertexSourceFile();
+    void                   setVertexSource(char *source);
+    char                   *getVertexSource();
 
-    void                  setFragmentSourceFile(char *filename);
-    char                  *getFragmentSourceFile();
-    void                  setFragmentSource(char *source);
-    char                  *getFragmentSource();
+    void                   setFragmentSourceFile(char *filename);
+    char                   *getFragmentSourceFile();
+    void                   setFragmentSource(char *source);
+    char                   *getFragmentSource();
 
-    void                  setVertexLocalParameter(int index, float x);
-    void                  setVertexLocalParameter(int index, float x, float y);
-    void                  setVertexLocalParameter(int index, float x, float y,
-                                                  float z);
-    void                  setVertexLocalParameter(int index, float x, float y,
-                                                  float z, float w);
-    void                  setVertexLocalParameter(int index,
-                                                  const atVector &value);
-    atVector              getVertexLocalParameter(int index);
+    void                   setVertexLocalParameter(int index, float x);
+    void                   setVertexLocalParameter(int index, float x, float y);
+    void                   setVertexLocalParameter(int index, float x, float y,
+                                                   float z);
+    void                   setVertexLocalParameter(int index, float x, float y,
+                                                   float z, float w);
+    void                   setVertexLocalParameter(int index,
+                                                   const atVector &value);
+    atVector               getVertexLocalParameter(int index);
 
-    void                  setFragmentLocalParameter(int index, float x);
-    void                  setFragmentLocalParameter(int index, float x,
-                                                    float y);
-    void                  setFragmentLocalParameter(int index, float x, float y,
-                                                    float z);
-    void                  setFragmentLocalParameter(int index, float x, float y,
-                                                    float z, float w);
-    void                  setFragmentLocalParameter(int index,
-                                                    const atVector &value);
-    atVector              getFragmentLocalParameter(int index);
+    void                   setFragmentLocalParameter(int index, float x);
+    void                   setFragmentLocalParameter(int index, float x,
+                                                     float y);
+    void                   setFragmentLocalParameter(int index, float x,
+                                                     float y, float z);
+    void                   setFragmentLocalParameter(int index, float x,
+                                                     float y, float z, float w);
+    void                   setFragmentLocalParameter(int index,
+                                                     const atVector &value);
+    atVector               getFragmentLocalParameter(int index);
 };
 
 #endif

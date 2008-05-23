@@ -100,16 +100,18 @@ VS_INTERNAL:
 
 public:
 
-                   vsAttribute();
-    virtual        ~vsAttribute();
+                           vsAttribute();
+    virtual                ~vsAttribute();
 
-    virtual int    getAttributeType() = 0;
-    virtual int    getAttributeCategory() = 0;
+    virtual int            getAttributeType() = 0;
+    virtual int            getAttributeCategory() = 0;
 
-    bool           isAttached();
+    virtual vsAttribute    *clone() = 0;
 
-    void           setName(char *newName);
-    const char     *getName();
+    bool                   isAttached();
+
+    void                   setName(char *newName);
+    const char             *getName();
 };
 
 #endif

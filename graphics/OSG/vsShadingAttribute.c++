@@ -63,6 +63,22 @@ int vsShadingAttribute::getAttributeType()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsShadingAttribute::clone()
+{
+    vsShadingAttribute *newAttrib;
+    
+    // Create a new vsShadingAttribute and copy the shading mode from this
+    // attribute to the new one
+    newAttrib = new vsShadingAttribute();
+    newAttrib->setShading(getShading());
+
+    // Return the clone
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Sets the shading mode
 // ------------------------------------------------------------------------
 void vsShadingAttribute::setShading(int shadingMode)
@@ -166,15 +182,8 @@ void vsShadingAttribute::detach(vsNode *node)
 // ------------------------------------------------------------------------
 void vsShadingAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsShadingAttribute *newAttrib;
-    
-    // Create a new vsShadingAttribute and copy the shading mode from this
-    // attribute to the new one
-    newAttrib = new vsShadingAttribute();
-    newAttrib->setShading(getShading());
-
-    // Add the new attribute to the given node
-    theNode->addAttribute(newAttrib);
+    // Add a clone of this attribute to the given node
+    theNode->addAttribute(this->clone());
 }
 
 // ------------------------------------------------------------------------

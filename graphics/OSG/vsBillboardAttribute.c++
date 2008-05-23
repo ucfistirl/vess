@@ -94,6 +94,26 @@ int vsBillboardAttribute::getAttributeCategory()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsBillboardAttribute::clone()
+{
+    vsBillboardAttribute *newAttrib;
+    
+    // Create a duplicate switch attribute
+    newAttrib = new vsBillboardAttribute();
+    
+    // Copy the billboard parameters to the new attribute
+    newAttrib->setMode(getMode());
+    newAttrib->setCenterPoint(getCenterPoint());
+    newAttrib->setFrontDirection(getFrontDirection());
+    newAttrib->setAxis(getAxis());
+    
+    // Return the clone
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Sets the rotation mode of the billboard
 // ------------------------------------------------------------------------
 void vsBillboardAttribute::setMode(int mode)
@@ -268,19 +288,8 @@ void vsBillboardAttribute::detach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsBillboardAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsBillboardAttribute *newAttrib;
-    
-    // Create a duplicate switch attribute
-    newAttrib = new vsBillboardAttribute();
-    
-    // Copy the billboard parameters to the new attribute
-    newAttrib->setMode(getMode());
-    newAttrib->setCenterPoint(getCenterPoint());
-    newAttrib->setFrontDirection(getFrontDirection());
-    newAttrib->setAxis(getAxis());
-    
-    // Attach the duplicate attribute to the specified node
-    theNode->addAttribute(newAttrib);
+    // Attach a clone of this attribute to the specified node
+    theNode->addAttribute(this->clone());
 }
 
 // ------------------------------------------------------------------------

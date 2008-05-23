@@ -53,21 +53,21 @@ VS_INTERNAL:
 
 public:
 
-                          vsFogAttribute();
-    virtual               ~vsFogAttribute();
+                           vsFogAttribute();
+    virtual                ~vsFogAttribute();
 
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
+    virtual int            getAttributeType();
+    virtual vsAttribute    *clone();
 
-    virtual int           getAttributeType();
-
-    void                  setEquationType(int equType);
-    int                   getEquationType();
+    void                   setEquationType(int equType);
+    int                    getEquationType();
     
-    void                  setColor(double r, double g, double b);
-    void                  getColor(double *r, double *g, double *b);
+    void                   setColor(double r, double g, double b);
+    void                   getColor(double *r, double *g, double *b);
     
-    void                  setRanges(double nearDist, double farDist);
-    void                  getRanges(double *nearDist, double *farDist);
+    void                   setRanges(double nearDist, double farDist);
+    void                   getRanges(double *nearDist, double *farDist);
 };
 
 #endif

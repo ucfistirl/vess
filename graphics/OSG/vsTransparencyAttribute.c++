@@ -71,6 +71,36 @@ int vsTransparencyAttribute::getAttributeType()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsTransparencyAttribute::clone()
+{
+    vsTransparencyAttribute *newAttrib;
+    
+    // Create a new vsTransparencyAttribute
+    newAttrib = new vsTransparencyAttribute();
+    
+    // Copy this attribute's settings to the new attribute
+    // Enable flag
+    if (isEnabled())
+        newAttrib->enable();
+    else
+        newAttrib->disable();
+
+    // Quality
+    newAttrib->setQuality(getQuality());
+
+    // Occlusion
+    if (isOcclusionEnabled())
+        newAttrib->enableOcclusion();
+    else
+        newAttrib->disableOcclusion();
+
+    // Return the clone
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Enables transparency
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::enable()
@@ -224,29 +254,8 @@ void vsTransparencyAttribute::detach(vsNode *node)
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsTransparencyAttribute *newAttrib;
-    
-    // Create a new vsTransparencyAttribute
-    newAttrib = new vsTransparencyAttribute();
-    
-    // Copy this attribute's settings to the new attribute
-    // Enable flag
-    if (isEnabled())
-        newAttrib->enable();
-    else
-        newAttrib->disable();
-
-    // Quality
-    newAttrib->setQuality(getQuality());
-
-    // Occlusion
-    if (isOcclusionEnabled())
-        newAttrib->enableOcclusion();
-    else
-        newAttrib->disableOcclusion();
-
-    // Add the new attribute to the given node
-    theNode->addAttribute(newAttrib);
+    // Add a clone of this attribute to the given node
+    theNode->addAttribute(this->clone());
 }
 
 // ------------------------------------------------------------------------

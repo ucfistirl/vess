@@ -67,6 +67,29 @@ int vsFogAttribute::getAttributeType()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsFogAttribute::clone()
+{
+    vsFogAttribute *newAttrib;
+    double r, g, b;
+    double nearDist, farDist;
+
+    // Create a new fog attribute
+    newAttrib = new vsFogAttribute();
+
+    // Copy the fog parameters to the new attribute
+    newAttrib->setEquationType(getEquationType());
+    getColor(&r, &g, &b);
+    newAttrib->setColor(r, g, b);
+    getRanges(&nearDist, &farDist);
+    newAttrib->setRanges(nearDist, farDist);
+
+    // Return the clone
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Sets the type of equation used to calculate the fog density
 // ------------------------------------------------------------------------
 void vsFogAttribute::setEquationType(int equType)
@@ -271,20 +294,8 @@ void vsFogAttribute::detach(vsNode *node)
 // ------------------------------------------------------------------------
 void vsFogAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsFogAttribute *newAttrib;
-    double r, g, b;
-    double nearDist, farDist;
-
-    // Create a new fog attribute on the specified node
-    newAttrib = new vsFogAttribute();
-    theNode->addAttribute(newAttrib);
-
-    // Copy the fog parameters to the new attribute
-    newAttrib->setEquationType(getEquationType());
-    getColor(&r, &g, &b);
-    newAttrib->setColor(r, g, b);
-    getRanges(&nearDist, &farDist);
-    newAttrib->setRanges(nearDist, farDist);
+    // Attach a clone of this attribute to the specified node
+    theNode->addAttribute(this->clone());
 }
 
 // ------------------------------------------------------------------------

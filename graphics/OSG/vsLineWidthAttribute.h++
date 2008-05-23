@@ -43,15 +43,15 @@ VS_INTERNAL:
        
 public:
     
-                          vsLineWidthAttribute();
-    virtual               ~vsLineWidthAttribute();
+                           vsLineWidthAttribute();
+    virtual                ~vsLineWidthAttribute();
        
-    virtual const char    *getClassName();
-      
-    virtual int           getAttributeType();
+    virtual const char     *getClassName();
+    virtual int            getAttributeType();
+    virtual vsAttribute    *clone();
        
-    void                  setLineWidth(double newWidth);
-    double                getLineWidth();
+    void                   setLineWidth(double newWidth);
+    double                 getLineWidth();
 };
 
 #endif

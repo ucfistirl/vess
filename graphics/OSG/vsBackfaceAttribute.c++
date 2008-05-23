@@ -76,6 +76,26 @@ int vsBackfaceAttribute::getAttributeType()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsBackfaceAttribute::clone()
+{
+    vsBackfaceAttribute *newAttrib;
+
+    // Create a duplicate backface attribute
+    newAttrib = new vsBackfaceAttribute();
+
+    // Copy the backface enable mode
+    if (isEnabled())
+        newAttrib->enable();
+    else
+        newAttrib->disable();
+
+    // Return the clone
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Enables backfacing
 // ------------------------------------------------------------------------
 void vsBackfaceAttribute::enable()
@@ -186,19 +206,8 @@ void vsBackfaceAttribute::detach(vsNode *node)
 // ------------------------------------------------------------------------
 void vsBackfaceAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsBackfaceAttribute *newAttrib;
-
-    // Create a duplicate backface attribute
-    newAttrib = new vsBackfaceAttribute();
-
-    // Copy the backface enable mode
-    if (isEnabled())
-        newAttrib->enable();
-    else
-        newAttrib->disable();
-
-    // Attach the duplicate attribute to the specified node
-    theNode->addAttribute(newAttrib);
+    // Attach a clone of this attribute to the specified node
+    theNode->addAttribute(this->clone());
 }
 
 // ------------------------------------------------------------------------

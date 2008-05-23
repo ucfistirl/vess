@@ -45,17 +45,16 @@ VS_INTERNAL:
 
 public:
 
-                          vsWireframeAttribute();
-    virtual               ~vsWireframeAttribute();
+                           vsWireframeAttribute();
+    virtual                ~vsWireframeAttribute();
 
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
+    virtual int            getAttributeType();
+    virtual vsAttribute    *clone();
 
-    virtual int           getAttributeType();
-
-    void                  enable();
-    void                  disable();
-    bool                  isEnabled();
-    
+    void                   enable();
+    void                   disable();
+    bool                   isEnabled();
 };
 
 #endif

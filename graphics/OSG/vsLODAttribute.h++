@@ -49,19 +49,20 @@ VS_INTERNAL:
 
 public:
 
-                          vsLODAttribute();
-    virtual               ~vsLODAttribute();
+                           vsLODAttribute();
+    virtual                ~vsLODAttribute();
 
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
 
-    virtual int           getAttributeType();
-    virtual int           getAttributeCategory();
+    virtual int            getAttributeType();
+    virtual int            getAttributeCategory();
+    virtual vsAttribute    *clone();
 
-    void                  setCenter(atVector newCenter);
-    atVector              getCenter();
+    void                   setCenter(atVector newCenter);
+    atVector               getCenter();
     
-    void                  setRangeEnd(int childNum, double rangeLimit);
-    double                getRangeEnd(int childNum);
+    void                   setRangeEnd(int childNum, double rangeLimit);
+    double                 getRangeEnd(int childNum);
 };
 
 #endif

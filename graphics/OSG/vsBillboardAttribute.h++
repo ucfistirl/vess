@@ -64,25 +64,26 @@ VS_INTERNAL:
  
 public:
 
-                          vsBillboardAttribute();
-    virtual               ~vsBillboardAttribute();
+                           vsBillboardAttribute();
+    virtual                ~vsBillboardAttribute();
 
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
 
-    virtual int           getAttributeType();
-    virtual int           getAttributeCategory();
+    virtual int            getAttributeType();
+    virtual int            getAttributeCategory();
+    virtual vsAttribute    *clone();
 
-    void                  setMode(int mode);
-    int                   getMode();
+    void                   setMode(int mode);
+    int                    getMode();
 
-    void                  setCenterPoint(atVector newCenter);
-    atVector              getCenterPoint();
+    void                   setCenterPoint(atVector newCenter);
+    atVector               getCenterPoint();
 
-    void                  setFrontDirection(atVector newFront);
-    atVector              getFrontDirection();
+    void                   setFrontDirection(atVector newFront);
+    atVector               getFrontDirection();
 
-    void                  setAxis(atVector newAxis);
-    atVector              getAxis();
+    void                   setAxis(atVector newAxis);
+    atVector               getAxis();
 };
 
 #endif

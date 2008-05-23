@@ -47,13 +47,14 @@ VS_INTERNAL:
 
 public:
 
-                          vsDecalAttribute();
-    virtual               ~vsDecalAttribute();
+                           vsDecalAttribute();
+    virtual                ~vsDecalAttribute();
 
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
 
-    virtual int           getAttributeType();
-    virtual int           getAttributeCategory();
+    virtual int            getAttributeType();
+    virtual int            getAttributeCategory();
+    virtual vsAttribute    *clone();
 };
 
 #endif

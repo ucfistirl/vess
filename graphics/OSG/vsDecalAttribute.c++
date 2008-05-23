@@ -74,6 +74,19 @@ int vsDecalAttribute::getAttributeCategory()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsDecalAttribute::clone()
+{
+    vsDecalAttribute *newAttrib;
+
+    // This attribute has no state of its own, so just create a new one
+    // and return it
+    newAttrib = new vsDecalAttribute();
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Internal function
 // Returns if this attribute is available to be attached to a node
 // ------------------------------------------------------------------------
@@ -148,11 +161,6 @@ void vsDecalAttribute::detach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsDecalAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsDecalAttribute *newAttrib;
-
-    // Create a duplicate decal attribute
-    newAttrib = new vsDecalAttribute();
-
-    // Attach the duplicate attribute to the specified node
-    theNode->addAttribute(newAttrib);
+    // Attach a clone of this attribute to the specified node
+    theNode->addAttribute(this->clone());
 }

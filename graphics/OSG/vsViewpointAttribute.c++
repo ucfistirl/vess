@@ -105,6 +105,20 @@ int vsViewpointAttribute::getAttributeCategory()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsViewpointAttribute::clone()
+{
+    vsViewpointAttribute *newAttr;
+
+    // Cloning a viewpoint attribute isn't allowed because the view that
+    // this attribute contains can only have one location.  Instead, we'll
+    // return a new, empty viewpoint attribute
+    newAttr = new vsViewpointAttribute();
+    return newAttr;
+}
+
+// ------------------------------------------------------------------------
 // Sets the view object associated with this attribute
 // ------------------------------------------------------------------------
 void vsViewpointAttribute::setView(vsView *theView)

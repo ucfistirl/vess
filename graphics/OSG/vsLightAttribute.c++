@@ -98,6 +98,44 @@ int vsLightAttribute::getAttributeType()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsLightAttribute::clone()
+{
+    vsLightAttribute *newAttrib;
+    double p1, p2, p3, p4;
+ 
+    // Create another light attribute
+    newAttrib = new vsLightAttribute();
+
+    // Copy all parameters to the new attribute
+    getAmbientColor(&p1, &p2, &p3);
+    newAttrib->setAmbientColor(p1, p2, p3);
+    getDiffuseColor(&p1, &p2, &p3);
+    newAttrib->setDiffuseColor(p1, p2, p3);
+    getSpecularColor(&p1, &p2, &p3);
+    newAttrib->setSpecularColor(p1, p2, p3);
+    getAttenuationVals(&p1, &p2, &p3);
+    newAttrib->setAttenuationVals(p1, p2, p3);
+    getPosition(&p1, &p2, &p3, &p4);
+    newAttrib->setPosition(p1, p2, p3, p4);
+    getSpotlightDirection(&p1, &p2, &p3);
+    newAttrib->setSpotlightDirection(p1, p2, p3);
+    getSpotlightValues(&p1, &p2);
+    newAttrib->setSpotlightValues(p1, p2);
+    newAttrib->setScope(getScope());
+
+    // Turn the new light attribute on or off, as appropriate
+    if (isOn())
+        newAttrib->on();
+    else
+        newAttrib->off();
+
+    // Return the clone
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Retrieves the category of this attribute
 // ------------------------------------------------------------------------
 int vsLightAttribute::getAttributeCategory()
@@ -701,37 +739,8 @@ void vsLightAttribute::detach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsLightAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsLightAttribute *newAttrib;
-    double p1, p2, p3, p4;
- 
-    // Create another light attribute
-    newAttrib = new vsLightAttribute();
-
-    // Copy all parameters to the new attribute
-    getAmbientColor(&p1, &p2, &p3);
-    newAttrib->setAmbientColor(p1, p2, p3);
-    getDiffuseColor(&p1, &p2, &p3);
-    newAttrib->setDiffuseColor(p1, p2, p3);
-    getSpecularColor(&p1, &p2, &p3);
-    newAttrib->setSpecularColor(p1, p2, p3);
-    getAttenuationVals(&p1, &p2, &p3);
-    newAttrib->setAttenuationVals(p1, p2, p3);
-    getPosition(&p1, &p2, &p3, &p4);
-    newAttrib->setPosition(p1, p2, p3, p4);
-    getSpotlightDirection(&p1, &p2, &p3);
-    newAttrib->setSpotlightDirection(p1, p2, p3);
-    getSpotlightValues(&p1, &p2);
-    newAttrib->setSpotlightValues(p1, p2);
-    newAttrib->setScope(getScope());
-
-    // Turn the new light attribute on or off, as appropriate
-    if (isOn())
-        newAttrib->on();
-    else
-        newAttrib->off();
-
-    // Add the new attribute to the given node
-    theNode->addAttribute(newAttrib);
+    // Add a clone of this attribute to the given node
+    theNode->addAttribute(this->clone());
 }
 
 // ------------------------------------------------------------------------

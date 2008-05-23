@@ -70,6 +70,20 @@ int vsLODAttribute::getAttributeCategory()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsLODAttribute::clone()
+{
+    vsLODAttribute *newAttrib;
+
+    // We can't really clone an LOD without a node to attach it to (the
+    // number of LOD ranges depends on the number of children on the
+    // node), so just create a new LOD attribute and return it
+    newAttrib = new vsLODAttribute();
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Sets a user-defined center for this LOD.  The default center is
 // the center of the parent node's bounding sphere.
 // ------------------------------------------------------------------------

@@ -99,6 +99,26 @@ int vsMaterialAttribute::getAttributeType()
 }
 
 // ------------------------------------------------------------------------
+// Retrieves the type of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsMaterialAttribute::clone()
+{
+    vsMaterialAttribute *newAttrib;
+    osg::Material *newOSGMaterial;
+
+    // Copy the underlying OSG material object and set the new attribute
+    // to use it
+    newOSGMaterial = new osg::Material(*osgMaterial);
+
+    // Create a new material attribute that references the OSG material
+    // object that we just cloned
+    newAttrib = new vsMaterialAttribute(newOSGMaterial);
+
+    // Return the clone
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Sets one of the colors for this material
 // ------------------------------------------------------------------------
 void vsMaterialAttribute::setColor(int side, int whichColor, double r,
@@ -458,10 +478,8 @@ void vsMaterialAttribute::detach(vsNode *node)
 // ------------------------------------------------------------------------
 void vsMaterialAttribute::attachDuplicate(vsNode *theNode)
 {
-    // Do NOT duplicate the material attribute; just point to the one we
-    // have already. We don't want multiple material objects with
-    // repetitive data floating around the scene graph.
-    theNode->addAttribute(this);
+    // Attach a clone of this attribute to the given node
+    theNode->addAttribute(this->clone());
 }
 
 // ------------------------------------------------------------------------

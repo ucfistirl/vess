@@ -72,26 +72,27 @@ VS_INTERNAL:
 
 public:
 
-                          vsMaterialAttribute();
-    virtual               ~vsMaterialAttribute();
+                           vsMaterialAttribute();
+    virtual                ~vsMaterialAttribute();
 
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
 
-    virtual int           getAttributeType();
+    virtual int            getAttributeType();
+    virtual vsAttribute    *clone();
     
-    void                  setColor(int side, int whichColor, double r,
-                                   double g, double b);
-    void                  getColor(int side, int whichColor, double *r,
-                                   double *g, double *b);
+    void                   setColor(int side, int whichColor, double r,
+                                    double g, double b);
+    void                   getColor(int side, int whichColor, double *r,
+                                    double *g, double *b);
 
-    void                  setAlpha(int side, double alpha);
-    double                getAlpha(int side);
+    void                   setAlpha(int side, double alpha);
+    double                 getAlpha(int side);
     
-    void                  setShininess(int side, double shine);
-    double                getShininess(int side);
+    void                   setShininess(int side, double shine);
+    double                 getShininess(int side);
     
-    void                  setColorMode(int side, int colorMode);
-    int                   getColorMode(int side);
+    void                   setColorMode(int side, int colorMode);
+    int                    getColorMode(int side);
 };
 
 #endif

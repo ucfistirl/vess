@@ -79,40 +79,46 @@ VS_INTERNAL:
 
 public:
 
-                          vsLightAttribute();
-    virtual               ~vsLightAttribute();
+                           vsLightAttribute();
+    virtual                ~vsLightAttribute();
 
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
 
-    virtual int           getAttributeType();
-    virtual int           getAttributeCategory();
+    virtual int            getAttributeType();
+    virtual int            getAttributeCategory();
+    virtual vsAttribute    *clone();
 
-    void                  setAmbientColor(double r, double g, double b);
-    void                  getAmbientColor(double *r, double *g, double *b);
-    void                  setDiffuseColor(double r, double g, double b);
-    void                  getDiffuseColor(double *r, double *g, double *b);
-    void                  setSpecularColor(double r, double g, double b);
-    void                  getSpecularColor(double *r, double *g, double *b);
+    void                   setAmbientColor(double r, double g, double b);
+    void                   getAmbientColor(double *r, double *g, double *b);
+    void                   setDiffuseColor(double r, double g, double b);
+    void                   getDiffuseColor(double *r, double *g, double *b);
+    void                   setSpecularColor(double r, double g, double b);
+    void                   getSpecularColor(double *r, double *g, double *b);
     
-    void                  setAttenuationVals(double quadratic, double linear,
-                                             double constant);
-    void                  getAttenuationVals(double *quadratic, double *linear,
-                                             double *constant);
+    void                   setAttenuationVals(double quadratic, double linear,
+                                              double constant);
+    void                   getAttenuationVals(double *quadratic, double *linear,
+                                              double *constant);
 
-    void                  setPosition(double x, double y, double z, double w);
-    void                  getPosition(double *x, double *y, double *z, double *w);
+    void                   setPosition(double x, double y, double z, double w);
+    void                   getPosition(double *x, double *y, double *z,
+                                       double *w);
 
-    void                  setSpotlightDirection(double dx, double dy, double dz);
-    void                  getSpotlightDirection(double *dx, double *dy, double *dz);
-    void                  setSpotlightValues(double exponent, double cutoffDegrees);
-    void                  getSpotlightValues(double *exponent, double *cutoffDegrees);
+    void                   setSpotlightDirection(double dx, double dy,
+                                                 double dz);
+    void                   getSpotlightDirection(double *dx, double *dy,
+                                                 double *dz);
+    void                   setSpotlightValues(double exponent,
+                                              double cutoffDegrees);
+    void                   getSpotlightValues(double *exponent,
+                                              double *cutoffDegrees);
     
-    void                  setScope(int scope);
-    int                   getScope();
+    void                   setScope(int scope);
+    int                    getScope();
 
-    void                  on();
-    void                  off();
-    bool                  isOn();
+    void                   on();
+    void                   off();
+    bool                   isOn();
 };
 
 #endif

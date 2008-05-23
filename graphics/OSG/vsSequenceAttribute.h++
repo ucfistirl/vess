@@ -66,27 +66,28 @@ VS_INTERNAL:
 
 public:
 
-                          vsSequenceAttribute();
-    virtual               ~vsSequenceAttribute();
+                           vsSequenceAttribute();
+    virtual                ~vsSequenceAttribute();
 
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
 
-    virtual int           getAttributeType();
-    virtual int           getAttributeCategory();
+    virtual int            getAttributeType();
+    virtual int            getAttributeCategory();
+    virtual vsAttribute    *clone();
 
-    void                  setChildTime(int childNum, double seconds);
-    double                getChildTime(int childNum);
+    void                   setChildTime(int childNum, double seconds);
+    double                 getChildTime(int childNum);
 
-    void                  setRepetitionCount(int numReps);
-    int                   getRepetitionCount();
+    void                   setRepetitionCount(int numReps);
+    int                    getRepetitionCount();
 
-    void                  setCycleMode(int seqCycle);
-    int                   getCycleMode();
+    void                   setCycleMode(int seqCycle);
+    int                    getCycleMode();
 
-    void                  setPlayMode(int playMode);
-    int                   getPlayMode();
+    void                   setPlayMode(int playMode);
+    int                    getPlayMode();
 
-    int                   getCurrentChildNum();
+    int                    getCurrentChildNum();
 };
 
 #endif

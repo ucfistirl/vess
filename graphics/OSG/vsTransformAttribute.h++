@@ -56,20 +56,21 @@ VS_INTERNAL:
 
 public:
 
-                          vsTransformAttribute();
-    virtual               ~vsTransformAttribute();
+                           vsTransformAttribute();
+    virtual                ~vsTransformAttribute();
 
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
 
-    virtual int           getAttributeType();
-    virtual int           getAttributeCategory();
+    virtual int            getAttributeType();
+    virtual int            getAttributeCategory();
+    virtual vsAttribute    *clone();
 
-    void                  setPreTransform(atMatrix newTransform);
-    atMatrix              getPreTransform();
-    void                  setDynamicTransform(atMatrix newTransform);
-    atMatrix              getDynamicTransform();
-    void                  setPostTransform(atMatrix newTransform);
-    atMatrix              getPostTransform();
+    void                   setPreTransform(atMatrix newTransform);
+    atMatrix               getPreTransform();
+    void                   setDynamicTransform(atMatrix newTransform);
+    atMatrix               getDynamicTransform();
+    void                   setPostTransform(atMatrix newTransform);
+    atMatrix               getPostTransform();
 };
 
 #endif

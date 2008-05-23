@@ -107,14 +107,8 @@ void vsLineWidthAttribute::detach(vsNode *node)
 // ------------------------------------------------------------------------
 void vsLineWidthAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsLineWidthAttribute *newAttrib;
-
-    // Create a new line width attribute on the specified node
-    newAttrib = new vsLineWidthAttribute();
-    theNode->addAttribute(newAttrib);
-
-    // Copy the line width parameter to the new attribute
-    newAttrib->setLineWidth(osgLineWidth->getWidth());
+    // Add a clone of this attribute to the given node
+    theNode->addAttribute(this->clone());
 }
 
 // ------------------------------------------------------------------------
@@ -159,6 +153,23 @@ const char *vsLineWidthAttribute::getClassName()
 int vsLineWidthAttribute::getAttributeType()
 {
     return VS_ATTRIBUTE_TYPE_LINE_WIDTH;
+}
+
+// ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsLineWidthAttribute::clone()
+{
+    vsLineWidthAttribute *newAttrib;
+
+    // Create a new line width attribute on the specified node
+    newAttrib = new vsLineWidthAttribute();
+
+    // Copy the line width parameter to the new attribute
+    newAttrib->setLineWidth(osgLineWidth->getWidth());
+
+    // Return the clone
+    return newAttrib;
 }
 
 // ------------------------------------------------------------------------

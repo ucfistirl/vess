@@ -50,26 +50,27 @@ VS_INTERNAL:
     virtual bool    isEquivalent(vsAttribute *attribute);
 
 public:
-                          vsClipAttribute();
-                          ~vsClipAttribute();
+                           vsClipAttribute();
+                           ~vsClipAttribute();
 
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
 
-    virtual int           getAttributeType();
-    virtual int           getAttributeCategory();
+    virtual int            getAttributeType();
+    virtual int            getAttributeCategory();
+    virtual vsAttribute    *clone();
 
-    void                  setClipPlane(int planeIndex, double a, double b,
-                                       double c, double d);
-    void                  setClipPlane(int planeIndex,
-                                       atVector pointOnPlane,
-                                       atVector normal);
-    void                  removeClipPlane(int planeIndex);
+    void                   setClipPlane(int planeIndex, double a, double b,
+                                        double c, double d);
+    void                   setClipPlane(int planeIndex,
+                                        atVector pointOnPlane,
+                                        atVector normal);
+    void                   removeClipPlane(int planeIndex);
 
-    bool                  isClipPlaneActive(int planeIndex);
-    void                  getClipPlaneCoeffs(int planeIndex,
-                                             double *a, double *b,
-                                             double *c, double *d);
-    atVector              getClipPlaneNormal(int planeIndex);
+    bool                   isClipPlaneActive(int planeIndex);
+    void                   getClipPlaneCoeffs(int planeIndex,
+                                              double *a, double *b,
+                                              double *c, double *d);
+    atVector               getClipPlaneNormal(int planeIndex);
 };
 
 #endif

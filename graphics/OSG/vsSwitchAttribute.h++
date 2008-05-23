@@ -59,6 +59,7 @@ public:
 
     virtual int           getAttributeType();
     virtual int           getAttributeCategory();
+    virtual vsAttribute   *clone();
 
     void                  enableOne(int index);
     void                  disableOne(int index);

@@ -70,6 +70,20 @@ int vsSwitchAttribute::getAttributeCategory()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsSwitchAttribute::clone()
+{
+    vsSwitchAttribute *newAttrib;
+
+    // The state of a switch attribute depends on the children of the node
+    // to which it's attached, so we can't clone a switch attribute
+    // directly.  Just create a new switch attribute and return it
+    newAttrib = new vsSwitchAttribute();
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Enables display of one of the children of the parent component. The
 // index of the first child is 0.
 // ------------------------------------------------------------------------

@@ -70,6 +70,25 @@ int vsTransformAttribute::getAttributeCategory()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsTransformAttribute::clone()
+{
+    vsTransformAttribute *newAttrib;
+    
+    // Create a new transformAttribute.
+    newAttrib = new vsTransformAttribute();
+    
+    // Set the new tranfromAttribute's tranforms to the values for this one.
+    newAttrib->setPreTransform(getPreTransform());
+    newAttrib->setDynamicTransform(getDynamicTransform());
+    newAttrib->setPostTransform(getPostTransform());
+
+    // Return the clone
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Sets the pre-transform matrix
 // ------------------------------------------------------------------------
 void vsTransformAttribute::setPreTransform(atMatrix newTransform)
@@ -272,19 +291,8 @@ void vsTransformAttribute::detach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsTransformAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsTransformAttribute *newAttrib;
-    atMatrix xformMat;
-    
-    // Create a new transformAttribute.
-    newAttrib = new vsTransformAttribute();
-    
-    // Set the new tranfromAttribute's tranforms to the values for this one.
-    newAttrib->setPreTransform(getPreTransform());
-    newAttrib->setDynamicTransform(getDynamicTransform());
-    newAttrib->setPostTransform(getPostTransform());
-
-    // Attach it.
-    theNode->addAttribute(newAttrib);
+    // Attach a clone of this attribute to the given node
+    theNode->addAttribute(this->clone());
 }
 
 // ------------------------------------------------------------------------

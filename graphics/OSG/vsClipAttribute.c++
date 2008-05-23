@@ -74,6 +74,39 @@ int vsClipAttribute::getAttributeCategory()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsClipAttribute::clone()
+{
+    vsClipAttribute *newAttrib;
+    int i;
+    osg::Vec4d planeCoeffs;
+    
+    // Create a new clip attribute
+    newAttrib = new vsClipAttribute();
+
+    // Copy the attribute information into the
+    // new attribute
+    for (i = 0; i < VS_CLIPATTR_MAX_PLANES; i++)
+    {
+        // See if this clipping plane is active
+        if (planeArray[i] != NULL)
+        {
+            // Get the coefficients of this plane's equation
+            // (Ax + By + Cz + D = 0)
+            planeCoeffs = planeArray[i]->getClipPlane();
+
+            // Set the corresponding plane on the new attribute
+            newAttrib->setClipPlane(i, planeCoeffs.x(), planeCoeffs.y(),
+                planeCoeffs.z(), planeCoeffs.w());
+        }
+    }
+
+    // Return the new clone
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Activates the current ClipPlane's on the OSG node's state set. This
 // effectively applies the clipping planes to the scene
 // ------------------------------------------------------------------------
@@ -438,30 +471,6 @@ void vsClipAttribute::detach(vsNode *node)
 // ------------------------------------------------------------------------
 void vsClipAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsClipAttribute *newAttrib;
-    int i;
-    osg::Vec4d planeCoeffs;
-    
-    // Create a new clip attribute
-    newAttrib = new vsClipAttribute();
-
-    // Copy the attribute information into the
-    // new attribute
-    for (i = 0; i < VS_CLIPATTR_MAX_PLANES; i++)
-    {
-        // See if this clipping plane is active
-        if (planeArray[i] != NULL)
-        {
-            // Get the coefficients of this plane's equation
-            // (Ax + By + Cz + D = 0)
-            planeCoeffs = planeArray[i]->getClipPlane();
-
-            // Set the corresponding plane on the new attribute
-            newAttrib->setClipPlane(i, planeCoeffs.x(), planeCoeffs.y(),
-                planeCoeffs.z(), planeCoeffs.w());
-        }
-    }
-
-    // Attach it.
-    theNode->addAttribute(newAttrib);
+    // Attach a clone of this attribute to the given node
+    theNode->addAttribute(this->clone());
 }

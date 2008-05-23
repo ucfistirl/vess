@@ -65,6 +65,26 @@ int vsWireframeAttribute::getAttributeType()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsWireframeAttribute::clone()
+{
+    vsWireframeAttribute *newAttrib;
+    
+    // Create a new vsWireframeAttribute
+    newAttrib = new vsWireframeAttribute();
+    
+    // Set the enable state of the new attribute to match the current one
+    if (isEnabled())
+        newAttrib->enable();
+    else
+        newAttrib->disable();
+
+    // Return the clone
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Enables wireframe
 // ------------------------------------------------------------------------
 void vsWireframeAttribute::enable()
@@ -165,19 +185,8 @@ void vsWireframeAttribute::detach(vsNode *node)
 // ------------------------------------------------------------------------
 void vsWireframeAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsWireframeAttribute *newAttrib;
-    
-    // Create a new vsWireframeAttribute
-    newAttrib = new vsWireframeAttribute();
-    
-    // Set the enable state of the new attribute to match the current one
-    if (isEnabled())
-        newAttrib->enable();
-    else
-        newAttrib->disable();
-
-    // Add the new attribute to the given node
-    theNode->addAttribute(newAttrib);
+    // Add a clone of this attribute to the given node
+    theNode->addAttribute(this->clone());
 }
 
 // ------------------------------------------------------------------------

@@ -49,16 +49,16 @@ VS_INTERNAL:
 
 public:
 
-                          vsBackfaceAttribute();
-    virtual               ~vsBackfaceAttribute();
+                           vsBackfaceAttribute();
+    virtual                ~vsBackfaceAttribute();
 
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
+    virtual int            getAttributeType();
+    virtual vsAttribute    *clone();
 
-    virtual int           getAttributeType();
-
-    void                  enable();
-    void                  disable();
-    bool                  isEnabled();
+    void                   enable();
+    void                   disable();
+    bool                   isEnabled();
 };
 
 #endif

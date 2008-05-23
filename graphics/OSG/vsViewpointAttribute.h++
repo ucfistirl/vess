@@ -56,20 +56,21 @@ VS_INTERNAL:
 
 public:
 
-                          vsViewpointAttribute();
-                          vsViewpointAttribute(vsView *theView);
-    virtual               ~vsViewpointAttribute();
+                           vsViewpointAttribute();
+                           vsViewpointAttribute(vsView *theView);
+    virtual                ~vsViewpointAttribute();
 
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
 
-    int                   getAttributeType();
-    int                   getAttributeCategory();
+    int                    getAttributeType();
+    int                    getAttributeCategory();
+    virtual vsAttribute    *clone();
     
-    void                  setView(vsView *theView);
-    vsView                *getView();
+    void                   setView(vsView *theView);
+    vsView                 *getView();
 
-    void                  setOffsetMatrix(atMatrix newMatrix);
-    atMatrix              getOffsetMatrix();
+    void                   setOffsetMatrix(atMatrix newMatrix);
+    atMatrix               getOffsetMatrix();
 };
 
 #endif

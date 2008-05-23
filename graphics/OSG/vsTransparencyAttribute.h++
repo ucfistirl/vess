@@ -62,23 +62,24 @@ VS_INTERNAL:
 
 public:
 
-                          vsTransparencyAttribute();
-    virtual               ~vsTransparencyAttribute();
+                           vsTransparencyAttribute();
+    virtual                ~vsTransparencyAttribute();
 
-    virtual const char    *getClassName();
+    virtual const char     *getClassName();
 
-    virtual int           getAttributeType();
+    virtual int            getAttributeType();
+    virtual vsAttribute    *clone();
 
-    void                  enable();
-    void                  disable();
-    bool                  isEnabled();
+    void                   enable();
+    void                   disable();
+    bool                   isEnabled();
     
-    void                  setQuality(int newQuality);
-    int                   getQuality();
+    void                   setQuality(int newQuality);
+    int                    getQuality();
 
-    void                  enableOcclusion();
-    void                  disableOcclusion();
-    bool                  isOcclusionEnabled();
+    void                   enableOcclusion();
+    void                   disableOcclusion();
+    bool                   isOcclusionEnabled();
 };
 
 #endif

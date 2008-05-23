@@ -79,6 +79,21 @@ int vsSequenceAttribute::getAttributeCategory()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsSequenceAttribute::clone()
+{
+    vsSequenceAttribute *newAttrib;
+
+    // We can't set up a sequence attribute until it's attached to a node
+    // (the sequence's state information depends on the children of the
+    // node to which it's attached), so just create a new sequence
+    // attribute and return it
+    newAttrib = new vsSequenceAttribute();
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Sets the time that the child node with index childNum should be
 // displayed for in the sequence. The number of the first child is 0.
 // ------------------------------------------------------------------------

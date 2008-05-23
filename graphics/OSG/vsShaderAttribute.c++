@@ -161,20 +161,8 @@ void vsShaderAttribute::detach(vsNode *node)
 // ------------------------------------------------------------------------
 void vsShaderAttribute::attachDuplicate(vsNode *theNode)
 {
-    vsShaderAttribute *newAttrib;
-
-    // Create a new vsShadingAttribute and copy the data from this
-    // attribute to the new one
-    newAttrib = new vsShaderAttribute();
-
-    // Duplicate the data, this will not handle parameters though.
-    newAttrib->setVertexSource(getVertexSource());
-    newAttrib->setFragmentSource(getFragmentSource());
-
-    /* Copy the parameters somehow? */
-
-    // Add the new attribute to the given node
-    theNode->addAttribute(newAttrib);
+    // Add a clone of this attribute to the given node
+    theNode->addAttribute(this->clone());
 }
 
 // ------------------------------------------------------------------------
@@ -200,6 +188,27 @@ const char *vsShaderAttribute::getClassName()
 int vsShaderAttribute::getAttributeType()
 {
     return VS_ATTRIBUTE_TYPE_SHADER;
+}
+
+// ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsShaderAttribute::clone()
+{
+    vsShaderAttribute *newAttrib;
+
+    // Create a new vsShadingAttribute and copy the data from this
+    // attribute to the new one
+    newAttrib = new vsShaderAttribute();
+
+    // Duplicate the data, this will not handle parameters though.
+    newAttrib->setVertexSource(getVertexSource());
+    newAttrib->setFragmentSource(getFragmentSource());
+
+    /* Copy the parameters somehow? */
+
+    // Return the clone
+    return newAttrib;
 }
 
 // ------------------------------------------------------------------------
