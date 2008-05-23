@@ -215,6 +215,63 @@ int vsTextureCubeAttribute::getAttributeType()
 }
 
 // ------------------------------------------------------------------------
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsTextureCubeAttribute::clone()
+{
+    vsTextureCubeAttribute *newAttrib;
+    osg::TextureCubeMap *newOSGTextureCube;
+    osg::TexEnv *newOSGTexEnv;
+    osg::TexEnvCombine *newOSGTexEnvCombine;
+    osg::TexGen *newOSGTexGen;
+    osg::TexMat *newOSGTexMat;
+    int i;
+
+    // Create copies of the OSG texture objects used by this attribute
+    if (osgTextureCube)
+        newOSGTextureCube = new osg::TextureCubeMap(*osgTextureCube);
+    else
+        newOSGTextureCube = NULL;
+
+    // Texture enviroment
+    if (osgTexEnv)
+        newOSGTexEnv = new osg::TexEnv(*osgTexEnv);
+    else
+        newOSGTexEnv = NULL;
+
+    // Texture enviroment combiner
+    if (osgTexEnvCombine)
+        newOSGTexEnvCombine = new osg::TexEnvCombine(*osgTexEnvCombine);
+    else
+        newOSGTexEnvCombine = NULL;
+
+    // Texture coordinate generation
+    if (osgTexGen)
+        newOSGTexGen = new osg::TexGen(*osgTexGen);
+    else
+        newOSGTexGen = NULL;
+    // Texture matrix
+    if (osgTexMat)
+        newOSGTexMat = new osg::TexMat(*osgTexMat);
+    else
+        newOSGTexMat = NULL;
+
+    // Create the new attribute with the texture object copies we made
+    newAttrib = new vsTextureCubeAttribute(this->textureUnit,
+        newOSGTextureCube, newOSGTexEnv, newOSGTexEnvCombine, newOSGTexGen,
+        newOSGTexMat);
+
+    // Attach and reference the texture image.   We re-use the image data
+    // instead of cloning it to save on texture memory.  Typically, when
+    // cloning a texture, you want to use the same image anyway
+    for (i = 0; i < VS_TEXTURE_CUBE_SIDES; i++)
+        newAttrib->setOSGImage(i, osgTexImage[i]);
+
+    // Return the clone
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
 // Sets the image data that this texture will display
 // ------------------------------------------------------------------------
 void vsTextureCubeAttribute::setImage(int face, unsigned char *imageData,
@@ -368,7 +425,10 @@ void vsTextureCubeAttribute::loadImageFromFile(int face, char *filename)
         osgTexImage[face]->ref();
     }
     else
-        printf("vsTextureCubeAttribute::loadImageFromFile: Unable to load image\n");
+    {
+        printf("vsTextureCubeAttribute::loadImageFromFile: Unable to load "
+            "image from file %s\n");
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -383,6 +443,26 @@ void vsTextureCubeAttribute::reloadTextureData(int face)
     // the texture object to get the new data from the image object.
     osgTexImage[face]->dirty();
     osgTextureCube->dirtyTextureObject();
+}
+
+// ------------------------------------------------------------------------
+// Returns whether the current texture image has transparent pixels (alpha
+// less than 1.0)
+// ------------------------------------------------------------------------
+bool vsTextureCubeAttribute::isTransparent()
+{
+    int face;
+
+    // Check each cube face for transparency
+    for (face = 0; face < 6; face++)
+    {
+        // See if we have a texture image loaded
+        if ((osgTexImage[face]) && (osgTexImage[face]->isImageTranslucent()))
+            return true;
+    }
+
+    // Not transparent
+    return false;
 }
 
 // ------------------------------------------------------------------------
@@ -814,6 +894,30 @@ atMatrix vsTextureCubeAttribute::getTextureMatrix()
 }
 
 // ------------------------------------------------------------------------
+// Changes the texture unit for this texture attribute.  This will fail if
+// the texture attribute is already attached
+// ------------------------------------------------------------------------
+void vsTextureCubeAttribute::setTextureUnit(unsigned int unit)
+{
+    // If we're already on the right texture unit, don't do anything
+    if (textureUnit == unit)
+        return;
+
+    // Make sure the attribute isn't already attached
+    if (isAttached())
+    {
+        printf("vsTextureAttribute::setTextureUnit:\n");
+        printf("    Cannot change texture unit when texture attribute "
+            "is attached!\n");
+
+        return;
+    }
+
+    // Change the texture unit
+    textureUnit = unit;
+}
+
+// ------------------------------------------------------------------------
 // Return the texture unit used in the texture attribute
 // ------------------------------------------------------------------------
 unsigned int vsTextureCubeAttribute::getTextureUnit()
@@ -899,10 +1003,8 @@ void vsTextureCubeAttribute::detach(vsNode *node)
 // ------------------------------------------------------------------------
 void vsTextureCubeAttribute::attachDuplicate(vsNode *theNode)
 {
-    // Do NOT duplicate the texture attribute; just point to the one we
-    // have already. We don't want multiple texture objects with
-    // repetitive data floating around the scene graph.
-    theNode->addAttribute(this);
+    // Attach a clone of this attribute to the given node
+    theNode->addAttribute(this->clone());
 }
 
 // ------------------------------------------------------------------------
@@ -1017,7 +1119,8 @@ void vsTextureCubeAttribute::setOSGImage(int face, osg::Image *osgImage)
 
     // Store and reference the new image
     osgTexImage[face] = osgImage;
-    osgTexImage[face]->ref();
+    if (osgTexImage[face])
+        osgTexImage[face]->ref();
 
     // Instruct the OSG texture object to use the new image
     osgTextureCube->setImage((osg::TextureCubeMap::Face) face,

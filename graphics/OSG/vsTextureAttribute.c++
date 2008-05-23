@@ -147,7 +147,8 @@ vsTextureAttribute::vsTextureAttribute(unsigned int unit,
     if (osgTexGen)
         osgTexGen->ref();
     osgTexImage = osgTexture->getImage();
-    osgTexImage->ref();
+    if (osgTexImage)
+        osgTexImage->ref();
 
     // Assume there is hardware support for non-power of two (NPOT) texture
     // sizes and tell OSG not to resize these textures (OSG will still
@@ -207,7 +208,62 @@ int vsTextureAttribute::getAttributeType()
 }
 
 // ------------------------------------------------------------------------
-// Sets the image data that this texture will display
+// Returns a clone of this attribute
+// ------------------------------------------------------------------------
+vsAttribute *vsTextureAttribute::clone()
+{
+    vsTextureAttribute *newAttrib;
+    osg::Texture2D *newOSGTexture;
+    osg::TexEnv *newOSGTexEnv;
+    osg::TexEnvCombine *newOSGTexEnvCombine;
+    osg::TexGen *newOSGTexGen;
+    osg::TexMat *newOSGTexMat;
+
+    // Create copies of the OSG texture objects used by this attribute
+    if (osgTexture)
+        newOSGTexture = new osg::Texture2D(*osgTexture);
+    else
+        newOSGTexture = NULL;
+
+    // Texture enviroment
+    if (osgTexEnv)
+        newOSGTexEnv = new osg::TexEnv(*osgTexEnv);
+    else
+        newOSGTexEnv = NULL;
+ 
+    // Texture enviroment combiner
+    if (osgTexEnvCombine)
+        newOSGTexEnvCombine = new osg::TexEnvCombine(*osgTexEnvCombine);
+    else
+        newOSGTexEnvCombine = NULL;
+
+    // Texture coordinate generation
+    if (osgTexGen)
+        newOSGTexGen = new osg::TexGen(*osgTexGen);
+    else
+        newOSGTexGen = NULL;
+
+    // Texture matrix
+    if (osgTexMat)
+        newOSGTexMat = new osg::TexMat(*osgTexMat);
+    else
+        newOSGTexMat = NULL;
+
+    // Create the new attribute with the texture object copies we made
+    newAttrib = new vsTextureAttribute(this->textureUnit, newOSGTexture,
+        newOSGTexEnv, newOSGTexEnvCombine, newOSGTexGen, newOSGTexMat);
+
+    // Give the clone our name
+    newAttrib->setName((char *)getName());
+    
+    // Return the clone
+    return newAttrib;
+}
+
+// ------------------------------------------------------------------------
+// Sets the image data that this texture will display.  Note that this will
+// change the image for all texture attributes that happen to be sharing
+// this texture image
 // ------------------------------------------------------------------------
 void vsTextureAttribute::setImage(unsigned char *imageData, int xSize,
     int ySize, int dataFormat)
@@ -336,14 +392,18 @@ void vsTextureAttribute::loadImageFromFile(char *filename)
     options->unref();
 
     // If successful, set the Texture2D to use the new image and 
-    // referenc the image locally
+    // reference the image locally
     if (osgTexImage)
     {
         osgTexture->setImage(osgTexImage);
         osgTexImage->ref();
+setName((char *)osgTexImage->getFileName().c_str());
     }
     else
-        printf("vsTextureAttribute::loadImageFromFile: Unable to load image\n");
+    {
+        printf("vsTextureAttribute::loadImageFromFile: Unable to load image "
+            "from file %s\n", filename);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -358,6 +418,20 @@ void vsTextureAttribute::reloadTextureData()
     // the texture object to get the new data from the image object.
     osgTexImage->dirty();
     osgTexture->dirtyTextureObject();
+}
+
+// ------------------------------------------------------------------------
+// Returns whether the current texture image has transparent pixels (alpha
+// less than 1.0)
+// ------------------------------------------------------------------------
+bool vsTextureAttribute::isTransparent()
+{
+    // See if we have a texture image loaded
+    if (osgTexImage)
+        return osgTexImage->isImageTranslucent();
+
+    // No texture image, so not transparent
+    return false;
 }
 
 // ------------------------------------------------------------------------
@@ -779,11 +853,16 @@ int vsTextureAttribute::getGenMode()
 // ------------------------------------------------------------------------
 void vsTextureAttribute::setTextureUnit(unsigned int unit)
 {
+    // If we're already on the right texture unit, don't do anything
+    if (textureUnit == unit)
+        return;
+
     // Make sure the attribute isn't already attached
     if (isAttached())
     {
-        printf("vsTextureAttribute::setTextureUnit:  Cannot change texture "
-            "unit when texture is attached!\n");      
+        printf("vsTextureAttribute::setTextureUnit:\n");
+        printf("    Cannot change texture unit when texture attribute "
+            "is attached!\n");      
 
         return;
     }
@@ -970,10 +1049,8 @@ void vsTextureAttribute::detach(vsNode *node)
 // ------------------------------------------------------------------------
 void vsTextureAttribute::attachDuplicate(vsNode *theNode)
 {
-    // Do NOT duplicate the texture attribute; just point to the one we
-    // have already. We don't want multiple texture objects with
-    // repetitive data floating around the scene graph.
-    theNode->addAttribute(this);
+    // Attach a clone of this attribute to the given node
+    theNode->addAttribute(this->clone());
 }
 
 // ------------------------------------------------------------------------
@@ -1078,7 +1155,8 @@ void vsTextureAttribute::setOSGImage(osg::Image *osgImage)
 
     // Store and reference the new image
     osgTexImage = osgImage;
-    osgTexImage->ref();
+    if (osgTexImage)
+        osgTexImage->ref();
 
     // Instruct the OSG texture object to use the new image
     osgTexture->setImage(osgTexImage);

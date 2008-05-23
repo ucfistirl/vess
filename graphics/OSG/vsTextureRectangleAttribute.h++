@@ -72,44 +72,47 @@ VS_INTERNAL:
 
 public:
 
-                          vsTextureRectangleAttribute();
-                          vsTextureRectangleAttribute(unsigned int unit);
-    virtual               ~vsTextureRectangleAttribute();
+                           vsTextureRectangleAttribute();
+                           vsTextureRectangleAttribute(unsigned int unit);
+    virtual                ~vsTextureRectangleAttribute();
 
-    virtual const char    *getClassName();
-
-    virtual int           getAttributeType();
+    virtual const char     *getClassName();
+    virtual int            getAttributeType();
+    virtual vsAttribute    *clone();
     
-    void                  setImage(unsigned char *imageData, int xSize,
-                                   int ySize, int dataFormat);
-    void                  getImage(unsigned char **imageData, int *xSize,
-                                   int *ySize, int *dataFormat);
+    void                   setImage(unsigned char *imageData, int xSize,
+                                    int ySize, int dataFormat);
+    void                   getImage(unsigned char **imageData, int *xSize,
+                                    int *ySize, int *dataFormat);
     
-    void                  loadImageFromFile(char *filename);
+    void                   loadImageFromFile(char *filename);
 
-    void                  reloadTextureData();
+    void                   reloadTextureData();
 
-    void                  setBoundaryMode(int whichDirection, int boundaryMode);
-    int                   getBoundaryMode(int whichDirection);
+    bool                   isTransparent();
+
+    void                   setBoundaryMode(int whichDirection, int boundaryMode);
+    int                    getBoundaryMode(int whichDirection);
     
-    void                  setApplyMode(int applyMode);
-    int                   getApplyMode();
+    void                   setApplyMode(int applyMode);
+    int                    getApplyMode();
 
-    void                  setMagFilter(int newFilter);
-    int                   getMagFilter();
-    void                  setMinFilter(int newFilter);
-    int                   getMinFilter();
+    void                   setMagFilter(int newFilter);
+    int                    getMagFilter();
+    void                   setMinFilter(int newFilter);
+    int                    getMinFilter();
 
-    void                  setBaseColor(atVector color);
-    atVector              getBaseColor();
+    void                   setBaseColor(atVector color);
+    atVector               getBaseColor();
 
-    void                  setGenMode(int genMode);
-    int                   getGenMode();
+    void                   setGenMode(int genMode);
+    int                    getGenMode();
 
-    void                  setTextureMatrix(atMatrix newMatrix);
-    atMatrix              getTextureMatrix();
+    void                   setTextureMatrix(atMatrix newMatrix);
+    atMatrix               getTextureMatrix();
 
-    unsigned int          getTextureUnit();
+    void                   setTextureUnit(unsigned int unit);
+    unsigned int           getTextureUnit();
 };
 
 #endif
