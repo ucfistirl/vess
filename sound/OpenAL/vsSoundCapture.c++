@@ -206,7 +206,7 @@ bool vsSoundCapture::openDevice(char *device)
     // Open the device with the given rate, format, and capacity, scaling the
     // capacity (measured in samples) to a value measured in bytes.
     captureDevice = alcCaptureOpenDevice(device, captureRate, captureFormat,
-        queueSampleCapacity * bytesPerSample);
+        packetSampleCount);
 
     // Make sure the device could be successfully opened.
     if ((alcGetError(captureDevice) != ALC_NO_ERROR) ||
@@ -347,6 +347,9 @@ void vsSoundCapture::startResume()
 // ------------------------------------------------------------------------
 void vsSoundCapture::pause()
 {
+    ALubyte  buffer[65535];
+    ALint    count;
+
     // Only pause if not already in a pause state.
     if (!capturePaused)
     {
@@ -367,6 +370,12 @@ void vsSoundCapture::pause()
         // Take control of the buffer mutex. This will prevent the capture loop
         // from processing further data.
         pthread_mutex_lock(&bufferMutex);
+
+        // Grab any lingering samples in the device buffer and throw them
+        // away
+        alcGetIntegerv(captureDevice, ALC_CAPTURE_SAMPLES,
+            sizeof(ALint), &count);
+        alcCaptureSamples(captureDevice, buffer, count);
 
         // Mark that the current state is paused.
         capturePaused = true;
