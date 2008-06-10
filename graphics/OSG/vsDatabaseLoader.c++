@@ -703,6 +703,7 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
 
     vsComponent *geodeComponent, *geometryComponent, *childComponent;
     vsGeometry *geometry;
+    bool nonGeometryFlag;
     int loop, sloop, tloop;
     osg::Geometry *osgGeometry;
     osg::Drawable *osgDrawable;
@@ -711,6 +712,7 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     osg::PrimitiveSet *osgPrimitiveSet;
     int primSetType, primCount, vertCount;
     osg::DrawArrayLengths *osgDrawLengthsPrim;
+    osg::Geode *geodeClone;
 
     osg::Vec2 osgVec2;
     osg::Vec3 osgVec3;
@@ -780,6 +782,9 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     // Create an osgUtil::SmoothingVisitor to generate normals if we need
     // to
     smoother = new osgUtil::SmoothingVisitor();
+
+    // Assume that we only have Geometry drawables in this Geode
+    nonGeometryFlag = false;
 
     // Convert each osg::Geometry into one or more vsGeometry objects (one
     // per PrimitiveSet)
@@ -969,14 +974,12 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
                 // vsComponent
                 childComponent->addChild(geometry);
             } // loop (sloop < osgGeometry->getNumPrimitiveSets())
-
-            // Remove the Geometry Drawable from the Geode. This is done
-            // because any non-Geometry Drawables still need to be represented
-            // in the scene graph and should remain in the Geode for those
-            // purposes.
-            geode->removeDrawable(osgGeometry);
-            loop--;
         } // if (osgGeometry)
+        else
+        {
+           // Flag that we have non-Geometry Drawables in this Geode
+           nonGeometryFlag = true;
+        }
     } // loop (loop < geode->getNumDrawables())
 
     // Add a decal attribute to the resulting component if needed
@@ -986,22 +989,44 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     // We're done with the polygon offset values
     free(offsetArray);
 
-    // If the geode still has any drawables remaining, they were not of the
-    // osg::Geometry type and were not converted to vsGeometry. Represent them
-    // in the scene graph by creating a new node to hold the Geode and adding
-    // it to the geode component.
-    if ((int)geode->getNumDrawables() > 0)
+    // If we encountered any non-Geometry Drawables on the Geode, represent
+    // them in the scene graph by creating a new node to hold the Geode and
+    // adding it to the geode component.
+    if (nonGeometryFlag)
     {
-        // Print a warning message.
-        // printf("vsDatabaseLoader::convertGeode: Found %d non-Geometry "
-        //     "drawable(s)...\n", (int)geode->getNumDrawables());
+        // Clone the Geode so we can represent the non-Geometry Drawables in
+        // the OSG scene (using a vsUnmanagedNode)
+        geodeClone = new osg::Geode(*geode);
+
+        // Remove all Geometry Drawables from the cloned Geode (we just
+        // finished converting them to vsGeometries, so we don't need them
+        // in the unmanaged node as well)
+        loop = 0;
+        while (loop < (int)geodeClone->getNumDrawables())
+        {
+            // Get the next Drawable from the Geode
+            osgDrawable = geodeClone->getDrawable(loop);
+
+            // See if this is a Geometry or not
+            if (dynamic_cast<osg::Geometry *>(osgDrawable) != NULL)
+            {
+                // Remove the Geometry from the Geode
+                geodeClone->removeDrawable(osgDrawable);
+            }
+            else
+            {
+                // Try the next Drawable
+                loop++;
+            }
+        }
 
         // Create a component to return that will NOT be affected by the
         // Attributes extracted from the geode state set. Add the geometry
-        // component to it, as well as the unmanaged part of the geode.
+        // component to it, as well as the geode with the unmanaged drawables
+        // in it
         geodeComponent = new vsComponent();
         geodeComponent->addChild(geometryComponent);
-        geodeComponent->addChild(new vsUnmanagedNode(geode));
+        geodeComponent->addChild(new vsUnmanagedNode(geodeClone));
     }
     else
     {
