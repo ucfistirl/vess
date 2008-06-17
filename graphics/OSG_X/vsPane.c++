@@ -775,7 +775,7 @@ bool vsPane::isVisible()
 void vsPane::updateView()
 {
     atMatrix viewMatrix, xformMatrix;
-    osg::Matrix osgMatrix;
+    osg::Matrixd osgMatrix;
     atVector viewPos;
     int projMode;
     double projHval, projVval;
@@ -783,13 +783,13 @@ void vsPane::updateView()
     int paneWidth, paneHeight;
     double aspectMatch;
     vsViewpointAttribute *viewAttr;
-    atVector eyePoint;
-    atVector lookDirection;
-    atVector lookAtPoint;
-    atVector upDirection;
-    osg::Vec3 osgEyePoint;
-    osg::Vec3 osgLookAtPoint;
-    osg::Vec3 osgUpDirection;
+    atVector eye;
+    atVector fwd;
+    atVector up;
+    atVector side;
+    osg::Vec3d osgEye;
+    osg::Matrixd osgViewMatrix;
+    osg::Matrixd osgEyeMatrix;
     double nearClipDist, farClipDist;
     double projLeft, projRight, projBottom, projTop;
     
@@ -923,22 +923,32 @@ void vsPane::updateView()
                 projBottom, projTop, nearClipDist, farClipDist);
         }
 
-        // Calculate the current view position and orientation
-        eyePoint = sceneView->getViewpoint();
-        lookDirection = sceneView->getDirection();
-        lookAtPoint = eyePoint + lookDirection.getScaled(10.0);
-        upDirection = sceneView->getUpDirection();
+        // Get the current view position and orientation
+        eye = sceneView->getViewpoint();
+        fwd = sceneView->getDirection();
+        up = sceneView->getUpDirection();
 
-        // Copy the relevant vectors into OSG vectors
-        osgEyePoint.set(eyePoint[AT_X], eyePoint[AT_Y], eyePoint[AT_Z]);
-        osgLookAtPoint.set(lookAtPoint[AT_X], lookAtPoint[AT_Y], 
-            lookAtPoint[AT_Z]);
-        osgUpDirection.set(upDirection[AT_X], upDirection[AT_Y], 
-            upDirection[AT_Z]);
+        // Calculate the rest of the view's coordinate system
+        side = fwd.getCrossProduct(up);
+        side.normalize();
 
-        // Set the current view matrix using the 'look at' interface
-        osgSceneView->setViewMatrixAsLookAt(osgEyePoint, osgLookAtPoint, 
-            osgUpDirection);
+        // Make sure the up vector is really orthogonal to the other two
+        up = side.getCrossProduct(fwd);
+        up.normalize();
+
+        // Set up the view matrix in OSG's format
+        osgViewMatrix.set(side[0],   up[0], -fwd[0], 0.0,
+                          side[1],   up[1], -fwd[1], 0.0,
+                          side[2],   up[2], -fwd[2], 0.0,
+                              0.0,     0.0,     0.0, 1.0);
+
+        // Add in the eye translation
+        osgEye.set(eye[AT_X], eye[AT_Y], eye[AT_Z]);
+        osgEyeMatrix.makeTranslate(-osgEye);
+        osgViewMatrix.preMult(osgEyeMatrix);
+
+        // Set the scene's view matrix
+        osgSceneView->setViewMatrix(osgViewMatrix);
 
         // Record the change number
         viewChangeNum = sceneView->getChangeNum();
