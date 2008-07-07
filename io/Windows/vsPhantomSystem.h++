@@ -24,7 +24,7 @@
 
 #include "vsIOSystem.h++"
 #include "vsPhantom.h++"
-#include "vsTCPNetworkInterface.h++"
+#include "atTCPNetworkInterface.h++"
 
 /******************************************************************************/
 /* Some macros and functions to do endian conversions of floats               */
@@ -71,7 +71,7 @@ class VS_IO_DLL vsPhantomSystem : public vsIOSystem
 {
 protected:
 
-    vsTCPNetworkInterface    *netInterface;
+    atTCPNetworkInterface    *netInterface;
     vsPhantom                *phantom;
     bool                     initialized;
     bool                     forces;

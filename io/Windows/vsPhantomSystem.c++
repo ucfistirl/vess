@@ -35,7 +35,7 @@ vsPhantomSystem::vsPhantomSystem(char *serverName, u_short port,
     connected = false;
 
     // Create a network interface and connect to the phantom server.
-    netInterface = new vsTCPNetworkInterface(serverName, port);
+    netInterface = new atTCPNetworkInterface(serverName, port);
     if (netInterface->makeConnection() == -1)
     {
         printf("vsPhantomSystem::vsPhantomSystem: Cannot Connect!\n");

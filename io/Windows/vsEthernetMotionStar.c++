@@ -73,7 +73,7 @@ vsEthernetMotionStar::vsEthernetMotionStar(char *serverName, int port,
     coordXform = quat2 * quat1;
 
     // Open ethernet link
-    net = new vsUDPNetworkInterface(serverName, port);
+    net = new atUDPNetworkInterface(serverName, port);
     net->enableBlocking();
 
     // Make sure it opened, print an error if not

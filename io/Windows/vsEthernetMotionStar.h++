@@ -32,7 +32,7 @@
 // MotionStar systems using serial ports are not supported by this class, 
 // use vsSerialMotionStar instead.
 
-#include "vsUDPNetworkInterface.h++"
+#include "atUDPNetworkInterface.h++"
 #include "vsMotionTracker.h++"
 #include "vsTrackingSystem.h++"
 #include "atVector.h++"
@@ -338,7 +338,7 @@ class VS_IO_DLL vsEthernetMotionStar : public vsTrackingSystem
 protected:
    
     // Network interface
-    vsUDPNetworkInterface    *net;
+    atUDPNetworkInterface    *net;
 
     // Motion trackers and the associated information
     int                     numTrackers;
