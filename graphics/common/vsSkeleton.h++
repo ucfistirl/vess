@@ -27,7 +27,7 @@
 #include "vsComponent.h++"
 #include "vsNode.h++"
 #include "vsGeometry.h++"
-#include "vsGrowableArray.h++"
+#include "atArray.h++"
 #include "vsUpdatable.h++"
 #include "vsTransformAttribute.h++"
 
@@ -35,19 +35,15 @@ class VS_GRAPHICS_DLL vsSkeleton : public vsUpdatable
 {
 private:
 
-    vsGrowableArray       *skeletonComponentMap;
-    vsGrowableArray       *skeletonMatrices;
-    vsGrowableArray       *skeletonITMatrices;
-    vsGrowableArray       *skeletonBoneSpaceMatrices;
+    atArray               *skeletonComponentMap;
+    atArray               *skeletonMatrices;
     vsComponent           *skeletonRoot;
-    vsComponent           *skeletonRootBone;
-    vsTransformAttribute  *skeletonTransform;
     int                   boneCount;
     int                   lastFoundIndex;
     atMatrix              offsetMatrix;
     
     void                  copySkeletonTree(vsNode *newNode, vsNode *origNode,
-                                           vsGrowableArray *origMap);
+                                           atArray *origMap);
 VS_INTERNAL:
 
     void                  updateMatrices(vsNode *node,
@@ -58,24 +54,17 @@ VS_INTERNAL:
 
 public:
 
-                          vsSkeleton(vsGrowableArray *componentList,
-                                     vsGrowableArray *boneSpaceMatrixList,
-                                     int listLength, vsComponent *root);
+                          vsSkeleton(atArray *componentList, int listLength,
+                                     vsComponent *root);
                           vsSkeleton(vsSkeleton *original);
     virtual               ~vsSkeleton();
 
-     // Inherited from vsObject
     virtual const char    *getClassName();
 
     vsComponent           *getBone(int boneID);
 
     atMatrix              *getBoneMatrix(int boneID);
-    atMatrix              *getITBoneMatrix(int boneID);
-    atMatrix              *getBoneSpaceMatrix(int boneID);
-
-    vsGrowableArray       *getBoneMatrixList();
-    vsGrowableArray       *getITBoneMatrixList();
-    vsGrowableArray       *getBoneSpaceMatrixList();
+    atArray               *getBoneMatrixList();
 
     int                   getBoneID(vsComponent *component);
     int                   getBoneID(char *boneName);

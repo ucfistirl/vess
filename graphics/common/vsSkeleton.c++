@@ -28,29 +28,28 @@
 //------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------
-vsSkeleton::vsSkeleton(vsGrowableArray *componentList,
-                       vsGrowableArray *boneSpaceMatrixList, int listLength,
+vsSkeleton::vsSkeleton(atArray *componentList, int listLength,
                        vsComponent *root)
 {
+    vsNode *parent;
+    vsComponent *bone;
+    int i;
+
     // Keep a reference to the component map.
     skeletonComponentMap = componentList;
-
-    // Keep a reference to the list of bone space matrices.
-    skeletonBoneSpaceMatrices = boneSpaceMatrixList;
+    for (i = 0; i < skeletonComponentMap->getNumEntries(); i++)
+    {
+        // Get and reference the i'th bone (if it exists)
+        bone = (vsComponent *)skeletonComponentMap->getEntry(i);
+        bone->ref();
+    }
 
     // Store the size of the kinematics map, which is the number of bones.
     boneCount = listLength;
 
     // Keep a reference to the root node of the bone subgraph.
-    skeletonRootBone = root;
-
-    // Make a root node to hold the skeleton and a transform to modify the
-    // skeleton with the offsetMatrix.
-    skeletonRoot = new vsComponent();
+    skeletonRoot = root;
     skeletonRoot->ref();
-    skeletonRoot->addChild(skeletonRootBone);
-    skeletonTransform = new vsTransformAttribute();
-    skeletonRoot->addAttribute(skeletonTransform);
 
     // Initialize the last found index to 0, the beginning.
     // This variable is just used to slightly attempt to speed up lookups.
@@ -58,16 +57,10 @@ vsSkeleton::vsSkeleton(vsGrowableArray *componentList,
     lastFoundIndex = 0;
 
     // Create the array to store the bone matrices.
-    skeletonMatrices = new vsGrowableArray(boneCount, 5);
-
-    // Create the array to store the inverse transpose bone matrices.
-    skeletonITMatrices = new vsGrowableArray(boneCount, 5);
+    skeletonMatrices = new atArray();
 
     // Set the offset to identity (nothing).
     offsetMatrix.setIdentity();
-
-    // Set the offset matrix to the skeletonTransform.
-    skeletonTransform->setDynamicTransform(offsetMatrix);
 
     // Generate the list of bone matrices to be used for skinning.
     update();
@@ -88,70 +81,20 @@ vsSkeleton::vsSkeleton(vsSkeleton *original)
     offsetMatrix = original->offsetMatrix;
     
     // Clone the subgraph nodes.
-    skeletonRootBone = (vsComponent*)(original->skeletonRootBone->cloneTree());
-    skeletonRoot = new vsComponent();
+    skeletonRoot = (vsComponent*)(original->skeletonRoot->cloneTree());
     skeletonRoot->ref();
-    skeletonRoot->addChild(skeletonRootBone);
     
-    skeletonTransform = new vsTransformAttribute();
-    skeletonRoot->addAttribute(skeletonTransform);
-    skeletonTransform->setPreTransform(
-       original->skeletonTransform->getPreTransform());
-    skeletonTransform->setDynamicTransform(
-       original->skeletonTransform->getDynamicTransform());
-    skeletonTransform->setPostTransform(
-       original->skeletonTransform->getPostTransform());
-    
-    // Copy the skeletonComponentMap vsGrowableArray
-    skeletonComponentMap = new vsGrowableArray(boneCount, 5);
-    skeletonComponentMap->setSize(original->skeletonComponentMap->getSize());
-    
-    copySkeletonTree(skeletonRootBone, original->skeletonRootBone,
+    // Copy the skeletonComponentMap atArray
+    skeletonComponentMap = new atArray();
+    copySkeletonTree(skeletonRoot, original->skeletonRoot,
         original->skeletonComponentMap); 
     
-    // Copy the skeletonMatrices vsGrowableArray
-    skeletonMatrices = new vsGrowableArray(boneCount, 5);
-    skeletonMatrices->setSize(original->skeletonMatrices->getSize());
-    for (index = 0; index < original->skeletonMatrices->getSize(); index++)
-    {
-        skelMat = (atMatrix*)(original->skeletonMatrices->getData(index));
-        
-        // Make sure it isn't NULL - if it is, we've reached the end of the
-        // list, so break.
-        if(skelMat == NULL)
-            break;
-            
-        newSkelMat = new atMatrix();
-        newSkelMat->copy(*skelMat);
-        skeletonMatrices->setData(index, newSkelMat);
-    }
-    
-    // Copy the skeletonITMatrices vsGrowableArray
-    skeletonITMatrices = new vsGrowableArray(boneCount, 5);
-    skeletonITMatrices->setSize(original->skeletonITMatrices->getSize());
-    for (index = 0; index < original->skeletonITMatrices->getSize(); index++)
-    {
-        skelMat = (atMatrix*)(original->skeletonITMatrices->getData(index));
-        
-        // Make sure it isn't NULL - if it is, we've reached the end of the
-        // list, so break.
-        if(skelMat == NULL)
-            break;
-            
-        newSkelMat = new atMatrix();
-        newSkelMat->copy(*skelMat);
-        skeletonITMatrices->setData(index, newSkelMat);
-    }
-    
-    // Copy the skeleton bone space matrices vsGrowableArray
-    skeletonBoneSpaceMatrices = new vsGrowableArray(boneCount, 5);
-    skeletonBoneSpaceMatrices->setSize(
-      original->skeletonBoneSpaceMatrices->getSize());
-    for (index = 0; index < original->skeletonBoneSpaceMatrices->getSize();
+    // Copy the skeletonMatrices array
+    skeletonMatrices = new atArray();
+    for (index = 0; index < original->skeletonMatrices->getNumEntries();
          index++)
     {
-        skelMat = 
-            (atMatrix*)(original->skeletonBoneSpaceMatrices->getData(index));
+        skelMat = (atMatrix*)(original->skeletonMatrices->getEntry(index));
         
         // Make sure it isn't NULL - if it is, we've reached the end of the
         // list, so break.
@@ -160,7 +103,7 @@ vsSkeleton::vsSkeleton(vsSkeleton *original)
             
         newSkelMat = new atMatrix();
         newSkelMat->copy(*skelMat);
-        skeletonBoneSpaceMatrices->setData(index, newSkelMat);
+        skeletonMatrices->setEntry(index, newSkelMat);
     }
     
     update();
@@ -171,24 +114,29 @@ vsSkeleton::vsSkeleton(vsSkeleton *original)
 //------------------------------------------------------------------------
 vsSkeleton::~vsSkeleton()
 {
-    int index;
+    int i;
+    vsComponent *bone;
 
     // Delete the root node which will in turn delete all the children.
     vsObject::unrefDelete(skeletonRoot);
 
-    // Delete objects in the arrays with references counts of zero.
-    for (index = 0; index < boneCount; index++)
+    // Unreference (and possibly delete) all bones in the component map
+    for (i = 0; i < skeletonComponentMap->getNumEntries(); i++)
     {
-        delete ((atMatrix *) skeletonMatrices->getData(index));
-        delete ((atMatrix *) skeletonITMatrices->getData(index));
-        delete ((atMatrix *) skeletonBoneSpaceMatrices->getData(index));
+        // Get and unreference/delete the i'th bone (if it exists)
+        bone = (vsComponent *)skeletonComponentMap->getEntry(i);
+        if (bone != NULL)
+        {
+            vsObject::unrefDelete(bone);
+            skeletonComponentMap->setEntry(i, NULL);
+        }
     }
 
-    // Delete objects with references counts of zero.
+    // Delete the component map, now that it's empty
     delete skeletonComponentMap;
+
+    // Delete the matrix list as well
     delete skeletonMatrices;
-    delete skeletonITMatrices;
-    delete skeletonBoneSpaceMatrices;
 }
 
 //------------------------------------------------------------------------
@@ -196,7 +144,7 @@ vsSkeleton::~vsSkeleton()
 // Currently called just from the copy constructor.
 //------------------------------------------------------------------------
 void vsSkeleton::copySkeletonTree(vsNode *newNode, vsNode *origNode, 
-                                  vsGrowableArray *origMap)
+                                  atArray *origMap)
 {
     int index;
     vsNode *trav;
@@ -209,13 +157,12 @@ void vsSkeleton::copySkeletonTree(vsNode *newNode, vsNode *origNode,
     }
     
     // Look through the original map to find the pointer to the original node.
-    for (index = 0; index < origMap->getSize(); index++)
+    for (index = 0; index < origMap->getNumEntries(); index++)
     {
-        trav = (vsNode*)(origMap->getData(index));
+        trav = (vsNode*)(origMap->getEntry(index));
         
-        // Make sure the growable array didn't return NULL; if it did, we're
-        // at the end of the list, so break from this search loop, nothing
-        // we can do.
+        // Make sure the array didn't return NULL; if it did, we're at the
+        // end of the list, so break from this search loop, nothing we can do.
         if(trav == NULL)
             break;
         
@@ -225,7 +172,8 @@ void vsSkeleton::copySkeletonTree(vsNode *newNode, vsNode *origNode,
             // So, the origNode we're at is mapped into the array at this
             // index. So, put the node we have here into this object's
             // map.
-            skeletonComponentMap->setData(index, newNode);
+            newNode->ref();
+            skeletonComponentMap->setEntry(index, newNode);
         }
     }
     
@@ -251,10 +199,8 @@ void vsSkeleton::updateMatrices(vsNode *node, atMatrix currentMatrix)
 {
     vsComponent           *component;
     vsNode                *childNode;
-    atMatrix              *absoluteMatrix;
-    atMatrix              *ITAbsoluteMatrix;
-    atMatrix              *boneSpaceMatrix;
-    atMatrix              boneMatrix;
+    atMatrix              *boneMatrix;
+    atMatrix              localMatrix;
     vsTransformAttribute  *transform;
     int                   childCount;
     int                   index;
@@ -272,8 +218,8 @@ void vsSkeleton::updateMatrices(vsNode *node, atMatrix currentMatrix)
         {
             // Multiply this Transform's matrix into the accumulated
             // transform
-            boneMatrix = transform->getCombinedTransform();
-            currentMatrix.postMultiply(boneMatrix);
+            localMatrix = transform->getCombinedTransform();
+            currentMatrix.postMultiply(localMatrix);
         }
 
         // If this component has a valid bone ID, then update its
@@ -281,33 +227,16 @@ void vsSkeleton::updateMatrices(vsNode *node, atMatrix currentMatrix)
         if ((index = getBoneID(component)) > -1)
         {
             // Get the matrix pointer, if it is NULL create a matrix object.
-            absoluteMatrix = (atMatrix *) skeletonMatrices->getData(index);
-            if (!absoluteMatrix)
+            boneMatrix = (atMatrix *) skeletonMatrices->getEntry(index);
+            if (!boneMatrix)
             {
-                absoluteMatrix = new atMatrix();
-                skeletonMatrices->setData(index, absoluteMatrix);
+                boneMatrix = new atMatrix();
+                skeletonMatrices->setEntry(index, boneMatrix);
             }
 
-            // Get the bone space matrix for this bone.
-            boneSpaceMatrix = (atMatrix *)
-                skeletonBoneSpaceMatrices->getData(index);
-
-            // Calculate the final absolute matrix for this bone and store
-            // it in the matrix list.
-            *absoluteMatrix = currentMatrix * (*boneSpaceMatrix);
-
-            // Get the matrix pointer, if it is NULL create a matrix object.
-            ITAbsoluteMatrix = (atMatrix *) skeletonITMatrices->getData(index);
-            if (!ITAbsoluteMatrix)
-            {
-                ITAbsoluteMatrix = new atMatrix();
-                skeletonITMatrices->setData(index, ITAbsoluteMatrix);
-            }
-
-            // Calculate the inverse transpose to the absolute and store it in
+            // Store the currently accumulated transform for this bone in
             // the matrix list.
-            *ITAbsoluteMatrix = absoluteMatrix->getInverse();
-            ITAbsoluteMatrix->transpose();
+            *boneMatrix = currentMatrix;
         }
 
         // Get children and traverse them.
@@ -340,7 +269,7 @@ vsComponent *vsSkeleton::getBone(int boneID)
     // If given a valid boneID, return the vsComponent for that boneID.
     if ((boneID < boneCount) && (boneID >= 0))
     {
-        returnValue = ((vsComponent *) skeletonComponentMap->getData(boneID));
+        returnValue = ((vsComponent *) skeletonComponentMap->getEntry(boneID));
     }
 
     return returnValue;
@@ -358,43 +287,7 @@ atMatrix *vsSkeleton::getBoneMatrix(int boneID)
     // If given a valid boneID, return the atMatrix for that boneID.
     if ((boneID < boneCount) && (boneID >= 0))
     {
-        returnValue = (atMatrix *) skeletonMatrices->getData(boneID);
-    }
-
-    return returnValue;
-}
-
-//------------------------------------------------------------------------
-// Return the inverse transposed absolute bone matrix for the given bone.
-//------------------------------------------------------------------------
-atMatrix *vsSkeleton::getITBoneMatrix(int boneID)
-{
-    atMatrix *returnValue;
-
-    returnValue = NULL;
-
-    // If given a valid boneID, return the atMatrix for that boneID.
-    if ((boneID < boneCount) && (boneID >= 0))
-    {
-        returnValue = (atMatrix *) skeletonITMatrices->getData(boneID);
-    }
-
-    return returnValue;
-}
-
-//------------------------------------------------------------------------
-// Return the Cal3D bone space matrix for the given bone.
-//------------------------------------------------------------------------
-atMatrix *vsSkeleton::getBoneSpaceMatrix(int boneID)
-{
-    atMatrix *returnValue;
-
-    returnValue = NULL;
-
-    // If given a valid boneID, return the atMatrix for that boneID.
-    if ((boneID < boneCount) && (boneID >= 0))
-    {
-        returnValue = (atMatrix *) skeletonBoneSpaceMatrices->getData(boneID);
+        returnValue = (atMatrix *) skeletonMatrices->getEntry(boneID);
     }
 
     return returnValue;
@@ -404,26 +297,9 @@ atMatrix *vsSkeleton::getBoneSpaceMatrix(int boneID)
 // Return the list of absolute bone matrices.  This is used to transfrom
 // the vertices of the skin.
 //------------------------------------------------------------------------
-vsGrowableArray *vsSkeleton::getBoneMatrixList()
+atArray *vsSkeleton::getBoneMatrixList()
 {
     return skeletonMatrices;
-}
-
-//------------------------------------------------------------------------
-// Return the list of inverse transposed absolute bone matrices.
-// This is used to transfrom the normals for each vertex of the skin.
-//------------------------------------------------------------------------
-vsGrowableArray *vsSkeleton::getITBoneMatrixList()
-{
-    return skeletonITMatrices;
-}
-
-//------------------------------------------------------------------------
-// Return the list of bone space matrices.
-//------------------------------------------------------------------------
-vsGrowableArray *vsSkeleton::getBoneSpaceMatrixList()
-{
-    return skeletonBoneSpaceMatrices;
 }
 
 //------------------------------------------------------------------------
@@ -441,7 +317,8 @@ int vsSkeleton::getBoneID(vsComponent *component)
     // found something.
     for (index = lastFoundIndex; ((!found) && (index < boneCount)); index++)
     {
-        if (component == ((vsComponent *) skeletonComponentMap->getData(index)))
+        if (component == 
+            ((vsComponent *) skeletonComponentMap->getEntry(index)))
         {
             found = true;
 
@@ -454,7 +331,8 @@ int vsSkeleton::getBoneID(vsComponent *component)
     // If we did not find anything, then search the parts we skipped.
     for (index = 0; ((!found) && (index < lastFoundIndex)); index++)
     {
-        if (component == ((vsComponent *) skeletonComponentMap->getData(index)))
+        if (component == 
+            ((vsComponent *) skeletonComponentMap->getEntry(index)))
         {
             found = true;
 
@@ -493,7 +371,7 @@ int vsSkeleton::getBoneID(char *boneName)
     for (index = lastFoundIndex; ((!found) && (index < boneCount)); index++)
     {
         if (!strcmp(boneName, ((vsComponent *)
-            skeletonComponentMap->getData(index))->getName()))
+            skeletonComponentMap->getEntry(index))->getName()))
         {
             found = true;
 
@@ -507,7 +385,7 @@ int vsSkeleton::getBoneID(char *boneName)
     for (index = 0; ((!found) && (index < lastFoundIndex)); index++)
     {
         if (!strcmp(boneName, ((vsComponent *)
-            skeletonComponentMap->getData(index))->getName()))
+            skeletonComponentMap->getEntry(index))->getName()))
         {
             found = true;
 
@@ -555,6 +433,8 @@ int vsSkeleton::getBoneCount()
 void vsSkeleton::makeBoneGeometry(vsComponent *currentBone,
                                   vsGeometry *currentBoneLine)
 {
+    atMatrix boneMatrix;
+    atVector point;
     vsGeometry *newBoneLine;
     vsTransformAttribute *boneTrans;
     vsNode *currentBoneChild;
@@ -570,9 +450,9 @@ void vsSkeleton::makeBoneGeometry(vsComponent *currentBone,
 
         // Transform the origin to where the bone is defined, this
         // will be the end point of the line.
-        currentBoneLine->setData(VS_GEOMETRY_VERTEX_COORDS, 1,
-            boneTrans->getCombinedTransform().getPointXform(
-            atVector(0.0, 0.0, 0.0)));
+        boneMatrix = boneTrans->getCombinedTransform();
+        point = boneMatrix.getPointXform(atVector(0.0, 0.0, 0.0));
+        currentBoneLine->setData(VS_GEOMETRY_VERTEX_COORDS, 1, point);
     }
 
     // Process each of the children.
@@ -608,8 +488,8 @@ void vsSkeleton::makeBoneGeometry(vsComponent *currentBone,
                 1.0));
 
             // Set the start point of the line.
-            newBoneLine->setData(VS_GEOMETRY_VERTEX_COORDS, 0,
-                atVector(0.0, 0.0, 0.0));
+            point = atVector(0.0, 0.0, 0.0);
+            newBoneLine->setData(VS_GEOMETRY_VERTEX_COORDS, 0, point);
 
             // Add the geometry.
             currentBone->addChild(newBoneLine);
@@ -638,9 +518,6 @@ void vsSkeleton::makeBoneGeometry()
 void vsSkeleton::setOffsetMatrix(atMatrix newOffsetMatrix)
 {
     offsetMatrix = newOffsetMatrix;
-
-    // Set the offset matrix to the skeletonTransform.
-    skeletonTransform->setDynamicTransform(offsetMatrix);
 }
 
 //------------------------------------------------------------------------
@@ -661,5 +538,5 @@ void vsSkeleton::update()
     // Forward to the recursive update call.  The stack can make the update
     // more efficient by storing previously calculated matrices instead
     // of recalculating them for each bone.
-    updateMatrices(skeletonRootBone, skeletonTransform->getCombinedTransform());
+    updateMatrices(skeletonRoot, offsetMatrix);
 }
