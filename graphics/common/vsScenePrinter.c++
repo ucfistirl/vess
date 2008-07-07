@@ -40,6 +40,7 @@
 #include "vsGLSLProgramAttribute.h++"
 #include "vsGLSLShader.h++"
 #include "vsGLSLUniform.h++"
+#include "vsLineWidthAttribute.h++"
 
 // ------------------------------------------------------------------------
 // Constructor
@@ -1132,6 +1133,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
     int mode;
     int shadingData;
     bool attrData;
+    double lineWidth;
     double quadratic, linear, constant;
     double x, y, z;
     double exponent, angle;
@@ -1214,8 +1216,15 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
             // for it (address, reference count, and type)
             attribute = targetNode->getAttribute(loop);
             writeBlanks(outfile, (treeDepth * 2) + 1);
-            fprintf(outfile, "Attribute: address %p, references %d, type ",
-                attribute, attribute->isAttached());
+
+            // If the attribute has a name, print it; if not, don't
+            if (strlen(attribute->getName()) > 0)
+                fprintf(outfile, "Attribute \"%s\": address %p, "
+                    "references %d, type ", attribute->getName(), attribute,
+                    attribute->isAttached());
+            else
+                fprintf(outfile, "Attribute: address %p, references %d, type ",
+                    attribute, attribute->isAttached());
 
             // Figure out the attribute type and print it out
             switch (attribute->getAttributeType())
@@ -1592,8 +1601,44 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                             case VS_TEXTURE_APPLY_REPLACE:
                                 fprintf(outfile, "REPLACE\n");
                                 break;
+                            case VS_TEXTURE_APPLY_BLEND:
+                                fprintf(outfile, "BLEND\n");
+                                break;
+                            case VS_TEXTURE_APPLY_ADD:
+                                fprintf(outfile, "ADD\n");
+                                break;
                             default:
                                 fprintf(outfile, "(Unknown Mode)\n");
+                                break;
+                        }
+
+                        // Texture boundary mode
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "Boundary Mode: ");
+                        switch (((vsTextureAttribute *)attribute)->
+                            getBoundaryMode(VS_TEXTURE_DIRECTION_S))
+                        {
+                            case VS_TEXTURE_BOUNDARY_REPEAT:
+                                fprintf(outfile, "S: REPEAT  ");
+                                break;
+                            case VS_TEXTURE_BOUNDARY_CLAMP:
+                                fprintf(outfile, "S: CLAMP  ");
+                                break;
+                            default:
+                                fprintf(outfile, "S: (Unknown Mode)  ");
+                                break;
+                        }
+                        switch (((vsTextureAttribute *)attribute)->
+                            getBoundaryMode(VS_TEXTURE_DIRECTION_T))
+                        {
+                            case VS_TEXTURE_BOUNDARY_REPEAT:
+                                fprintf(outfile, "T: REPEAT\n");
+                                break;
+                            case VS_TEXTURE_BOUNDARY_CLAMP:
+                                fprintf(outfile, "T: CLAMP\n");
+                                break;
+                            default:
+                                fprintf(outfile, "T: (Unknown Mode)\n");
                                 break;
                         }
 
@@ -1694,6 +1739,12 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                                 break;
                             case VS_TEXTURE_APPLY_REPLACE:
                                 fprintf(outfile, "REPLACE\n");
+                                break;
+                            case VS_TEXTURE_APPLY_BLEND:
+                                fprintf(outfile, "BLEND\n");
+                                break;
+                            case VS_TEXTURE_APPLY_ADD:
+                                fprintf(outfile, "ADD\n");
                                 break;
                             default:
                                 fprintf(outfile, "(Unknown Mode)\n");
@@ -1894,6 +1945,9 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                         vsGLSLShader *shader;
                         int numUniforms;
                         vsGLSLUniform *uniform;
+                        int numBindings;
+                        char *name;
+                        unsigned int loc;
                         
                         // Print the shaders attached to the program
                         numShaders = ((vsGLSLProgramAttribute *)attribute)->
@@ -1995,6 +2049,21 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                                     break;
                             }
                         }
+
+                        // Print the vertex attribute bindings
+                        numBindings = ((vsGLSLProgramAttribute *)attribute)->
+                            getNumVertexAttrBindings();
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "Vertex Attribute Bindings (%d):\n",
+                            numBindings);
+                        for (i = 0; i < numBindings; i++)
+                        {
+                            writeBlanks(outfile, (treeDepth * 2) + 5);
+                            ((vsGLSLProgramAttribute *)attribute)->
+                                getVertexAttrBinding(i, &name, &loc);
+                            fprintf(outfile, "Name: %s   Location: %u\n",
+                                name, loc);
+                        }
                     }
                     break;
 
@@ -2049,6 +2118,11 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                         fprintf(outfile, "WIREFRAME (on)\n");
                     else
                         fprintf(outfile, "WIREFRAME (off)\n");
+                    break;
+
+                case VS_ATTRIBUTE_TYPE_LINE_WIDTH:
+                    lineWidth = ((vsLineWidthAttribute *)attribute)->getLineWidth();
+                    fprintf(outfile, "LINE_WIDTH (%0.3lf)\n", lineWidth);
                     break;
 
                 default:
