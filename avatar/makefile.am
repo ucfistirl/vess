@@ -4,8 +4,10 @@ lib_LIBRARIES = libvsAvatar.a libvsAvatar.so
 # Sources for libvsAvatar.a
 libvsAvatar_a_SOURCES = \
                         common/vsAvatar.c++ \
+                        common/vsCharacter.c++ \
                         common/vsConfigAvatar.c++ \
-                        common/vsGhostFlyAvatar.c++
+                        common/vsGhostFlyAvatar.c++ \
+                        common/vsSkinProgramNode.c++
 
 # Sources for libvsAvatar.so
 libvsAvatar_so_SOURCES = $(libvsAvatar_a_SOURCES)
@@ -13,8 +15,10 @@ libvsAvatar_so_SOURCES = $(libvsAvatar_a_SOURCES)
 # Header files
 include_HEADERS = \
                   common/vsAvatar.h++ \
+                  common/vsCharacter.h++ \
                   common/vsConfigAvatar.h++ \
-                  common/vsGhostFlyAvatar.h++
+                  common/vsGhostFlyAvatar.h++ \
+                  common/vsSkinProgramNode.h++
 
 # Include directives for the compiler
 INCLUDES = \
