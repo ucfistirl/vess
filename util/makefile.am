@@ -6,7 +6,7 @@ libvsUtil_a_SOURCES = \
                       common/vsBox.c++ \
                       common/vsChromaKey.c++ \
                       common/vsGrowableArray.c++ \
-                      common/vsImage.c++
+                      common/vsImage.c++ \
                       common/vsMultiQueue.c++ \
                       common/vsObject.c++ \
                       common/vsObjectMap.c++ \
@@ -27,7 +27,7 @@ include_HEADERS = \
                   common/vsChromaKey.h++ \
                   common/vsGlobals.h++ \
                   common/vsGrowableArray.h++ \
-                  common/vsImage.h++
+                  common/vsImage.h++ \
                   common/vsMultiQueue.h++ \
                   common/vsObject.h++ \
                   common/vsObjectMap.h++ \
