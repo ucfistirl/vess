@@ -28,7 +28,7 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
 #include "vsTransformAttribute.h++"
-#include "vsGrowableArray.h++"
+#include "atArray.h++"
 
 // Under Visual C++, we need to alias the access function and define the
 // R_OK symbol for read access checks on files
@@ -46,6 +46,7 @@
 vsCal3DBoneLoader::vsCal3DBoneLoader()
 {
    directoryList = NULL;
+   boneSpaceMatrixList = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -62,6 +63,10 @@ vsCal3DBoneLoader::~vsCal3DBoneLoader()
       delete tempNode->dirName;
       delete tempNode;
    }
+
+   // Delete the bone space matrices (if any)
+   if (boneSpaceMatrixList)
+       delete boneSpaceMatrixList;
 }
 
 // ------------------------------------------------------------------------
@@ -183,9 +188,8 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
     vsComponent             *rootComponent;
     vsComponent             *currentComponent;
     vsComponent             *childComponent;
-    vsGrowableArray         *boneList;
+    atArray                 *boneList;
     vsTransformAttribute    *boneTransform;
-    vsGrowableArray         *boneSpaceMatrixList;
     atMatrix                *currentBoneSpaceMatrix;
 
     boneCount = 0;
@@ -319,19 +323,24 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
         return NULL;
     }
 
+    // Create an array to hold the bone space matrices (delete the existing
+    // array if there is one)
+    if (boneSpaceMatrixList != NULL)
+        delete boneSpaceMatrixList;
+    boneSpaceMatrixList = new atArray();
+
     // Create the array and fill it with vsComponents to be used for each bone.
     // Done so in advance so when establishing the hierarchy all the expected
     // bones should be vsComponents already.
-    boneList = new vsGrowableArray(boneCount, 1);
-    boneSpaceMatrixList = new vsGrowableArray(boneCount, 1);
+    boneList = new atArray();
     for (boneID = 0; boneID < boneCount; boneID++)
     {
         currentComponent = new vsComponent();
         currentComponent->ref();
-        boneList->setData(boneID, currentComponent);
+        boneList->setEntry(boneID, currentComponent);
 
         currentBoneSpaceMatrix = new atMatrix();
-        boneSpaceMatrixList->setData(boneID, currentBoneSpaceMatrix);
+        boneSpaceMatrixList->setEntry(boneID, currentBoneSpaceMatrix);
     }
 
     // Move to the children of SKELETON, and process them all.  These
@@ -372,20 +381,20 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
 
             // Get the component that should correspond to the current bone.
             // If it does not exist, create it.
-            currentComponent = (vsComponent *) boneList->getData(boneID);
+            currentComponent = (vsComponent *) boneList->getEntry(boneID);
             if (!currentComponent)
             {
                 currentComponent = new vsComponent();
-                boneList->setData(boneID, currentComponent);
+                boneList->setEntry(boneID, currentComponent);
             }
 
             // Get the Bone Space matrix pointer for this bone.
             currentBoneSpaceMatrix = (atMatrix *)
-                boneSpaceMatrixList->getData(boneID);
+                boneSpaceMatrixList->getEntry(boneID);
             if (!currentBoneSpaceMatrix)
             {
                 currentBoneSpaceMatrix = new atMatrix();
-                boneSpaceMatrixList->setData(boneID, currentBoneSpaceMatrix);
+                boneSpaceMatrixList->setEntry(boneID, currentBoneSpaceMatrix);
             }
 
             // Set the assumed root to be the first bone we encounter.
@@ -432,12 +441,12 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
                     // Get the component that corresponds to the child bone.
                     // Create it if necessary.
                     childComponent = (vsComponent *)
-                        boneList->getData(boneChildID);
+                        boneList->getEntry(boneChildID);
                     if (!childComponent)
                     {
                         childComponent = new vsComponent();
                         childComponent->ref();
-                        boneList->setData(boneChildID, childComponent);
+                        boneList->setEntry(boneChildID, childComponent);
                     }
 
                     // Make that a child of the current bone component.
@@ -604,8 +613,7 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
     // Return a new vsSkeleton pointer with the bone data just read.
     // We do not free the boneList or the components in it because that will
     // be the responsability of the vsSkeleton object now.
-    return (new vsSkeleton(boneList, boneSpaceMatrixList, boneList->getSize(),
-        rootComponent));
+    return (new vsSkeleton(boneList, boneList->getNumEntries(), rootComponent));
 }
 
 // ------------------------------------------------------------------------
@@ -661,4 +669,13 @@ vsSkeleton *vsCal3DBoneLoader::loadSkeleton(char *filename)
     }
 
     return NULL;
+}
+
+// ------------------------------------------------------------------------
+// Return the bone space matrix list for the skeleton most recently loaded
+// (or NULL if no skeleton has been loaded yet)
+// ------------------------------------------------------------------------
+atArray *vsCal3DBoneLoader::getBoneSpaceMatrixList()
+{
+    return boneSpaceMatrixList;
 }

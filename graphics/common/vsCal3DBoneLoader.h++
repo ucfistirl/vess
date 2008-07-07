@@ -45,10 +45,12 @@ class VS_GRAPHICS_DLL vsCal3DBoneLoader : public vsObject
 {
 private:
 
+    DirectoryNode      *directoryList;
+    atArray            *boneSpaceMatrixList;
+
     vsComponent        *getRootBone(vsComponent *current);
     vsSkeleton         *parseXML(char *filename);
     char *             findFile(char *filename);
-    DirectoryNode      *directoryList;
 
 VS_INTERNAL:
 
@@ -62,6 +64,8 @@ public:
     void               addFilePath(const char *dirName);
 
     vsSkeleton         *loadSkeleton(char *filename);
+
+    atArray            *getBoneSpaceMatrixList();
 };
 
 #endif
