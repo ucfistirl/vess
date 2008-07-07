@@ -30,7 +30,7 @@
 #include "vsSkeleton.h++"
 #include "atMatrix.h++"
 #include "vsComponent.h++"
-#include "vsSequencer.h++"
+#include "vsCharacter.h++"
 
 #ifdef _MSC_VER
     #include <io.h>
@@ -40,53 +40,34 @@
     #include <unistd.h>
 #endif
 
-#ifndef __DIRECTORY_NODE__
-#define __DIRECTORY_NODE__
-struct DirectoryNode
-{
-   char *dirName;
-   DirectoryNode *next;
-};
-#endif
 
 class VS_ENVIRONMENT_DLL vsCal3DLoader : public vsObject
 {
 private:
 
-    vsCal3DMeshLoader       *meshLoader;
-    vsCal3DBoneLoader       *boneLoader;
-    vsCal3DAnimationLoader  *animationLoader;
-    atMatrix                scaleMatrix;
-    vsGrowableArray         *meshList;
-    int                     meshCount;
-    vsGrowableArray         *animationList;
-    int                     animationCount;
-    char                    *skeletonFilename;
-    char                    *currentDirectory;
-    DirectoryNode           *directoryList;
+    vsCal3DMeshLoader         *meshLoader;
+    vsCal3DBoneLoader         *boneLoader;
+    vsCal3DAnimationLoader    *animationLoader;
+    atMatrix                  scaleMatrix;
+    atList                    *directoryList;
+
+    vsComponent               *loadMesh(char *filename);
+    vsSkeleton                *loadSkeleton(char *filename);
+    vsPathMotionManager       *loadAnimation(char *filename);
     
-    char *                  findFile(char *filename);
+    char *                    findFile(char *filename);
 
 VS_INTERNAL:
 
 public:
 
-                         vsCal3DLoader();
-    virtual              ~vsCal3DLoader();
+                          vsCal3DLoader();
+    virtual               ~vsCal3DLoader();
 
-    virtual const char   *getClassName();
-    void                 addFilePath(const char *dirName);
+    virtual const char    *getClassName();
+    void                  addFilePath(const char *dirName);
 
-    void                 parseFile(char *filename);
-
-    vsComponent          *getNewMesh();
-
-    vsSkeleton           *getNewSkeleton();
-
-    vsPathMotionManager  *getNewAnimation(char *name, vsSkeletonKinematics
-                                          *skeletonKinematics);
-    vsGrowableArray      *getAnimationNameList();
-    int                  getNumAnimations();
+    vsCharacter           *loadCharacter(char *filename);
 };
 
 #endif
