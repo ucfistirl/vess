@@ -3,11 +3,7 @@ lib_LIBRARIES = libvsLLIO.a libvsLLIO.so
 
 # Sources for libvsLLIO.a
 libvsLLIO_a_SOURCES = \
-                      @OS@/vsIPCInterface.c++ \
-                      @OS@/vsNetworkInterface.c++ \
-                      @OS@/vsSerialPort.c++ \
-                      @OS@/vsTCPNetworkInterface.c++ \
-                      @OS@/vsUDPNetworkInterface.c++
+                      @OS@/vsSerialPort.c++
 
 # Sources for libvsLLIO.so (same as libvsLLIO.a)
 libvsLLIO_so_SOURCES = $(libvsLLIO_a_SOURCES)
@@ -22,11 +18,7 @@ EXTRA_libvsLLIO_so_SOURCES = $(EXTRA_libvsLLIO_a_SOURCES)
 
 # Header files
 include_HEADERS = \
-                  @OS@/vsIPCInterface.h++ \
-                  @OS@/vsNetworkInterface.h++ \
-                  @OS@/vsSerialPort.h++ \
-                  @OS@/vsTCPNetworkInterface.h++ \
-                  @OS@/vsUDPNetworkInterface.h++
+                  @OS@/vsSerialPort.h++
         
 # Extra header files, used only if certain configuration conditions are
 # met.
