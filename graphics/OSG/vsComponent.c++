@@ -97,46 +97,6 @@ const char *vsComponent::getClassName()
 }
 
 // ------------------------------------------------------------------------
-// 'Clones' the tree rooted at this node, duplicating the portion of the
-// scene graph rooted at this node, down to but not including leaf nodes.
-// (Leaf nodes are instanced instead.)
-// ------------------------------------------------------------------------
-vsNode *vsComponent::cloneTree()
-{
-    vsComponent *result;
-    vsNode *childClone;
-    vsAttribute *attr;
-    int loop;
- 
-    // Create a new component
-    result = new vsComponent();
- 
-    // Copy the name and intersection value (all other data members should
-    // be taken care of automatically)
-    result->setName(getName());
-    result->setIntersectValue(getIntersectValue());
-
-    // Clone the children of this component and add them to the new
-    // component
-    for (loop = 0; loop < getChildCount(); loop++)
-    {
-        childClone = getChild(loop)->cloneTree();
-        result->addChild(childClone);
-    }
-
-    // Replicate the attributes on this component and add them to the
-    // new component as well
-    for (loop = 0; loop < getAttributeCount(); loop++)
-    {
-        attr = getAttribute(loop);
-        attr->attachDuplicate(result);
-    }
-
-    // Return the cloned tree
-    return result;
-}
-
-// ------------------------------------------------------------------------
 // Retrieves the type of this node
 // ------------------------------------------------------------------------
 int vsComponent::getNodeType()
@@ -145,71 +105,34 @@ int vsComponent::getNodeType()
 }
 
 // ------------------------------------------------------------------------
-// Adds the given node as a child of this component
+// Clones the subgraph rooted at this node
+// ------------------------------------------------------------------------
+vsNode *vsComponent::cloneTree()
+{
+    vsNode *cloneNode;
+
+    // Call the recursive clone method on this component, and keep track of
+    // the result
+    cloneNode = cloneTreeRecursive();
+
+    // Mark the cloned node and its children dirty
+    cloneNode->dirty();
+
+    // Return the clone
+    return cloneNode;
+}
+
+// ------------------------------------------------------------------------
+// Add the given node as a child of this component.  The public version
+// simply calls the protected version with the dirty flag set to true
+// (most of the time, we want newly added nodes to be marked dirty, so
+// state information and other data can be properly propagated to the
+// children)
 // ------------------------------------------------------------------------
 bool vsComponent::addChild(vsNode *newChild)
 {
-    vsComponent *childComponent;
-    vsGeometry *childGeometry;
-    vsDynamicGeometry *childDynamicGeometry;
-    vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
-    vsUnmanagedNode *childUnmanagedNode;
-    vsSwitchAttribute *switchAttr;
-
-    // Notify the newChild node that it is getting a new parent. This might
-    // fail, as the child node is permitted to object to getting a parent.
-    if (newChild->addParent(this) == false)
-    {
-        printf("vsComponent::addChild: 'newChild' node may not have any "
-            "more parent nodes\n");
-        return false;
-    }
-
-    // Connect the OSG nodes together. The type can't be a vsScene, because
-    // a scene node would never consent to getting a parent.
-    if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
-    {
-        childComponent = (vsComponent *)newChild;
-        bottomGroup->addChild(childComponent->getBaseLibraryObject());
-    }
-    else if (newChild->getNodeType() == VS_NODE_TYPE_GEOMETRY)
-    {
-        childGeometry = (vsGeometry *)newChild;
-        bottomGroup->addChild(childGeometry->getBaseLibraryObject());
-    }
-    else if (newChild->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY)
-    {
-        childDynamicGeometry = (vsDynamicGeometry *)newChild;
-        bottomGroup->addChild(childDynamicGeometry->getBaseLibraryObject());
-    }
-    else if (newChild->getNodeType() == VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
-    {
-        childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)newChild;
-        bottomGroup->addChild(
-            childSkeletonMeshGeometry->getBaseLibraryObject());
-    }
-    else if (newChild->getNodeType() == VS_NODE_TYPE_UNMANAGED)
-    {
-        childUnmanagedNode = (vsUnmanagedNode *)newChild;
-        bottomGroup->addChild(childUnmanagedNode->getBaseLibraryObject());
-    }
-
-    // Add the newChild node to our child node list
-    childList[childCount++] = newChild;
-    newChild->ref();
-
-    // Special case:  If there is a switch attribute attached to this 
-    // component, then we need to add a switch mask to the switch with 
-    // the new child active.  This emulates Performer's pfSwitch behavior.
-    switchAttr = (vsSwitchAttribute *)
-        getTypedAttribute(VS_ATTRIBUTE_TYPE_SWITCH, 0);
-    if (switchAttr != NULL)
-        switchAttr->addMask(this, newChild);
-
-    // Mark the entire tree above and below this node as needing an update
-    newChild->dirty();
-    
-    return true;
+    // Call the protected method with the dirty flag set to true
+    return addChild(newChild, true);
 }
 
 // ------------------------------------------------------------------------
@@ -610,8 +533,8 @@ void vsComponent::getBoundSphere(atVector *centerPoint, double *radius)
 atMatrix vsComponent::getGlobalXform()
 {
     osg::Node *nodePtr;
-    osg::Matrix xform;
-    osg::Matrix matRef;
+    osg::Matrixd xform;
+    osg::Matrixd matRef;
     atMatrix result;
     int loop, sloop;
 
@@ -870,6 +793,146 @@ void vsComponent::disableCull()
 osg::Group *vsComponent::getBaseLibraryObject()
 {
     return topGroup;
+}
+
+// ------------------------------------------------------------------------
+// Protected function
+// Recursively 'clones' the tree rooted at this node, duplicating the 
+// portion of the scene graph rooted at this node, down to but not
+// including leaf nodes. (Leaf nodes are instanced instead.)
+// ------------------------------------------------------------------------
+vsNode *vsComponent::cloneTreeRecursive()
+{
+    vsComponent *result;
+    vsNode *childNode;
+    vsComponent *childComp;
+    vsNode *childClone;
+    vsAttribute *attr;
+    int loop;
+ 
+    // Create a new component
+    result = new vsComponent();
+ 
+    // Copy the name and intersection value (all other data members should
+    // be taken care of automatically)
+    result->setName(getName());
+    result->setIntersectValue(getIntersectValue());
+
+    // Clone the children of this component and add them to the new
+    // component
+    for (loop = 0; loop < getChildCount(); loop++)
+    {
+        // Get the next child
+        childNode = getChild(loop);
+        
+        // Clone the tree below this node
+        if (childNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
+        {
+            // Since this is a component, we'll call the recursive clone
+            // method
+            childComp = (vsComponent *)childNode;
+            childClone = childComp->cloneTreeRecursive();
+        }
+        else
+        {
+            // Call the regular cloneTree() method (in most cases, this
+            // will simply return the node itself)
+            childClone = childNode->cloneTree();
+        }
+
+        // Add the cloned child to this node without marking the child
+        // dirty.  We'll make one dirty() call once we're done cloning the
+        // subgraph
+        result->addChild(childClone, false);
+    }
+
+    // Replicate the attributes on this component and add them to the
+    // new component as well
+    for (loop = 0; loop < getAttributeCount(); loop++)
+    {
+        attr = getAttribute(loop);
+        attr->attachDuplicate(result);
+    }
+
+    // Return the cloned tree
+    return result;
+}
+
+// ------------------------------------------------------------------------
+// Protected function
+// Adds the given node as a child of this component, and either marks or
+// doesn't mark the affected subgraph and its parents dirty (according
+// to the dirty flag).  Most of the time, the dirty process needs to be
+// done, but there are cases where we don't want this
+// ------------------------------------------------------------------------
+bool vsComponent::addChild(vsNode *newChild, bool dirtyFlag)
+{
+    vsComponent *childComponent;
+    vsGeometry *childGeometry;
+    vsDynamicGeometry *childDynamicGeometry;
+    vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
+    vsUnmanagedNode *childUnmanagedNode;
+    vsSwitchAttribute *switchAttr;
+
+    // Notify the newChild node that it is getting a new parent. This might
+    // fail, as the child node is permitted to object to getting a parent.
+    if (newChild->addParent(this) == false)
+    {
+        printf("vsComponent::addChild: 'newChild' node may not have any "
+            "more parent nodes\n");
+        return false;
+    }
+
+    // Connect the OSG nodes together. The type can't be a vsScene, because
+    // a scene node would never consent to getting a parent.
+    if (newChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
+    {
+        childComponent = (vsComponent *)newChild;
+        bottomGroup->addChild(childComponent->getBaseLibraryObject());
+    }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_GEOMETRY)
+    {
+        childGeometry = (vsGeometry *)newChild;
+        bottomGroup->addChild(childGeometry->getBaseLibraryObject());
+    }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY)
+    {
+        childDynamicGeometry = (vsDynamicGeometry *)newChild;
+        bottomGroup->addChild(childDynamicGeometry->getBaseLibraryObject());
+    }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
+    {
+        childSkeletonMeshGeometry = (vsSkeletonMeshGeometry *)newChild;
+        bottomGroup->addChild(
+            childSkeletonMeshGeometry->getBaseLibraryObject());
+    }
+    else if (newChild->getNodeType() == VS_NODE_TYPE_UNMANAGED)
+    {
+        childUnmanagedNode = (vsUnmanagedNode *)newChild;
+        bottomGroup->addChild(childUnmanagedNode->getBaseLibraryObject());
+    }
+
+    // Add the newChild node to our child node list
+    childList[childCount++] = newChild;
+    newChild->ref();
+
+    // Special case:  If there is a switch attribute attached to this 
+    // component, then we need to add a switch mask to the switch with 
+    // the new child active.  This emulates Performer's pfSwitch behavior.
+    switchAttr = (vsSwitchAttribute *)
+        getTypedAttribute(VS_ATTRIBUTE_TYPE_SWITCH, 0);
+    if (switchAttr != NULL)
+        switchAttr->addMask(this, newChild);
+
+    // See if we should mark the affected nodes dirty
+    if (dirtyFlag)
+    {
+        // Mark the entire tree above and below this node as needing an
+        // update
+        newChild->dirty();
+    }
+    
+    return true;
 }
 
 // ------------------------------------------------------------------------

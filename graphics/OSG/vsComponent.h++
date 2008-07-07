@@ -43,6 +43,9 @@ private:
     osg::Group         *lightHook;
     osg::Group         *bottomGroup;
 
+    virtual vsNode    *cloneTreeRecursive();
+    virtual bool      addChild(vsNode *newChild, bool dirtyFlag);
+
 VS_INTERNAL:
 
     osg::Group        *getTopGroup();
