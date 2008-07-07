@@ -6,6 +6,7 @@ libvsUtil_a_SOURCES = \
                       common/vsBox.c++ \
                       common/vsChromaKey.c++ \
                       common/vsGrowableArray.c++ \
+                      common/vsImage.c++
                       common/vsMultiQueue.c++ \
                       common/vsObject.c++ \
                       common/vsObjectMap.c++ \
@@ -15,8 +16,7 @@ libvsUtil_a_SOURCES = \
                       common/vsTreeMap.c++ \
                       common/vsUpdatable.c++ \
                       common/vsVideoQueue.c++ \
-                      @OS@/vsTimer.c++ \
-                      @SG@/vsImage.c++
+                      @OS@/vsTimer.c++
 
 # Sources for libvsUtil.so (same as libvsUtil.a)
 libvsUtil_so_SOURCES = $(libvsUtil_a_SOURCES)
@@ -27,6 +27,7 @@ include_HEADERS = \
                   common/vsChromaKey.h++ \
                   common/vsGlobals.h++ \
                   common/vsGrowableArray.h++ \
+                  common/vsImage.h++
                   common/vsMultiQueue.h++ \
                   common/vsObject.h++ \
                   common/vsObjectMap.h++ \
@@ -36,8 +37,7 @@ include_HEADERS = \
                   common/vsTreeMap.h++ \
                   common/vsUpdatable.h++ \
                   common/vsVideoQueue.h++ \
-                  @OS@/vsTimer.h++ \
-                  @SG@/vsImage.h++
+                  @OS@/vsTimer.h++
 
 # Include directives
 INCLUDES = \
