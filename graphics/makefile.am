@@ -9,7 +9,7 @@ libvsGraphics_a_SOURCES = \
                           common/vsParticleSystem.c++ \
                           common/vsScenePrinter.c++ \
                           common/vsSkeleton.c++ \
-                          common/vsSkeletonMesh.c++ \
+                          common/vsSkin.c++ \
                           @SG@/vsAttribute.c++ \
                           @SG@/vsBackfaceAttribute.c++ \
                           @SG@/vsBillboardAttribute.c++ \
@@ -22,6 +22,7 @@ libvsGraphics_a_SOURCES = \
                           @SG@/vsGLSLShader.c++ \
                           @SG@/vsGLSLUniform.c++ \
                           @SG@/vsGeometry.c++ \
+                          @SG@/vsGeometryBase.c++ \
                           @SG@/vsGraphicsState.c++ \
                           @SG@/vsIntersect.c++ \
                           @SG@/vsLightAttribute.c++ \
@@ -51,6 +52,7 @@ libvsGraphics_a_SOURCES = \
                           @SG@_@WS@/vsScreen.c++ \
                           @SG@_@WS@/vsWindow.c++
 
+
 # Sources for libvsGraphics.so
 libvsGraphics_so_SOURCES = $(libvsGraphics_a_SOURCES)
 
@@ -58,13 +60,6 @@ libvsGraphics_so_SOURCES = $(libvsGraphics_a_SOURCES)
 # conditions in the configure process are met.
 EXTRA_libvsGraphics_a_SOURCES = \
                                 OSG/vsBillboardCallback.c++ \
-                                OSG/vsCgMatrixParameter.c++ \
-                                OSG/vsCgParameter.c++ \
-                                OSG/vsCgParameterBlockAttribute.c++ \
-                                OSG/vsCgShaderAttribute.c++ \
-                                OSG/vsCgStateMatrixParameter.c++ \
-                                OSG/vsCgTextureParameter.c++ \
-                                OSG/vsCgVectorParameter.c++ \
                                 OSG/vsClipAttribute.c++ \
                                 OSG/vsDecalCallback.c++ \
                                 OSG/vsIntersectTraverser.c++ \
@@ -85,7 +80,7 @@ include_HEADERS = \
                   common/vsParticleSystem.h++ \
                   common/vsScenePrinter.h++ \
                   common/vsSkeleton.h++ \
-                  common/vsSkeletonMesh.h++ \
+                  common/vsSkin.h++ \
                   @SG@/vsAttribute.h++ \
                   @SG@/vsBackfaceAttribute.h++ \
                   @SG@/vsBillboardAttribute.h++ \
@@ -98,6 +93,7 @@ include_HEADERS = \
                   @SG@/vsGLSLShader.h++ \
                   @SG@/vsGLSLUniform.h++ \
                   @SG@/vsGeometry.h++ \
+                  @SG@/vsGeometryBase.h++ \
                   @SG@/vsGraphicsState.h++ \
                   @SG@/vsIntersect.h++ \
                   @SG@/vsLightAttribute.h++ \
@@ -131,13 +127,6 @@ include_HEADERS = \
 # configure process are met.
 EXTRA_HEADERS = \
                 OSG/vsBillboardCallback.h++ \
-                OSG/vsCgMatrixParameter.h++ \
-                OSG/vsCgParameter.h++ \
-                OSG/vsCgParameterBlockAttribute.h++ \
-                OSG/vsCgShaderAttribute.h++ \
-                OSG/vsCgStateMatrixParameter.h++ \
-                OSG/vsCgTextureParameter.h++ \
-                OSG/vsCgVectorParameter.h++ \
                 OSG/vsClipAttribute.h++ \
                 OSG/vsDecalCallback.h++ \
                 OSG/vsIntersectTraverser.h++ \
