@@ -3,7 +3,7 @@
 #define VS_REMOTE_INTERFACE_HPP
 
 #include <sys/types.h>
-#include "vsTCPNetworkInterface.h++"
+#include "atTCPNetworkInterface.h++"
 #include "vsRemoteInterfaceBuffer.h++"
 
 #define VS_RI_DEFAULT_CONTROL_PORT     32816
@@ -13,7 +13,7 @@
 class VS_SYSTEM_DLL vsRemoteInterface
 {
 protected:
-    vsTCPNetworkInterface     *tcpInterface;
+    atTCPNetworkInterface     *tcpInterface;
 
     u_long                    numClients;
     int                       tcpClientIDs[VS_RI_MAX_CONNECTIONS];

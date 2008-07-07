@@ -13,7 +13,7 @@
 vsRemoteInterface::vsRemoteInterface()
 {
     // Open the TCP connection and listen for clients
-    tcpInterface = new vsTCPNetworkInterface(VS_RI_DEFAULT_CONTROL_PORT);
+    tcpInterface = new atTCPNetworkInterface(VS_RI_DEFAULT_CONTROL_PORT);
     tcpInterface->allowConnections(1);
     tcpInterface->disableBlocking();
 
@@ -29,7 +29,7 @@ vsRemoteInterface::vsRemoteInterface()
 vsRemoteInterface::vsRemoteInterface(short port)
 {
     // Open the TCP connection and listen for clients
-    tcpInterface = new vsTCPNetworkInterface(port);
+    tcpInterface = new atTCPNetworkInterface(port);
     tcpInterface->allowConnections(1);
     tcpInterface->disableBlocking();
 

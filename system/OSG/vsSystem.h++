@@ -29,7 +29,6 @@
 #include "vsScreen.h++"
 #include "vsTimer.h++"
 #include "vsRemoteInterface.h++"
-#include "vsTCPNetworkInterface.h++"
 #include "vsSequencer.h++"
 
 enum  vsMultiprocessMode
