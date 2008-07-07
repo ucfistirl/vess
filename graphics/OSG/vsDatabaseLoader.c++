@@ -393,7 +393,7 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
             
     // Transform vars
     vsTransformAttribute *xformAttr;
-    osg::Matrix osgMat;
+    osg::Matrixd osgMat;
     atMatrix xformMat, tempMat;
     osgSim::DOFTransform *dofXformGroup;
     osg::MatrixTransform *matrixXformGroup;

@@ -203,8 +203,8 @@ void vsUnmanagedNode::getBoundSphere(atVector *centerPoint, double *radius)
 atMatrix vsUnmanagedNode::getGlobalXform()
 {
     osg::Node *nodePtr;
-    osg::Matrix xform;
-    osg::Matrix matRef;
+    osg::Matrixd xform;
+    osg::Matrixd matRef;
     atMatrix result;
     int loop, sloop;
 

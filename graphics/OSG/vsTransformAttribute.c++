@@ -166,7 +166,7 @@ void vsTransformAttribute::applyTransformations()
 {
     atMatrix identityMatrix;
     atMatrix productMatrix;
-    osg::Matrix osgMatrix;
+    osg::Matrixd osgMatrix;
     int loop, sloop;
 
     // Initialize the identity matrix.
@@ -303,7 +303,7 @@ void vsTransformAttribute::attachDuplicate(vsNode *theNode)
 atMatrix vsTransformAttribute::getCombinedTransform()
 {
     int loop, sloop;
-    osg::Matrix osgMatrix;
+    osg::Matrixd osgMatrix;
     atMatrix resultMatrix;
 
     // Update the osg MatrixTransform with the new value.
