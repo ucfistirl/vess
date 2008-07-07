@@ -80,6 +80,9 @@ protected:
     // Targeting mode
     vsSphericalMotionTargetMode    targetMode;
 
+    // Orbit axis
+    atVector                       orbitAxis;
+
     // Previous input values used to calculate velocities
     double                         lastHorizontal, lastVertical;
 
@@ -126,6 +129,10 @@ public:
     // Constraints on the sphere's radius
     void                  setMinimumRadius(double minDist);
     double                getMinimumRadius();
+
+    // Principal orbit axis
+    void                  setOrbitAxis(atVector newAxis);
+    atVector              getOrbitAxis();
 
     // Movement constant accessors
     void                  setZoomConstant(double newConst);

@@ -56,6 +56,9 @@ vsSphericalMotion::vsSphericalMotion(vsMouse *mouse, vsKinematics *kin)
      orbitButton = mouse->getButton(0);
      zoomButton = mouse->getButton(2);
 
+     // Default orbit axis is the Z axis
+     orbitAxis.set(0.0, 0.0, 1.0);
+
      // Initialize the target point
      targetPoint.setSize(3);
      targetPoint.clear();
@@ -102,6 +105,9 @@ vsSphericalMotion::vsSphericalMotion(vsMouse *mouse, int orbitButtonIndex,
      zoomConst = VS_SPHM_DEFAULT_ZOOM_CONST;
      minRadius = VS_SPHM_DEFAULT_MIN_RADIUS;
 
+     // Default orbit axis is the Z axis
+     orbitAxis.set(0.0, 0.0, 1.0);
+
      // Initialize the target point
      targetPoint.setSize(3);
      targetPoint.clear();
@@ -141,6 +147,9 @@ vsSphericalMotion::vsSphericalMotion(vsInputAxis *horizAxis,
      orbitConst = VS_SPHM_DEFAULT_ORBIT_CONST;
      zoomConst = VS_SPHM_DEFAULT_ZOOM_CONST;
      minRadius = VS_SPHM_DEFAULT_MIN_RADIUS;
+
+     // Default orbit axis is the Z axis
+     orbitAxis.set(0.0, 0.0, 1.0);
 
      // Initialize the target point
      targetPoint.setSize(3);
@@ -249,6 +258,30 @@ vsSphericalMotionTargetMode vsSphericalMotion::getTargetMode()
     return targetMode;
 }
 
+// ------------------------------------------------------------------------
+// Sets the orbit axis.  The orbit and zoom controls are carried out
+// relative to this axis
+// ------------------------------------------------------------------------
+void vsSphericalMotion::setOrbitAxis(atVector newAxis)
+{
+    // Validate the axis before using it
+    if ((orbitAxis.getSize() != 3) || (orbitAxis.getMagnitude() < 1.0e-6))
+    {
+        printf("vsSphereicalMotion::setOrbitAxis:  Invalid axis specified!\n");
+        return;
+    }
+
+    // Set the new axis
+    orbitAxis = newAxis.getNormalized();
+}
+
+// ------------------------------------------------------------------------
+// Returns the current orbit axis
+// ------------------------------------------------------------------------
+atVector vsSphericalMotion::getOrbitAxis()
+{
+    return orbitAxis;
+}
 
 // ------------------------------------------------------------------------
 // Sets the orbit constant.  The orbit constant specifies how many degrees
@@ -311,6 +344,8 @@ void vsSphericalMotion::update()
     atMatrix  targetXform;
     atVector  targetVec;
     atVector  currentPos;
+    atVector  forward;
+    atVector  right;
     atVector  projectedVec;
     double    radius;
     double    azimuth, elevation;
@@ -355,6 +390,16 @@ void vsSphericalMotion::update()
         lastVertical = vertical->getPosition();
     }
 
+    // Based on the orbit axis being the "up" direction, calculate the two
+    // orthogonal "forward" and "right" vectors
+    forward.set(0.0, 1.0, 0.0);
+    if (orbitAxis.isEqual(forward))
+        forward.set(0.0, 0.0, 1.0);
+    right = forward.getCrossProduct(orbitAxis);
+    right.normalize();
+    forward = orbitAxis.getCrossProduct(right);
+    forward.normalize();
+
     // Get the position of the target.  The procedure to do this depends
     // on the current targeting mode
     if (targetMode == VS_SPHM_TARGET_POINT)
@@ -388,7 +433,7 @@ void vsSphericalMotion::update()
     {
         // Create the new target vector (vector from the target to the 
         // viewpoint) and scale it to the minimum radius
-        targetVec.set(0.0, -1.0, 0.0);
+        targetVec = forward.getScaled(-1.0);
         targetVec.scale(minRadius);
 
         // Rotate the vector by the current orientation
@@ -402,19 +447,24 @@ void vsSphericalMotion::update()
 
     // Determine the azimuth and elevation of the viewpoint on the
     // sphere
-    if ((targetVec.isEqual(atVector(0, 0, 1))) || 
-        (targetVec.isEqual(atVector(0, 0, -1))))
+    if ((targetVec.isEqual(orbitAxis)) || 
+        (targetVec.isEqual(orbitAxis.getScaled(-1.0))))
     {
         // If the vector is straight up or down, set the azimuth to 0
         // and the elevation accordingly
         azimuth = 0.0;
-        elevation = 90.0 * targetVec[AT_Z];
+        if (targetVec.getDotProduct(orbitAxis) < 0.0)
+            elevation = -90.0;
+        else
+            elevation = 90.0;
     }
     else
     {
-        // Project the target vector on the XY plane
-        projectedVec.clearCopy(targetVec);
+        // Project the target vector on the plane perpendicular to the orbit
+        // axis
         projectedVec.setSize(2);
+        projectedVec[AT_X] = targetVec.getDotProduct(right);
+        projectedVec[AT_Y] = targetVec.getDotProduct(forward);
       
         // Normalize the projected vector
         projectedVec.normalize();
@@ -427,16 +477,17 @@ void vsSphericalMotion::update()
         if (azimuth < 0.0)
             azimuth += 360.0;
 
-        // Rotate the target vector so that it lines up with the Y axis
-        azimuthQuat.setAxisAngleRotation(0, 0, 1, -azimuth);
+        // Rotate the target vector so that it lines up with the forward axis
+        azimuthQuat.setAxisAngleRotation(orbitAxis[AT_X], orbitAxis[AT_Y],
+            orbitAxis[AT_Z], -azimuth);
         tempVec = azimuthQuat.rotatePoint(targetVec);
 
-        // Calculate the angle between the Y axis and the target vector,
+        // Calculate the angle between the forward axis and the target vector,
         // which is the elevation.
-        elevation = tempVec.getAngleBetween(atVector(0, 1, 0));
+        elevation = tempVec.getAngleBetween(forward);
         
         // Find the sign of the elevation
-        if (tempVec[AT_Z] < 0.0)
+        if (tempVec.getDotProduct(orbitAxis) < 0.0)
             elevation = -elevation;
     }
 
@@ -471,10 +522,12 @@ void vsSphericalMotion::update()
 
         // Compute the new viewpoint given the radius and new
         // azimuth and elevation
-        azimuthQuat.setAxisAngleRotation(0, 0, 1, azimuth);
-        elevationQuat.setAxisAngleRotation(1, 0, 0, elevation);
+        azimuthQuat.setAxisAngleRotation(orbitAxis[AT_X], orbitAxis[AT_Y],
+            orbitAxis[AT_Z], azimuth);
+        elevationQuat.setAxisAngleRotation(right[AT_X], right[AT_Y],
+            right[AT_Z], elevation);
         rotationQuat = azimuthQuat * elevationQuat;
-        tempVec.set(0.0, radius, 0.0);
+        tempVec = forward.getScaled(radius);
         newPos = rotationQuat.rotatePoint(tempVec);
         newPos += targetPos;
 
@@ -496,7 +549,7 @@ void vsSphericalMotion::update()
         if (dPos.getMagnitude() < 1.0E-6)
         {
             // Use the current orientation as the zoom direction
-            dPos.set(0.0, -1.0, 0.0);
+            dPos = forward.getScaled(-1.0);
             rotationQuat = kinematics->getOrientation();
             dPos = rotationQuat.rotatePoint(dPos);
         }
@@ -526,7 +579,7 @@ void vsSphericalMotion::update()
     {
         // Compute the rotation quaternion from the direction vector
         rotationQuat.setVecsRotation(atVector(0, 1, 0), atVector(0, 0, 1),
-            tempVec, atVector(0, 0, 1));
+            tempVec, orbitAxis);
 
         // Adjust the kinematics
         kinematics->setOrientation(rotationQuat);
