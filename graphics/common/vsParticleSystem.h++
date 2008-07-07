@@ -25,6 +25,7 @@
 
 #include "vsUpdatable.h++"
 #include "vsComponent.h++"
+#include "vsGeometry.h++"
 #include "vsDynamicGeometry.h++"
 #include "vsTransformAttribute.h++"
 #include "vsTextureAttribute.h++"
