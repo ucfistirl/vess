@@ -243,7 +243,7 @@ http://lists.sourceforge.net/lists/listinfo/vess-users
    )
 fi
 
-ATLAS_INCLUDE_DIR="-I$x_includes -I$with_atlas/communication -I$with_atlas/container -I$with_atlas/foundation -I$with_atlas/math -I$with_atlas/xml -I$with_atlas/util"
+ATLAS_INCLUDE_DIR="-DATLAS_SYM=IMPORT -I$x_includes -I$with_atlas/communication -I$with_atlas/container -I$with_atlas/foundation -I$with_atlas/math -I$with_atlas/os -I$with_atlas/xml -I$with_atlas/util"
 ATLAS_LIB_DIR="-L$x_libraries -L$with_atlas"
 ATLAS_LIB="-latlas"
 
