@@ -20,8 +20,8 @@
 //
 //------------------------------------------------------------------------
 
-#ifndef VS_SKELETON_MESH_HPP
-#define VS_SKELETON_MESH_HPP
+#ifndef VS_SKIN_HPP
+#define VS_SKIN_HPP
 
 #include "vsComponent.h++"
 #include "vsSkeleton.h++"
