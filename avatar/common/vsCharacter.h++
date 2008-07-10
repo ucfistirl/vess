@@ -108,7 +108,9 @@ public:
                                              vsGLSLProgramAttribute *prog);
 
     virtual void              update();
+    virtual void              update(double deltaTime);
 };
+
 
 #endif
 

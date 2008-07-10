@@ -1072,15 +1072,24 @@ bool vsCharacter::setSkinProgram(vsSkin *skin, vsGLSLProgramAttribute *prog)
 }
 
 // ------------------------------------------------------------------------
-// Updates the character.  The animation will be updated and the new poses
-// applied to the skeleton kinematics.  The skeletons will be traversed to
-// accumulate the new set of world-to-bone matrices, and the skins will be
-// updated to generate the final skin matrices.  If hardware skinning
-// is enabled, the skin matrices will be passed to the skin program.
-// If not, the new skin matrices will be applied to the skin geometry
-// immediately.
+// Updates the character based on the previous frame's time interval
 // ------------------------------------------------------------------------
 void vsCharacter::update()
+{
+    update(vsTimer::getSystemTimer()->getInterval());
+}
+
+
+// ------------------------------------------------------------------------
+// Updates the character using the given deltaTime.  The animation will be 
+// updated and the new poses applied to the skeleton kinematics.  The 
+// skeletons will be traversed to accumulate the new set of world-to-bone 
+// matrices, and the skins will be updated to generate the final skin 
+// matrices.  If hardware skinning is enabled, the skin matrices will be 
+// passed to the skin program. If not, the new skin matrices will be 
+// applied to the skin geometry immediately.
+// ------------------------------------------------------------------------
+void vsCharacter::update(double deltaTime)
 {
     atMatrix skinMatrix;
     vsSkeletonKinematics *kin;
@@ -1094,15 +1103,15 @@ void vsCharacter::update()
     if (!validFlag)
         return;
 
-    // Update the animation
+    // Update the animation with the time value
     if (currentAnimation != NULL)
-        currentAnimation->update();
+        currentAnimation->update(deltaTime);
 
-    // Update all kinematics and skeletons
+    // Update all kinematics and skeletons with the time value
     kin = (vsSkeletonKinematics *)skeletonKinematics->getFirstEntry();
     while (kin != NULL)
     {
-        kin->update();
+        kin->update(deltaTime);
         kin = (vsSkeletonKinematics *)skeletonKinematics->getNextEntry();
     }
     skeleton = (vsSkeleton *)characterSkeletons->getFirstEntry();
@@ -1152,3 +1161,4 @@ void vsCharacter::update()
         skin = (vsSkin *)characterSkins->getNextEntry();
     }
 }
+
