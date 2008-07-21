@@ -1,9 +1,13 @@
 
+# Import the platform module
+import platform
+
 # Import the base VESS environment
 Import('vessEnv')
 environmentEnv = vessEnv.Clone()
 
 # Get the include and library paths as well as the list of libraries
+environmentDefs = environmentEnv['CPPDEFINES']
 environmentIncPath = environmentEnv['CPPPATH']
 environmentLibPath = environmentEnv['LIBPATH']
 environmentLibs = environmentEnv['LIBS']
@@ -11,6 +15,9 @@ environmentLibs = environmentEnv['LIBS']
 
 # Import the VESS configuration
 Import('config')
+
+# Figure out which operating system we're using
+opSystem = platform.system()
 
 # Check if video support is enabled
 useVideo = config.getboolean('environment', 'videoEnabled')
@@ -50,6 +57,10 @@ if useVideo:
    environmentIncPath.extend(Split(ffmpegPath + '/include'))
    environmentLibPath.extend(Split(ffmpegPath + '/lib'))
    environmentLibs.extend(Split('avformat avcodec avutil'))
+
+   # Under Windows, we have to emulate the types declared in inttypes.h
+   if opSystem == 'Windows':
+      environmentDefs.extend(Split('EMULATE_INTTYPES'))
 
 
 # Create the final list of sources
