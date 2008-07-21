@@ -601,6 +601,12 @@ vsCharacter *vsCharacter::clone()
     vsSkeleton *temp;
     u_long skeletonIndex;
     int i;
+    atArray *newAnimationNames;
+    atString *name;
+    atString *newName;
+    atArray *newAnimations;
+    vsPathMotionManager *animation;
+    vsPathMotionManager *newAnimation;
 
     // If the current character isn't valid, return nothing
     if (!isValid())
@@ -707,11 +713,45 @@ vsCharacter *vsCharacter::clone()
         newSkin = (vsSkin *)characterSkins->getNextEntry();
     }
 
+    // Clone the array of animation names
+    newAnimationNames = new atArray();
+    for (i = 0; i < characterAnimationNames->getNumEntries(); i++)
+    {
+        // Get the i'th name
+        name = (atString *)characterAnimationNames->getEntry(i);
+
+        // See if the name is valid
+        if (name != NULL)
+        {
+            // Clone the name string, and add it to the new array in the
+            // same position
+            newName = new atString(*name);
+            newAnimationNames->setEntry(i, newName);
+        }
+    }
+
+    // Clone the array of animations
+    newAnimations = new atArray();
+    for (i = 0; i < characterAnimations->getNumEntries(); i++)
+    {
+        // Get the i'th name
+        animation = (vsPathMotionManager *)characterAnimations->getEntry(i);
+
+        // See if the name is valid
+        if (name != NULL)
+        {
+            // Clone the name string, and add it to the new array in the
+            // same position
+            newAnimation = new vsPathMotionManager(animation);
+            newAnimations->setEntry(i, newAnimation);
+        }
+    }
+    
     // Create a character using the skeletons, skins, kinematics, and
     // animations that we just finished creating
     // TODO:  Animations
     character = new vsCharacter(newSkeletonList, newSkelKinList,
-        newSkinList, NULL, NULL);
+        newSkinList, newAnimationNames, newAnimations);
 
     // Return the new character
     return character;
