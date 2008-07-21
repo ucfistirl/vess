@@ -1081,6 +1081,9 @@ void *vsMovieWriter::writeLoopFixed(void *userData)
 
     // Exit the thread so the stream can be closed.
     pthread_exit(NULL);
+
+    // Return NULL to make the Windows compiler happy
+    return NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -1244,6 +1247,9 @@ void *vsMovieWriter::writeLoopReal(void *userData)
 
     // Exit the thread so the stream can be closed.
     pthread_exit(NULL);
+
+    // Return NULL to make the Windows compiler happy
+    return NULL;
 }
 
 // ------------------------------------------------------------------------
