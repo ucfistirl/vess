@@ -151,7 +151,7 @@ bool vsCOLLADASampler::processSamplerInput(vsCOLLADADataSource *source)
         dataFormat = source->getDataFormat();
         if ((paramCount == 1) &&
             (strcmp(paramName.getString(), "TIME") == 0) &&
-            ((dataFormat == FLOAT) || (dataFormat == INT)))
+            ((dataFormat == VS_CDS_FLOAT) || (dataFormat == VS_CDS_INT)))
         {
             // Mark that we found valid input data
             validInput = true;
@@ -167,7 +167,7 @@ bool vsCOLLADASampler::processSamplerInput(vsCOLLADADataSource *source)
                 keyframe = new vsCOLLADAKeyframe();
 
                 // Be sure to ask for the appropriate data type
-                if (dataFormat == FLOAT)
+                if (dataFormat == VS_CDS_FLOAT)
                     timeValue = source->getFloat(i);
                 else
                     timeValue = (double)source->getInt(i);
@@ -252,21 +252,21 @@ bool vsCOLLADASampler::processSamplerOutput(vsCOLLADADataSource *source)
             dataFormat = source->getDataFormat();
             switch (dataFormat)
             {
-                case INT:
+                case VS_CDS_INT:
 
                     // Only one data element
                     dataSize = 1;
                     dataValues[0] = source->getInt(i);
                     break;
 
-                case FLOAT:
+                case VS_CDS_FLOAT:
 
                     // Only one data element
                     dataSize = 1;
                     dataValues[0] = source->getFloat(i);
                     break;
 
-                case VECTOR:
+                case VS_CDS_VECTOR:
 
                     // Get the vector from the data source
                     dataVec = source->getVector(i);
@@ -277,7 +277,7 @@ bool vsCOLLADASampler::processSamplerOutput(vsCOLLADADataSource *source)
                         dataValues[j] = dataVec[j];
                     break;
 
-                case MATRIX:
+                case VS_CDS_MATRIX:
 
                     // Get the matrix from the data source
                     dataMat = source->getMatrix(i);
