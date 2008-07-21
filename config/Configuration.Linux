@@ -14,6 +14,9 @@ rtiPath = /irl/tools/libs/rtis-1.3_D18A
 # Path for libxml2 - Used by ATLAS for parsing XML documents (required)
 xmlPath = /usr
 
+# Path for pthreads - for creating threads of execution
+pthreadPath = /usr
+
 
 
 # Utilities configuration
