@@ -109,14 +109,23 @@ vsCOLLADAAnimation::vsCOLLADAAnimation(atString id, atXMLDocument *doc,
         // See if this is an animation node
         if (strcmp(doc->getNodeName(child), "animation") == 0)
         {
-            // JPD:  Child animations not supported yet
+            // JPD:  Child animations not supported yet.  We don't have a
+            //       way to represent them in VESS, and I haven't yet come
+            //       across a document that uses them.  I expect this will
+            //       change, though, as the nested animation concept is
+            //       mentioned in detail in the COLLADA spec.
         }
 
         // Move on to the next node
         child = doc->getNextSiblingNode(child);
     }
 
-    // Flush the map
+    // We're done with the samplers now.  It is not permitted to use
+    // a sampler to drive several channels (they are always used in
+    // pairs).  We've encoded all of the samplers' information into the
+    // channel objects, so we're safe to delete the samplers now.
+    delete samplers;
+    samplers = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -182,5 +191,21 @@ int vsCOLLADAAnimation::getNumChannels()
 vsCOLLADAChannel *vsCOLLADAAnimation::getChannel(int index)
 {
     return (vsCOLLADAChannel *)channels->getNthEntry(index);
+}
+
+// ------------------------------------------------------------------------
+// Return the requested animation channel by index
+// ------------------------------------------------------------------------
+int vsCOLLADAAnimation::getNumChildren()
+{
+    return children->getNumEntries();
+}
+
+// ------------------------------------------------------------------------
+// Return the requested animation channel by index
+// ------------------------------------------------------------------------
+vsCOLLADAAnimation *vsCOLLADAAnimation::getChild(int index)
+{
+    return (vsCOLLADAAnimation *)children->getNthEntry(index);
 }
 

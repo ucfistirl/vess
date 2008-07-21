@@ -123,6 +123,22 @@ int vsCOLLADAChannel::getNumKeyframes()
 }
 
 // ------------------------------------------------------------------------
+// Return the first keyframe in this channel
+// ------------------------------------------------------------------------
+vsCOLLADAKeyframe *vsCOLLADAChannel::getFirstKeyframe()
+{
+    return sampler->getFirstKeyframe();
+}
+
+// ------------------------------------------------------------------------
+// Return the next keyframe in this channel
+// ------------------------------------------------------------------------
+vsCOLLADAKeyframe *vsCOLLADAChannel::getNextKeyframe()
+{
+    return sampler->getNextKeyframe();
+}
+
+// ------------------------------------------------------------------------
 // Return the keyframe at the given index
 // ------------------------------------------------------------------------
 vsCOLLADAKeyframe *vsCOLLADAChannel::getKeyframe(int index)

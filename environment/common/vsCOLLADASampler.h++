@@ -45,6 +45,8 @@ public:
     atString                         getID();
 
     int                              getNumKeyframes();
+    vsCOLLADAKeyframe                *getFirstKeyframe();
+    vsCOLLADAKeyframe                *getNextKeyframe();
     vsCOLLADAKeyframe                *getKeyframe(int index);
 
     vsPathPosInterpolationMode       getPositionInterpMode();

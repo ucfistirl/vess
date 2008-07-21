@@ -32,7 +32,10 @@ public:
     bool                             isValid();
 
     int                              getNumKeyframes();
+    vsCOLLADAKeyframe                *getFirstKeyframe();
+    vsCOLLADAKeyframe                *getNextKeyframe();
     vsCOLLADAKeyframe                *getKeyframe(int index);
+
     void                             addKeyframe(double time, int count,
                                                  double values);
 

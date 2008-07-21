@@ -19,6 +19,7 @@ protected:
     atMap                            *sources;
     atMap                            *samplers;
     atList                           *channels;
+    atList                           *children;
 
 
     vsCOLLADADataSource    *getDataSource(atString id);
@@ -38,6 +39,9 @@ public:
 
     int                   getNumChannels();
     vsCOLLADAChannel      *getChannel(int index);
+
+    int                   getNumChildren();
+    vsCOLLADAAnimation    *getChild(int index);
 };
 
 #endif 

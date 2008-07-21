@@ -443,6 +443,22 @@ int vsCOLLADASampler::getNumKeyframes()
 }
 
 // ------------------------------------------------------------------------
+// Return the first keyframe in this sampler
+// ------------------------------------------------------------------------
+vsCOLLADAKeyframe *vsCOLLADASampler::getFirstKeyframe()
+{
+    return (vsCOLLADAKeyframe *)keyframes->getFirstEntry();
+}
+
+// ------------------------------------------------------------------------
+// Return the next keyframe in this sampler
+// ------------------------------------------------------------------------
+vsCOLLADAKeyframe *vsCOLLADASampler::getNextKeyframe()
+{
+    return (vsCOLLADAKeyframe *)keyframes->getNextEntry();
+}
+
+// ------------------------------------------------------------------------
 // Return the requested keyframe
 // ------------------------------------------------------------------------
 vsCOLLADAKeyframe *vsCOLLADASampler::getKeyframe(int index)
