@@ -29,6 +29,8 @@ commonSrc='vsScent.c++ vsScentDetectorAttribute.c++ vsScentManager.c++ \
 osDir = '#scent/' + opSystem
 if opSystem == 'Linux':
    osSrc = 'vsScentAirScent.c++'
+else:
+   osSrc = ''
 
 
 # Add the scent subdirectories to the include path
