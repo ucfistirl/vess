@@ -76,12 +76,6 @@ gfxIncPath.extend(Split(commonDir))
 gfxIncPath.extend(Split(sgDir))
 gfxIncPath.extend(Split(sgWsDir))
 
-# Look up any configuration we need in the config file, and add it to the
-# environment
-if opSystem == 'Windows':
-   glPath = config.get('graphics', 'glPath')
-   gfxIncPath.extend(Split(glPath + '/include'))
-
 # Add to the include and lib settings appropriately
 if sceneGraph == 'OSG':
    osgPath = config.get('graphics', 'osgPath')
