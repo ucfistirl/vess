@@ -23,9 +23,9 @@
 #ifndef VS_GLOBALS_HPP
 #define VS_GLOBALS_HPP
 
-#include <math.h>
-#include "atGlobals.h++"
 #include "atOSDefs.h++"
+#include "atGlobals.h++"
+#include <math.h>
 
 
 // Functions under this access specifier are for VESS internal use
@@ -36,7 +36,7 @@
 // Handle all OpenGL includes before other libraries get in the way
 // Don't request function prototypes on Windows, we have to query them
 // from the driver instead
-#ifndef WIN32
+#ifndef _WIN32
     #define GL_GLEXT_PROTOTYPES
 #endif
 
