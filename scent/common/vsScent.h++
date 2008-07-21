@@ -26,7 +26,7 @@
 
 #include "vsObject.h++"
 
-class VS_SCENT_DLL vsScent : public vsObject
+class VESS_SYM vsScent : public vsObject
 {
 protected:
 

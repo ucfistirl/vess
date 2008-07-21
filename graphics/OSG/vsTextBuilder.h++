@@ -52,7 +52,7 @@ enum  vsTextBuilderJustification
     VS_TEXTBUILDER_JUSTIFY_CENTER
 };
 
-class VS_GRAPHICS_DLL vsTextBuilder : public vsObject
+class VESS_SYM vsTextBuilder : public vsObject
 {
 private:
 

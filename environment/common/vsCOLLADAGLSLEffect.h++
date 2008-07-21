@@ -3,7 +3,7 @@
 
 #include "vsCOLLADAEffect.h++"
 
-class vsCOLLADAGLSLEffect : public vsCOLLADAEffect
+class VESS_SYM vsCOLLADAGLSLEffect : public vsCOLLADAEffect
 {
 protected:
 

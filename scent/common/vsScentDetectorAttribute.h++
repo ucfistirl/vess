@@ -31,7 +31,7 @@
 
 #define VS_SD_DEFAULT_SENSITIVITY 1.0
 
-class VS_SCENT_DLL vsScentDetectorAttribute : public vsAttribute
+class VESS_SYM vsScentDetectorAttribute : public vsAttribute
 {
 protected:
 

@@ -29,7 +29,7 @@
 
 #define VS_OBJ_MAGIC_NUMBER 0xFEEDF00D
 
-class VS_UTIL_DLL vsObject : public atItem
+class VESS_SYM vsObject : public atItem
 {
 private:
 

@@ -28,7 +28,7 @@
 #include "vsSkeletonMeshGeometry.h++"
 #include "atArray.h++"
 
-class VS_GRAPHICS_DLL vsSkin : public vsUpdatable
+class VESS_SYM vsSkin : public vsUpdatable
 {
 private:
 

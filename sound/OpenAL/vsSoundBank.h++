@@ -39,7 +39,7 @@
 #include "vsSoundSourceAttribute.h++"
 
 
-class VS_SOUND_DLL vsSoundBank : public vsObject
+class VESS_SYM vsSoundBank : public vsObject
 {
 protected:
 

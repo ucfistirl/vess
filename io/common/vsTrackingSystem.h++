@@ -25,7 +25,7 @@
 #include "vsMotionTracker.h++"
 #include "vsIOSystem.h++"
 
-class VS_IO_DLL vsTrackingSystem : public vsIOSystem
+class VESS_SYM vsTrackingSystem : public vsIOSystem
 {
 public:
 

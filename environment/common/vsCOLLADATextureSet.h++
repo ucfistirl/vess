@@ -5,7 +5,7 @@
 #include "atList.h++"
 #include "vsTextureAttribute.h++"
 
-class vsCOLLADATextureSet : public vsObject
+class VESS_SYM vsCOLLADATextureSet : public vsObject
 {
 protected:
 

@@ -40,7 +40,7 @@
 // Define this to have the normal and force vectors drawn as lines.
 //#define VS_PHANTOM_COLLISION_DEBUG
 
-class VS_MOTION_DLL vsPhantomCollision : public vsMotionModel
+class VESS_SYM vsPhantomCollision : public vsMotionModel
 {
 private:
 

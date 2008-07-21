@@ -46,7 +46,7 @@ enum vsCOLLADAParameterType
     VS_COLLADA_ENUM
 };
 
-class vsCOLLADAEffectParameter : public vsObject
+class VESS_SYM vsCOLLADAEffectParameter : public vsObject
 {
 protected:
 

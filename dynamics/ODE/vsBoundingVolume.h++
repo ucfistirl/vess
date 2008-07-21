@@ -38,13 +38,13 @@
 
 #define VS_BOUNDING_VOLUME_MAX_COLLISIONS 10
 
-struct VS_DYNAMICS_DLL vsCollisionResult
+struct VESS_SYM vsCollisionResult
 {
     vsContactPoint    **contactPoints;
     int               contactCount;
 };
 
-struct VS_DYNAMICS_DLL vsCollisionProgress
+struct VESS_SYM vsCollisionProgress
 {
     dContactGeom         *contactGeoms;
 
@@ -52,7 +52,7 @@ struct VS_DYNAMICS_DLL vsCollisionProgress
     int                  curCollisions;
 };
 
-class VS_DYNAMICS_DLL vsBoundingVolume : public vsObject
+class VESS_SYM vsBoundingVolume : public vsObject
 {
 private:
 

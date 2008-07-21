@@ -33,7 +33,7 @@
 #include "vsStateAttribute.h++"
 #include "vsTextureAttribute.h++"
 
-class VS_GRAPHICS_DLL vsTextureRectangleAttribute : public vsStateAttribute
+class VESS_SYM vsTextureRectangleAttribute : public vsStateAttribute
 {
 private:
 

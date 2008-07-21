@@ -6,7 +6,7 @@
 #include "vsMaterialAttribute.h++"
 #include "vsTextureAttribute.h++"
 
-class vsCOLLADAFixedEffect : public vsCOLLADAEffect
+class VESS_SYM vsCOLLADAFixedEffect : public vsCOLLADAEffect
 {
 protected:
 

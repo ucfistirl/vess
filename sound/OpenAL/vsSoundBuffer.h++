@@ -43,7 +43,7 @@ enum
     VS_SOUND_BUFFER_PACKET_STREAM
 };
 
-class VS_SOUND_DLL vsSoundBuffer : public vsObject
+class VESS_SYM vsSoundBuffer : public vsObject
 {
 protected:
 

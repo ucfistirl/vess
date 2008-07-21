@@ -34,7 +34,7 @@
 #define VS_HC_DEFAULT_ISECT_MASK       0xFFFFFFFE
 #define VS_HC_DEFAULT_HAND_ISECT_VALUE 0x00000001
 
-class VS_MOTION_DLL vsHandCollision : public vsObject
+class VESS_SYM vsHandCollision : public vsObject
 {
 protected:
 

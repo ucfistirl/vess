@@ -25,7 +25,7 @@
 #include "vsIOSystem.h++"
 #include "vsJoystick.h++"
 
-class VS_IO_DLL vsJoystickBox : public vsIOSystem
+class VESS_SYM vsJoystickBox : public vsIOSystem
 {
 public:
 

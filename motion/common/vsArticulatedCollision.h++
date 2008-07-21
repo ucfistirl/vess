@@ -29,7 +29,7 @@
 
 #define VS_ARTCOL_SEGMENT_COUNT 16
 
-class VS_MOTION_DLL vsArticulatedCollision : public vsMotionModel
+class VESS_SYM vsArticulatedCollision : public vsMotionModel
 {
 protected:
 

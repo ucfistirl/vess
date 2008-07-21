@@ -27,7 +27,7 @@
 #include "vsInputAxis.h++"
 #include "vsInputButton.h++"
 
-class VS_IO_DLL vsIODevice : public vsUpdatable
+class VESS_SYM vsIODevice : public vsUpdatable
 {
 VS_INTERNAL:
 

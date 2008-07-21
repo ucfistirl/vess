@@ -29,7 +29,7 @@
 #include "vsKinematics.h++"
 #include "vsMenuObject.h++"
 
-class VS_MENU_DLL vsMenuButton : public vsMenuObject
+class VESS_SYM vsMenuButton : public vsMenuObject
 {
 protected:
 

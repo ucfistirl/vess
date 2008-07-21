@@ -28,7 +28,7 @@
 #include "vsKinematics.h++"
 #include "vsMenuButton.h++"
 
-class VS_MENU_DLL vsMenuToggleButton : public vsMenuButton
+class VESS_SYM vsMenuToggleButton : public vsMenuButton
 {
 public:
 

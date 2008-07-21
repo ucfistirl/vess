@@ -72,7 +72,7 @@ enum
 
 #define VS_CG_MAX_DIGITS 12
 
-class VS_IO_DLL vsChordGloves : public vsIODevice
+class VESS_SYM vsChordGloves : public vsIODevice
 {
 protected:
 

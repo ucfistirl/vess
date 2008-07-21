@@ -38,7 +38,7 @@ enum vsDatabaseUnits
     VS_DATABASE_UNITS_KILOMETERS
 };
 
-class VS_GRAPHICS_DLL vsDatabaseLoader : public vsObject
+class VESS_SYM vsDatabaseLoader : public vsObject
 {
 private:
 

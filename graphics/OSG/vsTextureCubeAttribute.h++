@@ -44,7 +44,7 @@ enum vsTextureCubeFace
     VS_TEXTURE_CUBE_NEGATIVE_Z
 };
 
-class VS_GRAPHICS_DLL vsTextureCubeAttribute : public vsStateAttribute
+class VESS_SYM vsTextureCubeAttribute : public vsStateAttribute
 {
 private:
 

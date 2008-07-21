@@ -34,7 +34,7 @@ enum vsTransparencyQuality
     VS_TRANSP_QUALITY_HIGH
 };
 
-class VS_GRAPHICS_DLL vsTransparencyAttribute : public vsStateAttribute
+class VESS_SYM vsTransparencyAttribute : public vsStateAttribute
 {
 private:
 

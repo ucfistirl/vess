@@ -6,7 +6,7 @@
 #include "atString.h++"
 #include "atXMLDocument.h++"
 
-class vsCOLLADANameArray : public vsCOLLADADataArray
+class VESS_SYM vsCOLLADANameArray : public vsCOLLADADataArray
 {
 protected:
 

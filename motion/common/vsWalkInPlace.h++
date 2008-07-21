@@ -49,7 +49,7 @@
 // limited by the distance in maxAllowance)
 #define VS_WIP_DEFAULT_LIMIT_STATE true
 
-class VS_MOTION_DLL vsWalkInPlace : public vsMotionModel
+class VESS_SYM vsWalkInPlace : public vsMotionModel
 {
 protected:
 

@@ -20,7 +20,7 @@ enum vsCOLLADADataSourceFormat
     MATRIX
 };
 
-class vsCOLLADADataSource : public vsObject
+class VESS_SYM vsCOLLADADataSource : public vsObject
 {
 protected:
 

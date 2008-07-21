@@ -28,7 +28,7 @@
 #include "vsStateAttribute.h++"
 #include "vsGrowableArray.h++"
 
-class VS_GRAPHICS_DLL vsShaderAttribute : public vsStateAttribute
+class VESS_SYM vsShaderAttribute : public vsStateAttribute
 {
 private:
 

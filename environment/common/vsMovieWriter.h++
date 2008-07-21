@@ -39,7 +39,7 @@ extern "C"
 #define VS_MOVIE_WRITER_DEFAULT_FRAMERATE    30
 #define VS_MOVIE_WRITER_DEFAULT_BITRATE  400000
 
-enum VS_ENVIRONMENT_DLL vsVideoFrameSize
+enum vsVideoFrameSize
 {
     VS_VIDEO_SIZE_320X180,
     VS_VIDEO_SIZE_320X240,
@@ -53,13 +53,13 @@ enum VS_ENVIRONMENT_DLL vsVideoFrameSize
     VS_VIDEO_SIZE_1600X1200
 };
 
-enum VS_ENVIRONMENT_DLL vsVideoTimingMode
+enum vsVideoTimingMode
 {
     VS_MW_TIMING_FIXED,
     VS_MW_TIMING_REAL
 };
 
-class VS_ENVIRONMENT_DLL vsMovieWriter : public vsObject
+class VESS_SYM vsMovieWriter : public vsObject
 {
 private:
 

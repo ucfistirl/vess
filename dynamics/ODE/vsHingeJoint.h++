@@ -35,7 +35,7 @@
 
 #include "vsGlobals.h++"
 
-class VS_DYNAMICS_DLL vsHingeJoint : public vsDynamicJoint
+class VESS_SYM vsHingeJoint : public vsDynamicJoint
 {
 public:
 

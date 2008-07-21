@@ -40,7 +40,7 @@ enum vsBoxCorner
     VS_BOX_CORNER_BTR
 };
 
-class VS_UTIL_DLL vsBox : public vsShape
+class VESS_SYM vsBox : public vsShape
 {
 protected:
 

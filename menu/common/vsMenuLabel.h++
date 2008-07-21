@@ -31,7 +31,7 @@
 #include "vsTextBuilder.h++"
 #include "atVector.h++"
 
-class VS_MENU_DLL vsMenuLabel : public vsMenuObject
+class VESS_SYM vsMenuLabel : public vsMenuObject
 {
 private:
 

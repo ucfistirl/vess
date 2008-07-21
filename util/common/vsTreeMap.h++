@@ -40,7 +40,7 @@ enum  vsTreeMapChildType
     VS_TREE_MAP_ROOTNODE
 };
 
-struct VS_UTIL_DLL vsTreeMapNode
+struct VESS_SYM vsTreeMapNode
 {
     vsTreeMapNode   *leftChild;
     vsTreeMapNode   *rightChild;
@@ -51,7 +51,7 @@ struct VS_UTIL_DLL vsTreeMapNode
     void            *nodeValue;
 };
 
-class VS_UTIL_DLL vsTreeMap
+class VESS_SYM vsTreeMap
 {
 private:
 

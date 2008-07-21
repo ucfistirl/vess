@@ -27,7 +27,7 @@
 #include "vsShape.h++"
 #include "atVector.h++"
 
-class VS_UTIL_DLL vsSphere : public vsShape
+class VESS_SYM vsSphere : public vsShape
 {
 private:
 

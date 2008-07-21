@@ -25,7 +25,7 @@
 
 #include "vsKinematics.h++"
 
-class VS_MOTION_DLL vsInverseKinematics : public vsObject
+class VESS_SYM vsInverseKinematics : public vsObject
 {
 private:
 

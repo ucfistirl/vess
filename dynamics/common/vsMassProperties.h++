@@ -30,7 +30,7 @@
 
 #include "vsGlobals.h++"
 
-class VS_DYNAMICS_DLL vsMassProperties
+class VESS_SYM vsMassProperties
 {
 protected:
 

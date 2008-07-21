@@ -46,14 +46,14 @@ enum  vsMoviePlayMode
     VS_MOVIE_QUIT
 };
 
-struct VS_ENVIRONMENT_DLL vsMoviePacketQueue
+struct vsMoviePacketQueue
 {
     AVPacketList          *head;
     AVPacketList          *tail;
     int                   packetCount;
 };
 
-class VS_ENVIRONMENT_DLL vsMovieReader : public vsObject
+class VESS_SYM vsMovieReader : public vsObject
 {
 private:
 

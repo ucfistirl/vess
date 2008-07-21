@@ -61,7 +61,7 @@ enum  vsPathPlayMode
     VS_PATH_PLAYING
 };
 
-struct VS_MOTION_DLL vsPathMotionSegment
+struct VESS_SYM vsPathMotionSegment
 {
     atVector    position;
     atQuat      orientation;
@@ -69,7 +69,7 @@ struct VS_MOTION_DLL vsPathMotionSegment
     double      pauseTime;
 };
 
-class VS_MOTION_DLL vsPathMotion : public vsMotionModel
+class VESS_SYM vsPathMotion : public vsMotionModel
 {
 private:
 

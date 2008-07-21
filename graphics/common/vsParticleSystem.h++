@@ -82,7 +82,7 @@ struct vsParticle
     atVector                finalColor;
 };
 
-class VS_GRAPHICS_DLL vsParticleSystem : public vsUpdatable
+class VESS_SYM vsParticleSystem : public vsUpdatable
 {
 protected:
 

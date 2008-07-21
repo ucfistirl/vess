@@ -29,7 +29,7 @@
 #include "vsMenuFrame.h++"
 #include "vsMenuObject.h++"
 
-struct VS_MENU_DLL vsMenuTreeNode
+struct VESS_SYM vsMenuTreeNode
 {
     vsMenuObject      *object;
 
@@ -38,7 +38,7 @@ struct VS_MENU_DLL vsMenuTreeNode
     vsMenuTreeNode    *sibling;
 };
 
-class VS_MENU_DLL vsMenuTree
+class VESS_SYM vsMenuTree
 {
 private:
 

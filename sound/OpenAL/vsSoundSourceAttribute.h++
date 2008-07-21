@@ -44,7 +44,7 @@ enum
     VS_SSRC_PRIORITY_ALWAYS_ON
 };
 
-class VS_SOUND_DLL vsSoundSourceAttribute : public vsAttribute
+class VESS_SYM vsSoundSourceAttribute : public vsAttribute
 {
 protected:
 

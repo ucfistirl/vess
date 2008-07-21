@@ -34,7 +34,7 @@
 
 #include "vsGlobals.h++"
 
-class VS_DYNAMICS_DLL vsBallJoint : public vsDynamicJoint
+class VESS_SYM vsBallJoint : public vsDynamicJoint
 {
 public:
 

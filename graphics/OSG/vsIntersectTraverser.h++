@@ -53,7 +53,7 @@ enum vsIntersectLODTraversalMode
     VS_INTERSECT_LOD_ALL
 };
 
-class VS_GRAPHICS_DLL vsIntersectTraverser : public osgUtil::IntersectVisitor
+class VESS_SYM vsIntersectTraverser : public osgUtil::IntersectVisitor
 {
 private:
 

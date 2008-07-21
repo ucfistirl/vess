@@ -41,7 +41,7 @@ struct DirectoryNode
 };
 #endif
 
-class VS_GRAPHICS_DLL vsCal3DBoneLoader : public vsObject
+class VESS_SYM vsCal3DBoneLoader : public vsObject
 {
 private:
 

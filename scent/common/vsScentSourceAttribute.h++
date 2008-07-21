@@ -36,7 +36,7 @@
 #define VS_SA_DEFAULT_MAX_DIST     -1.0
 #define VS_SA_DEFAULT_ROLLOFF      1.0
 
-class VS_SCENT_DLL vsScentSourceAttribute : public vsAttribute
+class VESS_SYM vsScentSourceAttribute : public vsAttribute
 {
 protected:
 

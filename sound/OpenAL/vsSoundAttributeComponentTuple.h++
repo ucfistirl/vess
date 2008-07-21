@@ -29,7 +29,7 @@
 #include "vsGlobals.h++"
 #include "vsSoundSourceAttribute.h++"
 
-class VS_SOUND_DLL vsSoundAttributeComponentTuple : public atItem
+class VESS_SYM vsSoundAttributeComponentTuple : public atItem
 {
 protected:
     static int                tupleIDCount;

@@ -36,7 +36,7 @@ enum
     VS_JS_T_AXIS = 3
 };
 
-class VS_IO_DLL vsJoystick : public vsIODevice
+class VESS_SYM vsJoystick : public vsIODevice
 {
 protected:
 

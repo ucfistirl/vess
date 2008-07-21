@@ -255,7 +255,6 @@ vsPathMotion *vsCOLLADAChannelGroup::instance()
 
             // Copy the address
             strcpy(targetAddr, ch);
-printf("target = %s  addr = %s\n", baseTarget, targetAddr);
         }
         else
         {

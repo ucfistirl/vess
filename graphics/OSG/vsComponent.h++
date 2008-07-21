@@ -30,7 +30,7 @@
 #include "atVector.h++"
 #include <osg/Group>
 
-class VS_GRAPHICS_DLL vsComponent : public vsNode
+class VESS_SYM vsComponent : public vsNode
 {
 private:
 

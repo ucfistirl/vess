@@ -45,7 +45,7 @@ enum
     VS_PL_ERR_ERROR_MSG
 };
 
-class VS_IO_DLL vsPolaris : public vsTrackingSystem
+class VESS_SYM vsPolaris : public vsTrackingSystem
 {
 protected:
 

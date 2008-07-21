@@ -10,7 +10,7 @@
 #include "atString.h++"
 #include "atXMLDocument.h++"
 
-class vsCOLLADASampler : public vsObject
+class VESS_SYM vsCOLLADASampler : public vsObject
 {
 protected:
 

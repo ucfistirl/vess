@@ -32,7 +32,7 @@ enum vsShadingMode
     VS_SHADING_FLAT
 };
 
-class VS_GRAPHICS_DLL vsShadingAttribute : public vsStateAttribute
+class VESS_SYM vsShadingAttribute : public vsStateAttribute
 {
 private:
 

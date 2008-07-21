@@ -11,7 +11,7 @@
 #include "atMap.h++"
 #include "atXMLDocument.h++"
 
-class vsCOLLADAAnimation : public vsObject
+class VESS_SYM vsCOLLADAAnimation : public vsObject
 {
 protected:
 

@@ -31,13 +31,13 @@
 #include "vsMenuFrame.h++"
 #include "vsMenuObject.h++"
 
-enum VS_MENU_DLL vsMenuLinkMode
+enum VESS_SYM vsMenuLinkMode
 {
     VS_MENU_LINK_MODE_RELATIVE,
     VS_MENU_LINK_MODE_ABSOLUTE
 };
 
-class VS_MENU_DLL vsMenuLink : public vsMenuObject
+class VESS_SYM vsMenuLink : public vsMenuObject
 {
 private:
 

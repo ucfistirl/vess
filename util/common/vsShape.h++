@@ -38,7 +38,7 @@ enum vsScaleType
     VS_SCALE_TYPE_RADIUS
 };
 
-class VS_UTIL_DLL vsShape : public vsObject
+class VESS_SYM vsShape : public vsObject
 {
 protected:
 

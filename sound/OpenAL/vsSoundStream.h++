@@ -16,7 +16,7 @@
 #define VS_SS_FORMAT_STEREO8  VS_SBUF_FORMAT_STEREO8
 #define VS_SS_FORMAT_STEREO16 VS_SBUF_FORMAT_STEREO16
 
-class VS_SOUND_DLL vsSoundStream : public vsSoundBuffer
+class VESS_SYM vsSoundStream : public vsSoundBuffer
 {
 protected:
 

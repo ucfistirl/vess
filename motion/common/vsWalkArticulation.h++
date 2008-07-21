@@ -40,7 +40,7 @@ enum  vsWalkArticJoints
     VS_WALK_ARTIC_RIGHT_ANKLE
 };
 
-struct VS_MOTION_DLL vsWalkArticData
+struct VESS_SYM vsWalkArticData
 {
     atQuat leftHip, leftKnee, leftAnkle;
     atQuat rightHip, rightKnee, rightAnkle;
@@ -54,7 +54,7 @@ enum  vsWalkArticState
     VS_WALK_ARTIC_STOPPING
 };
 
-class VS_MOTION_DLL vsWalkArticulation : public vsMotionModel
+class VESS_SYM vsWalkArticulation : public vsMotionModel
 {
 private:
 

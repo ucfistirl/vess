@@ -32,7 +32,7 @@
 
 #include "vsGlobals.h++"
 
-class VS_DYNAMICS_DLL vsDynamicJoint : public vsObject
+class VESS_SYM vsDynamicJoint : public vsObject
 {
 protected:
 

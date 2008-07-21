@@ -142,7 +142,7 @@ enum
      VS_AG_JOINT_WRIST        // Wrist articulation
 };
 
-class VS_IO_DLL vsArticulationGlove : public vsIODevice
+class VESS_SYM vsArticulationGlove : public vsIODevice
 {
 protected:
 

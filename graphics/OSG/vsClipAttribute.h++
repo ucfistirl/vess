@@ -29,7 +29,7 @@
 
 #define VS_CLIPATTR_MAX_PLANES  6
 
-class VS_GRAPHICS_DLL vsClipAttribute : public vsStateAttribute
+class VESS_SYM vsClipAttribute : public vsStateAttribute
 {
 private:
 

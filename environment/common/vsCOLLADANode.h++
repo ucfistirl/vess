@@ -12,7 +12,7 @@ enum vsCOLLADANodeType
     VS_CNODE_TYPE_JOINT
 };
 
-class vsCOLLADANode : public vsComponent
+class VESS_SYM vsCOLLADANode : public vsComponent
 {
 protected:
 

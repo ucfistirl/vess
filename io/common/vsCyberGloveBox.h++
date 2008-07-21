@@ -85,7 +85,7 @@ enum
     VS_CYG_TOUCH_PALM   = 5
 };
 
-class VS_IO_DLL vsCyberGloveBox : public vsIOSystem
+class VESS_SYM vsCyberGloveBox : public vsIOSystem
 {
 protected:
 

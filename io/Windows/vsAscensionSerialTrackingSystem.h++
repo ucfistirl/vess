@@ -200,7 +200,7 @@ enum
     VS_AS_SYNC_2X   = 2
 };
 
-class VS_IO_DLL vsAscensionSerialTrackingSystem : public vsTrackingSystem
+class VESS_SYM vsAscensionSerialTrackingSystem : public vsTrackingSystem
 {
 protected:
    

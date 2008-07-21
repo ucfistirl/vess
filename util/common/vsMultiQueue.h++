@@ -29,7 +29,7 @@
 #include "vsObject.h++"
 #include <pthread.h>
 
-struct VS_UTIL_DLL vsMQRefNode
+struct VESS_SYM vsMQRefNode
 {
     int            refID;
     int            bufferHead;
@@ -37,7 +37,7 @@ struct VS_UTIL_DLL vsMQRefNode
     vsMQRefNode    *next;
 };
 
-class VS_UTIL_DLL vsMultiQueue : public vsObject
+class VESS_SYM vsMultiQueue : public vsObject
 {
 protected:
 

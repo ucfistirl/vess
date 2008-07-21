@@ -44,7 +44,7 @@ enum vsNodeType
     VS_NODE_TYPE_UNMANAGED
 };
 
-class VS_GRAPHICS_DLL vsNode : public vsObject
+class VESS_SYM vsNode : public vsObject
 {
 private:
 

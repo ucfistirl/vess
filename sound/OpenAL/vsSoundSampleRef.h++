@@ -32,7 +32,7 @@
 #include "vsGlobals.h++"
 #include "vsSoundSample.h++"
 
-class VS_SOUND_DLL vsSoundSampleRef : public atItem
+class VESS_SYM vsSoundSampleRef : public atItem
 {
 protected:
 

@@ -40,7 +40,7 @@ struct vsSoundSourceListItem
     double                 gain;
 };
 
-class VS_SOUND_DLL vsSoundManager : public vsUpdatable
+class VESS_SYM vsSoundManager : public vsUpdatable
 {
 protected:
 

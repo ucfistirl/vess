@@ -57,7 +57,7 @@ enum vsPaneBufferMode
 #define VS_PANE_DEFAULT_FOV             45.0
 #define VS_PANE_DEFAULT_ORTHO_PLANE     10.0
 
-class VS_GRAPHICS_DLL vsPane : public vsObject
+class VESS_SYM vsPane : public vsObject
 {
 private:
 

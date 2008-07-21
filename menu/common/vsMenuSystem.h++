@@ -53,7 +53,7 @@ enum vsMenuAction
     VS_MENU_ACTION_CURSOR
 };
 
-class VS_MENU_DLL vsMenuSystem
+class VESS_SYM vsMenuSystem
 {
 private:
 

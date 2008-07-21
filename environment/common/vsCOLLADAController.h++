@@ -5,7 +5,7 @@
 #include "vsObject.h++"
 #include "vsCOLLADAGeometry.h++"
 
-class vsCOLLADAController : public vsObject
+class VESS_SYM vsCOLLADAController : public vsObject
 {
 protected:
 

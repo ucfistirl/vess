@@ -34,7 +34,7 @@ enum vsViewProjectionMode
     VS_VIEW_PROJMODE_OFFAXIS_PERSP
 };
 
-class VS_GRAPHICS_DLL vsView : public vsObject
+class VESS_SYM vsView : public vsObject
 {
 private:
 

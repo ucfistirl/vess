@@ -26,7 +26,7 @@
 #include "vsArticulationGlove.h++"
 #include "vsKinematics.h++"
 
-class VS_MOTION_DLL vsHandArticulation : public vsMotionModel
+class VESS_SYM vsHandArticulation : public vsMotionModel
 {
 protected:
 

@@ -3,7 +3,7 @@
 
 #include "vsCOLLADANode.h++"
 
-class vsCOLLADANodeRef : public vsObject
+class VESS_SYM vsCOLLADANodeRef : public vsObject
 {
 protected:
 

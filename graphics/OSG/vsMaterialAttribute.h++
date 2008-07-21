@@ -51,7 +51,7 @@ enum vsMaterialColorMode
     VS_MATERIAL_CMODE_NONE
 };
 
-class VS_GRAPHICS_DLL vsMaterialAttribute : public vsStateAttribute
+class VESS_SYM vsMaterialAttribute : public vsStateAttribute
 {
 private:
 

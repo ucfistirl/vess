@@ -35,7 +35,7 @@ class vsPipe;
 
 #define VS_MAX_PIPE_COUNT 10
 
-class VS_GRAPHICS_DLL vsPipe : public vsObject
+class VESS_SYM vsPipe : public vsObject
 {
 private:
 

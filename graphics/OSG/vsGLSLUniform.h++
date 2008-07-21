@@ -55,7 +55,7 @@ enum vsGLSLUniformType
 
 #define VS_UNIFORM_NAME_LENGTH 128
 
-class VS_GRAPHICS_DLL vsGLSLUniform : public vsObject
+class VESS_SYM vsGLSLUniform : public vsObject
 {
 private:
 

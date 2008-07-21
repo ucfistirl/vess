@@ -38,7 +38,7 @@
 #define VS_CAL3D_MESH_LOADER_MAX_INFLUENCES  4
 
 // Data structure to store skin vertex data.
-struct VS_GRAPHICS_DLL vsSkinVertexData
+struct VESS_SYM vsSkinVertexData
 {
     double     position[3];
     double     normal[3];
@@ -49,7 +49,7 @@ struct VS_GRAPHICS_DLL vsSkinVertexData
 };
 
 // Data structure to store material data.
-struct VS_GRAPHICS_DLL vsSkinMaterialData
+struct VESS_SYM vsSkinMaterialData
 {
     double              ambient[4];
     double              diffuse[4];
@@ -69,7 +69,7 @@ struct DirectoryNode
 };
 #endif
 
-class VS_GRAPHICS_DLL vsCal3DMeshLoader : public vsObject
+class VESS_SYM vsCal3DMeshLoader : public vsObject
 {
 private:
 

@@ -38,7 +38,7 @@
 
 #define VS_OPTIMIZER_ALL                0xFFFFFFFF
 
-class VS_GRAPHICS_DLL vsOptimizer : public vsObject
+class VESS_SYM vsOptimizer : public vsObject
 {
 private:
 

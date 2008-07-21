@@ -58,7 +58,7 @@ enum  vsSphericalMotionTargetMode
     VS_SPHM_TARGET_COMPONENT
 };
 
-class VS_MOTION_DLL vsSphericalMotion : public vsMotionModel
+class VESS_SYM vsSphericalMotion : public vsMotionModel
 {
 protected:
 

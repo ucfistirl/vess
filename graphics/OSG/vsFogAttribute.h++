@@ -32,7 +32,7 @@ enum vsFogEquationType
     VS_FOG_EQTYPE_EXP2
 };
 
-class VS_GRAPHICS_DLL vsFogAttribute : public vsStateAttribute
+class VESS_SYM vsFogAttribute : public vsStateAttribute
 {
 private:
 

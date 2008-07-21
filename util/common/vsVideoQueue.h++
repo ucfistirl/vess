@@ -26,7 +26,7 @@
 #include "vsMultiQueue.h++"
 #include <pthread.h>
 
-class VS_UTIL_DLL vsVideoQueue : public vsMultiQueue
+class VESS_SYM vsVideoQueue : public vsMultiQueue
 {
 protected:
 

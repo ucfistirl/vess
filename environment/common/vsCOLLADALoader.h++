@@ -19,7 +19,7 @@
 #include "vsCOLLADANode.h++"
 #include "vsCOLLADASkin.h++"
 
-class vsCOLLADALoader : public vsObject
+class VESS_SYM vsCOLLADALoader : public vsObject
 {
 protected:
 

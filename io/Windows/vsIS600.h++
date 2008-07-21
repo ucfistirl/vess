@@ -163,7 +163,7 @@ enum
 // Shared memory and semaphore key
 #define VS_IS_SHM_KEY_BASE 0x16000000
 
-class VS_IO_DLL vsIS600 : public vsTrackingSystem
+class VESS_SYM vsIS600 : public vsTrackingSystem
 {
 protected:
 

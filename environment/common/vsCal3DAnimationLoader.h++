@@ -41,7 +41,7 @@ struct DirectoryNode
 };
 #endif
 
-class VS_ENVIRONMENT_DLL vsCal3DAnimationLoader : public vsObject
+class VESS_SYM vsCal3DAnimationLoader : public vsObject
 {
 private:
 

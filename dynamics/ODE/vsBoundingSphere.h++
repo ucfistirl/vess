@@ -29,7 +29,7 @@
 
 #include "vsGlobals.h++"
 
-class VS_DYNAMICS_DLL vsBoundingSphere : public vsBoundingSurface
+class VESS_SYM vsBoundingSphere : public vsBoundingSurface
 {
 protected:
 

@@ -10,7 +10,7 @@
 #include "vsComponent.h++"
 #include "vsGeometry.h++"
 
-class vsCOLLADAGeometry : public vsObject
+class VESS_SYM vsCOLLADAGeometry : public vsObject
 {
 protected:
 

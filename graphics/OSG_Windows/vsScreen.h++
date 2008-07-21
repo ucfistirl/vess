@@ -34,7 +34,7 @@ class vsScreen;
 
 #define VS_MAX_SCREEN_COUNT 10
 
-class VS_GRAPHICS_DLL vsScreen : public vsObject
+class VESS_SYM vsScreen : public vsObject
 {
 private:
 

@@ -40,7 +40,7 @@ enum  vsCollisionMode
     VS_COLLISION_MODE_BOUNCE
 };
 
-class VS_MOTION_DLL vsCollision : public vsMotionModel
+class VESS_SYM vsCollision : public vsMotionModel
 {
 private:
 

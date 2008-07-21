@@ -31,7 +31,7 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
-class VS_SOUND_DLL vsSoundPipe : public vsObject
+class VESS_SYM vsSoundPipe : public vsObject
 {
 protected:
 

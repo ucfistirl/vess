@@ -43,7 +43,7 @@ class vsWindow;
 #define VS_WINDOW_DEFAULT_XPOS   0
 #define VS_WINDOW_DEFAULT_YPOS   0
 
-class VS_GRAPHICS_DLL vsWindow : public vsObject
+class VESS_SYM vsWindow : public vsObject
 {
 private:
 

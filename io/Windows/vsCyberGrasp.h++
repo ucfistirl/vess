@@ -103,7 +103,7 @@ const int vsCyberGraspFingerJointToSensorMap[6][4] =
         -1},
 };
 
-class VS_IO_DLL vsCyberGrasp : public vsIOSystem
+class VESS_SYM vsCyberGrasp : public vsIOSystem
 {
 protected:
 

@@ -30,7 +30,7 @@
 #include "atMatrix.h++"
 #include "atQuat.h++"
 
-class VS_SOUND_DLL vsSoundListenerAttribute : public vsAttribute
+class VESS_SYM vsSoundListenerAttribute : public vsAttribute
 {
 protected:
 

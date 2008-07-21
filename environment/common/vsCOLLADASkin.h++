@@ -8,7 +8,7 @@
 #include "vsCOLLADADataSource.h++"
 
 
-class vsCOLLADASkin : public vsCOLLADAController
+class VESS_SYM vsCOLLADASkin : public vsCOLLADAController
 {
 protected:
 

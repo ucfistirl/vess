@@ -27,7 +27,7 @@
 #include "vsSkeleton.h++"
 #include "vsKinematics.h++"
 
-class VS_MOTION_DLL vsSkeletonKinematics : public vsUpdatable
+class VESS_SYM vsSkeletonKinematics : public vsUpdatable
 {
 private:
 

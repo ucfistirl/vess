@@ -29,7 +29,7 @@
 #include "vsKinematics.h++"
 #include "vsMotionTracker.h++"
 
-class VS_MOTION_DLL vs3TrackerArm : public vsMotionModel
+class VESS_SYM vs3TrackerArm : public vsMotionModel
 {
 private:
 

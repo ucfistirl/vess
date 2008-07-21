@@ -30,7 +30,7 @@
 
 #include "vsGlobals.h++"
 
-class VS_DYNAMICS_DLL vsBoundingPlane : public vsBoundingSurface
+class VESS_SYM vsBoundingPlane : public vsBoundingSurface
 {
 VS_INTERNAL:
 

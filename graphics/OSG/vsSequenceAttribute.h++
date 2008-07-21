@@ -49,7 +49,7 @@ enum vsSequenceMode
     VS_SEQUENCE_MODE_RESUME
 };
 
-class VS_GRAPHICS_DLL vsSequenceAttribute : public vsAttribute
+class VESS_SYM vsSequenceAttribute : public vsAttribute
 {
 private:
 

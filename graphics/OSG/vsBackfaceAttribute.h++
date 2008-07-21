@@ -27,7 +27,7 @@
 #include <osg/CullFace>
 #include "vsStateAttribute.h++"
 
-class VS_GRAPHICS_DLL vsBackfaceAttribute : public vsStateAttribute
+class VESS_SYM vsBackfaceAttribute : public vsStateAttribute
 {
 private:
 

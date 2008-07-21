@@ -76,7 +76,7 @@ enum vs1394CameraParameters
     VS_1394CAM_PARAM_CAPTURE_QUALITY
 };
 
-class VS_IO_DLL vs1394Camera : public vsIOSystem
+class VESS_SYM vs1394Camera : public vsIOSystem
 {
 private:
 

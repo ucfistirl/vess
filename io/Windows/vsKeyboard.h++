@@ -134,7 +134,7 @@ enum
     VS_KEY_NUMLOCK    = 148
 };
 
-class VS_IO_DLL vsKeyboard : public vsIODevice
+class VESS_SYM vsKeyboard : public vsIODevice
 {
 protected:
 

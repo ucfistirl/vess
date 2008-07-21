@@ -24,7 +24,7 @@
 
 #include "vsIODevice.h++"
 
-class VS_IO_DLL vsVest : public vsIODevice
+class VESS_SYM vsVest : public vsIODevice
 {
 private:
     int                       numButtons;

@@ -27,7 +27,7 @@
 
 #define VS_MT_MAX_BUTTONS 5
 
-class VS_IO_DLL vsMotionTracker : public vs6DInputDevice
+class VESS_SYM vsMotionTracker : public vs6DInputDevice
 {
 protected:
 

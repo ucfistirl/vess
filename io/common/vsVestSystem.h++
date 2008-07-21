@@ -38,7 +38,7 @@ enum
     VS_VEST_STATE_LISTENING     =  3,// vest is ready and listening for commands
 };
 
-class VS_IO_DLL vsVestSystem : public vsIOSystem
+class VESS_SYM vsVestSystem : public vsIOSystem
 {
 protected:
 

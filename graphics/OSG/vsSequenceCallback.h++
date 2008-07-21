@@ -32,7 +32,7 @@ class vsSequenceCallback;
 #include <osg/NodeCallback>
 #include "vsSequenceAttribute.h++"
 
-class VS_GRAPHICS_DLL vsSequenceCallback : public osg::NodeCallback
+class VESS_SYM vsSequenceCallback : public osg::NodeCallback
 {
 private:
 

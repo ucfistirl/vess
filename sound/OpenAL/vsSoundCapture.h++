@@ -41,7 +41,7 @@
 
 #define VS_SOUND_CAPTURE_LOOP_SLEEP            5000
 
-class VS_SOUND_DLL vsSoundCapture : public vsObject
+class VESS_SYM vsSoundCapture : public vsObject
 {
 protected:
 

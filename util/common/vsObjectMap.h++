@@ -32,7 +32,7 @@ enum  vsObjectMapList
     VS_OBJMAP_EITHER_LIST
 };
 
-class VS_UTIL_DLL vsObjectMap
+class VESS_SYM vsObjectMap
 {
 private:
 

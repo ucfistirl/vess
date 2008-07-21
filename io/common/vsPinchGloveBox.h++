@@ -60,7 +60,7 @@
 #define VS_PG_RING_BIT        0x02
 #define VS_PG_PINKY_BIT       0x01
 
-class VS_IO_DLL vsPinchGloveBox : public vsIOSystem
+class VESS_SYM vsPinchGloveBox : public vsIOSystem
 {
 protected:
 

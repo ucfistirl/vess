@@ -88,7 +88,7 @@ enum vsTextureGenMode
     VS_TEXTURE_GEN_OFF
 };
 
-class VS_GRAPHICS_DLL vsTextureAttribute : public vsStateAttribute
+class VESS_SYM vsTextureAttribute : public vsStateAttribute
 {
 private:
 

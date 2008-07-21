@@ -69,7 +69,7 @@ enum  vsFlyingAxisMode
 #define VS_FM_DEFAULT_PITCH_MODE      VS_FM_MODE_ABSOLUTE
 #define VS_FM_DEFAULT_THROTTLE_MODE   VS_FM_MODE_INCREMENTAL
 
-class VS_MOTION_DLL vsFlyingMotion : public vsMotionModel
+class VESS_SYM vsFlyingMotion : public vsMotionModel
 {
 protected:
 

@@ -27,7 +27,7 @@
 
 #include "vsAscensionSerialTrackingSystem.h++"
 
-class VS_IO_DLL vsFlockOfBirds : public vsAscensionSerialTrackingSystem
+class VESS_SYM vsFlockOfBirds : public vsAscensionSerialTrackingSystem
 {
 public:
 

@@ -3,7 +3,7 @@
 
 #include "vsObject.h++"
 
-class vsCOLLADAKeyframe : public vsObject
+class VESS_SYM vsCOLLADAKeyframe : public vsObject
 {
 protected:
 

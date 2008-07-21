@@ -147,7 +147,7 @@ enum vsGeometryBinSortMode
 
 #define VS_GEOMETRY_LIST_COUNT 16
 
-class VS_GRAPHICS_DLL vsGeometryBase : public vsNode
+class VESS_SYM vsGeometryBase : public vsNode
 {
 protected:
 

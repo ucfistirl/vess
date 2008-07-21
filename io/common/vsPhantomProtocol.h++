@@ -53,7 +53,7 @@ enum
 
 // The structure for the header.  Word alligned with 8 byte words.  SGI did not
 // like just 4 bytes.  The 4 unused bytes can be used for future additions.
-struct VS_IO_DLL PhantomCommandHeader
+struct VESS_SYM PhantomCommandHeader
 {
     u_char      version;
     u_char      command;
@@ -66,7 +66,7 @@ struct VS_IO_DLL PhantomCommandHeader
 // and a matrix to specify the orientation and position of the Phantom.
 // Windows word aligns with 8 byte words and changing that is not trivial,
 // so we word align wiht 8 byte words as well.
-struct VS_IO_DLL PhantomState
+struct VESS_SYM PhantomState
 {
     char    switchState;
     char    unused[7];

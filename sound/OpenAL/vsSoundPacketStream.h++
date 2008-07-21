@@ -8,7 +8,7 @@
 #include "vsSoundBuffer.h++"
 
 
-class VS_SOUND_DLL vsSoundPacketStream : public vsSoundBuffer
+class VESS_SYM vsSoundPacketStream : public vsSoundBuffer
 {
 protected:
 

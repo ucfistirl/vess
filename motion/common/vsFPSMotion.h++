@@ -52,7 +52,7 @@ enum vsFPSMAxisMode
     VS_FPSM_MODE_ABSOLUTE
 };
 
-class VS_MOTION_DLL vsFPSMotion : public vsMotionModel
+class VESS_SYM vsFPSMotion : public vsMotionModel
 {
 protected:
 

@@ -33,7 +33,7 @@
 
 #define VS_WS_MOUSE_WRAP_THRESHOLD_DEFAULT 6
 
-class VS_IO_DLL vsWindowSystem : public vsIOSystem
+class VESS_SYM vsWindowSystem : public vsIOSystem
 {
 protected:
 

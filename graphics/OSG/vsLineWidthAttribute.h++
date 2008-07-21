@@ -24,7 +24,7 @@
 #include <osg/LineWidth>
 #include "vsStateAttribute.h++"
 
-class VS_GRAPHICS_DLL vsLineWidthAttribute : public vsStateAttribute
+class VESS_SYM vsLineWidthAttribute : public vsStateAttribute
 {
 private:
    

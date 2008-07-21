@@ -27,7 +27,7 @@
 
 #define VS_SB_MAX_BUTTONS 9
 
-class VS_IO_DLL vsSpaceball : public vs6DInputDevice
+class VESS_SYM vsSpaceball : public vs6DInputDevice
 {
 protected:
 

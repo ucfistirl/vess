@@ -4,7 +4,7 @@
 
 #include "vsCOLLADADataSource.h++"
 
-class vsCOLLADAInputEntry : public vsObject
+class VESS_SYM vsCOLLADAInputEntry : public vsObject
 {
 protected:
 

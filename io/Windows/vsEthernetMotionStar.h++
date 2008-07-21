@@ -333,7 +333,7 @@ typedef struct
 
 } vsMStarTrackerConfig;
 
-class VS_IO_DLL vsEthernetMotionStar : public vsTrackingSystem
+class VESS_SYM vsEthernetMotionStar : public vsTrackingSystem
 {
 protected:
    

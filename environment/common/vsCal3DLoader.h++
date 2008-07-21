@@ -41,7 +41,7 @@
 #endif
 
 
-class VS_ENVIRONMENT_DLL vsCal3DLoader : public vsObject
+class VESS_SYM vsCal3DLoader : public vsObject
 {
 private:
 

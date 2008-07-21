@@ -37,7 +37,7 @@
 #define VS_PRINTER_NODE_NAMES        0x00000020
 #define VS_PRINTER_NODE_ADDRESSES    0x00000040
 
-class VS_GRAPHICS_DLL vsScenePrinter : public vsObject
+class VESS_SYM vsScenePrinter : public vsObject
 {
 private:
 

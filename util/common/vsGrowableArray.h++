@@ -25,7 +25,7 @@
 
 #include "vsGlobals.h++"
 
-class VS_UTIL_DLL vsGrowableArray
+class VESS_SYM vsGrowableArray
 {
 private:
 

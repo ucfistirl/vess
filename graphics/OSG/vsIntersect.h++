@@ -41,13 +41,13 @@ enum vsIntersectFacingMode
     VS_INTERSECT_IGNORE_BACKFACE
 };
 
-struct VS_GRAPHICS_DLL vsIntersectSegment
+struct VESS_SYM vsIntersectSegment
 {
     atVector start;
     atVector end;
 };
 
-class VS_GRAPHICS_DLL vsIntersect : public vsObject
+class VESS_SYM vsIntersect : public vsObject
 {
 private:
 

@@ -31,7 +31,7 @@
 #include "vsAttribute.h++"
 #include "vsNode.h++"
 
-class VS_GRAPHICS_DLL vsLODAttribute : public vsAttribute
+class VESS_SYM vsLODAttribute : public vsAttribute
 {
 private:
 

@@ -24,7 +24,7 @@
 
 #include "vsGeometryBase.h++"
 
-class VS_GRAPHICS_DLL vsGeometry : public vsGeometryBase
+class VESS_SYM vsGeometry : public vsGeometryBase
 {
 public:
 

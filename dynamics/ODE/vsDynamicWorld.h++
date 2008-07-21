@@ -41,7 +41,7 @@ class vsDynamicWorld;
 #define VS_DW_DEFAULT_CONTACT_VELOCITY 1.0
 #define VS_DW_DEFAULT_CONTACT_DEPTH 1e-3
 
-class VS_DYNAMICS_DLL vsDynamicWorld : public vsObject
+class VESS_SYM vsDynamicWorld : public vsObject
 {
 private:
 

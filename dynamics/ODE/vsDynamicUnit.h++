@@ -33,7 +33,7 @@
 
 #include "vsGlobals.h++"
 
-class VS_DYNAMICS_DLL vsDynamicUnit
+class VESS_SYM vsDynamicUnit
 {
 private:
 

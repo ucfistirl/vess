@@ -33,7 +33,7 @@
 
 #define VS_SM_MAX_SCENTS 20
 
-class VS_SCENT_DLL vsScentManager : public vsUpdatable
+class VESS_SYM vsScentManager : public vsUpdatable
 {
 protected:
 

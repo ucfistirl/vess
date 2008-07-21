@@ -27,7 +27,7 @@
 
 #include "vsGeometryBase.h++"
 
-class VS_GRAPHICS_DLL vsDynamicGeometry : public vsGeometryBase
+class VESS_SYM vsDynamicGeometry : public vsGeometryBase
 {
 protected:
 

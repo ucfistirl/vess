@@ -13,7 +13,7 @@ enum vsCOLLADAEffectType
 };
 
 
-class vsCOLLADAEffect : public vsObject
+class VESS_SYM vsCOLLADAEffect : public vsObject
 {
 protected:
 

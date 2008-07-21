@@ -54,7 +54,7 @@ typedef struct
     unsigned char                 checkSum;
 } vsUnwinderPacket;
 
-class VS_IO_DLL vsUnwinder : public vsJoystickBox
+class VESS_SYM vsUnwinder : public vsJoystickBox
 {
 protected:
 

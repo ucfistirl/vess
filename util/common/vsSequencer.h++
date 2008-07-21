@@ -34,7 +34,7 @@
 // required to end in \0).
 #define VS_SEQUENCER_MAX_UPDATABLE_NAME_LENGTH   80
 
-struct VS_UTIL_DLL UpdatableEntry
+struct VESS_SYM UpdatableEntry
 {
     vsUpdatable     *updatable;
     double          time;
@@ -43,7 +43,7 @@ struct VS_UTIL_DLL UpdatableEntry
     UpdatableEntry  *next;
 };
 
-class VS_UTIL_DLL vsSequencer : public vsUpdatable
+class VESS_SYM vsSequencer : public vsUpdatable
 {
 private:
 

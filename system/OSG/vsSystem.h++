@@ -38,7 +38,7 @@ enum  vsMultiprocessMode
     VS_MPROC_MULTI
 };
 
-class VS_SYSTEM_DLL vsSystem
+class VESS_SYM vsSystem
 {
 private:
 

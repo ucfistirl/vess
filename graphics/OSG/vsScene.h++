@@ -39,7 +39,7 @@ enum vsSceneEarthSkyColor
     VS_SCENE_ESCOLOR_UNIFORM
 };
 
-class VS_GRAPHICS_DLL vsScene : public vsNode
+class VESS_SYM vsScene : public vsNode
 {
 private:
 

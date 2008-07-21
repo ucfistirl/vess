@@ -33,7 +33,7 @@
 #define VS_GPROG_MAX_BINDINGS 16
 
 
-class VS_GRAPHICS_DLL vsGLSLProgramAttribute : public vsStateAttribute
+class VESS_SYM vsGLSLProgramAttribute : public vsStateAttribute
 {
 private:
 

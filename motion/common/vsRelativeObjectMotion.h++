@@ -42,7 +42,7 @@ enum
     VS_ROM_ROT_FREE
 };
 
-class VS_MOTION_DLL vsRelativeObjectMotion : public vsMotionModel
+class VESS_SYM vsRelativeObjectMotion : public vsMotionModel
 {
 protected:
 

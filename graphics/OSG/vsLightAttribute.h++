@@ -40,7 +40,7 @@ enum vsLightAttributeMode
     VS_LIGHT_MODE_LOCAL
 };
 
-class VS_GRAPHICS_DLL vsLightAttribute : public vsAttribute
+class VESS_SYM vsLightAttribute : public vsAttribute
 {
 private:
 

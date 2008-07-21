@@ -32,7 +32,7 @@
 
 #include "vsAscensionSerialTrackingSystem.h++"
 
-class VS_IO_DLL vsSerialMotionStar : public vsAscensionSerialTrackingSystem
+class VESS_SYM vsSerialMotionStar : public vsAscensionSerialTrackingSystem
 {
 public:
 

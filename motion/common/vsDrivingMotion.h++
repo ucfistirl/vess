@@ -56,7 +56,7 @@ enum  vsDMSteeringMode
 #define VS_DM_DEFAULT_THROTTLE_MODE VS_DM_THROTTLE_ACCELERATION
 #define VS_DM_DEFAULT_STEERING_MODE VS_DM_STEER_ABSOLUTE
 
-class VS_MOTION_DLL vsDrivingMotion : public vsMotionModel
+class VESS_SYM vsDrivingMotion : public vsMotionModel
 {
 protected:
 

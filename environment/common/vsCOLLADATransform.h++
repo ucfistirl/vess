@@ -22,7 +22,7 @@ enum vsCOLLADATransformType
 };
 
 
-class vsCOLLADATransform : public vsObject
+class VESS_SYM vsCOLLADATransform : public vsObject
 {
 protected:
 

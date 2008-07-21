@@ -4,7 +4,7 @@
 #include "vsObject.h++"
 #include "atString.h++"
 
-class vsCOLLADADataArray : public vsObject
+class VESS_SYM vsCOLLADADataArray : public vsObject
 {
 public:
 

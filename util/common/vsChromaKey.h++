@@ -32,7 +32,7 @@ enum vsChromaKeyEquationType
     VS_CHROMAKEY_DIFF_LARGEST     = 2
 };
 
-class VS_UTIL_DLL vsChromaKey : public vsObject
+class VESS_SYM vsChromaKey : public vsObject
 {
 private:
 

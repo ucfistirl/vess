@@ -4,7 +4,7 @@
 #include "vsCOLLADADataArray.h++"
 #include "atXMLDocument.h++"
 
-class vsCOLLADAIntArray : public vsCOLLADADataArray
+class VESS_SYM vsCOLLADAIntArray : public vsCOLLADADataArray
 {
 protected:
 

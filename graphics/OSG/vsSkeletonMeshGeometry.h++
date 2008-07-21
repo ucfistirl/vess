@@ -38,7 +38,7 @@
 
 #define VS_GEOMETRY_BONE_INDICES       VS_GEOMETRY_USER_DATA1
 
-class VS_GRAPHICS_DLL vsSkeletonMeshGeometry : public vsGeometryBase
+class VESS_SYM vsSkeletonMeshGeometry : public vsGeometryBase
 {
 protected:
 

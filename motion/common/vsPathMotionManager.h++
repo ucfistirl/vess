@@ -27,7 +27,7 @@
 #include "vsPathMotion.h++"
 #include "vsSequencer.h++"
 
-class VS_MOTION_DLL vsPathMotionManager : public vsUpdatable
+class VESS_SYM vsPathMotionManager : public vsUpdatable
 {
 private:
 

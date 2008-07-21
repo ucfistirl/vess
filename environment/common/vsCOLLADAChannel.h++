@@ -7,7 +7,7 @@
 #include "vsPathMotion.h++"
 #include "atString.h++"
 
-class vsCOLLADAChannel : public vsObject
+class VESS_SYM vsCOLLADAChannel : public vsObject
 {
 protected:
 

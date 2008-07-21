@@ -77,7 +77,7 @@ enum  vsAttributeCategory
     VS_ATTRIBUTE_CATEGORY_OTHER
 };
 
-class VS_GRAPHICS_DLL vsAttribute : public vsObject
+class VESS_SYM vsAttribute : public vsObject
 {
 protected:
 

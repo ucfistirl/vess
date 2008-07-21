@@ -25,7 +25,7 @@
 
 #include "vsIODevice.h++"
 
-class VS_IO_DLL vsButtonAxis : public vsIODevice
+class VESS_SYM vsButtonAxis : public vsIODevice
 {
 private:
 

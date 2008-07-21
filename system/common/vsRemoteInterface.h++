@@ -10,7 +10,7 @@
 
 #define VS_RI_MAX_CONNECTIONS   10
 
-class VS_SYSTEM_DLL vsRemoteInterface
+class VESS_SYM vsRemoteInterface
 {
 protected:
     atTCPNetworkInterface     *tcpInterface;

@@ -12,7 +12,7 @@
 #include "vsCOLLADAInputEntry.h++"
 
 
-class vsCOLLADASubmesh : public atItem
+class VESS_SYM vsCOLLADASubmesh : public atItem
 {
 protected:
 

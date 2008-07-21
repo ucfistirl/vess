@@ -10,7 +10,7 @@
 
 #define VS_RI_MAX_XML_DOCUMENT_SIZE    65536
 
-class VS_SYSTEM_DLL vsRemoteInterfaceBuffer
+class VESS_SYM vsRemoteInterfaceBuffer
 {
 protected:
     u_char                   xmlBuffer[VS_RI_MAX_XML_DOCUMENT_SIZE];

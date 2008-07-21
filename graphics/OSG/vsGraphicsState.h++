@@ -28,7 +28,7 @@
 #include "vsGrowableArray.h++"
 #include "vsScene.h++"
 
-class VS_GRAPHICS_DLL vsGraphicsState : public vsObject
+class VESS_SYM vsGraphicsState : public vsObject
 {
 private:
 

@@ -31,7 +31,7 @@
 
 #include "vsGlobals.h++"
 
-class VS_DYNAMICS_DLL vsBoundingBox : public vsBoundingSurface
+class VESS_SYM vsBoundingBox : public vsBoundingSurface
 {
 protected:
 

@@ -88,7 +88,8 @@ vsCOLLADAAnimation::vsCOLLADAAnimation(atString id, atXMLDocument *doc,
             // See if it's valid
             if (channel->isValid())
             {
-                // Add the channel to the channels list
+                // Reference the channel and add it to the channels list
+                channel->ref();
                 channels->addEntry(channel);
             }
             else
@@ -119,13 +120,6 @@ vsCOLLADAAnimation::vsCOLLADAAnimation(atString id, atXMLDocument *doc,
         // Move on to the next node
         child = doc->getNextSiblingNode(child);
     }
-
-    // We're done with the samplers now.  It is not permitted to use
-    // a sampler to drive several channels (they are always used in
-    // pairs).  We've encoded all of the samplers' information into the
-    // channel objects, so we're safe to delete the samplers now.
-    delete samplers;
-    samplers = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -133,10 +127,26 @@ vsCOLLADAAnimation::vsCOLLADAAnimation(atString id, atXMLDocument *doc,
 // ------------------------------------------------------------------------
 vsCOLLADAAnimation::~vsCOLLADAAnimation()
 {
+    vsCOLLADAChannel *channel;
+
     // Delete the data sources
     delete sources;
 
-    // Delete the channels
+    // Unref/delete the channels in the channel list
+    channel = (vsCOLLADAChannel *)channels->getFirstEntry();
+    while (channel != NULL)
+    {
+        // Remove the channel from the list
+        channels->removeCurrentEntry();
+
+        // Unreference (maybe delete) the channel
+        vsObject::unrefDelete(channel);
+
+        // Next channel
+        channel = (vsCOLLADAChannel *)channels->getNextEntry();
+    }
+
+    // Delete the channel list
     delete channels;
 }
 

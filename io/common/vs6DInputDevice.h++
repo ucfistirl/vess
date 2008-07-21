@@ -30,7 +30,7 @@
 
 #define VS_6DINPUT_NUM_AXES 3
 
-class VS_IO_DLL vs6DInputDevice : public vsIODevice
+class VESS_SYM vs6DInputDevice : public vsIODevice
 {
 protected:
 

@@ -10,7 +10,7 @@
 #include "atString.h++"
 
 
-class vsCOLLADAChannelGroup : public vsObject
+class VESS_SYM vsCOLLADAChannelGroup : public vsObject
 {
 protected:
 

@@ -36,7 +36,7 @@ enum vsBillboardRotationMode
     VS_BILLBOARD_ROT_POINT_WORLD
 };
 
-class VS_GRAPHICS_DLL vsBillboardAttribute : public vsAttribute
+class VESS_SYM vsBillboardAttribute : public vsAttribute
 {
 private:
 

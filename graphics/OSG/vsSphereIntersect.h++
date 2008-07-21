@@ -52,7 +52,7 @@ enum vsSphereIntersectLODTraversalMode
     VS_SPH_ISECT_LOD_ALL
 };
 
-class VS_GRAPHICS_DLL vsSphereIntersect
+class VESS_SYM vsSphereIntersect
 {
 private:
 

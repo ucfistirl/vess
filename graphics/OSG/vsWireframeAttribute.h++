@@ -26,7 +26,7 @@
 #include <osg/PolygonMode>
 #include "vsStateAttribute.h++"
 
-class VS_GRAPHICS_DLL vsWireframeAttribute : public vsStateAttribute
+class VESS_SYM vsWireframeAttribute : public vsStateAttribute
 {
 private:
 

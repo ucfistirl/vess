@@ -39,7 +39,7 @@ enum vsMenuSignal
     VS_MENU_SIGNAL_DECREASE
 };
 
-class VS_MENU_DLL vsMenuObject : public vsObject
+class VESS_SYM vsMenuObject : public vsObject
 {
 private:
 

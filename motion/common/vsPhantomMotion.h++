@@ -27,7 +27,7 @@
 #include "vsPhantom.h++"
 #include "vsKinematics.h++"
 
-class VS_MOTION_DLL vsPhantomMotion : public vsMotionModel
+class VESS_SYM vsPhantomMotion : public vsMotionModel
 {
 protected:
 

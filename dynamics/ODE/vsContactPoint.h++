@@ -34,7 +34,7 @@
 #define VS_CONTACT_DEFAULT_BOUNCE        0.2
 #define VS_CONTACT_DEFAULT_BOUNCE_VEL    0.01
 
-class VS_DYNAMICS_DLL vsContactPoint : public vsObject
+class VESS_SYM vsContactPoint : public vsObject
 {
 private:
 

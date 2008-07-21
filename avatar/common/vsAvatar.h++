@@ -37,7 +37,7 @@ enum  ConfigLineType
     VS_AVT_LINE_OBJECT = 1
 };
 
-class VS_AVATAR_DLL vsAvatar : public vsUpdatable
+class VESS_SYM vsAvatar : public vsUpdatable
 {
 protected:
 

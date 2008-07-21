@@ -30,7 +30,7 @@
 #include "vsAttribute.h++"
 #include "vsObjectMap.h++"
 
-class VS_GRAPHICS_DLL vsViewpointAttribute : public vsAttribute
+class VESS_SYM vsViewpointAttribute : public vsAttribute
 {
 private:
 

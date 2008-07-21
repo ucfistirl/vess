@@ -31,7 +31,7 @@
 
 #include "vsGlobals.h++"
 
-class VS_DYNAMICS_DLL vsPointMassCloud : public vsMassProperties
+class VESS_SYM vsPointMassCloud : public vsMassProperties
 {
 protected:
 

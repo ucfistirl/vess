@@ -132,7 +132,7 @@ enum
 // Shared memory and semaphore key
 #define VS_FT_SHM_KEY_BASE 0xfa570000
 
-class VS_IO_DLL vsFastrak : public vsTrackingSystem
+class VESS_SYM vsFastrak : public vsTrackingSystem
 {
 protected:
 
