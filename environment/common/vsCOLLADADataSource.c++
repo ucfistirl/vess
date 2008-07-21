@@ -61,30 +61,30 @@ vsCOLLADADataSource::vsCOLLADADataSource(atXMLDocument *doc,
                 // the first parameter.  There are no heterogeneous
                 // formats allowed (recall we're accessing a single array),
                 // so all parameter formats must match
-                if (paramFormat[0] == STRING)
+                if (paramFormat[0] == VS_CDS_STRING)
                 {
                     // We return a single name per index (if there are
                     // multiple parameters, we don't support this)
-                    dataFormat = STRING;
+                    dataFormat = VS_CDS_STRING;
                     dataSize = 1;
                 }
-                else if (paramFormat[0] == BOOL)
+                else if (paramFormat[0] == VS_CDS_BOOL)
                 {
                     // We return a single bool per index (if there are
                     // multiple parameters, we don't support this)
                     // TODO:  Consider support for boolean vectors
-                    dataFormat = BOOL;
+                    dataFormat = VS_CDS_BOOL;
                     dataSize = 1;
                 }
-                else if (paramFormat[0] == INT)
+                else if (paramFormat[0] == VS_CDS_INT)
                 {
                     // We return a single int per index (if there are
                     // multiple parameters, we don't support this)
                     // TODO:  Consider support for integer vectors
-                    dataFormat = INT;
+                    dataFormat = VS_CDS_INT;
                     dataSize = 1;
                 }
-                else if (paramFormat[0] == FLOAT)
+                else if (paramFormat[0] == VS_CDS_FLOAT)
                 {
                     // Count the number of valid float parameters and 
                     // set the format to the appropriate type
@@ -100,7 +100,7 @@ vsCOLLADADataSource::vsCOLLADADataSource(atXMLDocument *doc,
                     if (valid > 1)
                     {
                         // We're returning a vector
-                        dataFormat = VECTOR;
+                        dataFormat = VS_CDS_VECTOR;
 
                         // Clamp the vector size to 4, just in case
                         if (valid > 4)
@@ -111,22 +111,22 @@ vsCOLLADADataSource::vsCOLLADADataSource(atXMLDocument *doc,
                     else
                     {
                         // Just return a single float
-                        dataFormat = FLOAT;
+                        dataFormat = VS_CDS_FLOAT;
                         dataSize = 1;
                     }
                 }
-                else if (paramFormat[0] == VECTOR)
+                else if (paramFormat[0] == VS_CDS_VECTOR)
                 {
                     // We return a vector per input index (multiple vectors
                     // aren't supported)
-                    dataFormat = VECTOR;
+                    dataFormat = VS_CDS_VECTOR;
                     dataSize = paramSize[0];
                 }
-                else if (paramFormat[0] == MATRIX)
+                else if (paramFormat[0] == VS_CDS_MATRIX)
                 {
                     // We return a 4x4 matrix per input index (multiple
                     // matrices aren't supported)
-                    dataFormat = MATRIX;
+                    dataFormat = VS_CDS_MATRIX;
                     dataSize = paramSize[0];
                 }
 
@@ -137,24 +137,25 @@ vsCOLLADADataSource::vsCOLLADADataSource(atXMLDocument *doc,
                 boolArray = NULL;
                 floatArray = NULL;
                 intArray = NULL;
-                if (dataFormat == STRING)
+                if (dataFormat == VS_CDS_STRING)
                 {
                     // Make sure we have either an IDREF or Name array
                     idrefArray = dynamic_cast<vsCOLLADAIDREFArray *>(dataArray);
                     nameArray = dynamic_cast<vsCOLLADANameArray *>(dataArray);
                 }
-                else if (dataFormat == BOOL)
+                else if (dataFormat == VS_CDS_BOOL)
                 {
                     // Make sure we have a bool array
                     boolArray = dynamic_cast<vsCOLLADABoolArray *>(dataArray);
                 }
-                else if ((dataFormat == FLOAT) || (dataFormat == VECTOR) ||
-                         (dataFormat == MATRIX))
+                else if ((dataFormat == VS_CDS_FLOAT) ||
+                         (dataFormat == VS_CDS_VECTOR) ||
+                         (dataFormat == VS_CDS_MATRIX))
                 {
                     // Make sure we have a float array
                     floatArray = dynamic_cast<vsCOLLADAFloatArray *>(dataArray);
                 }
-                else if (dataFormat == INT)
+                else if (dataFormat == VS_CDS_INT)
                 {
                     // Make sure we have a bool array
                     intArray = dynamic_cast<vsCOLLADAIntArray *>(dataArray);
@@ -364,55 +365,55 @@ void vsCOLLADADataSource::processTechniqueCommon(atXMLDocument *doc,
                     if (strcmp(attr, "Name") == 0)
                     {
                         // String
-                        paramFormat[paramCount] = STRING;
+                        paramFormat[paramCount] = VS_CDS_STRING;
                         paramSize[paramCount] = 1;
                     }
                     else if (strcmp(attr, "IDREF") == 0)
                     {
                         // String
-                        paramFormat[paramCount] = STRING;
+                        paramFormat[paramCount] = VS_CDS_STRING;
                         paramSize[paramCount] = 1;
                     }
                     else if (strcmp(attr, "bool") == 0)
                     {
                         // Single boolean value
-                        paramFormat[paramCount] = BOOL;
+                        paramFormat[paramCount] = VS_CDS_BOOL;
                         paramSize[paramCount] = 1;
                     }
                     else if (strcmp(attr, "int") == 0)
                     {
                         // Single integer
-                        paramFormat[paramCount] = INT;
+                        paramFormat[paramCount] = VS_CDS_INT;
                         paramSize[paramCount] = 1;
                     }
                     else if (strcmp(attr, "float") == 0)
                     {
                         // Single float
-                        paramFormat[paramCount] = FLOAT;
+                        paramFormat[paramCount] = VS_CDS_FLOAT;
                         paramSize[paramCount] = 1;
                     }
                     else if (strcmp(attr, "float2") == 0)
                     {
                         // 2-element float vector
-                        paramFormat[paramCount] = VECTOR;
+                        paramFormat[paramCount] = VS_CDS_VECTOR;
                         paramSize[paramCount] = 2;
                     }
                     else if (strcmp(attr, "float3") == 0)
                     {
                         // 3-element float vector
-                        paramFormat[paramCount] = VECTOR;
+                        paramFormat[paramCount] = VS_CDS_VECTOR;
                         paramSize[paramCount] = 3;
                     }
                     else if (strcmp(attr, "float4") == 0)
                     {
                         // 4-element float vector
-                        paramFormat[paramCount] = VECTOR;
+                        paramFormat[paramCount] = VS_CDS_VECTOR;
                         paramSize[paramCount] = 4;
                     }
                     else if (strcmp(attr, "float4x4") == 0)
                     {
                         // 4x4 matrix
-                        paramFormat[paramCount] = MATRIX;
+                        paramFormat[paramCount] = VS_CDS_MATRIX;
                         paramSize[paramCount] = 16;
                     }
 
@@ -505,7 +506,7 @@ atString vsCOLLADADataSource::getString(int index)
     int arrayIndex;
 
     // Make sure the type is correct
-    if (dataFormat != STRING)
+    if (dataFormat != VS_CDS_STRING)
     {
         // Print an error
         printf("vsCOLLADADataSource::getString():  This source doesn't "
@@ -553,7 +554,7 @@ bool vsCOLLADADataSource::getBool(int index)
     int arrayIndex;
 
     // Make sure the type is correct
-    if (dataFormat != BOOL)
+    if (dataFormat != VS_CDS_BOOL)
     {
         // Print an error
         printf("vsCOLLADADataSource::getBool():  This source doesn't "
@@ -593,7 +594,7 @@ int vsCOLLADADataSource::getInt(int index)
     int arrayIndex;
 
     // Make sure the type is correct
-    if (dataFormat != INT)
+    if (dataFormat != VS_CDS_INT)
     {
         // Print an error
         printf("vsCOLLADADataSource::getInt():  This source doesn't "
@@ -633,7 +634,7 @@ double vsCOLLADADataSource::getFloat(int index)
     int arrayIndex;
 
     // Make sure the type is correct
-    if (dataFormat != FLOAT)
+    if (dataFormat != VS_CDS_FLOAT)
     {
         // Print an error
         printf("vsCOLLADADataSource::getFloat():  This source doesn't "
@@ -675,7 +676,7 @@ atVector vsCOLLADADataSource::getVector(int index)
     int vecIndex, paramIndex;
 
     // Make sure the type is correct
-    if (dataFormat != VECTOR)
+    if (dataFormat != VS_CDS_VECTOR)
     {
         // Print an error
         printf("vsCOLLADADataSource::getVector():  This source doesn't "
@@ -746,7 +747,7 @@ atMatrix vsCOLLADADataSource::getMatrix(int index)
     int i, j;
 
     // Make sure the type is correct
-    if (dataFormat != MATRIX)
+    if (dataFormat != VS_CDS_MATRIX)
     {
         // Print an error
         printf("vsCOLLADADataSource::getMatrix():  This source doesn't "

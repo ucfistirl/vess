@@ -12,12 +12,12 @@
 
 enum vsCOLLADADataSourceFormat
 {
-    STRING,
-    BOOL,
-    INT,
-    FLOAT,
-    VECTOR,
-    MATRIX
+    VS_CDS_STRING,
+    VS_CDS_BOOL,
+    VS_CDS_INT,
+    VS_CDS_FLOAT,
+    VS_CDS_VECTOR,
+    VS_CDS_MATRIX
 };
 
 class VESS_SYM vsCOLLADADataSource : public vsObject
