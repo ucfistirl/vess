@@ -50,7 +50,7 @@ def addExternal(basePath, subIncPath, subLibPath, libs):
 
 
 # Set the initial CFLAGS, defines and include path
-if str(Platform()) == 'win32':
+if opSystem == 'Windows':
 
    # Flags for the VC++ compiler
    # /nologo      = Don't print the compiler banner
@@ -67,11 +67,11 @@ if str(Platform()) == 'win32':
    # Additional flags to disable useless warnings
    flags += Split('/wd4091 /wd4275 /wd4290')
 
-   # Disable deprecation warnings for "insecure" and "nonstandard" functions
-   defines += Split('_CRT_SECURE_NO_DEPRECATE _CRT_NONSTDC_NO_DEPRECATE')
-
    # Import ATLAS symbols and export VESS symbols
    defines = Split('ATLAS_SYM=IMPORT VESS_SYM=EXPORT')
+
+   # Disable deprecation warnings for "insecure" and "nonstandard" functions
+   defines += Split('_CRT_SECURE_NO_DEPRECATE _CRT_NONSTDC_NO_DEPRECATE')
 
 else:
 
@@ -101,7 +101,7 @@ if opSystem == 'Windows':
 
    # Add the RTI
    rtiPath = config.get('base', 'rtiPath')
-   addExternal(rtiPath, '/include/1.3', '/lib/linux_g++-4.1', 'librti13')
+   addExternal(rtiPath, '/include/1.3', '/lib/winnt_vc++-8.0', 'librti13')
 
    # Add libxml2
    xmlPath = config.get('base', 'xmlPath')
@@ -111,8 +111,16 @@ if opSystem == 'Windows':
    iconvPath = config.get('base', 'iconvPath')
    addExternal(iconvPath, '/include', '/lib', 'iconv')
 
+   # Add pthreads
+   pthreadPath = config.get('base', 'pthreadPath')
+   addExternal(pthreadPath, '/include', '/lib', 'pthreadVC2')
+
+   # Add the OpenGL extension headers
+   glPath = config.get('base', 'glPath')
+   extIncPath.extend(Split(glPath + '/include'))
+
    # Add the Windows-specific libraries (already in main path)
-   extLibs.extend(Split('ws2_32 winmm'))
+   extLibs.extend(Split('ws2_32 winmm opengl32 user32 gdi32'))
 
 elif opSystem == 'Linux':
 
@@ -123,6 +131,10 @@ elif opSystem == 'Linux':
    # Add libxml2
    xmlPath = config.get('base', 'xmlPath')
    addExternal(xmlPath, '/include/libxml2', '/lib', 'xml2')
+
+   # Add pthreads
+   pthreadPath = config.get('base', 'pthreadPath')
+   addExternal(pthreadPath, '/include', '/lib', 'pthread')
 
    # Add the X libraries (already in main path)
    extLibs.extend(Split('Xi'))
@@ -183,7 +195,6 @@ for dir in vessSubdirs:
    vessEnv = buildTuple[1]
 
 # Finally, compile the VESS shared library
-vessEnv['LINKFLAGS'] = Split('-Wl,-rpath,/irl/tools/libs/rtis-1.3_D18A/lib/linux_g++-4.1')
 vess = vessEnv.SharedLibrary('vess', vessObjs)
 
 # Only compile the "vess" target by default
