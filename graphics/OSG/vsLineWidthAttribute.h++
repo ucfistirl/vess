@@ -21,8 +21,8 @@
 #ifndef VS_LINE_WIDTH_ATTRIBUTE_HPP
 #define VS_LINE_WIDTH_ATTRIBUTE_HPP
 
-#include <osg/LineWidth>
 #include "vsStateAttribute.h++"
+#include <osg/LineWidth>
 
 class VESS_SYM vsLineWidthAttribute : public vsStateAttribute
 {

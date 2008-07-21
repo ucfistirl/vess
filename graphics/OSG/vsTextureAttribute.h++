@@ -23,6 +23,8 @@
 #ifndef VS_TEXTURE_ATTRIBUTE_HPP
 #define VS_TEXTURE_ATTRIBUTE_HPP
 
+#include "vsStateAttribute.h++"
+#include "atMatrix.h++"
 #include <osg/Texture2D>
 #include <osg/Texture>
 #include <osg/TexEnv>
@@ -30,8 +32,6 @@
 #include <osg/TexGen>
 #include <osg/TexMat>
 #include <osg/Image>
-#include "atMatrix.h++"
-#include "vsStateAttribute.h++"
 
 enum vsTextureDirection
 {

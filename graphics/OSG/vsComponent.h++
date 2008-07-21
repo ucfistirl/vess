@@ -23,10 +23,10 @@
 #ifndef VS_COMPONENT_HPP
 #define VS_COMPONENT_HPP
 
+#include "vsNode.h++"
 #include "vsAttribute.h++"
 #include "vsBox.h++"
 #include "vsGrowableArray.h++"
-#include "vsNode.h++"
 #include "atVector.h++"
 #include <osg/Group>
 

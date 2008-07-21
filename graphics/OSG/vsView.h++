@@ -23,9 +23,9 @@
 #ifndef VS_VIEW_HPP
 #define VS_VIEW_HPP
 
+#include "vsObject.h++"
 #include "atVector.h++"
 #include "atMatrix.h++"
-#include "vsObject.h++"
 
 enum vsViewProjectionMode
 {

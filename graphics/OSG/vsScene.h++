@@ -25,9 +25,9 @@
 
 class vsLightAttribute;
 
-#include <osg/Group>
 #include "vsNode.h++"
 #include "vsLightAttribute.h++"
+#include <osg/Group>
 
 enum vsSceneEarthSkyColor
 {

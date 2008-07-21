@@ -24,9 +24,9 @@
 #ifndef VS_LOCAL_LIGHT_CALLBACK_HPP
 #define VS_LOCAL_LIGHT_CALLBACK_HPP
 
-#include <osg/Drawable>
 #include "vsLightAttribute.h++"
 #include "vsGrowableArray.h++"
+#include <osg/Drawable>
 
 class VESS_SYM vsLocalLightCallback : public osg::Drawable::DrawCallback
 {

@@ -23,10 +23,10 @@
 #ifndef VS_SWITCH_ATTRIBUTE_HPP
 #define VS_SWITCH_ATTRIBUTE_HPP
 
-#include <osgSim/MultiSwitch>
 #include "vsAttribute.h++"
 #include "vsNode.h++"
 #include "vsComponent.h++"
+#include <osgSim/MultiSwitch>
 
 class VESS_SYM vsSwitchAttribute : public vsAttribute
 {

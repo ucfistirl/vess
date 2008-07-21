@@ -23,14 +23,14 @@
 #ifndef VS_TEXTURE_CUBE_ATTRIBUTE_HPP
 #define VS_TEXTURE_CUBE_ATTRIBUTE_HPP
 
+#include "vsStateAttribute.h++"
+#include "vsTextureAttribute.h++"
 #include <osg/TextureCubeMap>
 #include <osg/Texture>
 #include <osg/TexEnv>
 #include <osg/TexEnvCombine>
 #include <osg/TexMat>
 #include <osg/Image>
-#include "vsStateAttribute.h++"
-#include "vsTextureAttribute.h++"
 
 #define VS_TEXTURE_CUBE_SIDES 6
 

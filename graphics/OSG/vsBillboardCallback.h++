@@ -24,8 +24,8 @@
 #ifndef VS_BILLBOARD_CALLBACK_HPP
 #define VS_BILLBOARD_CALLBACK_HPP
 
-#include <osg/NodeCallback>
 #include "vsBillboardAttribute.h++"
+#include <osg/NodeCallback>
 
 class VESS_SYM vsBillboardCallback : public osg::NodeCallback
 {

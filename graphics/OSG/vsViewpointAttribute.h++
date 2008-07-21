@@ -24,11 +24,11 @@
 #ifndef VS_VIEWPOINT_ATTRIBUTE_HPP
 #define VS_VIEWPOINT_ATTRIBUTE_HPP
 
-#include <stdio.h>
+#include "vsAttribute.h++"
 #include "vsComponent.h++"
 #include "vsView.h++"
-#include "vsAttribute.h++"
 #include "vsObjectMap.h++"
+#include <stdio.h>
 
 class VESS_SYM vsViewpointAttribute : public vsAttribute
 {

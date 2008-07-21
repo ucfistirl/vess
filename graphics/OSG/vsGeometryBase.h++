@@ -25,11 +25,11 @@
 #ifndef VS_GEOMETRY_BASE_HPP
 #define VS_GEOMETRY_BASE_HPP
 
-#include <osg/Geode>
-#include <osg/Geometry>
 #include "atVector.h++"
 #include "vsAttribute.h++"
 #include "vsNode.h++"
+#include <osg/Geode>
+#include <osg/Geometry>
 
 enum vsGeometryPrimType
 {

@@ -29,8 +29,8 @@
 
 class vsSequenceCallback;
 
-#include <osg/NodeCallback>
 #include "vsSequenceAttribute.h++"
+#include <osg/NodeCallback>
 
 class VESS_SYM vsSequenceCallback : public osg::NodeCallback
 {

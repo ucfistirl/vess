@@ -28,11 +28,11 @@
 
 class vsScene;
 
+#include "vsAttribute.h++"
+#include "vsScene.h++"
 #include <osg/Light>
 #include <osg/LightSource>
 #include <osg/State>
-#include "vsAttribute.h++"
-#include "vsScene.h++"
 
 enum vsLightAttributeMode
 {

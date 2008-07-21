@@ -24,16 +24,13 @@
 #ifndef VS_TEXTBUILDER_HPP
 #define VS_TEXTBUILDER_HPP
 
-#ifdef WIN32
-    #include <windows.h>
-#endif
 
-#include "osgText/Font"
-
+#include "vsObject.h++"
 #include "atVector.h++"
 #include "atMatrix.h++"
 #include "vsComponent.h++"
 #include "vsTextureAttribute.h++"
+#include "osgText/Font"
 
 #ifndef CALLBACK
 #define CALLBACK

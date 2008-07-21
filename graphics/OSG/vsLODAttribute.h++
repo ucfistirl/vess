@@ -27,9 +27,9 @@
 #ifndef VS_LOD_ATTRIBUTE_HPP
 #define VS_LOD_ATTRIBUTE_HPP
 
-#include <osg/LOD>
 #include "vsAttribute.h++"
 #include "vsNode.h++"
+#include <osg/LOD>
 
 class VESS_SYM vsLODAttribute : public vsAttribute
 {

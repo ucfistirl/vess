@@ -25,13 +25,9 @@
 #ifndef VS_SKELETON_MESH_GEOMETRY_HPP
 #define VS_SKELETON_MESH_GEOMETRY_HPP
 
-#include <osg/Geode>
-#include <osg/Geometry>
+#include "vsGeometryBase.h++"
 #include "atVector.h++"
 #include "atArray.h++"
-#include "vsAttribute.h++"
-#include "vsNode.h++"
-#include "vsGeometry.h++"
 
 #define VS_GEOMETRY_SKIN_VERTEX_COORDS 1000
 #define VS_GEOMETRY_SKIN_NORMALS       1001

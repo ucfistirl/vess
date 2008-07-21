@@ -24,8 +24,8 @@
 #ifndef VS_DECAL_CALLBACK_HPP
 #define VS_DECAL_CALLBACK_HPP
 
-#include <osg/NodeCallback>
 #include "vsDecalAttribute.h++"
+#include <osg/NodeCallback>
 
 class VESS_SYM vsDecalCallback : public osg::NodeCallback
 {

@@ -22,6 +22,7 @@
 #ifndef VS_DATABASE_LOADER_HPP
 #define VS_DATABASE_LOADER_HPP
 
+#include "vsObject.h++"
 #include "vsComponent.h++"
 #include "vsGeometry.h++"
 #include "vsGrowableArray.h++"

@@ -21,11 +21,11 @@
 //
 //------------------------------------------------------------------------
 
-#include <stdio.h>
-#include <osgDB/ReadFile>
 #include "vsTextureRectangleAttribute.h++"
 #include "vsNode.h++"
 #include "vsGeometry.h++"
+#include <osgDB/ReadFile>
+#include <stdio.h>
 
 // ------------------------------------------------------------------------
 // Default Constructor - Creates the OSG texture objects for unit 0 and

@@ -21,9 +21,9 @@
 //
 //------------------------------------------------------------------------
 
-#include <osgUtil/CullVisitor>
 #include "vsBillboardCallback.h++"
 #include "vsBillboardAttribute.h++"
+#include <osgUtil/CullVisitor>
 
 //------------------------------------------------------------------------
 // Constructor

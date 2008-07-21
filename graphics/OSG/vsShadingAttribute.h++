@@ -23,8 +23,8 @@
 #ifndef VS_SHADING_ATTRIBUTE_HPP
 #define VS_SHADING_ATTRIBUTE_HPP
 
-#include <osg/ShadeModel>
 #include "vsStateAttribute.h++"
+#include <osg/ShadeModel>
 
 enum vsShadingMode
 {

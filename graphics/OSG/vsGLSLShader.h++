@@ -22,8 +22,8 @@
 #ifndef VS_GLSL_SHADER_HPP
 #define VS_GLSL_SHADER_HPP
 
-#include "osg/Shader"
 #include "vsObject.h++"
+#include <osg/Shader>
 
 enum vsGLSLShaderType
 {

@@ -24,14 +24,14 @@
 #ifndef VS_TEXTURE_RECTANGLE_ATTRIBUTE_HPP
 #define VS_TEXTURE_RECTANGLE_ATTRIBUTE_HPP
 
+#include "vsStateAttribute.h++"
+#include "vsTextureAttribute.h++"
 #include <osg/TextureRectangle>
 #include <osg/Texture>
 #include <osg/TexEnv>
 #include <osg/TexGen>
 #include <osg/TexMat>
 #include <osg/Image>
-#include "vsStateAttribute.h++"
-#include "vsTextureAttribute.h++"
 
 class VESS_SYM vsTextureRectangleAttribute : public vsStateAttribute
 {

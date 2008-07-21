@@ -24,12 +24,12 @@
 #ifndef VS_TRANSFORM_ATTRIBUTE_HPP
 #define VS_TRANSFORM_ATTRIBUTE_HPP
 
+#include "vsAttribute.h++"
+#include "vsComponent.h++"
+#include "atMatrix.h++"
 #include <osg/MatrixTransform>
 #include <osgSim/DOFTransform>
 #include <osg/Group>
-#include "atMatrix.h++"
-#include "vsComponent.h++"
-#include "vsAttribute.h++"
 
 class VESS_SYM vsTransformAttribute : public vsAttribute
 {

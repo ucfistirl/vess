@@ -23,9 +23,9 @@
 #ifndef VS_BACKFACE_ATTRIBUTE_HPP
 #define VS_BACKFACE_ATTRIBUTE_HPP
 
+#include "vsStateAttribute.h++"
 #include <osg/LightModel>
 #include <osg/CullFace>
-#include "vsStateAttribute.h++"
 
 class VESS_SYM vsBackfaceAttribute : public vsStateAttribute
 {

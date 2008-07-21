@@ -23,10 +23,10 @@
 #ifndef VS_SHADER_ATTRIBUTE_HPP
 #define VS_SHADER_ATTRIBUTE_HPP
 
-#include <osg/VertexProgram>
-#include <osg/FragmentProgram>
 #include "vsStateAttribute.h++"
 #include "vsGrowableArray.h++"
+#include <osg/VertexProgram>
+#include <osg/FragmentProgram>
 
 class VESS_SYM vsShaderAttribute : public vsStateAttribute
 {

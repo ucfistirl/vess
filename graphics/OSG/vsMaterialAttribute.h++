@@ -23,8 +23,8 @@
 #ifndef VS_MATERIAL_ATTRIBUTE_HPP
 #define VS_MATERIAL_ATTRIBUTE_HPP
 
-#include <osg/Material>
 #include "vsStateAttribute.h++"
+#include <osg/Material>
 
 enum vsMaterialSide
 {

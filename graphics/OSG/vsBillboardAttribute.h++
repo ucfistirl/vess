@@ -23,9 +23,9 @@
 #ifndef VS_BILLBOARD_ATTRIBUTE_HPP
 #define VS_BILLBOARD_ATTRIBUTE_HPP
 
-#include <osg/MatrixTransform>
 #include "atMatrix.h++"
 #include "vsAttribute.h++"
+#include <osg/MatrixTransform>
 
 class vsBillboardCallback;
 

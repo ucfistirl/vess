@@ -21,10 +21,10 @@
 //
 //------------------------------------------------------------------------
 
-#include <osg/PolygonOffset>
-#include <osgUtil/CullVisitor>
 #include "vsDecalCallback.h++"
 #include "vsDecalAttribute.h++"
+#include <osg/PolygonOffset>
+#include <osgUtil/CullVisitor>
 
 //------------------------------------------------------------------------
 // Constructor

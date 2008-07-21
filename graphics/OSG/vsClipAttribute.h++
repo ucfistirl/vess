@@ -24,8 +24,8 @@
 
 #include <stdio.h>
 
-#include <osg/ClipPlane>
 #include "vsStateAttribute.h++"
+#include <osg/ClipPlane>
 
 #define VS_CLIPATTR_MAX_PLANES  6
 

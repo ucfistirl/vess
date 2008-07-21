@@ -24,9 +24,9 @@
 #ifndef VS_DECAL_ATTRIBUTE_HPP
 #define VS_DECAL_ATTRIBUTE_HPP
 
-#include <osg/Group>
 #include "vsAttribute.h++"
 #include "vsNode.h++"
+#include <osg/Group>
 
 class vsDecalCallback;
 

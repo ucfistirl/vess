@@ -19,9 +19,25 @@
 //
 //------------------------------------------------------------------------
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "vsDatabaseLoader.h++"
+#include "vsGeometry.h++"
+#include "vsComponent.h++"
+#include "vsUnmanagedNode.h++"
+#include "vsLODAttribute.h++"
+#include "vsSequenceAttribute.h++"
+#include "vsSwitchAttribute.h++"
+#include "vsTransformAttribute.h++"
+#include "vsBillboardAttribute.h++"
+#include "vsFogAttribute.h++"
+#include "vsMaterialAttribute.h++"
+#include "vsTextureAttribute.h++"
+#include "vsTextureCubeAttribute.h++"
+#include "vsBackfaceAttribute.h++"
+#include "vsTransparencyAttribute.h++"
+#include "vsWireframeAttribute.h++"
+#include "vsShadingAttribute.h++"
+#include "vsDecalAttribute.h++"
+#include "vsOptimizer.h++"
 #include <osgDB/Registry>
 #include <osgDB/ReadFile>
 #include <osgDB/WriteFile>
@@ -45,25 +61,9 @@
 #include <osg/PolygonOffset>
 #include <osg/BlendFunc>
 #include <osgUtil/SmoothingVisitor>
-#include "vsDatabaseLoader.h++"
-#include "vsGeometry.h++"
-#include "vsComponent.h++"
-#include "vsUnmanagedNode.h++"
-#include "vsLODAttribute.h++"
-#include "vsSequenceAttribute.h++"
-#include "vsSwitchAttribute.h++"
-#include "vsTransformAttribute.h++"
-#include "vsBillboardAttribute.h++"
-#include "vsFogAttribute.h++"
-#include "vsMaterialAttribute.h++"
-#include "vsTextureAttribute.h++"
-#include "vsTextureCubeAttribute.h++"
-#include "vsBackfaceAttribute.h++"
-#include "vsTransparencyAttribute.h++"
-#include "vsWireframeAttribute.h++"
-#include "vsShadingAttribute.h++"
-#include "vsDecalAttribute.h++"
-#include "vsOptimizer.h++"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // ------------------------------------------------------------------------
 // Constructor - Adds the given file extension as the first in the loader's

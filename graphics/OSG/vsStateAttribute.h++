@@ -22,10 +22,10 @@
 #ifndef VS_STATE_ATTRIBUTE_HPP
 #define VS_STATE_ATTRIBUTE_HPP
 
-#include <osg/StateSet>
 #include "vsGlobals.h++"
 #include "vsGrowableArray.h++"
 #include "vsAttribute.h++"
+#include <osg/StateSet>
 
 class VESS_SYM vsStateAttribute : public vsAttribute
 {

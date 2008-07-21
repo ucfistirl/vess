@@ -21,11 +21,11 @@
 //
 //------------------------------------------------------------------------
 
-#include <stdio.h>
-#include <osg/StateSet>
 #include "vsLightAttribute.h++"
 #include "vsComponent.h++"
 #include "vsGraphicsState.h++"
+#include <osg/StateSet>
+#include <stdio.h>
 
 // ------------------------------------------------------------------------
 // Constructor - Creates the corresponding OSG objects and

@@ -23,8 +23,8 @@
 #ifndef VS_WIREFRAME_ATTRIBUTE_HPP
 #define VS_WIREFRAME_ATTRIBUTE_HPP
 
-#include <osg/PolygonMode>
 #include "vsStateAttribute.h++"
+#include <osg/PolygonMode>
 
 class VESS_SYM vsWireframeAttribute : public vsStateAttribute
 {

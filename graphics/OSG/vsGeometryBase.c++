@@ -22,8 +22,6 @@
 //
 //------------------------------------------------------------------------
 
-#include <stdio.h>
-#include <osg/MatrixTransform>
 #include "vsGeometryBase.h++"
 #include "vsComponent.h++"
 #include "vsBackfaceAttribute.h++"
@@ -37,6 +35,8 @@
 #include "vsTransparencyAttribute.h++"
 #include "vsWireframeAttribute.h++"
 #include "vsGraphicsState.h++"
+#include <osg/MatrixTransform>
+#include <stdio.h>
 
 vsTreeMap *vsGeometryBase::binModeList = NULL;
 bool vsGeometryBase::binModesChanged = false;

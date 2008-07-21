@@ -24,8 +24,8 @@
 #ifndef VS_TRANSPARENCY_ATTRIBUTE_HPP
 #define VS_TRANSPARENCY_ATTRIBUTE_HPP
 
-#include <osg/Depth>
 #include "vsStateAttribute.h++"
+#include <osg/Depth>
 
 enum vsTransparencyQuality
 {

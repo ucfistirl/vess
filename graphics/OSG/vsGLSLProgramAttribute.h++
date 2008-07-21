@@ -23,10 +23,10 @@
 #ifndef VS_GLSL_PROGRAM_ATTRIBUTE_HPP
 #define VS_GLSL_PROGRAM_ATTRIBUTE_HPP
 
-#include "osg/Program"
 #include "vsStateAttribute.h++"
 #include "vsGLSLShader.h++"
 #include "vsGLSLUniform.h++"
+#include <osg/Program>
 
 #define VS_GPROG_MAX_SHADERS 16
 #define VS_GPROG_MAX_UNIFORMS 256

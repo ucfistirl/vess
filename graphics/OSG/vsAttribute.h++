@@ -28,11 +28,11 @@
 
 class vsNode;
 
-#include <osg/StateSet>
 #include "vsGlobals.h++"
 #include "vsObject.h++"
 #include "vsObjectMap.h++"
 #include "vsNode.h++"
+#include <osg/StateSet>
 
 
 #define VS_ATTRIBUTE_NAME_MAX_LENGTH 80

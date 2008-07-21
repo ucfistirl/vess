@@ -23,10 +23,10 @@
 #ifndef VS_GLSL_UNIFORM_HPP
 #define VS_GLSL_UNIFORM_HPP
 
-#include "osg/Uniform"
 #include "vsObject.h++"
 #include "atVector.h++"
 #include "atMatrix.h++"
+#include <osg/Uniform>
 
 enum vsGLSLUniformType
 {

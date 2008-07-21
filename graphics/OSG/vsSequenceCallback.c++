@@ -21,10 +21,10 @@
 //
 //------------------------------------------------------------------------
 
-#include <osg/Sequence>
-#include <osgUtil/CullVisitor>
 #include "vsSequenceCallback.h++"
 #include "vsSequenceAttribute.h++"
+#include <osg/Sequence>
+#include <osgUtil/CullVisitor>
 
 //------------------------------------------------------------------------
 // Constructor

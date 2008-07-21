@@ -27,10 +27,10 @@
 
 class vsSequenceAttribute;
 
-#include <osg/Sequence>
 #include "vsAttribute.h++"
 #include "vsNode.h++"
 #include "vsSequenceCallback.h++"
+#include <osg/Sequence>
 
 #define VS_SEQUENCE_ALL_CHILDREN -1
 #define VS_SEQUENCE_TIME_PAUSE   -1.0

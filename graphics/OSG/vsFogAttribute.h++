@@ -22,8 +22,8 @@
 #ifndef VS_FOG_ATTRIBUTE_HPP
 #define VS_FOG_ATTRIBUTE_HPP
 
-#include <osg/Fog>
 #include "vsStateAttribute.h++"
+#include <osg/Fog>
 
 enum vsFogEquationType
 {
