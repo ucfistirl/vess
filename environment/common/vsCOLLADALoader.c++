@@ -70,6 +70,10 @@ vsCOLLADALoader::~vsCOLLADALoader()
     if (sceneCharacter != NULL)
         vsObject::unrefDelete(sceneCharacter);
 
+    // Unreference/delete the scene we created (if any)
+    if (sceneRoot != NULL)
+        vsObject::unrefDelete(sceneRoot);
+
     // Clean up the loader's lists
     unrefDeleteList(skinList);
     unrefDeleteList(skeletonList);
@@ -2426,8 +2430,6 @@ void vsCOLLADALoader::processNodePass1(atXMLDocument *doc,
         if (strcmp(doc->getNodeName(child), "node") == 0)
         {
             // Recursively traverse this node
-if ((strcmp(doc->getNodeAttribute(child, "name"), "col") != 0) &&
-    (strcmp(doc->getNodeAttribute(child, "name"), "Col") != 0))
             processNodePass1(doc, child, newNode);
         }
         else if ((strcmp(doc->getNodeName(child), "lookat") == 0) ||
@@ -2688,14 +2690,10 @@ void vsCOLLADALoader::processNodePass2(atXMLDocument *doc,
             // from this node, so we can keep track of which child we're
             // traversing.  This could be done with node ID's, but nodes
             // are not explicitly required to have ID's
-if ((strcmp(doc->getNodeAttribute(child, "name"), "col") != 0) &&
-    (strcmp(doc->getNodeAttribute(child, "name"), "Col") != 0))
-{
             processNodePass2(doc, child, thisNode, childIndex);
 
             // Update the child node counter
             childIndex++;
-}
         }
         else if (strcmp(doc->getNodeName(child), "instance_camera") == 0)
         {
@@ -2720,6 +2718,7 @@ if ((strcmp(doc->getNodeAttribute(child, "name"), "col") != 0) &&
         else if (strcmp(doc->getNodeName(child), "instance_node") == 0)
         {
             // Library nodes not yet supported
+            // (I haven't found a document that uses them yet)
         }
         else if (strcmp(doc->getNodeName(child), "extra") == 0)
         {
@@ -2839,21 +2838,19 @@ void vsCOLLADALoader::processLibraryVisualScenes(atXMLDocument *doc,
 }
 
 // ------------------------------------------------------------------------
-// Processes the one and only <scene> XML subtree.  This specifies which
-// visual scene in the visual scene library will be instantiated when
-// this COLLADA document is loaded.  Typically, there is only one visual
-// scene in the visual scene library, but it is possible to have multiple
-// visual scenes in a single COLLADA document
+// Translates the COLLADA animation objects into equivalent VESS objects
+// (vsPathMotion and/or vsPathMotionManager)
 // ------------------------------------------------------------------------
-void vsCOLLADALoader::processScene(atXMLDocument *doc,
-                                   atXMLDocumentNodePtr current)
+void vsCOLLADALoader::buildAnimations()
 {
-    atXMLDocumentNodePtr child;
-    char *attr;
-    vsComponent *sceneComp;
-    vsTransformAttribute *xform;
-    atMatrix scaleMat;
-    atMatrix sceneMat;
+}
+
+// ------------------------------------------------------------------------
+// Creates a vsCharacter from the skeletons, skins, and animations that
+// we found in the COLLADA document
+// ------------------------------------------------------------------------
+void vsCOLLADALoader::buildCharacter(atMatrix sceneMat)
+{
     vsSkeleton *skeleton;
     atList *skelKinList;
     atMatrix skelXform;
@@ -2866,15 +2863,10 @@ void vsCOLLADALoader::processScene(atXMLDocument *doc,
     atMatrix identMatrix;
     vsTransformAttribute *skinXformAttr;
 
-    // Scale and up-axis transforms will be needed by several instanced
-    // components, so compute an overal scene matrix that will handle these
-    // now
-    scaleMat.setScale(unitScale, unitScale, unitScale);
-    sceneMat = scaleMat * upAxisTransform;
-
-    // If there is a character in the scene, remove it from the scene
-    // before we clone it.  This allows the scene and character to be
-    // handled separately
+    // Try and remove the character's elements from the scene.  This allows
+    // the character to be handled separately from the remainder of the
+    // scene, which can be useful for some applications.  It also makes
+    // things cleaner if multiple copies of the character will be used
     if ((skeletonList->getNumEntries() > 0) &&
         (skinList->getNumEntries() > 0))
     {
@@ -2883,12 +2875,6 @@ void vsCOLLADALoader::processScene(atXMLDocument *doc,
         skelKinList = new atList();
         while (skeleton != NULL)
         {
-           // We've already placed the skeleton's overall scene transform
-           // into its offset matrix, but we need to factor in the scene
-           // transform (unit scale and up-axis) now
-           offset = skeleton->getOffsetMatrix();
-           skeleton->setOffsetMatrix(sceneMat * offset);
-
            // Remove the skeleton from the scene, unless this skeleton is
            // a child of a larger skeleton.  First, traverse from the
            // skeleton root to the top of the scene
@@ -2907,7 +2893,17 @@ void vsCOLLADALoader::processScene(atXMLDocument *doc,
                // parent, it must be the root of the entire scene, so we
                // can't remove it (most scenes won't be arranged this way)
                if (parent != NULL)
+               {
+                   // Go ahead and remove the skeleton
                    parent->removeChild(skeleton->getRoot());
+
+                   // We've already placed the skeleton's overall scene
+                   // transform into its offset matrix, but we need to factor
+                   // in the COLLADA scene transform (unit scale and up-axis)
+                   // now
+                   offset = skeleton->getOffsetMatrix();
+                   skeleton->setOffsetMatrix(sceneMat * offset);
+               }
            }
 
            // Create a kinematics for the skeleton, and add it to a list
@@ -2943,9 +2939,30 @@ void vsCOLLADALoader::processScene(atXMLDocument *doc,
         sceneCharacter->update();
     }
     else
+    {
+        // This document doesn't contain a complete character
         sceneCharacter = NULL;
+    }
+}
 
-    // Traverse the scene's children
+// ------------------------------------------------------------------------
+// Processes the one and only <scene> XML subtree.  This specifies which
+// visual scene in the visual scene library will be instantiated when
+// this COLLADA document is loaded.  Typically, there is only one visual
+// scene in the visual scene library, but it is possible to have multiple
+// visual scenes in a single COLLADA document
+// ------------------------------------------------------------------------
+void vsCOLLADALoader::processScene(atXMLDocument *doc,
+                                   atXMLDocumentNodePtr current)
+{
+    atXMLDocumentNodePtr child;
+    char *attr;
+    vsComponent *sceneComp;
+    vsTransformAttribute *xform;
+    atMatrix scaleMat;
+    atMatrix sceneMat;
+
+    // Traverse the scene node's children
     child = doc->getNextChildNode(current);
     while (child != NULL)
     {
@@ -2959,23 +2976,43 @@ void vsCOLLADALoader::processScene(atXMLDocument *doc,
                 // use the cloned instance as the document's scene
                 attr = doc->getNodeAttribute(child, "url");
                 sceneComp = getVisualScene(atString(attr));
-                if (sceneComp != NULL)
-                {
-                    sceneRoot = (vsComponent *)sceneComp->cloneTree();
-
-                    // Apply a transform to scale and orient the scene properly
-                    xform = new vsTransformAttribute();
-                    xform->setPreTransform(sceneMat);
-                    sceneRoot->addAttribute(xform);
-                }
-                else
-                    sceneRoot = NULL;
             }
         }
 
         // Try the next node
         child = doc->getNextSiblingNode(child);
     }
+
+    // Scale and up-axis transforms will be needed by several instanced
+    // components, so compute an overal scene matrix that will handle these
+    // now
+    scaleMat.setScale(unitScale, unitScale, unitScale);
+    sceneMat = scaleMat * upAxisTransform;
+
+    // Create the appropriate VESS objects for the scene's animations
+    buildAnimations();
+
+    // If the necessary components for an animated character exist, go ahead
+    // and construct the character now (pass the scene matrix, as it applies
+    // to the character as well)
+    buildCharacter(sceneMat);
+
+    // Finally, clone the COLLADA scene to produce the final VESS scene
+    if (sceneComp != NULL)
+    {
+        sceneRoot = (vsComponent *)sceneComp->cloneTree();
+
+        // Apply a transform to scale and orient the scene properly
+        xform = new vsTransformAttribute();
+        xform->setPreTransform(sceneMat);
+        sceneRoot->addAttribute(xform);
+
+        // Reference count the scene for now (we'll release the
+        // reference and clean up later)
+        sceneRoot->ref();
+    }
+    else
+        sceneRoot = NULL;
 }
  
 // ------------------------------------------------------------------------

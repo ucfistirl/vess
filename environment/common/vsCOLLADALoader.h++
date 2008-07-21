@@ -172,6 +172,8 @@ protected:
     void           processLibraryVisualScenes(atXMLDocument *doc,
                                               atXMLDocumentNodePtr current);
 
+    void           buildAnimations();
+    void           buildCharacter(atMatrix sceneMat);
     void           processScene(atXMLDocument *doc,
                                 atXMLDocumentNodePtr current);
 
