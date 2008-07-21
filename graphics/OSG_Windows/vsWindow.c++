@@ -19,12 +19,11 @@
 //
 //------------------------------------------------------------------------
 
+#include "vsWindow.h++"
 #include <stdio.h>
 #include <osg/Image>
 #include <osgDB/WriteFile>
 #include <string>
-#include "vsWindow.h++"
-#include "resource.h"
 
 // Static class member that maintains a mapping between vsWindow objects
 // and their respective Microsoft Windows window instances
@@ -99,7 +98,7 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     windowClass.hInstance = GetModuleHandle(NULL);
 
     // Large icon (use the standard application icon)
-    windowClass.hIcon = LoadIcon(NULL, MAKEINTRESOURCE(IDI_VESSV));
+    windowClass.hIcon = NULL;
 
     // Application cursor (use the standard arrow cursor)
     windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
@@ -114,7 +113,7 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     windowClass.lpszClassName = windowClassName;
 
     // Small icon (use the standard application icon again)
-    windowClass.hIconSm = LoadIcon(NULL, MAKEINTRESOURCE(IDI_VESSV));
+    windowClass.hIconSm = NULL;
 
     // Try to register the window class.  Print an error message and
     // bail if this fails.
@@ -276,7 +275,7 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     windowClass.hInstance = GetModuleHandle(NULL);
 
     // Large icon (use the standard application icon)
-    windowClass.hIcon = LoadIcon(NULL, MAKEINTRESOURCE(IDI_VESSV));
+    windowClass.hIcon = NULL;
 
     // Application cursor (use the standard arrow cursor)
     windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
@@ -291,7 +290,7 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     windowClass.lpszClassName = windowClassName;
 
     // Small icon (use the standard application icon again)
-    windowClass.hIconSm = LoadIcon(NULL, MAKEINTRESOURCE(IDI_VESSV));
+    windowClass.hIconSm = NULL;
 
     // Try to register the window class.  Print an error message and
     // bail if this fails.
