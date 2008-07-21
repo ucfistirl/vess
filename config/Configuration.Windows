@@ -15,7 +15,13 @@ rtiPath = L:/rtis-1.3_D18A
 xmlPath = L:/libxml2-2.6.27
 
 # Path for iconv - Used by libxml2 (required)
-xmlPath = L:/iconv-1.9.1
+iconvPath = L:/iconv-1.9.1
+
+# Path to the OpenGL extension headers (glext.h and wglext.h)
+glPath = L:/opengl
+
+# Path for pthreads - for creating threads of execution
+pthreadPath = L:/pthread-win32-2.8.0
 
 
 
@@ -37,9 +43,6 @@ sceneGraph = OSG
 
 # Path to Open Scene Graph (required if "OSG" is selected)
 osgPath = L:/OpenSceneGraph-2.2.0
-
-# Path to the OpenGL extension headers (glext.h and wglext.h)
-glPath = L:/opengl
 
 
 
