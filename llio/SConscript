@@ -1,0 +1,45 @@
+
+# Get some functions that we need to determine our platform
+import platform
+
+
+# Import the base VESS environment
+Import('vessEnv')
+llioEnv = vessEnv.Clone()
+
+# Get the include paths
+llioIncPath = llioEnv['CPPPATH']
+
+
+# Import the VESS configuration
+Import('config')
+
+# Import our utility functions
+Import('buildList addExternal')
+
+
+# Get the host's operating system
+opSystem = platform.system()
+
+# Enumerate the OS-specific source files (no common files in this section)
+osDir = '#llio/' + opSystem
+osSrc = 'vsSerialPort.c++'
+
+if opSystem == 'Linux':
+   osSrc += ' vsParallelPort.c++'
+
+
+# Add the directories to the include path
+llioIncPath.extend(Split(osDir))
+
+# Create the final list of sources
+llioSrc = buildList(osDir, osSrc)
+
+# Now, compile the llio source files
+llioObjs = llioEnv.SharedObject(llioSrc)
+
+# Return a tuple containing the object files and the environment we should
+# use to link them
+llioTuple = llioObjs, llioEnv
+Return('llioTuple')
+

@@ -1,0 +1,40 @@
+
+# Import the base VESS environment
+Import('vessEnv')
+motionEnv = vessEnv.Clone()
+
+# Get the include and library paths as well as the list of libraries
+motionIncPath = motionEnv['CPPPATH']
+
+# Import our utility functions
+Import('buildList addExternal')
+
+# Enumerate the common source files
+commonDir = '#motion/common'
+commonSrc = 'vs3TrackerArm.c++ vs4TrackerHead.c++ vs8TrackerArm.c++ \
+             vsArticulatedCollision.c++ vsAxisRotation.c++ vsButtonMotion.c++ \
+             vsCollision.c++ vsDifferentialTrackedOrientation.c++ \
+             vsDrivingMotion.c++ vsFlyingMotion.c++ vsFPSMotion.c++ \
+             vsHandArticulation.c++ vsHandCollision.c++ \
+             vsInverseKinematics.c++ vsKinematics.c++ vsMotionModel.c++ \
+             vsPathMotion.c++ vsPathMotionManager.c++ vsPhantomCollision.c++ \
+             vsPhantomMotion.c++ vsRelativeMouseMotion.c++ \
+             vsRelativeObjectMotion.c++ vsSkeletonKinematics.c++ \
+             vsSphericalMotion.c++ vsTerrainFollow.c++ vsTrackballMotion.c++ \
+             vsTrackedMotion.c++ vsWalkArticulation.c++ vsWalkInPlace.c++'
+
+
+# Add the directories to the include path
+motionIncPath.extend(Split(commonDir))
+
+# Create the final list of sources
+motionSrc = buildList(commonDir, commonSrc)
+
+# Now, compile the motion source files
+motionObjs = motionEnv.SharedObject(motionSrc)
+
+# Return a tuple containing the object files and the environment we should
+# use to link them
+motionTuple = motionObjs, motionEnv
+Return('motionTuple')
+

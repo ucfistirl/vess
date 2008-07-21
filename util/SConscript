@@ -1,0 +1,59 @@
+
+# Get some functions that we need to determine our platform
+import platform
+
+
+# Import the base VESS environment
+Import('vessEnv')
+utilEnv = vessEnv.Clone()
+
+# Get the include and library paths as well as the list of libraries
+utilIncPath = utilEnv['CPPPATH']
+utilLibPath = utilEnv['LIBPATH']
+utilLibs = utilEnv['LIBS']
+
+
+# Import the VESS configuration
+Import('config')
+
+# Import our utility functions
+Import('buildList addExternal')
+
+# Get the host's operating system
+opSystem = platform.system()
+
+# Enumerate the common source files
+commonDir = '#util/common'
+commonSrc = 'vsBox.c++ vsChromaKey.c++ vsGrowableArray.c++ vsImage.c++ \
+             vsMultiQueue.c++ vsObject.c++ vsObjectMap.c++ vsSequencer.c++ \
+             vsShape.c++ vsSphere.c++ vsTreeMap.c++ vsUpdatable.c++ \
+             vsVideoQueue.c++'
+
+# Enumerate the OS-specific source files
+osDir = '#util/' + opSystem
+osSrc = 'vsTimer.c++'
+
+
+# Add the directories to the include path
+utilIncPath.extend(Split(commonDir))
+utilIncPath.extend(Split(osDir))
+
+# Look up any configuration we need in the config file, and add it to the
+# environment
+jpegPath = config.get('util', 'jpegPath')
+utilIncPath.extend(Split(jpegPath + '/include'))
+utilLibPath.extend(Split(jpegPath + '/lib'))
+utilLibs.extend(Split('jpeg'))
+
+# Create the final list of sources
+utilSrc = buildList(commonDir, commonSrc)
+utilSrc.extend(buildList(osDir, osSrc))
+
+# Now, compile the util source files
+utilObjs = utilEnv.SharedObject(utilSrc)
+
+# Return a tuple containing the object files and the environment we should
+# use to link them
+utilTuple = utilObjs, utilEnv
+Return('utilTuple')
+

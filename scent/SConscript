@@ -1,0 +1,51 @@
+
+# Get some functions that we need to determine our platform
+import platform
+
+
+# Import the base VESS environment
+Import('vessEnv')
+scentEnv = vessEnv.Clone()
+
+# Get the include and library paths as well as the list of libraries
+scentIncPath = scentEnv['CPPPATH']
+scentLibPath = scentEnv['LIBPATH']
+scentLibs = scentEnv['LIBS']
+
+
+# Import our utility functions
+Import('buildList addExternal')
+
+# Get the host's operating system 
+opSystem = platform.system()
+
+
+# Enumerate the common source files
+commonDir = '#scent/common'
+commonSrc='vsScent.c++ vsScentDetectorAttribute.c++ vsScentManager.c++ \
+           vsScentSourceAttribute.c++'
+
+# Add any OS-specific source files
+osDir = '#scent/' + opSystem
+if opSystem == 'Linux':
+   osSrc = 'vsScentAirScent.c++'
+
+
+# Add the scent subdirectories to the include path
+scentIncPath.extend(Split(commonDir))
+if opSystem == 'Linux':
+   scentIncPath.extend(Split(osDir))
+
+
+# Create the final list of sources
+scentSrc = buildList(commonDir, commonSrc)
+scentSrc.extend(buildList(osDir, osSrc))
+
+# Now, compile the scent source files
+scentObjs = scentEnv.SharedObject(scentSrc)
+
+# Return a tuple containing the object files and the environment we should
+# use to link them
+scentTuple = scentObjs, scentEnv
+Return('scentTuple')
+

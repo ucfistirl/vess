@@ -1,0 +1,178 @@
+
+# Get some functions that we need to determine our platform
+import platform
+
+
+# Import the base VESS environment
+Import('vessEnv')
+ioEnv = vessEnv.Clone()
+
+# Get the include and library paths as well as the list of libraries
+ioIncPath = ioEnv['CPPPATH']
+ioLibPath = ioEnv['LIBPATH']
+ioLibs = ioEnv['LIBS']
+
+
+# Import the VESS configuration
+Import('config')
+
+# Import our utility functions
+Import('buildList addExternal')
+
+# Get the host's operating system
+opSystem = platform.system()
+
+# Figure out which scene graph we're using
+sceneGraph = config.get('graphics', 'sceneGraph')
+
+
+# See what optional I/O systems are enabled
+useIsense = config.getboolean('io', 'isenseEnabled')
+
+# Some optional systems are OS-specific (even if they technically shouldn't be)
+if opSystem == 'Linux':
+   use1394 = config.getboolean('io', 'dc1394Enabled')
+   usePSpace = config.getboolean('io', 'pspaceEnabled')
+   useVRPN = config.getboolean('io', 'vrpnEnabled')
+else:
+   use1394 = False
+   usePSpace = False
+   useVRPN = False
+
+if opSystem == 'Windows':
+   useCGrasp = config.getboolean('io', 'cgraspEnabled')
+else:
+   useCGrasp = False
+
+
+# Figure out which windowing system to use based on the operating system
+if opSystem == 'Windows':
+
+   # Use the native Windows windowing system (currently, there isn't an 
+   # option for using X Windows on Windows OS, though this is possible)
+   windowSystem = 'Windows'
+
+elif opSystem == 'Linux':
+
+   # Use the X window system
+   windowSystem = 'X'
+
+
+# Enumerate the common source files
+commonDir = '#io/common'
+commonSrc = 'vs6DInputDevice.c++ vsArticulationGlove.c++ vsButtonAxis.c++ \
+             vsChordGloves.c++ vsCyberGloveBox.c++ vsFlockOfBirds.c++ \
+             vsInputAxis.c++ vsInputButton.c++ vsIODevice.c++ vsIOSystem.c++ \
+             vsISTJoystickBox.c++ vsJoystickBox.c++ vsJoystick.c++ \
+             vsMotionTracker.c++ vsMouse.c++ vsPhantom.c++ \
+             vsPinchGloveBox.c++ vsSerialMotionStar.c++ vsSpaceball.c++ \
+             vsTrackingSystem.c++ vsUnwinder.c++ vsVest.c++ vsVestSystem.c++'
+
+# Enumerate the operating system-specific source files
+osDir = '#io/' + opSystem
+osSrc='vsAscensionSerialTrackingSystem.c++ vsEthernetMotionStar.c++ \
+       vsFastrak.c++ vsIS600.c++ vsKeyboard.c++ vsPhantomSystem.c++ \
+       vsPolaris.c++'
+
+# Add OS-exclusive classes
+if opSystem == 'Linux':
+   osSrc += ' vsLinuxJoystickSystem.c++ vsScentAirSystem.c++ \
+             vsSharedInputData.c++'
+
+
+# Enumerate the window-system specific source files
+wsDir = '#io/' + windowSystem
+wsSrc = ''
+
+# Add window system-exclusive classes
+if windowSystem == 'X':
+   wsSrc += ' vsWSSpaceball.c++'
+
+
+# Enumerate the scene graph and window system-specific source files
+sgWsDir = '#io/' + sceneGraph + '_' + windowSystem
+sgWsSrc = 'vsWindowSystem.c++'
+
+
+# Check for additional classes (those that require 3rd party libraries)
+
+# See if we should add 1394 camera support
+if use1394:
+   osSrc += ' vs1394Camera.c++'
+
+# See if we should add Immersion CyberGrasp support
+if useCGrasp:
+   osSrc += ' vsCyberGrasp.c++'
+
+# See if we should add InterSense tracker support
+if useIsense:
+   commonSrc += ' vsIntersenseTrackingSystem.c++'
+
+# See if we should add PhaseSpace Motion Digitizer support
+if usePSpace:
+   osSrc += ' vsPhaseSpaceMD.c++'
+
+# See if we should add VRPN support
+if useVRPN:
+   osSrc += ' vsVRPNTrackingSystem.c++ vsHiball.c++'
+
+
+# Add the directories to the include path
+ioIncPath.extend(Split(commonDir))
+ioIncPath.extend(Split(osDir))
+ioIncPath.extend(Split(wsDir))
+ioIncPath.extend(Split(sgWsDir))
+
+# Look up any path configurations we need in the config file, and add it to
+# the environment
+
+# Add external libraries to the include and lib settings appropriately
+if use1394: 
+   raw1394Path = config.get('io', 'raw1394Path')
+   ioIncPath.extend(Split(raw1394Path + '/include'))
+   ioLibPath.extend(Split(raw1394Path + '/lib'))
+   dc1394Path = config.get('io', 'dc1394Path')
+   ioIncPath.extend(Split(dc1394Path + '/include'))
+   ioLibPath.extend(Split(dc1394Path + '/lib'))
+   ioLibs.extend(Split('raw1394 dc1394_control'))
+
+if useCGrasp:
+   vhtPath = config.get('io', 'vhtPath')
+   ioIncPath.extend(Split(vhtPath + '/Development/include'))
+   ioLibPath.extend(Split(vhtPath + '/Development/lib/winnt_386'))
+   ioLibs.extend(Split('libVHTDevice libVHTCore vtidmCore vtidmCoreimp'))
+   ioLibs.extend(Split('libRegistry'))
+   
+if useIsense:
+   isensePath = config.get('io', 'isensePath')
+   ioIncPath.extend(Split(isensePath + '/include'))
+   ioLibPath.extend(Split(isensePath + '/lib'))
+   ioLibs.extend(Split('isense'))
+
+if usePSpace:
+   pspacePath = config.get('io', 'pspacePath')
+   ioIncPath.extend(Split(pspacePath + '/include'))
+   ioLibPath.extend(Split(pspacePath + '/lib'))
+   ioLibs.extend(Split('owlsock'))
+
+if useVRPN:
+   vrpnPath = config.get('io', 'vrpnPath')
+   ioIncPath.extend(Split(vrpnPath + '/include'))
+   ioLibPath.extend(Split(vrpnPath + '/libs'))
+   ioLibs.extend(Split('vrpn quat'))
+
+
+# Create the final list of sources
+ioSrc = buildList(commonDir, commonSrc)
+ioSrc.extend(buildList(osDir, osSrc))
+ioSrc.extend(buildList(wsDir, wsSrc))
+ioSrc.extend(buildList(sgWsDir, sgWsSrc))
+
+# Now, compile the io source files
+ioObjs = ioEnv.SharedObject(ioSrc)
+
+# Return a tuple containing the object files and the environment we should
+# use to link them
+ioTuple = ioObjs, ioEnv
+Return('ioTuple')
+

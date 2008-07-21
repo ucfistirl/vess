@@ -1,0 +1,31 @@
+
+# Import the base VESS environment
+Import('vessEnv')
+avatarEnv = vessEnv.Clone()
+
+# Get the include and library paths as well as the list of libraries
+avatarIncPath = avatarEnv['CPPPATH']
+
+# Import our utility functions
+Import('buildList addExternal')
+
+# Enumerate the common source files
+commonDir = '#avatar/common'
+commonSrc = 'vsAvatar.c++ vsCharacter.c++ vsConfigAvatar.c++ \
+             vsGhostFlyAvatar.c++ vsSkinProgramNode.c++'
+
+
+# Add the directories to the include path
+avatarIncPath.extend(Split(commonDir))
+
+# Create the final list of sources
+avatarSrc = buildList(commonDir, commonSrc)
+
+# Now, compile the avatar source files
+avatarObjs = avatarEnv.SharedObject(avatarSrc)
+
+# Return a tuple containing the object files and the environment we should
+# use to link them
+avatarTuple = avatarObjs, avatarEnv
+Return('avatarTuple')
+

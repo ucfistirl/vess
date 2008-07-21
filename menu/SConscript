@@ -1,0 +1,33 @@
+
+# Import the base VESS environment
+Import('vessEnv')
+menuEnv = vessEnv.Clone()
+
+# Get the include and library paths as well as the list of libraries
+menuIncPath = menuEnv['CPPPATH']
+
+# Import our utility functions
+Import('buildList addExternal')
+
+# Enumerate the common source files
+commonDir = '#menu/common'
+commonSrc = 'vsMenuButton.c++ vsMenuFrame.c++ vsMenuIterator.c++ \
+             vsMenuLabel.c++ vsMenuLink.c++ vsMenuObject.c++ \
+             vsMenuSwitchButton.c++ vsMenuSystem.c++ vsMenuToggleButton.c++ \
+             vsMenuTree.c++'
+
+
+# Add the directories to the include path
+menuIncPath.extend(Split(commonDir))
+
+# Create the final list of sources
+menuSrc = buildList(commonDir, commonSrc)
+
+# Now, compile the menu source files
+menuObjs = menuEnv.SharedObject(menuSrc)
+
+# Return a tuple containing the object files and the environment we should
+# use to link them
+menuTuple = menuObjs, menuEnv
+Return('menuTuple')
+

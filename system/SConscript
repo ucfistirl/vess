@@ -1,0 +1,46 @@
+
+# Import the base VESS environment
+Import('vessEnv')
+systemEnv = vessEnv.Clone()
+
+# Get the include and library paths as well as the list of libraries
+systemIncPath = systemEnv['CPPPATH']
+
+
+# Import the VESS configuration
+Import('config')
+
+# Figure out which scene graph we're using
+sceneGraph = config.get('graphics', 'sceneGraph')
+
+
+# Import our utility functions
+Import('buildList addExternal')
+
+
+# Enumerate the common source files
+commonDir = '#system/common'
+commonSrc = 'vsRemoteInterface.c++ vsRemoteInterfaceBuffer.c++'
+
+# Enumerate the scene graph-specific source files
+sgDir = '#system/' + sceneGraph
+sgSrc = 'vsSystem.c++'
+
+
+# Add the directories to the include path
+systemIncPath.extend(Split(commonDir))
+systemIncPath.extend(Split(sgDir))
+
+
+# Create the final list of sources
+systemSrc = buildList(commonDir, commonSrc)
+systemSrc.extend(buildList(sgDir, sgSrc))
+
+# Now, compile the system source files
+systemObjs = systemEnv.SharedObject(systemSrc)
+
+# Return a tuple containing the object files and the environment we should
+# use to link them
+systemTuple = systemObjs, systemEnv
+Return('systemTuple')
+

@@ -1,0 +1,86 @@
+
+# Get some functions that we need to determine our platform
+import platform
+
+
+# Import the base VESS environment
+Import('vessEnv')
+soundEnv = vessEnv.Clone()
+
+# Get the include and library paths as well as the list of libraries
+soundIncPath = soundEnv['CPPPATH']
+soundLibPath = soundEnv['LIBPATH']
+soundLibs = soundEnv['LIBS']
+
+
+# Import the VESS configuration
+Import('config')
+
+# Import our utility functions
+Import('buildList addExternal')
+
+# Get the host's operating system 
+opSystem = platform.system()
+
+
+# See if sound is enabled, and bail if not
+useSound = config.getboolean('sound', 'soundEnabled')
+if not useSound:
+   soundTuple = [], soundEnv
+   Return('soundTuple')
+
+
+# Figure out which audio library to use
+audioLibrary = config.get('sound', 'audioLibrary')
+
+
+# Enumerate the audio library-specific source files
+alDir = '#sound/' + audioLibrary
+alSrc='vsSoundAttributeComponentTuple.c++ vsSoundBank.c++ vsSoundBuffer.c++ \
+       vsSoundCapture.c++ vsSoundListenerAttribute.c++ vsSoundManager.c++ \
+       vsSoundPacketStream.c++ vsSoundPipe.c++ vsSoundSample.c++ \
+       vsSoundSampleRef.c++ vsSoundSourceAttribute.c++ vsSoundStream.c++'
+
+
+# Add the directories to the include path
+soundIncPath.extend(Split(alDir))
+
+# Look up any configuration we need in the config file, and add it to the
+# environment
+
+# Add to the include and lib settings appropriately
+if audioLibrary == 'OpenAL':
+
+   # Get the paths for OpenAL and ALUT and set up the include and library
+   # paths appropriately
+   oalPath = config.get('sound', 'oalPath')
+   soundIncPath.extend(Split(oalPath + '/include'))
+   soundLibPath.extend(Split(oalPath + '/lib'))
+   alutPath = config.get('sound', 'alutPath')
+   soundIncPath.extend(Split(alutPath + '/include'))
+   soundLibPath.extend(Split(alutPath + '/lib'))
+
+   # OpenAL's library names tend to vary by OS
+   if opSystem == 'Linux':
+      soundLibs.extend(Split('openal alut'))
+   elif opSystem == 'Windows':
+      soundLibs.extend(Split('openal32 alut'))
+
+else:
+
+   # We don't know about this audio library
+   print 'Audio Library ' + audioLibrary + ' not supported!'
+   Exit(1)
+
+
+# Create the final list of sources
+soundSrc = buildList(alDir, alSrc)
+
+# Now, compile the sound source files
+soundObjs = soundEnv.SharedObject(soundSrc)
+
+# Return a tuple containing the object files and the environment we should
+# use to link them
+soundTuple = soundObjs, soundEnv
+Return('soundTuple')
+

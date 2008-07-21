@@ -1,0 +1,65 @@
+
+# Import the base VESS environment
+Import('vessEnv')
+environmentEnv = vessEnv.Clone()
+
+# Get the include and library paths as well as the list of libraries
+environmentIncPath = environmentEnv['CPPPATH']
+environmentLibPath = environmentEnv['LIBPATH']
+environmentLibs = environmentEnv['LIBS']
+
+
+# Import the VESS configuration
+Import('config')
+
+# Check if video support is enabled
+useVideo = config.getboolean('environment', 'videoEnabled')
+
+
+# Import our utility functions
+Import('buildList addExternal')
+
+
+# Enumerate the common source files
+commonDir = '#environment/common'
+commonSrc = 'vsCal3DAnimationLoader.c++ vsCal3DLoader.c++ \
+             vsCOLLADAAnimation.c++ vsCOLLADABoolArray.c++ \
+             vsCOLLADAChannel.c++ \
+             vsCOLLADAController.c++ vsCOLLADADataArray.c++ \
+             vsCOLLADADataSource.c++  vsCOLLADAEffect.c++ \
+             vsCOLLADAEffectParameter.c++ vsCOLLADAFixedEffect.c++ \
+             vsCOLLADAFloatArray.c++  vsCOLLADAGeometry.c++ \
+             vsCOLLADAIDREFArray.c++ vsCOLLADAInputEntry.c++ \
+             vsCOLLADAIntArray.c++ vsCOLLADAKeyframe.c++ vsCOLLADALoader.c++ \
+             vsCOLLADANameArray.c++ vsCOLLADANode.c++ vsCOLLADANodeRef.c++ \
+             vsCOLLADASampler.c++ vsCOLLADASkin.c++ vsCOLLADASubmesh.c++ \
+             vsCOLLADATextureSet.c++ vsCOLLADATransform.c++'
+
+# Add the video classes if they're enabled
+if useVideo:
+   commonSrc += ' vsMovieReader.c++ vsMovieWriter.c++'
+
+
+# Add the environment subdirectories to the include path
+environmentIncPath.extend(Split(commonDir))
+
+# Look up any configuration we need in the config file, and adjust the
+# environment accordingly
+if useVideo:
+   ffmpegPath = config.get('environment', 'ffmpegPath')
+   environmentIncPath.extend(Split(ffmpegPath + '/include'))
+   environmentLibPath.extend(Split(ffmpegPath + '/lib'))
+   environmentLibs.extend(Split('avformat avcodec avutil'))
+
+
+# Create the final list of sources
+environmentSrc = buildList(commonDir, commonSrc)
+
+# Now, compile the environment source files
+environmentObjs = environmentEnv.SharedObject(environmentSrc)
+
+# Return a tuple containing the object files and the environment we should
+# use to link them
+environmentTuple = environmentObjs, environmentEnv
+Return('environmentTuple')
+
