@@ -26,47 +26,6 @@
 #include "vsPhantom.h++"
 #include "atTCPNetworkInterface.h++"
 
-/******************************************************************************/
-/* Some macros and functions to do endian conversions of floats               */
-/*   with htonl and ntohl.                                                    */
-/******************************************************************************/
-static float ntohf(float x)
-{
-    unsigned long  *tempLong;
-
-    // Make tempLong point to the same memory space as x.
-    tempLong = (unsigned long *) &x;
-
-    // Now we can handle the float data as if it were a long here.
-    *tempLong = ntohl(*tempLong);
-
-    // Return the altered float.
-    return(x);
-}
-#define htonf(x) ntohf(x);
-static double ntohd(double x)
-{
-    unsigned long tempLong;
-
-    union
-    {
-        double        dval;
-        unsigned long lvals[2];
-    } value;
-
-    value.dval = x;
-    // Individually Shift the two 32bit (long) values within the double.
-    value.lvals[0] = ntohl(value.lvals[0]);
-    value.lvals[1] = ntohl(value.lvals[1]);
-
-    // Swap the longs inside the double to complete the endian transfer.
-    tempLong = value.lvals[0];
-    value.lvals[0] = value.lvals[1];
-    value.lvals[1] = tempLong;
-    return(value.dval);
-}
-#define htond(x) ntohd(x)
-
 class VESS_SYM vsPhantomSystem : public vsIOSystem
 {
 protected:
