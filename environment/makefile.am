@@ -8,6 +8,7 @@ libvsEnvironment_a_SOURCES = \
                        common/vsCOLLADAAnimation.c++ \
                        common/vsCOLLADABoolArray.c++ \
                        common/vsCOLLADAChannel.c++ \
+                       common/vsCOLLADAChannelGroup.c++ \
                        common/vsCOLLADAController.c++ \
                        common/vsCOLLADADataArray.c++ \
                        common/vsCOLLADADataSource.c++ \
@@ -49,6 +50,7 @@ include_HEADERS = \
                   common/vsCOLLADAAnimation.h++ \
                   common/vsCOLLADABoolArray.h++ \
                   common/vsCOLLADAChannel.h++ \
+                  common/vsCOLLADAChannelGroup.h++ \
                   common/vsCOLLADAController.h++ \
                   common/vsCOLLADADataArray.h++ \
                   common/vsCOLLADADataSource.h++ \
