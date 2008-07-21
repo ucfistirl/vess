@@ -1,0 +1,104 @@
+
+# VESS Configuration
+
+
+# Basic configuration, required by all VESS builds
+[base]
+
+# Path for ATLAS - Low-level support library (required)
+atlasPath = /irl/work/jdaly/atlas
+
+# Path for HLA RTI - Used by ATLAS for HLA networking (required)
+rtiPath = /irl/tools/libs/rtis-1.3_D18A
+
+# Path for libxml2 - Used by ATLAS for parsing XML documents (required)
+xmlPath = /usr
+
+
+
+# Utilities configuration
+[util]
+
+# Path to JPEG library - for loading and saving JPEG images (required)
+jpegPath = /usr
+
+
+
+# Graphics configuration
+# A supported scene graph library must be specified for VESS to build
+[graphics]
+
+# Scene Graph library to use
+# Currently, only "OSG" (for the Open Scene Graph library) is supported
+sceneGraph = OSG
+
+# Path to Open Scene Graph (required if "OSG" is selected)
+osgPath = /irl/tools/libs/OpenSceneGraph-2.2.0
+
+
+
+# Sound configuration
+# If any supported audio library is defined, the VESS sound features will
+# be enabled.
+[sound]
+
+# Sound features enable/disable
+soundEnabled = yes
+
+# Audio library selection
+# Currently, only "OpenAL" is supported
+audioLibrary = OpenAL
+
+# OpenAL - Audio library
+oalPath = /irl/tools/libs/openal-soft-1.4.272
+
+# ALUT - OpenAL Utility Toolkit (required if OpenAL is selected)
+alutPath = /irl/tools/libs/alut-1.1.0
+
+
+
+# I/O support configuration
+# Some VESS I/O classes require external library support.  These classes
+# will be omitted if the corresponding library is not specified.
+[io]
+
+# Enable/disable for IEEE 1394 (firewire) camera support
+dc1394Enabled = no
+
+# Path for the raw1394 library
+raw1394Path =
+
+# Path for the dc1394_control library
+dc1394Path =
+
+# Enable/disable Intersense tracker support
+isenseEnabled = no
+
+# Path for the InterSense library
+isensePath = /irl/work/jdaly/libisense
+
+# Enable/disable PhaseSpace Motion Digitizer support
+pspaceEnabled = no
+
+# Path for the PhaseSpace owlsock library
+owlPath =
+
+# Enable/disable Virtual Reality Peripheral Network support
+vrpnEnabled = no
+
+# Path for VRPN libraries
+vrpnPath =
+
+
+
+# Environment configuration
+# This includes support for encoding and decoding of digital video.  These
+# features require the ffmpeg library to be enabled.
+[environment]
+
+# Enable/disable video features
+videoEnabled = yes
+
+# Path for ffmpeg (audio/video encode/decode library)
+ffmpegPath = /irl/tools/libs/ffmpeg
+

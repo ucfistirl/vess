@@ -1,0 +1,107 @@
+
+# VESS Configuration
+
+
+# Basic configuration, required by all VESS builds
+[base]
+
+# Path for ATLAS - Low-level support library (required)
+atlasPath = W:/atlas
+
+# Path for HLA RTI - Used by ATLAS for HLA networking (required)
+rtiPath = L:/rtis-1.3_D18A
+
+# Path for libxml2 - Used by ATLAS for parsing XML documents (required)
+xmlPath = L:/libxml2-2.6.27
+
+# Path for iconv - Used by libxml2 (required)
+xmlPath = L:/iconv-1.9.1
+
+
+
+# Utilities configuration
+[util]
+
+# Path to JPEG library - for loading and saving JPEG images (required)
+jpegPath = L:/jpeg-6b-4
+
+
+
+# Graphics configuration
+# A supported scene graph library must be specified for VESS to build
+[graphics]
+
+# Scene Graph library to use
+# Currently, only "OSG" (for the Open Scene Graph library) is supported
+sceneGraph = OSG
+
+# Path to Open Scene Graph (required if "OSG" is selected)
+osgPath = L:/OpenSceneGraph-2.2.0
+
+# Path to the OpenGL extension headers (glext.h and wglext.h)
+glPath = L:/opengl
+
+
+
+# Sound configuration
+# If any supported audio library is defined, the VESS sound features will
+# be enabled.
+[sound]
+
+# Sound features enable/disable
+soundEnabled = yes
+
+# Audio library selection
+# Currently, only "OpenAL" is supported
+audioLibrary = OpenAL
+
+# OpenAL - Audio library
+oalPath = L:/openal
+
+# ALUT - OpenAL Utility Toolkit (required if OpenAL is selected)
+alutPath = L:/alut
+
+
+
+# I/O support configuration
+# Some VESS I/O classes require external library support.  These classes
+# will be omitted if the corresponding library is not specified.
+[io]
+
+# Enable/disable CyberGrasp support
+cgraspEnabled = no
+
+# Path for the VirtualHand Toolkit (VHT) library
+vhtPath =
+
+# Enable/disable Intersense tracker support
+isenseEnabled = no
+
+# Path for the InterSense library
+isensePath =
+
+# Enable/disable PhaseSpace Motion Digitizer support
+pspaceEnabled = no
+
+# Path for the PhaseSpace owlsock library
+owlPath =
+
+# Enable/disable Virtual Reality Peripheral Network support
+pspaceEnabled = no
+
+# Path for VRPN libraries
+vrpnPath =
+
+
+
+# Environment configuration
+# This includes support for encoding and decoding of digital video.  These
+# features require the ffmpeg library to be enabled.
+[environment]
+
+# Enable/disable video features
+videoEnabled = yes
+
+# Path for ffmpeg (audio/video encode/decode library)
+ffmpegPath = L:/ffmpeg
+
