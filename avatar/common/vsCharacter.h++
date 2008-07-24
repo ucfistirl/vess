@@ -99,9 +99,12 @@ public:
 
     int                       getNumAnimations();
     atString                  getAnimationName(int index);
+    vsPathMotionManager       *getAnimation(atString name);
+    vsPathMotionManager       *getAnimation(int index);
 
     void                      switchAnimation(int index);
     void                      switchAnimation(atString name);
+    void                      setCurrentAnimation(vsPathMotionManager *anim);
 
     vsGLSLProgramAttribute    *getSkinProgram(vsSkin *skin);
     bool                      setSkinProgram(vsSkin *skin,

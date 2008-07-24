@@ -913,11 +913,53 @@ atString vsCharacter::getAnimationName(int index)
 }
 
 // ------------------------------------------------------------------------
+// Returns the vsPathMotionManager representing the animation with the
+// given name, or NULL if the animation isn't found
+// ------------------------------------------------------------------------
+vsPathMotionManager *vsCharacter::getAnimation(atString name)
+{
+    int index;
+    atString *currentName;
+
+    // Find the animation with the given name in the list
+    index = 0;
+    currentName = (atString *)characterAnimationNames->getEntry(index);
+    while ((index < characterAnimationNames->getNumEntries()) &&
+           (!currentName->equals(&name)))
+    {
+        // Try the next one
+        currentName = (atString *)characterAnimationNames->getEntry(index);
+        index++;
+    }
+
+    // See if we found what we were looking for
+    if (index < characterAnimationNames->getNumEntries())
+    {
+        // Return the given animation
+        return (vsPathMotionManager *)characterAnimations->getEntry(index);
+    }
+    else
+    {
+        // Return NULL, as we didn't find the requested animation
+        return NULL;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Returns the vsPathMotionManager representing the animation at the
+// given index, or NULL if the animation isn't found
+// ------------------------------------------------------------------------
+vsPathMotionManager *vsCharacter::getAnimation(int index)
+{
+    // Return the requested animation
+    return (vsPathMotionManager *)characterAnimations->getEntry(index);
+}
+
+// ------------------------------------------------------------------------
 // Enables the animation at the given position in the animation list
 // ------------------------------------------------------------------------
 void vsCharacter::switchAnimation(int index)
 {
-   atString * currentName;
    vsSkeleton *skeleton;
    vsSkeletonKinematics *kin;
    vsSkin *skin;
@@ -942,10 +984,6 @@ void vsCharacter::switchAnimation(int index)
    // the character until we're switched back to a valid one)
    if (currentAnimation != NULL)
    {
-      // Get the name of the next animation
-      currentName = (atString *)
-         characterAnimationNames->getEntry(index);
-
       // Activate the animation
       currentAnimation->setCycleMode(VS_PATH_CYCLE_CLOSED_LOOP);
       currentAnimation->setCycleCount(VS_PATH_CYCLE_FOREVER);
@@ -1023,6 +1061,68 @@ void vsCharacter::switchAnimation(atString name)
         // Print a warning that we couldn't find the specified animation
         notify(AT_WARN, "Animation named \"%s\" does not exist\n",
             name.getString());
+    }
+}
+
+// ------------------------------------------------------------------------
+// Sets the currently active animation to the given animation.  This
+// allows for temporary or transitional animations to be specified by
+// the user
+// ------------------------------------------------------------------------
+void vsCharacter::setCurrentAnimation(vsPathMotionManager *anim)
+{
+    vsSkeletonKinematics *kin;
+    vsSkeleton *skeleton;
+    vsSkin *skin;
+
+    // Don't do anything if the character isn't valid
+    if (!validFlag)
+        return;
+
+    // Deactivate the previous animation
+    if (currentAnimation != NULL)
+        currentAnimation->stop();
+
+    // Set the new animation
+    currentAnimation = anim;
+    
+    // Make sure the new animation is valid (if not, we just won't animate
+    // the character until we're switched back to a valid one)
+    if (currentAnimation != NULL)
+    {
+        // Activate the animation
+        currentAnimation->setCycleMode(VS_PATH_CYCLE_CLOSED_LOOP);
+        currentAnimation->setCycleCount(VS_PATH_CYCLE_FOREVER);
+        currentAnimation->stop();
+        currentAnimation->startResume();
+    }
+    else
+    {
+        // A negative index means the default pose (all bones in the skeleton
+        // set to identity), first reset the kinematics
+        kin = (vsSkeletonKinematics *)skeletonKinematics->getFirstEntry();
+        while (kin != NULL)
+        {
+            kin->reset();
+            kin = (vsSkeletonKinematics *)skeletonKinematics->getNextEntry();
+        }
+
+        // Next, update the skeletons
+        skeleton = (vsSkeleton *)characterSkeletons->getFirstEntry();
+        while (kin != NULL)
+        {
+            skeleton->update();
+            skeleton = (vsSkeleton *)characterSkeletons->getNextEntry();
+        }
+
+        // Finally, update and reset the skins
+        skin = (vsSkin *)characterSkins->getFirstEntry();
+        while (skin != NULL)
+        {
+            skin->update();
+            skin->reset();
+            skin = (vsSkin *)characterSkins->getNextEntry();
+        }
     }
 }
 
