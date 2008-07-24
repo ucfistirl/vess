@@ -786,9 +786,25 @@ int vsCharacter::getNumSkeletons()
 // ------------------------------------------------------------------------
 // Returns a skeleton based on the given index
 // ------------------------------------------------------------------------
-vsSkeleton * vsCharacter::getSkeleton(int index)
+vsSkeleton *vsCharacter::getSkeleton(int index)
 {
     return (vsSkeleton *)characterSkeletons->getNthEntry(index);
+}
+
+// ------------------------------------------------------------------------
+// Returns the number of skeleton kinematics in this character
+// ------------------------------------------------------------------------
+int vsCharacter::getNumSkeletonKinematics()
+{
+    return skeletonKinematics->getNumEntries();
+}
+
+// ------------------------------------------------------------------------
+// Returns a skeleton kinematics object based on the given index
+// ------------------------------------------------------------------------
+vsSkeletonKinematics *vsCharacter::getSkeletonKinematics(int index)
+{
+    return (vsSkeletonKinematics *)skeletonKinematics->getNthEntry(index);
 }
 
 // ------------------------------------------------------------------------
@@ -802,7 +818,7 @@ int vsCharacter::getNumSkins()
 // ------------------------------------------------------------------------
 // Returns a skin based on the given index
 // ------------------------------------------------------------------------
-vsSkin * vsCharacter::getSkin(int index)
+vsSkin *vsCharacter::getSkin(int index)
 {
     return (vsSkin *)characterSkins->getNthEntry(index);
 }
@@ -960,64 +976,64 @@ vsPathMotionManager *vsCharacter::getAnimation(int index)
 // ------------------------------------------------------------------------
 void vsCharacter::switchAnimation(int index)
 {
-   vsSkeleton *skeleton;
-   vsSkeletonKinematics *kin;
-   vsSkin *skin;
+    vsSkeleton *skeleton;
+    vsSkeletonKinematics *kin;
+    vsSkin *skin;
 
-   // Don't do anything if the character isn't valid
-   if (!validFlag)
-      return;
+    // Don't do anything if the character isn't valid
+    if (!validFlag)
+        return;
 
-   // Deactivate the previous animation
-   if (currentAnimation != NULL)
-       currentAnimation->stop();
+    // Deactivate the previous animation
+    if (currentAnimation != NULL)
+         currentAnimation->stop();
 
-   // Set the new animation (if the index is negative, this indicates we
-   // should return to the default pose)
-   if (index >= 0)
-       currentAnimation = (vsPathMotionManager *)
-           characterAnimations->getEntry(index);
-   else
-       currentAnimation = NULL;
+    // Set the new animation (if the index is negative, this indicates we
+    // should return to the default pose)
+    if (index >= 0)
+        currentAnimation = (vsPathMotionManager *)
+            characterAnimations->getEntry(index);
+    else
+        currentAnimation = NULL;
 
-   // Make sure the new animation is valid (if not, we just won't animate
-   // the character until we're switched back to a valid one)
-   if (currentAnimation != NULL)
-   {
-      // Activate the animation
-      currentAnimation->setCycleMode(VS_PATH_CYCLE_CLOSED_LOOP);
-      currentAnimation->setCycleCount(VS_PATH_CYCLE_FOREVER);
-      currentAnimation->stop();
-      currentAnimation->startResume();
-   }
-   else
-   {
-      // A negative index means the default pose (all bones in the skeleton
-      // set to identity), first reset the kinematics
-      kin = (vsSkeletonKinematics *)skeletonKinematics->getFirstEntry();
-      while (kin != NULL)
-      {
-         kin->reset();
-         kin = (vsSkeletonKinematics *)skeletonKinematics->getNextEntry();
-      }
+    // Make sure the new animation is valid (if not, we just won't animate
+    // the character until we're switched back to a valid one)
+    if (currentAnimation != NULL)
+    {
+        // Activate the animation
+        currentAnimation->setCycleMode(VS_PATH_CYCLE_CLOSED_LOOP);
+        currentAnimation->setCycleCount(VS_PATH_CYCLE_FOREVER);
+        currentAnimation->stop();
+        currentAnimation->startResume();
+    }
+    else
+    {
+        // A negative index means the default pose (all bones in the skeleton
+        // set to identity), first reset the kinematics
+        kin = (vsSkeletonKinematics *)skeletonKinematics->getFirstEntry();
+        while (kin != NULL)
+        {
+            kin->reset();
+            kin = (vsSkeletonKinematics *)skeletonKinematics->getNextEntry();
+        }
 
-      // Next, update the skeletons
-      skeleton = (vsSkeleton *)characterSkeletons->getFirstEntry();
-      while (kin != NULL)
-      {
-         skeleton->update();
-         skeleton = (vsSkeleton *)characterSkeletons->getNextEntry();
-      }
+        // Next, update the skeletons
+        skeleton = (vsSkeleton *)characterSkeletons->getFirstEntry();
+        while (kin != NULL)
+        {
+            skeleton->update();
+            skeleton = (vsSkeleton *)characterSkeletons->getNextEntry();
+        }
 
-      // Finally, update and reset the skins
-      skin = (vsSkin *)characterSkins->getFirstEntry();
-      while (skin != NULL)
-      {
-         skin->update();
-         skin->reset();
-         skin = (vsSkin *)characterSkins->getNextEntry();
-      }
-   }
+        // Finally, update and reset the skins
+        skin = (vsSkin *)characterSkins->getFirstEntry();
+        while (skin != NULL)
+        {
+            skin->update();
+            skin->reset();
+            skin = (vsSkin *)characterSkins->getNextEntry();
+        }
+    }
 }
 
 // ------------------------------------------------------------------------

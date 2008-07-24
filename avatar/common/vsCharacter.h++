@@ -90,6 +90,9 @@ public:
     int                       getNumSkeletons();
     vsSkeleton                *getSkeleton(int index);
 
+    int                       getNumSkeletonKinematics();
+    vsSkeletonKinematics      *getSkeletonKinematics(int index);
+
     int                       getNumSkins();
     vsSkin                    *getSkin(int index);
 
