@@ -654,10 +654,14 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                 meshVertices);
             resultMesh->setBinding(VS_GEOMETRY_SKIN_VERTEX_COORDS,
                 VS_GEOMETRY_BIND_PER_VERTEX);
+            resultMesh->setBinding(VS_GEOMETRY_VERTEX_COORDS,
+                VS_GEOMETRY_BIND_PER_VERTEX);
 
             resultMesh->setDataListSize(VS_GEOMETRY_SKIN_NORMALS,
                 meshVertices);
             resultMesh->setBinding(VS_GEOMETRY_SKIN_NORMALS,
+                VS_GEOMETRY_BIND_PER_VERTEX);
+            resultMesh->setBinding(VS_GEOMETRY_NORMALS,
                 VS_GEOMETRY_BIND_PER_VERTEX);
 
             resultMesh->setDataListSize(VS_GEOMETRY_VERTEX_WEIGHTS,
