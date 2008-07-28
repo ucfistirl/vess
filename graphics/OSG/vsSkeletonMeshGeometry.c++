@@ -205,6 +205,9 @@ void vsSkeletonMeshGeometry::setBinding(int whichData, int binding)
                     "binding must always be VS_GEOMETRY_BIND_PER_VERTEX\n");
                 return;
             }
+
+            // Also set the regular normal list binding
+            osgGeometry->setNormalBinding(osgBinding);
             break;
         case VS_GEOMETRY_VERTEX_COORDS:
             // Check the binding and make sure it is per-vertex (this is
