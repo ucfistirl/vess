@@ -225,7 +225,6 @@ vsCharacter *vsCal3DLoader::loadCharacter(char *filename)
                 if (fieldValue = strtok(NULL, delimiter))
                 {
                     // Try to load the skeleton
-printf("Loading skeleton %s\n", fieldValue);
                     skeleton = boneLoader->loadSkeleton(fieldValue);
 
                     // See if we got a valid skeleton
@@ -252,7 +251,6 @@ printf("Loading skeleton %s\n", fieldValue);
                 {
                     // Load the material, the mesh loader will use it when
                     // needed
-printf("Loading material %s\n", fieldValue);
                     meshLoader->loadMaterial(fieldValue);
                 }
             }
@@ -263,7 +261,6 @@ printf("Loading material %s\n", fieldValue);
                 {
                     // Grab the mesh filename and put it in a list
                     subMeshFile = new atString(fieldValue);
-printf("Adding mesh %s for later loading\n", fieldValue);
                     subMeshes->addEntry(subMeshFile);
                 }
             }
@@ -273,7 +270,6 @@ printf("Adding mesh %s for later loading\n", fieldValue);
                 if (fieldValue = strtok(NULL, delimiter))
                 {
                     // Try to load the animation
-printf("Loading animation %s\n", fieldValue);
                     animation = animationLoader->
                         loadAnimation(fieldValue, skeletonKin);
 
@@ -328,7 +324,6 @@ printf("Loading animation %s\n", fieldValue);
     while (subMeshFile != NULL)
     {
         // Add the submesh to the root mesh
-printf("Loading mesh %s\n", subMeshFile->getString());
         subMesh = meshLoader->loadMesh(subMeshFile->getString());
         mesh->addChild(subMesh);
 
