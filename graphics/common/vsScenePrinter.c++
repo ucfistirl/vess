@@ -1129,6 +1129,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
     int loop, sloop;
     atMatrix mat;
     double r, g, b, a;
+    double shiny;
     double nearFog, farFog;
     int mode;
     int shadingData;
@@ -1485,6 +1486,20 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                             getColor(VS_MATERIAL_SIDE_BACK, 
                                 VS_MATERIAL_COLOR_SPECULAR, &r, &g, &b);
                         fprintf(outfile, "%0.2lf %0.2lf %0.2lf\n", r, g, b);
+
+                        // Shininess (front and back)
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "Shininess:\n");
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        fprintf(outfile, "Front:  ");
+                        shiny = ((vsMaterialAttribute *)attribute)->
+                            getShininess(VS_MATERIAL_SIDE_FRONT);
+                        fprintf(outfile, "%0.2lf\n", shiny);
+                        writeBlanks(outfile, (treeDepth * 2) + 5);
+                        fprintf(outfile, "Back:   ");
+                        shiny = ((vsMaterialAttribute *)attribute)->
+                            getShininess(VS_MATERIAL_SIDE_BACK);
+                        fprintf(outfile, "%0.2lf\n", shiny);
 
                         // Emissive material (front and back)
                         writeBlanks(outfile, (treeDepth * 2) + 3);
