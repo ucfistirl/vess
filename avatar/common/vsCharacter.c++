@@ -39,6 +39,8 @@ vsCharacter::vsCharacter(vsSkeleton *skeleton, vsSkeletonKinematics *skelKin,
 {
     vsGLSLProgramAttribute *skinProgram;
     vsComponent *skinRoot;
+    int i;
+    vsPathMotionManager *animation;
 
     // Create the lists for skeletons, kinematics, and skins
     characterSkeletons = new atList();
@@ -105,6 +107,13 @@ vsCharacter::vsCharacter(vsSkeleton *skeleton, vsSkeletonKinematics *skelKin,
         characterAnimationNames = new atArray();
     if (characterAnimations == NULL)
         characterAnimations = new atArray();
+
+    // Reference all the animations
+    for (i = 0; i < characterAnimations->getNumEntries(); i++)
+    {
+        animation = (vsPathMotionManager *)characterAnimations->getEntry(i);
+        animation->ref();
+    }
    
     // Initialize the current animation to NULL
     currentAnimation = NULL;
@@ -165,6 +174,8 @@ vsCharacter::vsCharacter(atList *skeletons, atList *skelKins,
     vsSkin *skin;
     vsComponent *lca;
     vsGLSLProgramAttribute *skinProgram;
+    int i;
+    vsPathMotionManager *animation;
 
     // Assume ownership of all five containers of character pieces
     characterSkeletons = skeletons;
@@ -274,6 +285,13 @@ vsCharacter::vsCharacter(atList *skeletons, atList *skelKins,
     if (characterAnimations == NULL)
         characterAnimations = new atArray();
    
+    // Reference all the animations
+    for (i = 0; i < characterAnimations->getNumEntries(); i++)
+    {
+        animation = (vsPathMotionManager *)characterAnimations->getEntry(i);
+        animation->ref();
+    }
+   
     // Initialize the current animation to NULL
     currentAnimation = NULL;
 
@@ -338,16 +356,30 @@ vsCharacter::vsCharacter(atList *skeletons, atList *skelKins,
 vsCharacter::~vsCharacter()
 {
     vsObject *obj;
-
+    int i;
+   
     // Clean up the skinning program and uniforms
     disableHardwareSkinning();
     delete skinProgramList;
 
-    // Clean up the animations
+    // Clean up the animations names array
     if (characterAnimationNames != NULL)
         delete characterAnimationNames;
+
+    // Clean up the animations array
     if (characterAnimations != NULL)
+    {
+        // Unreference all the array's items
+        for (i = 0; i < characterAnimations->getNumEntries(); i++)
+        {
+            obj = (vsObject *)characterAnimations->getEntry(i);
+            vsObject::unrefDelete(obj);
+        }
+
+        // Flush and delete the array
+        characterAnimations->removeAllEntries();
         delete characterAnimations;
+    }
 
     // Clean up the various character components, starting with the
     // kinematics
@@ -600,13 +632,17 @@ vsCharacter *vsCharacter::clone()
     vsGLSLProgramAttribute *newSkinProg;
     vsSkeleton *temp;
     u_long skeletonIndex;
-    int i;
+    int i, j;
     atArray *newAnimationNames;
     atString *name;
     atString *newName;
     atArray *newAnimations;
     vsPathMotionManager *animation;
     vsPathMotionManager *newAnimation;
+    int boneID;
+    int skelKinIndex;
+    vsPathMotion *pathMotion;
+    vsPathMotion *newPathMotion;
 
     // If the current character isn't valid, return nothing
     if (!isValid())
@@ -710,7 +746,7 @@ vsCharacter *vsCharacter::clone()
         newSkin->setSkeleton(newSkeleton);
 
         // Move on to the next skin
-        newSkin = (vsSkin *)characterSkins->getNextEntry();
+        newSkin = (vsSkin *)newSkinList->getNextEntry();
     }
 
     // Clone the array of animation names
@@ -740,16 +776,64 @@ vsCharacter *vsCharacter::clone()
         // See if the name is valid
         if (name != NULL)
         {
-            // Clone the name string, and add it to the new array in the
-            // same position
+            // Clone the path motion manager, and add it to the new array in
+            // the same position
             newAnimation = new vsPathMotionManager(animation);
             newAnimations->setEntry(i, newAnimation);
+
+            // Switch the kinematics on the cloned path motion manager
+            // to use the newly cloned kinematics
+            for (j = 0; j < animation->getPathMotionCount(); j++)
+            {
+                // Get the j'th path motion from the old animation
+                pathMotion = animation->getPathMotion(j);
+
+                // Get the kinematics from the old path motion
+                kin = pathMotion->getKinematics();
+
+                // Find the old skeleton kinematics and bone ID corresponding
+                // to this individual kinematics object
+                boneID = -1;
+                skelKinIndex = 0;
+                skelKin = (vsSkeletonKinematics *)
+                    skeletonKinematics->getFirstEntry();
+                while ((skelKin != NULL) && (boneID < 0))
+                {
+                    // Look for the kinematics in this skeleton kinematics
+                    // object
+                    boneID = skelKin->getBoneIDForKinematics(kin);
+
+                    // Try the next kinematics if we didn't find it
+                    if (boneID < 0)
+                    {
+                        skelKinIndex++;
+                        skelKin = (vsSkeletonKinematics *)
+                            skeletonKinematics->getNextEntry();
+                    }
+                }
+
+                // Make sure we found it
+                if ((skelKin != NULL) && (boneID >= 0))
+                {
+                    // Get the j'th path motion from the new animation
+                    newPathMotion = newAnimation->getPathMotion(j);
+
+                    // Get the kinematics from the corresponding new
+                    // skeleton kinematics object and bone ID
+                    newSkelKin = (vsSkeletonKinematics *)
+                        newSkelKinList->getNthEntry(skelKinIndex);
+                    newKin = newSkelKin->getBoneKinematics(boneID);
+
+                    // Set the kinematics from the corresponding new skeleton
+                    // kinematics and bone ID on the new path motion
+                    newPathMotion->setKinematics(newKin);
+                }
+            }
         }
     }
     
     // Create a character using the skeletons, skins, kinematics, and
     // animations that we just finished creating
-    // TODO:  Animations
     character = new vsCharacter(newSkeletonList, newSkelKinList,
         newSkinList, newAnimationNames, newAnimations);
 
@@ -1013,7 +1097,8 @@ void vsCharacter::switchAnimation(int index)
         kin = (vsSkeletonKinematics *)skeletonKinematics->getFirstEntry();
         while (kin != NULL)
         {
-            kin->reset();
+            // JPD: COLLADA skeletons don't always start with identity matrices
+            //kin->reset();
             kin = (vsSkeletonKinematics *)skeletonKinematics->getNextEntry();
         }
 
