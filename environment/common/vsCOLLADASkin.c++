@@ -149,38 +149,38 @@ void vsCOLLADASkin::convertGeometry()
                     skelMesh->setDataListSize(whichData, listSize);
                     skelMesh->setDataList(whichData, vecList);
                     free(vecList);
-                }
 
-                // Set the list binding, if we're setting bindings on weights
-                // or bone indices, force this to PER_VERTEX.  Otherwise,
-                // just copy the original binding
-                if (whichData = VS_GEOMETRY_VERTEX_WEIGHTS)
-                    skelMesh->
-                        setBinding(whichData, VS_GEOMETRY_BIND_PER_VERTEX);
-                else if (whichData = VS_GEOMETRY_BONE_INDICES)
-                    skelMesh->
-                        setBinding(whichData, VS_GEOMETRY_BIND_PER_VERTEX);
-                else
-                    skelMesh->setBinding(whichData, geom->getBinding(i));
+                    // Set the list binding, if we're setting bindings on
+                    // weights or bone indices, force this to PER_VERTEX.
+                    // Otherwise, just copy the original binding
+                    if (whichData == VS_GEOMETRY_VERTEX_WEIGHTS)
+                        skelMesh->
+                            setBinding(whichData, VS_GEOMETRY_BIND_PER_VERTEX);
+                    else if (whichData == VS_GEOMETRY_BONE_INDICES)
+                        skelMesh->
+                            setBinding(whichData, VS_GEOMETRY_BIND_PER_VERTEX);
+                    else
+                        skelMesh->setBinding(whichData, geom->getBinding(i));
+                }
             }
 
-             // Copy the lighting state
-             if (geom->isLightingEnabled())
-                 skelMesh->enableLighting();
-             else
-                 skelMesh->disableLighting();
+            // Copy the lighting state
+            if (geom->isLightingEnabled())
+                skelMesh->enableLighting();
+            else
+                skelMesh->disableLighting();
 
-             // Copy the attributes (if any)
-             for (i = 0; i < geom->getAttributeCount(); i++)
-             {
-                 attrib = geom->getAttribute(i);
-                 attrib->attachDuplicate(skelMesh);
-             }
+            // Copy the attributes (if any)
+            for (i = 0; i < geom->getAttributeCount(); i++)
+            {
+                attrib = geom->getAttribute(i);
+                attrib->attachDuplicate(skelMesh);
+            }
 
-             // Replace the submesh's geometry with the new skeleton
-             // mesh geometry
-             submesh->setGeometry(skelMesh);
-             delete geom;
+            // Replace the submesh's geometry with the new skeleton
+            // mesh geometry
+            submesh->setGeometry(skelMesh);
+            delete geom;
         }
 
         // Move on to the next submesh
