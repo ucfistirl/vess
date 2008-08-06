@@ -1,5 +1,6 @@
 
 #include "vsCOLLADALoader.h++"
+#include "vsCOLLADAChannelGroup.h++"
 #include "vsCOLLADADataSource.h++"
 #include "vsCOLLADAAnimation.h++"
 #include "vsCOLLADAGeometry.h++"
@@ -16,6 +17,8 @@
 #include "vsTransparencyAttribute.h++"
 #include "atStringBuffer.h++"
 #include "atXMLReader.h++"
+
+#include "vsScenePrinter.h++"
 
 // ------------------------------------------------------------------------
 // Constructor for the COLLADA loader.  Creates all the object libraries
@@ -56,6 +59,10 @@ vsCOLLADALoader::vsCOLLADALoader()
     // Create a map to store the vsSkeleton objects created
     skeletons = new atMap();
 
+    // Create a map to store the vsPathMotionManager objects (animations)
+    // created
+    animations = new atMap();
+
     // Default the units scalar to 1.0
     unitScale = 1.0;
 }
@@ -79,6 +86,7 @@ vsCOLLADALoader::~vsCOLLADALoader()
     unrefDeleteList(skeletonList);
 
     // Clean up the auxiliary maps
+    unrefDeleteMap(animations);
     unrefDeleteMap(skeletonRoots);
     unrefDeleteMap(skeletons);
 
@@ -398,7 +406,7 @@ vsCOLLADAGeometry *vsCOLLADALoader::getGeometry(atString id)
 // ------------------------------------------------------------------------
 // Returns a visual scene object specified by the given identifier
 // ------------------------------------------------------------------------
-vsComponent *vsCOLLADALoader::getVisualScene(atString id)
+vsCOLLADANode *vsCOLLADALoader::getVisualScene(atString id)
 {
     char *idStr;
     atString newID;
@@ -414,7 +422,7 @@ vsComponent *vsCOLLADALoader::getVisualScene(atString id)
         newID.setString(&idStr[1]);
 
         // Look in the visual scene library for the scene and return it
-        return (vsComponent *)visualSceneLibrary->getValue(&newID);
+        return (vsCOLLADANode *)visualSceneLibrary->getValue(&newID);
     }
     else
     {
@@ -2118,6 +2126,7 @@ vsSkeleton *vsCOLLADALoader::createSkeleton(vsCOLLADANode *root,
             joint = root->findNodeBySID(source->getString(i));
             if (joint != NULL)
                 bones->setEntry(i, joint);
+/*
             else
             {
                 // Notify the user that we couldn't find one of the joints
@@ -2126,20 +2135,14 @@ vsSkeleton *vsCOLLADALoader::createSkeleton(vsCOLLADANode *root,
                     "under node %s!\n", source->getString(i).getString(),
                     root->getID().getString());
             }
+*/
         }
     }
 
     // Create the skeleton
     newSkeleton = new vsSkeleton(bones, bones->getNumEntries(), root);
 
-    // Since COLLADA skeletons are created within the scene, we need to apply
-    // all of the transforms leading up to the skeleton root as an offset
-    // matrix (this should be OK to do now, because we're guaranteed to
-    // have created all of the scene's node structure up to this point)
-    parent = root->getParent(0);
-    if (parent != NULL)
-        newSkeleton->setOffsetMatrix(parent->getGlobalXform());
-    
+    // Return it
     return newSkeleton;
 }
 
@@ -2838,18 +2841,214 @@ void vsCOLLADALoader::processLibraryVisualScenes(atXMLDocument *doc,
 }
 
 // ------------------------------------------------------------------------
+// Extends the given list with the channels from the given animation
+// ------------------------------------------------------------------------
+void vsCOLLADALoader::addChannelsFromAnimation(atList *list,
+                                               vsCOLLADAAnimation *anim)
+{
+    int i;
+    vsCOLLADAChannel *channel;
+
+    // Iterate over the animation's own channels
+    for (i = 0; i < anim->getNumChannels(); i++)
+    {
+        // Get the i'th channel and add it to the list
+        channel = anim->getChannel(i);
+        list->addEntry(channel);
+    }
+
+    // Iterate over the animation's children and add their channels as well
+    for (i = 0; i < anim->getNumChildren(); i++)
+        addChannelsFromAnimation(list, anim->getChild(i));
+}
+
+// ------------------------------------------------------------------------
 // Translates the COLLADA animation objects into equivalent VESS objects
 // (vsPathMotion and/or vsPathMotionManager)
 // ------------------------------------------------------------------------
-void vsCOLLADALoader::buildAnimations()
+void vsCOLLADALoader::buildAnimations(atList *skeletonList,
+                                      atList *skelKinList)
 {
+    atList *animationNameList;
+    atList *animationList;
+    atString *animationName;
+    vsCOLLADAAnimation *animation;
+    vsPathMotionManager *pathMotionManager;
+    atList *channelList;
+    atMap *channelGroupMap;
+    vsCOLLADAChannel *channel;
+    vsCOLLADAChannelGroup *channelGroup;
+    atString targetNodeID;
+    vsCOLLADANode *targetNode;
+    atList *nodeList;
+    atList *groupList;
+    vsSkeleton *skeleton;
+    vsCOLLADANode *skeletonRoot;
+    vsKinematics *kin;
+    vsSkeletonKinematics *skelKin;
+    vsPathMotion *pathMotion;
+
+    // Get the list of top-level animations in the animation library
+    animationNameList = new atList();
+    animationList = new atList();
+    animationLibrary->getSortedList(animationNameList, animationList);
+
+    // Iterate over the top-level animations
+    animationName = (atString *)animationNameList->getFirstEntry();
+    animation = (vsCOLLADAAnimation *)animationList->getFirstEntry();
+    while (animation != NULL)
+    {
+        // Collect the list of channels in this animation
+        channelList = new atList();
+        addChannelsFromAnimation(channelList, animation);
+
+        // Create a mapping from target node to channel group
+        channelGroupMap = new atMap();
+
+        // Create a path motion manager to store the set of vsPathMotions
+        // that will make up the overall animation
+        pathMotionManager = new vsPathMotionManager();
+        
+        // Iterate over the channels in the list
+        channel = (vsCOLLADAChannel *)channelList->getFirstEntry();
+        while (channel != NULL)
+        {
+            // Get the ID of the node that is the target for this channel's
+            // animation
+            targetNodeID = channel->getTargetNodeID();
+
+            // Look for the target node itself among the skeletons
+            targetNode = NULL;
+            skeleton = (vsSkeleton *)skeletonList->getFirstEntry();
+            while ((targetNode == NULL) && (skeleton != NULL))
+            { 
+                // Look for the target node in this skeleton
+                skeletonRoot = (vsCOLLADANode *)skeleton->getRoot();
+                targetNode = skeletonRoot->findNodeByID(targetNodeID);
+
+                // If we didn't find it, try the next skeleton
+                if (targetNode == NULL)
+                    skeleton = (vsSkeleton *)skeletonList->getNextEntry();
+            }
+
+            // Make sure we found the target node
+            if (targetNode != NULL)
+            {
+                // Look up the target node's channel group in the map
+                channelGroup = (vsCOLLADAChannelGroup *)
+                    channelGroupMap->getValue(targetNode);
+
+                // If there isn't one, create it
+                if (channelGroup == NULL)
+                {
+                    // Create the new channel group
+                    channelGroup = new vsCOLLADAChannelGroup(targetNode);
+
+                    // Ref-count the node and group
+                    targetNode->ref();
+                    channelGroup->ref();
+
+                    // Add the target node/channel group pair to the map
+                    channelGroupMap->addEntry(targetNode, channelGroup);
+                }
+
+                // Add the channel to the channel group
+                channelGroup->addChannel(channel);
+            }
+            
+            // Next channel
+            channel = (vsCOLLADAChannel *)channelList->getNextEntry();
+        }
+
+        // Now, iterate over the target nodes in the map and instance
+        // the channel groups (creating vsPathMotion objects) for each one
+        nodeList = new atList();
+        groupList = new atList();
+        channelGroupMap->getSortedList(nodeList, groupList);
+        targetNode = (vsCOLLADANode *)nodeList->getFirstEntry();
+        channelGroup = (vsCOLLADAChannelGroup *)groupList->getFirstEntry();
+        while (targetNode != NULL)
+        {
+            printf("Target node %s has %d channel(s) attached\n",
+                targetNode->getID().getString(),
+                channelGroup->getNumChannels());
+
+            // Find the kinematics corresponding to this target node
+            kin = NULL;
+            skeleton = (vsSkeleton *)skeletonList->getFirstEntry();
+            skelKin = (vsSkeletonKinematics *)skelKinList->getFirstEntry();
+            while ((kin == NULL) && (skelKin != NULL))
+            {
+                // Look for the kinematics on this skeleton
+                kin = skelKin->getBoneKinematics(targetNode);
+
+                // If we didn't find it, try the next skeleton
+                if (kin == NULL)
+                {
+                    skeleton = (vsSkeleton *)skeletonList->getNextEntry();
+                    skelKin = (vsSkeletonKinematics *)
+                        skelKinList->getNextEntry();
+                }
+            }
+
+            // See if we found a kinematics
+            if (kin != NULL)
+            {
+                // Instance the channel group as a vsPathMotion and add it
+                // to the overall path motion manager
+                pathMotion = channelGroup->instance(kin);
+                pathMotionManager->addPathMotion(pathMotion);
+            }
+else
+{
+   printf("No kinematics for target node %s\n", targetNode->getID().getString());
+}
+
+            // Remove the target node and channel group from the map
+            // and lists
+            nodeList->removeCurrentEntry();
+            groupList->removeCurrentEntry();
+            channelGroupMap->removeEntry(targetNode);
+
+            // Unref-delete the node and group (the group should get deleted,
+            // but the node should stick around as part of the scene)
+            vsObject::unrefDelete(targetNode);
+            vsObject::unrefDelete(channelGroup);
+
+            // Next node and channel group
+            targetNode = (vsCOLLADANode *)nodeList->getNextEntry();
+            channelGroup = (vsCOLLADAChannelGroup *)groupList->getNextEntry();
+        }
+
+        // Ref-count the new path motion manager and store it in the animation
+        // map (using the animation's name as a key).  We'll make use of these
+        // animations when we create the character (if any)
+        pathMotionManager->ref();
+        animations->addEntry(new atString(*animationName), pathMotionManager);
+
+        // Clean up the lists and map (they should be empty now)
+        delete nodeList;
+        delete groupList;
+        delete channelGroupMap;
+
+        // Move on to the next animation in the library
+        animationName = (atString *)animationNameList->getNextEntry();
+        animation = (vsCOLLADAAnimation *)animationList->getNextEntry();
+    }
+
+    // Flush and delete the lists
+    animationNameList->removeAllEntries();
+    animationList->removeAllEntries();
+    delete animationNameList;
+    delete animationList;
 }
 
 // ------------------------------------------------------------------------
 // Creates a vsCharacter from the skeletons, skins, and animations that
 // we found in the COLLADA document
 // ------------------------------------------------------------------------
-void vsCOLLADALoader::buildCharacter(atMatrix sceneMat)
+void vsCOLLADALoader::buildCharacter(vsCOLLADANode *sceneRootNode,
+                                     atMatrix sceneMat)
 {
     vsSkeleton *skeleton;
     atList *skelKinList;
@@ -2862,6 +3061,12 @@ void vsCOLLADALoader::buildCharacter(atMatrix sceneMat)
     atMatrix skinXform;
     atMatrix identMatrix;
     vsTransformAttribute *skinXformAttr;
+    atArray *animationNamesArray;
+    atArray *animationsArray;
+    atList *animationNamesList;
+    atList *animationsList;
+    atString *animationName;
+    vsPathMotionManager *animation;
 
     // Try and remove the character's elements from the scene.  This allows
     // the character to be handled separately from the remainder of the
@@ -2894,15 +3099,14 @@ void vsCOLLADALoader::buildCharacter(atMatrix sceneMat)
                // can't remove it (most scenes won't be arranged this way)
                if (parent != NULL)
                {
-                   // Go ahead and remove the skeleton
-                   parent->removeChild(skeleton->getRoot());
-
-                   // We've already placed the skeleton's overall scene
-                   // transform into its offset matrix, but we need to factor
-                   // in the COLLADA scene transform (unit scale and up-axis)
-                   // now
-                   offset = skeleton->getOffsetMatrix();
+                   // Get the skeleton's global scene transform and apply
+                   // it to the skeleton's offset matrix. Also apply the
+                   // additional scene matrix (unit scale and up-axis)
+                   offset = parent->getGlobalXform();
                    skeleton->setOffsetMatrix(sceneMat * offset);
+
+                   // Now, go ahead and remove the skeleton
+                   parent->removeChild(skeleton->getRoot());
                }
            }
 
@@ -2932,9 +3136,42 @@ void vsCOLLADALoader::buildCharacter(atMatrix sceneMat)
             skin = (vsSkin *)skinList->getNextEntry();
         }
 
+        // Build the character's animations
+        buildAnimations(skeletonList, skelKinList);
+
+        // Create arrays for the animation names and animations
+        animationNamesArray = new atArray();
+        animationsArray = new atArray();
+        
+        // Fill the arrays with the entries in the animations map
+        animationNamesList = new atList();
+        animationsList = new atList();
+        animations->getSortedList(animationNamesList, animationsList);
+        animationName = (atString *)animationNamesList->getFirstEntry();
+        animation = (vsPathMotionManager *)animationsList->getFirstEntry();
+        while (animation != NULL)
+        {
+            // Transfer the animation from the list to the respective
+            // array
+            animationsArray->addEntry(animation);
+            animationsList->removeCurrentEntry();
+
+            // Clone the name and add it to the other array
+            animationNamesArray->addEntry(new atString(*animationName));
+            animationNamesList->removeCurrentEntry();
+
+            // Next animation
+            animationName = (atString *)animationNamesList->getNextEntry();
+            animation = (vsPathMotionManager *)animationsList->getNextEntry();
+        }
+
+        // Delete the lists
+        delete animationNamesList;
+        delete animationsList;
+
         // Create a character from the skeletons, kinematics, and skins
         sceneCharacter = new vsCharacter(skeletonList, skelKinList,
-            skinList, NULL, NULL);
+            skinList, animationNamesArray, animationsArray);
         sceneCharacter->ref();
         sceneCharacter->update();
     }
@@ -2957,7 +3194,7 @@ void vsCOLLADALoader::processScene(atXMLDocument *doc,
 {
     atXMLDocumentNodePtr child;
     char *attr;
-    vsComponent *sceneComp;
+    vsCOLLADANode *sceneRootNode;
     vsTransformAttribute *xform;
     atMatrix scaleMat;
     atMatrix sceneMat;
@@ -2975,7 +3212,7 @@ void vsCOLLADALoader::processScene(atXMLDocument *doc,
                 // Look up the visual scene in the library, clone it, and
                 // use the cloned instance as the document's scene
                 attr = doc->getNodeAttribute(child, "url");
-                sceneComp = getVisualScene(atString(attr));
+                sceneRootNode = getVisualScene(atString(attr));
             }
         }
 
@@ -2989,18 +3226,15 @@ void vsCOLLADALoader::processScene(atXMLDocument *doc,
     scaleMat.setScale(unitScale, unitScale, unitScale);
     sceneMat = scaleMat * upAxisTransform;
 
-    // Create the appropriate VESS objects for the scene's animations
-    buildAnimations();
-
     // If the necessary components for an animated character exist, go ahead
     // and construct the character now (pass the scene matrix, as it applies
     // to the character as well)
-    buildCharacter(sceneMat);
+    buildCharacter(sceneRootNode, sceneMat);
 
     // Finally, clone the COLLADA scene to produce the final VESS scene
-    if (sceneComp != NULL)
+    if (sceneRootNode != NULL)
     {
-        sceneRoot = (vsComponent *)sceneComp->cloneTree();
+        sceneRoot = (vsComponent *)sceneRootNode->cloneTree();
 
         // Apply a transform to scale and orient the scene properly
         xform = new vsTransformAttribute();

@@ -11,6 +11,7 @@
 #include "vsSkeletonKinematics.h++"
 #include "vsPathMotionManager.h++"
 #include "vsCharacter.h++"
+#include "vsCOLLADAAnimation.h++"
 #include "vsCOLLADADataSource.h++"
 #include "vsCOLLADAEffectParameter.h++"
 #include "vsCOLLADAFixedEffect.h++"
@@ -40,6 +41,7 @@ protected:
 
     atMap          *skeletonRoots;
     atMap          *skeletons;
+    atMap          *animations;
     bool           parsingSkeleton;
 
     atMap          *animationLibrary;
@@ -65,7 +67,7 @@ protected:
     vsCOLLADAEffect        *getMaterial(atString id);
     vsCOLLADAController    *getController(atString id);
     vsCOLLADAGeometry      *getGeometry(atString id);
-    vsComponent            *getVisualScene(atString id);
+    vsCOLLADANode          *getVisualScene(atString id);
 
     vsCOLLADANode          *getSkeletonRoot(atString id);
     bool                   isSkeletonRoot(vsComponent *node);
@@ -172,8 +174,12 @@ protected:
     void           processLibraryVisualScenes(atXMLDocument *doc,
                                               atXMLDocumentNodePtr current);
 
-    void           buildAnimations();
-    void           buildCharacter(atMatrix sceneMat);
+    void           addChannelsFromAnimation(atList *list,
+                                            vsCOLLADAAnimation *anim);
+    void           buildAnimations(atList *skeletonList,
+                                   atList *skelKinList);
+    void           buildCharacter(vsCOLLADANode *sceneRootNode,
+                                  atMatrix sceneMat);
     void           processScene(atXMLDocument *doc,
                                 atXMLDocumentNodePtr current);
 
