@@ -31,7 +31,7 @@ Import('buildList addExternal')
 commonDir = '#environment/common'
 commonSrc = 'vsCal3DAnimationLoader.c++ vsCal3DLoader.c++ \
              vsCOLLADAAnimation.c++ vsCOLLADABoolArray.c++ \
-             vsCOLLADAChannel.c++ \
+             vsCOLLADAChannel.c++ vsCOLLADAChannelGroup.c++ \
              vsCOLLADAController.c++ vsCOLLADADataArray.c++ \
              vsCOLLADADataSource.c++  vsCOLLADAEffect.c++ \
              vsCOLLADAEffectParameter.c++ vsCOLLADAFixedEffect.c++ \
