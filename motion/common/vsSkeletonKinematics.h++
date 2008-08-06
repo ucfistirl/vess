@@ -47,6 +47,7 @@ public:
     vsKinematics          *getBoneKinematics(int boneID);
     vsKinematics          *getBoneKinematics(vsComponent *component);
     vsKinematics          *getBoneKinematics(char *boneName);
+    int                   getBoneIDForKinematics(vsKinematics *kin);
 
     // Update function from vsUpdatable
     virtual void          update();

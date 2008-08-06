@@ -145,6 +145,26 @@ vsKinematics *vsSkeletonKinematics::getBoneKinematics(char *boneName)
 }
 
 // ------------------------------------------------------------------------
+// Return the corresponding bone ID for the given kinematics (or -1 if
+// it isn't found)
+// ------------------------------------------------------------------------
+int vsSkeletonKinematics::getBoneIDForKinematics(vsKinematics *kin)
+{
+    int i;
+
+    // Iterate over the kinematics in our list
+    for (i = 0; i < kinematicsCount; i++)
+    {
+        // See if this kinematics matches the one specified
+        if (kinematicsList[i] == kin)
+            return i;
+    }
+
+    // We didn't find it, so return -1
+    return -1;
+}
+
+// ------------------------------------------------------------------------
 // Update all the bone kinematics.
 // ------------------------------------------------------------------------
 void vsSkeletonKinematics::update()
