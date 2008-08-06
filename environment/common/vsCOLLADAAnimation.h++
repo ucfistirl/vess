@@ -22,6 +22,10 @@ protected:
     atList                           *children;
 
 
+                           vsCOLLADAAnimation(atString id, atXMLDocument *doc,
+                                              atXMLDocumentNodePtr current,
+                                              atMap *parentSources);
+
     vsCOLLADADataSource    *getDataSource(atString id);
 
     void                   processSource(atXMLDocument *doc,
