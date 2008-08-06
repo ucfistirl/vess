@@ -45,7 +45,7 @@
 #define VS_CHAR_MAX_BONES 36
 
 
-class vsCharacter : public vsUpdatable
+class VESS_SYM vsCharacter : public vsUpdatable
 {
 protected:
 
