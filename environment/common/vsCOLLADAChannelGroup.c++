@@ -43,14 +43,34 @@ vsCOLLADAChannelGroup::~vsCOLLADAChannelGroup()
 void vsCOLLADAChannelGroup::setPathPoint(vsPathMotion *path, int pointIndex,
                                          vsCOLLADATransform *xform,
                                          atString xformAddr,
-                                         vsCOLLADAKeyframe *keyframe)
+                                         vsCOLLADAKeyframe *keyframe,
+                                         vsCOLLADAKeyframe *lastKeyframe)
 {
+    double previousTime;
     atVector basePos, keyPos;
     atQuat baseOrn, keyOrn;
     double tmpX, tmpY, tmpZ, tmpW;
+    const char *addrStr;
+    char addrTokens[32];
+    atMatrix keyMat;
+    int i, j;
 
     // Set the path point's time
-    path->setTime(pointIndex, keyframe->getTime());
+    if (lastKeyframe == NULL)
+    {
+        // This is the first point on the path, so set the time directly
+        path->setTime(pointIndex, keyframe->getTime());
+    }
+    else
+    {
+        // The path point's time is actually the difference in time between
+        // this keyframe and the last keyframe
+        path->setTime(pointIndex, 
+            keyframe->getTime() - lastKeyframe->getTime());
+    }
+
+    // Get the transform address string
+    addrStr = xformAddr.getString();
 
     // The data is handled differently based on the transform type
     switch (xform->getType())
@@ -58,39 +78,39 @@ void vsCOLLADAChannelGroup::setPathPoint(vsPathMotion *path, int pointIndex,
         case VS_COLLADA_XFORM_ROTATE:
 
             // See if there is an address specified for the transform
-            if (strlen(xformAddr) > 0)
+            if (strlen(addrStr) > 0)
             {
                 // Get the base orientation of the transform
-                baseOrient = xform->getOrientation();
+                baseOrn = xform->getOrientation();
 
                 // Get the base transform values
                 baseOrn.getAxisAngleRotation(&tmpX, &tmpY, &tmpZ, &tmpW);
 
                 // See which part of the rotation we're changing
-                if ((strcmp(xformAddr, ".ANGLE") == 0) ||
-                    (strcmp(xformAddr, "(3)") == 0) ||
-                    (strcmp(xformAddr, "[3]") == 0))
+                if ((strcmp(addrStr, ".ANGLE") == 0) ||
+                    (strcmp(addrStr, "(3)") == 0) ||
+                    (strcmp(addrStr, "[3]") == 0))
                 {
                     // Get the keyframe's data and update the rotation
                     tmpW = keyframe->getData(0);
                 }
-                else if ((strcmp(xformAddr, ".X") == 0) ||
-                         (strcmp(xformAddr, "(0)") == 0) ||
-                         (strcmp(xformAddr, "[0]") == 0))
+                else if ((strcmp(addrStr, ".X") == 0) ||
+                         (strcmp(addrStr, "(0)") == 0) ||
+                         (strcmp(addrStr, "[0]") == 0))
                 {
                     // Get the keyframe's data and update the rotation
                     tmpX = keyframe->getData(0);
                 }
-                else if ((strcmp(xformAddr, ".Y") == 0) ||
-                         (strcmp(xformAddr, "(1)") == 0) ||
-                         (strcmp(xformAddr, "[1]") == 0))
+                else if ((strcmp(addrStr, ".Y") == 0) ||
+                         (strcmp(addrStr, "(1)") == 0) ||
+                         (strcmp(addrStr, "[1]") == 0))
                 {
                     // Get the keyframe's data and update the rotation
                     tmpY = keyframe->getData(0);
                 }
-                else if ((strcmp(xformAddr, ".Z") == 0) ||
-                         (strcmp(xformAddr, "(2)") == 0) ||
-                         (strcmp(xformAddr, "[2]") == 0))
+                else if ((strcmp(addrStr, ".Z") == 0) ||
+                         (strcmp(addrStr, "(2)") == 0) ||
+                         (strcmp(addrStr, "[2]") == 0))
                 {
                     // Get the keyframe's data and update the rotation
                     tmpZ = keyframe->getData(0);
@@ -98,7 +118,7 @@ void vsCOLLADAChannelGroup::setPathPoint(vsPathMotion *path, int pointIndex,
 
                 // Set the new point on the path motion
                 keyOrn.setAxisAngleRotation(tmpX, tmpY, tmpZ, tmpW);
-                path->setPoint(pointIndex, keyOrn);
+                path->setOrientation(pointIndex, keyOrn);
             }
             else
             {
@@ -110,7 +130,7 @@ void vsCOLLADAChannelGroup::setPathPoint(vsPathMotion *path, int pointIndex,
 
                 // Set the new point on the path motion
                 keyOrn.setAxisAngleRotation(tmpX, tmpY, tmpZ, tmpW);
-                path->setPoint(pointIndex, keyOrn);
+                path->setOrientation(pointIndex, keyOrn);
             }
 
         break;
@@ -118,29 +138,29 @@ void vsCOLLADAChannelGroup::setPathPoint(vsPathMotion *path, int pointIndex,
         case VS_COLLADA_XFORM_TRANSLATE:
 
             // See if there is an address specified for the transform
-            if (strlen(xformAddr) > 0)
+            if (strlen(addrStr) > 0)
             {
                 // Get the base orientation of the transform
                 basePos = xform->getPosition();
 
                 // See which part of the translation we're changing
-                if ((strcmp(xformAddr, ".X") == 0) ||
-                    (strcmp(xformAddr, "(0)") == 0) ||
-                    (strcmp(xformAddr, "[0]") == 0))
+                if ((strcmp(addrStr, ".X") == 0) ||
+                    (strcmp(addrStr, "(0)") == 0) ||
+                    (strcmp(addrStr, "[0]") == 0))
                 {
                     // Get the keyframe's data and update the rotation
                     tmpX = keyframe->getData(0);
                 }
-                else if ((strcmp(xformAddr, ".Y") == 0) ||
-                         (strcmp(xformAddr, "(1)") == 0) ||
-                         (strcmp(xformAddr, "[1]") == 0))
+                else if ((strcmp(addrStr, ".Y") == 0) ||
+                         (strcmp(addrStr, "(1)") == 0) ||
+                         (strcmp(addrStr, "[1]") == 0))
                 {
                     // Get the keyframe's data and update the rotation
                     tmpY = keyframe->getData(0);
                 }
-                else if ((strcmp(xformAddr, ".Z") == 0) ||
-                         (strcmp(xformAddr, "(2)") == 0) ||
-                         (strcmp(xformAddr, "[2]") == 0))
+                else if ((strcmp(addrStr, ".Z") == 0) ||
+                         (strcmp(addrStr, "(2)") == 0) ||
+                         (strcmp(addrStr, "[2]") == 0))
                 {
                     // Get the keyframe's data and update the rotation
                     tmpZ = keyframe->getData(0);
@@ -148,7 +168,7 @@ void vsCOLLADAChannelGroup::setPathPoint(vsPathMotion *path, int pointIndex,
 
                 // Set the new point on the path motion
                 keyPos.set(tmpX, tmpY, tmpZ);
-                path->setPoint(pointIndex, keyPos);
+                path->setPosition(pointIndex, keyPos);
             }
             else
             {
@@ -159,7 +179,7 @@ void vsCOLLADAChannelGroup::setPathPoint(vsPathMotion *path, int pointIndex,
 
                 // Set the new point on the path motion
                 keyPos.set(tmpX, tmpY, tmpZ, tmpW);
-                path->setPoint(pointIndex, keyPos);
+                path->setPosition(pointIndex, keyPos);
             }
 
         break;
@@ -167,15 +187,36 @@ void vsCOLLADAChannelGroup::setPathPoint(vsPathMotion *path, int pointIndex,
         case VS_COLLADA_XFORM_MATRIX:
 
             // See if there is an address specified for the transform
-            if (strlen(xformAddr) > 0)
+            if (strlen(addrStr) > 0)
             {
+                // Get the transform's matrix
+                keyMat = xform->getMatrix();
+
+                // JPD:  I'm making the assumption that both indices are
+                // specified, so that only one element of the matrix
+                // is changed.  The spec isn't clear about this so we
+                // might have to revisit this at some point
+                strcpy(addrTokens, addrStr);
+                i = atoi(strtok(addrTokens, "()"));
+                j = atoi(strtok(NULL, "()"));
+
+                // Update the matrix with the channel data
+                keyMat[j][i] = keyframe->getData(0);
+
+                // Get the position and orientation from the new matrix
+                keyPos = keyMat.getTranslation();
+                keyOrn.setMatrixRotation(keyMat);
+
+                // Set the new point on the path motion
+                path->setPosition(pointIndex, keyPos);
+                path->setOrientation(pointIndex, keyOrn);
             }
             else
             {
                 // Get the keyframe data
                 for (i = 0; i < 4; i++)
                     for (j = 0; j < 4; j++)
-                        keyMat[i][j] = keyframe->getData(i*4 + j)
+                        keyMat[i][j] = keyframe->getData(i*4 + j);
 
                 // Get the position and orientation from the new matrix
                 keyPos = keyMat.getTranslation();
@@ -211,25 +252,41 @@ void vsCOLLADAChannelGroup::addChannel(vsCOLLADAChannel *channel)
     }
 }
 
-vsPathMotion *vsCOLLADAChannelGroup::instance()
+int vsCOLLADAChannelGroup::getNumChannels()
 {
-    vsKinematics  *kin;
+    return channels->getNumEntries();
+}
+
+vsCOLLADAChannel *vsCOLLADAChannelGroup::getChannel(int index)
+{
+    return (vsCOLLADAChannel *)channels->getNthEntry(index);
+}
+
+// ------------------------------------------------------------------------
+// Create a vsPathMotion from the animation channel(s) attached to the
+// target node.  The provided kinematics should be attached to the same
+// node as this channel group's target node.  We allow the kinematics
+// to be created externally, as it makes the creation of skeletal
+// animation objects easier
+// ------------------------------------------------------------------------
+vsPathMotion *vsCOLLADAChannelGroup::instance(vsKinematics *kin)
+{
     vsPathMotion *pathMotion;
     int numChannels;
     vsCOLLADAChannel *channel;
     double currentTime;
     double *nextTimes;
     double minTime;
-    char *xformSID;
+    char xformSID[512];
     char *ch;
     char baseTarget[256];
-    char targetAddr[64];
+    char sidAddr[64];
     vsCOLLADATransform *targetXform;
+    vsCOLLADAKeyframe *keyframe;
+    vsCOLLADAKeyframe *lastKeyframe;
+    int pointIndex;
 
-    // Create a kinematics object for the target node
-    kin = new vsKinematics(targetNode);
-
-    // Create a path motion model using the kinematics
+    // Create a path motion model using the provided kinematics
     pathMotion = new vsPathMotion(kin);
 
     // Get the number of channels in the list
@@ -242,8 +299,15 @@ vsPathMotion *vsCOLLADAChannelGroup::instance()
     // If there is only one channel, we can take a shortcut
     if (numChannels == 1)
     {
+        // Get the channel
+        channel = (vsCOLLADAChannel *)channels->getFirstEntry();
+
+        // Set the interpolation parameters
+        pathMotion->setPositionMode(channel->getPositionInterpMode());
+        pathMotion->setOrientationMode(channel->getOrientationInterpMode());
+
         // Get the full scoped ID of the transform we're targeting
-        xformSID = channel->getTargetXformSID().getString();
+        strcpy(xformSID, channel->getTargetXformSID().getString());
 
         // Strip off any addressing stuff at the end (".ANGLE" or "(3)" for
         // example)
@@ -254,7 +318,7 @@ vsPathMotion *vsCOLLADAChannelGroup::instance()
             strncpy(baseTarget, xformSID, ch - xformSID - 1);
 
             // Copy the address
-            strcpy(targetAddr, ch);
+            strcpy(sidAddr, ch);
         }
         else
         {
@@ -273,7 +337,7 @@ vsPathMotion *vsCOLLADAChannelGroup::instance()
             // Return the empty path motion
             return pathMotion;
         }
-        
+
         // In order for us to animate it, the transform must be a translate,
         // rotate, or matrix (we can't animate scales or skews with a
         // vsPathMotion, and vsPathMotion doesn't provide for animated
@@ -286,30 +350,35 @@ vsPathMotion *vsCOLLADAChannelGroup::instance()
             return pathMotion;
         }
         
-        // Get the channel
-        channel = (vsCOLLADAChannel *)channels->getFirstEntry();
-
         // Set up the path motion with the channel's keyframes
         pathMotion->setPointListSize(channel->getNumKeyframes());
 
-        // Iterate over the channel's keyframes
+        // Iterate over the channel's keyframes, but keep track of the
+        // previous keyframe as we traverse the list
+        lastKeyframe = NULL;
         keyframe = channel->getFirstKeyframe();
         pointIndex = 0;
         while (keyframe != NULL)
         {
             // Set the appropriate path point from the channel's keyframe
             // data
-            setPathPoint(pointIndex, transform, keyframe);
+            setPathPoint(pathMotion, pointIndex, targetXform,
+                sidAddr, keyframe, lastKeyframe);
 
+            // Increment the point index
+            pointIndex++;
+ 
             // Get the next keyframe
+            lastKeyframe = keyframe;
             keyframe = channel->getNextKeyframe();
         }
+
+        // Return the path motion
+        return pathMotion;
     }
 
-    // Create an array of time values to keep track of where we are
-    // in each channel
-    
-
-    return new vsPathMotion(kin);
+    // TODO:  Multiple channels on the same target node aren't supported yet
+    //        Just return the empty path motion for now
+    return pathMotion;
 }
 

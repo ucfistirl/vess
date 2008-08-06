@@ -6,6 +6,7 @@
 #include "vsCOLLADAChannel.h++"
 #include "vsCOLLADANode.h++"
 #include "vsPathMotion.h++"
+#include "vsKinematics.h++"
 #include "atList.h++"
 #include "atString.h++"
 
@@ -17,6 +18,11 @@ protected:
     atList           *channels;
     vsCOLLADANode    *targetNode;
 
+    void             setPathPoint(vsPathMotion *path, int pointIndex,
+                                  vsCOLLADATransform *xform, atString xformAddr,
+                                  vsCOLLADAKeyframe *keyframe,
+                                  vsCOLLADAKeyframe *lastKeyframe);
+
 public:
 
                           vsCOLLADAChannelGroup(vsCOLLADANode *target);
@@ -27,8 +33,10 @@ public:
     atString              getTargetNodeID();
 
     void                  addChannel(vsCOLLADAChannel *channel);
+    int                   getNumChannels();
+    vsCOLLADAChannel      *getChannel(int index);
 
-    vsPathMotion          *instance();
+    vsPathMotion          *instance(vsKinematics *kin);
 };
 
 #endif 
