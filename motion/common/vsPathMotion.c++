@@ -1911,6 +1911,14 @@ vsPathMotionSegment *vsPathMotion::getSegmentData(int idx)
 }
 
 //------------------------------------------------------------------------
+// Return the vsKinematics controlled by this path motion
+//------------------------------------------------------------------------
+vsKinematics *vsPathMotion::getKinematics()
+{
+    return objectKin;
+}
+
+//------------------------------------------------------------------------
 // A function to change the kinematics object that this path motion holds.
 //------------------------------------------------------------------------
 void vsPathMotion::setKinematics(vsKinematics *newKin)

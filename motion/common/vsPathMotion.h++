@@ -187,6 +187,7 @@ public:
     atVector              getCurrentPosition();
     atQuat                getCurrentOrientation();
 
+    vsKinematics          *getKinematics();
     void                  setKinematics(vsKinematics *newKin);
 };
 
