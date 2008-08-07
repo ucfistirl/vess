@@ -65,6 +65,9 @@ vsCOLLADALoader::vsCOLLADALoader()
 
     // Default the units scalar to 1.0
     unitScale = 1.0;
+
+    // Initialize the counter for the unnamed ID generator
+    unnamedCount = 0;
 }
 
 // ------------------------------------------------------------------------
