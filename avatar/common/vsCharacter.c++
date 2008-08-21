@@ -1028,8 +1028,8 @@ vsPathMotionManager *vsCharacter::getAnimation(atString name)
            (!currentName->equals(&name)))
     {
         // Try the next one
-        currentName = (atString *)characterAnimationNames->getEntry(index);
         index++;
+        currentName = (atString *)characterAnimationNames->getEntry(index);
     }
 
     // See if we found what we were looking for
@@ -1161,8 +1161,8 @@ void vsCharacter::switchAnimation(atString name)
            (!currentName->equals(&name)))
     {
         // Try the next one
-        currentName = (atString *)characterAnimationNames->getEntry(index);
         index++;
+        currentName = (atString *)characterAnimationNames->getEntry(index);
     }
 
     // See if we found what we were looking for
