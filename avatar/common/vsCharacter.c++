@@ -1090,6 +1090,20 @@ void vsCharacter::switchAnimation(int index)
         currentAnimation->stop();
         currentAnimation->startResume();
     }
+
+/*
+      JPD:
+      COLLADA skeletons seem to be set up in the document's scene graph (as
+      opposed to CAL 3D skeletons, which have an independent set of bone
+      transforms, while the scene transforms start out as identity).  Because
+      of this, we don't have a good way of "resetting" the skeleton in a
+      COLLADA file (trying to reset the skeleton kinematics to identity will
+      effectively collapse the skeleton in on itself).
+
+      Instead of resetting the skeleton, we'll just stop the current
+      animation and leave it as is.  I'm leaving the code behind in case
+      a solution presents itself someday.
+
     else
     {
         // A negative index means the default pose (all bones in the skeleton
@@ -1097,8 +1111,7 @@ void vsCharacter::switchAnimation(int index)
         kin = (vsSkeletonKinematics *)skeletonKinematics->getFirstEntry();
         while (kin != NULL)
         {
-            // JPD: COLLADA skeletons don't always start with identity matrices
-            //kin->reset();
+            kin->reset();
             kin = (vsSkeletonKinematics *)skeletonKinematics->getNextEntry();
         }
 
@@ -1119,6 +1132,7 @@ void vsCharacter::switchAnimation(int index)
             skin = (vsSkin *)characterSkins->getNextEntry();
         }
     }
+*/
 }
 
 // ------------------------------------------------------------------------
