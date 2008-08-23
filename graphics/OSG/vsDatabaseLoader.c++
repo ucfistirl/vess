@@ -38,6 +38,9 @@
 #include "vsShadingAttribute.h++"
 #include "vsDecalAttribute.h++"
 #include "vsOptimizer.h++"
+#include "atList.h++"
+#include "atString.h++"
+#include "atStringTokenizer.h++"
 #include <osgDB/Registry>
 #include <osgDB/ReadFile>
 #include <osgDB/WriteFile>
@@ -231,6 +234,44 @@ void vsDatabaseLoader::clearPath()
 const char *vsDatabaseLoader::getPath()
 {
     return loaderFilePath;
+}
+
+// ------------------------------------------------------------------------
+// Returns the current directory search path as a list of individual paths
+// ------------------------------------------------------------------------
+atList *vsDatabaseLoader::getPathList()
+{
+   atList *pathList;
+   atString pathStr;
+   atStringTokenizer *pathTokens;
+   atString *pathElement;
+   
+   // Create the list we'll use to return the paths
+   pathList = new atList();
+   
+   // Duplicate the loader's path string (we're going to mangle it with
+   // strtok, so we don't want to mess up the original)
+   pathStr = atString(loaderFilePath);
+
+   // Create a tokenizer for the path
+   pathTokens = new atStringTokenizer(pathStr);
+
+   // Parse the individual path elements and add them to the list
+   pathElement = pathTokens->getToken(";:");
+   while (pathElement != NULL)
+   {
+       // Add the path to the list
+       pathList->addEntry(pathElement);
+
+       // Get the next path
+       pathElement = pathTokens->getToken(";:");
+   }
+
+   // Clean up the tokenizer
+   delete pathTokens;
+
+   // Return the list
+   return pathList;
 }
 
 // ------------------------------------------------------------------------

@@ -26,6 +26,7 @@
 #include "vsComponent.h++"
 #include "vsGeometry.h++"
 #include "vsGrowableArray.h++"
+#include "atList.h++"
 
 #define VS_DATABASE_MODE_NAME_XFORM      0x01
 #define VS_DATABASE_MODE_NAME_ALL        0x02
@@ -91,6 +92,7 @@ public:
     void               addPath(char *filePath);
     void               clearPath();
     const char         *getPath();
+    atList             *getPathList();
 
     void               setLoaderMode(int whichMode, bool modeVal);
     bool               getLoaderMode(int whichMode);
