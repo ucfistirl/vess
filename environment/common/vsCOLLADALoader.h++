@@ -26,6 +26,8 @@ protected:
 
     atList         *pathList;
 
+    atString       documentPath;
+
     vsComponent    *sceneRoot;
     vsCharacter    *sceneCharacter;
 

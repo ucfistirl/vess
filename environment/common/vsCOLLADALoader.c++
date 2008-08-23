@@ -2972,10 +2972,6 @@ void vsCOLLADALoader::buildAnimations(atList *skeletonList,
         channelGroup = (vsCOLLADAChannelGroup *)groupList->getFirstEntry();
         while (targetNode != NULL)
         {
-            printf("Target node %s has %d channel(s) attached\n",
-                targetNode->getID().getString(),
-                channelGroup->getNumChannels());
-
             // Find the kinematics corresponding to this target node
             kin = NULL;
             skeleton = (vsSkeleton *)skeletonList->getFirstEntry();
@@ -3382,6 +3378,8 @@ void vsCOLLADALoader::parseFile(const char *filename)
     atXMLDocument *doc;
     atXMLDocumentNodePtr rootNode;
     atXMLDocumentNodePtr current;
+    char basePath[256];
+    char *ptr;
 
     // Find the full path to the requested file
     path = findFile(filename);
@@ -3393,6 +3391,31 @@ void vsCOLLADALoader::parseFile(const char *filename)
             filename);
 
         return;
+    }
+
+    // Store the base path of the file (we'll use this as an extra path to
+    // look up images and other supporting files)
+    strcpy(basePath, filename);
+    ptr = strrchr(basePath, '/');
+    if (ptr == NULL)
+    {
+        // Try looking for a backslash instead
+        ptr = strrchr(basePath, '\\');
+    }
+
+    // If we didn't find a path element separator, the document must be
+    // in the current directory
+    if (ptr == NULL)
+        documentPath.setString(".");
+    else
+    {
+        // Terminate the base path at the final separator
+        *ptr = 0;
+        documentPath.setString(basePath);
+
+        // Add the document's own path to the list of paths that we'll
+        // search
+        addPath(documentPath.getString());
     }
 
     // Create an XML reader for the given file
@@ -3576,21 +3599,22 @@ void vsCOLLADALoader::parseFile(const char *filename)
 }
 
 // ------------------------------------------------------------------------
-// Returns the scene that was created by parsing the <scene> tag in the
-// document (if any)
+// Returns a clone of the scene that was created by parsing the <scene> tag
+// in the document (if any), minus the scene elements corresponding to the
+// character (if any)
 // ------------------------------------------------------------------------
 vsComponent *vsCOLLADALoader::getScene()
 {
     // Return the scene created in this document
     if (sceneRoot != NULL)
-        return sceneRoot;
+        return (vsComponent *)sceneRoot->cloneTree();
     else
         return NULL;
 }
 
 // ------------------------------------------------------------------------
-// Returns the character we found in the scene (if any).  For now, we
-// assume there is only one
+// Returns a clone of the character we found in the scene (if any).  For
+// now, we assume there is only one character instanced in the scene
 // ------------------------------------------------------------------------
 vsCharacter *vsCOLLADALoader::getCharacter()
 {
