@@ -335,6 +335,9 @@ vsPathMotion *vsCOLLADAChannelGroup::instance(vsKinematics *kin)
         if (targetXform == NULL)
         {
             // Return the empty path motion
+            printf("vsCOLLADAChannelGroup::instance:\n");
+            printf("    Target transform '%s' not found on node '%s'!\n",
+                baseTarget, targetNode->getID().getString());
             return pathMotion;
         }
 
@@ -347,6 +350,10 @@ vsPathMotion *vsCOLLADAChannelGroup::instance(vsKinematics *kin)
             (targetXform->getType() == VS_COLLADA_XFORM_SCALE))
         {
             // Return the empty path motion
+            printf("vsCOLLADAChannelGroup::instance:\n");
+            printf("    Target transform '%s' on node '%s' is an\n",
+                baseTarget, targetNode->getID().getString());
+            printf("    unsupported transform type\n");
             return pathMotion;
         }
         
@@ -377,8 +384,10 @@ vsPathMotion *vsCOLLADAChannelGroup::instance(vsKinematics *kin)
         return pathMotion;
     }
 
-    // TODO:  Multiple channels on the same target node aren't supported yet
-    //        Just return the empty path motion for now
+// TODO:  Multiple channels on the same target node aren't supported yet
+//        Just return the empty path motion for now
+printf("(Node '%s') multiple animation channels not yet supported\n",
+   targetNode->getID().getString());
     return pathMotion;
 }
 
