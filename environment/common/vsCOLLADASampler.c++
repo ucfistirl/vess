@@ -178,7 +178,7 @@ bool vsCOLLADASampler::processSamplerInput(vsCOLLADADataSource *source)
                     // Only print this error message once
                     if (validInput)
                     {
-                        printf("vsCOLLADAAnimation::processSampler:"
+                        printf("vsCOLLADASampler::processSamplerInput:"
                             "  Negative time in animation input\n");
 
                         // Mark that we don't have valid input
@@ -199,14 +199,14 @@ bool vsCOLLADASampler::processSamplerInput(vsCOLLADADataSource *source)
         }
         else
         {
-            printf("vsCOLLADAAnimation::processSamplerInput:  "
+            printf("vsCOLLADASampler::processSamplerInput:  "
                 "Animation input must be TIME (int or float)\n");
         }
     }
     else
     {
-        printf("vsCOLLADAAnimation::processSamplerInput:  "
-            "Animation input data missing");
+        printf("vsCOLLADASampler::processSamplerInput:  "
+            "Animation input data missing\n");
     }
 
     // Return whether or not we got valid input
@@ -294,7 +294,7 @@ bool vsCOLLADASampler::processSamplerOutput(vsCOLLADADataSource *source)
                 default:
 
                     // The data format isn't valid for animation output
-                    printf("vsCOLLADAAnimation::processSamplerOutput: "
+                    printf("vsCOLLADASampler::processSamplerOutput: "
                         "  Invalid output data format\n");
 
                     // Mark the output data as invalid
@@ -321,8 +321,8 @@ bool vsCOLLADASampler::processSamplerOutput(vsCOLLADADataSource *source)
     }
     else
     {
-        printf("vsCOLLADAAnimation::processSampler:  ",
-            "Animation output data missing");
+        printf("vsCOLLADASampler::processSampler:  ",
+            "Animation output data missing\n");
     }
 
     // Return whether or not we have valid output
@@ -400,7 +400,7 @@ bool vsCOLLADASampler::processSamplerInterpolation(vsCOLLADADataSource *source)
         else
         {
             // This is an invalid interpolation mode
-            printf("vsCOLLADAAnimation::processSamplerInterpolation:\n");
+            printf("vsCOLLADASampler::processSamplerInterpolation:\n");
             printf("  Invalid interpolation mode (%s)\n", mode.getString());
             validInterpolation = false;
         }
