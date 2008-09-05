@@ -1916,10 +1916,8 @@ void vsCOLLADALoader::processInstanceMaterial(atXMLDocument *doc,
                     while (tex != NULL)
                     {
                         // Find a viable texture unit for this texture,
-                        // start with the input data set
-                        unit = set;
                         // start with the first texture unit (unit 0)
-                        //unit = 0;
+                        unit = 0;
 
                         // Keep searching until we find an unused texture unit
                         while ((unitsUsed[unit]) && 
