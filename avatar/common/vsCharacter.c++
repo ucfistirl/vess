@@ -115,8 +115,15 @@ vsCharacter::vsCharacter(vsSkeleton *skeleton, vsSkeletonKinematics *skelKin,
         animation->ref();
     }
    
-    // Initialize the current animation to NULL
+    // Initialize the animation state
     currentAnimation = NULL;
+    defaultAnimation = NULL;
+    loopingAnimation = NULL;
+    loopStarted = false;
+    oneTimeAnimation = NULL;
+    oneTimeStarted = false;
+    finalStarted = false;
+    transitionAnimation = NULL;
 
     // Set the flag to indicate whether or not the character is valid
     if ((characterSkeletons->getNumEntries() > 0) &&
@@ -292,8 +299,15 @@ vsCharacter::vsCharacter(atList *skeletons, atList *skelKins,
         animation->ref();
     }
    
-    // Initialize the current animation to NULL
+    // Initialize the animation state
     currentAnimation = NULL;
+    defaultAnimation = NULL;
+    loopingAnimation = NULL;
+    loopStarted = false;
+    oneTimeAnimation = NULL;
+    oneTimeStarted = false;
+    finalStarted = false;
+    transitionAnimation = NULL;
 
     // Set the flag to indicate whether or not the character is valid
     if ((characterSkeletons->getNumEntries() > 0) &&
@@ -599,6 +613,152 @@ vsGLSLProgramAttribute *vsCharacter::createDefaultSkinProgram()
 
     // Return the new program
     return program;
+}
+
+// ------------------------------------------------------------------------
+// Create a transition animation from the 
+// ------------------------------------------------------------------------
+void vsCharacter::transitionToAnimation(vsPathMotionManager *target,
+                                        double transitionTime)
+{
+    vsPathMotion *          transPath;
+    vsPathMotion *          sourcePath;
+    vsPathMotion *          targetPath;
+    int                     index;
+
+    // If the target animation is NULL, do nothing
+    if (target == NULL)
+    {
+        printf("vsCharacter::transitionToAnimation:  "
+            "NULL animation specified!\n");
+        return;
+    }
+
+    // If the current animation is NULL, start the target animation
+    // immediately
+    if (currentAnimation == NULL)
+    {
+        // Nothing to start from, so just activate the final animation
+        // now
+        currentAnimation = target;
+
+        // Configure the target animation based on state
+        if (oneTimeStarted)
+        {
+            // One-time and final animations play once from start to end
+            currentAnimation->setCycleMode(VS_PATH_CYCLE_RESTART);
+            currentAnimation->setCycleCount(1);
+        }
+        else
+        {
+            // Default and looping animations loop forever
+            currentAnimation->setCycleMode(VS_PATH_CYCLE_CLOSED_LOOP);
+            currentAnimation->setCycleCount(VS_PATH_CYCLE_FOREVER);
+        }
+
+        // Start the new animation
+        currentAnimation->stop();
+        currentAnimation->startResume();
+
+        return;
+    }
+
+    // Create the vsPathMotionManager representing the transition animation
+    transitionAnimation = new vsPathMotionManager();
+
+    // Loop through the path motions until we've hit the end of one of the
+    // managers
+    index = 0;
+    while (index < currentAnimation->getPathMotionCount() &&
+           index < target->getPathMotionCount())
+    {
+        // Get the two corresponding path motions from the managers
+        sourcePath = currentAnimation->getPathMotion(index);
+        targetPath = target->getPathMotion(index);
+
+        // Create a new path motion using the same kinematics as one of the
+        // other path motions
+        transPath = new vsPathMotion(sourcePath->getKinematics());
+
+        // There are two points in this path motion - the current position of
+        // the current animation, and the starting position of the target
+        // animation
+        transPath->setPointListSize(2);
+
+        // Set the position/orientation data for the first point
+        transPath->setPosition(0, sourcePath->getCurrentPosition());
+        transPath->setOrientation(0, sourcePath->getCurrentOrientation());
+
+        // Get the path to the end of this animation. As we are going forwards,
+        // the second point should be the beginning of the new animation.
+        transPath->setPosition(1, targetPath->getPosition(0));
+        transPath->setOrientation(1, targetPath->getOrientation(0));
+
+        // Set the time to be equal to our #define'd transition time
+        transPath->setTime(0, transitionTime);
+
+        // Use linear interpolation for the transition
+        transPath->setPositionMode(VS_PATH_POS_IMODE_LINEAR);
+        transPath->setOrientationMode(VS_PATH_ORI_IMODE_SLERP);
+
+        // Add this path motion (corresponding only to a single bone in the
+        // skeleton) to the overall animation
+        transitionAnimation->addPathMotion(transPath);
+
+        // Next bone
+        index++;
+    }
+
+    // Stop the current animation
+    currentAnimation->stop();
+
+    // Set the transition path's properties and start it up.
+    transitionAnimation->setCycleMode(VS_PATH_CYCLE_RESTART);
+    transitionAnimation->setCycleCount(1);
+    transitionAnimation->stop();
+    transitionAnimation->startResume();
+    currentAnimation = transitionAnimation;
+    transitioning = true;
+}
+
+// ------------------------------------------------------------------------
+// After an animation transition is complete, this method cleans up the
+// transition animation and figures out which animation to start playing
+// next
+// ------------------------------------------------------------------------
+void vsCharacter::finishTransition()
+{
+    // Check the animation state to see what animation to play next
+    if (oneTimeStarted)
+    {
+        // Make the one-time animation current
+        currentAnimation = oneTimeAnimation;
+    }
+    else if (loopStarted)
+    {
+        // Make the looping animation current
+        currentAnimation = loopingAnimation;
+    }
+    else
+    {
+        // Make the default animation current
+        currentAnimation = defaultAnimation;
+    }
+
+    // Start the new animation
+    currentAnimation->stop();
+    currentAnimation->startResume();
+
+    // Make sure we actually have a transition to finish
+    if (transitionAnimation != NULL)
+    {
+        // Delete the transition animation
+        delete transitionAnimation;
+        transitionAnimation = NULL;
+    }
+
+    // Mark that we're not transitioning
+    transitioning = false;
 }
 
 // --------------------------------------------------------------------------
@@ -1060,35 +1220,26 @@ vsPathMotionManager *vsCharacter::getAnimation(int index)
 // ------------------------------------------------------------------------
 void vsCharacter::switchAnimation(int index)
 {
-    vsSkeleton *skeleton;
-    vsSkeletonKinematics *kin;
-    vsSkin *skin;
+    vsPathMotionManager *newAnimation;
 
     // Don't do anything if the character isn't valid
     if (!validFlag)
         return;
 
-    // Deactivate the previous animation
-    if (currentAnimation != NULL)
-         currentAnimation->stop();
-
-    // Set the new animation (if the index is negative, this indicates we
-    // should return to the default pose)
-    if (index >= 0)
-        currentAnimation = (vsPathMotionManager *)
-            characterAnimations->getEntry(index);
-    else
-        currentAnimation = NULL;
+    // Get the new animation
+    newAnimation = getAnimation(index);
 
     // Make sure the new animation is valid (if not, we just won't animate
     // the character until we're switched back to a valid one)
-    if (currentAnimation != NULL)
+    if (newAnimation != NULL)
     {
-        // Activate the animation
-        currentAnimation->setCycleMode(VS_PATH_CYCLE_CLOSED_LOOP);
-        currentAnimation->setCycleCount(VS_PATH_CYCLE_FOREVER);
-        currentAnimation->stop();
-        currentAnimation->startResume();
+        // Set the new animation as the default animation
+        defaultAnimation = newAnimation;
+        defaultAnimation->setCycleMode(VS_PATH_CYCLE_CLOSED_LOOP);
+        defaultAnimation->setCycleCount(VS_PATH_CYCLE_FOREVER);
+
+        // Cancel any other animations and start the (new) default animation
+        restartAnimation();
     }
 
 /*
@@ -1103,6 +1254,10 @@ void vsCharacter::switchAnimation(int index)
       Instead of resetting the skeleton, we'll just stop the current
       animation and leave it as is.  I'm leaving the code behind in case
       a solution presents itself someday.
+
+    vsSkeleton *skeleton;
+    vsSkeletonKinematics *kin;
+    vsSkin *skin;
 
     else
     {
@@ -1140,36 +1295,26 @@ void vsCharacter::switchAnimation(int index)
 // ------------------------------------------------------------------------
 void vsCharacter::switchAnimation(atString name)
 {
-    atString * currentName;
-    u_long index;
+    vsPathMotionManager *newAnimation;
 
-    // Special case: if the name is "DefaultPose", switch to the default
-    // skeleton pose (by switching to animation number -1)
-    if (strcmp(name.getString(), "DefaultPose") == 0)
-    {
-        // Switch to the default pose using the other switchAnimation method
-        switchAnimation(-1);
-
-        // Nothing more to do
+    // Don't do anything if the character isn't valid
+    if (!validFlag)
         return;
-    }
 
-    // Find the animation with the given name in the list
-    index = 0;
-    currentName = (atString *)characterAnimationNames->getEntry(index);
-    while ((index < characterAnimationNames->getNumEntries()) &&
-           (!currentName->equals(&name)))
-    {
-        // Try the next one
-        index++;
-        currentName = (atString *)characterAnimationNames->getEntry(index);
-    }
+    // Get the new animation
+    newAnimation = getAnimation(name);
 
-    // See if we found what we were looking for
-    if (index < characterAnimationNames->getNumEntries())
+    // Make sure the new animation is valid (if not, we just won't animate
+    // the character until we're switched back to a valid one)
+    if (newAnimation != NULL)
     {
-        // Activate the given animation
-        switchAnimation(index);
+        // Set the new animation as the default animation
+        defaultAnimation = newAnimation;
+        defaultAnimation->setCycleMode(VS_PATH_CYCLE_CLOSED_LOOP);
+        defaultAnimation->setCycleCount(VS_PATH_CYCLE_FOREVER);
+
+        // Cancel any other animations, and start the (new) default animation
+        restartAnimation();
     }
     else
     {
@@ -1181,8 +1326,7 @@ void vsCharacter::switchAnimation(atString name)
 
 // ------------------------------------------------------------------------
 // Sets the currently active animation to the given animation.  This
-// allows for temporary or transitional animations to be specified by
-// the user
+// allows for temporary animations to be specified by the user
 // ------------------------------------------------------------------------
 void vsCharacter::setCurrentAnimation(vsPathMotionManager *anim)
 {
@@ -1211,33 +1355,214 @@ void vsCharacter::setCurrentAnimation(vsPathMotionManager *anim)
         currentAnimation->stop();
         currentAnimation->startResume();
     }
+}
+
+// ------------------------------------------------------------------------
+// Sets the animation that will play if no other animation is specified.
+// If the default animation is currently playing, it will transition to
+// the specified animation
+// ------------------------------------------------------------------------
+void vsCharacter::setDefaultAnimation(atString name, double transitionTime)
+{
+    vsPathMotionManager *defaultAnim;
+
+    // Look up the requested animation
+    defaultAnim = getAnimation(name);
+    if (defaultAnim == NULL)
+    {
+        // We didn't find the requested animation
+        printf("vsCharacter::setDefaultAnimation:  Animation %s not found\n",
+            name.getString());
+    }
     else
     {
-        // A negative index means the default pose (all bones in the skeleton
-        // set to identity), first reset the kinematics
-        kin = (vsSkeletonKinematics *)skeletonKinematics->getFirstEntry();
-        while (kin != NULL)
+        // If we're currently playing the default animation, transition
+        // to the new one now
+        if (!loopStarted && !oneTimeStarted)
+            transitionToAnimation(defaultAnim, transitionTime);
+
+        // Set the new default animation
+        defaultAnimation = defaultAnim;
+        defaultAnimation->setCycleMode(VS_PATH_CYCLE_CLOSED_LOOP);
+        defaultAnimation->setCycleCount(VS_PATH_CYCLE_FOREVER);
+    }
+}
+
+// ------------------------------------------------------------------------
+// Transitions from the current animation to the specified animation.  The
+// given animation will loop endlessly until finishLoopingAnimation() is
+// called or another animation is selected
+// ------------------------------------------------------------------------
+void vsCharacter::startLoopingAnimation(atString name, double transitionTime)
+{
+    vsPathMotionManager *newLoop;
+
+    // Look up the new animation
+    newLoop = getAnimation(name);
+    if (newLoop == NULL)
+    {
+        // We didn't find the requested animation
+        printf("vsCharacter::startLoopingAnimation:  Animation %s not found\n",
+            name.getString());
+    }
+    else
+    {
+        // If we're currently playing the default animation or another looping
+        // animation (not a one-time animation), transition to the new
+        // looping animation now
+        if (!oneTimeStarted)
+            transitionToAnimation(newLoop, transitionTime);
+
+        // Set the new looping animation
+        loopingAnimation = newLoop;
+        loopingAnimation->setCycleMode(VS_PATH_CYCLE_CLOSED_LOOP);
+        loopingAnimation->setCycleCount(VS_PATH_CYCLE_FOREVER);
+        loopStarted = true;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Transitions from the current looping animation back to the default
+// animation.  If a one-time animation has been started, this will simply
+// clear the current looping animation so that the one-time animation will
+// transition back to the default animation instead
+// ------------------------------------------------------------------------
+void vsCharacter::finishLoopingAnimation(double transitionTime)
+{
+    // First, make sure we're actually running a looping animation
+    if ((loopingAnimation != NULL) && (loopStarted))
+    {
+        // See if there is a one-time animation playing now
+        if (!oneTimeStarted)
         {
-            kin->reset();
-            kin = (vsSkeletonKinematics *)skeletonKinematics->getNextEntry();
+            // See if there is a default animation to transition to
+            if (defaultAnimation != NULL)
+            {
+                // Transition to the default animation
+                transitionToAnimation(defaultAnimation, transitionTime);
+            }
+            else
+            {
+                // Just stop the current animation
+                currentAnimation->stop();
+            }
         }
 
-        // Next, update the skeletons
-        skeleton = (vsSkeleton *)characterSkeletons->getFirstEntry();
-        while (kin != NULL)
-        {
-            skeleton->update();
-            skeleton = (vsSkeleton *)characterSkeletons->getNextEntry();
-        }
+        // Remove the looping animation and indicate that it is no longer
+        // running
+        loopingAnimation = NULL;
+        loopStarted = false;
+    }
+    else
+    {
+        // We're not running a looping animation now, so we can't finish it
+        printf("vsCharacter::finishLoopingAnimation:  No looping animation "
+            "currently running.\n");
+    }
+}
 
-        // Finally, update and reset the skins
-        skin = (vsSkin *)characterSkins->getFirstEntry();
-        while (skin != NULL)
+// ------------------------------------------------------------------------
+// Transitions from the default or current looping animation to the
+// specified animation.  The animation will play once, and then transition
+// back to the previous animation (default or looping)
+// ------------------------------------------------------------------------
+void vsCharacter::startOneTimeAnimation(atString name, double transInTime,
+                                        double transOutTime)
+{
+    vsPathMotionManager *oneTime;
+
+    // Find the requested animation
+    oneTime = getAnimation(name);
+    if (oneTime != NULL)
+    {
+        // Make use of the new animation as long as the animation currently
+        // playing isn't a final animation
+        if (!finalStarted)
         {
-            skin->update();
-            skin->reset();
-            skin = (vsSkin *)characterSkins->getNextEntry();
+            // Transition to the new animation
+            transitionToAnimation(oneTime, transInTime);
+
+            // Save the "transition out" time (the amount of time to take
+            // when transitioning back from this one-time animation
+            oneTimeTransOutTime = transOutTime;
+
+            // Set up the animation for one-time play and mark it as started
+            oneTimeAnimation = oneTime;
+            oneTimeAnimation->setCycleMode(VS_PATH_CYCLE_RESTART);
+            oneTimeAnimation->setCycleCount(1);
+            oneTimeStarted = true;
         }
+    }
+    else
+    {
+        // Couldn't find the requested animation
+        printf("vsCharacter::startOneTimeAnimation:  Animation %s not found",
+            name.getString());
+    }
+}
+
+// ------------------------------------------------------------------------
+// Transitions from the current animation to the specified animation.  The
+// animation will play once and then stop (it will not transition to any
+// other animation)
+// ------------------------------------------------------------------------
+void vsCharacter::startFinalAnimation(atString name, double transitionTime)
+{
+    vsPathMotionManager *finalAnim;
+
+    // Make sure we haven't already started a final animation
+    if (!finalStarted)
+    {
+        // Look up the animation
+        finalAnim = getAnimation(name);
+        if ((finalAnim != NULL) && (!finalStarted))
+        {
+            // Transition to the final animation
+            transitionToAnimation(finalAnim, transitionTime);
+
+            // Set up this animation for one-time play and mark it as
+            // started and final
+            oneTimeAnimation = finalAnim;
+            oneTimeAnimation->setCycleMode(VS_PATH_CYCLE_RESTART);
+            oneTimeAnimation->setCycleCount(1);
+            oneTimeStarted = true;
+            finalStarted = true;
+        }
+    }
+}
+
+// ------------------------------------------------------------------------
+// Returns whether or not a final animation has started playing, and no
+// further animations will be played (unless a restart is given)
+// ------------------------------------------------------------------------
+bool vsCharacter::isAnimationFinal()
+{
+    // Return whether or not a final animation has been started
+    return finalStarted;
+}
+
+// ------------------------------------------------------------------------
+// Restarts the default animation and clears any other animations
+// (including the final animation)
+// ------------------------------------------------------------------------
+void vsCharacter::restartAnimation()
+{
+    // Reinitialize all animation state
+    loopingAnimation = NULL;
+    loopStarted = false;
+    oneTimeAnimation = NULL;
+    oneTimeStarted = false;
+    finalStarted = false;
+
+    // Start the default animation
+    currentAnimation = defaultAnimation;
+    if (currentAnimation != NULL)
+    {
+        // Set up the animation to loop forever and start it
+        currentAnimation->setCycleMode(VS_PATH_CYCLE_CLOSED_LOOP);
+        currentAnimation->setCycleCount(VS_PATH_CYCLE_FOREVER);
+        currentAnimation->stop();
+        currentAnimation->startResume();
     }
 }
 
@@ -1358,9 +1683,71 @@ void vsCharacter::update(double deltaTime)
     if (!validFlag)
         return;
 
-    // Update the animation with the time value
+    // Update the animation state
     if (currentAnimation != NULL)
-        currentAnimation->update(deltaTime);
+    {
+        // See if we're currently transitioning between animations
+        if (transitioning)
+        {
+            // Update the transition animation (the current animation is
+            // the transition animation in this case)
+            currentAnimation->update(deltaTime);
+
+            // If the transition is complete, finish it up and move on to
+            // the next animation
+            if (currentAnimation->isDone())
+                finishTransition();
+        }
+
+        // If we're not transitioning (or not _still_ transitioning)
+        // update the current animation.  In the case where we just completed
+        // a transition, we allow this double-update to "prime" the new
+        // animation
+        if (!transitioning)
+        {
+            // Update the current animation
+            currentAnimation->update(deltaTime);
+
+            // See if we need to switch animations
+            if (currentAnimation->isDone())
+            {
+                // See if a one time-animation is playing
+                if (oneTimeStarted)
+                {
+                    // We're done with this one-time animation, so
+                    // clean up the state
+                    oneTimeAnimation = NULL;
+                    oneTimeStarted = false;
+
+                    // See if this is a final animation
+                    if (finalStarted)
+                    {
+                        // No more animations will be applied, set the
+                        // current animation to NULL to avoid unnecessary
+                        // checks on the next update
+                        currentAnimation = NULL;
+                    }
+                    else
+                    {
+                        // We need to transition back to another animation
+                        if (loopStarted)
+                        {
+                            // There is a looping animation defined,
+                            // transition back to that
+                            transitionToAnimation(loopingAnimation,
+                                                  oneTimeTransOutTime);
+                        }
+                        else
+                        {
+                            // Transition back to the default animation
+                            transitionToAnimation(defaultAnimation,
+                                                  oneTimeTransOutTime);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // Update all kinematics and skeletons with the time value
     kin = (vsSkeletonKinematics *)skeletonKinematics->getFirstEntry();

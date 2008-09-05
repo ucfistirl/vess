@@ -56,7 +56,21 @@ protected:
 
     atArray                    *characterAnimationNames;
     atArray                    *characterAnimations;
+
     vsPathMotionManager        *currentAnimation;
+
+    vsPathMotionManager        *defaultAnimation;
+
+    bool                       loopStarted;
+    vsPathMotionManager        *loopingAnimation;
+
+    bool                       oneTimeStarted;
+    double                     oneTimeTransOutTime;
+    vsPathMotionManager        *oneTimeAnimation;
+    bool                       finalStarted;
+
+    bool                       transitioning;
+    vsPathMotionManager        *transitionAnimation;
 
     atList                     *skinProgramList;
 
@@ -65,6 +79,10 @@ protected:
 
     vsComponent                *findLCA(atList *subMeshes);
     vsGLSLProgramAttribute     *createDefaultSkinProgram();
+
+    void                    transitionToAnimation(vsPathMotionManager * target,
+                                                  double transitionTime);
+    void                    finishTransition();
 
 public:
 
@@ -108,6 +126,19 @@ public:
     void                      switchAnimation(int index);
     void                      switchAnimation(atString name);
     void                      setCurrentAnimation(vsPathMotionManager *anim);
+
+    void                      setDefaultAnimation(atString name,
+                                                  double transitionTime);
+    void                      startOneTimeAnimation(atString name,
+                                                    double transInTime,
+                                                    double transOutTime);
+    void                      startLoopingAnimation(atString name,
+                                                    double transitionTime);
+    void                      finishLoopingAnimation(double transitionTime);
+    void                      startFinalAnimation(atString name,
+                                                  double transitionTime);
+    bool                      isAnimationFinal();
+    void                      restartAnimation();
 
     vsGLSLProgramAttribute    *getSkinProgram(vsSkin *skin);
     bool                      setSkinProgram(vsSkin *skin,
