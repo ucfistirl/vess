@@ -2881,7 +2881,8 @@ void vsCOLLADALoader::buildAnimations(atList *skeletonList,
     vsCOLLADAChannelGroup *channelGroup;
     atString targetNodeID;
     vsCOLLADANode *targetNode;
-    atList *nodeList;
+    atString *nodeIDKey;
+    atList *nodeIDList;
     atList *groupList;
     vsSkeleton *skeleton;
     vsCOLLADANode *skeletonRoot;
@@ -2903,7 +2904,12 @@ void vsCOLLADALoader::buildAnimations(atList *skeletonList,
         channelList = new atList();
         addChannelsFromAnimation(channelList, animation);
 
-        // Create a mapping from target node to channel group
+        // Create a mapping from node ID to the channel group that manipulates
+        // that node.  A channel group is simply a set of animation channels
+        // that all target the same node in the scene. The primary reason for
+        // storing these in a map is to ensure that all animations
+        // (vsPathMotionManagers) store their component paths (vsPathMotions)
+        // in the same order.  This makes it easier to deal with them later
         channelGroupMap = new atMap();
 
         // Create a path motion manager to store the set of vsPathMotions
@@ -2937,7 +2943,7 @@ void vsCOLLADALoader::buildAnimations(atList *skeletonList,
             {
                 // Look up the target node's channel group in the map
                 channelGroup = (vsCOLLADAChannelGroup *)
-                    channelGroupMap->getValue(targetNode);
+                    channelGroupMap->getValue(&targetNodeID);
 
                 // If there isn't one, create it
                 if (channelGroup == NULL)
@@ -2949,8 +2955,9 @@ void vsCOLLADALoader::buildAnimations(atList *skeletonList,
                     targetNode->ref();
                     channelGroup->ref();
 
-                    // Add the target node/channel group pair to the map
-                    channelGroupMap->addEntry(targetNode, channelGroup);
+                    // Add the target node ID/channel group pair to the map
+                    nodeIDKey = new atString(targetNodeID);
+                    channelGroupMap->addEntry(nodeIDKey, channelGroup);
                 }
 
                 // Add the channel to the channel group
@@ -2961,15 +2968,20 @@ void vsCOLLADALoader::buildAnimations(atList *skeletonList,
             channel = (vsCOLLADAChannel *)channelList->getNextEntry();
         }
 
-        // Now, iterate over the target nodes in the map and instance
-        // the channel groups (creating vsPathMotion objects) for each one
-        nodeList = new atList();
+        // Now, iterate over the channel groups in the map and instance
+        // create vsPathMotion objects for each one.  We use the target node
+        // ID as a key to ensure a consistent ordering of channel groups
+        // between top-level animations
+        nodeIDList = new atList();
         groupList = new atList();
-        channelGroupMap->getSortedList(nodeList, groupList);
-        targetNode = (vsCOLLADANode *)nodeList->getFirstEntry();
+        channelGroupMap->getSortedList(nodeIDList, groupList);
+        nodeIDKey = (atString *)nodeIDList->getFirstEntry();
         channelGroup = (vsCOLLADAChannelGroup *)groupList->getFirstEntry();
-        while (targetNode != NULL)
+        while (channelGroup != NULL)
         {
+            // Get the target node from the channel
+            targetNode = channelGroup->getTargetNode();
+
             // Find the kinematics corresponding to this target node
             kin = NULL;
             skeleton = (vsSkeleton *)skeletonList->getFirstEntry();
@@ -2996,35 +3008,33 @@ void vsCOLLADALoader::buildAnimations(atList *skeletonList,
                 pathMotion = channelGroup->instance(kin);
                 pathMotionManager->addPathMotion(pathMotion);
             }
-else
-{
-   printf("No kinematics for target node %s\n", targetNode->getID().getString());
-}
 
             // Remove the target node and channel group from the map
             // and lists
-            nodeList->removeCurrentEntry();
+            nodeIDList->removeCurrentEntry();
             groupList->removeCurrentEntry();
-            channelGroupMap->removeEntry(targetNode);
+            channelGroupMap->removeEntry(nodeIDKey);
 
-            // Unref-delete the node and group (the group should get deleted,
-            // but the node should stick around as part of the scene)
-            vsObject::unrefDelete(targetNode);
+            // Delete the node ID string
+            delete nodeIDKey;
+
+            // Unref-delete the channel group
             vsObject::unrefDelete(channelGroup);
 
             // Next node and channel group
-            targetNode = (vsCOLLADANode *)nodeList->getNextEntry();
+            nodeIDKey = (atString *)nodeIDList->getNextEntry();
             channelGroup = (vsCOLLADAChannelGroup *)groupList->getNextEntry();
         }
 
         // Ref-count the new path motion manager and store it in the animation
         // map (using the animation's name as a key).  We'll make use of these
-        // animations when we create the character (if any)
+        // animations if and when we create a character
         pathMotionManager->ref();
         animations->addEntry(new atString(*animationName), pathMotionManager);
 
-        // Clean up the lists and map (they should be empty now)
-        delete nodeList;
+        // Clean up the channel group map and corresponding lists (they should
+        // be empty now)
+        delete nodeIDList;
         delete groupList;
         delete channelGroupMap;
 
