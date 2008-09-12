@@ -30,6 +30,7 @@ public:
 
     virtual const char    *getClassName();
 
+    vsCOLLADANode         *getTargetNode();
     atString              getTargetNodeID();
 
     void                  addChannel(vsCOLLADAChannel *channel);

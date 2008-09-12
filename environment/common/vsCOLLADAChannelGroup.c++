@@ -4,6 +4,10 @@
 #include "vsKinematics.h++"
 
 
+// ------------------------------------------------------------------------
+// Create a COLLADA channel group, representing all of the animation
+// channels that target the given node
+// ------------------------------------------------------------------------
 vsCOLLADAChannelGroup::vsCOLLADAChannelGroup(vsCOLLADANode *target)
 {
     // Store the target node and reference it
@@ -14,6 +18,10 @@ vsCOLLADAChannelGroup::vsCOLLADAChannelGroup(vsCOLLADANode *target)
     channels = new atList();
 }
 
+// ------------------------------------------------------------------------
+// Clean up the channel group, removing all animation channels and
+// unreferencing the target node
+// ------------------------------------------------------------------------
 vsCOLLADAChannelGroup::~vsCOLLADAChannelGroup()
 {
     vsCOLLADAChannel *channel;
@@ -39,7 +47,11 @@ vsCOLLADAChannelGroup::~vsCOLLADAChannelGroup()
     vsObject::unrefDelete(targetNode);
 }
 
-
+// ------------------------------------------------------------------------
+// Private method to set a point on the given path motion object
+// corresponding to the settigns in the given keyframe (with reference to
+// the previous keyframe)
+// ------------------------------------------------------------------------
 void vsCOLLADAChannelGroup::setPathPoint(vsPathMotion *path, int pointIndex,
                                          vsCOLLADATransform *xform,
                                          atString xformAddr,
@@ -231,16 +243,35 @@ void vsCOLLADAChannelGroup::setPathPoint(vsPathMotion *path, int pointIndex,
     }
 }
 
+// ------------------------------------------------------------------------
+// Return the name of this class
+// ------------------------------------------------------------------------
 const char *vsCOLLADAChannelGroup::getClassName()
 {
     return "vsCOLLADAChannelGroup";
 }
 
+
+// ------------------------------------------------------------------------
+// Return the target node (the node that will be animated) for this channel
+// group
+// ------------------------------------------------------------------------
+vsCOLLADANode *vsCOLLADAChannelGroup::getTargetNode()
+{
+    return targetNode;
+}
+
+// ------------------------------------------------------------------------
+// Return the ID of the target node for this channel group
+// ------------------------------------------------------------------------
 atString vsCOLLADAChannelGroup::getTargetNodeID()
 {
     return targetNode->getID();
 }
 
+// ------------------------------------------------------------------------
+// Adds the given animation channel to this channel group
+// ------------------------------------------------------------------------
 void vsCOLLADAChannelGroup::addChannel(vsCOLLADAChannel *channel)
 {
     // Make sure the channel is valid
@@ -252,11 +283,18 @@ void vsCOLLADAChannelGroup::addChannel(vsCOLLADAChannel *channel)
     }
 }
 
+// ------------------------------------------------------------------------
+// Return the number of animation channels in this channel group
+// ------------------------------------------------------------------------
 int vsCOLLADAChannelGroup::getNumChannels()
 {
     return channels->getNumEntries();
 }
 
+// ------------------------------------------------------------------------
+// Return the channel at the given index in the channel group's list of
+// channels
+// ------------------------------------------------------------------------
 vsCOLLADAChannel *vsCOLLADAChannelGroup::getChannel(int index)
 {
     return (vsCOLLADAChannel *)channels->getNthEntry(index);
