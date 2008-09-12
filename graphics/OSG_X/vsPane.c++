@@ -149,7 +149,8 @@ vsPane::vsPane(vsWindow *parent)
     osgSceneView->setLightingMode(osgUtil::SceneView::NO_SCENEVIEW_LIGHT);
 
     // Disable automatic clipping plane calculation
-    osgSceneView->setComputeNearFarMode(osgUtil::CullVisitor::DO_NOT_COMPUTE_NEAR_FAR);
+    osgSceneView->
+        setComputeNearFarMode(osgUtil::CullVisitor::DO_NOT_COMPUTE_NEAR_FAR);
 
     // Create the global OpenGL state settings
     defaultState = new osg::StateSet;
