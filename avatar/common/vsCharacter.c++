@@ -621,10 +621,13 @@ vsGLSLProgramAttribute *vsCharacter::createDefaultSkinProgram()
 void vsCharacter::transitionToAnimation(vsPathMotionManager *target,
                                         double transitionTime)
 {
-    vsPathMotion *          transPath;
-    vsPathMotion *          sourcePath;
-    vsPathMotion *          targetPath;
-    int                     index;
+    vsPathMotion *transPath;
+    vsPathMotion *sourcePath;
+    vsPathMotion *targetPath;
+    int index;
+    int targetIndex;
+    vsKinematics *sourceKin;
+    vsKinematics *targetKin;
 
     // If the target animation is NULL, do nothing
     if (target == NULL)
@@ -672,38 +675,69 @@ void vsCharacter::transitionToAnimation(vsPathMotionManager *target,
     while (index < currentAnimation->getPathMotionCount() &&
            index < target->getPathMotionCount())
     {
-        // Get the two corresponding path motions from the managers
+        // Get the path motion at the index from the source animation
         sourcePath = currentAnimation->getPathMotion(index);
+
+        // Get the source's kinematics
+        sourceKin = sourcePath->getKinematics();
+
+        // See if the target path motion is at the same index as the source
+        // path motion (this is often the case, but we have to check to be
+        // sure)
         targetPath = target->getPathMotion(index);
+        targetKin = targetPath->getKinematics();
+        if (targetKin != sourceKin)
+        {
+            // Search the target animation for the path motion corresponding
+            // to the source path motion (they both should be targeting the
+            // same kinematics object)
+            targetIndex = 0;
+            targetPath = target->getPathMotion(targetIndex);
+            targetKin = targetPath->getKinematics();
+            while ((targetPath != NULL) && (targetKin != sourceKin))
+            {
+                targetIndex++;
+                targetPath = target->getPathMotion(targetIndex);
+                if (targetPath == NULL)
+                    targetKin = NULL;
+                else
+                    targetKin = targetPath->getKinematics();
+            }
+        }
 
-        // Create a new path motion using the same kinematics as one of the
-        // other path motions
-        transPath = new vsPathMotion(sourcePath->getKinematics());
+        // Make sure we found the target kinematics (otherwise, we'll skip
+        // this channel in the transition animation)
+        if (targetKin != NULL)
+        {
+            // Create a new path motion using the same kinematics
+            transPath = new vsPathMotion(sourceKin);
 
-        // There are two points in this path motion - the current position of
-        // the current animation, and the starting position of the target
-        // animation
-        transPath->setPointListSize(2);
+            // There are two points in this path motion - the current position
+            // of the current animation, and the starting position of the
+            // target animation
+            transPath->setPointListSize(2);
 
-        // Set the position/orientation data for the first point
-        transPath->setPosition(0, sourcePath->getCurrentPosition());
-        transPath->setOrientation(0, sourcePath->getCurrentOrientation());
+            // Set the position/orientation data for the first point
+            transPath->setPosition(0, sourcePath->getCurrentPosition());
+            transPath->setOrientation(0, sourcePath->getCurrentOrientation());
 
-        // Get the path to the end of this animation. As we are going forwards,
-        // the second point should be the beginning of the new animation.
-        transPath->setPosition(1, targetPath->getPosition(0));
-        transPath->setOrientation(1, targetPath->getOrientation(0));
+            // Get the path to the end of this animation. As we are going
+            // forward, the second point should be the beginning of the new
+            // animation.
+            transPath->setPosition(1, targetPath->getPosition(0));
+            transPath->setOrientation(1, targetPath->getOrientation(0));
 
-        // Set the time to be equal to our #define'd transition time
-        transPath->setTime(0, transitionTime);
+            // Set the time to be equal to the specified transition time
+            transPath->setTime(0, transitionTime);
 
-        // Use linear interpolation for the transition
-        transPath->setPositionMode(VS_PATH_POS_IMODE_LINEAR);
-        transPath->setOrientationMode(VS_PATH_ORI_IMODE_SLERP);
+            // Use linear interpolation for the transition
+            transPath->setPositionMode(VS_PATH_POS_IMODE_LINEAR);
+            transPath->setOrientationMode(VS_PATH_ORI_IMODE_SLERP);
 
-        // Add this path motion (corresponding only to a single bone in the
-        // skeleton) to the overall animation
-        transitionAnimation->addPathMotion(transPath);
+            // Add this path motion (corresponding only to a single bone in the
+            // skeleton) to the overall animation
+            transitionAnimation->addPathMotion(transPath);
+        }
 
         // Next bone
         index++;
