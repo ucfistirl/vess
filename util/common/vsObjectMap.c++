@@ -30,6 +30,10 @@
 // ------------------------------------------------------------------------
 vsObjectMap::vsObjectMap()
 {
+    // Initialize a mutex to protect the maps from multiple simultaneous
+    // changes (this is possible in a multi-threaded environment)
+    pthread_mutex_init(&mapLock, NULL);
+
     // Create a pair of tree maps to hold the object associations
     firstList = new vsTreeMap();
     secondList = new vsTreeMap();
@@ -40,9 +44,38 @@ vsObjectMap::vsObjectMap()
 // ------------------------------------------------------------------------
 vsObjectMap::~vsObjectMap()
 {
+    // Lock the map (we don't want to destroy it while someone else is
+    // using it
+    lockMap();
+
     // Destroy the tree maps
     delete firstList;
     delete secondList;
+
+    // Release the map lock
+    unlockMap();
+
+    // Destroy the map lock
+    pthread_mutex_destroy(&mapLock);
+}
+
+// ------------------------------------------------------------------------
+// Acquires the map lock to ensure that only this thread will be accessing
+// the map
+// ------------------------------------------------------------------------
+void vsObjectMap::lockMap()
+{
+   // Lock the map lock
+   pthread_mutex_lock(&mapLock);
+}
+
+// ------------------------------------------------------------------------
+// Releases the map lock, allowing other threads to access the map
+// ------------------------------------------------------------------------
+void vsObjectMap::unlockMap()
+{
+   // Lock the map lock
+   pthread_mutex_unlock(&mapLock);
 }
 
 // ------------------------------------------------------------------------
@@ -51,6 +84,9 @@ vsObjectMap::~vsObjectMap()
 // ------------------------------------------------------------------------
 void vsObjectMap::registerLink(void *firstObject, void *secondObject)
 {
+    // Lock the map
+    lockMap();
+
     // Check for duplicates
     if (firstList->containsKey(firstObject))
     {
@@ -70,6 +106,9 @@ void vsObjectMap::registerLink(void *firstObject, void *secondObject)
     // first object to the second map
     firstList->addEntry(firstObject, secondObject);
     secondList->addEntry(secondObject, firstObject);
+
+    // Unlock the map
+    unlockMap();
 }
 
 // ------------------------------------------------------------------------
@@ -80,6 +119,9 @@ void vsObjectMap::registerLink(void *firstObject, void *secondObject)
 bool vsObjectMap::removeLink(void *theObject, int whichList)
 {
     void *otherListObjPtr;
+
+    // Lock the map
+    lockMap();
 
     // Interpret the whichList constant
     switch (whichList)
@@ -94,6 +136,11 @@ bool vsObjectMap::removeLink(void *theObject, int whichList)
                 otherListObjPtr = firstList->getValue(theObject);
                 firstList->deleteEntry(theObject);
                 secondList->deleteEntry(otherListObjPtr);
+
+                // Unlock the map
+                unlockMap();
+
+		// Return true to indicate success
                 return true;
             }
             break;
@@ -108,6 +155,11 @@ bool vsObjectMap::removeLink(void *theObject, int whichList)
                 otherListObjPtr = secondList->getValue(theObject);
                 secondList->deleteEntry(theObject);
                 firstList->deleteEntry(otherListObjPtr);
+
+                // Unlock the map
+                unlockMap();
+
+		// Return true to indicate success
                 return true;
             }
             break;
@@ -123,6 +175,11 @@ bool vsObjectMap::removeLink(void *theObject, int whichList)
                 otherListObjPtr = firstList->getValue(theObject);
                 firstList->deleteEntry(theObject);
                 secondList->deleteEntry(otherListObjPtr);
+
+                // Unlock the map
+                unlockMap();
+
+		// Return true to indicate success
                 return true;
             }
             if (secondList->containsKey(theObject))
@@ -133,11 +190,21 @@ bool vsObjectMap::removeLink(void *theObject, int whichList)
                 otherListObjPtr = secondList->getValue(theObject);
                 secondList->deleteEntry(theObject);
                 firstList->deleteEntry(otherListObjPtr);
+
+                // Unlock the map
+                unlockMap();
+
+		// Return true to indicate success
                 return true;
             }
             break;
     }
 
+    // Unlock the map
+    unlockMap();
+
+    // Return false to indicate that we couldn't find the requested object
+    // in the requested map(s)
     return false;
 }
 
@@ -146,9 +213,15 @@ bool vsObjectMap::removeLink(void *theObject, int whichList)
 // ------------------------------------------------------------------------
 void vsObjectMap::removeAllLinks()
 {
+    // Lock the map
+    lockMap();
+
     // Empty both maps
     firstList->clear();
     secondList->clear();
+
+    // Unlock the map
+    unlockMap();
 }
 
 // ------------------------------------------------------------------------
@@ -157,8 +230,19 @@ void vsObjectMap::removeAllLinks()
 // ------------------------------------------------------------------------
 void *vsObjectMap::mapFirstToSecond(void *firstObject)
 {
+    void *secondObject;
+
+    // Lock the map
+    lockMap();
+
     // Get the object corresponding to the first object from the first map
-    return (firstList->getValue(firstObject));
+    secondObject = firstList->getValue(firstObject);
+
+    // Unlock the map
+    unlockMap();
+
+    // Return the object we found (if any)
+    return secondObject;
 }
 
 // ------------------------------------------------------------------------
@@ -167,6 +251,17 @@ void *vsObjectMap::mapFirstToSecond(void *firstObject)
 // ------------------------------------------------------------------------
 void *vsObjectMap::mapSecondToFirst(void *secondObject)
 {
+    void *firstObject;
+
+    // Lock the map
+    lockMap();
+
     // Get the object corresponding to the second object from the second map
-    return (secondList->getValue(secondObject));
+    firstObject = secondList->getValue(secondObject);
+
+    // Unlock the map
+    unlockMap();
+
+    // Return the object we found (if any)
+    return firstObject;
 }

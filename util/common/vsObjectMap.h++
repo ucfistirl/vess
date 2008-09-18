@@ -24,6 +24,7 @@
 #define VS_OBJECT_MAP_HPP
 
 #include "vsTreeMap.h++"
+#include <pthread.h>
 
 enum  vsObjectMapList
 {
@@ -36,8 +37,13 @@ class VESS_SYM vsObjectMap
 {
 private:
 
-    vsTreeMap    *firstList;
-    vsTreeMap    *secondList;
+    vsTreeMap         *firstList;
+    vsTreeMap         *secondList;
+
+    pthread_mutex_t   mapLock;
+
+    void              lockMap();
+    void              unlockMap();
 
 public:
 
