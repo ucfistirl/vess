@@ -168,14 +168,11 @@ bool vsIntersenseTrackingSystem::configureSystem()
         case ISD_IS900:
             printf("(IS-900)\n");
             break;
-        case ISD_IS1200:
-            printf("(IS-1200)\n");
-            break;
         case ISD_INTERTRAX:
             printf("(InterTrax)\n");
             break;
         case ISD_INTERTRAX_2:
-            printf("(InterTrax 2)\n");
+            printf("(InterTrax2)\n");
             break;
         case ISD_INTERTRAX_LS:
             printf("(InterTraxLS)\n");
@@ -183,20 +180,29 @@ bool vsIntersenseTrackingSystem::configureSystem()
         case ISD_INTERTRAX_LC:
             printf("(InterTraxLC)\n");
             break;
-        case ISD_INTERTRAX_3:
-            printf("(InterTrax3)\n");
-            break;
         case ISD_ICUBE2:
             printf("(InertiaCube2)\n");
             break;
         case ISD_ICUBE2_PRO:
             printf("(InertiaCube2 Pro)\n");
             break;
+        case ISD_IS1200:
+            printf("(IS-1200)\n");
+            break;
         case ISD_ICUBE3:
             printf("(InertiaCube3)\n");
             break;
         case ISD_ICUBE4:
             printf("(InertiaCube4)\n");
+            break;
+        case ISD_INTERTRAX_3:
+            printf("(InterTrax3)\n");
+            break;
+        case ISD_IMUK:
+            printf("(K-Sensor)\n");
+            break;
+        case ISD_ICUBE2B_PRO:
+            printf("(InertiaCube2B Pro)\n");
             break;
         default:
             printf("(Unknown)\n");
@@ -276,8 +282,20 @@ void vsIntersenseTrackingSystem::configureJoystick(int trackerNum)
         // See if there are any axes and/or buttons supported
         if ((numAxes > 0) || (numButtons > 0))
         {
-            // Create a vsJoystick with this tracker to
-            // handle the analog channels and buttons
+            // For some reason, the InertiaCube3 on the ExpeditionDI system
+            // reports that it has 831 channels, which is incorrect (it
+            // only has 2).  This causes a crash in the InterSense SDK,
+            // which only makes room for 10 channels.  To guard against 
+            // situations like this, we'll clamp the number of channels
+            // to the SDK-defined maximum
+            if (numAxes > ISD_MAX_CHANNELS)
+                numAxes = ISD_MAX_CHANNELS;
+
+            // Create a vsJoystick with this tracker to handle the analog
+            // channels and buttons.  We assume a signed 16-bit axis
+            // range by default (this is what the IS-900's wand uses).
+            // This can be changed later using the regular vsJoystick and
+            // vsInputAxis methods
             joystick[trackerNum] = 
                 new vsJoystick(numAxes, numButtons, -32768, 32767);
 
@@ -558,7 +576,7 @@ void vsIntersenseTrackingSystem::disableLEDs()
 // ------------------------------------------------------------------------
 void vsIntersenseTrackingSystem::update()
 {
-    ISD_TRACKER_DATA_TYPE trackerData;
+    ISD_TRACKING_DATA_TYPE trackerData;
     int trackerNum;
     atVector position;
     atQuat orientation;
@@ -566,7 +584,7 @@ void vsIntersenseTrackingSystem::update()
     int i, j;
 
     // Get the latest data from the hardware
-    ISD_GetData(systemHandle, &trackerData);
+    ISD_GetTrackingData(systemHandle, &trackerData);
 
     // Extract the relevant data from the tracker data structure
     for (i = 1; i <= systemInfo.Capability.MaxStations; i++)
@@ -585,18 +603,18 @@ void vsIntersenseTrackingSystem::update()
             // Extract and set the orientation for this tracker
             if (trackerConfig[i].AngleFormat == ISD_QUATERNION)
             {
-                orientation.set(trackerData.Station[i-1].Orientation[1],
-                    trackerData.Station[i-1].Orientation[2], 
-                    trackerData.Station[i-1].Orientation[3], 
-                    trackerData.Station[i-1].Orientation[0]);
+                orientation.set(trackerData.Station[i-1].Quaternion[1],
+                    trackerData.Station[i-1].Quaternion[2], 
+                    trackerData.Station[i-1].Quaternion[3], 
+                    trackerData.Station[i-1].Quaternion[0]);
                 tracker[trackerNum]->setOrientation(orientation);
             }
             else
             {
                 orientation.setEulerRotation(AT_EULER_ANGLES_ZXY_R,
-                    -trackerData.Station[i-1].Orientation[0],
-                    trackerData.Station[i-1].Orientation[1],
-                    trackerData.Station[i-1].Orientation[2]);
+                    -trackerData.Station[i-1].Euler[0],
+                    trackerData.Station[i-1].Euler[1],
+                    trackerData.Station[i-1].Euler[2]);
                 tracker[trackerNum]->setOrientation(orientation);
             }
             orientation = coordXform * orientation * coordXform;
