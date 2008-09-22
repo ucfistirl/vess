@@ -24,7 +24,7 @@
 
 class vsWindow;
 
-#include <windows.h>
+#include "atOSDefs.h++"
 
 #include <wingdi.h>
 #include <GL/gl.h>
