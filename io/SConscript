@@ -145,8 +145,14 @@ if useCGrasp:
    
 if useIsense:
    isensePath = config.get('io', 'isensePath')
-   ioIncPath.extend(Split(isensePath + '/include'))
-   ioLibPath.extend(Split(isensePath + '/lib'))
+   ioIncPath.extend(Split(isensePath))
+
+   # Library path depends on operating system
+   if opSystem == 'Linux':
+      ioLibPath.extend(Split(isensePath + '/Linux/x86'))
+   else:
+      ioLibPath.extend(Split(isensePath))
+
    ioLibs.extend(Split('isense'))
 
 if usePSpace:
