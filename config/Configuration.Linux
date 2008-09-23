@@ -74,11 +74,11 @@ raw1394Path =
 # Path for the dc1394_control library
 dc1394Path =
 
-# Enable/disable Intersense tracker support
+# Enable/disable InterSense tracker support
 isenseEnabled = no
 
 # Path for the InterSense library
-isensePath = /irl/work/jdaly/libisense
+isensePath = /irl/tools/libs/InterSense_SDK_404.02
 
 # Enable/disable PhaseSpace Motion Digitizer support
 pspaceEnabled = no
