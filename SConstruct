@@ -47,6 +47,14 @@ def addExternal(basePath, subIncPath, subLibPath, libs):
    extLibPath.extend(libDir)
    extLibs.extend(Split(libs))
 
+# Embeds a Visual Studio-style manifest into the given output target
+# (only under Windows)
+def embedManifest(environment, target, suffix):
+   if str(Platform()) == 'win32':
+      # The suffix indicates the file type (1=.exe, 2=.dll)
+      environment.AddPostAction(target,
+                                'mt.exe -nologo -manifest ${TARGET}.manifest \
+                                -outputresource:$TARGET;' + str(suffix))
 
 
 # Set the initial CFLAGS, defines and include path
@@ -61,11 +69,11 @@ if opSystem == 'Windows':
    # /Zc:forScope = Use standard C++ scoping rules in for loops
    # /GR          = Enable C++ run-time type information
    # /Gd          = Use __cdecl calling convention
-   # /Zi          = Generate debug information
-   flags = Split('/nologo /MD /O2 /EHsc /W3 /Zc:forScope /GR /Gd /Zi')
+   # /Z7          = Generate debug information
+   compileFlags = Split('/nologo /MD /O2 /EHsc /W3 /Zc:forScope /GR /Gd /Z7')
 
    # Additional flags to disable useless warnings
-   flags += Split('/wd4091 /wd4275 /wd4290')
+   compileFlags += Split('/wd4091 /wd4275 /wd4290')
 
    # Import ATLAS symbols and export VESS symbols
    defines = Split('ATLAS_SYM=IMPORT VESS_SYM=EXPORT')
@@ -73,13 +81,23 @@ if opSystem == 'Windows':
    # Disable deprecation warnings for "insecure" and "nonstandard" functions
    defines += Split('_CRT_SECURE_NO_DEPRECATE _CRT_NONSTDC_NO_DEPRECATE')
 
+   # Flags for the VC++ linker
+   # /DEBUG          = Generate debugging information
+   # /OPT:REF        = Optimize away unreferenced code
+   # /OPT:ICF        = Optimize away redundant function packages
+   # /INCREMENTAL:NO = Do not perform incremental linking
+   linkFlags = Split('/DEBUG /OPT:REF /OPT:ICF /INCREMENTAL:NO')
+
 else:
 
    # Flags for gcc (generate debug information and optimize)
-   flags = Split('-g -O')
+   compileFlags = Split('-g -O')
 
    # Import ATLAS symbols and export VESS symbols
    defines = Split('ATLAS_SYM=IMPORT VESS_SYM=EXPORT')
+
+   # No linker flags needed
+   linkFlags = []
 
 
 # Set up external library lists
@@ -114,6 +132,10 @@ if opSystem == 'Windows':
    # Add pthreads
    pthreadPath = config.get('base', 'pthreadPath')
    addExternal(pthreadPath, '/include', '/lib', 'pthreadVC2')
+
+   # Add the msinttypes headers
+   msinttypesPath = config.get('base', 'msinttypesPath')
+   extIncPath.extend(Split(msinttypesPath + '/include'))
 
    # Add the OpenGL extension headers
    glPath = config.get('base', 'glPath')
@@ -163,11 +185,12 @@ libs.extend(extLibs)
 
 # Create an environment object to store the build environment settings
 vessEnv = Environment()
-vessEnv.Append(CCFLAGS = flags)
+vessEnv.Append(CCFLAGS = compileFlags)
 vessEnv.Append(CPPDEFINES = defines)
 vessEnv.Append(CPPPATH = incPath)
 vessEnv.Append(LIBPATH = libPath)
 vessEnv.Append(LIBS = libs)
+vessEnv.Append(LINKFLAGS = linkFlags)
 
 
 # Create the list of subdirectories
@@ -199,6 +222,9 @@ vess = vessEnv.SharedLibrary('vess', vessObjs)
 
 # Only compile the "vess" target by default
 Default(vess)
+
+# Under Windows, embed the manifest into the .dll
+embedManifest(vessEnv, vess, 2)
 
 # Set up a test target so we can build test programs with the current VESS
 # environment, first see if "test" exists
