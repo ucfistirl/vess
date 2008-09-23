@@ -190,7 +190,7 @@ void vsCOLLADAChannelGroup::setPathPoint(vsPathMotion *path, int pointIndex,
                 tmpZ = keyframe->getData(2);
 
                 // Set the new point on the path motion
-                keyPos.set(tmpX, tmpY, tmpZ, tmpW);
+                keyPos.set(tmpX, tmpY, tmpZ);
                 path->setPosition(pointIndex, keyPos);
             }
 
