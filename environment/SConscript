@@ -58,10 +58,6 @@ if useVideo:
    environmentLibPath.extend(Split(ffmpegPath + '/lib'))
    environmentLibs.extend(Split('avformat avcodec avutil'))
 
-   # Under Windows, we have to emulate the types declared in inttypes.h
-   if opSystem == 'Windows':
-      environmentDefs.extend(Split('EMULATE_INTTYPES'))
-
 
 # Create the final list of sources
 environmentSrc = buildList(commonDir, commonSrc)
