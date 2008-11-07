@@ -37,6 +37,9 @@
 #include "vsWireframeAttribute.h++"
 #include "vsShadingAttribute.h++"
 #include "vsDecalAttribute.h++"
+#include "vsGLSLProgramAttribute.h++"
+#include "vsGLSLShader.h++"
+#include "vsGLSLUniform.h++"
 #include "vsOptimizer.h++"
 #include "atList.h++"
 #include "atString.h++"
@@ -761,6 +764,8 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     int normalMark, colorMark; 
     int texCoordMark[VS_MAXIMUM_TEXTURE_UNITS];
     int unit;
+    int genericMark[16];
+    int generic;
 
     bool needsDecal;
     osg::StateSet *osgStateSet;
@@ -892,6 +897,8 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
             colorMark = 0;
             for (sloop = 0; sloop < VS_MAXIMUM_TEXTURE_UNITS; sloop++)
                 texCoordMark[sloop] = 0;
+            for (sloop = 0; sloop < 16; sloop++)
+                genericMark[sloop] = 0;
 
             // For each primitive set on the Geometry, create a vsGeometry
             // that contains the same information
@@ -1010,6 +1017,22 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
                             osgGeometry->getTexCoordIndices(unit));
                     }
                 }
+
+                // * Generic vertex attributes
+                for (generic = 0; generic < 16; generic++)
+                {
+                    // If the osg::Geometry object contains a texture 
+                    // coordinate array on this texture unit, copy it to
+                    // the vsGeometry
+                    if (osgGeometry->getVertexAttribArray(generic) != NULL)
+                    {
+                        genericMark[generic] += copyData(geometry, 
+                            16 + generic, genericMark[unit], osgPrimitiveSet,
+                            osg::Geometry::BIND_PER_VERTEX,
+                            osgGeometry->getVertexAttribArray(generic), 
+                            osgGeometry->getVertexAttribIndices(generic));
+                    }
+                }
                 
                 // Add the new vsGeometry object to the OSG Geometry's 
                 // vsComponent
@@ -1117,6 +1140,20 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
 
     osg::PolygonMode *osgPolyMode;
     vsWireframeAttribute *vsWireframeAttr;
+
+    osg::Program *osgProgram;
+    vsGLSLProgramAttribute *vsGLSLProgramAttr;
+    int numShaders;
+    int loop;
+    osg::Shader *osgShader;
+    vsGLSLShader *shader;
+    osg::StateSet::UniformList uniformList;
+    osg::StateSet::RefUniformPair osgUniformEntry;
+    osg::StateSet::UniformList::iterator uniformIter;
+    osg::Uniform *osgUniform;
+    vsGLSLUniform *uniform;
+    osg::Program::AttribBindingList attribList;
+    osg::Program::AttribBindingList::iterator attribIter;
     
     // Fog
     osgFog = dynamic_cast<osg::Fog *>
@@ -1480,6 +1517,79 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
         if (overrideFlag & osg::StateAttribute::OVERRIDE)
             vsWireframeAttr->setOverride(true);
     }
+
+    // GLSL Programs
+    // Check for a GLSL Program attribute on this node
+    osgProgram = dynamic_cast<osg::Program *>
+        (stateSet->getAttribute(osg::StateAttribute::PROGRAM));
+    if (osgProgram)
+    {
+        // Create a new wireframe attribute on the node
+        vsGLSLProgramAttr = new vsGLSLProgramAttribute();
+        node->addAttribute(vsGLSLProgramAttr);
+
+        // Get the shaders from the program
+        numShaders = osgProgram->getNumShaders();
+        for (loop = 0; loop < numShaders; loop++)
+        {
+            // Get the shader
+            osgShader = osgProgram->getShader(loop);
+
+            // Create a matching VESS shader
+            shader = new vsGLSLShader((vsGLSLShaderType) osgShader->getType());
+            shader->setSource(osgShader->getShaderSource().c_str());
+            vsGLSLProgramAttr->addShader(shader);
+        }
+
+        // Get any uniforms on the stateset and add them to this program
+        // NOTE:  We assume any Uniforms for this program are attached to
+        //        the same StateSet as the program itself.  In OSG, Uniforms
+        //        are treated as separate state, and not associated with
+        //        the program directly.  This means that a Uniform can be
+        //        placed anywhere above or below this program in the scene and
+        //        still affect it.  In order to catch all possible cases, we
+        //        would need to track Uniforms separately and dynamically
+        //        associate them with any programs we find.  This would be
+        //        fairly complicated to do, and there is no immediate need
+        //        for it, so I'm not spending the time right now.
+        uniformList = stateSet->getUniformList();
+        for (uniformIter = uniformList.begin();
+             uniformIter != uniformList.end();
+             uniformIter++)
+        {
+            // The uniform list is actually a map of uniform names to a pair
+            // containing the uniform itself and its override state
+            osgUniformEntry = uniformIter->second;
+            osgUniform = osgUniformEntry.first.get();
+            uniform = new vsGLSLUniform(uniformIter->first.c_str(),
+                 (vsGLSLUniformType) osgUniform->getType(),
+                 osgUniform->getNumElements());
+
+            // Set the values
+            copyUniformValues(uniform, osgUniform);
+
+            // Add to the program
+            vsGLSLProgramAttr->addUniform(uniform);
+        }
+
+        // Copy vertex attribute bindings
+        attribList = osgProgram->getAttribBindingList();
+        for (attribIter = attribList.begin();
+             attribIter != attribList.end();
+             attribIter++)
+        {
+            // Bind the same variable name with the same attribute
+            vsGLSLProgramAttr->bindVertexAttr(attribIter->first.c_str(),
+                                              attribIter->second);
+        }
+
+        // Check the status of the override flag
+        osgRefAttrPair =
+            stateSet->getAttributePair(osg::StateAttribute::PROGRAM);
+        overrideFlag = osgRefAttrPair->second;
+        if (overrideFlag & osg::StateAttribute::OVERRIDE)
+            vsGLSLProgramAttr->setOverride(true);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -1774,9 +1884,11 @@ int vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
     osg::DrawElementsUByte *osgDrawByteElemsPrim;
     osg::DrawElementsUShort *osgDrawShortElemsPrim;
     osg::DrawElementsUInt *osgDrawIntElemsPrim;
+    osg::FloatArray *osgFloatArray;
     osg::Vec2Array *osgVec2Array;
     osg::Vec3Array *osgVec3Array;
     osg::Vec4Array *osgVec4Array;
+    float floatVal;
     osg::Vec2 osgVec2;
     osg::Vec3 osgVec3;
     osg::Vec4 osgVec4;
@@ -1793,6 +1905,11 @@ int vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
         targetGeometry->setBinding(targetDataType, VS_GEOMETRY_BIND_NONE);
         targetGeometry->setDataListSize(targetDataType, 0);
         return 0;
+    }
+    else if (dynamic_cast<osg::FloatArray *>(sourceArray))
+    {
+        osgFloatArray = (osg::FloatArray *)sourceArray;
+        osgArraySize = 1;
     }
     else if (dynamic_cast<osg::Vec2Array *>(sourceArray))
     {
@@ -1925,6 +2042,12 @@ int vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
         // for the size of the input data
         switch (osgArraySize)
         {
+            case 1:
+                floatVal = (*osgFloatArray)[idx];
+                targetGeometry->setData(targetDataType, loop,
+                    atVector(floatVal, 0.0, 0.0, 0.0));
+                break;
+
             case 2:
                 osgVec2 = (*osgVec2Array)[idx];
                 targetGeometry->setData(targetDataType, loop,
@@ -1948,4 +2071,218 @@ int vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
     // Return the number of elements copied, so the source index can
     // be updated for the next primitive set
     return copySize;
+}
+
+// ------------------------------------------------------------------------
+// Copies values for GLSL uniforms from the given OSG object to the
+// given VESS object
+// ------------------------------------------------------------------------
+void vsDatabaseLoader::copyUniformValues(vsGLSLUniform *uniform,
+                                         osg::Uniform *osgUniform)
+{
+    u_long        i, j, k;
+    float         floatValue;
+    int           int1, int2, int3, int4;
+    bool          bool1, bool2, bool3, bool4;
+    osg::Vec2     vec2Value;
+    osg::Vec3     vec3Value;
+    osg::Vec4     vec4Value;
+    osg::Matrix2  mat2Value;
+    osg::Matrix3  mat3Value;
+    osg::Matrix   mat4Value;
+    atMatrix      vessMatrix;
+
+    // Figure out what type the OSG object is holding and copy the values
+    switch (osgUniform->getType())
+    {
+       case osg::Uniform::FLOAT:
+
+           // Copy the values
+           for (i = 0; i < osgUniform->getNumElements(); i++)
+           {
+               osgUniform->getElement(i, floatValue);
+               uniform->setEntry(i, floatValue);
+           }
+           break;
+
+       case osg::Uniform::FLOAT_VEC2:
+
+           // Copy the values
+           for (i = 0; i < osgUniform->getNumElements(); i++)
+           {
+               osgUniform->getElement(i, vec2Value);
+               uniform->setEntry(i, atVector(vec2Value.x(), vec2Value.y()));
+           }
+           break;
+
+       case osg::Uniform::FLOAT_VEC3:
+
+           // Copy the values
+           for (i = 0; i < osgUniform->getNumElements(); i++)
+           {
+               osgUniform->getElement(i, vec3Value);
+               uniform->setEntry(i,
+                   atVector(vec3Value.x(), vec3Value.y(), vec3Value.z()));
+           }
+           break;
+
+       case osg::Uniform::FLOAT_VEC4:
+
+           // Copy the values
+           for (i = 0; i < osgUniform->getNumElements(); i++)
+           {
+               osgUniform->getElement(i, vec3Value);
+               uniform->setEntry(i, atVector(vec4Value.x(), vec4Value.y(),
+                   vec4Value.z(), vec4Value.w()));
+           }
+           break;
+
+       case osg::Uniform::INT:
+       case osg::Uniform::SAMPLER_1D:
+       case osg::Uniform::SAMPLER_2D:
+       case osg::Uniform::SAMPLER_3D:
+       case osg::Uniform::SAMPLER_CUBE:
+       case osg::Uniform::SAMPLER_1D_SHADOW:
+       case osg::Uniform::SAMPLER_2D_SHADOW:
+
+           // All of these data types just use a single integer per entry,
+           // so copy the integer values
+           for (i = 0; i < osgUniform->getNumElements(); i++)
+           {
+               osgUniform->getElement(i, int1);
+               uniform->setEntry(i, int1);
+           }
+           break;
+
+       case osg::Uniform::INT_VEC2:
+
+           // Copy the values
+           for (i = 0; i < osgUniform->getNumElements(); i++)
+           {
+               osgUniform->getElement(i, int1, int2);
+               uniform->setEntry(i, int1, int2);
+           }
+           break;
+
+       case osg::Uniform::INT_VEC3:
+
+           // Copy the values
+           for (i = 0; i < osgUniform->getNumElements(); i++)
+           {
+               osgUniform->getElement(i, int1, int2, int3);
+               uniform->setEntry(i, int1, int2, int3);
+           }
+           break;
+
+       case osg::Uniform::INT_VEC4:
+
+           // Copy the values
+           for (i = 0; i < osgUniform->getNumElements(); i++)
+           {
+               osgUniform->getElement(i, int1, int2, int3, int4);
+               uniform->setEntry(i, int1, int2, int3, int4);
+           }
+           break;
+
+       case osg::Uniform::BOOL:
+
+           // Copy the values
+           for (i = 0; i < osgUniform->getNumElements(); i++)
+           {
+               osgUniform->getElement(i, bool1);
+               uniform->setEntry(i, bool1);
+           }
+           break;
+
+       case osg::Uniform::BOOL_VEC2:
+
+           // Copy the values
+           for (i = 0; i < osgUniform->getNumElements(); i++)
+           {
+               osgUniform->getElement(i, bool1, bool2);
+               uniform->setEntry(i, bool1, bool2);
+           }
+           break;
+
+       case osg::Uniform::BOOL_VEC3:
+
+           // Copy the values
+           for (i = 0; i < osgUniform->getNumElements(); i++)
+           {
+               osgUniform->getElement(i, bool1, bool2, bool3);
+               uniform->setEntry(i, bool1, bool2, bool3);
+           }
+           break;
+
+       case osg::Uniform::BOOL_VEC4:
+
+           // Copy the values
+           for (i = 0; i < osgUniform->getNumElements(); i++)
+           {
+               osgUniform->getElement(i, bool1, bool2, bool3, bool4);
+               uniform->setEntry(i, bool1, bool2, bool3, bool4);
+           }
+           break;
+
+       case osg::Uniform::FLOAT_MAT2:
+
+           // Copy the values
+           for (i = 0; i < osgUniform->getNumElements(); i++)
+           {
+               // Get the matrix value from the OSG Uniform
+               osgUniform->getElement(i, mat2Value);
+
+               // Copy the OSG matrix to a VESS matrix
+               vessMatrix.clear();
+               for (j = 0; j < 2; j++)
+                   for (k = 0; k < 2; k++)
+                       vessMatrix[i][j] = mat2Value(j, i);
+
+               // Set the VESS uniform's value
+               uniform->setEntry(i, 2, vessMatrix);
+           }
+           break;
+
+       case osg::Uniform::FLOAT_MAT3:
+
+           // Copy the values
+           for (i = 0; i < osgUniform->getNumElements(); i++)
+           {
+               // Get the matrix value from the OSG Uniform
+               osgUniform->getElement(i, mat3Value);
+
+               // Copy the OSG matrix to a VESS matrix
+               vessMatrix.clear();
+               for (j = 0; j < 3; j++)
+                   for (k = 0; k < 3; k++)
+                       vessMatrix[i][j] = mat3Value(j, i);
+
+               // Set the VESS uniform's value
+               uniform->setEntry(i, 3, vessMatrix);
+           }
+           break;
+
+       case osg::Uniform::FLOAT_MAT4:
+
+           // Copy the values
+           for (i = 0; i < osgUniform->getNumElements(); i++)
+           {
+               // Get the matrix value from the OSG Uniform
+               osgUniform->getElement(i, mat4Value);
+
+               // Copy the OSG matrix to a VESS matrix
+               vessMatrix.clear();
+               for (j = 0; j < 4; j++)
+                   for (k = 0; k < 4; k++)
+                       vessMatrix[i][j] = mat4Value(j, i);
+
+               // Set the VESS uniform's value
+               uniform->setEntry(i, vessMatrix);
+           }
+           break;
+
+       default:
+           // Just copy nothing
+           break;
+    }
 }

@@ -26,6 +26,7 @@
 #include "vsComponent.h++"
 #include "vsGeometry.h++"
 #include "vsGrowableArray.h++"
+#include "vsGLSLUniform.h++"
 #include "atList.h++"
 
 #define VS_DATABASE_MODE_NAME_XFORM      0x01
@@ -71,6 +72,9 @@ private:
                                 osg::PrimitiveSet *osgPrimitiveSet,
                                 int sourceBinding, osg::Array *sourceArray,
                                 osg::IndexArray *indexArray);
+
+    void               copyUniformValues(vsGLSLUniform *uniform,
+                                         osg::Uniform *osgUniform);
 
 VS_INTERNAL:
 
