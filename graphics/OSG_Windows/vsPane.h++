@@ -164,6 +164,7 @@ public:
 
     // Projection matrix
     atMatrix              getProjectionMatrix();
+    atVector              projectPointOntoPane(atVector worldXYZ);
 
     // OSG object accessor
     osgUtil::SceneView    *getBaseLibraryObject();

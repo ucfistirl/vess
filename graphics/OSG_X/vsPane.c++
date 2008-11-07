@@ -287,8 +287,8 @@ void vsPane::setView(vsView *view)
     // update the viewport based on the new view's settings
     if (sceneView != NULL)
     {
-    	 sceneView->ref();
-       viewChangeNum = sceneView->getChangeNum() - 1;
+        sceneView->ref();
+        viewChangeNum = sceneView->getChangeNum() - 1;
     }
 }
 
@@ -749,6 +749,65 @@ atMatrix vsPane::getProjectionMatrix()
 
     // Return the atMatrix
     return result;
+}
+
+// ------------------------------------------------------------------------
+// Projects a point in world coordinates onto the pane, returning the
+// normalized pane coordinates
+// ------------------------------------------------------------------------
+atVector vsPane::projectPointOntoPane(atVector worldXYZ)
+{
+    atMatrix projectionMat;
+    atVector viewpoint;
+    atMatrix translation;
+    atMatrix rotation;
+    atMatrix viewMat;
+    atMatrix openGLXform;
+    atMatrix mvp;
+    atVector worldPoint, panePoint;
+    atVector paneXYZ;
+
+    // If we have no view, we can't do any projections
+    if (sceneView == NULL)
+        return atVector(0.0, 0.0, 0.0);
+
+    // Get the projection matrix
+    projectionMat = getProjectionMatrix();
+    
+    // Get the view matrix, including the necessary transform from VESS to
+    // OpenGL coordinates
+    viewpoint = sceneView->getViewpoint();
+    translation.setTranslation(viewpoint[AT_X], viewpoint[AT_Y],
+        viewpoint[AT_Z]);
+    rotation = sceneView->getRotationMat();
+    openGLXform.clear();
+    openGLXform[0][0] = 1.0;
+    openGLXform[1][2] = -1.0;
+    openGLXform[2][1] = 1.0;
+    openGLXform[3][3] = 1.0;
+    viewMat = translation * rotation * openGLXform;
+    viewMat.invert();
+
+    // Create a point in homogeneous coordinates from the input point
+    worldPoint.setSize(4);
+    worldPoint.clearCopy(worldXYZ);
+    worldPoint[AT_W] = 1.0;
+
+    // Compute the ModelViewProjection (MVP) matrix (the model matrix is
+    // identity here, because we require the input point to be in world
+    // coordinates)
+    mvp = projectionMat * viewMat; 
+
+    // Transform the point by the MVP matrix, and then divide by the
+    // homogeneous W coordinate.  This results in coordinates between -1.0
+    // and 1.0 for all three dimensions
+    panePoint = mvp.getFullXform(worldPoint);
+    paneXYZ[AT_X] = panePoint[AT_X] / panePoint[AT_W];
+    paneXYZ[AT_Y] = panePoint[AT_Y] / panePoint[AT_W];
+    paneXYZ[AT_Z] = panePoint[AT_Z] / panePoint[AT_W];
+
+    // Return the normalized coordinates
+    return paneXYZ;
 }
 
 // ------------------------------------------------------------------------
