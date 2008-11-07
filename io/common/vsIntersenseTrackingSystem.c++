@@ -331,15 +331,21 @@ void vsIntersenseTrackingSystem::enumerateTrackers()
     int stationNum;
     vsTimer dataTimer;
 
-    // Collect tracker data for 5 seconds at regular intervals to allow 
-    // the InterSense library to gather data on which trackers are available
-    printf("  Collecting station data...\n");
-    while (dataTimer.getElapsed() < 5.0)
+    // See if we're connected over a network
+    if ((systemConfig.Interface == ISD_INTERFACE_ETHERNET_UDP) ||
+        (systemConfig.Interface == ISD_INTERFACE_ETHERNET_TCP))
     {
-        // Call update() to force the tracking library to collect data from
-        // the tracker
-        update();
-        usleep(100000);
+        // Collect tracker data for 5 seconds at regular intervals to allow 
+        // the InterSense library to gather data on which trackers are
+        // available
+        printf("  Collecting station data...\n");
+        while (dataTimer.getElapsed() < 5.0)
+        {
+            // Call update() to force the tracking library to collect data
+            // from the tracker
+            update();
+            usleep(100000);
+        }
     }
 
     // If this is an InterTrax device, we know there is only one active
