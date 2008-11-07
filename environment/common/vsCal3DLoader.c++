@@ -136,7 +136,6 @@ vsCharacter *vsCal3DLoader::loadCharacter(char *filename)
 {
     FILE *filePointer;
     int fileSize;
-    int maxRead;
     int fileLineLength;
     char *fileLine;
     char *fields;
@@ -303,10 +302,6 @@ vsCharacter *vsCal3DLoader::loadCharacter(char *filename)
                 }
             }
         }
-
-        // Keep track of how much we have read in relation to the file size
-        // so we do not attempt to read more than possible
-        maxRead -= fileLineLength;
     }
 
     // Close the file and free the buffers
