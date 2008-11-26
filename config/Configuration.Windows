@@ -9,7 +9,7 @@
 atlasPath = W:/atlas
 
 # Path for msinttypes headers (inttypes.h and stdint.h for MSVC)
-msinttypesPath = L:/misc
+msinttypesPath = L:/msinttypes-r21
 
 # Path for HLA RTI - Used by ATLAS for HLA networking (required)
 rtiPath = L:/rtis-1.3_D18A
