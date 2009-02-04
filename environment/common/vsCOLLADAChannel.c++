@@ -23,37 +23,45 @@ vsCOLLADAChannel::vsCOLLADAChannel(atXMLDocument *doc,
 
     // Get the channel target (a node ID and transform SID)
     attr = doc->getNodeAttribute(current, "target");
+
+    // Make sure the target is specified
     if (attr != NULL)
-        chanTargetID.setString(attr);
-
-    // Parse the target string into the separate node ID/transform SID
-    // components
-    tokenizer = new atStringTokenizer(chanTargetID);
-
-    // Get the target node ID
-    token = tokenizer->getToken("/");
-    targetNodeID.setString(*token);
-    delete token;
-
-    // Get the target transform SID
-    token = tokenizer->getToken("/");
-    targetXformSID.setString(*token);
-    delete token;
-
-    // Done with the tokenizer
-    delete tokenizer;
-
-    // Get the sampler object by ID
-    sampler = getSampler(samplers, chanSourceID);
-
-    // Make sure we got a valid sampler
-    if ((sampler != NULL) && (sampler->isValid()))
     {
-        // Reference the sampler object
-        sampler->ref();
+        // Parse the target string into the separate node ID/transform SID
+        // components
+        chanTargetID.setString(attr);
+        tokenizer = new atStringTokenizer(chanTargetID);
 
-        // Mark the channel as valid
-        validFlag = true;
+        // Get the target node ID
+        token = tokenizer->getToken("/");
+        targetNodeID.setString(*token);
+        delete token;
+
+        // Get the target transform SID
+        token = tokenizer->getToken("/");
+        targetXformSID.setString(*token);
+        delete token;
+
+        // Done with the tokenizer
+        delete tokenizer;
+
+        // Get the sampler object by ID
+        sampler = getSampler(samplers, chanSourceID);
+    
+        // Make sure we got a valid sampler
+        if ((sampler != NULL) && (sampler->isValid()))
+        {
+            // Reference the sampler object
+            sampler->ref();
+
+            // Mark the channel as valid
+            validFlag = true;
+        }
+        else
+        {
+            // Mark the channel as invalid
+            validFlag = false;
+        }
     }
     else
     {
