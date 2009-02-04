@@ -123,6 +123,50 @@ vsNode *vsComponent::cloneTree()
 }
 
 // ------------------------------------------------------------------------
+// Destroys the entire scene graph rooted at this node, up to but not
+// including this node itself. Deletes any objects whose reference counts
+// reach zero.
+// ------------------------------------------------------------------------
+void vsComponent::deleteTree()
+{
+    vsNode *node;
+   
+    // Delete all children of this node
+    while (getChildCount() > 0)
+    {
+        // We can always get the first child, because removing a child
+        // causes all of the other children to slide over to fill the
+        // gap.
+        node = getChild(0);
+
+        // See if this node is a component
+        if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
+        {
+            // Delete the subgraph below the selected child
+            ((vsComponent *)node)->deleteTree();
+
+            // Remove the child from this node, but don't mark it dirty
+            // (components can only have one parent, so we won't need
+            // to dirty this node in any case)
+            removeChild(node, false);
+        }
+        else
+        {
+            // Remove the child from this node, but don't mark it dirty yet
+            removeChild(node, false);
+
+            // If the node is clean and it has any remaining parents, mark
+            // it dirty manually
+            if ((node->getParentCount() > 0) && (!node->isDirty()))
+               node->dirty();
+        }
+
+        // Delete the child if it's now unowned
+        vsObject::checkDelete(node);
+    }
+}
+
+// ------------------------------------------------------------------------
 // Add the given node as a child of this component.  The public version
 // simply calls the protected version with the dirty flag set to true
 // (most of the time, we want newly added nodes to be marked dirty, so
@@ -245,92 +289,15 @@ bool vsComponent::insertChild(vsNode *newChild, int index)
 
 // ------------------------------------------------------------------------
 // Removes the given node from the list of children for this component
+// The public version simply calls the protected version with the dirty
+// flag set to true (most of the time, we want attached nodes to be marked
+// dirty after a child is removed)
 // ------------------------------------------------------------------------
 bool vsComponent::removeChild(vsNode *targetChild)
 {
-    int loop, sloop;
-    vsComponent *childComponent;
-    vsGeometry *childGeometry;
-    vsDynamicGeometry *childDynamicGeometry;
-    vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
-    vsUnmanagedNode *childUnmanagedNode;
-    vsSwitchAttribute *switchAttr;
-    
-    // Search the child list for the target child
-    for (loop = 0; loop < childCount; loop++)
-        if (targetChild == childList[loop])
-        {
-            // Mark the entire portion of the tree that has any connection
-            // to this node as needing of an update
-            targetChild->dirty();
-        
-            // Detach the OSG nodes; checks for the type of the
-            // component because the getBaseLibraryObject call is
-            // not virtual. The type can't be a vsScene, because
-            // a scene node would never have a parent.
-            if (targetChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
-            {
-                childComponent = (vsComponent *)targetChild;
-                bottomGroup->removeChild(
-                    childComponent->getBaseLibraryObject());
-            }
-            else if (targetChild->getNodeType() == VS_NODE_TYPE_GEOMETRY)
-            {
-                childGeometry = (vsGeometry *)targetChild;
-                bottomGroup->removeChild(
-                    childGeometry->getBaseLibraryObject());
-            }
-            else if (targetChild->getNodeType() == 
-                        VS_NODE_TYPE_DYNAMIC_GEOMETRY)
-            {
-                childDynamicGeometry = (vsDynamicGeometry *)targetChild;
-                bottomGroup->removeChild(
-                    childDynamicGeometry->getBaseLibraryObject());
-            }
-            else if (targetChild->getNodeType() ==
-                        VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
-            {
-                childSkeletonMeshGeometry =
-                    (vsSkeletonMeshGeometry *)targetChild;
-                bottomGroup->removeChild(
-                    childSkeletonMeshGeometry->getBaseLibraryObject());
-            }
-            else if (targetChild->getNodeType() == VS_NODE_TYPE_UNMANAGED)
-            {
-                childUnmanagedNode = (vsUnmanagedNode *)targetChild;
-                bottomGroup->removeChild(
-                    childUnmanagedNode->getBaseLibraryObject());
-            }
-
-
-            // 'Slide' the rest of the children down to fill in the gap
-            for (sloop = loop; sloop < childCount-1; sloop++)
-                childList[sloop] = childList[sloop+1];
-        
-            // Check for errors as we remove this component from the
-            // child's parent list
-            if (targetChild->removeParent(this) == false)
-                printf("vsComponent::removeChild: Scene graph inconsistency: "
-                    "child to be removed does not have this component as "
-                    "a parent\n");
-
-            // Finish the VESS detachment
-            childCount--;
-            targetChild->unref();
-            
-            // Special case:  If there is a switch attribute attached to this 
-            // component, then we need to check the switch masks after we 
-            // remove the child, and delete any masks that are now empty.  
-            // This emulates Performer's pfSwitch behavior.
-            switchAttr = (vsSwitchAttribute *)
-               getTypedAttribute(VS_ATTRIBUTE_TYPE_SWITCH, 0);
-            if (switchAttr != NULL)
-               switchAttr->pruneMasks(this);
-        
-            return true;
-        }
-
-    return false;
+    // Call the protected removeChild method with the dirty flag set to
+    // true
+    return removeChild(targetChild, true);
 }
 
 // ------------------------------------------------------------------------
@@ -933,6 +900,100 @@ bool vsComponent::addChild(vsNode *newChild, bool dirtyFlag)
     }
     
     return true;
+}
+
+// ------------------------------------------------------------------------
+// Removes the given node from the list of children for this component,
+// and either marks or doesn't mark the affected subgraph dirty (according
+// to the dirty flag).  Most of the time, the dirty process needs to be
+// done, but there are cases where we don't want this
+// ------------------------------------------------------------------------
+bool vsComponent::removeChild(vsNode *targetChild, bool dirtyFlag)
+{
+    int loop, sloop;
+    vsComponent *childComponent;
+    vsGeometry *childGeometry;
+    vsDynamicGeometry *childDynamicGeometry;
+    vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
+    vsUnmanagedNode *childUnmanagedNode;
+    vsSwitchAttribute *switchAttr;
+    
+    // Search the child list for the target child
+    for (loop = 0; loop < childCount; loop++)
+        if (targetChild == childList[loop])
+        {
+            // Mark the entire portion of the tree that has any connection
+            // to this node as needing of an update
+            if (dirtyFlag)
+                targetChild->dirty();
+        
+            // Detach the OSG nodes; checks for the type of the
+            // component because the getBaseLibraryObject call is
+            // not virtual. The type can't be a vsScene, because
+            // a scene node would never have a parent.
+            if (targetChild->getNodeType() == VS_NODE_TYPE_COMPONENT)
+            {
+                childComponent = (vsComponent *)targetChild;
+                bottomGroup->removeChild(
+                    childComponent->getBaseLibraryObject());
+            }
+            else if (targetChild->getNodeType() == VS_NODE_TYPE_GEOMETRY)
+            {
+                childGeometry = (vsGeometry *)targetChild;
+                bottomGroup->removeChild(
+                    childGeometry->getBaseLibraryObject());
+            }
+            else if (targetChild->getNodeType() == 
+                        VS_NODE_TYPE_DYNAMIC_GEOMETRY)
+            {
+                childDynamicGeometry = (vsDynamicGeometry *)targetChild;
+                bottomGroup->removeChild(
+                    childDynamicGeometry->getBaseLibraryObject());
+            }
+            else if (targetChild->getNodeType() ==
+                        VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
+            {
+                childSkeletonMeshGeometry =
+                    (vsSkeletonMeshGeometry *)targetChild;
+                bottomGroup->removeChild(
+                    childSkeletonMeshGeometry->getBaseLibraryObject());
+            }
+            else if (targetChild->getNodeType() == VS_NODE_TYPE_UNMANAGED)
+            {
+                childUnmanagedNode = (vsUnmanagedNode *)targetChild;
+                bottomGroup->removeChild(
+                    childUnmanagedNode->getBaseLibraryObject());
+            }
+
+
+            // 'Slide' the rest of the children down to fill in the gap
+            for (sloop = loop; sloop < childCount-1; sloop++)
+                childList[sloop] = childList[sloop+1];
+        
+            // Check for errors as we remove this component from the
+            // child's parent list
+            if (targetChild->removeParent(this) == false)
+                printf("vsComponent::removeChild: Scene graph inconsistency: "
+                    "child to be removed does not have this component as "
+                    "a parent\n");
+
+            // Finish the VESS detachment
+            childCount--;
+            targetChild->unref();
+            
+            // Special case:  If there is a switch attribute attached to this 
+            // component, then we need to check the switch masks after we 
+            // remove the child, and delete any masks that are now empty.  
+            // This emulates Performer's pfSwitch behavior.
+            switchAttr = (vsSwitchAttribute *)
+               getTypedAttribute(VS_ATTRIBUTE_TYPE_SWITCH, 0);
+            if (switchAttr != NULL)
+               switchAttr->pruneMasks(this);
+        
+            return true;
+        }
+
+    return false;
 }
 
 // ------------------------------------------------------------------------

@@ -45,6 +45,7 @@ private:
 
     virtual vsNode    *cloneTreeRecursive();
     virtual bool      addChild(vsNode *newChild, bool dirtyFlag);
+    virtual bool      removeChild(vsNode *newChild, bool dirtyFlag);
 
 VS_INTERNAL:
 
@@ -67,6 +68,7 @@ public:
     virtual const char    *getClassName();
 
     virtual vsNode        *cloneTree();
+    virtual void          deleteTree();
 
     virtual int           getNodeType();
 
