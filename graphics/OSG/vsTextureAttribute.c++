@@ -379,9 +379,9 @@ void vsTextureAttribute::loadImageFromFile(char *filename)
         osgTexImage->unref();
 
     // Create a ReaderWriter::Options object, specifying that we want .dds
-    // files to be vertically flipped (this accounts for the different
-    // texture coordinate systems between DirectX and OpenGL)
-    options = new osgDB::ReaderWriter::Options("dds_flip");
+    // and .vtf files to be vertically flipped (this accounts for the
+    // different texture coordinate systems between DirectX and OpenGL)
+    options = new osgDB::ReaderWriter::Options("dds_flip vtf_flip");
     options->ref();
 
     // Read the image file into a new osg::Image object, passing the options
@@ -397,7 +397,6 @@ void vsTextureAttribute::loadImageFromFile(char *filename)
     {
         osgTexture->setImage(osgTexImage);
         osgTexImage->ref();
-setName((char *)osgTexImage->getFileName().c_str());
     }
     else
     {
