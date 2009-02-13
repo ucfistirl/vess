@@ -339,7 +339,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
         return NULL;
 
     // Tell the OSG Font object to make the character textures reasonably large
-    osgFont->setFontResolution(128, 128);
+    fontResolution = osgText::FontResolution(128, 128);
     osgFont->setTextureSizeHint(256, 256);
 
     // Create a new vsComponent to hold the characters
@@ -399,8 +399,8 @@ vsComponent *vsTextBuilder::buildText(char *text)
             {
                 // Get the inter-characer spacing between the previous
                 // character and the new one
-                osgFontKerning = osgFont->getKerning(previousChar, text[loop],
-                    osgText::KERNING_UNFITTED);
+                osgFontKerning = osgFont->getKerning(fontResolution,
+                    previousChar, text[loop], osgText::KERNING_UNFITTED);
 
                 // Advance the draw position by the horizontal spacing value
                 currentPos[AT_X] += osgFontKerning[0];
@@ -532,7 +532,7 @@ void vsTextBuilder::setupTextureAttribute(unsigned char ch)
         return;
 
     // Obtain the Glyph for the designated character from the OSG Font object
-    osgGlyphArray[ch] = osgFont->getGlyph(ch);
+    osgGlyphArray[ch] = osgFont->getGlyph(fontResolution, ch);
     (osgGlyphArray[ch])->ref();
 
     // Create the corresponding VESS texture attribute
