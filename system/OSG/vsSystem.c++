@@ -29,6 +29,8 @@
 #include <osgDB/Registry>
 #include <osgDB/DatabasePager>
 
+#include "atList.h++"
+
 #include "vsLightAttribute.h++"
 #include "vsLocalLightCallback.h++"
 #include "vsScene.h++"
@@ -53,8 +55,6 @@ vsSystem *vsSystem::systemObject = NULL;
 // ------------------------------------------------------------------------
 vsSystem::vsSystem()
 {
-    osgDB::DatabasePager *osgDBPager;
-
     // Start out uninitialized
     isInitted = 0;
 
@@ -83,9 +83,6 @@ vsSystem::vsSystem()
     // Create a sequencer to act as a "root sequencer"
     rootSequencer = new vsSequencer();
     rootSequencer->ref();
-
-    // Create an OSG DatabasePager in case we load up any paged databases
-    osgDBPager = osgDB::Registry::instance()->getOrCreateDatabasePager();
 }
 
 // ------------------------------------------------------------------------
@@ -130,11 +127,6 @@ vsSystem::~vsSystem()
 
     vsObject::deleteObjectList();
 #endif
-
-    // Clean up the database pager
-    osgDBPager = osgDB::Registry::instance()->getDatabasePager();
-    if (osgDBPager)
-        osgDB::Registry::instance()->setDatabasePager(NULL);
 
     // Delete the scent manager
     vsScentManager::deleteInstance();
@@ -452,23 +444,72 @@ vsSequencer *vsSystem::getSequencer()
 // ------------------------------------------------------------------------
 int vsSystem::getNumDBPagesToLoad()
 {
+    int screenLoop, windowLoop, paneLoop;
+    int screenCount;
+    int windowCount, paneCount;
+    vsScreen *targetScreen;
+    vsWindow *targetWindow;
+    vsPane *targetPane;
+    vsScene *scene;
+    atList *sceneList;
+    vsScene *listScene;
     osgDB::DatabasePager *osgDBPager;
+    int totalCount;
 
-    // Get an instance of the OSG database pager that will be used to 
-    // determine if there are any pages left to be loaded.
-    osgDBPager = osgDB::Registry::instance()->getDatabasePager();
-
-    // If we receive a valid instance of the database pager, return the 
-    // number of pages that remain to be loaded.
-    if (osgDBPager)
+    // Create a list of unique scenes in our current application
+    screenCount = vsScreen::getScreenCount();
+    for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
     {
-       return osgDBPager->getFileRequestListSize() +
-              osgDBPager->getDataToCompileListSize();
+        targetScreen = vsScreen::getScreen(screenLoop);
+        windowCount = targetScreen->getChildWindowCount();
+        for (windowLoop = 0; windowLoop < windowCount; windowLoop++)
+        {
+            targetWindow = targetScreen->getChildWindow(windowLoop);
+            paneCount = targetWindow->getChildPaneCount();
+            for (paneLoop = 0; paneLoop < paneCount; paneLoop++)
+            {
+                targetPane = targetWindow->getChildPane(paneLoop);
+                scene = targetPane->getScene();
+
+                // See if this scene is already in our list
+                listScene = (vsScene *)sceneList->getFirstEntry();
+                while ((listScene != NULL) && (listScene != scene))
+                    listScene = (vsScene *)sceneList->getNextEntry();
+
+                // If we didn't find it, add it
+                if (listScene == NULL)
+                    sceneList->addEntry(scene);
+            }
+        }
     }
 
-    // Return a default value in the case that an instance of the database
-    // pager could not be obtained.
-    return -1;
+    // Initialize the counter
+    totalCount = 0;
+
+    // Now, iterate over the scene list
+    listScene = (vsScene *)sceneList->getFirstEntry();
+    while ((listScene != NULL) && (listScene != scene))
+    {
+        // Get this scene's database pager (if any)
+        osgDBPager = listScene->getDatabasePager();
+        if (osgDBPager)
+        {
+           // Increment the total count by this pager's task count
+           totalCount +=
+               osgDBPager->getFileRequestListSize() +
+               osgDBPager->getDataToCompileListSize();
+        }
+
+        // Next scene
+        listScene = (vsScene *)sceneList->getNextEntry();
+    }
+
+    // Get rid of the scene list (but not the scenes in it)
+    sceneList->removeAllEntries();
+    delete sceneList;
+
+    // Return the count
+    return totalCount;
 }
 
 // ------------------------------------------------------------------------
@@ -486,6 +527,8 @@ void vsSystem::drawFrame()
     vsWindow *targetWindow;
     vsPane *targetPane;
     vsScene *scene;
+    atList *sceneList;
+    vsScene *sceneInList;
     int screenCount = vsScreen::getScreenCount();
     double lastFrameInterval, availableTime;
     osgDB::DatabasePager *osgDBPager;
@@ -549,9 +592,9 @@ void vsSystem::drawFrame()
     // If we're doing any database paging, merge any new database components
     // that the pager has recently loaded with the appropriate scenes
     availableTime = lastFrameInterval;
-    osgDBPager = osgDB::Registry::instance()->getDatabasePager();
-    if (osgDBPager != NULL)
-       osgDBPager->updateSceneGraph(simTime);
+
+    // Create a list to store unique scenes that we're drawing this frame
+    sceneList = new atList();
 
     // Update the viewpoint of each pane by its vsView object and
     // do a pre-frame traversal to set up the graphics state for each
@@ -605,15 +648,38 @@ void vsSystem::drawFrame()
                     // if it is dirty.
                     if (scene->isDirty())
                         preFrameTraverse(scene);
+
+                    // See if this scene is already in our list
+                    sceneInList = (vsScene *)sceneList->getFirstEntry();
+                    while ((sceneInList != NULL) && (sceneInList != scene))
+                        sceneInList = (vsScene *)sceneList->getNextEntry();
+
+                    // If we didn't find it, add it
+                    if (sceneInList == NULL)
+                        sceneList->addEntry(scene);
                 }
             }
         }
     }
 
-    // Tell the database pager that we're starting to draw
-    if (osgDBPager)
-        osgDBPager->signalBeginFrame(osgFrameStamp);
+    // Traverse the list of scenes
+    sceneInList = (vsScene *)sceneList->getFirstEntry();
+    while (sceneInList != NULL)
+    {
+        // Get the scene's database pager (if any)
+        osgDBPager = sceneInList->getDatabasePager();
+        if (osgDBPager)
+        {
+            // Update the scene graph and signal the pager that we're starting
+            // to draw
+            osgDBPager->updateSceneGraph(*osgFrameStamp);
+            osgDBPager->signalBeginFrame(osgFrameStamp);
+        }
 
+        // Next scene
+        sceneInList = (vsScene *)sceneList->getNextEntry();
+    }
+  
     // Perform update, cull, and draw traversals for each pane
     for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
     {
@@ -647,6 +713,11 @@ void vsSystem::drawFrame()
                     targetPane->getBaseLibraryObject()->draw();
 
                     // See if we're doing database paging
+                    scene = targetPane->getScene();
+                    if (scene)
+                        osgDBPager = scene->getDatabasePager();
+                    else
+                        osgDBPager = NULL;
                     if (osgDBPager)
                     {
                         // Tell the pager to compile any new GL objects
@@ -668,10 +739,26 @@ void vsSystem::drawFrame()
         }
     }
 
-    // Tell the database pager that we're done drawing
-    if (osgDBPager)
-        osgDBPager->signalEndFrame();
+    // Traverse the list of scenes again
+    sceneInList = (vsScene *)sceneList->getFirstEntry();
+    while (sceneInList != NULL)
+    {
+        // Get the scene's database pager (if any)
+        osgDBPager = sceneInList->getDatabasePager();
+        if (osgDBPager)
+        {
+            // Tell the database pager that we're done drawing
+            osgDBPager->signalEndFrame();
+        }
 
+        // Next scene
+        sceneInList = (vsScene *)sceneList->getNextEntry();
+    }
+
+    // Toss the scene list (but not the scenes in it!)
+    sceneList->removeAllEntries();
+    delete sceneList;
+  
 #ifdef WIN32
     // Windows only:  the message pump.  Check for Windows messages
     // in the message queue, and dispatch them to the message handler 

@@ -43,6 +43,11 @@ vsScene::vsScene()
     osgGroup = new osg::Group();
     osgGroup->ref();
 
+    // Create an OSG DatabasePager for this scene, in case there are any
+    // Paged LOD nodes to deal with
+    osgDatabasePager = osgDB::DatabasePager::create();
+    osgDatabasePager->ref();
+
     // Initialize the list of global lights to empty.
     for (loop = 0; loop < VS_LIGHT_MAX; loop++)
     {       
@@ -82,6 +87,9 @@ vsScene::~vsScene()
 
     // Remove all children
     deleteTree();
+
+    // Unreference the database pager
+    osgDatabasePager->unref();
 
     // Unreference the OSG Group we created
     osgGroup->unref();
@@ -195,6 +203,11 @@ bool vsScene::addChild(vsNode *newChild)
 
     // Mark the entire tree above and below this node as needing an update
     newChild->dirty();
+
+    // If we've got a database pager running, check for PagedLOD's in the
+    // scene
+    if (osgDatabasePager != NULL)
+        osgDatabasePager->registerPagedLODs(getBaseLibraryObject());
     
     // Return success
     return true;
@@ -973,4 +986,27 @@ void vsScene::getAxisAlignedBoxBounds(atVector  *minValues,
     // At this point (the exit of the function) the minValues and maxValues
     // vsMatricies have been set to the new bounds if that is at all
     // applicable.
+}
+
+// ------------------------------------------------------------------------
+// Sets the database pager for this scene to be the given pager, useful
+// if there is to be a single pager for multiple scenes 
+// ------------------------------------------------------------------------
+void vsScene::setDatabasePager(osgDB::DatabasePager *pager)
+{
+    // Unreference the old pager (if any)
+    if (osgDatabasePager != NULL)
+        osgDatabasePager->unref();
+
+    // Set and reference the new pager
+    osgDatabasePager = pager;
+    osgDatabasePager->ref();
+}
+
+// ------------------------------------------------------------------------
+// Returns the current database pager for this scene
+// ------------------------------------------------------------------------
+osgDB::DatabasePager *vsScene::getDatabasePager()
+{
+    return osgDatabasePager;
 }

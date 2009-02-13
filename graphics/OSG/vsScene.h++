@@ -28,6 +28,7 @@ class vsLightAttribute;
 #include "vsNode.h++"
 #include "vsLightAttribute.h++"
 #include <osg/Group>
+#include <osgDB/DatabasePager>
 
 enum vsSceneEarthSkyColor
 {
@@ -43,23 +44,28 @@ class VESS_SYM vsScene : public vsNode
 {
 private:
 
-    vsNode              *child;
-    int                 childCount;
+    vsNode                  *child;
+    int                     childCount;
 
-    vsLightAttribute    *lightList[VS_LIGHT_MAX];
+    vsLightAttribute        *lightList[VS_LIGHT_MAX];
+
+    osgDB::DatabasePager    *osgDatabasePager;
     
-    osg::Group          *osgGroup;
+    osg::Group              *osgGroup;
 
-    bool                esEnabled;
-    atVector            esUniformColor;
+    bool                    esEnabled;
+    atVector                esUniformColor;
 
 VS_INTERNAL:
 
-    int         addLight(vsLightAttribute *light);
-    void        removeLight(vsLightAttribute *light);
+    int                     addLight(vsLightAttribute *light);
+    void                    removeLight(vsLightAttribute *light);
 
-    virtual void    getAxisAlignedBoxBounds(atVector *minValues, 
-                                            atVector *maxValues);
+    virtual void            getAxisAlignedBoxBounds(atVector *minValues, 
+                                                    atVector *maxValues);
+
+    void                    setDatabasePager(osgDB::DatabasePager *pager);
+    osgDB::DatabasePager    *getDatabasePager();
 
 public:
 
