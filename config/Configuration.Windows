@@ -45,7 +45,7 @@ jpegPath = L:/jpeg-6b-4
 sceneGraph = OSG
 
 # Path to Open Scene Graph (required if "OSG" is selected)
-osgPath = L:/OpenSceneGraph-2.2.0
+osgPath = L:/OpenSceneGraph-2.8.0
 
 
 
