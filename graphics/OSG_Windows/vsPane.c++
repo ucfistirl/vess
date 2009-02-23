@@ -59,7 +59,6 @@ vsPane::vsPane(vsWindow *parent)
     osgUtil::CullVisitor *cullVisitor;
     osgUtil::StateGraph *stateGraph;
     osgUtil::RenderStage *renderStage;
-    osgDB::DatabasePager *dbPager;
     int contextID;
 
     // Initialize the viewpoint and scene to NULL
@@ -149,7 +148,8 @@ vsPane::vsPane(vsWindow *parent)
     osgSceneView->setLightingMode(osgUtil::SceneView::NO_SCENEVIEW_LIGHT);
 
     // Disable automatic clipping plane calculation
-    osgSceneView->setComputeNearFarMode(osgUtil::CullVisitor::DO_NOT_COMPUTE_NEAR_FAR);
+    osgSceneView->
+        setComputeNearFarMode(osgUtil::CullVisitor::DO_NOT_COMPUTE_NEAR_FAR);
 
     // Create the global OpenGL state settings
     defaultState = new osg::StateSet;
@@ -206,16 +206,6 @@ vsPane::vsPane(vsWindow *parent)
 
     // Initialize the scene
     osgSceneView->setSceneData(NULL);
-
-    // If there is a database pager created, set up this pane for paging
-    // requests
-    dbPager = osgDB::Registry::instance()->getDatabasePager();
-    if (dbPager)
-    {
-        osgSceneView->getCullVisitor()->setDatabaseRequestHandler(dbPager);
-        dbPager->setCompileGLObjectsForContextID(osgSceneView->getState()->
-            getContextID(), true);
-    }
 }
 
 // ------------------------------------------------------------------------
@@ -223,13 +213,6 @@ vsPane::vsPane(vsWindow *parent)
 // ------------------------------------------------------------------------
 vsPane::~vsPane()
 {
-    osgDB::DatabasePager *dbPager;
-
-    // If there is a database pager created, stop this pane from using it
-    dbPager = osgDB::Registry::instance()->getDatabasePager();
-    if (dbPager)
-        osgSceneView->getCullVisitor()->setDatabaseRequestHandler(NULL);
-
     // Unreference the SceneView and scene Group
     osgSceneView->setSceneData(NULL);
     osgSceneView->unref();
@@ -247,7 +230,7 @@ vsPane::~vsPane()
     // If a view has been set, clean up our reference
     if (sceneView != NULL)
     {
-    	 vsObject::unrefDelete(sceneView);
+        vsObject::unrefDelete(sceneView);
     }
 }
 
@@ -272,11 +255,11 @@ vsWindow *vsPane::getParentWindow()
 // ------------------------------------------------------------------------
 void vsPane::setView(vsView *view)
 {
-	 // If we previously had a different view, clean it up
+    // If we previously had a different view, clean it up
     if (sceneView != NULL)
     {
-    	 sceneView->unref();
-    	 sceneView = NULL;
+        sceneView->unref();
+        sceneView = NULL;
     }
     
     // Save the new view object
@@ -286,8 +269,8 @@ void vsPane::setView(vsView *view)
     // update the viewport based on the new view's settings
     if (sceneView != NULL)
     {
-    	 sceneView->ref();
-       viewChangeNum = sceneView->getChangeNum() - 1;
+        sceneView->ref();
+        viewChangeNum = sceneView->getChangeNum() - 1;
     }
 }
 
@@ -306,13 +289,46 @@ void vsPane::setScene(vsScene *newScene)
 {
     osgDB::DatabasePager *osgDBPager;
 
+    // Unreference the old scene (if any)
+    if (sceneRoot != NULL)
+    {
+        // See if the old scene had a database pager
+        osgDBPager = sceneRoot->getDatabasePager();
+        if (osgDBPager)
+        {
+            // Stop using this database pager in our SceneView object
+            osgSceneView->getCullVisitor()->setDatabaseRequestHandler(NULL);
+
+            // Tell the old database pager not to compile any GL objects for
+            // us anymore
+            osgDBPager->setCompileGLObjectsForContextID(
+                osgSceneView->getState()->getContextID(), false);
+        }
+
+        // Now, unreference the scene
+        sceneRoot->unref();
+    }
+
     // Reference the new scene
     if (newScene != NULL)
+    {
+        // Reference the new scene
         newScene->ref();
 
-    // Unreference the old one
-    if (sceneRoot != NULL)
-        sceneRoot->unref();
+        // See if the new scene has a database pager
+        osgDBPager = newScene->getDatabasePager();
+        if (osgDBPager)
+        {
+            // Set the database handler on our SceneView's culling traverser
+            osgSceneView->getCullVisitor()->
+                setDatabaseRequestHandler(osgDBPager);
+
+            // Tell the database pager to compile OpenGL objects for this
+            // view's context
+            osgDBPager->setCompileGLObjectsForContextID(
+                osgSceneView->getState()->getContextID(), true);
+        }
+    }
 
     // Set the new scene as the Pane's scene
     sceneRoot = newScene;
@@ -322,12 +338,6 @@ void vsPane::setScene(vsScene *newScene)
         osgSceneView->setSceneData(newScene->getBaseLibraryObject());
     else
         osgSceneView->setSceneData(NULL);
-
-    // If a database pager exists, let it know about the new scene
-    // data
-    osgDBPager = osgDB::Registry::instance()->getDatabasePager();
-    if ((newScene != NULL) && (osgDBPager != NULL))
-        osgDBPager->registerPagedLODs(newScene->getBaseLibraryObject());
 }
 
 // ------------------------------------------------------------------------
