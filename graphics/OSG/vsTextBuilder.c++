@@ -251,9 +251,7 @@ void vsTextBuilder::setFont(char *newFont)
     {
         // Create an OSG Font object from the data cotnained in the specified
         // font file
-printf("reading font file %s...\n", newFont);
         osgFont = osgText::readFontFile(newFont);
-printf("   got osgText::Font %p\n", osgFont);
 
         // If we have a valid Font object, reference it so that OSG doesn't
         // get tempted to delete it
