@@ -2083,8 +2083,11 @@ void vsGeometryBase::applyAttributes()
     // Call the inherited applyAttributes function
     vsNode::applyAttributes();
 
-    // Instruct the current active attributes to apply themselves to this
-    // node's osg StateSet
+    // Apply the attributes that we track during the traversal to this
+    // Geometry's OSG StateSet.  Note that we use the OSG Geometry's StateSet
+    // instead of the Geode's StateSet here.  This is because we have to clear
+    // the StateSet before we apply anything, and this would wipe out any
+    // other attributes that have already been applied by the parent class.
     osgStateSet = osgGeometry->getOrCreateStateSet();
     (vsGraphicsState::getInstance())->applyState(osgStateSet);
     
