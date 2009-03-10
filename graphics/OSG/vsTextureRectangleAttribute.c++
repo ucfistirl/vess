@@ -51,7 +51,7 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute()
     // Start with no image data
     osgTexImage = NULL;
 
-    //Initialize the osg::TextureRectangle
+    // Initialize the osg::TextureRectangle
     osgTexture->setBorderColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
     osgTexture->setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
 
@@ -91,7 +91,7 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit)
     // Start with no image data
     osgTexImage = NULL;
 
-    //Initialize the osg::TextureRectangle
+    // Initialize the osg::TextureRectangle
     osgTexture->setBorderColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
     osgTexture->setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
 
