@@ -1471,7 +1471,7 @@ void vsGeometryBase::disableCull()
 }
 
 // ------------------------------------------------------------------------
-// Returns the Performer object associated with this object
+// Returns the OSG object associated with this object
 // ------------------------------------------------------------------------
 osg::Geode *vsGeometryBase::getBaseLibraryObject()
 {
