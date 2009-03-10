@@ -91,8 +91,6 @@ vsSystem::vsSystem()
 // ------------------------------------------------------------------------
 vsSystem::~vsSystem()
 {
-    osgDB::DatabasePager *osgDBPager;
-
     // Do nothing if this isn't a real system object
     if (!validObject)
         return;
