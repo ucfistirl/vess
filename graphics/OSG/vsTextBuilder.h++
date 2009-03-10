@@ -65,14 +65,16 @@ private:
     osgText::Font::Glyph      *osgGlyphArray[256];
     vsTextureAttribute        *textureAttrArray[256];
 
-    osgText::Font::Glyph      *getOSGGlyph(unsigned char ch);
-    vsTextureAttribute        *getTextureAttribute(unsigned char ch);
-
     void                      setupTextureAttribute(unsigned char ch);
 
     void                      justifyLine(vsComponent *lineParent,
                                           int lineStartIdx, int lineEndIdx,
                                           double lineLength);
+
+VS_INTERNAL:
+
+    osgText::Font::Glyph      *getOSGGlyph(unsigned char ch);
+    vsTextureAttribute        *getTextureAttribute(unsigned char ch);
 
 public:
 

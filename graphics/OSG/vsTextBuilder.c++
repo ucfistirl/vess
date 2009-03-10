@@ -51,6 +51,9 @@ vsTextBuilder::vsTextBuilder()
     // Default transformation is none
     transformMatrix.setIdentity();
 
+    // Default font resolution is 128x128
+    fontResolution = osgText::FontResolution(128,128);
+
     // Default text justification is left justified
     fontJustification = VS_TEXTBUILDER_JUSTIFY_LEFT;
 
@@ -71,6 +74,9 @@ vsTextBuilder::vsTextBuilder(char *newFont)
 
     // Default font color is opaque white
     fontColor.set(1.0, 1.0, 1.0, 1.0);
+
+    // Default font resolution is 128x128
+    fontResolution = osgText::FontResolution(128,128);
 
     // Default transformation is none
     transformMatrix.setIdentity();
@@ -110,6 +116,9 @@ vsTextBuilder::vsTextBuilder(char *newFont, atVector newColor)
     fontColor.clearCopy(newColor);
     if (newColor.getSize() < 4)
         fontColor[3] = 1.0;
+
+    // Default font resolution is 128x128
+    fontResolution = osgText::FontResolution(128,128);
 
     // Default transformation is none
     transformMatrix.setIdentity();
@@ -151,6 +160,9 @@ vsTextBuilder::vsTextBuilder(char *newFont, atVector newColor,
     fontColor.clearCopy(newColor);
     if (newColor.getSize() < 4)
         fontColor[3] = 1.0;
+
+    // Default font resolution is 128x128
+    fontResolution = osgText::FontResolution(128,128);
 
     // Copy the font transformation matrix
     transformMatrix = newTransform;
@@ -239,7 +251,9 @@ void vsTextBuilder::setFont(char *newFont)
     {
         // Create an OSG Font object from the data cotnained in the specified
         // font file
+printf("reading font file %s...\n", newFont);
         osgFont = osgText::readFontFile(newFont);
+printf("   got osgText::Font %p\n", osgFont);
 
         // If we have a valid Font object, reference it so that OSG doesn't
         // get tempted to delete it
@@ -337,10 +351,6 @@ vsComponent *vsTextBuilder::buildText(char *text)
     // If there is no currently active font, return a NULL vsComponent
     if (!osgFont)
         return NULL;
-
-    // Tell the OSG Font object to make the character textures reasonably large
-    fontResolution = osgText::FontResolution(128, 128);
-    osgFont->setTextureSizeHint(256, 256);
 
     // Create a new vsComponent to hold the characters
     result = new vsComponent();
@@ -539,6 +549,10 @@ void vsTextBuilder::setupTextureAttribute(unsigned char ch)
     textureAttrArray[ch] = new vsTextureAttribute();
     (textureAttrArray[ch])->ref();
 
+    // JPD:  If we don't do this, the text doesn't show up.  I'm trying to
+    // figure out why...
+    textureAttrArray[ch]->disableNonPowerOfTwo();
+
     // Set the new texture to use the new glyph. (Technically, this function
     // takes an OSG Image, but in this case Glyph is derived from Image so
     // everything works fine.)
@@ -546,6 +560,8 @@ void vsTextBuilder::setupTextureAttribute(unsigned char ch)
 
     // Set some of the parameters of the texture
     (textureAttrArray[ch])->setApplyMode(VS_TEXTURE_APPLY_MODULATE);
+    (textureAttrArray[ch])->setBoundaryMode(VS_TEXTURE_DIRECTION_ALL,
+                                            VS_TEXTURE_BOUNDARY_CLAMP);
     (textureAttrArray[ch])->setMagFilter(VS_TEXTURE_MAGFILTER_LINEAR);
     (textureAttrArray[ch])->setMinFilter(VS_TEXTURE_MINFILTER_MIPMAP_LINEAR);
 }
