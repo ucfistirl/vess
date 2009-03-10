@@ -53,9 +53,15 @@ vsTextureCubeAttribute::vsTextureCubeAttribute()
         osgTexImage[loop] = NULL;
     }
 
-    //Initialize the osg::TextureCubeMap
+    // Initialize the osg::TextureCubeMap
     osgTextureCube->setBorderColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
     osgTextureCube->setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
+
+    // Assume there is hardware support for non-power of two (NPOT) texture
+    // sizes and tell OSG not to resize these textures (OSG will still
+    // resize them if the ARB_texture_non_power_of_two extension is not
+    // reported by the hardware)
+    osgTextureCube->setResizeNonPowerOfTwoHint(false);
 
     // Initialize the texture attribute
     setBoundaryMode(VS_TEXTURE_DIRECTION_ALL, VS_TEXTURE_BOUNDARY_CLAMP);
@@ -99,9 +105,15 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit)
         osgTexImage[loop] = NULL;
     }
 
-    //Initialize the osg::TextureCubeMap
+    // Initialize the osg::TextureCubeMap
     osgTextureCube->setBorderColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
     osgTextureCube->setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
+
+    // Assume there is hardware support for non-power of two (NPOT) texture
+    // sizes and tell OSG not to resize these textures (OSG will still
+    // resize them if the ARB_texture_non_power_of_two extension is not
+    // reported by the hardware)
+    osgTextureCube->setResizeNonPowerOfTwoHint(false);
 
     // Initialize the texture attribute
     setBoundaryMode(VS_TEXTURE_DIRECTION_ALL, VS_TEXTURE_BOUNDARY_CLAMP);
@@ -154,7 +166,11 @@ vsTextureCubeAttribute::vsTextureCubeAttribute(unsigned int unit,
     }
     osgTexGen->ref();
 
-    // Save and reference the texture matrix
+    // Assume there is hardware support for non-power of two (NPOT) texture
+    // sizes and tell OSG not to resize these textures (OSG will still
+    // resize them if the ARB_texture_non_power_of_two extension is not
+    // reported by the hardware)
+    osgTextureCube->setResizeNonPowerOfTwoHint(false);
 
     // Reference the texture image data
     osgTexImage[0] = osgTextureCube->getImage((osg::TextureCubeMap::Face) 0);
@@ -443,6 +459,22 @@ void vsTextureCubeAttribute::reloadTextureData(int face)
     // the texture object to get the new data from the image object.
     osgTexImage[face]->dirty();
     osgTextureCube->dirtyTextureObject();
+}
+
+// ------------------------------------------------------------------------
+// Enable non-power of two texture support (this is the default)
+// ------------------------------------------------------------------------
+void vsTextureCubeAttribute::enableNonPowerOfTwo()
+{
+    osgTextureCube->setResizeNonPowerOfTwoHint(false);
+}
+
+// ------------------------------------------------------------------------
+// Disable non-power of two texture support 
+// ------------------------------------------------------------------------
+void vsTextureCubeAttribute::disableNonPowerOfTwo()
+{
+    osgTextureCube->setResizeNonPowerOfTwoHint(true);
 }
 
 // ------------------------------------------------------------------------

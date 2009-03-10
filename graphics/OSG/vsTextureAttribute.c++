@@ -26,6 +26,10 @@
 #include <osgDB/ReadFile>
 #include <stdio.h>
 
+// DELETE THIS!!!!
+#include "vsComponent.h++"
+#include <osgDB/WriteFile>
+
 // ------------------------------------------------------------------------
 // Default Constructor - Creates the OSG texture objects for unit 0 and
 // initializes default settings
@@ -50,7 +54,7 @@ vsTextureAttribute::vsTextureAttribute()
     // Start with no image data
     osgTexImage = NULL;
 
-    //Initialize the osg::Texture2D
+    // Initialize the osg::Texture2D
     osgTexture->setBorderColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
     osgTexture->setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
 
@@ -98,7 +102,7 @@ vsTextureAttribute::vsTextureAttribute(unsigned int unit)
     // Start with no image data
     osgTexImage = NULL;
 
-    //Initialize the osg::Texture2D
+    // Initialize the osg::Texture2D
     osgTexture->setBorderColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
     osgTexture->setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
 
@@ -417,6 +421,22 @@ void vsTextureAttribute::reloadTextureData()
     // the texture object to get the new data from the image object.
     osgTexImage->dirty();
     osgTexture->dirtyTextureObject();
+}
+
+// ------------------------------------------------------------------------
+// Enable non-power of two texture support (this is the default)
+// ------------------------------------------------------------------------
+void vsTextureAttribute::enableNonPowerOfTwo()
+{
+    osgTexture->setResizeNonPowerOfTwoHint(false);
+}
+
+// ------------------------------------------------------------------------
+// Disable non-power of two texture support
+// ------------------------------------------------------------------------
+void vsTextureAttribute::disableNonPowerOfTwo()
+{
+    osgTexture->setResizeNonPowerOfTwoHint(true);
 }
 
 // ------------------------------------------------------------------------

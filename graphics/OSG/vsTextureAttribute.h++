@@ -144,6 +144,9 @@ public:
 
     void                   reloadTextureData();
 
+    void                   enableNonPowerOfTwo();
+    void                   disableNonPowerOfTwo();
+
     bool                   isTransparent();
 
     void                   setBoundaryMode(int whichDirection,

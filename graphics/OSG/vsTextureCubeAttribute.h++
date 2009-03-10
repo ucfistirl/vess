@@ -98,6 +98,9 @@ public:
 
     void                   reloadTextureData(int face);
 
+    void                   enableNonPowerOfTwo();
+    void                   disableNonPowerOfTwo();
+
     bool                   isTransparent();
 
     void                   setBoundaryMode(int whichDirection,
