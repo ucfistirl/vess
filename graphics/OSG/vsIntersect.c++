@@ -696,7 +696,7 @@ void vsIntersect::intersect(vsNode *targetNode)
                 // Traverse the path and translate it into an array of VESS nodes
                 for (sloop = 0; sloop < pathLength; sloop++)
                 {
-                    // Get the next path node from the Performer path array
+                    // Get the next path node from the OSG path array
                     pathNode = (osg::Node *)(hitNodePath[sloop]);
 
                     // If the path node is valid, try to map it to a VESS node

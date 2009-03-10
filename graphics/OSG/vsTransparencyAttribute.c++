@@ -27,7 +27,7 @@
 #include "vsGraphicsState.h++"
 
 // ------------------------------------------------------------------------
-// Default Constructor - Initializes the Performer transparency value
+// Default Constructor - Initializes the OSG transparency settings
 // ------------------------------------------------------------------------
 vsTransparencyAttribute::vsTransparencyAttribute()
 {

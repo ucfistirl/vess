@@ -82,7 +82,7 @@ vsSkeletonMeshGeometry::vsSkeletonMeshGeometry()
 }
 
 // ------------------------------------------------------------------------
-// Destructor - Disconnects this node from its Performer counterpart
+// Destructor - Disconnects this node from its OSG counterpart
 // ------------------------------------------------------------------------
 vsSkeletonMeshGeometry::~vsSkeletonMeshGeometry()
 {
