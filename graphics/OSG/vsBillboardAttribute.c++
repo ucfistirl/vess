@@ -295,7 +295,7 @@ void vsBillboardAttribute::attachDuplicate(vsNode *theNode)
 // ------------------------------------------------------------------------
 // Internal function
 // Finds the optimal rotation to cause the billboard to face the viewer,
-// and sets the Performer transform to that rotation.
+// and sets the OSG transform to that rotation.
 // ------------------------------------------------------------------------
 void vsBillboardAttribute::adjustTransform(atMatrix viewMatrix,
                                            atMatrix currentXform)
