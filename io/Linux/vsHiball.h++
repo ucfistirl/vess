@@ -14,6 +14,8 @@
 //    VESS Module:  vsHiball.h++
 //
 //    Description:  Class to handle input from a Hiball tracking system.
+//                  There is no additional functionality added to the base
+//                  vsVRPNTrackingSystem here.
 //
 //    Author(s):    Jason Daly, Casey Thurston
 //
@@ -22,48 +24,22 @@
 #ifndef VS_HIBALL_HPP
 #define VS_HIBALL_HPP
 
-
-#include "vsMotionTracker.h++"
-#include "vsTrackingSystem.h++"
 #include "vsVRPNTrackingSystem.h++"
-
-#include "atList.h++"
-#include "atQuat.h++"
-#include "atVector.h++"
-
 
 class vsHiball : public vsVRPNTrackingSystem
 {
-protected:
-
-    vsMotionTracker         *motionTrackers[VS_VRPN_MAX_REMOTE_TRACKERS];
-    vsInputButton           *inputButtons[VS_VRPN_MAX_REMOTE_BUTTONS];
-
-VS_INTERNAL:
-
-    void        createLocalObjects();
-
 public:
 
-                               vsHiball(atString hostName,
-                                   atList * trackerNames,
-                                   atList * buttonNames);
-                               vsHiball(atString hostName, atString localName,
-                                   atList * trackerNames,
-                                   atList * buttonNames);
-    virtual                    ~vsHiball();
+                         vsHiball(atString hostName,
+                                  atString trackerServerName,
+                                  atString buttonServerName);
+                         vsHiball(atString hostName, atString localName,
+                                  atString trackerServerName,
+                                  atString buttonServerName);
+    virtual              ~vsHiball();
 
-    virtual const char         *getClassName();
-
-    virtual int                getNumTrackers();
-    virtual vsMotionTracker    *getTracker(int index);
-
-    virtual int                getNumButtons();
-    virtual vsInputButton      *getButton(int index);
-
-    virtual void               update();
+    virtual const char   *getClassName();
 };
-
 
 #endif
 

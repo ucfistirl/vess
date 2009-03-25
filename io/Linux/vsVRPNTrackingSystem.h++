@@ -16,7 +16,7 @@
 //    Description:  Class to manage communication with tracking systems
 //                  hosted over a VRPN network.
 //
-//    Author(s):    Casey Thurston
+//    Author(s):    Casey Thurston, Jason Daly
 //
 //------------------------------------------------------------------------
 
@@ -27,36 +27,13 @@
 #include "vsMotionTracker.h++"
 #include "vsTrackingSystem.h++"
 
-#include "atList.h++"
+#include "atArray.h++"
 #include "atQuat.h++"
 #include "atString.h++"
 #include "atVector.h++"
 
 #include <vrpn_Button.h>
 #include <vrpn_Tracker.h>
-
-
-#define VS_VRPN_MAX_REMOTE_TRACKERS    32
-#define VS_VRPN_MAX_REMOTE_BUTTONS     8
-
-
-struct vsVRPNRemoteTracker
-{
-    atString               trackerName;
-    vrpn_Tracker_Remote    *vrpnTracker;
-
-    atVector               trackerPosition;
-    atQuat                 trackerOrientation;
-};
-
-
-struct vsVRPNRemoteButton
-{
-    atString              buttonName;
-    vrpn_Button_Remote    *vrpnButton;
-
-    bool                  buttonState;
-};
 
 
 class vsVRPNTrackingSystem : public vsTrackingSystem
@@ -68,34 +45,43 @@ protected:
     atString               localHostname;
     vrpn_Connection        *remoteConnection;
 
-    int                    numRemoteTrackers;
-    vsVRPNRemoteTracker    *remoteTrackers[VS_VRPN_MAX_REMOTE_TRACKERS];
+    vrpn_Tracker_Remote    *remoteTrackerConnection;
+    atArray                *motionTrackers;
 
-    int                    numRemoteButtons;
-    vsVRPNRemoteButton     *remoteButtons[VS_VRPN_MAX_REMOTE_BUTTONS];
+    vrpn_Button_Remote     *remoteButtonConnection;
+    atArray                *trackerButtons;
 
-    static void            remoteTrackerChangeHandler(void *userData,
-                               const vrpn_TRACKERCB tracker);
-    static void            remoteButtonChangeHandler(void *userData,
-                               const vrpn_BUTTONCB button);
+    void                   init(atString hostName, atString trackerServerName,
+                                atString buttonServerName);
 
-VS_INTERNAL:
+    static void            remoteTrackerChangeHandler(
+                                                 void *userData,
+                                                 const vrpn_TRACKERCB tracker);
 
-    void        createRemoteObjects(atString hostName, atList * trackerNames,
-                    atList * buttonNames);
+    static void            remoteButtonChangeHandler(
+                                                 void *userData,
+                                                 const vrpn_BUTTONCB button);
 
 public:
 
-                          vsVRPNTrackingSystem(atString hostName,
-                              atList * trackerNames, atList * buttonNames);
-                          vsVRPNTrackingSystem(atString hostName,
-                              atString localName, atList * trackerNames,
-                              atList * buttonNames);
-    virtual               ~vsVRPNTrackingSystem();
+                              vsVRPNTrackingSystem(atString serverHostName,
+                                                   atString trackerServerName,
+                                                   atString buttonServerName);
+                              vsVRPNTrackingSystem(atString serverHostName,
+                                                   atString localHostName, 
+                                                   atString trackerServerName,
+                                                   atString buttonServerName);
+    virtual                   ~vsVRPNTrackingSystem();
 
-    virtual const char    *getClassName() = 0;
+    virtual const char        *getClassName();
 
-    virtual void          update();
+    virtual int               getNumTrackers();
+    virtual vsMotionTracker   *getTracker(int index);
+
+    virtual int               getNumButtons();
+    virtual vsInputButton     *getButton(int index);
+
+    virtual void              update();
 };
 
 
