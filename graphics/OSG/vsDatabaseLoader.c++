@@ -1007,7 +1007,9 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
                     // If the osg::Geometry object contains a texture 
                     // coordinate array on this texture unit, copy it to
                     // the vsGeometry
-                    if (osgGeometry->getTexCoordArray(unit) != NULL)
+                    if ((osgGeometry->getTexCoordArray(unit) != NULL) &&
+                        (osgGeometry->
+                            getTexCoordArray(unit)->getNumElements() > 0))
                     {
                         texCoordMark[unit] += copyData(geometry, 
                             VS_GEOMETRY_TEXTURE0_COORDS + unit,
@@ -1024,7 +1026,9 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
                     // If the osg::Geometry object contains a texture 
                     // coordinate array on this texture unit, copy it to
                     // the vsGeometry
-                    if (osgGeometry->getVertexAttribArray(generic) != NULL)
+                    if ((osgGeometry->getVertexAttribArray(generic) != NULL) &&
+                        (osgGeometry->getVertexAttribArray(generic)->
+                            getNumElements() > 0))
                     {
                         genericMark[generic] += copyData(geometry, 
                             16 + generic, genericMark[unit], osgPrimitiveSet,
@@ -1722,15 +1726,19 @@ void vsDatabaseLoader::convertLOD(vsComponent *lodComponent, osg::LOD *osgLOD)
         }
     }
 
-    // * Get the center of the OSG LOD node (in case it has a user-defined
-    // center instead of just the node's bounding sphere)
-    lodCenter = osgLOD->getCenter();
-    
-    // * Create a vsLODAttribute and attach it to the lodComponent, and
-    // configure the attribute's ranges with the values from the range list
+    // * Create a vsLODAttribute and attach it to the lodComponent
     lodAttr = new vsLODAttribute();
     lodComponent->addAttribute(lodAttr);
-    lodAttr->setCenter(atVector(lodCenter[0], lodCenter[1], lodCenter[2]));
+
+    // * See if the LOD node has a user-defined center (as opposed to just
+    // using the center of the bounding volume)
+    if (osgLOD->getCenterMode() == osg::LOD::USER_DEFINED_CENTER)
+    {
+        lodCenter = osgLOD->getCenter();
+        lodAttr->setCenter(atVector(lodCenter[0], lodCenter[1], lodCenter[2]));
+    }
+
+    // * Configure the attribute's ranges with the values from the range list
     for (loop = 0; loop < (rangeListSize-1); loop++)
         lodAttr->setRangeEnd(loop, rangeList[loop+1]);
 
