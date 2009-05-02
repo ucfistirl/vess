@@ -114,6 +114,10 @@ void vsIntersectTraverser::apply(osg::Sequence &node)
     if (sequenceTravMode == VS_INTERSECT_SEQUENCE_NONE)
         return;
 
+    // See if we should traverse this node at all
+    if (!enterNode(node))
+        return;
+
     // Otherwise, iterate over the Sequence's children
     for (i = 0; i < (int)node.getNumChildren(); i++)
     {
@@ -134,6 +138,9 @@ void vsIntersectTraverser::apply(osg::Sequence &node)
             node.getChild(i)->accept(*this);
         }
     }
+
+    // Perform any cleaning up needed before we leave this node 
+    leaveNode();
 }
 
 // ------------------------------------------------------------------------
@@ -147,6 +154,10 @@ void vsIntersectTraverser::apply(osg::Switch &node)
     // If switch traversals are set to NONE, just return immediately
     // so no nodes are traversed
     if (switchTravMode == VS_INTERSECT_SWITCH_NONE)
+        return;
+
+    // See if we should traverse this node at all
+    if (!enterNode(node))
         return;
 
     // Otherwise, iterate over the Switch's children
@@ -169,6 +180,9 @@ void vsIntersectTraverser::apply(osg::Switch &node)
             node.getChild(i)->accept(*this);
         }
     }
+
+    // Perform any cleaning up needed before we leave this node 
+    leaveNode();
 }
 
 // ------------------------------------------------------------------------
@@ -178,6 +192,7 @@ void vsIntersectTraverser::apply(osg::Switch &node)
 void vsIntersectTraverser::apply(osg::LOD &node)
 {
     int i;
+    osg::Node * child;
 
     // If LOD traversals are set to NONE, just return immediately
     // so no nodes are traversed
@@ -188,21 +203,28 @@ void vsIntersectTraverser::apply(osg::LOD &node)
     // child
     if (lodTravMode == VS_INTERSECT_LOD_FIRST)
     {
-        // We need to check if the child is valid.  This may be a PagedLOD
-        // so it's children may not be loaded yet.
-        if (node.getChild(0) != NULL)
-            node.getChild(0)->accept(*this);
+        // See if we should traverse this node in the first pace
+        if (!enterNode(node))
+            return;
+
+        // We need to check if the first child is valid
+        if (node.getNumChildren() > 0)
+        {
+            // Get the first child of the LOD node
+            child = node.getChild(0);
+
+            // If it's valid, have it accept the intersect visitor
+            if (child != NULL)
+                child->accept(*this);
+        }
+
+        // Perform any cleaning up needed before we leave this node 
+        leaveNode();
         return;
     }
 
-    // Otherwise, iterate over the LOD's children
-    for (i = 0; i < (int)node.getNumChildren(); i++)
-    {
-        // We're traversing all children, apply the IntersectVisitor to
-        // the current child with no check
-        if (node.getChild(i) != NULL)
-            node.getChild(i)->accept(*this);
-    }
+    // Otherwise, do the normal traversal
+    osgUtil::IntersectVisitor::apply(node);
 }
 
 // ------------------------------------------------------------------------
@@ -212,5 +234,5 @@ void vsIntersectTraverser::apply(osg::LOD &node)
 void vsIntersectTraverser::apply(osg::PagedLOD &node)
 {
     // Do the normal PagedLOD traversal
-    node.traverse(*this);
+    osgUtil::IntersectVisitor::apply(node);
 }
