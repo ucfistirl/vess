@@ -455,6 +455,7 @@ int vsSystem::getNumDBPagesToLoad()
     int totalCount;
 
     // Create a list of unique scenes in our current application
+    sceneList = new atList();
     screenCount = vsScreen::getScreenCount();
     for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
     {
