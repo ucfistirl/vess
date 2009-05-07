@@ -353,6 +353,10 @@ void vsSoundCapture::pause()
     // Only pause if not already in a pause state.
     if (!capturePaused)
     {
+        // Take control of the buffer mutex. This will prevent the capture loop
+        // from processing further data.
+        pthread_mutex_lock(&bufferMutex);
+
         // Make sure the device is open before manipulating it
         if (deviceOpen)
         {
@@ -366,10 +370,6 @@ void vsSoundCapture::pause()
                     "alcCaptureStop failed! Invalid device!\n");
             }
         }
-
-        // Take control of the buffer mutex. This will prevent the capture loop
-        // from processing further data.
-        pthread_mutex_lock(&bufferMutex);
 
         // Grab any lingering samples in the device buffer and throw them
         // away
