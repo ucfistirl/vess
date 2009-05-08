@@ -179,6 +179,8 @@ public:
     void                  stop();
     int                   getPlayMode();
 
+    int                   getCurrentSegment();
+
     void                  configureFromFile(char *filename);
 
     virtual void          update();

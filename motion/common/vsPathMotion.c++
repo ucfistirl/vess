@@ -696,6 +696,14 @@ int vsPathMotion::getPlayMode()
 }
 
 //------------------------------------------------------------------------
+// Gets the index of the path segment that we're currently traversing
+//------------------------------------------------------------------------
+int vsPathMotion::getCurrentSegment()
+{
+    return currentSegmentIdx;
+}
+
+//------------------------------------------------------------------------
 // Sets any or all of the data in the object from the instructions
 // contained in the specified external data file
 //------------------------------------------------------------------------
