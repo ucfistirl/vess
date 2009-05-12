@@ -73,6 +73,7 @@ public:
     // set to zero at the beginning of each frame.
     void                  enableInertia();
     void                  disableInertia();
+    bool                  isInertiaEnabled();
 
     // Adjust the current position
     void                  setPosition(atVector newPosition);

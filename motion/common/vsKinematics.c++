@@ -116,6 +116,15 @@ void vsKinematics::disableInertia()
 }
 
 // ------------------------------------------------------------------------
+// Returns if inertia is enabled and velocities are preserved between
+// frames.
+// ------------------------------------------------------------------------
+bool vsKinematics::isInertiaEnabled()
+{
+   return inertia;
+}
+
+// ------------------------------------------------------------------------
 // Sets the translation
 // ------------------------------------------------------------------------
 void vsKinematics::setPosition(atVector newPosition)
