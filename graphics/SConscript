@@ -51,15 +51,15 @@ sgSrc='vsAttribute.c++ vsBackfaceAttribute.c++ vsBillboardAttribute.c++ \
        vsDecalAttribute.c++ vsDynamicGeometry.c++ vsFogAttribute.c++ \
        vsGeometryBase.c++ vsGeometry.c++ vsGLSLProgramAttribute.c++ \
        vsGLSLShader.c++ vsGLSLUniform.c++ vsGraphicsState.c++ vsIntersect.c++ \
-       vsIntersectTraverser.c++ vsLightAttribute.c++ vsLineWidthAttribute.c++ \
-       vsLODAttribute.c++ vsMaterialAttribute.c++ vsNode.c++ vsScene.c++ \
-       vsSequenceAttribute.c++ vsShaderAttribute.c++ vsShadingAttribute.c++ \
-       vsSkeletonMeshGeometry.c++ vsSphereIntersect.c++ vsStateAttribute.c++ \
-       vsSwitchAttribute.c++ vsTextBuilder.c++ vsTextureAttribute.c++ \
-       vsTextureCubeAttribute.c++ vsTextureRectangleAttribute.c++ \
-       vsTransformAttribute.c++ vsTransparencyAttribute.c++ \
-       vsUnmanagedNode.c++ vsView.c++ vsViewpointAttribute.c++ \
-       vsWireframeAttribute.c++'
+       vsIntersectResult.c++ vsIntersectTraverser.c++ vsLightAttribute.c++ \
+       vsLineWidthAttribute.c++ vsLODAttribute.c++ vsMaterialAttribute.c++ \
+       vsNode.c++ vsScene.c++ vsSequenceAttribute.c++ vsShaderAttribute.c++ \
+       vsShadingAttribute.c++ vsSkeletonMeshGeometry.c++ \
+       vsSphereIntersect.c++ vsStateAttribute.c++ vsSwitchAttribute.c++ \
+       vsTextBuilder.c++ vsTextureAttribute.c++ vsTextureCubeAttribute.c++ \
+       vsTextureRectangleAttribute.c++ vsTransformAttribute.c++ \
+       vsTransparencyAttribute.c++ vsUnmanagedNode.c++ vsView.c++ \
+       vsViewpointAttribute.c++ vsWireframeAttribute.c++'
 
 # Add any extra source files that this specific scene graph needs
 if sceneGraph == 'OSG':
