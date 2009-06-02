@@ -424,7 +424,7 @@ void vsMenuSystem::update()
 
             isectObject->intersect(curObj->getComponent());
 
-            if (isectObject->getIsectValid(0))
+            if (isectObject->getIntersection(0)->isValid())
             {
                 // Make the highlighted item the selected item
                 selectedObj = curObj;

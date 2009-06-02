@@ -167,9 +167,9 @@ void vsArticulatedCollision::update()
         {
             // If there's an intersection, figure out how far away it is from
             // the beginning of the joint segment
-            if (intersect->getIsectValid(sloop))
+            if (intersect->getIntersection(sloop)->isValid())
             {
-                tempPt = intersect->getIsectPoint(sloop);
+                tempPt = intersect->getIntersection(sloop)->getPoint();
                 tempDist = (tempPt - startPt).getMagnitude();
 
                 // Is this our first such intersection?

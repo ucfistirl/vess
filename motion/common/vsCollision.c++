@@ -396,15 +396,15 @@ double vsCollision::calcMoveAllowed(atMatrix globalXform, atVector posOffset,
     // For each point, figure out if and where an intersection occurred
     for (loop = 0; loop < offsetCount; loop++)
     {
-        if (intersect->getIsectValid(loop))
+        if (intersect->getIntersection(loop)->isValid())
         {
             // Obtain the point and normal of intersection
-            hitPoints1[loop] = intersect->getIsectPoint(loop);
+            hitPoints1[loop] = intersect->getIntersection(loop)->getPoint();
 
             // Check to see if we hit the back side of a poly; if so, we
             // need to invert the normal
             normals[loop] = fixNormal(startPoints[loop], hitPoints1[loop],
-                intersect->getIsectNorm(loop));
+                intersect->getIntersection(loop)->getNormal());
 
             valid1[loop] = 1;
         }
@@ -449,10 +449,10 @@ double vsCollision::calcMoveAllowed(atMatrix globalXform, atVector posOffset,
     // For each point, figure out if and where an intersection occurred
     for (loop = 0; loop < offsetCount; loop++)
     {
-        if (intersect->getIsectValid(loop))
+        if (intersect->getIntersection(loop)->isValid())
         {
             // If the intersection hit something, record the point
-            hitPoints2[loop] = intersect->getIsectPoint(loop);
+            hitPoints2[loop] = intersect->getIntersection(loop)->getPoint();
             valid2[loop] = 1;
         }
         else
@@ -488,7 +488,7 @@ double vsCollision::calcMoveAllowed(atMatrix globalXform, atVector posOffset,
             // Get the intersection normal for this second intersection. This
             // data should still be in the intersection object.
             secondNormal = fixNormal(startPoints[loop], hitPoints2[loop],
-                intersect->getIsectNorm(loop));
+                intersect->getIntersection(loop)->getNormal());
 
             // Compute the dot product of the travel direction and
             // intersection normal. If this product is positive or zero, then

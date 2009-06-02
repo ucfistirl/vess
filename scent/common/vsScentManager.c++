@@ -346,7 +346,7 @@ void vsScentManager::update()
         // Figure out which sources are occluded
         for (i = 0; i < occlusionTestCount; i++)
         {
-            if (occlusionIsect->getIsectValid(i))
+            if (occlusionIsect->getIntersection(i)->isValid())
                 occludedFlag[occlusionIndex[i]] = true;
         }
     }

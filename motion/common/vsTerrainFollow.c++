@@ -153,10 +153,10 @@ void vsTerrainFollow::update()
     // If we intersected something, then modify the model's position such
     // that the given point is on the ground. (Actually, it's set to a
     // very tiny amount above it.)
-    if (intersect->getIsectValid(0))
+    if (intersect->getIntersection(0)->isValid())
     {
         // Obtain the point of intersection
-        hitPoint = intersect->getIsectPoint(0);
+        hitPoint = intersect->getIntersection(0)->getPoint();
 
         // Modify the z-coordinate of the intersection point to force the
 	// object to float very slightly off of the ground
