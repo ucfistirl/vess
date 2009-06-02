@@ -62,7 +62,7 @@ vsIntersect::vsIntersect()
     intersectTraverser = new vsIntersectTraverser();
     intersectTraverser->ref();
     
-    // TODO: Database read callback.
+    // TODO: Database read callback?
 }
 
 // ------------------------------------------------------------------------
@@ -644,17 +644,23 @@ void vsIntersect::intersect(vsNode *targetNode)
                 // culling based on facing.
                 segment = (vsLineSegment *)segList->getEntry(loop);
                 viewVec = segment->getEndPoint() - segment->getStartPoint();
+            }
 
-                // Create an iterator over the intersection results.
-                iterator = intersections->begin();
-                while (resultList->getEntry(loop) == NULL)
+            // Create an iterator over the intersection results.
+            iterator = intersections->begin();
+            while (resultList->getEntry(loop) == NULL)
+            {
+                // Get a pointer to the intersection structure from the
+                // iterator (the *iterator statement returns a reference to
+                // the data in question, and we take the address of this
+                // reference to get the pointer).
+                intersection = &(*iterator);
+
+                // If the facing mode isn't VS_INTERSECT_IGNORE_NONE, back and
+                // front culling checks must be made to find valid
+                // intersections.
+                if (facingMode != VS_INTERSECT_IGNORE_NONE)
                 {
-                    // Get a pointer to the intersection structure from the
-                    // iterator (the *iterator statement returns a reference to
-                    // the data in question, and we take the address of this
-                    // reference to get the pointer).
-                    intersection = &(*iterator);
-
                     // Find the normal and convert it to an atVector.
                     polyNormal = intersection->getWorldIntersectNormal();
                     normalVec.set(polyNormal.x(), polyNormal.y(),
@@ -681,32 +687,23 @@ void vsIntersect::intersect(vsNode *targetNode)
                         populateIntersection(loop, intersection);
                     }
 
-                    // Advance the iterator and check whether this was the last
-                    // node.
-                    iterator++;
-                    if (iterator == intersections->end())
-                    {
-                        // We're out of potential results. Fill in the field
-                        // with default data to halt the traversal.
-                        if (resultList->getEntry(loop) == NULL)
-                            populateIntersection(loop, NULL);
-                    }
                 }
-            }
-            else
-            {
-                // Create an iterator over the intersection results. This is
-                // the only way to access the first entry.
-                iterator = intersections->begin();
+                else
+                {
+                    // Populate with the data from this intersection.
+                    populateIntersection(loop, intersection);
+                }
 
-                // Get a pointer to the intersection structure from the
-                // iterator (the *iterator statement returns a reference to the
-                // data in question, and we take the address of this reference
-                // to get the pointer)
-                intersection = &(*iterator);
-
-                // Populate with the data from this intersection.
-                populateIntersection(loop, intersection);
+                // Advance the iterator and check whether this was the last
+                // node.
+                iterator++;
+                if (iterator == intersections->end())
+                {
+                    // We're out of potential results. Fill in the field
+                    // with default data to halt the traversal.
+                    if (resultList->getEntry(loop) == NULL)
+                        populateIntersection(loop, NULL);
+                }
             }
         }
         else
