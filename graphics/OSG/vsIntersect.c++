@@ -16,41 +16,53 @@
 //    Description:  Class for performing intersection tests between line
 //                  segments and a whole or part of a VESS scene graph
 //
-//    Author(s):    Bryan Kline, Jason Daly
+//    Author(s):    Bryan Kline, Jason Daly, Casey Thurston
 //
 //------------------------------------------------------------------------
 
 #include <stdio.h>
+
+#include <osg/StateAttribute>
+#include <osg/StateSet>
+#include <osg/ClipPlane>
+#include <osg/Transform>
+#include <osg/MatrixTransform>
+#include <osgUtil/LineSegmentIntersector>
+
 #include "vsIntersect.h++"
 #include "vsComponent.h++"
 #include "vsDynamicGeometry.h++"
+#include "vsLineSegment.h++"
 #include "vsSkeletonMeshGeometry.h++"
 #include "vsScene.h++"
 #include "vsUnmanagedNode.h++"
 
 // ------------------------------------------------------------------------
-// Constructor - Initializes the segment list
+// Constructor
 // ------------------------------------------------------------------------
-vsIntersect::vsIntersect() : segList(5, 10)
+vsIntersect::vsIntersect()
 {
     int loop;
 
+    // Set the facing mode to accept intersections with both sides by default
+    facingMode = VS_INTERSECT_IGNORE_NONE;
+
+    // Begin with no sensitivity to clipping and paths disabled.
+    clipSensitivity = false;
+    pathsEnabled = false;
+
     // Initialize the segment list
     segListSize = 0;
-
-    // Initialize the path array
-    pathsEnabled = false;
-    for (loop = 0; loop < VS_INTERSECT_SEGS_MAX; loop++)
-        sectPath[loop] = NULL;
+    segList = new atArray();
+    resultList = new atArray();
 
     // Create the auxiliary visitor for the IntersectVisitor that will
     // control traversals.  This will handle the special traversal
     // modes for sequence, switches, and LOD's
-    traverser = new vsIntersectTraverser();
-    traverser->ref();
-
-    // Set the facing mode to accept intersections with both sides by default
-    facingMode = VS_INTERSECT_IGNORE_NONE;
+    intersectTraverser = new vsIntersectTraverser();
+    intersectTraverser->ref();
+    
+    // TODO: Database read callback.
 }
 
 // ------------------------------------------------------------------------
@@ -59,19 +71,13 @@ vsIntersect::vsIntersect() : segList(5, 10)
 vsIntersect::~vsIntersect()
 {
     int loop;
+    vsLineSegment *segment;
 
-    // Clean up any intersect node paths that have been created
-    for (loop = 0; loop < VS_INTERSECT_SEGS_MAX; loop++)
-        if (sectPath[loop] != NULL)
-            delete (sectPath[loop]);
-
-    // Clean up any line segments that were allocated
-    for (loop = 0; loop < segListSize; loop++)
-        if (segList[loop] != NULL)
-            ((osg::LineSegment *)(segList[loop]))->unref();
+    // Clean up any intersect node paths that have been created.
+    clearIntersectionResults();
 
     // Delete the vsIntersectTraverser
-    traverser->unref();
+    intersectTraverser->unref();
 }
 
 // ------------------------------------------------------------------------
@@ -88,6 +94,8 @@ const char *vsIntersect::getClassName()
 void vsIntersect::setSegListSize(int newSize)
 {
     int loop;
+    vsLineSegment *segment;
+    atList *results;
 
     // Make sure we don't exceed the maximum list size
     if (newSize > VS_INTERSECT_SEGS_MAX)
@@ -109,15 +117,25 @@ void vsIntersect::setSegListSize(int newSize)
     {
         // Unreference any LineSegments we've created in the list slots 
         // that are going away.
-        for (loop = newSize; loop < segListSize; loop++)
+        for (loop = segListSize - 1; loop >= newSize; loop--)
         {
-            if (segList[loop] != NULL)
-                ((osg::LineSegment *)(segList[loop]))->unref();
+            // Set the object at the location to NULL in case the number of
+            // segments increases at a later time. The pointer previously at
+            // that location is stored so its memory may be freed if necessary.
+            segment = (vsLineSegment *)segList->setEntry(loop, NULL);
+            results = (atList *)resultList->setEntry(loop, NULL);
+
+            // Delete the input segment if it existed.
+            if (segment)
+                delete segment;
+
+            // Delete the result list if it existed.
+            if (results)
+                delete results;
         }
     }
-    
-    // Re-size the list
-    segList.setSize(newSize);
+
+    // Store the new capacity.
     segListSize = newSize;
 }
 
@@ -137,7 +155,7 @@ int vsIntersect::getSegListSize()
 void vsIntersect::setSeg(int segNum, atVector startPt, atVector endPt)
 {
     atVector start, end;
-    osg::Vec3 pstart, pend;
+    vsLineSegment *segment;
 
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
@@ -145,26 +163,28 @@ void vsIntersect::setSeg(int segNum, atVector startPt, atVector endPt)
         printf("vsIntersect::setSeg: Segment number out of bounds\n");
         return;
     }
-    
+
     // Copy the points and ensure the size of each atVector is 3
     start.clearCopy(startPt);
     start.setSize(3);
     end.clearCopy(endPt);
     end.setSize(3);
 
-    // Convert to OSG vectors
-    pstart.set(start[AT_X], start[AT_Y], start[AT_Z]);
-    pend.set(end[AT_X], end[AT_Y], end[AT_Z]);
-    
-    // Create the segment structure if one is not already present
-    if (segList[segNum] == NULL)
+    // Create the segment structure if one is not already present.
+    segment = (vsLineSegment *)segList->getEntry(segNum);
+    if (segment == NULL)
     {
-        segList[segNum] = new osg::LineSegment();
-        ((osg::LineSegment *)segList[segNum])->ref();
+        // Create a new line segment and place it at the appropriate location
+        // in the array.
+        segment = new vsLineSegment(start, end);
+        segList->setEntry(segNum, segment);
     }
-
-    // Set the endpoints of the segment
-    ((osg::LineSegment *)segList[segNum])->set(pstart, pend);
+    else
+    {
+        // The pointer is already set. Give it the correct vectors.
+        segment->setStartPoint(start);
+        segment->setEndPoint(end);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -175,8 +195,8 @@ void vsIntersect::setSeg(int segNum, atVector startPt, atVector endPt)
 void vsIntersect::setSeg(int segNum, atVector startPt, atVector directionVec,
                          double length)
 {
-    atVector start, dir;
-    osg::Vec3 pstart, pdir;
+    vsLineSegment *segment;
+    atVector start, dir, end;
 
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
@@ -193,22 +213,25 @@ void vsIntersect::setSeg(int segNum, atVector startPt, atVector directionVec,
 
     // Normalize the direction vector
     dir.normalize();
-    
-    // Convert to OSG vectors
-    pstart.set(start[AT_X], start[AT_Y], start[AT_Z]);
-    pdir.set(dir[AT_X], dir[AT_Y], dir[AT_Z]);
-    
-    // Create the segment structure if one is not already present
-    if (segList[segNum] == NULL)
-    {
-        segList[segNum] = new osg::LineSegment;
-        ((osg::LineSegment *)segList[segNum])->ref();
-    }
 
-    // Set the endpoints of the segment.  The "end" point is computed
-    // using the start point and the direction vector scaled by the length
-    // of the segment.
-    ((osg::LineSegment *)segList[segNum])->set(pstart, pstart + pdir*length);
+    // Calculate the end point.
+    end = start + (dir * length);
+
+    // Create the segment structure if one is not already present.
+    segment = (vsLineSegment *)segList->getEntry(segNum);
+    if (segment == NULL)
+    {
+        // Create a new line segment and place it at the appropriate location
+        // in the array.
+        segment = new vsLineSegment(start, end);
+        segList->setEntry(segNum, segment);
+    }
+    else
+    {
+        // The pointer is already set. Give it the correct vectors.
+        segment->setStartPoint(start);
+        segment->setEndPoint(end);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -217,24 +240,25 @@ void vsIntersect::setSeg(int segNum, atVector startPt, atVector directionVec,
 // ------------------------------------------------------------------------
 atVector vsIntersect::getSegStartPt(int segNum)
 {
-    osg::Vec3 segStart;
-    atVector result;
-    
+    vsLineSegment *segment;
+
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getSegStartPt: Segment number out of bounds\n");
-        return result;
+        return atVector(0.0, 0.0, 0.0);
     }
-    
-    // Get the segment start point
-    segStart = ((osg::LineSegment *)segList[segNum])->start();
 
-    // Convert to a atVector
-    result.set(segStart.x(), segStart.y(), segStart.z());
+    // Attempt to fetch the segment.
+    segment = (vsLineSegment *)segList->getEntry(segNum);
+    if (segment)
+    {
+        // Return the start point.
+        return segment->getStartPoint();
+    }
 
-    // Return the result
-    return result;
+    // If no segment yet exists, return a default.
+    return atVector(0.0, 0.0, 0.0);
 }
 
 // ------------------------------------------------------------------------
@@ -243,24 +267,25 @@ atVector vsIntersect::getSegStartPt(int segNum)
 // ------------------------------------------------------------------------
 atVector vsIntersect::getSegEndPt(int segNum)
 {
-    osg::Vec3 segEnd;
-    atVector result;
-    
+    vsLineSegment *segment;
+
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
         printf("vsIntersect::getSegEndPt: Segment number out of bounds\n");
-        return result;
+        return atVector(0.0, 0.0, 0.0);
     }
-    
-    // Get the segment end point
-    segEnd = ((osg::LineSegment *)segList[segNum])->end();
 
-    // Convert to a atVector
-    result.set(segEnd.x(), segEnd.y(), segEnd.z());
+    // Attempt to fetch the segment.
+    segment = (vsLineSegment *)segList->getEntry(segNum);
+    if (segment)
+    {
+        // Return the end point.
+        return segment->getEndPoint();
+    }
 
-    // Return the result
-    return result;
+    // If no segment yet exists, return a default.
+    return atVector(0.0, 0.0, 0.0);
 }
 
 // ------------------------------------------------------------------------
@@ -270,10 +295,9 @@ atVector vsIntersect::getSegEndPt(int segNum)
 // ------------------------------------------------------------------------
 atVector vsIntersect::getSegDirection(int segNum)
 {
-    osg::Vec3 start, end;
-    atVector startPt, endPt;
-    atVector dir;
-    
+    vsLineSegment *segment;
+    atVector start, end, dir;
+
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
@@ -281,20 +305,24 @@ atVector vsIntersect::getSegDirection(int segNum)
         return atVector(0.0, 0.0, 0.0);
     }
 
-    // Get the start and end points of the segment
-    start = ((osg::LineSegment *)segList[segNum])->start();
-    end = ((osg::LineSegment *)segList[segNum])->end();
+    // Attempt to fetch the segment.
+    segment = (vsLineSegment *)segList->getEntry(segNum);
+    if (segment)
+    {
+        // Fetch the start and end points of the segment.
+        start = segment->getStartPoint();
+        end = segment->getEndPoint();
 
-    // Convert to atVectors
-    startPt.set(start.x(), start.y(), start.z());
-    endPt.set(end.x(), end.y(), end.z());
+        // Calculate the vector they form, normalizing it to yield direction.
+        dir = end - start;
+        dir.normalize();
 
-    // Compute the direction vector
-    dir = endPt - startPt;
-    dir.normalize();
-    
-    // Return the resulting direction
-    return dir;
+        // Return the direction vector.
+        return dir;
+    }
+
+    // If no segment yet exists, return a default.
+    return atVector(0.0, 0.0, 0.0);
 }
 
 // ------------------------------------------------------------------------
@@ -303,9 +331,8 @@ atVector vsIntersect::getSegDirection(int segNum)
 // ------------------------------------------------------------------------
 double vsIntersect::getSegLength(int segNum)
 {
-    osg::Vec3 start, end;
-    atVector startPt, endPt;
-    atVector dir;
+    vsLineSegment *segment;
+    atVector start, end, dir;
 
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
@@ -313,20 +340,22 @@ double vsIntersect::getSegLength(int segNum)
         printf("vsIntersect::getSegLength: Segment number out of bounds\n");
         return 0.0;
     }
-    
-    // Get the start and end points of the segment
-    start = ((osg::LineSegment *)segList[segNum])->start();
-    end = ((osg::LineSegment *)segList[segNum])->end();
 
-    // Convert to atVectors
-    startPt.set(start.x(), start.y(), start.z());
-    endPt.set(end.x(), end.y(), end.z());
+    // Attempt to fetch the segment.
+    segment = (vsLineSegment *)segList->getEntry(segNum);
+    if (segment)
+    {
+        // Fetch the start and end points of the segment.
+        start = segment->getStartPoint();
+        end = segment->getEndPoint();
 
-    // Compute the vector from the start point to the end point
-    dir = endPt - startPt;
+        // Calculate the vector they form and return its magnitude.
+        dir = end - start;
+        return dir.getMagnitude();
+    }
 
-    // Return the magnitude of the vector
-    return dir.getMagnitude();
+    // If no segment yet exists, return a default.
+    return 0.0;
 }
 
 // ------------------------------------------------------------------------
@@ -344,7 +373,9 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
     osgUtil::SceneView *osgSceneView;;
     int winWidth, winHeight;
     int winX, winY;
+    vsLineSegment *segment;
     osg::Vec3 nearPt, farPt;
+    atVector start, end;
 
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
@@ -352,7 +383,7 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
         printf("vsIntersect::setPickSeg: Segment number out of bounds\n");
         return;
     }
-    
+
     // Get the OSG SceneView
     osgSceneView = pane->getBaseLibraryObject();
 
@@ -368,21 +399,29 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
     // but OSG and OpenGL use the lower-left corner. Perform this conversion.
     winY = winHeight - winY;
 
-
     // Get the points on the near and far planes that correspond to the
     // given x,y window coordinates
     osgSceneView->projectWindowXYIntoObject(winX, winY, nearPt, farPt);
 
-    // Create the segment structure if one is not already present
-    if (segList[segNum] == NULL)
-    {
-        segList[segNum] = new osg::LineSegment;
-        ((osg::LineSegment *)segList[segNum])->ref();
-    }
+    // Convert the OSG vectors into atVectors.
+    start.set(nearPt[0], nearPt[1], nearPt[2]);
+    end.set(farPt[0], farPt[1], farPt[2]);
 
-    // Set the endpoints of the segment.  In this case, these are simply
-    // the points on the near and far clipping planes, respectively.
-    ((osg::LineSegment *)segList[segNum])->set(nearPt, farPt);
+    // Create the segment structure if one is not already present.
+    segment = (vsLineSegment *)segList->getEntry(segNum);
+    if (segment == NULL)
+    {
+        // Create a new line segment and place it at the appropriate location
+        // in the array.
+        segment = new vsLineSegment(start, end);
+        segList->setEntry(segNum, segment);
+    }
+    else
+    {
+        // The pointer is already set. Give it the correct vectors.
+        segment->setStartPoint(start);
+        segment->setEndPoint(end);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -390,7 +429,7 @@ void vsIntersect::setPickSeg(int segNum, vsPane *pane, double x, double y)
 // ------------------------------------------------------------------------
 void vsIntersect::setMask(unsigned int newMask)
 {
-    traverser->setTraversalMask(newMask);
+    intersectTraverser->setTraversalMask(newMask);
 }
 
 // ------------------------------------------------------------------------
@@ -398,7 +437,27 @@ void vsIntersect::setMask(unsigned int newMask)
 // ------------------------------------------------------------------------
 unsigned int vsIntersect::getMask()
 {
-    return traverser->getTraversalMask();
+    return intersectTraverser->getTraversalMask();
+}
+
+// ------------------------------------------------------------------------
+// Enables clip sensitivity for the intersection traversal. Starting with
+// the next call to the intersect method, if an intersection occurs in a
+// subgraph that has been clipped out, it will be ignored. 
+// ------------------------------------------------------------------------
+void vsIntersect::enableClipSensitivity()
+{
+    clipSensitivity = true;
+}
+
+// ------------------------------------------------------------------------
+// Disables clip sensitivity for the intersection traversal. Starting with
+// the next call to the intersect method, even intersections occuring in
+// clipped subgraphs will be returned.
+// ------------------------------------------------------------------------
+void vsIntersect::disableClipSensitivity()
+{
+    clipSensitivity = false;
 }
 
 // ------------------------------------------------------------------------
@@ -446,7 +505,7 @@ int vsIntersect::getFacingMode()
 // ------------------------------------------------------------------------
 void vsIntersect::setSwitchTravMode(int newMode)
 {
-    traverser->setSwitchTravMode(newMode);
+    intersectTraverser->setSwitchTravMode(newMode);
 }
 
 // ------------------------------------------------------------------------
@@ -454,7 +513,7 @@ void vsIntersect::setSwitchTravMode(int newMode)
 // ------------------------------------------------------------------------
 int vsIntersect::getSwitchTravMode()
 {
-    return traverser->getSwitchTravMode();
+    return intersectTraverser->getSwitchTravMode();
 }
 
 // ------------------------------------------------------------------------
@@ -464,7 +523,7 @@ int vsIntersect::getSwitchTravMode()
 // ------------------------------------------------------------------------
 void vsIntersect::setSequenceTravMode(int newMode)
 {
-    traverser->setSequenceTravMode(newMode);
+    intersectTraverser->setSequenceTravMode(newMode);
 }
 
 // ------------------------------------------------------------------------
@@ -472,7 +531,7 @@ void vsIntersect::setSequenceTravMode(int newMode)
 // ------------------------------------------------------------------------
 int vsIntersect::getSequenceTravMode()
 {
-    return traverser->getSequenceTravMode();
+    return intersectTraverser->getSequenceTravMode();
 }
 
 // ------------------------------------------------------------------------
@@ -482,7 +541,7 @@ int vsIntersect::getSequenceTravMode()
 // ------------------------------------------------------------------------
 void vsIntersect::setLODTravMode(int newMode)
 {
-    traverser->setLODTravMode(newMode);
+    intersectTraverser->setLODTravMode(newMode);
 }
 
 // ------------------------------------------------------------------------
@@ -490,7 +549,7 @@ void vsIntersect::setLODTravMode(int newMode)
 // ------------------------------------------------------------------------
 int vsIntersect::getLODTravMode()
 {
-    return traverser->getLODTravMode();
+    return intersectTraverser->getLODTravMode();
 }
 
 // ------------------------------------------------------------------------
@@ -500,368 +559,441 @@ int vsIntersect::getLODTravMode()
 // ------------------------------------------------------------------------
 void vsIntersect::intersect(vsNode *targetNode)
 {
-    osg::Node *osgNode; 
-    osg::Geode *geoNode;
-    osg::Node *pathNode;
-    int loop, sloop, tloop, hloop;
-    osgUtil::IntersectVisitor::HitList hitList;
-    osgUtil::Hit hit;
-    int validHit;
-    int arraySize;
-    osg::Vec3 hitPoint, polyNormal, viewRay;
-    osg::Matrix xformMat;
-    osg::NodePath hitNodePath;
-    int pathLength;
-    vsNode *vessNode;
+    osg::Node *osgNode;
+    osgUtil::IntersectorGroup *intersectorGroup;
+    osgUtil::LineSegmentIntersector **segmentIntersectors;
+    osgUtil::LineSegmentIntersector *segmentIntersector;
+    osgUtil::LineSegmentIntersector::Intersections *intersections;
+    osgUtil::LineSegmentIntersector::Intersections::const_iterator iterator;
+    const SegIntersection * intersection;
+    osg::Vec3d osgStart, osgEnd;
+    osg::Vec3 polyNormal;
+    vsLineSegment *segment;
+    atVector atStart, atEnd;
     atVector viewVec, normalVec;
     double viewDot;
+    int loop;
 
-    // This is where the fun begins.  First figure out what kind of node
-    // we're starting from and get the Open Scene Graph node out of it
-    if (targetNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
-        osgNode = ((vsGeometry *)targetNode)->getBaseLibraryObject();
-    else if (targetNode->getNodeType() == VS_NODE_TYPE_DYNAMIC_GEOMETRY)
-        osgNode = ((vsDynamicGeometry *)targetNode)->getBaseLibraryObject();
-    else if (targetNode->getNodeType() == VS_NODE_TYPE_SKELETON_MESH_GEOMETRY)
-        osgNode = ((vsSkeletonMeshGeometry*)targetNode)->getBaseLibraryObject();
-    else if (targetNode->getNodeType() == VS_NODE_TYPE_COMPONENT)
-        osgNode = ((vsComponent *)targetNode)->getBaseLibraryObject();
-    else if (targetNode->getNodeType() == VS_NODE_TYPE_SCENE)
-        osgNode = ((vsScene *)targetNode)->getBaseLibraryObject();
-    else if (targetNode->getNodeType() == VS_NODE_TYPE_UNMANAGED)
-        osgNode = ((vsUnmanagedNode *)targetNode)->getBaseLibraryObject();
+    // Before doing anything else, clear out the existing intersection results.
+    clearIntersectionResults();
 
-    // Reset the IntersectVisitor for the new traversal
-    traverser->reset();
+    // Fetch the OSG node from the VESS node.
+    osgNode = getBaseLibraryObject(targetNode);
+
+    // Create a new intersector group to handle this request.
+    intersectorGroup = new osgUtil::IntersectorGroup();
+    intersectorGroup->ref();
+
+    // Create a temporary array to store the intersector for each line segment.
+    // This is necessary because the IntersectorGroup doesn't guarantee order.
+    segmentIntersectors = new osgUtil::LineSegmentIntersector*[segListSize];
 
     // Add all the segments from the segment list to the IntersectVisitor
     for (loop = 0; loop < segListSize; loop++)
     {
-        if (segList[loop])
-            traverser->addLineSegment((osg::LineSegment *)(segList[loop]));
+        // Fetch the segment from the array. It may be NULL.
+        segment = (vsLineSegment *)segList->getEntry(loop);
+        if (segment)
+        {
+            // Convert the line segment atVectors into OSG vectors.
+            atStart = segment->getStartPoint();
+            atEnd = segment->getEndPoint();
+            osgStart.set(atStart[AT_X], atStart[AT_Y], atStart[AT_Z]);
+            osgEnd.set(atEnd[AT_X], atEnd[AT_Y], atEnd[AT_Z]);
+
+            // Create a new LineSegmentIntersector to handle this segment and
+            // add it to the IntersectorGroup.
+            segmentIntersector =
+                new osgUtil::LineSegmentIntersector(osgStart, osgEnd);
+            segmentIntersector->ref();
+            intersectorGroup->addIntersector(segmentIntersector);
+            segmentIntersectors[loop] = segmentIntersector;
+        }
+        else
+        {
+            // Set the segmentIntersector to NULL just to be safe.
+            segmentIntersectors[loop] = NULL;
+        }
     }
 
-    // Call the Visitor's accept() method to run the intersection traversal
-    osgNode->accept(*traverser);
-    
-    // Interpret and store the results
+    // The IntersectorGroup is now configured. Associate it with the traverser.
+    intersectTraverser->setIntersector(intersectorGroup);
+
+    // Call the target accept method to perform the intersection traversal.
+    osgNode->accept(*intersectTraverser);
+
+    // Interpret and store the results.
     for (loop = 0; loop < segListSize; loop++)
     {
-        // If there was no segment defined for this segment position, then treat
-        // it as if no intersection occurred
-        if (segList[loop] == NULL)
+        // Attempt to retrieve the segment intersector at this index. If there
+        // was no intersector defined then no intersection could have occurred.
+        segmentIntersector = segmentIntersectors[loop];
+        if ((segmentIntersector != NULL) &&
+            (segmentIntersector->containsIntersections()))
         {
-            validFlag[loop] = false;
-            sectPoint[loop].set(0, 0, 0);
-            sectNorm[loop].set(0, 0, 0);
-            sectGeom[loop] = NULL;
-            sectPrim[loop] = 0;
-            if (sectPath[loop])
-                delete (sectPath[loop]);
-            sectPath[loop] = NULL;
-            continue;
-        }
+            // Fetch the multimap of intersections.
+            intersections = &(segmentIntersector->getIntersections());
 
-        // Get the list of hits for this segment
-        hitList = traverser->getHitList((osg::LineSegment *)(segList[loop]));
-
-        // If the facing mode is anything other than VS_INTERSECT_IGNORE_NONE,
-        // separate back and front culling checks must be made to find valid
-        // intersections
-        if (facingMode != VS_INTERSECT_IGNORE_NONE)
-        {
-            // Set up a vector indicating the view direction for this segment
-            viewRay = ((osg::LineSegment *)segList[loop])->end() -
-                      ((osg::LineSegment *)segList[loop])->start();
-            viewVec.set(viewRay.x(), viewRay.y(), viewRay.z());
-           
-            // Set the hit-searching variables to their defaults
-            hloop = 0;
-            validHit = -1;
-
-            // Test all possible hits from front to back until finding the
-            // first that is valid under the current culling mode
-            while ((hloop < hitList.size()) && (validHit == -1))
+            // If the facing mode isn't VS_INTERSECT_IGNORE_NONE, back and
+            // front culling checks must be made to find valid
+            // intersections.
+            if (facingMode != VS_INTERSECT_IGNORE_NONE)
             {
-                // Get the next hit for the segment
-                hit = hitList.at(hloop);
+                // Fetch the segment at this location and use it to calculate
+                // the view direction. This will be necessary to perform
+                // culling based on facing.
+                segment = (vsLineSegment *)segList->getEntry(loop);
+                viewVec = segment->getEndPoint() - segment->getStartPoint();
 
-                // Find the normal 
-                polyNormal = hit.getWorldIntersectNormal();
-
-                // Convert the normal into a atVector
-                normalVec.set(polyNormal.x(), polyNormal.y(), polyNormal.z());
-
-                // Get the dot product of the view vector with the normal of
-                // the intersected geometry at this hit
-                viewDot = viewVec.getDotProduct(normalVec);
-
-                // If the dot product of the view vector with the normal of the
-                // intersected polygon is positive, then the polygon was hit
-                // from the back and should only be counted if the facing mode
-                // is not ignoring the back. The same is true for a positive
-                // dot product and a facing mode not ignoring the front.
-                if ((facingMode == VS_INTERSECT_IGNORE_BACKFACE) &&
-                    (viewDot < 0.0))
+                // Create an iterator over the intersection results.
+                iterator = intersections->begin();
+                while (resultList->getEntry(loop) == NULL)
                 {
-                    validHit = hloop;
+                    // Get a pointer to the intersection structure from the
+                    // iterator (the *iterator statement returns a reference to
+                    // the data in question, and we take the address of this
+                    // reference to get the pointer).
+                    intersection = &(*iterator);
+
+                    // Find the normal and convert it to an atVector.
+                    polyNormal = intersection->getWorldIntersectNormal();
+                    normalVec.set(polyNormal.x(), polyNormal.y(),
+                        polyNormal.z());
+
+                    // Get the dot product of the view vector with the normal
+                    // of the intersected geometry at this hit
+                    viewDot = viewVec.getDotProduct(normalVec);
+
+                    // If the dot product of the view vector with the normal of
+                    // the intersected polygon is positive, then the polygon
+                    // was hit from the back and should only be counted if the
+                    // facing mode is not ignoring the back. The same is true
+                    // for a positive dot product and a facing mode not
+                    // ignoring the front.
+                    if ((facingMode == VS_INTERSECT_IGNORE_BACKFACE) &&
+                        (viewDot < 0.0))
+                    {
+                        populateIntersection(loop, intersection);
+                    }
+                    else if ((facingMode == VS_INTERSECT_IGNORE_FRONTFACE) &&
+                        (viewDot > 0.0))
+                    {
+                        populateIntersection(loop, intersection);
+                    }
+
+                    // Advance the iterator and check whether this was the last
+                    // node.
+                    iterator++;
+                    if (iterator == intersections->end())
+                    {
+                        // We're out of potential results. Fill in the field
+                        // with default data to halt the traversal.
+                        if (resultList->getEntry(loop) == NULL)
+                            populateIntersection(loop, NULL);
+                    }
                 }
-                else if ((facingMode == VS_INTERSECT_IGNORE_FRONTFACE) &&
-                    (viewDot > 0.0))
-                {
-                    validHit = hloop;
-                }
-
-                // Move on to the next potential hit
-                hloop++;
-            }
-        }
-        else
-        {
-            // The first hit is always valid in this mode
-            validHit = 0;
-        }
-
-        // Check for intersections, set this segment's results to zero 
-        // values and skip to the next segment if there aren't any
-        if ((hitList.empty()) || (validHit == -1))
-        {
-            validFlag[loop] = false;
-            sectPoint[loop].set(0, 0, 0);
-            sectNorm[loop].set(0, 0, 0);
-            sectGeom[loop] = NULL;
-            sectPrim[loop] = 0;
-            if (sectPath[loop])
-                delete (sectPath[loop]);
-            sectPath[loop] = NULL;
-        }
-        else
-        {
-            // Get the first valid hit from the list
-            hit = hitList.at(validHit);
-
-            // Set the flag to indicate this segment has a valid intersection
-            validFlag[loop] = true;
-
-            // Get the point and normal vector of intersection
-            hitPoint = hit.getWorldIntersectPoint();
-            polyNormal = hit.getWorldIntersectNormal();
-
-            // See if there is a transform matrix for this intersection
-            if (hit._matrix.valid())
-            {
-                // Get the local-to-global transformation matrix for the 
-                // intersection
-                xformMat = *(hit._matrix.get());
-            
-                // Convert to a atMatrix
-                for (sloop = 0; sloop < 4; sloop++)
-                    for (tloop = 0; tloop < 4; tloop++)
-                        sectXform[loop][sloop][tloop] = xformMat(tloop, sloop);
             }
             else
             {
-                // Set the local-to-global transform matrix to identity (no
-                // transform)
-                sectXform[loop].setIdentity();
+                // Create an iterator over the intersection results. This is
+                // the only way to access the first entry.
+                iterator = intersections->begin();
+
+                // Get a pointer to the intersection structure from the
+                // iterator (the *iterator statement returns a reference to the
+                // data in question, and we take the address of this reference
+                // to get the pointer)
+                intersection = &(*iterator);
+
+                // Populate with the data from this intersection.
+                populateIntersection(loop, intersection);
             }
+        }
+        else
+        {
+            // Fill in the index with an empty result.
+            populateIntersection(loop, NULL);
+        }
+    }
 
-            // Convert the point and normal to atVectors
-            sectPoint[loop].set(hitPoint[0], hitPoint[1], hitPoint[2]);
-            sectNorm[loop].set(polyNormal[0], polyNormal[1], polyNormal[2]);
+    // Remove all the segments from the segment list
+    for (loop = 0; loop < segListSize; loop++)
+    {
+        // Unref the segment
+        if (segmentIntersectors[loop] != NULL)
+            segmentIntersectors[loop]->unref();
+    }
 
-            // Get the vsGeometry and the primitive index intersected
-            geoNode = hit._geode.get();
-            sectGeom[loop] = (vsGeometry *)((vsNode::getMap())->
-                mapSecondToFirst(geoNode));
-            sectPrim[loop] = hit._primitiveIndex;
-        
-            // Create path information if so requested
-            if (pathsEnabled)
-            {
-                // If the path array for this segment hasn't been allocated,
-                // do it now.
-                if (sectPath[loop] == NULL)
-                    sectPath[loop] = new vsGrowableArray(10, 10);
+    // Delete the array of segment intersectors
+    delete [] segmentIntersectors;
 
-                // Get the intersection path from OSG
-                hitNodePath = hit._nodePath;
+    // Unref the intersectorGroup
+    intersectorGroup->unref();
+}
 
-                // Get the length of the path
-                pathLength = hitNodePath.size();
+// ------------------------------------------------------------------------
+// Returns the result of the intersection for the specified segment. The
+// number of the first segment is 0.
+// ------------------------------------------------------------------------
+vsIntersectResult *vsIntersect::getIntersection(int segNum)
+{
+    atList *results;
 
-                // Initialize the index for the array of vsNodes
-                arraySize = 0;
+    // Make sure the segment number is valid
+    if ((segNum < 0) || (segNum >= segListSize))
+    {
+        printf("vsIntersect::getIntersection: Segment number out of bounds\n");
+        return 0;
+    }
 
-                // Traverse the path and translate it into an array of VESS nodes
-                for (sloop = 0; sloop < pathLength; sloop++)
-                {
-                    // Get the next path node from the OSG path array
-                    pathNode = (osg::Node *)(hitNodePath[sloop]);
+    // Fetch the result for this segment and return it.
+    return (vsIntersectResult *)resultList->getEntry(segNum);
+}
 
-                    // If the path node is valid, try to map it to a VESS node
-                    if (pathNode != NULL)
-                    {
-                        vessNode = (vsNode *)
-                            ((vsNode::getMap())->mapSecondToFirst(pathNode));
+// ------------------------------------------------------------------------
+// Private method
+// Retrieves the underlying library object based on the type of the vsNode.
+// ------------------------------------------------------------------------
+osg::Node *vsIntersect::getBaseLibraryObject(vsNode *node)
+{
+    switch (node->getNodeType())
+    {
+        case VS_NODE_TYPE_GEOMETRY:
+            return ((vsGeometry *)node)->getBaseLibraryObject();
 
-                        // Add this node to the array if there is a valid mapping
-                        // (not all OSG nodes will have a corresponding VESS node)
-                        if (vessNode)
-                        {
-                            (sectPath[loop])->setData(arraySize++, vessNode);
-                        }
-                    }
-                }
-                
-                // Terminate the path with a NULL
-                (sectPath[loop])->setData(arraySize, NULL);
-            }
-            else if (sectPath[loop])
-            {
-                // Paths have been turned off, so delete the existing path
-                // array
-                delete (sectPath[loop]);
-                sectPath[loop] = NULL;
-            }
+        case VS_NODE_TYPE_DYNAMIC_GEOMETRY:
+            return ((vsDynamicGeometry *)node)->getBaseLibraryObject();
+
+        case VS_NODE_TYPE_SKELETON_MESH_GEOMETRY:
+            return ((vsSkeletonMeshGeometry*)node)->getBaseLibraryObject();
+
+        case VS_NODE_TYPE_COMPONENT:
+            return ((vsComponent *)node)->getBaseLibraryObject();
+
+        case VS_NODE_TYPE_SCENE:
+            return ((vsScene *)node)->getBaseLibraryObject();
+
+        case VS_NODE_TYPE_UNMANAGED:
+            return ((vsUnmanagedNode *)node)->getBaseLibraryObject();
+
+        default:
+            return NULL;
+    }
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Populates the intersection result fields at the specified index with
+// the information from the provided intersection.
+// ------------------------------------------------------------------------
+void vsIntersect::clearIntersectionResults()
+{
+    vsIntersectResult *result;
+    int i;
+
+    // See if there is already a result.
+    for (i = 0; i < segListSize; i++)
+    {
+        // Set the result list for this segment to NULL, keeping a pointer so
+        // any memory may be freed.
+        result = (vsIntersectResult *)resultList->setEntry(i, NULL);
+        if (result)
+        {
+            delete result;
         }
     }
 }
 
 // ------------------------------------------------------------------------
-// Returns if the last intersection traversal found an intersection for
-// the specified segment. The number of the first segment is 0.
+// Private function
+// Populates the intersection result fields at the specified index with
+// the information from the provided intersection.
 // ------------------------------------------------------------------------
-bool vsIntersect::getIsectValid(int segNum)
+void vsIntersect::populateIntersection(int index,
+    const osgUtil::LineSegmentIntersector::Intersection *intersection)
 {
-    // Make sure the segment number is valid
-    if ((segNum < 0) || (segNum >= segListSize))
+    vsIntersectResult *intersectResult;
+    osg::NodePath nodePath;
+    osg::Drawable *osgDrawable;
+    osg::Node *pathNode;
+    int sloop, tloop;
+    osg::Vec3 hitPoint, polyNormal;
+    osg::Matrix xformMat;
+    int pathLength;
+    vsNode *vessNode;
+    atVector sectPoint, sectNorm;
+    atMatrix sectXform;
+    vsGeometry *sectGeom;
+    int sectPrim;
+    atList *sectPath;
+    osg::Vec3 sectPointLocal;
+    osg::Transform *xform;
+    osg::MatrixTransform *matXform;
+
+    // Check whether the intersection is considered valid or not.
+    if (intersection == NULL)
     {
-        printf("vsIntersect::getIsectValid: Segment number out of bounds\n");
-        return false;
+        // This is not a valid intersection. Create a default result and add it
+        // to the list.
+        intersectResult = new vsIntersectResult();
+        resultList->setEntry(index, intersectResult);
+
+        // This method is done.
+        return;
     }
 
-    // Return the valid flag value of the corresponding segment.  This will
-    // be true if there was a valid intersection with this segment.
-    return validFlag[segNum];
+    // See if there is a transform matrix for this intersection.
+    if (intersection->matrix.valid())
+    {
+        // Get the local-to-global transformation matrix for the intersection.
+        xformMat = *(intersection->matrix.get());
+            
+        // Convert to an atMatrix.
+        for (sloop = 0; sloop < 4; sloop++)
+            for (tloop = 0; tloop < 4; tloop++)
+                sectXform[sloop][tloop] = xformMat(tloop, sloop);
+    }
+    else
+    {
+        // Set the local-to-global transform matrix to identity (no transform).
+        sectXform.setIdentity();
+    }
+
+    // Get the point and normal vector of intersection
+    hitPoint = intersection->getWorldIntersectPoint();
+    polyNormal = intersection->getWorldIntersectNormal();
+
+    // Convert the point and normal to atVectors and store them.
+    sectPoint.set(hitPoint[0], hitPoint[1], hitPoint[2]);
+    sectNorm.set(polyNormal[0], polyNormal[1], polyNormal[2]);
+
+    // Get the vsGeometry and the primitive index intersected
+    osgDrawable = intersection->drawable.get();
+    sectGeom = (vsGeometry *)((vsNode::getMap())->
+        mapSecondToFirst(osgDrawable));
+    sectPrim = intersection->primitiveIndex;
+
+    // Create the intersection result now and place it in the array.
+    intersectResult = new vsIntersectResult(sectPoint, sectNorm, sectXform,
+        sectGeom, sectPrim);
+
+    // Create path information if so requested
+    if (pathsEnabled || clipSensitivity)
+    {
+        // Fetch the intersection result path list so the data may be added
+        sectPath = intersectResult->getPath();
+
+        // Get the intersection path from OSG.
+        nodePath = intersection->nodePath;
+
+        // Get the length of the path
+        pathLength = nodePath.size();
+
+        // Initialize the clip point to its world coordinates.
+        sectPointLocal.set(sectPoint[AT_X], sectPoint[AT_Y], sectPoint[AT_Z]);
+
+        // Traverse the path and translate it into an array of VESS nodes
+        for (sloop = 0; sloop < pathLength; sloop++)
+        {
+            // Attempt to get the next path node from the OSG path array.
+            pathNode = (osg::Node *)(nodePath[sloop]);
+            if (pathNode)
+            {
+                // If clip sensitivity is enabled, then clip attributes on this
+                // node will have to be checked.
+                if (clipSensitivity)
+                {
+                    // If the current node is a transform, modify the
+                    // intersection point according to its matrix.
+                    xform = pathNode->asTransform();
+                    if (xform)
+                    {
+                        // Confirm that it is specifically a matrix transform.
+                        matXform = xform->asMatrixTransform();
+                        if (matXform)
+                        {
+                            // Modify the clip point by the transform matrix.
+                            sectPointLocal = osg::Matrix::transform3x3(
+                                matXform->getMatrix(), sectPointLocal);
+                        }
+                    }
+
+                    // Call the internal method to determine whether the OSG
+                    // node clips the point.
+                    if (isClipped(pathNode, sectPointLocal))
+                    {
+                        // The intersection point is clipped out. Delete the
+                        // object and return.
+                        delete intersectResult;
+                        return;
+                    }
+                }
+
+                // If paths are to be stored, then this information must be
+                // processed further.
+                if (pathsEnabled)
+                {
+                    // Determine if there is a valid mapping (not all OSG nodes
+                    // will have a corresponding VESS node).
+                    vessNode = (vsNode *)
+                        ((vsNode::getMap())->mapSecondToFirst(pathNode));
+                    if (vessNode)
+                    {
+                        // Add this node to the array.
+                        sectPath->addEntry(vessNode);
+                    }
+                }
+            }
+        }
+    }
+
+    // The object hasn't been clipped, and its path information has been set as
+    // necessary. Place it in the result list.
+    resultList->setEntry(index, intersectResult);
 }
 
 // ------------------------------------------------------------------------
-// Returns the point of intersection in global coordinates determined
-// during the last intersection traversal for the specified segment. The
-// number of the first segment is 0.
+// Private function
+// Determines whether the provided OSG Node contains a clip plane that covers
+// the provided point.
 // ------------------------------------------------------------------------
-atVector vsIntersect::getIsectPoint(int segNum)
+bool vsIntersect::isClipped(osg::Node *node, osg::Vec3 point)
 {
-    atVector errResult(3);
+    const osg::StateSet * stateSet;
+    const osg::ClipPlane * clipPlaneAttr;
+    int attributeIndex;
+    osg::Vec4d plane;
 
-    // Make sure the segment number is valid
-    if ((segNum < 0) || (segNum >= segListSize))
+    // Confirm that a state set exists.
+    stateSet = node->getStateSet();
+    if (stateSet)
     {
-        printf("vsIntersect::getIsectPoint: Segment number out of bounds\n");
-        return errResult;
+        // Check the OSG state set to determine if any clip planes are attached
+        // to the node.
+        attributeIndex = 0;
+        clipPlaneAttr = (osg::ClipPlane *)stateSet->getAttribute(
+            osg::StateAttribute::CLIPPLANE, attributeIndex);
+        while (clipPlaneAttr != NULL)
+        {
+            // Retrieve the four values describing the equation for this plane.
+            plane = clipPlaneAttr->getClipPlane();
+
+            // Test whether the point satisfies the equation.
+            if ((plane[0] * point[0]) + (plane[1] * point[1]) +
+                (plane[2] * point[2]) + plane[3] < 0.0)
+            {
+                // The point is clipped according to the plane equation.
+                return true;
+            }
+
+            // Advance to the next clip plane associated with this node.
+            attributeIndex++;
+            clipPlaneAttr = (osg::ClipPlane *)stateSet->getAttribute(
+                osg::StateAttribute::CLIPPLANE, attributeIndex);
+        }
     }
 
-    // Return the point of intersection for this segment
-    return sectPoint[segNum];
+    // The point is not clipped by anything associated with this node.
+    return false;
 }
 
-// ------------------------------------------------------------------------
-// Returns the polygon normal in global coordinates at the point of
-// intersection determined during the last intersection traversal for the
-// specified segment. The number of the first segment is 0.
-// ------------------------------------------------------------------------
-atVector vsIntersect::getIsectNorm(int segNum)
-{
-    atVector errResult(3);
-
-    // Make sure the segment number is valid
-    if ((segNum < 0) || (segNum >= segListSize))
-    {
-        printf("vsIntersect::getIsectNorm: Segment number out of bounds\n");
-        return errResult;
-    }
-
-    // Return the normal vector at this segment's intersection point
-    return sectNorm[segNum];
-}
-
-// ------------------------------------------------------------------------
-// Returns a matrix containing the local-to-global coordinate transform for
-// the object intersected with during the last intersection traversal for
-// the specified segment. Note that the point and normal values for the
-// same segment already have this data multiplied in. The number of the
-// first segment is 0.
-// ------------------------------------------------------------------------
-atMatrix vsIntersect::getIsectXform(int segNum)
-{
-    atMatrix errResult;
-
-    // Make sure this segment number is valid
-    if ((segNum < 0) || (segNum >= segListSize))
-    {
-        printf("vsIntersect::getIsectXform: Segment number out of bounds\n");
-        errResult.setIdentity();
-        return errResult;
-    }
-
-    // Return the global transform of this intersection
-    return sectXform[segNum];
-}
-
-// ------------------------------------------------------------------------
-// Returns the geometry object intersected with determined during the last
-// intersection traversal for the specified segment. The number of the
-// first segment is 0.
-// ------------------------------------------------------------------------
-vsGeometry *vsIntersect::getIsectGeometry(int segNum)
-{
-    // Make sure the segment number is valid
-    if ((segNum < 0) || (segNum >= segListSize))
-    {
-        printf("vsIntersect::getIsectGeometry: Segment number out of bounds\n");
-        return NULL;
-    }
-
-    // Return the vsGeometry intersected by this segment
-    return sectGeom[segNum];
-}
-
-// ------------------------------------------------------------------------
-// Returns the index of the primitive within the geometry object
-// intersected with, determined during the last intersection traversal for
-// the specified segment. The number of the first segment is 0.
-// ------------------------------------------------------------------------
-int vsIntersect::getIsectPrimNum(int segNum)
-{
-    // Make sure the segment number is valid
-    if ((segNum < 0) || (segNum >= segListSize))
-    {
-        printf("vsIntersect::getIsectPrimNum: Segment number out of bounds\n");
-        return 0;
-    }
-
-    // Return the primitive index within the intersected vsGeometry
-    return sectPrim[segNum];
-}
-
-// ------------------------------------------------------------------------
-// Returns a pointer to a vsGrowableArray containing the node path from the
-// scene root node to the intersected node. This array is reused by the
-// intersection object after each intersect call and should not be deleted.
-// Returns NULL if path calculation was not enabled during the last
-// intersection traversal, or if there was no intersection. The number of
-// the first segment is 0.
-// ------------------------------------------------------------------------
-vsGrowableArray *vsIntersect::getIsectPath(int segNum)
-{
-    // Make sure the segment number is valid
-    if ((segNum < 0) || (segNum >= segListSize))
-    {
-        printf("vsIntersect::getIsectPath: Segment number out of bounds\n");
-        return 0;
-    }
-
-    // Return the intersection node path for this segment.
-    return sectPath[segNum];
-}

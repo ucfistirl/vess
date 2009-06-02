@@ -15,9 +15,9 @@
 //
 //    Description:  OSG NodeVisitor traversal visitor to control how
 //                  switches, sequences, and LOD nodes are traversed
-//                  during an IntersectVisitor traversal
+//                  during an IntersectionVisitor traversal
 //
-//    Author(s):    Jason Daly
+//    Author(s):    Jason Daly, Casey Thurston
 //
 //------------------------------------------------------------------------
 
@@ -25,12 +25,23 @@
 #define VS_INTERSECT_TRAVERSER_HPP
 
 #include "vsGlobals.h++"
-#include <osgUtil/IntersectVisitor>
+
+#include <osgUtil/IntersectionVisitor>
 #include <osg/Node>
-#include <osg/Sequence>
-#include <osg/Switch>
+#include <osg/Geode>
+#include <osg/Billboard>
+#include <osg/Group>
+#include <osg/Camera>
 #include <osg/LOD>
 #include <osg/PagedLOD>
+#include <osgSim/MultiSwitch>
+#include <osg/Projection>
+#include <osg/Sequence>
+#include <osg/Switch>
+#include <osg/Transform>
+
+// This comes from osg::NodeVisitor::TraversalMode
+#define VS_INTERSECT_DEFAULT_TRAV_MODE TRAVERSE_ACTIVE_CHILDREN
 
 enum vsIntersectSwitchTraversalMode
 {
@@ -50,16 +61,19 @@ enum vsIntersectLODTraversalMode
 {
     VS_INTERSECT_LOD_NONE,
     VS_INTERSECT_LOD_FIRST,
+    VS_INTERSECT_LOD_CURRENT,
     VS_INTERSECT_LOD_ALL
 };
 
-class VESS_SYM vsIntersectTraverser : public osgUtil::IntersectVisitor
+class VESS_SYM vsIntersectTraverser : public osgUtil::IntersectionVisitor
 {
 private:
 
     int         switchTravMode;
     int         sequenceTravMode;
     int         lodTravMode;
+
+    osg::NodeVisitor::TraversalMode    updateTraversalMode(TraversalMode mode);
 
 VS_INTERNAL:
 
@@ -73,10 +87,18 @@ VS_INTERNAL:
     void            setLODTravMode(int newMode);
     int             getLODTravMode();
 
-    virtual void    apply(osg::Sequence &node);
-    virtual void    apply(osg::Switch &node);
+    virtual void    apply(osg::Node &node);
+    virtual void    apply(osg::Geode &node);
+    virtual void    apply(osg::Billboard &node);
+    virtual void    apply(osg::Group &node);
+    virtual void    apply(osg::Camera &node);
     virtual void    apply(osg::LOD &node);
     virtual void    apply(osg::PagedLOD &node);
+    virtual void    apply(osgSim::MultiSwitch &node);
+    virtual void    apply(osg::Projection &node);
+    virtual void    apply(osg::Sequence &node);
+    virtual void    apply(osg::Switch &node);
+    virtual void    apply(osg::Transform &node);
 };
 
 #endif

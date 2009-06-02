@@ -16,21 +16,23 @@
 //    Description:  Class for performing intersection tests between line
 //                  segments and a whole or part of a VESS scene graph
 //
-//    Author(s):    Bryan Kline
+//    Author(s):    Bryan Kline, Casey Thurston
 //
 //------------------------------------------------------------------------
 
 #ifndef VS_INTERSECT_HPP
 #define VS_INTERSECT_HPP
 
-class vsIntersect;
-
+#include "atArray.h++"
 #include "atVector.h++"
-#include "vsGeometry.h++"
+
 #include "vsGrowableArray.h++"
+#include "vsGeometry.h++"
 #include "vsPane.h++"
+#include "vsIntersectResult.h++"
 #include "vsIntersectTraverser.h++"
-#include <osgUtil/IntersectVisitor>
+
+#include <osgUtil/LineSegmentIntersector>
 
 #define VS_INTERSECT_SEGS_MAX 32
 
@@ -41,34 +43,31 @@ enum vsIntersectFacingMode
     VS_INTERSECT_IGNORE_BACKFACE
 };
 
-struct VESS_SYM vsIntersectSegment
-{
-    atVector start;
-    atVector end;
-};
 
 class VESS_SYM vsIntersect : public vsObject
 {
 private:
 
-    vsIntersectTraverser    *traverser;
-
-    vsGrowableArray         segList;
-    int                     segListSize;
-    int                     segListChanged;
-
-    bool                    pathsEnabled;
     int                     facingMode;
-    int                     travMode;
+    bool                    clipSensitivity;
+    bool                    pathsEnabled;
 
-    // Intersection results
-    bool                    validFlag[VS_INTERSECT_SEGS_MAX];
-    atVector                sectPoint[VS_INTERSECT_SEGS_MAX];
-    atVector                sectNorm[VS_INTERSECT_SEGS_MAX];
-    atMatrix                sectXform[VS_INTERSECT_SEGS_MAX];
-    vsGeometry              *sectGeom[VS_INTERSECT_SEGS_MAX];
-    int                     sectPrim[VS_INTERSECT_SEGS_MAX];
-    vsGrowableArray         *sectPath[VS_INTERSECT_SEGS_MAX];
+    osgUtil::IntersectorGroup    *osgIsectGroup;
+    vsIntersectTraverser    *intersectTraverser;
+
+    int                     segListSize;
+    atArray                 *segList;
+    atArray                 *resultList;
+
+    osg::Node               *getBaseLibraryObject(vsNode *node);
+
+    typedef osgUtil::LineSegmentIntersector::Intersection    SegIntersection;
+
+    void                    clearIntersectionResults();
+    void                    populateIntersection(
+                                int index,
+                                const SegIntersection *intersection);
+    bool                    isClipped(osg::Node * node, osg::Vec3 point);
 
 public:
 
@@ -87,36 +86,33 @@ public:
     atVector           getSegEndPt(int segNum);
     atVector           getSegDirection(int segNum);
     double             getSegLength(int segNum);
-    
+
     void               setPickSeg(int segNum, vsPane *pane, double x, double y);
 
     void               setMask(unsigned int newMask);
     unsigned int       getMask();
-    
+
+    void               enableClipSensitivity();
+    void               disableClipSensitivity();
+
     void               enablePaths();
     void               disablePaths();
-    
+
     void               setFacingMode(int newMode);
     int                getFacingMode();
-    
+
     void               setSequenceTravMode(int newMode);
     int                getSequenceTravMode();
-    
+
     void               setSwitchTravMode(int newMode);
     int                getSwitchTravMode();
-    
+
     void               setLODTravMode(int newMode);
     int                getLODTravMode();
-    
+
     void               intersect(vsNode *targetNode);
 
-    bool               getIsectValid(int segNum);
-    atVector           getIsectPoint(int segNum);
-    atVector           getIsectNorm(int segNum);
-    atMatrix           getIsectXform(int segNum);
-    vsGeometry         *getIsectGeometry(int segNum);
-    int                getIsectPrimNum(int segNum);
-    vsGrowableArray    *getIsectPath(int segNum);
+    vsIntersectResult    *getIntersection(int segNum);
 };
 
 #endif

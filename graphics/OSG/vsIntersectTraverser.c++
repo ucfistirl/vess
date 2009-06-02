@@ -15,9 +15,9 @@
 //
 //    Description:  OSG NodeVisitor traversal visitor to control how
 //                  switches, sequences, and LOD nodes are traversed
-//                  during an IntersectVisitor traversal
+//                  during an IntersectionVisitor traversal
 //
-//    Author(s):    Jason Daly
+//    Author(s):    Jason Daly, Casey Thurston
 //
 //------------------------------------------------------------------------
 
@@ -101,138 +101,383 @@ int vsIntersectTraverser::getLODTravMode()
     return lodTravMode;
 }
 
+
 // ------------------------------------------------------------------------
 // Internal function (called by OSG)
-// Apply this traverser to an osg::Sequence
+// Updates the traversal mode for a Node. This method is necessary so that
+// the traversal mode for the Node is correct when the intersection
+// visitor code is executed.
 // ------------------------------------------------------------------------
-void vsIntersectTraverser::apply(osg::Sequence &node)
+void vsIntersectTraverser::apply(osg::Node &node)
 {
-    int i;
+    TraversalMode previousMode;
 
-    // If sequence traversals are set to NONE, just return immediately
-    // so no nodes are traversed
-    if (sequenceTravMode == VS_INTERSECT_SEQUENCE_NONE)
-        return;
+    // Use the default traversal mode.
+    previousMode = updateTraversalMode(VS_INTERSECT_DEFAULT_TRAV_MODE);
 
-    // See if we should traverse this node at all
-    if (!enterNode(node))
-        return;
+    // Perform the IntersectionVisitor traversal using the new mode.
+    osgUtil::IntersectionVisitor::apply(node);
 
-    // Otherwise, iterate over the Sequence's children
-    for (i = 0; i < (int)node.getNumChildren(); i++)
+    // Reapply the previous mode.
+    updateTraversalMode(previousMode);
+}
+
+
+// ------------------------------------------------------------------------
+// Internal function (called by OSG)
+// Updates the traversal mode for a Geode. This method is necessary so that
+// the traversal mode for the Geode is correct when the intersection
+// visitor code is executed.
+// ------------------------------------------------------------------------
+void vsIntersectTraverser::apply(osg::Geode &node)
+{
+    TraversalMode previousMode;
+
+    // Use the default traversal mode.
+    previousMode = updateTraversalMode(VS_INTERSECT_DEFAULT_TRAV_MODE);
+
+    // Perform the IntersectionVisitor traversal using the new mode.
+    osgUtil::IntersectionVisitor::apply(node);
+
+    // Reapply the previous mode.
+    updateTraversalMode(previousMode);
+}
+
+
+// ------------------------------------------------------------------------
+// Internal function (called by OSG)
+// Updates the traversal mode for a Billboard. This method is necessary so
+// that the traversal mode for the Billboard is correct when the
+// intersection visitor code is executed.
+// ------------------------------------------------------------------------
+void vsIntersectTraverser::apply(osg::Billboard &node)
+{
+    TraversalMode previousMode;
+
+    // Use the default traversal mode.
+    previousMode = updateTraversalMode(VS_INTERSECT_DEFAULT_TRAV_MODE);
+
+    // Perform the IntersectionVisitor traversal using the new mode.
+    osgUtil::IntersectionVisitor::apply(node);
+
+    // Reapply the previous mode.
+    updateTraversalMode(previousMode);
+}
+
+
+// ------------------------------------------------------------------------
+// Internal function (called by OSG)
+// Updates the traversal mode for a Group. This method is necessary so that
+// the traversal mode for the Group is correct when the intersection
+// visitor code is executed.
+// ------------------------------------------------------------------------
+void vsIntersectTraverser::apply(osg::Group &node)
+{
+    TraversalMode previousMode;
+
+    // Use the default traversal mode.
+    previousMode = updateTraversalMode(VS_INTERSECT_DEFAULT_TRAV_MODE);
+
+    // Perform the IntersectionVisitor traversal using the new mode.
+    osgUtil::IntersectionVisitor::apply(node);
+
+    // Reapply the previous mode.
+    updateTraversalMode(previousMode);
+}
+
+
+// ------------------------------------------------------------------------
+// Internal function (called by OSG)
+// ------------------------------------------------------------------------
+void vsIntersectTraverser::apply(osgSim::MultiSwitch &node)
+{
+    TraversalMode previousMode;
+
+    // Store the current traversal mode.
+    switch (sequenceTravMode)
     {
-        // See if we're set to only traverse the current frame
-        if (sequenceTravMode == VS_INTERSECT_SEQUENCE_CURRENT)
+        case VS_INTERSECT_SWITCH_NONE:
         {
-            // Check to see if this child is active, and apply the
-            // IntersectVisitor to it if so
-            if (node.getValue() == i)
-            {
-                node.getChild(i)->accept(*this);
-            }
+            // This corresponds to TRAVERSE_NONE.
+            previousMode = updateTraversalMode(TRAVERSE_NONE);
+            break;
         }
-        else
+
+        case VS_INTERSECT_SWITCH_CURRENT:
         {
-            // We're traversing all frames, apply the IntersectVisitor to
-            // the current frame with no check
-            node.getChild(i)->accept(*this);
+            // This corresponds to TRAVERSE_ACTIVE_CHILDREN.
+            previousMode = updateTraversalMode(TRAVERSE_ACTIVE_CHILDREN);
+            break;
+        }
+
+        case VS_INTERSECT_SWITCH_ALL:
+        {
+            // This corresponds to TRAVERSE_ALL_CHILDREN.
+            previousMode = updateTraversalMode(TRAVERSE_ALL_CHILDREN);
+            break;
         }
     }
 
-    // Perform any cleaning up needed before we leave this node 
-    leaveNode();
+    // Perform the IntersectionVisitor traversal using the new mode.
+    osgUtil::IntersectionVisitor::apply(node);
+
+    // Reapply the previous mode.
+    updateTraversalMode(previousMode);
 }
+
 
 // ------------------------------------------------------------------------
 // Internal function (called by OSG)
-// Apply this traverser to an osg::Switch
+// Updates the traversal mode for a Transform. This method is necessary so
+// that the traversal mode for the Transform is correct when the
+// intersection visitor code is executed.
 // ------------------------------------------------------------------------
-void vsIntersectTraverser::apply(osg::Switch &node)
+void vsIntersectTraverser::apply(osg::Transform &node)
 {
-    int i;
+    TraversalMode previousMode;
 
-    // If switch traversals are set to NONE, just return immediately
-    // so no nodes are traversed
-    if (switchTravMode == VS_INTERSECT_SWITCH_NONE)
-        return;
+    // Use the default traversal mode.
+    previousMode = updateTraversalMode(VS_INTERSECT_DEFAULT_TRAV_MODE);
 
-    // See if we should traverse this node at all
-    if (!enterNode(node))
-        return;
+    // Perform the IntersectionVisitor traversal using the new mode.
+    osgUtil::IntersectionVisitor::apply(node);
 
-    // Otherwise, iterate over the Switch's children
-    for (i = 0; i < (int)node.getNumChildren(); i++)
-    {
-        // See if we're set to only traverse active children
-        if (switchTravMode == VS_INTERSECT_SWITCH_CURRENT)
-        {
-            // Check to see if this child is active, and apply the
-            // IntersectVisitor to it if so
-            if (node.getValue(i))
-            {
-                node.getChild(i)->accept(*this);
-            }
-        }
-        else
-        {
-            // We're traversing all children, apply the IntersectVisitor to
-            // the current child with no check
-            node.getChild(i)->accept(*this);
-        }
-    }
-
-    // Perform any cleaning up needed before we leave this node 
-    leaveNode();
+    // Reapply the previous mode.
+    updateTraversalMode(previousMode);
 }
+
 
 // ------------------------------------------------------------------------
 // Internal function (called by OSG)
-// Apply this traverser to an osg::Node
+// Updates the traversal mode for a Projection. This method is necessary so
+// that the traversal mode for the Projection is correct when the
+// intersection visitor code is executed.
+// ------------------------------------------------------------------------
+void vsIntersectTraverser::apply(osg::Projection &node)
+{
+    TraversalMode previousMode;
+
+    // Use the default traversal mode.
+    previousMode = updateTraversalMode(VS_INTERSECT_DEFAULT_TRAV_MODE);
+
+    // Perform the IntersectionVisitor traversal using the new mode.
+    osgUtil::IntersectionVisitor::apply(node);
+
+    // Reapply the previous mode.
+    updateTraversalMode(previousMode);
+}
+
+
+// ------------------------------------------------------------------------
+// Internal function (called by OSG)
+// Updates the traversal mode for a Camera. This method is necessary so
+// that the traversal mode for the Camera is correct when the intersection
+// visitor code is executed.
+// ------------------------------------------------------------------------
+void vsIntersectTraverser::apply(osg::Camera &node)
+{
+    TraversalMode previousMode;
+
+    // Use the default traversal mode.
+    previousMode = updateTraversalMode(VS_INTERSECT_DEFAULT_TRAV_MODE);
+
+    // Perform the IntersectionVisitor traversal using the new mode.
+    osgUtil::IntersectionVisitor::apply(node);
+
+    // Reapply the previous mode.
+    updateTraversalMode(previousMode);
+}
+
+
+// ------------------------------------------------------------------------
+// Internal function (called by OSG)
+// Updates the traversal mode for a LOD. This method is necessary because
+// the traversal mode for LOD nodes is configurable.
 // ------------------------------------------------------------------------
 void vsIntersectTraverser::apply(osg::LOD &node)
 {
-    int i;
-    osg::Node * child;
+    TraversalMode previousMode;
 
-    // If LOD traversals are set to NONE, just return immediately
-    // so no nodes are traversed
-    if (lodTravMode == VS_INTERSECT_LOD_NONE)
-        return;
-
-    // If LOD traversals are set to FIRST, only traverse the LOD's first
-    // child
-    if (lodTravMode == VS_INTERSECT_LOD_FIRST)
+    // Store the current traversal mode.
+    switch (lodTravMode)
     {
-        // See if we should traverse this node in the first pace
-        if (!enterNode(node))
-            return;
-
-        // We need to check if the first child is valid
-        if (node.getNumChildren() > 0)
+        case VS_INTERSECT_LOD_NONE:
         {
-            // Get the first child of the LOD node
-            child = node.getChild(0);
-
-            // If it's valid, have it accept the intersect visitor
-            if (child != NULL)
-                child->accept(*this);
+            // This corresponds to TRAVERSE_NONE.
+            previousMode = updateTraversalMode(TRAVERSE_NONE);
+            break;
         }
 
-        // Perform any cleaning up needed before we leave this node 
-        leaveNode();
-        return;
+        // TODO: LOD_FIRST needs to be custom implemented. Use CURRENT for now.
+        case VS_INTERSECT_LOD_FIRST:
+        case VS_INTERSECT_LOD_CURRENT:
+        {
+            // This corresponds to TRAVERSE_ACTIVE_CHILDREN.
+            previousMode = updateTraversalMode(TRAVERSE_ACTIVE_CHILDREN);
+            break;
+        }
+
+        case VS_INTERSECT_LOD_ALL:
+        {
+            // This corresponds to TRAVERSE_ALL_CHILDREN.
+            previousMode = updateTraversalMode(TRAVERSE_ALL_CHILDREN);
+            break;
+        }
     }
 
-    // Otherwise, do the normal traversal
-    osgUtil::IntersectVisitor::apply(node);
+    // Perform the IntersectionVisitor traversal using the new mode.
+    osgUtil::IntersectionVisitor::apply(node);
+
+    // Reapply the previous mode.
+    updateTraversalMode(previousMode);
 }
+
 
 // ------------------------------------------------------------------------
 // Internal function (called by OSG)
-// Apply this traverser to an osg::PagedLOD
+// Updates the traversal mode for a PagedLOD. This method is necessary
+// because the traversal mode for PagedLOD nodes is configurable.
 // ------------------------------------------------------------------------
 void vsIntersectTraverser::apply(osg::PagedLOD &node)
 {
-    // Do the normal PagedLOD traversal
-    osgUtil::IntersectVisitor::apply(node);
+    TraversalMode previousMode;
+
+    // Store the current traversal mode.
+    switch (lodTravMode)
+    {
+        case VS_INTERSECT_LOD_NONE:
+        {
+            // This corresponds to TRAVERSE_NONE.
+            previousMode = updateTraversalMode(TRAVERSE_NONE);
+            break;
+        }
+
+        // TODO: LOD_FIRST needs to be custom implemented. Use CURRENT for now.
+        case VS_INTERSECT_LOD_FIRST:
+        case VS_INTERSECT_LOD_CURRENT:
+        {
+            // This corresponds to TRAVERSE_ACTIVE_CHILDREN.
+            previousMode = updateTraversalMode(TRAVERSE_ACTIVE_CHILDREN);
+            break;
+        }
+
+        case VS_INTERSECT_LOD_ALL:
+        {
+            // This corresponds to TRAVERSE_ALL_CHILDREN.
+            previousMode = updateTraversalMode(TRAVERSE_ALL_CHILDREN);
+            break;
+        }
+    }
+
+    // Perform the IntersectionVisitor traversal using the new mode.
+    osgUtil::IntersectionVisitor::apply(node);
+
+    // Reapply the previous mode.
+    updateTraversalMode(previousMode);
 }
+
+
+// ------------------------------------------------------------------------
+// Internal function (called by OSG)
+// Updates the traversal mode for a Sequence. This method is necessary
+// because the traversal mode for Sequence nodes is configurable.
+// ------------------------------------------------------------------------
+void vsIntersectTraverser::apply(osg::Sequence &node)
+{
+    TraversalMode previousMode;
+
+    // Store the current traversal mode.
+    switch (sequenceTravMode)
+    {
+        case VS_INTERSECT_SEQUENCE_NONE:
+        {
+            // This corresponds to TRAVERSE_NONE.
+            previousMode = updateTraversalMode(TRAVERSE_NONE);
+            break;
+        }
+
+        case VS_INTERSECT_SEQUENCE_CURRENT:
+        {
+            // This corresponds to TRAVERSE_ACTIVE_CHILDREN.
+            previousMode = updateTraversalMode(TRAVERSE_ACTIVE_CHILDREN);
+            break;
+        }
+
+        case VS_INTERSECT_SEQUENCE_ALL:
+        {
+            // This corresponds to TRAVERSE_ALL_CHILDREN.
+            previousMode = updateTraversalMode(TRAVERSE_ALL_CHILDREN);
+            break;
+        }
+    }
+
+    // Perform the IntersectionVisitor traversal using the new mode.
+    osgUtil::IntersectionVisitor::apply(node);
+
+    // Reapply the previous mode.
+    updateTraversalMode(previousMode);
+}
+
+
+// ------------------------------------------------------------------------
+// Internal function (called by OSG)
+// Updates the traversal mode for a Switch. This method is necessary
+// because the traversal mode for Switch nodes is configurable.
+// ------------------------------------------------------------------------
+void vsIntersectTraverser::apply(osg::Switch &node)
+{
+    TraversalMode previousMode;
+
+    // Store the current traversal mode.
+    switch (sequenceTravMode)
+    {
+        case VS_INTERSECT_SWITCH_NONE:
+        {
+            // This corresponds to TRAVERSE_NONE.
+            previousMode = updateTraversalMode(TRAVERSE_NONE);
+            break;
+        }
+
+        case VS_INTERSECT_SWITCH_CURRENT:
+        {
+            // This corresponds to TRAVERSE_ACTIVE_CHILDREN.
+            previousMode = updateTraversalMode(TRAVERSE_ACTIVE_CHILDREN);
+            break;
+        }
+
+        case VS_INTERSECT_SWITCH_ALL:
+        {
+            // This corresponds to TRAVERSE_ALL_CHILDREN.
+            previousMode = updateTraversalMode(TRAVERSE_ALL_CHILDREN);
+            break;
+        }
+    }
+
+    // Perform the IntersectionVisitor traversal using the new mode.
+    osgUtil::IntersectionVisitor::apply(node);
+
+    // Reapply the previous mode.
+    updateTraversalMode(previousMode);
+}
+
+
+// ------------------------------------------------------------------------
+// Private function
+// Sets the NodeVisitor traversal mode. This method returns the previous
+// mode so it may be restored later.
+// ------------------------------------------------------------------------
+osg::NodeVisitor::TraversalMode vsIntersectTraverser::updateTraversalMode(
+    osg::NodeVisitor::TraversalMode mode)
+{
+    TraversalMode previousMode;
+
+    // Store the current traversal mode.
+    previousMode = osg::NodeVisitor::getTraversalMode();
+
+    // Perform the update.
+    osg::NodeVisitor::setTraversalMode(mode);
+
+    // Return the previous mode.
+    return previousMode;
+}
+
