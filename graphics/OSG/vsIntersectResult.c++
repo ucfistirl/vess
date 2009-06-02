@@ -73,6 +73,9 @@ vsIntersectResult::~vsIntersectResult()
     if (isectGeometry)
         vsObject::unrefDelete(isectGeometry);
 
+    // The intersection path consists of VESS nodes that aren't properly
+    // reference tracked within this class. Ensure none of them are deleted.
+    isectPath->removeAllEntries();
     delete isectPath;
 }
 
