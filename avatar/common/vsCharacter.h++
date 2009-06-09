@@ -120,6 +120,7 @@ public:
 
     int                       getNumAnimations();
     atString                  getAnimationName(int index);
+    vsPathMotionManager       *getCurrentAnimation();
     vsPathMotionManager       *getAnimation(atString name);
     vsPathMotionManager       *getAnimation(int index);
 
