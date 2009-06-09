@@ -1207,6 +1207,14 @@ atString vsCharacter::getAnimationName(int index)
 }
 
 // ------------------------------------------------------------------------
+// Returns the vsPathMotionManager representing the current animation
+// ------------------------------------------------------------------------
+vsPathMotionManager *vsCharacter::getCurrentAnimation()
+{
+   return currentAnimation;
+}
+
+// ------------------------------------------------------------------------
 // Returns the vsPathMotionManager representing the animation with the
 // given name, or NULL if the animation isn't found
 // ------------------------------------------------------------------------
