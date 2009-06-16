@@ -29,7 +29,8 @@
 #include <libxml/parser.h>
 #include "vsSkeletonMeshGeometry.h++"
 #include "vsTransformAttribute.h++"
-#include "vsMaterialAttribute.h++"
+#include "vsCal3DMaterial.h++"
+#include "atString.h++"
 
 // Under Visual C++, we need to alias the access function and define the
 // R_OK symbol for read access checks on files
@@ -46,10 +47,9 @@
 // ------------------------------------------------------------------------
 vsCal3DMeshLoader::vsCal3DMeshLoader()
 {
-    materialList = new vsGrowableArray(5, 1);
-    materialCount = 0;
+    materialList = new vsArray();
     
-    directoryList = NULL;
+    directoryList = new atList();
 }
 
 // ------------------------------------------------------------------------
@@ -61,35 +61,28 @@ vsCal3DMeshLoader::~vsCal3DMeshLoader()
     delete materialList;
     
     // Clear out the directory listing.
-    DirectoryNode *tempNode;
-    while (directoryList != NULL)
-    {
-        tempNode = directoryList;
-        directoryList = directoryList->next;
-        delete tempNode->dirName;
-        delete tempNode;
-    }
+    delete directoryList;
 }
 
 // ------------------------------------------------------------------------
 // Given a filename (without prepended directory), this function will find
 // return a filename that exists with a prepended directory that has been
-// added to the DirectoryNode listing. If there is no file in the
-// listed directories, this function will return NULL. This is a private
-// helper function.
+// added to the directory list. If there is no file in the listed
+// directories, this function will return NULL. This is a private helper
+// function.
 // ------------------------------------------------------------------------
 char *vsCal3DMeshLoader::findFile(char *filename)
 {
-   DirectoryNode *tempNode;
+   atString *tempPath;
    char *absoluteFilename;
    char tempString[500];
    
    // Loop through the list of directories.
-   tempNode = directoryList;
-   while(tempNode != NULL)
+   tempPath = (atString *) directoryList->getFirstEntry();
+   while(tempPath != NULL)
    {
       // Create the tempString
-      strcpy(tempString, tempNode->dirName);
+      strcpy(tempString, tempPath->getString());
       strcat(tempString, "/");
       strcat(tempString, filename);
       
@@ -106,7 +99,7 @@ char *vsCal3DMeshLoader::findFile(char *filename)
          return absoluteFilename;
       }
       
-      tempNode = tempNode->next;
+      tempPath = (atString *) directoryList->getNextEntry();
    }
    
    // We didn't find the file, so just return the original string.
@@ -118,16 +111,12 @@ char *vsCal3DMeshLoader::findFile(char *filename)
 // ------------------------------------------------------------------------
 void vsCal3DMeshLoader::addFilePath(const char *dirName)
 {
-   DirectoryNode *newNode;
-   
-   // Create the node and copy the directory name.
-   newNode = (DirectoryNode*)(malloc(sizeof(DirectoryNode)));
-   newNode->dirName = (char*)(calloc(strlen(dirName)+2, sizeof(char)));
-   strcpy(newNode->dirName, dirName);
-   
-   // Put it at the beginning of the linked list.
-   newNode->next = directoryList;
-   directoryList = newNode;
+   char *dir;
+
+   // Add the directory name to the list (the const isn't a problem because
+   // atString makes its own copy of the string)
+   dir = const_cast<char *>(dirName);
+   directoryList->addEntry(new atString(dir));
 }
 
 // ------------------------------------------------------------------------
@@ -135,19 +124,22 @@ void vsCal3DMeshLoader::addFilePath(const char *dirName)
 // ------------------------------------------------------------------------
 void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
 {
-    FILE                      *filePointer;
-    char                      *fileBuffer;
-    long                      fileSize;
-    xmlValidCtxt              context;
-    xmlDocPtr                 document;
-    xmlNodePtr                current;
-    xmlAttrPtr                attribute;
-    bool                      validVersion;
-    int                       currentTexture;
-    int                       x, y, z, w;
-    int                       index;
-    char                      *tempString;
-    vsSkinMaterialData        *materialData;
+    FILE                   *filePointer;
+    char                   *fileBuffer;
+    long                   fileSize;
+    xmlValidCtxt           context;
+    xmlDocPtr              document;
+    xmlNodePtr             current;
+    xmlAttrPtr             attribute;
+    bool                   validVersion;
+    int                    textureCount;
+    int                    currentTexture;
+    int                    x, y, z, w;
+    int                    index;
+    char                   *tempString;
+    vsMaterialAttribute    *tempMat;
+    vsCal3DMaterial        *materialData;
+    vsCal3DMaterial        *oldMaterial;
 
     currentTexture = 0;
     validVersion = false;
@@ -179,8 +171,8 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
     // Fill in the buffer with the initial begin tag, then read the file
     // content and then concatenate the end tag.
     strcpy(fileBuffer, VS_CAL3D_XML_MATERIAL_BEGIN_TAG);
-    fileSize = fread(&(fileBuffer[strlen(VS_CAL3D_XML_MATERIAL_BEGIN_TAG)]), 1, fileSize,
-        filePointer);
+    fileSize = fread(&(fileBuffer[strlen(VS_CAL3D_XML_MATERIAL_BEGIN_TAG)]), 1,
+                     fileSize, filePointer);
     // Need to insert a null because fread does not.
     fileBuffer[strlen(VS_CAL3D_XML_MATERIAL_BEGIN_TAG)+fileSize] = 0;
     strcat(fileBuffer, VS_CAL3D_XML_MATERIAL_END_TAG);
@@ -219,24 +211,20 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
         return;
     }
     
-    // Get an entry from the array which will be used for this material.
-    materialData = (vsSkinMaterialData *) materialList->getData(materialCount);
-
-    // If that entry has data in it, clear it out.
-    if (materialData)
+    // Check the material array to see if there's already a material at
+    // this slot
+    oldMaterial = (vsCal3DMaterial *) materialList->getEntry(materialCount);
+    if (oldMaterial)
     {
+        // Print an error that a previously defined material will be replaced
         fprintf(stderr, "vsCal3DMeshLoader::parseXMLMaterial: Error: multiple "
             "definitions for material: %d\n", materialCount);
-        for (index = 0; index < materialData->textureCount; index++)
-            vsObject::unrefDelete(materialData->texture[index]);
-        delete materialData;
     }
 
-    // Create a new data structure for this material and place it in the array.
-    materialData = new vsSkinMaterialData;
-    memset(materialData, 0, sizeof(vsSkinMaterialData));
-    materialList->setData(materialCount, materialData);
-    
+    // Add the material to the material array in the proper slot
+    materialData = new vsCal3DMaterial();
+    materialList->setEntry(materialCount, materialData);
+
     // Go to the child because we created the parent and don't
     // need to parse him "VS_CAL3D_XML_MATERIAL_BEGIN_TAG".
     current = current->children;
@@ -253,12 +241,15 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
             if (xmlStrcmp(attribute->name, (const xmlChar *) "NUMMAPS") == 0)
             {
                 // Read in the number of texture maps that this material has.
-                materialData->textureCount = atoi((const char *)
+                textureCount = atoi((const char *)
                     XML_GET_CONTENT(attribute->children));
 
                 // Cap it, can only support the defined maximum textures.
-                if (materialData->textureCount > VS_MAXIMUM_TEXTURE_UNITS)
-                    materialData->textureCount = VS_MAXIMUM_TEXTURE_UNITS;
+                if (textureCount > VS_MAXIMUM_TEXTURE_UNITS)
+                    textureCount = VS_MAXIMUM_TEXTURE_UNITS;
+
+                // Tell the material the texture count
+                materialData->setTextureCount(textureCount);
             }
             // Else if the property is named VERSION, check to see if it is at
             // least version "1000".
@@ -285,6 +276,9 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
         return;
     }
 
+    // Create a material attribute to store the settings below
+    tempMat = new vsMaterialAttribute();
+
     // Process all of the MATERIAL's children.
     current = current->children;
     while (current)
@@ -296,10 +290,8 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
             sscanf(tempString, "%d %d %d %d", &x, &y, &z, &w);
 
             // Normalize the values.
-            materialData->ambient[0] = x / 255.0;
-            materialData->ambient[1] = y / 255.0;
-            materialData->ambient[2] = z / 255.0;
-            materialData->ambient[3] = w / 255.0;
+            tempMat->setColor(VS_MATERIAL_SIDE_BOTH, VS_MATERIAL_COLOR_AMBIENT,
+                x/255.0, y/255.0, z/255.0);
 
             // Free the XML string.
             xmlFree(tempString);
@@ -311,10 +303,8 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
             sscanf(tempString, "%d %d %d %d", &x, &y, &z, &w);
 
             // Normalize the values.
-            materialData->diffuse[0] = x / 255.0;
-            materialData->diffuse[1] = y / 255.0;
-            materialData->diffuse[2] = z / 255.0;
-            materialData->diffuse[3] = w / 255.0;
+            tempMat->setColor(VS_MATERIAL_SIDE_BOTH, VS_MATERIAL_COLOR_DIFFUSE,
+                x/255.0, y/255.0, z/255.0);
 
             // Free the XML string.
             xmlFree(tempString);
@@ -326,10 +316,8 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
             sscanf(tempString, "%d %d %d %d", &x, &y, &z, &w);
 
             // Normalize the values.
-            materialData->specular[0] = x / 255.0;
-            materialData->specular[1] = y / 255.0;
-            materialData->specular[2] = z / 255.0;
-            materialData->specular[3] = w / 255.0;
+            tempMat->setColor(VS_MATERIAL_SIDE_BOTH, VS_MATERIAL_COLOR_SPECULAR,
+                x/255.0, y/255.0, z/255.0);
 
             // Free the XML string.
             xmlFree(tempString);
@@ -337,13 +325,13 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
         // Process a SHININESS child.
         else if (xmlStrcmp(current->name, (const xmlChar *) "SHININESS") == 0)
         {
-            materialData->shininess = atof((const char *)
-                XML_GET_CONTENT(current->children));
+            tempMat->setShininess(VS_MATERIAL_SIDE_BOTH, 
+                atof((const char *) XML_GET_CONTENT(current->children)));
         }
         // Process a MAP child.
         else if (xmlStrcmp(current->name, (const xmlChar *) "MAP") == 0)
         {
-            if (currentTexture == materialData->textureCount)
+            if (currentTexture == materialData->getTextureCount())
             {
                 fprintf(stderr, "vsCal3DMeshLoader::parseXMLMaterial: Too many "
                     "MAP children encountered!");
@@ -357,27 +345,17 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
                 // will be referenced by any objects who use this texture.
                 // Saves a significant amount of memory since textures
                 // are often shared between meshes.
-                materialData->texture[currentTexture] =
-                    new vsTextureAttribute(currentTexture);
-                materialData->texture[currentTexture]->ref();
-                materialData->texture[currentTexture]->loadImageFromFile(
-                    tempString);
-                materialData->texture[currentTexture]->setBoundaryMode(
-                    VS_TEXTURE_DIRECTION_ALL, VS_TEXTURE_BOUNDARY_CLAMP);
-                materialData->texture[currentTexture]->setMagFilter(
-                    VS_TEXTURE_MAGFILTER_LINEAR);
-                materialData->texture[currentTexture]->setMinFilter(
-                    VS_TEXTURE_MINFILTER_MIPMAP_LINEAR);
+                vsTextureAttribute *textureAttr = new vsTextureAttribute();
+                textureAttr->loadImageFromFile(tempString);
+                textureAttr->setBoundaryMode(VS_TEXTURE_DIRECTION_ALL,
+                                             VS_TEXTURE_BOUNDARY_CLAMP);
+                textureAttr->setMagFilter(VS_TEXTURE_MAGFILTER_LINEAR);
+                textureAttr->setMinFilter(VS_TEXTURE_MINFILTER_MIPMAP_LINEAR);
                 if (currentTexture > 0)
-                {
-                    materialData->texture[currentTexture]->setApplyMode(
-                        VS_TEXTURE_APPLY_MODULATE);
-                }
+                    textureAttr->setApplyMode(VS_TEXTURE_APPLY_MODULATE);
                 else
-                {
-                    materialData->texture[currentTexture]->setApplyMode(
-                        VS_TEXTURE_APPLY_REPLACE);
-                }
+                    textureAttr->setApplyMode(VS_TEXTURE_APPLY_REPLACE);
+                materialData->setTexture(currentTexture, textureAttr);
 
                 // Increment the texture count.
                 currentTexture++;
@@ -387,6 +365,9 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
         // Move to next MATERIAL child.
         current = current->next;
     }
+
+    // Set the VESS material that we created on the Cal3D material
+    materialData->setMaterial(tempMat);
 
     // Finished creating material data, so increment the loaded material count.
     materialCount++;
@@ -430,7 +411,7 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
     atVector               textureCoords[VS_MAXIMUM_TEXTURE_UNITS];
     atVector               weights;
     atVector               boneIDs;
-    vsSkinMaterialData     *materialData;
+    vsCal3DMaterial        *materialData;
     int                    i; 
     int                    meshIndicesProcessed;
     char                   *tempString;
@@ -684,11 +665,13 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                 atVector(1.0, 1.0, 1.0, 1.0));
 
             // Get and apply the mesh material to this geometry, if it has one.
-            materialData = (vsSkinMaterialData *)
-                materialList->getData(meshMaterial);
+            materialData = (vsCal3DMaterial *)
+                materialList->getEntry(meshMaterial);
             if (materialData)
             {
-                for (index = 0; index < materialData->textureCount; index++)
+                for (index = 0;
+                     index < materialData->getTextureCount();
+                     index++)
                 {
                     // Set the size and binding of current texture coordinate
                     // list.
@@ -698,24 +681,12 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                         VS_GEOMETRY_BIND_PER_VERTEX);
 
                     // Hand the mesh the prepared vsTextureAttribute.
-                    resultMesh->addAttribute(materialData->texture[index]);
+                    resultMesh->addAttribute( (vsTextureAttribute *)
+                        materialData->getTexture(index));
                 }
 
-                materialAttribute = new vsMaterialAttribute();
-                materialAttribute->setColor(VS_MATERIAL_SIDE_BOTH,
-                    VS_MATERIAL_COLOR_AMBIENT, materialData->ambient[0],
-                    materialData->ambient[1], materialData->ambient[2]);
-                materialAttribute->setColor(VS_MATERIAL_SIDE_BOTH,
-                    VS_MATERIAL_COLOR_DIFFUSE, materialData->diffuse[0],
-                    materialData->diffuse[1], materialData->diffuse[2]);
-                materialAttribute->setColor(VS_MATERIAL_SIDE_BOTH,
-                    VS_MATERIAL_COLOR_SPECULAR, materialData->specular[0],
-                    materialData->specular[1], materialData->specular[2]);
-                materialAttribute->setShininess(VS_MATERIAL_SIDE_BOTH,
-                    materialData->shininess);
-                materialAttribute->setColorMode(VS_MATERIAL_SIDE_BOTH,
-                    VS_MATERIAL_CMODE_NONE);
-
+                // Add the material attribute as well
+                materialAttribute = materialData->getMaterial();
                 resultMesh->addAttribute(materialAttribute);
             }
 
@@ -1053,18 +1024,8 @@ const char *vsCal3DMeshLoader::getClassName()
 // ------------------------------------------------------------------------
 void vsCal3DMeshLoader::clearMaterials()
 {
-    vsSkinMaterialData *tempData;
-    int index;
-
     // Delete material array's elements.
-    for (materialCount--; materialCount >= 0; materialCount--)
-    {
-        tempData = (vsSkinMaterialData *) materialList->getData(materialCount);
-        for (index = 0; index < tempData->textureCount; index++)
-            vsObject::unrefDelete(tempData->texture[index]);
-        delete tempData;
-        materialList->setData(materialCount, NULL);
-    }
+    materialList->removeAllEntries();
     materialCount = 0;
 }
 
