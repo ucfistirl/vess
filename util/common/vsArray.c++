@@ -98,9 +98,16 @@ bool vsArray::setEntry(long index, vsObject *obj)
     // If the new object made it into the array, reference it, otherwise
     // return false, indicating we couldn't replace the given entry
     if (objectArray->getEntry(index) == obj)
-        obj->ref();
+    {
+        // Reference the object, if it's not NULL
+        if (obj != NULL)
+            obj->ref();
+    }
     else
+    {
+        // The setEntry() failed for some reason
         return false;
+    }
 
     // If the old object is valid, unreference it and delete it
     if (oldObj != NULL)
