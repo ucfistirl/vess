@@ -22,7 +22,6 @@
 #ifndef VS_INTERSECT_RESULT_HPP
 #define VS_INTERSECT_RESULT_HPP
 
-#include "atArray.h++"
 #include "atList.h++"
 #include "atMatrix.h++"
 #include "atVector.h++"
