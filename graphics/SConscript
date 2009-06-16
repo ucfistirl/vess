@@ -40,9 +40,9 @@ elif opSystem == 'Linux':
 
 # Enumerate the common source files
 commonDir = '#graphics/common'
-commonSrc = 'vsCal3DBoneLoader.c++ vsCal3DMeshLoader.c++ vsOptimizer.c++ \
-             vsParticleSystem.c++ vsScenePrinter.c++ vsSkeleton.c++ \
-             vsSkin.c++'
+commonSrc = 'vsCal3DBoneLoader.c++ vsCal3DMaterial.c++ vsCal3DMeshLoader.c++ \
+             vsOptimizer.c++ vsParticle.c++ vsParticleSettings.c++ \
+             vsParticleSystem.c++ vsScenePrinter.c++ vsSkeleton.c++ vsSkin.c++'
 
 # Enumerate the scene graph-specific source files
 sgDir = '#graphics/' + sceneGraph
