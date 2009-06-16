@@ -52,6 +52,7 @@ private:
 public:
 
                           vsSphere();
+                          vsSphere(const vsSphere &sphere);
                           vsSphere(const atVector &centerPoint,
                                    const double &sphereRadius);
                           ~vsSphere();

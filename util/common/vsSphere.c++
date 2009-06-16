@@ -34,6 +34,14 @@ vsSphere::vsSphere()
 }
 
 //------------------------------------------------------------------------
+// Constructor - Copies the given sphere
+//------------------------------------------------------------------------
+vsSphere::vsSphere(const vsSphere &sphere)
+{
+    setSphere(sphere.getCenterPoint(), sphere.getRadius());
+}
+
+//------------------------------------------------------------------------
 // Constructor - Sets the sphere to have the designated center point and
 // radius
 //------------------------------------------------------------------------
