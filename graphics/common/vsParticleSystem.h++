@@ -24,6 +24,9 @@
 #define VS_PARTICLE_SYSTEM_HPP
 
 #include "vsUpdatable.h++"
+#include "vsParticle.h++"
+#include "vsParticleSettings.h++"
+#include "vsArray.h++"
 #include "vsComponent.h++"
 #include "vsGeometry.h++"
 #include "vsDynamicGeometry.h++"
@@ -47,39 +50,6 @@ enum vsParticleSystemShaderType
 {
     VS_PARTICLESYS_ARB_SHADER,
     VS_PARTICLESYS_GLSL_SHADER
-};
-
-struct vsParticle
-{
-    bool                    isActive;
-
-    vsComponent             *mainComponent;
-    vsTransformAttribute    *positionAttr;
-    vsTransformAttribute    *rotScaleAttr;
-    vsGeometry              *quadGeometry;
-    int                     geomIndex;
-
-    double                  ageSeconds;
-    double                  lifetimeSeconds;
-
-    atMatrix                emitterMatrix;
-
-    atVector                position;
-    atVector                velocity;
-
-    double                  orbitAngle;
-    double                  orbitVelocity;
-    double                  orbitRadius;
-    double                  orbitRadiusDelta;
-
-    double                  initialSize;
-    double                  finalSize;
-
-    double                  rotation;
-    double                  rotationSpeed;
-
-    atVector                initialColor;
-    atVector                finalColor;
 };
 
 class VESS_SYM vsParticleSystem : public vsUpdatable
@@ -109,58 +79,26 @@ protected:
     double                    emitterMaxRadius;
 
     // Particle list data
-    vsGrowableArray           particleList;
+    vsArray                   particleList;
     int                       particleListSize;
     int                       activeParticleCount;
     int                       nextInactiveParticleIdx;
 
     // Global particle data
-    int                       particleRenderBin;
     vsTextureAttribute        *masterTexture;
     vsTextureAttribute        *tex1;
     vsTextureAttribute        *tex2;
     vsTextureAttribute        *tex3;
-
-    atVector                  globalAcceleration;
 
     // Hardware shading mode
     vsShaderAttribute         *arbShader;
     vsGLSLProgramAttribute    *glslShader;
     bool                      hardwareShading;
     vsDynamicGeometry         *sharedGeom;
-    vsGrowableArray           primInUse;
+    bool                      *primInUse;
 
     // Individual particle data
-    double                    lifetime;
-    double                    lifetimeVariance;
-
-    atVector                  initialVelocity;
-    double                    velocityMinAngleVariance;
-    double                    velocityMaxAngleVariance;
-    double                    velocitySpeedVariance;
-
-    double                    orbitSpeed;
-    double                    orbitSpeedVariance;
-    double                    orbitRadiusDelta;
-    double                    orbitRadiusDeltaVariance;
-
-    double                    initialSize;
-    double                    initialSizeVariance;
-    double                    finalSize;
-    double                    finalSizeVariance;
-    bool                      lockSizeVariance;
-    
-    double                    rotation;
-    double                    rotationVariance;
-    double                    rotationSpeed;
-    double                    rotationSpeedVariance;
-
-    atVector                  initialColor;
-    atVector                  initialColorVariance;
-    atVector                  finalColor;
-    atVector                  finalColorVariance;
-    bool                      lockIntraColorVariance;
-    bool                      lockInterColorVariance;
+    vsParticleSettings        settings;
 
     // Follow node extra data
     atVector                  prevFollowNodePos;
@@ -191,112 +129,130 @@ protected:
 public:
 
     // 'Structors
-                   vsParticleSystem();
-                   vsParticleSystem(char *shaderProgram);
-                   vsParticleSystem(char *shaderProgram,
-                                 vsParticleSystemShaderType shaderType);
-                   vsParticleSystem(vsShaderAttribute *shaderAttr);
-                   vsParticleSystem(vsGLSLProgramAttribute *shaderAttr);
-    virtual        ~vsParticleSystem();
+                          vsParticleSystem();
+                          vsParticleSystem(char *shaderProgram);
+                          vsParticleSystem(char *shaderProgram,
+                                        vsParticleSystemShaderType shaderType);
+                          vsParticleSystem(vsShaderAttribute *shaderAttr);
+                          vsParticleSystem(vsGLSLProgramAttribute *shaderAttr);
+    virtual               ~vsParticleSystem();
 
     // Inherited from vsObject
-    const char     *getClassName();
+    virtual const char    *getClassName();
+
+    // Create a clone of this particle system
+    vsParticleSystem      *clone();
 
     // Inherited from vsUpdatable
-    void           update();
-    void           update(double deltaTime);
+    void                  update();
+    void                  update(double deltaTime);
 
     // Particle system main component
-    vsComponent    *getComponent();
+    vsComponent           *getComponent();
 
     // Set the render bin for particles to use
-    void           setRenderBin(int newBin);
+    void                  setRenderBin(int newBin);
 
     // Particle emission controls
-    void           reset();
-    void           pauseEmission();
-    void           resumeEmission();
+    void                  reset();
+    void                  pauseEmission();
+    void                  resumeEmission();
 
-    bool           isEmitterExpired();
+    bool                  isEmitterExpired();
 
     // Emitter parameters get/set
-    void           setEmitterPosition(atVector position);
-    atVector       getEmitterPosition();
-    void           setEmitterVelocity(atVector velocity);
-    atVector       getEmitterVelocity();
-    void           setEmitterOrientation(atQuat orientation);
-    atQuat         getEmitterOrientation();
-    void           setEmitterAngularVelocity(atVector rotationAxis,
-                                             double degreesPerSecond);
-    void           getEmitterAngularVelocity(atVector *rotationAxis,
-                                             double *degreesPerSecond);
+    void                  setEmitterPosition(atVector position);
+    atVector              getEmitterPosition();
+    void                  setEmitterVelocity(atVector velocity);
+    atVector              getEmitterVelocity();
+    void                  setEmitterOrientation(atQuat orientation);
+    atQuat                getEmitterOrientation();
+    void                  setEmitterAngularVelocity(atVector rotationAxis,
+                                                    double degreesPerSecond);
+    void                  getEmitterAngularVelocity(atVector *rotationAxis,
+                                                    double *degreesPerSecond);
 
-    void           setEmitterFollowComponent(vsComponent *component);
-    vsComponent    *getEmitterFollowComponent();
+    void                  setEmitterFollowComponent(vsComponent *component);
+    vsComponent           *getEmitterFollowComponent();
 
-    void           setEmitterLifetime(double seconds);
-    double         getEmitterLifetime();
+    void                  setEmitterLifetime(double seconds);
+    double                getEmitterLifetime();
 
-    void           setEmitterRate(double particlesPerSecond);
-    double         getEmitterRate();
+    void                  setEmitterRate(double particlesPerSecond);
+    double                getEmitterRate();
 
-    void           setEmitterShape(vsParticleSystemEmitterShape shape,
-                                   double minRadius, double maxRadius);
-    void           getEmitterShape(vsParticleSystemEmitterShape *shape,
-                                   double *minRadius, double *maxRadius);
+    void                  setEmitterShape(vsParticleSystemEmitterShape shape,
+                                          double minRadius,
+                                          double maxRadius);
+    void                  getEmitterShape(vsParticleSystemEmitterShape *shape,
+                                          double *minRadius,
+                                          double *maxRadius);
 
-    void           setMaxParticleCount(int maxParticles);
-    int            getMaxParticleCount();
+    void                  setMaxParticleCount(int maxParticles);
+    int                   getMaxParticleCount();
 
     // Global particle parameters get/set
-    void           setParticleTexture(char *textureFilename);
+    void                  setParticleTexture(char *textureFilename);
 
-    void           setParticleAcceleration(atVector acceleration);
-    atVector       getParticleAcceleration();
+    void                  setParticleAcceleration(atVector acceleration);
+    atVector              getParticleAcceleration();
 
     // Individual particle parameters get/set
-    void           setParticleLifetime(double seconds, double variance);
-    void           getParticleLifetime(double *seconds, double *variance);
+    void                  setParticleLifetime(double seconds,
+                                              double variance);
+    void                  getParticleLifetime(double *seconds,
+                                              double *variance);
 
-    void           setParticleVelocity(atVector velocity,
-                                       double minAngleVariance,
-                                       double maxAngleVariance,
-                                       double speedVariance);
-    void           getParticleVelocity(atVector *velocity,
-                                       double *minAngleVariance,
-                                       double *maxAngleVariance,
-                                       double *speedVariance);
+    void                  setParticleVelocity(atVector velocity,
+                                              double minAngleVariance,
+                                              double maxAngleVariance,
+                                              double speedVariance);
+    void                  getParticleVelocity(atVector *velocity,
+                                              double *minAngleVariance,
+                                              double *maxAngleVariance,
+                                              double *speedVariance);
 
-    void           setParticleOrbitSpeed(double speed, double variance);
-    void           getParticleOrbitSpeed(double *speed, double *variance);
-    void           setParticleOrbitRadiusDelta(double speed, double variance);
-    void           getParticleOrbitRadiusDelta(double *speed,
-                                               double *variance);
+    void                  setParticleOrbitSpeed(double speed,
+                                                double variance);
+    void                  getParticleOrbitSpeed(double *speed,
+                                                double *variance);
+    void                  setParticleOrbitRadiusDelta(double speed,
+                                                      double variance);
+    void                  getParticleOrbitRadiusDelta(double *speed,
+                                                      double *variance);
 
-    void           setParticleSize(double initial, double initialVariance,
-                                   double final, double finalVariance,
-                                   bool uniform);
-    void           getParticleSize(double *initial, double *initialVariance,
-                                   double *final, double *finalVariance,
-                                   bool *uniform);
+    void                  setParticleSize(double initial,
+                                          double initialVariance,
+                                          double final,
+                                          double finalVariance,
+                                          bool uniform);
+    void                  getParticleSize(double *initial,
+                                          double *initialVariance,
+                                          double *final,
+                                          double *finalVariance,
+                                          bool *uniform);
 
-    void           setParticleRotation(double rotationDegrees,
-                                       double variance);
-    void           getParticleRotation(double *rotationDegrees,
-                                       double *variance);
-    void           setParticleRotationSpeed(double degreesPerSecond,
-                                            double variance);
-    void           getParticleRotationSpeed(double *degreesPerSecond,
-                                            double *variance);
+    void                  setParticleRotation(double rotationDegrees,
+                                              double variance);
+    void                  getParticleRotation(double *rotationDegrees,
+                                              double *variance);
+    void                  setParticleRotationSpeed(double degreesPerSecond,
+                                                   double variance);
+    void                  getParticleRotationSpeed(double *degreesPerSecond,
+                                                   double *variance);
 
-    void           setParticleColor(atVector initial,
-                                    atVector initialVariance, atVector final,
-                                    atVector finalVariance, bool uniformIntra,
-                                    bool uniformInter);
-    void           getParticleColor(atVector *initial,
-                                    atVector *initialVariance,
-                                    atVector *final, atVector *finalVariance,
-                                    bool *uniformIntra, bool *uniformInter);
+    void                  setParticleColor(atVector initial,
+                                           atVector initialVariance,
+                                           atVector final,
+                                           atVector finalVariance,
+                                           bool uniformIntra,
+                                           bool uniformInter);
+    void                  getParticleColor(atVector *initial,
+                                           atVector *initialVariance,
+                                           atVector *final,
+                                           atVector *finalVariance,
+                                           bool *uniformIntra,
+                                           bool *uniformInter);
 };
 
 #endif

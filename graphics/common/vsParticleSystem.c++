@@ -30,7 +30,6 @@
 // Constructor
 // ------------------------------------------------------------------------
 vsParticleSystem::vsParticleSystem() 
-                : particleList(0, 1), primInUse(0, 1)
 {
     vsTransparencyAttribute *transpAttr;
 
@@ -58,12 +57,10 @@ vsParticleSystem::vsParticleSystem()
     transpAttr->disableOcclusion();
     parentComponent->addAttribute(transpAttr);
 
-    // Set the renderbin for each particle to 0 (the default bin)
-    particleRenderBin = 0;
-
     // Create the initial list of vsParticle structures
     particleListSize = 0;
     activeParticleCount = 0;
+    primInUse = NULL;
     setMaxParticleCount(10);
     nextInactiveParticleIdx = 0;
 
@@ -87,40 +84,6 @@ vsParticleSystem::vsParticleSystem()
     emitterMinRadius = 0.0;
     emitterMaxRadius = 0.0;
 
-    // Particle default parameters
-    globalAcceleration.set(0.0, 0.0, 0.0);
-
-    lifetime = 1.0;
-    lifetimeVariance = 0.0;
-
-    initialVelocity.set(0.0, 0.0, 0.0);
-    velocityMinAngleVariance = 0.0;
-    velocityMaxAngleVariance = 0.0;
-    velocitySpeedVariance = 0.0;
-
-    orbitSpeed = 0.0;
-    orbitSpeedVariance = 0.0;
-    orbitRadiusDelta = 0.0;
-    orbitRadiusDeltaVariance = 0.0;
-
-    initialSize = 1.0;
-    initialSizeVariance = 0.0;
-    finalSize = 1.0;
-    finalSizeVariance = 0.0;
-    lockSizeVariance = false;
-
-    rotation = 0.0;
-    rotationVariance = 0.0;
-    rotationSpeed = 0.0;
-    rotationSpeedVariance = 0.0;
-
-    initialColor.set(1.0, 1.0, 1.0, 1.0);
-    initialColorVariance.set(0.0, 0.0, 0.0, 0.0);
-    finalColor.set(1.0, 1.0, 1.0, 1.0);
-    finalColorVariance.set(0.0, 0.0, 0.0, 0.0);
-    lockIntraColorVariance = false;
-    lockInterColorVariance = false;
-
     // Mark that the 'previous' follow node data isn't valid yet
     prevFollowDataValid = false;
     
@@ -134,7 +97,6 @@ vsParticleSystem::vsParticleSystem()
 // ARB_vertex_program code in the specified file
 // ------------------------------------------------------------------------
 vsParticleSystem::vsParticleSystem(char *shaderProgram)
-                : particleList(0, 1), primInUse(0, 1)
 {
     vsTransparencyAttribute *transpAttr;
 
@@ -165,9 +127,6 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram)
     transpAttr->disableOcclusion();
     parentComponent->addAttribute(transpAttr);
 
-    // Set the renderbin for each particle to 0 (the default bin)
-    particleRenderBin = 0;
-
     // Create the shared geometry node that all particles will use
     sharedGeom = new vsDynamicGeometry();
     sharedGeom->ref();
@@ -196,6 +155,7 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram)
     // Create the initial list of vsParticle structures
     particleListSize = 0;
     activeParticleCount = 0;
+    primInUse = NULL;
     setMaxParticleCount(10);
     nextInactiveParticleIdx = 0;
 
@@ -219,40 +179,6 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram)
     emitterMinRadius = 0.0;
     emitterMaxRadius = 0.0;
 
-    // Particle default parameters
-    globalAcceleration.set(0.0, 0.0, 0.0);
-
-    lifetime = 1.0;
-    lifetimeVariance = 0.0;
-
-    initialVelocity.set(0.0, 0.0, 0.0);
-    velocityMinAngleVariance = 0.0;
-    velocityMaxAngleVariance = 0.0;
-    velocitySpeedVariance = 0.0;
-
-    orbitSpeed = 0.0;
-    orbitSpeedVariance = 0.0;
-    orbitRadiusDelta = 0.0;
-    orbitRadiusDeltaVariance = 0.0;
-
-    initialSize = 1.0;
-    initialSizeVariance = 0.0;
-    finalSize = 1.0;
-    finalSizeVariance = 0.0;
-    lockSizeVariance = false;
-
-    rotation = 0.0;
-    rotationVariance = 0.0;
-    rotationSpeed = 0.0;
-    rotationSpeedVariance = 0.0;
-
-    initialColor.set(1.0, 1.0, 1.0, 1.0);
-    initialColorVariance.set(0.0, 0.0, 0.0, 0.0);
-    finalColor.set(1.0, 1.0, 1.0, 1.0);
-    finalColorVariance.set(0.0, 0.0, 0.0, 0.0);
-    lockIntraColorVariance = false;
-    lockInterColorVariance = false;
-
     // Mark that the 'previous' follow node data isn't valid yet
     prevFollowDataValid = false;
     
@@ -267,7 +193,6 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram)
 // ------------------------------------------------------------------------
 vsParticleSystem::vsParticleSystem(char *shaderProgram, 
                                    vsParticleSystemShaderType shaderType)
-                : particleList(0, 1), primInUse(0, 1)
 {
     vsTransparencyAttribute *transpAttr;
     vsGLSLShader *shaderObject;
@@ -318,9 +243,6 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram,
     transpAttr->disableOcclusion();
     parentComponent->addAttribute(transpAttr);
 
-    // Set the renderbin for each particle to 0 (the default bin)
-    particleRenderBin = 0;
-
     // Create the shared geometry node that all particles will use
     sharedGeom = new vsDynamicGeometry();
     sharedGeom->ref();
@@ -349,6 +271,7 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram,
     // Create the initial list of vsParticle structures
     particleListSize = 0;
     activeParticleCount = 0;
+    primInUse = NULL;
     setMaxParticleCount(10);
     nextInactiveParticleIdx = 0;
 
@@ -372,40 +295,6 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram,
     emitterMinRadius = 0.0;
     emitterMaxRadius = 0.0;
 
-    // Particle default parameters
-    globalAcceleration.set(0.0, 0.0, 0.0);
-
-    lifetime = 1.0;
-    lifetimeVariance = 0.0;
-
-    initialVelocity.set(0.0, 0.0, 0.0);
-    velocityMinAngleVariance = 0.0;
-    velocityMaxAngleVariance = 0.0;
-    velocitySpeedVariance = 0.0;
-
-    orbitSpeed = 0.0;
-    orbitSpeedVariance = 0.0;
-    orbitRadiusDelta = 0.0;
-    orbitRadiusDeltaVariance = 0.0;
-
-    initialSize = 1.0;
-    initialSizeVariance = 0.0;
-    finalSize = 1.0;
-    finalSizeVariance = 0.0;
-    lockSizeVariance = false;
-
-    rotation = 0.0;
-    rotationVariance = 0.0;
-    rotationSpeed = 0.0;
-    rotationSpeedVariance = 0.0;
-
-    initialColor.set(1.0, 1.0, 1.0, 1.0);
-    initialColorVariance.set(0.0, 0.0, 0.0, 0.0);
-    finalColor.set(1.0, 1.0, 1.0, 1.0);
-    finalColorVariance.set(0.0, 0.0, 0.0, 0.0);
-    lockIntraColorVariance = false;
-    lockInterColorVariance = false;
-
     // Mark that the 'previous' follow node data isn't valid yet
     prevFollowDataValid = false;
     
@@ -418,8 +307,7 @@ vsParticleSystem::vsParticleSystem(char *shaderProgram,
 // Constructor, creates a particle system in hardware mode, using the
 // given pre-existing ARB shader attribute.
 // ------------------------------------------------------------------------
-vsParticleSystem::vsParticleSystem(vsShaderAttribute *shaderAttr)                                    
-                : particleList(0, 1), primInUse(0, 1)
+vsParticleSystem::vsParticleSystem(vsShaderAttribute *shaderAttr)
 {
     vsTransparencyAttribute *transpAttr;
 
@@ -446,9 +334,6 @@ vsParticleSystem::vsParticleSystem(vsShaderAttribute *shaderAttr)
     transpAttr->disableOcclusion();
     parentComponent->addAttribute(transpAttr);
 
-    // Set the renderbin for each particle to 0 (the default bin)
-    particleRenderBin = 0;
-
     // Create the shared geometry node that all particles will use
     sharedGeom = new vsDynamicGeometry();
     sharedGeom->ref();
@@ -477,6 +362,7 @@ vsParticleSystem::vsParticleSystem(vsShaderAttribute *shaderAttr)
     // Create the initial list of vsParticle structures
     particleListSize = 0;
     activeParticleCount = 0;
+    primInUse = NULL;
     setMaxParticleCount(10);
     nextInactiveParticleIdx = 0;
 
@@ -500,40 +386,6 @@ vsParticleSystem::vsParticleSystem(vsShaderAttribute *shaderAttr)
     emitterMinRadius = 0.0;
     emitterMaxRadius = 0.0;
 
-    // Particle default parameters
-    globalAcceleration.set(0.0, 0.0, 0.0);
-
-    lifetime = 1.0;
-    lifetimeVariance = 0.0;
-
-    initialVelocity.set(0.0, 0.0, 0.0);
-    velocityMinAngleVariance = 0.0;
-    velocityMaxAngleVariance = 0.0;
-    velocitySpeedVariance = 0.0;
-
-    orbitSpeed = 0.0;
-    orbitSpeedVariance = 0.0;
-    orbitRadiusDelta = 0.0;
-    orbitRadiusDeltaVariance = 0.0;
-
-    initialSize = 1.0;
-    initialSizeVariance = 0.0;
-    finalSize = 1.0;
-    finalSizeVariance = 0.0;
-    lockSizeVariance = false;
-
-    rotation = 0.0;
-    rotationVariance = 0.0;
-    rotationSpeed = 0.0;
-    rotationSpeedVariance = 0.0;
-
-    initialColor.set(1.0, 1.0, 1.0, 1.0);
-    initialColorVariance.set(0.0, 0.0, 0.0, 0.0);
-    finalColor.set(1.0, 1.0, 1.0, 1.0);
-    finalColorVariance.set(0.0, 0.0, 0.0, 0.0);
-    lockIntraColorVariance = false;
-    lockInterColorVariance = false;
-
     // Mark that the 'previous' follow node data isn't valid yet
     prevFollowDataValid = false;
     
@@ -546,8 +398,7 @@ vsParticleSystem::vsParticleSystem(vsShaderAttribute *shaderAttr)
 // Constructor, creates a particle system in hardware mode, using the
 // given GLSL program attribute (thus, avoiding the cost of a recompile
 // ------------------------------------------------------------------------
-vsParticleSystem::vsParticleSystem(vsGLSLProgramAttribute *shaderAttr)                                    
-                : particleList(0, 1), primInUse(0, 1)
+vsParticleSystem::vsParticleSystem(vsGLSLProgramAttribute *shaderAttr)
 {
     vsTransparencyAttribute *transpAttr;
 
@@ -574,9 +425,6 @@ vsParticleSystem::vsParticleSystem(vsGLSLProgramAttribute *shaderAttr)
     transpAttr->disableOcclusion();
     parentComponent->addAttribute(transpAttr);
 
-    // Set the renderbin for each particle to 0 (the default bin)
-    particleRenderBin = 0;
-
     // Create the shared geometry node that all particles will use
     sharedGeom = new vsDynamicGeometry();
     sharedGeom->ref();
@@ -605,6 +453,7 @@ vsParticleSystem::vsParticleSystem(vsGLSLProgramAttribute *shaderAttr)
     // Create the initial list of vsParticle structures
     particleListSize = 0;
     activeParticleCount = 0;
+    primInUse = NULL;
     setMaxParticleCount(10);
     nextInactiveParticleIdx = 0;
 
@@ -628,40 +477,6 @@ vsParticleSystem::vsParticleSystem(vsGLSLProgramAttribute *shaderAttr)
     emitterMinRadius = 0.0;
     emitterMaxRadius = 0.0;
 
-    // Particle default parameters
-    globalAcceleration.set(0.0, 0.0, 0.0);
-
-    lifetime = 1.0;
-    lifetimeVariance = 0.0;
-
-    initialVelocity.set(0.0, 0.0, 0.0);
-    velocityMinAngleVariance = 0.0;
-    velocityMaxAngleVariance = 0.0;
-    velocitySpeedVariance = 0.0;
-
-    orbitSpeed = 0.0;
-    orbitSpeedVariance = 0.0;
-    orbitRadiusDelta = 0.0;
-    orbitRadiusDeltaVariance = 0.0;
-
-    initialSize = 1.0;
-    initialSizeVariance = 0.0;
-    finalSize = 1.0;
-    finalSizeVariance = 0.0;
-    lockSizeVariance = false;
-
-    rotation = 0.0;
-    rotationVariance = 0.0;
-    rotationSpeed = 0.0;
-    rotationSpeedVariance = 0.0;
-
-    initialColor.set(1.0, 1.0, 1.0, 1.0);
-    initialColorVariance.set(0.0, 0.0, 0.0, 0.0);
-    finalColor.set(1.0, 1.0, 1.0, 1.0);
-    finalColorVariance.set(0.0, 0.0, 0.0, 0.0);
-    lockIntraColorVariance = false;
-    lockInterColorVariance = false;
-
     // Mark that the 'previous' follow node data isn't valid yet
     prevFollowDataValid = false;
     
@@ -678,8 +493,14 @@ vsParticleSystem::~vsParticleSystem()
     int loop;
 
     // Destroy all of the particles in the list
-    for (loop = 0; loop < particleListSize; loop++)
-        destroyParticle((vsParticle *)(particleList[loop]));
+    while (particleList.getNumEntries() > 0)
+    {
+        // "Destroy" the particle and associated data
+        destroyParticle((vsParticle *)(particleList.getEntry(0)));
+
+        // Remove the particle from the list (this will also delete it)
+        particleList.removeEntryAtIndex(0);
+    }
 
     // De-reference any shader attributes we created or used
     if (arbShader)
@@ -698,6 +519,12 @@ vsParticleSystem::~vsParticleSystem()
     {
         parentComponent->removeChild(sharedGeom);
         vsObject::unrefDelete(sharedGeom);
+    }
+
+    // If we have a list of primitives in use, delete that now
+    if (primInUse != NULL)
+    {
+        delete [] primInUse;
     }
         
     // Dispose of the master component and texture
@@ -771,8 +598,8 @@ void vsParticleSystem::update(double deltaTime)
     // Update all currently active particles
     for (loop = 0; loop < particleListSize; loop++)
     {
-        particle = (vsParticle *)(particleList[loop]);
-        if (particle->isActive)
+        particle = (vsParticle *)(particleList.getEntry(loop));
+        if (particle->isActive())
             updateParticle(particle, frameTime);
     }
 
@@ -792,7 +619,8 @@ void vsParticleSystem::update(double deltaTime)
             (activeParticleCount < particleListSize))
         {
             // Emit the particle
-            particle = (vsParticle *)(particleList[nextInactiveParticleIdx]);
+            particle = (vsParticle *)
+                (particleList.getEntry(nextInactiveParticleIdx));
             activateParticle(particle, nextEmitTime, frameTime);
 
             // Update the 'next available particle' pointer
@@ -855,22 +683,17 @@ void vsParticleSystem::setRenderBin(int newBin)
     int loop;
 
     // Change the bin number for all new particles
-    particleRenderBin = newBin;
+    settings.setRenderBin(newBin);
     
     // Set the render bin on the shared geometry node.
     if (sharedGeom != NULL)
-        sharedGeom->setRenderBin(particleRenderBin);
+        sharedGeom->setRenderBin(settings.getRenderBin());
 
     // Set the render bin on all existing particles
     for (loop = 0; loop < particleListSize; loop++)
     {
-        particle = (vsParticle *)(particleList[loop]);
-        
-        // Make sure this geometry is initialized first...
-        if(particle->quadGeometry != NULL)
-        {
-            particle->quadGeometry->setRenderBin(particleRenderBin);
-        }
+        particle = (vsParticle *)(particleList.getEntry(loop));
+        particle->setRenderBin(settings.getRenderBin());
     }
 }
 
@@ -886,8 +709,8 @@ void vsParticleSystem::reset()
     // Deactivate all active particles
     for (loop = 0; loop < particleListSize; loop++)
     {
-        particle = (vsParticle *)(particleList[loop]);
-        if (particle->isActive)
+        particle = (vsParticle *)(particleList.getEntry(loop));
+        if (particle->isActive())
             deactivateParticle(particle);
     }
 
@@ -1131,6 +954,8 @@ void vsParticleSystem::setMaxParticleCount(int maxParticles)
 {
     int oldSize;
     int loop;
+    bool *oldPrimInUse;
+    vsParticle *particle;
 
     // Sanity check; must be at least one particle
     if (maxParticles < 1)
@@ -1143,10 +968,15 @@ void vsParticleSystem::setMaxParticleCount(int maxParticles)
     // Resize the particle list
     if (maxParticles > particleListSize)
     {
-        particleList.setSize(maxParticles);
+        // Set the new list size, but remember the old size for a bit longer
+        oldSize = particleListSize;
+        particleListSize = maxParticles;
 
+        // See if we're using hardware shading
         if (hardwareShading)
         {
+            // Set up a new geometry state, and resize all data lists
+            // on the shared geometry object to the appropriate size
             sharedGeom->beginNewState();
             sharedGeom->setPrimitiveCount(maxParticles);
             sharedGeom->setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 
@@ -1162,35 +992,54 @@ void vsParticleSystem::setMaxParticleCount(int maxParticles)
             sharedGeom->setDataListSize(VS_GEOMETRY_TEXTURE3_COORDS, 
                 maxParticles*4);
 
-            primInUse.setSize(maxParticles);
-        }
+            // Resize the primitives in use array, and copy the existing
+            // data (if any)
+            oldPrimInUse = primInUse;
+            primInUse = new bool[maxParticles];
+            memset(primInUse, 0, sizeof(bool) * maxParticles);
+            if (oldPrimInUse != NULL)
+            {
+                // Copy the old data
+                memcpy(primInUse, oldPrimInUse, sizeof(bool) * oldSize);
 
-        oldSize = particleListSize;
-        particleListSize = maxParticles;
+                // Delete the old array
+                delete [] oldPrimInUse;
+            }
+        }
 
         // The list is growing; create new particle structures for the new
         // list entries
         for (loop = oldSize; loop < particleListSize; loop++)
-            particleList[loop] = createParticle();
+            particleList.setEntry(loop, createParticle());
             
         if (hardwareShading)
             sharedGeom->finishNewState();
     }
     else if (maxParticles < particleListSize)
     {
+        // Begin a new geometry state on the shared geometry node
         if (hardwareShading)
             sharedGeom->beginNewState();
             
         // The list is shrinking; destroy the particle structures for the
         // disappearing list entries
-        for (loop = maxParticles; loop < particleListSize; loop++)
-            destroyParticle((vsParticle *)(particleList[loop]));
+        while (maxParticles < particleList.getNumEntries())
+        {
+            // "Destroy" the particle and associated data structures
+            particle = (vsParticle *)(particleList.getEntry(maxParticles));
+            destroyParticle(particle);
 
-        particleList.setSize(maxParticles);
+            // Remove the particle from the list (this will also delete it)
+            particleList.removeEntryAtIndex(maxParticles);
+        }
+
+        // Set the new list size
         particleListSize = maxParticles;
 
         if (hardwareShading)
         {
+            // Resize all data lists on the shared geometry to the appropriate
+            // size
             sharedGeom->setPrimitiveCount(maxParticles);
             sharedGeom->setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 
                 maxParticles*4);
@@ -1206,7 +1055,18 @@ void vsParticleSystem::setMaxParticleCount(int maxParticles)
                 maxParticles*4);
             sharedGeom->finishNewState();
 
-            primInUse.setSize(maxParticles);
+            // Resize the list of primitives in use
+            oldPrimInUse = primInUse;
+            primInUse = new bool[maxParticles];
+            memset(primInUse, 0, sizeof(bool) * maxParticles);
+            if (oldPrimInUse != NULL)
+            {
+                // Copy the old data
+                memcpy(primInUse, oldPrimInUse, sizeof(bool) * maxParticles);
+
+                // Delete the old array
+                delete [] oldPrimInUse;
+            }
         }
     }
 
@@ -1245,7 +1105,7 @@ void vsParticleSystem::setParticleTexture(char *textureFilename)
 // ------------------------------------------------------------------------
 void vsParticleSystem::setParticleAcceleration(atVector acceleration)
 {
-    globalAcceleration.clearCopy(acceleration);
+    settings.setAcceleration(acceleration);
 }
 
 // ------------------------------------------------------------------------
@@ -1253,7 +1113,7 @@ void vsParticleSystem::setParticleAcceleration(atVector acceleration)
 // ------------------------------------------------------------------------
 atVector vsParticleSystem::getParticleAcceleration()
 {
-    return globalAcceleration;
+    return settings.getAcceleration();
 }
 
 // ------------------------------------------------------------------------
@@ -1262,8 +1122,8 @@ atVector vsParticleSystem::getParticleAcceleration()
 // ------------------------------------------------------------------------
 void vsParticleSystem::setParticleLifetime(double seconds, double variance)
 {
-    lifetime = seconds;
-    lifetimeVariance = variance;
+    // Pass the new lifetime parameters on to the settings object
+    settings.setLifetime(seconds, variance);
 }
 
 // ------------------------------------------------------------------------
@@ -1271,12 +1131,10 @@ void vsParticleSystem::setParticleLifetime(double seconds, double variance)
 // active
 // ------------------------------------------------------------------------
 void vsParticleSystem::getParticleLifetime(double *seconds, 
-                                                 double *variance)
+                                           double *variance)
 {
-    if (seconds)
-        *seconds = lifetime;
-    if (variance)
-        *variance = lifetimeVariance;
+    // Get the lifetime settings from the particle settings object
+    settings.getLifetime(seconds, variance);
 }
 
 // ------------------------------------------------------------------------
@@ -1299,10 +1157,9 @@ void vsParticleSystem::setParticleVelocity(atVector velocity,
         return;
     }
 
-    initialVelocity.clearCopy(velocity);
-    velocityMinAngleVariance = minAngleVariance;
-    velocityMaxAngleVariance = maxAngleVariance;
-    velocitySpeedVariance = speedVariance;
+    // Pass the parameters on to the settings object
+    settings.setVelocity(velocity, minAngleVariance, maxAngleVariance,
+        speedVariance);
 }
 
 // ------------------------------------------------------------------------
@@ -1317,14 +1174,9 @@ void vsParticleSystem::setParticleVelocity(atVector velocity,
 void vsParticleSystem::getParticleVelocity(atVector *velocity,
     double *minAngleVariance, double *maxAngleVariance, double *speedVariance)
 {
-    if (velocity)
-        (*velocity) = initialVelocity;
-    if (minAngleVariance)
-        *minAngleVariance = velocityMinAngleVariance;
-    if (maxAngleVariance)
-        *maxAngleVariance = velocityMaxAngleVariance;
-    if (speedVariance)
-        *speedVariance = velocitySpeedVariance;
+    // Get the velocity settings from the particle settings object
+    settings.getVelocity(velocity, minAngleVariance, maxAngleVariance,
+        speedVariance);
 }
 
 // ------------------------------------------------------------------------
@@ -1333,45 +1185,40 @@ void vsParticleSystem::getParticleVelocity(atVector *velocity,
 // ------------------------------------------------------------------------
 void vsParticleSystem::setParticleOrbitSpeed(double speed, double variance)
 {
-    orbitSpeed = speed;
-    orbitSpeedVariance = variance;
+    // Pass the new orbit speed parameters on to the settings object
+    settings.setOrbitSpeed(speed, variance);
 }
 
 // ------------------------------------------------------------------------
 // Gets the speed (and variance), in degrees per second, at which the
 // particle revolves around the axis of the emitter
 // ------------------------------------------------------------------------
-void vsParticleSystem::getParticleOrbitSpeed(double *speed,
-                                                   double *variance)
+void vsParticleSystem::getParticleOrbitSpeed(double *speed, double *variance)
 {
-    if (speed)
-        *speed = orbitSpeed;
-    if (variance)
-        *variance = orbitSpeedVariance;
+    // Get the orbit speed values from the particle settings object
+    settings.getOrbitSpeed(speed, variance);
 }
 
 // ------------------------------------------------------------------------
 // Sets the speed (and variance) at which the particle moves away from (or
 // towards, for negative values) the axis of the emitter
 // ------------------------------------------------------------------------
-void vsParticleSystem::setParticleOrbitRadiusDelta(double speed,
-    double variance)
+void vsParticleSystem::setParticleOrbitRadiusDelta(double delta,
+                                                   double variance)
 {
-    orbitRadiusDelta = speed;
-    orbitRadiusDeltaVariance = variance;
+    // Pass the new orbit radius delta parameters on to the settings object
+    settings.setOrbitRadiusDelta(delta, variance);
 }
 
 // ------------------------------------------------------------------------
 // Gets the speed (and variance) at which the particle moves away from (or
 // towards, for negative values) the axis of the emitter
 // ------------------------------------------------------------------------
-void vsParticleSystem::getParticleOrbitRadiusDelta(double *speed,
-    double *variance)
+void vsParticleSystem::getParticleOrbitRadiusDelta(double *delta,
+                                                   double *variance)
 {
-    if (speed)
-        *speed = orbitRadiusDelta;
-    if (variance)
-        *variance = orbitRadiusDeltaVariance;
+    // Get the orbit radius values from the particle settings object
+    settings.getOrbitRadiusDelta(delta, variance);
 }
 
 // ------------------------------------------------------------------------
@@ -1381,13 +1228,11 @@ void vsParticleSystem::getParticleOrbitRadiusDelta(double *speed,
 // computing variances.
 // ------------------------------------------------------------------------
 void vsParticleSystem::setParticleSize(double initial, double initialVariance,
-    double final, double finalVariance, bool uniform)
+                                       double final, double finalVariance,
+                                       bool uniform)
 {
-    initialSize = initial;
-    initialSizeVariance = initialVariance;
-    finalSize = final;
-    finalSizeVariance = finalVariance;
-    lockSizeVariance = uniform;
+    // Pass the new particle size parameters on to the settings object
+    settings.setSize(initial, initialVariance, final, finalVariance, uniform);
 }
 
 // ------------------------------------------------------------------------
@@ -1396,42 +1241,32 @@ void vsParticleSystem::setParticleSize(double initial, double initialVariance,
 // are linked; if true, the same fraction of each variance is used when
 // computing variances.
 // ------------------------------------------------------------------------
-void vsParticleSystem::getParticleSize(double *initial, 
-    double *initialVariance, double *final, double *finalVariance,
-    bool *uniform)
+void vsParticleSystem::getParticleSize(double *initial, double *initialVariance,
+                                       double *final, double *finalVariance,
+                                       bool *uniform)
 {
-    if (initial)
-        *initial = initialSize;
-    if (initialVariance)
-        *initialVariance = initialSizeVariance;
-    if (final)
-        *final = finalSize;
-    if (finalVariance)
-        *finalVariance = finalSizeVariance;
-    if (uniform)
-        *uniform = lockSizeVariance;
+    // Get the size values from the particle settings object
+    settings.getSize(initial, initialVariance, final, finalVariance, uniform);
 }
 
 // ------------------------------------------------------------------------
 // Sets the rotation, in degrees, of each particle around its X-axis
 // ------------------------------------------------------------------------
 void vsParticleSystem::setParticleRotation(double rotationDegrees,
-    double variance)
+                                           double variance)
 {
-    rotation = rotationDegrees;
-    rotationVariance = variance;
+    // Pass the new rotation angle parameters on to the settings object
+    settings.setRotationAngle(rotationDegrees, variance);
 }
 
 // ------------------------------------------------------------------------
 // Gets the rotation, in degrees, of each particle around its X-axis
 // ------------------------------------------------------------------------
 void vsParticleSystem::getParticleRotation(double *rotationDegrees,
-    double *variance)
+                                           double *variance)
 {
-    if (rotationDegrees)
-        *rotationDegrees = rotation;
-    if (variance)
-        *variance = rotationVariance;
+    // Get the rotation angle values from the particle settings object
+    settings.getRotationAngle(rotationDegrees, variance);
 }
 
 // ------------------------------------------------------------------------
@@ -1439,10 +1274,10 @@ void vsParticleSystem::getParticleRotation(double *rotationDegrees,
 // around its X-axis
 // ------------------------------------------------------------------------
 void vsParticleSystem::setParticleRotationSpeed(double degreesPerSecond,
-    double variance)
+                                                double variance)
 {
-    rotationSpeed = degreesPerSecond;
-    rotationSpeedVariance = variance;
+    // Pass the new rotation speed parameters on to the settings object
+    settings.setRotationSpeed(degreesPerSecond, variance);
 }
 
 // ------------------------------------------------------------------------
@@ -1450,12 +1285,10 @@ void vsParticleSystem::setParticleRotationSpeed(double degreesPerSecond,
 // around its X-axis
 // ------------------------------------------------------------------------
 void vsParticleSystem::getParticleRotationSpeed(double *degreesPerSecond,
-    double *variance)
+                                                double *variance)
 {
-    if (degreesPerSecond)
-        *degreesPerSecond = rotationSpeed;
-    if (variance)
-        *variance = rotationSpeedVariance;
+    // Get the rotation speed values from the particle settings object
+    settings.getRotationSpeed(degreesPerSecond, variance);
 }
 
 // ------------------------------------------------------------------------
@@ -1467,25 +1300,27 @@ void vsParticleSystem::getParticleRotationSpeed(double *degreesPerSecond,
 // does the same for variance fractions between the two colors.
 // ------------------------------------------------------------------------
 void vsParticleSystem::setParticleColor(atVector initial,
-    atVector initialVariance, atVector final, atVector finalVariance,
-    bool uniformIntra, bool uniformInter)
+                                        atVector initialVariance,
+                                        atVector final, atVector finalVariance,
+                                        bool uniformIntra, bool uniformInter)
 {
-    // If no alpha specified, force it to be 1
+    atVector initialColor, finalColor;
+
+    // If no initial alpha specified, force it to be 1
     initialColor.clearCopy(initial);
+    initialColor.setSize(4);
     if (initial.getSize() < 4)
         initialColor[3] = 1.0;
-
-    initialColorVariance.clearCopy(initialVariance);
     
-    // If no alpha specified, force it to be 1
+    // If no final alpha specified, force it to be 1
     finalColor.clearCopy(final);
+    finalColor.setSize(4);
     if (final.getSize() < 4)
         finalColor[3] = 1.0;
 
-    finalColorVariance.clearCopy(finalVariance);
-
-    lockIntraColorVariance = uniformIntra;
-    lockInterColorVariance = uniformInter;
+    // Pass the parameters on to the settings object
+    settings.setColor(initialColor, initialVariance,
+        finalColor, finalVariance, uniformIntra, uniformInter);
 }
 
 // ------------------------------------------------------------------------
@@ -1497,21 +1332,14 @@ void vsParticleSystem::setParticleColor(atVector initial,
 // does the same for variance fractions between the two colors.
 // ------------------------------------------------------------------------
 void vsParticleSystem::getParticleColor(atVector *initial,
-    atVector *initialVariance, atVector *final, atVector *finalVariance,
-    bool *uniformIntra, bool *uniformInter)
+                                        atVector *initialVariance,
+                                        atVector *final,
+                                        atVector *finalVariance,
+                                        bool *uniformIntra, bool *uniformInter)
 {
-    if (initial)
-        (*initial) = initialColor;
-    if (initialVariance)
-        (*initialVariance) = initialColorVariance;
-    if (final)
-        (*final) = finalColor;
-    if (finalVariance)
-        (*finalVariance) = finalColorVariance;
-    if (uniformIntra)
-        *uniformIntra = lockIntraColorVariance;
-    if (uniformInter)
-        *uniformInter = lockInterColorVariance;
+    // Get the color values from the particle settings object
+    settings.getColor(initial, initialVariance, final, finalVariance,
+        uniformIntra, uniformInter);
 }
 
 // ------------------------------------------------------------------------
@@ -1528,80 +1356,15 @@ vsParticle *vsParticleSystem::createParticle()
     vsBillboardAttribute *bbAttr;
     int primIndex;
 
-    // Create the particle structure
-    result = new vsParticle;
+    // Create the particle
+    result = new vsParticle();
 
-    // Set up the various transforms if we're using software mode
+    // See if we're going to be drawing the particle with the CPU (software)
+    // or GPU (hardware)
     if (!hardwareShading)
     {
-        // Create the component with the particle position transform
-        translationComponent = new vsComponent();
-        translateAttr = new vsTransformAttribute();
-        translationComponent->addAttribute(translateAttr);
-
-        // Create the component that houses the billboard attribute
-        billboardComponent = new vsComponent();
-        bbAttr = new vsBillboardAttribute();
-        bbAttr->setMode(VS_BILLBOARD_ROT_POINT_EYE);
-        bbAttr->setFrontDirection(atVector(0.0, 0.0, 1.0));
-        bbAttr->setAxis(atVector(0.0, 1.0, 0.0));
-        billboardComponent->addAttribute(bbAttr);
-
-        // Create the component that houses the rotation & scaling matrix
-        rotScaleComponent = new vsComponent();
-        rotScaleAttr = new vsTransformAttribute();
-        rotScaleComponent->addAttribute(rotScaleAttr);
-
-        // Create the particle's geometry
-        geometry = new vsGeometry();
-        geometry->setRenderBin(particleRenderBin);
-        geometry->setPrimitiveType(VS_GEOMETRY_TYPE_QUADS);
-        geometry->setPrimitiveCount(1);
-
-        geometry->setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 4);
-        geometry->setData(VS_GEOMETRY_VERTEX_COORDS, 0,
-            atVector(-0.5, -0.5, 0.0));
-        geometry->setData(VS_GEOMETRY_VERTEX_COORDS, 1,
-            atVector( 0.5, -0.5, 0.0));
-        geometry->setData(VS_GEOMETRY_VERTEX_COORDS, 2,
-            atVector( 0.5,  0.5, 0.0));
-        geometry->setData(VS_GEOMETRY_VERTEX_COORDS, 3,
-            atVector(-0.5,  0.5, 0.0));
-
-        geometry->setBinding(VS_GEOMETRY_NORMALS, VS_GEOMETRY_BIND_OVERALL);
-        geometry->setDataListSize(VS_GEOMETRY_NORMALS, 1);
-        geometry->setData(VS_GEOMETRY_NORMALS, 0, atVector(0.0, 0.0, 1.0));
-
-        geometry->setBinding(VS_GEOMETRY_COLORS, VS_GEOMETRY_BIND_OVERALL);
-        geometry->setDataListSize(VS_GEOMETRY_COLORS, 1);
-        geometry->setData(VS_GEOMETRY_COLORS, 0, atVector(1.0, 1.0, 1.0, 1.0));
-
-        geometry->setBinding(VS_GEOMETRY_TEXTURE_COORDS,
-            VS_GEOMETRY_BIND_PER_VERTEX);
-        geometry->setDataListSize(VS_GEOMETRY_TEXTURE_COORDS, 4);
-        geometry->setData(VS_GEOMETRY_TEXTURE_COORDS, 0, atVector(0.0, 0.0));
-        geometry->setData(VS_GEOMETRY_TEXTURE_COORDS, 1, atVector(1.0, 0.0));
-        geometry->setData(VS_GEOMETRY_TEXTURE_COORDS, 2, atVector(1.0, 1.0));
-        geometry->setData(VS_GEOMETRY_TEXTURE_COORDS, 3, atVector(0.0, 1.0));
-
-        geometry->enableLighting();
-
-        geometry->setIntersectValue(0x00000001);
-
-        // Connect the chain of nodes together
-        translationComponent->addChild(billboardComponent);
-        billboardComponent->addChild(rotScaleComponent);
-        rotScaleComponent->addChild(geometry);
-
-        // Keep the objects that we'll need later
-        result->mainComponent = translationComponent;
-        result->mainComponent->ref();
-        result->positionAttr = translateAttr;
-        result->positionAttr->ref();
-        result->rotScaleAttr = rotScaleAttr;
-        result->rotScaleAttr->ref();
-        result->quadGeometry = geometry;
-        result->quadGeometry->ref();
+        // Initialize the particle for software rendering
+        result->initSoftware();
     }
     else
     {
@@ -1619,86 +1382,11 @@ vsParticle *vsParticleSystem::createParticle()
         }
 
         // Mark this particle as in use in the shared geometry
-        primInUse[primIndex] = (void *)true;
+        primInUse[primIndex] = true;
 
-        // Multiply the primitive index by 4 to get the actual vertex index 
-        // in the shared geometry node
-        result->geomIndex = primIndex * 4;
-
-        // Set up the particle's position, normal, color and texture coords
-        sharedGeom->setData(VS_GEOMETRY_VERTEX_COORDS, result->geomIndex + 0,
-            atVector(-0.5, -0.5, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_VERTEX_COORDS, result->geomIndex + 1,
-            atVector( 0.5, -0.5, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_VERTEX_COORDS, result->geomIndex + 2,
-            atVector( 0.5,  0.5, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_VERTEX_COORDS, result->geomIndex + 3,
-            atVector(-0.5,  0.5, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_NORMALS, result->geomIndex + 0,
-            atVector(0.0, 0.0, 1.0));
-        sharedGeom->setData(VS_GEOMETRY_NORMALS, result->geomIndex + 1,
-            atVector(0.0, 0.0, 1.0));
-        sharedGeom->setData(VS_GEOMETRY_NORMALS, result->geomIndex + 2,
-            atVector(0.0, 0.0, 1.0));
-        sharedGeom->setData(VS_GEOMETRY_NORMALS, result->geomIndex + 3,
-            atVector(0.0, 0.0, 1.0));
-        sharedGeom->setData(VS_GEOMETRY_COLORS, result->geomIndex + 0,
-            atVector(0.0, 0.0, 0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_COLORS, result->geomIndex + 1,
-            atVector(0.0, 0.0, 0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_COLORS, result->geomIndex + 2,
-            atVector(0.0, 0.0, 0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_COLORS, result->geomIndex + 3,
-            atVector(0.0, 0.0, 0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE0_COORDS, result->geomIndex + 0,
-            atVector(0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE0_COORDS, result->geomIndex + 1,
-            atVector(1.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE0_COORDS, result->geomIndex + 2,
-            atVector(1.0, 1.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE0_COORDS, result->geomIndex + 3,
-            atVector(0.0, 1.0));
-
-        // Texture coordinate 1 holds the particle's X and Y position
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS, result->geomIndex + 0,
-            atVector(0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS, result->geomIndex + 1,
-            atVector(0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS, result->geomIndex + 2,
-            atVector(0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS, result->geomIndex + 3,
-            atVector(0.0, 0.0));
-
-        // Texture coordinate 2 holds the particle's Z position and rotation
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS, result->geomIndex + 0,
-            atVector(0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS, result->geomIndex + 1,
-            atVector(0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS, result->geomIndex + 2,
-            atVector(0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS, result->geomIndex + 3,
-            atVector(0.0, 0.0));
-
-        // Texture coordinate 3 holds the particle's size
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS, result->geomIndex + 0,
-            atVector(0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS, result->geomIndex + 1,
-            atVector(0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS, result->geomIndex + 2,
-            atVector(0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS, result->geomIndex + 3,
-            atVector(0.0, 0.0));
-
-        // Set the remaining structure members to NULL (we don't use them
-        // in hardware mode
-        result->mainComponent = NULL;
-        result->quadGeometry = NULL;
-        result->positionAttr = NULL;
-        result->rotScaleAttr = NULL;
+        // Initialize the particle for hardware rendering
+        result->initHardware(sharedGeom, primIndex);
     }
-
-    // Set the particle to inactive
-    result->isActive = false;
 
     // We shouldn't need to set any of the other particle fields, as they will
     // get set when the particle is activated. We're done.
@@ -1715,25 +1403,15 @@ void vsParticleSystem::destroyParticle(vsParticle *particle)
     int primIndex;
 
     // Deactivate the particle first, if needed
-    if (particle->isActive)
+    if (particle->isActive())
         deactivateParticle(particle);
 
     // Dispose of the nodes and attributes
     if (hardwareShading)
     {
-        primIndex = particle->geomIndex / 4;
-        primInUse[primIndex] = (void *)false;
+        primIndex = particle->getPrimitiveIndex();
+        primInUse[primIndex] = false;
     }
-    else
-    {
-        vsObject::unrefDelete(particle->mainComponent);
-        vsObject::unrefDelete(particle->positionAttr);
-        vsObject::unrefDelete(particle->rotScaleAttr);
-        vsObject::unrefDelete(particle->quadGeometry);
-    }
-
-    // Destroy the particle structure
-    delete particle;
 }
 
 // ------------------------------------------------------------------------
@@ -1758,35 +1436,16 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
 
     atMatrix emitterMat, objectMat, totalMat;
     atMatrix posMat, oriMat;
-    atVector pos;
+    atVector pos, initialPos;
     atQuat ori, ori2;
     double frameRatio;
-    double distance, headingDegs, pitchDegs;
-    atVector direction;
-    atVector xDir, yDir, zDir;
-    double speed;
-    double variance;
-    int loop;
-    double variances[4];
+    double distance;
+    double headingDegs, pitchDegs;
     double min, max;
 
     // Don't activate an active particle
-    if (particle->isActive)
+    if (particle->isActive())
         return;
-
-    // Attach the particle's geometry to the particle system's master
-    // component
-    if (!hardwareShading)
-        parentComponent->addChild(particle->mainComponent);
-
-    // Determine the particle's lifetime and set it to zero age
-    particle->lifetimeSeconds = lifetime +
-        (lifetimeVariance * getRandomVariance());
-    particle->ageSeconds = 0.0;
-    // The lifetime must be a positive number; otherwise, no one will ever
-    // see the particle.
-    if (particle->lifetimeSeconds < AT_DEFAULT_TOLERANCE)
-        particle->lifetimeSeconds = AT_DEFAULT_TOLERANCE;
 
     // * Calculate the total transformation matrix from the origin to the
     // emitter coordinate system, taking both the follow node transform and
@@ -1817,6 +1476,7 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
     // Extrapolate the position and orientation of the emitter at the time
     // the particle is created
     pos = emitterPosition + emitterVelocity.getScaled(creationDelay);
+
     // Compute the amount of orientation change
     ori2.setAxisAngleRotation(emitterAngularVelocityAxis[0],
                               emitterAngularVelocityAxis[1],
@@ -1824,6 +1484,7 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
                               emitterAngularVelocitySpeed * creationDelay);
     // Compute the total orientation
     ori = ori2 * emitterOrientation;
+
     // Create a matrix from the position and orientation
     posMat.setTranslation(pos[0], pos[1], pos[2]);
     oriMat.setQuatRotation(ori);
@@ -1832,7 +1493,6 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
     // Compute the final emission matrix as the composite of the emitter local
     // coordinate matrix and the node object space coordinate matrix
     totalMat = objectMat * emitterMat;
-    particle->emitterMatrix = totalMat;
 
     // * Randomly compute the particle's initial position based on the shape,
     // orientation, and radii of the emitter
@@ -1842,7 +1502,7 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
     {
         case VS_PARTICLESYS_EMITTER_POINT:
             // All particles come from the emitter center point
-            particle->position.set(0.0, 0.0, 0.0);
+            initialPos.set(0.0, 0.0, 0.0);
             break;
 
         case VS_PARTICLESYS_EMITTER_LINE:
@@ -1854,12 +1514,12 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
             if (getRandomVariance() > 0.0)
             {
                 // forward
-                particle->position.set(0.0, distance, 0.0);
+                initialPos.set(0.0, distance, 0.0);
             }
             else
             {
                 // back
-                particle->position.set(0.0, -distance, 0.0);
+                initialPos.set(0.0, -distance, 0.0);
             }
             break;
 
@@ -1888,7 +1548,7 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
             headingDegs = 360.0 * getRandom();
 
             // Compute the position from the heading
-            particle->position.set(
+            initialPos.set(
                 distance * cos(AT_DEG2RAD(headingDegs)),
                 distance * sin(AT_DEG2RAD(headingDegs)),
                 0.0);
@@ -1924,11 +1584,11 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
             pitchDegs = AT_RAD2DEG(asin(getRandomVariance()));
 
             // Compute the position from the heading and pitch
-            particle->position.set(
+            initialPos.set(
                 cos(AT_DEG2RAD(headingDegs)) * cos(AT_DEG2RAD(pitchDegs)),
                 sin(AT_DEG2RAD(headingDegs)) * cos(AT_DEG2RAD(pitchDegs)),
                 sin(AT_DEG2RAD(pitchDegs)));
-            particle->position.scale(distance);
+            initialPos.scale(distance);
 
             break;
 
@@ -1938,7 +1598,7 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
                 ((emitterMaxRadius - emitterMinRadius) * getRandom());
 
             // Compute random values for the two variable coordinates
-            particle->position.set(
+            initialPos.set(
                 emitterMaxRadius * getRandomVariance(),
                 emitterMaxRadius * getRandomVariance(),
                 0.0);
@@ -1949,22 +1609,22 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
             {
                 case 0:
                     // Positive X
-                    particle->position[0] = distance;
+                    initialPos[0] = distance;
                     break;
 
                 case 1:
                     // Negative X
-                    particle->position[0] = -distance;
+                    initialPos[0] = -distance;
                     break;
 
                 case 2:
                     // Positive Y
-                    particle->position[1] = distance;
+                    initialPos[1] = distance;
                     break;
 
                 default:
                     // Negative Y
-                    particle->position[1] = -distance;
+                    initialPos[1] = -distance;
                     break;
             }
 
@@ -1976,7 +1636,7 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
                 ((emitterMaxRadius - emitterMinRadius) * getRandom());
 
             // Compute random values for the three variable coordinates
-            particle->position.set(
+            initialPos.set(
                 emitterMaxRadius * getRandomVariance(),
                 emitterMaxRadius * getRandomVariance(),
                 emitterMaxRadius * getRandomVariance());
@@ -1987,208 +1647,46 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
             {
                 case 0:
                     // Positive X
-                    particle->position[0] = distance;
+                    initialPos[0] = distance;
                     break;
 
                 case 1:
                     // Negative X
-                    particle->position[0] = -distance;
+                    initialPos[0] = -distance;
                     break;
 
                 case 2:
                     // Positive Y
-                    particle->position[1] = distance;
+                    initialPos[1] = distance;
                     break;
 
                 case 3:
                     // Negative Y
-                    particle->position[1] = -distance;
+                    initialPos[1] = -distance;
                     break;
 
                 case 4:
                     // Positive Z
-                    particle->position[2] = distance;
+                    initialPos[2] = distance;
                     break;
 
                 default:
                     // Negative Z
-                    particle->position[2] = -distance;
+                    initialPos[2] = -distance;
                     break;
             }
 
             break;
     }
 
-    // * Randomly compute the particle's velocity, based on the given angle
-    // and speed variances
-    direction = initialVelocity.getNormalized();
-    speed = initialVelocity.getMagnitude();
-    // Check for no initial velocity
-    if (speed < AT_DEFAULT_TOLERANCE)
-        particle->velocity.set(0.0, 0.0, 0.0);
-    else
-    {
-        // * Compute two vectors orthogonal to the original direction vector
-        // and to each other
+    // Activate the particle, using the global settings, and the emitter
+    // matrix and initial position we just computed.  Also, pass the main
+    // component of the particle system (so the particle can attach itself),
+    // and take the delay and frame time into account
+    particle->activate(&settings, totalMat, initialPos, parentComponent,
+        creationDelay, frameTime);
 
-        // Create any unit vector and force it to be orthogonal
-        xDir.set(1.0, 0.0, 0.0);
-        xDir -= direction.getScaled(direction.getDotProduct(xDir));
-        if (xDir.getMagnitude() < AT_DEFAULT_TOLERANCE)
-        {
-            // Somehow we managed to pick a vector that's the same as the
-            // original direction vector. Pick another one.
-            xDir.set(0.0, 1.0, 0.0);
-            xDir -= direction.getScaled(direction.getDotProduct(xDir));
-        }
-        xDir.normalize();
-
-        // Create a second orthogonal vector by taking the cross product of
-        // the two vectors we have now
-        yDir = direction.getCrossProduct(xDir);
-            
-
-        // Compute a random angle variance and variance heading direction
-        headingDegs = 360.0 * getRandom();
-        // The pitch determination is complicated by the desire to evenly
-        // distribute the directions around the arc area. A simple linear
-        // random angle determination will cause the directions to 'bunch up'
-        // around the 0-degree center direction. A bit of trig is required to
-        // make the distribution a little more even.
-        min = cos(AT_DEG2RAD(velocityMinAngleVariance));
-        max = cos(AT_DEG2RAD(velocityMaxAngleVariance));
-        pitchDegs = min + ((max - min) * getRandom());
-        pitchDegs = AT_RAD2DEG(acos(pitchDegs));
-
-        // Using the original direction as a Z axis, and our two new
-        // directions as X and Y axes, construct a new direction using the
-        // randomly-computed heading and pitch
-        zDir = direction;
-        direction =
-            xDir.getScaled(cos(AT_DEG2RAD(headingDegs)) *
-                sin(AT_DEG2RAD(pitchDegs))) +
-            yDir.getScaled(sin(AT_DEG2RAD(headingDegs)) *
-                sin(AT_DEG2RAD(pitchDegs))) +
-            zDir.getScaled(cos(AT_DEG2RAD(pitchDegs)));
-
-        // Factor the speed back in, modified by the speed variance
-        direction.scale(speed +
-            (velocitySpeedVariance * getRandomVariance()));
-
-        // Set the result as the particle's velocity
-        particle->velocity = direction;
-    }
-
-    // * Compute the orbit parameters
-
-    // Calculate the initial orbit radius by calculating the distance from
-    // the particle and the origin, after the particle is projected onto the
-    // XY plane
-    pos = particle->position;
-    pos[2] = 0.0;
-    particle->orbitRadius = pos.getMagnitude();
-
-    // Calculate the initial orbit angle by taking the initial position of
-    // the particle and checking its angle with the X axis when projected
-    // into the XY plane.
-    // Error checking: If the orbit radius is zero, then the orbit angle
-    // calculation probably won't come out right. (atan2 tends to spit out
-    // NAN values when given two zeroes.) Set the orbit angle to a default
-    // value when this occurs.
-    if (particle->orbitRadius < AT_DEFAULT_TOLERANCE)
-        particle->orbitAngle = 0.0;
-    else
-        particle->orbitAngle = AT_RAD2DEG(atan2(pos[1], pos[0]));
-
-    // Randomly compute the orbit velocity and orbit radius delta velocity
-    particle->orbitVelocity = orbitSpeed +
-        (orbitSpeedVariance * getRandomVariance());
-    particle->orbitRadiusDelta = orbitRadiusDelta +
-        (orbitRadiusDeltaVariance * getRandomVariance());
-
-    // Since the particle's x and y-coordinate information is now effectively
-    // stored in the orbit data, remove that same information from the
-    // 'current position' field, as otherwise when we go to reconstruct the
-    // particle position we'll be adding in that data twice.
-    particle->position[0] = 0.0;
-    particle->position[1] = 0.0;
-
-    // * Randomly compute the particle's sizes over its lifetime
-    variance = getRandomVariance();
-    particle->initialSize = initialSize + (initialSizeVariance * variance);
-    if (particle->initialSize < 0.0)
-        particle->initialSize = 0.0;
-    // Only compute a new variance if the size variance isn't uniform
-    if (!lockSizeVariance)
-        variance = getRandomVariance();
-    particle->finalSize = finalSize + (finalSizeVariance * variance);
-    if (particle->finalSize < 0.0)
-        particle->finalSize = 0.0;
-
-    // * Randomly compute the particle's rotation
-    particle->rotation = rotation + (rotationVariance * getRandomVariance());
-    particle->rotationSpeed = rotationSpeed +
-        (rotationSpeedVariance * getRandomVariance());
-
-    // * Randomly compute the particle's colors over its lifetime
-
-    // Create an overall variance for the initial color, in case we're using
-    // the intra-color lock mode
-    variance = getRandomVariance();
-
-    // Compute the initial color
-    for (loop = 0; loop < 4; loop++)
-    {
-        if (lockIntraColorVariance)
-        {
-            // Use the same variance for each component of this color
-            particle->initialColor[loop] = initialColor[loop] +
-                (initialColorVariance[loop] * variance);
-        }
-        else
-        {
-            // Use a new variance for each component of this color, but store
-            // the variances in case we need them for the final color
-            variances[loop] = getRandomVariance();
-            particle->initialColor[loop] = initialColor[loop] +
-                (initialColorVariance[loop] * variances[loop]);
-        }
-    }
-
-    // If there is no lock between the two colors, then get a new overall
-    // variance for the final color
-    if (!lockInterColorVariance)
-        variance = getRandomVariance();
-
-    // Compute the final color
-    for (loop = 0; loop < 4; loop++)
-    {
-        if (lockIntraColorVariance)
-        {
-            // Use the same variance for each component of this color
-            particle->finalColor[loop] = finalColor[loop] +
-                (finalColorVariance[loop] * variance);
-        }
-        else
-        {
-            // Use a separate variance for each component of this color. If
-            // we're in inter-color lock mode, use the variances from the
-            // initial color; otherwise, make new ones.
-            if (lockInterColorVariance)
-                particle->finalColor[loop] = finalColor[loop] +
-                    (finalColorVariance[loop] * variances[loop]);
-            else
-                particle->finalColor[loop] = finalColor[loop] +
-                    (finalColorVariance[loop] * getRandomVariance());
-        }
-    }
-
-    // * Use the particle update function to advance the particle in time to
-    // be in sync with the rest of the active particles
-    updateParticle(particle, frameTime - creationDelay);
-
-    // Mark the particle as activated
-    particle->isActive = true;
+    // Increment the active particle count
     activeParticleCount++;
 }
 
@@ -2201,33 +1699,11 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
 void vsParticleSystem::deactivateParticle(vsParticle *particle)
 {
     // Don't deactivate an inactive particle
-    if (!(particle->isActive))
+    if (!particle->isActive())
         return;
 
-    // Remove the particle node chain from the system's master component
-    if (hardwareShading)
-    {
-        // Hide the particle in the primitive list, by setting it's alpha
-        // value to zero
-        sharedGeom->setData(VS_GEOMETRY_COLORS, particle->geomIndex + 0,
-            atVector(0.0, 0.0, 0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_COLORS, particle->geomIndex + 1,
-            atVector(0.0, 0.0, 0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_COLORS, particle->geomIndex + 2,
-            atVector(0.0, 0.0, 0.0, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_COLORS, particle->geomIndex + 3,
-            atVector(0.0, 0.0, 0.0, 0.0));
-    }
-    else
-    {
-        // When using software, we attach a chain of three nodes rooted
-        // at "mainComponent".  Detach this chain to deactivate the
-        // particle.
-        parentComponent->removeChild(particle->mainComponent);
-    }
-
-    // Mark this particle as inactive
-    particle->isActive = false;
+    // Deactivate the particle
+    particle->deactivate(parentComponent);
 
     // Note that there is one less active particle
     activeParticleCount--;
@@ -2243,143 +1719,11 @@ void vsParticleSystem::deactivateParticle(vsParticle *particle)
 // ------------------------------------------------------------------------
 void vsParticleSystem::updateParticle(vsParticle *particle, double deltaTime)
 {
-    atVector acceleration;
-    atVector position;
-    atMatrix posMat, rotMat, scaleMat;
-    double currentSize;
-    atVector color;
-    double lifeRatio;
-
-    // * Update the various data fields of the particle
-
-    // Increase the age of the particle. If this causes the particle to reach
-    // the end of its lifespan, then remove it and return.
-    particle->ageSeconds += deltaTime;
-    if (particle->ageSeconds > particle->lifetimeSeconds)
+    // Try to update the particle
+    if (particle->update(&settings, deltaTime) == false)
     {
+        // The particle has expired, so deactivate it
         deactivateParticle(particle);
-        return;
-    }
-
-    // Compute the fraction of its lifetime that the particle has gone
-    // through; we'll need this for interpolation later
-    lifeRatio = (particle->ageSeconds / particle->lifetimeSeconds);
-
-    // Compute the acceleration vector, taking into account the coordinate
-    // system of the particle. (The particle's stored position is always in
-    // its own coordinate system, which is the coordinate system of the
-    // emitter at the point in time when the particle was created, while the
-    // acceleration is in global coordinates.)
-    acceleration = particle->emitterMatrix.getInverse().
-        getVectorXform(globalAcceleration);
-
-    // Compute the new position of the particle, using both the particle's
-    // current velocity and the constant acceleration
-    particle->position += (particle->velocity.getScaled(deltaTime) +
-        acceleration.getScaled(AT_SQR(deltaTime)));
-
-    // Update the velocity of the particle from the acceleration
-    particle->velocity += acceleration.getScaled(deltaTime);
-
-    // Update the orbit angle and radius
-    particle->orbitAngle += (particle->orbitVelocity * deltaTime);
-    particle->orbitRadius += (particle->orbitRadiusDelta * deltaTime);
-
-    // Cap the angle to the [0.0, 360] range
-    while (particle->orbitAngle < 0.0)
-        particle->orbitAngle += 360.0;
-    while (particle->orbitAngle > 360.0)
-        particle->orbitAngle -= 360.0;
-
-    // Update the particle rotation
-    particle->rotation += (particle->rotationSpeed * deltaTime);
-
-    // * Update the VESS portions of the particle: the positioning matrix,
-    // the rotation & scaling matrix, and the geometry color
-
-    // Calculate the actual position of the particle; this involves combining
-    // the particle's stored position with its orbit data. (The particle
-    // orbits around the location stored in its 'position' data field.)
-    position.set(cos(AT_DEG2RAD(particle->orbitAngle)),
-                 sin(AT_DEG2RAD(particle->orbitAngle)),
-                 0.0);
-    position.scale(particle->orbitRadius);
-    position += particle->position;
-
-    // Transform the particle's position from local to global coordinates
-    position = particle->emitterMatrix.getPointXform(position);
-
-    // Calculate the particle's current size
-    currentSize = particle->initialSize +
-        ((particle->finalSize - particle->initialSize) * lifeRatio);
-
-    // See if we're using hardware or software rendering
-    if (hardwareShading)
-    {
-        // Compute the particle's color and place that into the geometry object
-        color = (particle->initialColor.getScaled(1.0 - lifeRatio) +
-                 particle->finalColor.getScaled(lifeRatio));
-        sharedGeom->setData(VS_GEOMETRY_COLORS, 
-            particle->geomIndex + 0, color);
-        sharedGeom->setData(VS_GEOMETRY_COLORS,
-            particle->geomIndex + 1, color);
-        sharedGeom->setData(VS_GEOMETRY_COLORS,
-            particle->geomIndex + 2, color);
-        sharedGeom->setData(VS_GEOMETRY_COLORS,
-            particle->geomIndex + 3, color);
-
-        // Texture coordinate 1 holds the particle's X and Y position
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS, 
-            particle->geomIndex + 0, atVector(position[AT_X], position[AT_Y]));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS,
-            particle->geomIndex + 1, atVector(position[AT_X], position[AT_Y]));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS,
-            particle->geomIndex + 2, atVector(position[AT_X], position[AT_Y]));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE1_COORDS,
-            particle->geomIndex + 3, atVector(position[AT_X], position[AT_Y]));
-
-        // Texture coordinate 2 holds the particle's Z position and rotation
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS, 
-            particle->geomIndex + 0, atVector(position[AT_Z], 
-            particle->rotation));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS,
-            particle->geomIndex + 1, atVector(position[AT_Z], 
-            particle->rotation));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS,
-            particle->geomIndex + 2, atVector(position[AT_Z], 
-            particle->rotation));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE2_COORDS,
-            particle->geomIndex + 3, atVector(position[AT_Z], 
-            particle->rotation));
-
-        // Texture coordinate 3 holds the particle's size
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS, 
-            particle->geomIndex + 0, atVector(currentSize, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS,
-            particle->geomIndex + 1, atVector(currentSize, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS,
-            particle->geomIndex + 2, atVector(currentSize, 0.0));
-        sharedGeom->setData(VS_GEOMETRY_TEXTURE3_COORDS,
-            particle->geomIndex + 3, atVector(currentSize, 0.0));
-    }
-    else
-    {
-        // Store the particle's world position in the position transform 
-        // attribute
-        posMat.setTranslation(position[0], position[1], position[2]);
-        particle->positionAttr->setDynamicTransform(posMat);
-
-        // Compute the rotation and scale matrices, and place the combination 
-        // of the two into the rotation & scaling transform attribute
-        rotMat.setEulerRotation(AT_EULER_ANGLES_ZXY_R,
-            particle->rotation, 0.0, 0.0);
-        scaleMat.setScale(currentSize, currentSize, currentSize);
-        particle->rotScaleAttr->setDynamicTransform(scaleMat * rotMat);
-
-        // Compute the particle's color and place that into the geometry object
-        color = (particle->initialColor.getScaled(1.0 - lifeRatio) +
-                 particle->finalColor.getScaled(lifeRatio));
-        particle->quadGeometry->setData(VS_GEOMETRY_COLORS, 0, color);
     }
 }
 
@@ -2410,16 +1754,20 @@ double vsParticleSystem::getRandomVariance()
 // ------------------------------------------------------------------------
 void vsParticleSystem::findNextInactive()
 {
+    vsParticle *particle;
     // If there aren't any inactive particles left, then do nothing
     if (activeParticleCount == particleListSize)
         return;
 
     // Keep looping through the list of particles until we find an inactive
     // one
-    while (((vsParticle *)(particleList[nextInactiveParticleIdx]))->isActive)
+    particle = (vsParticle *) particleList.getEntry(nextInactiveParticleIdx);
+    while (particle->isActive())
     {
         // Move to the next particle
         nextInactiveParticleIdx =
             ((nextInactiveParticleIdx + 1) % particleListSize);
+        particle = (vsParticle *) 
+            particleList.getEntry(nextInactiveParticleIdx);
     }
 }
