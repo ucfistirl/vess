@@ -118,15 +118,11 @@ void vsCOLLADASkin::convertGeometry()
             skelMesh->setPrimitiveLengths(intList);
             free(intList);
 
-            // Copy the index array (if any)
-            listSize = geom->getIndexListSize();
-            if (listSize > 0)
-            {
-                uintList = (u_int *)malloc(sizeof(u_int) * listSize);
-                geom->getIndexList(uintList);
-                skelMesh->setIndexList(uintList);
-                free(uintList);
-            }
+            // Even though the COLLADA submesh object keeps track of the
+            // vertex indices, each vertex attribute is expanded from the
+            // file to non-indexed attribute arrays, so there won't be
+            // an index list in use on the geometry itself.  We can safely
+            // ignore the geometry's index list here
 
             // Copy each data list
             for (i = 0; i < VS_GEOMETRY_LIST_COUNT; i++)
