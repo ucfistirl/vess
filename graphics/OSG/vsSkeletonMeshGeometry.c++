@@ -32,24 +32,6 @@
 vsSkeletonMeshGeometry::vsSkeletonMeshGeometry() 
                       : vsGeometryBase()
 {
-    int loop;
-
-    // Initialize the number of parents to zero
-    parentCount = 0;
-
-    // Create an osg::Geode
-    osgGeode = new osg::Geode();
-    osgGeode->ref();
-
-    // Create an osg::Geometry node to contain the Geode
-    osgGeometry = new osg::Geometry();
-    osgGeometry->ref();
-    osgGeode->addDrawable(osgGeometry);
-
-    // Create the various data arrays
-    for (loop = 0; loop < VS_GEOMETRY_LIST_COUNT; loop++)
-        allocateDataArray(loop);
-
     // Vertex array, a copy to keep in its original form unmodified by the
     // skeleton.
     originalVertexList = new osg::Vec3Array();
@@ -60,22 +42,11 @@ vsSkeletonMeshGeometry::vsSkeletonMeshGeometry()
     originalNormalList = new osg::Vec3Array();
     originalNormalList->ref();
 
-    // Initialize other values
-    indexList = NULL;
-    indexListSize = 0;
-    lengthsList = NULL;
-    primitiveCount = 0;
-    primitiveType = VS_GEOMETRY_TYPE_POINTS;
-
     // Since this geometry is dynamic (i.e.: it will change every frame),
     // disable display listing of the geometry data, and set its data
     // variance to dynamic
     osgGeometry->setUseDisplayList(false);
     osgGeometry->setDataVariance(osg::Object::DYNAMIC);
-
-    // Enable lighting on this Geometry and set the render bin to default
-    enableLighting();
-    renderBin = -1;
 
     // Register this node and osg::Geode in the node map
     getMap()->registerLink(this, osgGeode);
@@ -94,28 +65,12 @@ vsSkeletonMeshGeometry::~vsSkeletonMeshGeometry()
     // Remove all attributes
     deleteAttributes();
 
-    // If we're using vertex indices, unreference the index list now
-    if (indexList)
-        free(indexList);
-
-    // Destroy the main data lists
-    for (loop = 0; loop < VS_GEOMETRY_LIST_COUNT; loop++)
-        dataList[loop]->unref();
-
     // Destroy the "original" vertex/normal lists
     originalVertexList->unref();
     originalNormalList->unref();
 
     // Remove the link to the osg node from the object map
     getMap()->removeLink(this, VS_OBJMAP_FIRST_LIST);
-
-    // Unlink and destroy the OSG objects
-    osgGeometry->unref();
-    osgGeode->unref();
-
-    // If we've created a primitive lengths list, free this now
-    if (lengthsList)
-        free(lengthsList);
 }
 
 // ------------------------------------------------------------------------
@@ -1213,6 +1168,94 @@ int vsSkeletonMeshGeometry::getDataListSize(int whichData)
 }
 
 // ------------------------------------------------------------------------
+// Deindexes the geometry by expanding all active data lists to match
+// what is currently represented by the index list.  Since the index list
+// is being used, this method assumes all active lists are in PER_VERTEX
+// or OVERALL mode.  This version calls the base class deindex method and
+// uses the results to manipulate the "original" vertex and normal lists in
+// the same way
+// ------------------------------------------------------------------------
+void vsSkeletonMeshGeometry::deindexGeometry()
+{
+    osg::Vec3Array *vertexList;
+    osg::Vec3Array *normalList;
+
+    // Cast the vertex and normal arrays to the proper type
+    vertexList = 
+        dynamic_cast<osg::Vec3Array *>(dataList[VS_GEOMETRY_VERTEX_COORDS]);
+    normalList = 
+        dynamic_cast<osg::Vec3Array *>(dataList[VS_GEOMETRY_NORMALS]);
+
+    // Copy the original vertices and normals to the corresponding regular
+    // data lists.  This will let us use the base class optimize method
+    // to also optimize the original vertices and normals.
+    if (vertexList != NULL)
+    {
+        vertexList->
+            assign(originalVertexList->begin(), originalVertexList->end());
+    }
+    if (normalList != NULL)
+    {
+        normalList->assign(
+            originalNormalList->begin(), originalNormalList->end());
+    }
+
+    // Call the base class deindex method
+    vsGeometryBase::deindexGeometry();
+
+    // Copy the optimized vertices and normals back to the original
+    // vertex and normal lists
+    if (vertexList != NULL)
+        originalVertexList->assign(vertexList->begin(), vertexList->end());
+    if (normalList != NULL)
+        originalNormalList->assign(normalList->begin(), normalList->end());
+}
+
+// ------------------------------------------------------------------------
+// Optimizes the vertex data lists by searching for duplicate vertices
+// (i.e.: vertices that have the same data in all lists that are in use),
+// and re-indexing them so that all duplicates are indexed to a single
+// instance of that vertex.  This version calls the base class version
+// and uses the results to manipulate the "original" vertex and normal
+// lists in the same way
+// ------------------------------------------------------------------------
+void vsSkeletonMeshGeometry::optimizeVertices()
+{
+    osg::Vec3Array *vertexList;
+    osg::Vec3Array *normalList;
+
+    // Cast the vertex and normal arrays to the proper type
+    vertexList = 
+        dynamic_cast<osg::Vec3Array *>(dataList[VS_GEOMETRY_VERTEX_COORDS]);
+    normalList = 
+        dynamic_cast<osg::Vec3Array *>(dataList[VS_GEOMETRY_NORMALS]);
+
+    // Copy the original vertices and normals to the corresponding regular
+    // data lists.  This will let us use the base class optimize method
+    // to also optimize the original vertices and normals.
+    if (vertexList != NULL)
+    {
+        vertexList->
+            assign(originalVertexList->begin(), originalVertexList->end());
+    }
+    if (normalList != NULL)
+    {
+        normalList->assign(
+            originalNormalList->begin(), originalNormalList->end());
+    }
+
+    // Call the base class optimize method
+    vsGeometryBase::optimizeVertices();
+
+    // Copy the optimized vertices and normals back to the original
+    // vertex and normal lists
+    if (vertexList != NULL)
+        originalVertexList->assign(vertexList->begin(), vertexList->end());
+    if (normalList != NULL)
+        originalNormalList->assign(normalList->begin(), normalList->end());
+}
+
+// ------------------------------------------------------------------------
 // Apply the skin based on the bone matrix lists provided as arguments.
 // Also modifies the vertex normals using the inverse transpose of the bone
 // matrices.  The process is basically just a weighted sum of vertices.
@@ -1374,3 +1417,4 @@ void vsSkeletonMeshGeometry::resetSkin()
     notifyOSGDataChanged(VS_GEOMETRY_VERTEX_COORDS);
     notifyOSGDataChanged(VS_GEOMETRY_NORMALS);
 }
+

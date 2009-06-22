@@ -18,7 +18,7 @@
 //                  graph. They store geometry data such as vertex and
 //                  texture coordinates, colors, and face normals.
 //
-//    Author(s):    Bryan Kline, Duvan Cope
+//    Author(s):    Bryan Kline, Duvan Cope, Jason Daly
 //
 //------------------------------------------------------------------------
 
@@ -181,6 +181,8 @@ protected:
     void                allocateDataArray(int whichData);
     void                notifyOSGDataChanged(int whichData);
 
+    bool                areVerticesEquivalent(int v1, int v2);
+
 VS_INTERNAL:
 
     static bool     binModesChanged;
@@ -254,6 +256,10 @@ public:
 
     virtual void          enableCull();
     virtual void          disableCull();
+
+    virtual void          deindexGeometry();
+    virtual void          expandToPerVertex(int whichData);
+    virtual void          optimizeVertices();
 
     osg::Geode            *getBaseLibraryObject();
 };

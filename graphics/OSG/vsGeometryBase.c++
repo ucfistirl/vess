@@ -11,14 +11,14 @@
 //
 //------------------------------------------------------------------------
 //
-//    VESS Module:  vsGeometryBaseBase.c++
+//    VESS Module:  vsGeometryBase.c++
 //
 //    Description:  vsNode subclass that is a base class for all geometry
 //                  nodes.  Geometries are leaf nodes in a VESS scene
 //                  graph. They store geometry data such as vertex and
 //                  texture coordinates, colors, and face normals.
 //
-//    Author(s):    Bryan Kline, Duvan Cope
+//    Author(s):    Bryan Kline, Duvan Cope, Jason Daly
 //
 //------------------------------------------------------------------------
 
@@ -46,6 +46,48 @@ bool vsGeometryBase::binModesChanged = false;
 // ------------------------------------------------------------------------
 vsGeometryBase::vsGeometryBase() : parentList(5, 5)
 {
+    int loop;
+
+    // Initialize number of parents to zero
+    parentCount = 0;
+
+    // Create an osg::Geode
+    osgGeode = new osg::Geode();
+    osgGeode->ref();
+
+    // Create an osg::Geometry node to contain the Geode
+    osgGeometry = new osg::Geometry();
+    osgGeometry->ref();
+    osgGeode->addDrawable(osgGeometry);
+
+    // Initialize texture bindings to NONE
+    for (loop = 0; loop < VS_MAXIMUM_TEXTURE_UNITS; loop++)
+        textureBinding[loop] = VS_GEOMETRY_BIND_NONE;
+
+    // Initialize all lists to NULL
+    memset(dataList, 0, sizeof(dataList));
+    memset(dataListSize, 0, sizeof(dataListSize));
+    indexList = NULL;
+    indexListSize = 0;
+    lengthsList = NULL;
+
+    // Initialize generic data flags (indicating whether a list is using
+    // the generic or traditional vertex attributes) to false
+    memset(dataIsGeneric, 0, sizeof(dataIsGeneric));
+
+    // Create the various data arrays
+    for (loop = 0; loop < VS_GEOMETRY_LIST_COUNT; loop++)
+        allocateDataArray(loop);
+
+    // Set the primitive count to 0, and the type to POINTS
+    primitiveCount = 0;
+    primitiveType = VS_GEOMETRY_TYPE_POINTS;
+
+    // Lighting is enabled by default
+    lightingEnable = true;
+
+    // Set the render bin to the default (indicated by -1)
+    renderBin = -1;
 }
 
 // ------------------------------------------------------------------------
@@ -53,6 +95,23 @@ vsGeometryBase::vsGeometryBase() : parentList(5, 5)
 // ------------------------------------------------------------------------
 vsGeometryBase::~vsGeometryBase()
 {
+    int loop;
+
+    // If we're using vertex indices, unreference the index list now
+    if (indexList)
+        free(indexList);
+
+    // Destroy the data lists
+    for (loop = 0; loop < VS_GEOMETRY_LIST_COUNT; loop++)
+        dataList[loop]->unref();
+
+    // If we've created a primitive lengths list, free this now
+    if (lengthsList)
+        free(lengthsList);
+
+    // Unlink and destroy the OSG objects
+    osgGeometry->unref();
+    osgGeode->unref();
 }
 
 // ------------------------------------------------------------------------
@@ -456,6 +515,7 @@ int vsGeometryBase::getBinding(int whichData)
             break;
         default:
             printf("vsGeometryBase::getBinding: Unrecognized data value\n");
+abort();
             return -1;
     }
     
@@ -1471,6 +1531,404 @@ void vsGeometryBase::disableCull()
 }
 
 // ------------------------------------------------------------------------
+// Deindexes the geometry by expanding all active data lists to match
+// what is currently represented by the index list.  Since the index list
+// is being used, this method assumes all active lists are in PER_VERTEX
+// or OVERALL mode
+// ------------------------------------------------------------------------
+void vsGeometryBase::deindexGeometry()
+{
+    int i, j;
+    atVector *newList;
+    int whichData;
+    int listSize;
+
+    // Don't try to deindex if there is no index list
+    if (indexListSize <= 0)
+        return;
+
+    // Sanity check.  Don't go any farther if any list is in PER_PRIMITIVE
+    // mode
+    for (i = 0; i < VS_GEOMETRY_LIST_COUNT; i++)
+    {
+        if (dataIsGeneric[i])
+            whichData = i + VS_GEOMETRY_LIST_COUNT;
+        else
+            whichData = i;
+
+        if (getBinding(whichData) == VS_GEOMETRY_BIND_PER_PRIMITIVE)
+        {
+            printf("vsGeometryBase::deindexGeometry:\n");
+            printf("   ERROR: Geometry is using indexed rendering, but has "
+                "PER_PRIMITIVE vertex data!\n");
+            return;
+        }
+    }
+
+    // Get the current index list size (this will be the size for each
+    // PER_VERTEX list)
+    listSize = indexListSize;
+
+printf("Deindex:\n");
+printf("   Before:  %d vertices\n", dataListSize[VS_GEOMETRY_VERTEX_COORDS]);
+    // Create a new data list for each active list, and de-index the
+    // current list into it
+    for (i = 0; i < VS_GEOMETRY_LIST_COUNT; i++)
+    {
+        if (dataIsGeneric[i])
+            whichData = i + VS_GEOMETRY_LIST_COUNT;
+        else
+            whichData = i;
+
+        // Check the binding, and de-index any PER_VERTEX lists (OVERALL
+        // lists can stay as they are)
+        if (getBinding(whichData) == VS_GEOMETRY_BIND_PER_VERTEX)
+        {
+            // Create a new list
+            newList = new atVector[listSize];
+
+            // De-index the list data
+            for (j = 0; j < listSize; j++)
+                newList[j] = getData(whichData, indexList[j]);
+
+            // Set the new data list
+            setDataListSize(whichData, listSize);
+            setDataList(whichData, newList);
+
+            // OSG now has our new list, so clean up
+            delete [] newList;
+        }
+    }
+printf("   After:  %d vertices\n", dataListSize[VS_GEOMETRY_VERTEX_COORDS]);
+
+    // Remove the index list and rebuild the geometry
+    setIndexListSize(0);
+    rebuildPrimitives();
+}
+
+// ------------------------------------------------------------------------
+// Expands a list that is currently bound as PER_PRIMITIVE to an equivalent
+// PER_VERTEX binding
+// ------------------------------------------------------------------------
+void vsGeometryBase::expandToPerVertex(int whichData)
+{
+    atVector *newList;
+    int i, j;
+    int vertexCount;
+    int currentVertex;
+    atVector value;
+
+    // Bail if this list isn't bound to PER_PRIMITIVE
+    if (getBinding(whichData) != VS_GEOMETRY_BIND_PER_PRIMITIVE)
+    {
+        printf("vsGeometryBase::expandToPerVertex:  List isn't currently "
+            "bound as PER_PRIMITIVE!\n");
+        return;
+    }
+
+    // Get the number of vertices and create a new list
+    vertexCount = getDataListSize(VS_GEOMETRY_VERTEX_COORDS);
+    newList = new atVector[vertexCount];
+
+    // Iterate over each primitive
+    currentVertex = 0;
+    for (i = 0; i < getPrimitiveCount(); i++)
+    {
+        // Iterate over the vertices of this primitive and copy the primitive's
+        // data value to the new list, creating a copy of the data per
+        // primitive vertex
+        value = getData(whichData, i);
+        for (j = 0; j < getPrimitiveLength(i); j++)
+            newList[currentVertex++] = value;
+    }
+
+    // Now, set the new list data and binding
+    setDataList(whichData, newList);
+    setBinding(whichData, VS_GEOMETRY_BIND_PER_VERTEX);
+
+    // The list data has been copied to OSG, so clean up our list
+    delete [] newList;
+}
+
+// ------------------------------------------------------------------------
+// Optimizes the vertex data lists by searching for duplicate vertices
+// (i.e.: vertices that have the same data in all lists that are in use),
+// and re-indexing them so that all duplicates are indexed to a single
+// instance of that vertex
+// ------------------------------------------------------------------------
+void vsGeometryBase::optimizeVertices()
+{
+    int listSize;
+    int i, j, k;
+    u_int **candidateList;
+    u_int *candidateCount;
+    u_int *candidateSize;
+    u_int *newList;
+    u_int v1, v2;
+    atVector vec1, vec2;
+    u_int *adjustment;
+    u_int currentAdjustment;
+    int whichData;
+
+    // Check for any PER_PRIMITIVE list bindings.  If there are any,
+    // refactor them into PER_VERTEX lists (PER_PRIMITIVE data is incompatible
+    // with indexed rendering, and it is slow to draw)
+    if (getBinding(VS_GEOMETRY_NORMALS) == VS_GEOMETRY_BIND_PER_PRIMITIVE)
+        expandToPerVertex(VS_GEOMETRY_NORMALS);
+    if (getBinding(VS_GEOMETRY_COLORS) == VS_GEOMETRY_BIND_PER_PRIMITIVE)
+        expandToPerVertex(VS_GEOMETRY_COLORS);
+    if (getBinding(VS_GEOMETRY_ALT_COLORS) == VS_GEOMETRY_BIND_PER_PRIMITIVE)
+        expandToPerVertex(VS_GEOMETRY_ALT_COLORS);
+    if (getBinding(VS_GEOMETRY_FOG_COORDS) == VS_GEOMETRY_BIND_PER_PRIMITIVE)
+        expandToPerVertex(VS_GEOMETRY_FOG_COORDS);
+
+    // If the geometry is currently using an index list, de-index it first.
+    // This makes the optimization process much simpler
+    if (getIndexListSize() > 0)
+        deindexGeometry();
+
+    // Now, create a new index list for the geometry that is a simple 1:1
+    // contiguous mapping from each vertex to its attribute index in each
+    // data list
+    listSize = getDataListSize(VS_GEOMETRY_VERTEX_COORDS);
+printf("Optimize:\n"); fflush(stdout);
+printf("   Before:  %d vertices\n", listSize); fflush(stdout);
+    setIndexListSize(listSize);
+    for (i = 0; i < listSize; i++)
+        indexList[i] = i;
+
+    // Create some temporary lists that we'll use to keep track of good
+    // candidates for optimization.  A "good" candidate is simply a vertex
+    // that shares the same position as a previous vertex in the list
+    candidateList = (u_int **)calloc(listSize, sizeof(u_int *));
+    candidateCount = (u_int *)calloc(listSize, sizeof(u_int));
+    candidateSize = (u_int *)calloc(listSize, sizeof(u_int));
+    for (i = 0; i < listSize; i++)
+    {
+        // Create the array for this vertex and set its size to 16
+        candidateList[i] = (u_int *)calloc(16, sizeof(int));
+        candidateSize[i] = 16;
+
+        // Add this vertex to its own list of equivalents (i.e.: the first
+        // candidate in any vertex's candidate list is the vertex itself).
+        // If this vertex is found to be equivalent to another vertex, it
+        // will be removed from its own list
+        candidateList[i][0] = i;
+        candidateCount[i] = 1;
+    }
+
+    // Now, iterate over the temporary list and find all candidates for
+    // optimization.  We'll do this in such a way that the candidates for
+    // optimization are associated with the first equivalent vertex in the
+    // list.  This first pass will speed up the full optimization process
+    // below, because we won't need to check the full data set for every
+    // vertex against every other vertex.  We'll only do the full check on
+    // the vertices that share the same position
+    for (i = 0; i < listSize; i++)
+    {
+        // See if this vertex is already known to be a candidate for another
+        // vertex or not
+        if (candidateCount[i] > 0)
+        {
+            // Get the position of this vertex
+            vec1 = getData(VS_GEOMETRY_VERTEX_COORDS, i);
+
+            // Iterate over the remaining vertices
+            for (j = i+1; j < listSize; j++)
+            {
+                // Get the position of this vertex and compare the two
+                vec2 = getData(VS_GEOMETRY_VERTEX_COORDS, j);
+                if (vec1.isEqual(vec2))
+                {
+                    // Add this vertex to the candidate list of the
+                    // earlier equivalent vertex
+                    candidateCount[i]++;
+
+                    // Expand the candidate list, if necessary
+                    if (candidateCount[i] >= candidateSize[i])
+                    {
+                        // Reallocate the list
+                        newList = (u_int *)realloc(candidateList[i],
+                            candidateSize[i] * 2 * sizeof(u_int));
+
+                        // Update the list size
+                        candidateList[i] = newList;
+                        candidateSize[i] *= 2;
+                    }
+
+                    // Add vertex j to the existing list
+                    candidateList[i][candidateCount[i]-1] = j;
+
+                    // Remove vertex j from its own list
+                    candidateCount[j] = 0;
+                }
+            }
+        }
+    }
+
+    // Create a list that will store how many spaces we'll need to slide
+    // each vertex and index after the optimization is complete
+    adjustment = new u_int[listSize];
+    currentAdjustment = 0;
+
+    // Iterate over each vertex of the geometry and see if any vertices
+    // have nearly the same data across all relevant data lists.  Use the
+    // same temporary list we created above to keep track of equivalent
+    // vertices
+    for (i = 0; i < listSize; i++)
+    {
+        // This is for readability... v1 is the i'th vertex in the
+        // geometry
+        v1 = (u_int) i;
+
+        // See if this vertex is unique, or if it's already deemed equivalent
+        // to another vertex
+        if (candidateCount[v1] > 0)
+        {
+            // This vertex is currently unique.  Check each candidate
+            // vertex to see if they are totally equivalent to this
+            // vertex (skip the first candidate, as we know the vertex
+            // is equivalent to itself)
+            for (j = 1; j < candidateCount[v1]; j++)
+            {
+                // This is for readability... v1 is the i'th vertex in the
+                // geometry and v2 is the j'th candidate equivalent vertex
+                // of v1
+                v2 = candidateList[v1][j];
+
+                // Check for equivalence
+                if (areVerticesEquivalent(v1, v2))
+                {
+                    // The vertices are equivalent, so leave the candidates
+                    // array as it is (this vertex will be optimized away).
+                    // Update the index list to have v2 point to v1
+                    indexList[v2] = v1;
+                }
+                else
+                {
+                    // These vertices are not equivalent.  Put this vertex
+                    // back into its own place in the candidates array
+                    candidateList[v2][0] = v2;
+
+                    // Any remaining candidate vertices for v1 might also be
+                    // equivalent to v2, so copy them as candidates of
+                    // v2 as well
+                    if (candidateSize[v2] < candidateCount[v1] - j)
+                    {
+                        // Make sure the list has enough space before copying
+                        newList = (u_int *)realloc(candidateList[v2],
+                            candidateCount[v1] * 2 * sizeof(u_int));
+
+                        // Update the list size
+                        candidateList[v2] = newList;
+                        candidateSize[v2] = candidateCount[v1] * 2;
+                    }
+
+                    // Copy the remaining vertices from the candidate
+                    // list for v1 to the candidate list for v2
+                    candidateCount[v2] = candidateCount[v1] - j + 1;
+                    for (k = 1; k < candidateCount[v2]; k++)
+                        candidateList[v2][k] = candidateList[v1][j+k];
+
+                    // Remove this vertex from the candidates for v1 (we
+                    // now know that v1 and v2 are not equivalent)
+                    candidateCount[v1]--;
+                    if (j < candidateCount[v1])
+                        memmove(&candidateList[v1][j], &candidateList[v1][j+1],
+                            sizeof(u_int) * candidateCount[v1] - j);
+                }
+            }
+
+            // We didn't optimize away this vertex, so put the same adjustment
+            // as for the last vertex in this vertex's slot
+            adjustment[i] = currentAdjustment;
+        }
+        else
+        {
+            // This vertex is equivalent to another vertex, so it should
+            // be optimized away.  Increment the current adjustment value,
+            // and store it in the adjustment array (this indicates each
+            // following vertex must be moved back one additional place
+            // to account for the removal of this vertex)
+            currentAdjustment++;
+            adjustment[i] = currentAdjustment;
+        }
+    }
+
+    // We're done with the candidate list and supporting data now (all we
+    // need from now on is the adjustment list we just constructed)
+    for (i = 0; i < listSize; i++)
+        free(candidateList[i]);
+    free(candidateList);
+    free(candidateCount);
+    free(candidateSize);
+
+    // Now, use the adjustment list to compact the vertex attribute lists
+    // by removing duplicate vertex data values, and sliding the remaining
+    // data into place.  Also adjust the index list to account for the new
+    // positions of the unique data values
+    for (i = 0; i < listSize; i++)
+    {
+        // Adjust the index array according to the adjustment array that
+        // we created above
+        indexList[i] -= adjustment[indexList[i]];
+
+        // See if this vertex is unique, or if it will be optimized away.
+        // We can do this by comparing the adjustment value for this vertex
+        // with the value for the previous vertex.  If they are different,
+        // then this vertex is redundant, and we should ignore its data.
+        // If they are equal, then this vertex's data is important, and
+        // we should moved it into the correct position
+        if ((i > 0) && (adjustment[i] == adjustment[i-1]))
+        {
+            // Iterate over all potential vertex attribute lists
+            for (j = 0; j < VS_GEOMETRY_LIST_COUNT; j++)
+            {
+                // Account for the use of generic attributes
+                if (dataIsGeneric[j])
+                    whichData = j + VS_GEOMETRY_LIST_COUNT;
+                else
+                    whichData = j;
+
+                // See if this list is PER_VERTEX, and adjust the i'th item
+                // if so
+                if ((getBinding(whichData) == VS_GEOMETRY_BIND_PER_VERTEX) &&
+                    (dataListSize[whichData] > 0))
+                {
+                    // Move the data according to the adjustment array
+                    vec1 = getData(whichData, i);
+                    setData(whichData, i-adjustment[i], vec1);
+                }
+            }
+        }
+    }
+
+    // Finally, resize all of the vertex attribute lists to the new
+    // (hopefully smaller) size
+    listSize -= adjustment[listSize-1];
+    for (i = 0; i < VS_GEOMETRY_LIST_COUNT; i++)
+    {
+        // Account for the use of generic attributes
+        if (dataIsGeneric[i])
+            whichData = i + VS_GEOMETRY_LIST_COUNT;
+        else
+            whichData = i;
+
+        // See if this list is PER_VERTEX, and resize it if so
+        if ((getBinding(whichData) == VS_GEOMETRY_BIND_PER_VERTEX) &&
+            (dataListSize[whichData] > 0))
+            setDataListSize(whichData, listSize);
+    }
+printf("   After:  %d vertices\n", listSize); fflush(stdout);
+
+    // Now we're done with the adjustment list as well
+    delete [] adjustment;
+
+    // Now that we have a new index list, rebuild the primitive sets
+    rebuildPrimitives();
+}
+
+// ------------------------------------------------------------------------
 // Returns the OSG object associated with this object
 // ------------------------------------------------------------------------
 osg::Geode *vsGeometryBase::getBaseLibraryObject()
@@ -2106,3 +2564,70 @@ void vsGeometryBase::applyAttributes()
             osgStateSet->setRenderBinDetails(renderBin, "RenderBin");
     }
 }
+
+// ------------------------------------------------------------------------
+// Compares all vertex attributes for the two vertices at the given indices
+// and returns whether or not they are equivalent (i.e.:  all attribute
+// values are within tolerance).  Since this method is intended to help
+// optimize the number of vertices rendered by this geometry, the geometry
+// must be using indexed rendering, and all attributes in use must be bound
+// PER_VERTEX or OVERALL for this method to return true (otherwise, it's
+// not possible to reduce the number of vertices and maintain the same
+// geometry)
+// ------------------------------------------------------------------------
+bool vsGeometryBase::areVerticesEquivalent(int v1, int v2)
+{
+    atVector vec1, vec2;
+    int whichData;
+    int i;
+
+    // The geometry must be using an index list.  If not, we bail
+    if (indexListSize <= 0)
+    {
+        printf("vsGeometryBase::areVerticesEquivalent:  Geometry is not using"
+            "indexed rendering.");
+        return false;
+    }
+
+    // Make sure the two indices make sense
+    if ((v1 < 0) || (v1 >= indexListSize) || (v2 < 0) || (v2 >= indexListSize))
+    {
+        printf("vsGeometryBase::areVerticesEquivalent:  Index out of range.");
+        return false;
+    }
+
+    // Now, compare all vertex attributes for the two vertices
+    for (i = 0; i < VS_GEOMETRY_LIST_COUNT; i++)
+    {
+        // If this list is using a generic attribute, adjust the index to
+        // indicate this
+        if (dataIsGeneric[i])
+            whichData = i + VS_GEOMETRY_LIST_COUNT;
+        else
+            whichData = i;
+
+        // Check the per-vertex attributes to see if they match (OVERALL
+        // attributes will obviously always match, PER_PRIMITIVE values
+        // aren't allowed)
+        if (getBinding(whichData) == VS_GEOMETRY_BIND_PER_VERTEX)
+        {
+            // Get the two corresponding attribute values
+            vec1 = getData(whichData, v1);
+            vec2 = getData(whichData, v2);
+
+            // If the values don't match, the vertex isn't equivalent
+            if (!vec1.isEqual(vec2))
+                return false;
+        }
+        else if (getBinding(whichData) == VS_GEOMETRY_BIND_PER_PRIMITIVE)
+        {
+            printf("vsGeometryBase::areVerticesEquivalent:  Geometry is using"
+                "per-primitive attributes.");
+            return false;
+        }
+    }
+
+    // If we get this far, the vertices must be equivalent
+    return true;
+}
+

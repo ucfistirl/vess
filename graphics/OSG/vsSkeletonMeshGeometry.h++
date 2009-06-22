@@ -63,9 +63,13 @@ public:
     void                  setDataListSize(int whichData, int newSize);
     int                   getDataListSize(int whichData);
 
+    virtual void          deindexGeometry();
+    virtual void          optimizeVertices();
+
     void                  applySkin(atArray *boneMatrices,
                                     atArray *ITBoneMatrices);
     void                  resetSkin();
+
 };
 
 #endif
