@@ -1569,8 +1569,6 @@ void vsGeometryBase::deindexGeometry()
     // PER_VERTEX list)
     listSize = indexListSize;
 
-printf("Deindex:\n");
-printf("   Before:  %d vertices\n", dataListSize[VS_GEOMETRY_VERTEX_COORDS]);
     // Create a new data list for each active list, and de-index the
     // current list into it
     for (i = 0; i < VS_GEOMETRY_LIST_COUNT; i++)
@@ -1599,7 +1597,6 @@ printf("   Before:  %d vertices\n", dataListSize[VS_GEOMETRY_VERTEX_COORDS]);
             delete [] newList;
         }
     }
-printf("   After:  %d vertices\n", dataListSize[VS_GEOMETRY_VERTEX_COORDS]);
 
     // Remove the index list and rebuild the geometry
     setIndexListSize(0);
@@ -1691,8 +1688,6 @@ void vsGeometryBase::optimizeVertices()
     // contiguous mapping from each vertex to its attribute index in each
     // data list
     listSize = getDataListSize(VS_GEOMETRY_VERTEX_COORDS);
-printf("Optimize:\n"); fflush(stdout);
-printf("   Before:  %d vertices\n", listSize); fflush(stdout);
     setIndexListSize(listSize);
     for (i = 0; i < listSize; i++)
         indexList[i] = i;
@@ -1919,7 +1914,6 @@ printf("   Before:  %d vertices\n", listSize); fflush(stdout);
             (dataListSize[whichData] > 0))
             setDataListSize(whichData, listSize);
     }
-printf("   After:  %d vertices\n", listSize); fflush(stdout);
 
     // Now we're done with the adjustment list as well
     delete [] adjustment;
