@@ -20,15 +20,6 @@
 //
 //------------------------------------------------------------------------
 
-#include <stdio.h>
-
-#include <osg/StateAttribute>
-#include <osg/StateSet>
-#include <osg/ClipPlane>
-#include <osg/Transform>
-#include <osg/MatrixTransform>
-#include <osgUtil/LineSegmentIntersector>
-
 #include "vsIntersect.h++"
 #include "vsComponent.h++"
 #include "vsDynamicGeometry.h++"
@@ -37,13 +28,21 @@
 #include "vsScene.h++"
 #include "vsUnmanagedNode.h++"
 
+#include <osg/StateAttribute>
+#include <osg/StateSet>
+#include <osg/ClipPlane>
+#include <osg/Transform>
+#include <osg/MatrixTransform>
+#include <osgUtil/LineSegmentIntersector>
+
+#include <stdio.h>
+
+
 // ------------------------------------------------------------------------
 // Constructor
 // ------------------------------------------------------------------------
 vsIntersect::vsIntersect()
 {
-    int loop;
-
     // Set the facing mode to accept intersections with both sides by default
     facingMode = VS_INTERSECT_IGNORE_NONE;
 
@@ -70,9 +69,6 @@ vsIntersect::vsIntersect()
 // ------------------------------------------------------------------------
 vsIntersect::~vsIntersect()
 {
-    int loop;
-    vsLineSegment *segment;
-
     // Clean up any intersect node paths that have been created.
     clearIntersectionResults();
 
@@ -734,8 +730,6 @@ void vsIntersect::intersect(vsNode *targetNode)
 // ------------------------------------------------------------------------
 vsIntersectResult *vsIntersect::getIntersection(int segNum)
 {
-    atList *results;
-
     // Make sure the segment number is valid
     if ((segNum < 0) || (segNum >= segListSize))
     {
