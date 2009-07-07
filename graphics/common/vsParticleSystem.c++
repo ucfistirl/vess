@@ -1117,6 +1117,24 @@ atVector vsParticleSystem::getParticleAcceleration()
 }
 
 // ------------------------------------------------------------------------
+// Sets the maximum speed any particle should be allowed to travel. If no
+// maximum speed should be enforced, a negative value may be provided
+// ------------------------------------------------------------------------
+void vsParticleSystem::setParticleMaxSpeed(double speed)
+{
+    settings.setMaxSpeed(speed);
+}
+
+// ------------------------------------------------------------------------
+// Gets the maximum speed any particle should be allowed to travel. If no
+// maximum speed is to be enforced, a negative value will be returned
+// ------------------------------------------------------------------------
+double vsParticleSystem::getParticleMaxSpeed()
+{
+    return settings.getMaxSpeed();
+}
+
+// ------------------------------------------------------------------------
 // Sets the time (and variance) in seconds for which each particle is
 // active
 // ------------------------------------------------------------------------

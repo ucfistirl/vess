@@ -197,6 +197,9 @@ public:
     void                  setParticleAcceleration(atVector acceleration);
     atVector              getParticleAcceleration();
 
+    void                  setParticleMaxSpeed(double speed);
+    double                getParticleMaxSpeed();
+
     // Individual particle parameters get/set
     void                  setParticleLifetime(double seconds,
                                               double variance);
