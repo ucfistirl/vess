@@ -66,6 +66,9 @@ vsParticleSettings::vsParticleSettings()
     // Acceleration is zero
     acceleration.set(0.0, 0.0, 0.0);
 
+    // Max speed should be infinite (-1.0 acts as a sentinel value)
+    maxSpeed = -1.0;
+
     // Initial render bin is bin zero (the default bin)
     renderBin = 0;
 }
@@ -151,6 +154,24 @@ atVector vsParticleSettings::getAcceleration()
 {
     // Return the current acceleration
     return acceleration;
+}
+
+// ------------------------------------------------------------------------
+// Set the particles' maximum desired speed
+// ------------------------------------------------------------------------
+void vsParticleSettings::setMaxSpeed(double speed)
+{
+    // Copy and store the speed
+    maxSpeed = speed;
+}
+
+// ------------------------------------------------------------------------
+// Get the particles' maximum desired speed
+// ------------------------------------------------------------------------
+double vsParticleSettings::getMaxSpeed()
+{
+    // Return the current maximum speed
+    return maxSpeed;
 }
 
 // ------------------------------------------------------------------------

@@ -27,7 +27,6 @@
 
 class vsParticleSettings : public vsObject
 {
-// JPD: TODO:  Make data members protected and add methods
 protected:
 
     double                    lifetime;
@@ -39,6 +38,7 @@ protected:
     double                    velocitySpeedVariance;
 
     atVector                  acceleration;
+    double                    maxSpeed;
 
     double                    orbitSpeed;
     double                    orbitSpeedVariance;
@@ -81,6 +81,9 @@ public:
 
     void                  setAcceleration(atVector accel);
     atVector              getAcceleration();
+
+    void                  setMaxSpeed(double speed);
+    double                getMaxSpeed();
 
     void                  setOrbit(double speed, double speedVar,
                                    double deltaRadius, double deltaRadiusVar);
