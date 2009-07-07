@@ -570,6 +570,7 @@ int vsParticle::getPrimitiveIndex()
 bool vsParticle::update(vsParticleSettings *settings, double deltaTime)
 {
     atVector acceleration;
+    double maxSpeed;
     atVector orbitPos;
     atMatrix posMat, rotMat, scaleMat;
     double currentSize;
@@ -604,6 +605,15 @@ bool vsParticle::update(vsParticleSettings *settings, double deltaTime)
 
     // Update the velocity of the particle from the acceleration
     velocity += acceleration.getScaled(deltaTime);
+
+    // Check whether the velocity exceeds the maximum speed for a particle. If
+    // the max speed value is negative, it means there should be no maximum
+    maxSpeed = settings->getMaxSpeed();
+    if ((maxSpeed > 0.0) && (velocity.getMagnitude() > maxSpeed))
+    {
+        // Scale the velocity down to match the max speed
+        velocity.scale(maxSpeed / velocity.getMagnitude());
+    }
 
     // Update the orbit angle and radius
     orbitAngle += (orbitVelocity * deltaTime);
