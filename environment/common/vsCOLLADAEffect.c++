@@ -70,7 +70,10 @@ vsCOLLADAEffectParameter *vsCOLLADAEffect::getParameter(atString name)
 
         // Try the next parameter
         param = (vsCOLLADAEffectParameter *)effectParameters->getNextEntry();
-    }   
+    }
+
+    // Couldn't find the requested parameter
+    return NULL;
 }
 
 // ------------------------------------------------------------------------
