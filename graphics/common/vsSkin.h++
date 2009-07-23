@@ -47,8 +47,8 @@ private:
 public:
 
                               vsSkin(vsComponent *newRoot,
-                                             vsSkeleton *newSkeleton,
-                                             atArray *boneSpaceMatrices);
+                                     vsSkeleton *newSkeleton,
+                                     atArray *boneSpaceMatrices);
                               vsSkin(vsSkin *original);
     virtual                   ~vsSkin();
 
