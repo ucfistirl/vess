@@ -121,6 +121,7 @@ VS_INTERNAL:
 
     virtual bool      isEquivalent(vsAttribute *attribute);
 
+    osg::Image        *getOSGImage();
     void              setOSGImage(osg::Image *osgImage);
 
     osg::Texture2D    *getBaseLibraryObject();

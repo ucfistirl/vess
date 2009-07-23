@@ -26,10 +26,6 @@
 #include <osgDB/ReadFile>
 #include <stdio.h>
 
-// DELETE THIS!!!!
-#include "vsComponent.h++"
-#include <osgDB/WriteFile>
-
 // ------------------------------------------------------------------------
 // Default Constructor - Creates the OSG texture objects for unit 0 and
 // initializes default settings
@@ -1157,6 +1153,17 @@ bool vsTextureAttribute::isEquivalent(vsAttribute *attribute)
 
     // If all pass, the attribute is equivalent
     return true;
+}
+
+// ------------------------------------------------------------------------
+// Internal function
+// Fetches the OSG Image object from this texture.  Mainly used for
+// cloning the texture attribute, but sharing the Image
+// ------------------------------------------------------------------------
+osg::Image *vsTextureAttribute::getOSGImage()
+{
+    // Return our osg::Image
+    return osgTexImage;
 }
 
 // ------------------------------------------------------------------------

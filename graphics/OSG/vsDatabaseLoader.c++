@@ -1125,12 +1125,14 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     vsMaterialAttribute *vsMaterialAttr;
 
     osg::Texture *osgTexture;
+    osg::Image *osgImage;
     osg::TexEnv *osgTexEnv;
     osg::TexGen *osgTexGen;
     osg::TexEnvCombine *osgTexEnvCombine;
     osg::TexMat *osgTexMat;
     vsTextureAttribute *vsTextureAttr;
     vsTextureCubeAttribute *vsTextureCubeAttr;
+    vsTextureCubeAttribute *tempCube;
 
     int blendMode;
     vsTransparencyAttribute *vsTransparencyAttr;
@@ -1320,10 +1322,65 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
                 // Record that we've seen this texture, in case it comes up
                 // again
                 attrMap->registerLink(vsTextureAttr, osgTexture);
-            }
 
-            // Recognized or not, add the texture to this node
-            node->addAttribute(vsTextureAttr);
+                // Add the texture to this node
+                node->addAttribute(vsTextureAttr);
+            }
+            else
+            {
+                // We've seen this one before, create a new texture, but
+                // share the image data
+                osgImage = vsTextureAttr->getOSGImage();
+                vsTextureAttr = new vsTextureAttribute(textureUnit);
+                vsTextureAttr->setOSGImage(osgImage);
+
+                // Create a new texture environment object for use by the
+                // texture attribute. (We don't want to use the one that came
+                // with the texture object, because it's possible that the
+                // TexEnv may have been used in other places that the Texture
+                // wasn't.)
+                if ((!osgTexEnv) && (!osgTexEnvCombine))
+                {
+                    osgTexEnv = new osg::TexEnv();
+
+                    // Set the default apply mode to MODULATE
+                    osgTexEnv->setMode(osg::TexEnv::MODULATE);
+                }
+                else if (osgTexEnv)
+                    osgTexEnv = new osg::TexEnv(*osgTexEnv);
+                else if (osgTexEnvCombine)
+                    osgTexEnvCombine = 
+                        new osg::TexEnvCombine(*osgTexEnvCombine);
+
+                // Create a new texture generator object for use by the texture
+                // attribute. (We don't want to use the one that came with the
+                // texture object, because it's possible that the TexGen may
+                // have been used in other places that the Texture wasn't.)
+                if (osgTexGen)
+                    osgTexGen = new osg::TexGen(*osgTexGen);
+
+                // Create a new texture matrix object for use by the texture
+                // attribute. (We don't want to use the one that came with the
+                // texture object, because it's possible that the TexMat may
+                // have been used in other places that the Texture wasn't.)
+                if (osgTexMat)
+                    osgTexMat = new osg::TexMat(*osgTexMat);
+
+                vsTextureAttr = 
+                    new vsTextureAttribute((unsigned int)(textureUnit),
+                    (osg::Texture2D *)osgTexture, osgTexEnv, osgTexEnvCombine,
+                    osgTexGen, osgTexMat);
+
+                // Check the status of the override flag
+                osgRefAttrPair = stateSet->getTextureAttributePair(textureUnit,
+                    osg::StateAttribute::TEXTURE);
+                overrideFlag = osgRefAttrPair->second;
+                if (overrideFlag & osg::StateAttribute::OVERRIDE)
+                    vsTextureAttr->setOverride(true);
+
+                // Add the texture to this node
+                node->addAttribute(vsTextureAttr);
+            }
         }
         // Else test if there is a TextureCubeMap instead of a Texture2D
         else if (osgTexture = dynamic_cast<osg::TextureCubeMap *>
@@ -1393,10 +1450,69 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
                 // Record that we've seen this texture, in case it comes up
                 // again
                 attrMap->registerLink(vsTextureCubeAttr, osgTexture);
-            }
 
-            // Recognized or not, add the texture to this node
-            node->addAttribute(vsTextureCubeAttr);
+                // Add the cube map to this node
+                node->addAttribute(vsTextureCubeAttr);
+            }
+            else
+            {
+                // We've seen this one before, create a new cube map, but
+                // share the image data
+                tempCube = vsTextureCubeAttr;
+                vsTextureCubeAttr = new vsTextureCubeAttribute(textureUnit);
+                for (loop = 0; loop < 6; loop++)
+                {
+                    osgImage = vsTextureCubeAttr->getOSGImage(loop);
+                    vsTextureCubeAttr->setOSGImage(loop, osgImage);
+                }
+
+                // Create a new texture environment object for use by the
+                // texture attribute. (We don't want to use the one that came
+                // with the texture object, because it's possible that the
+                // TexEnv may have been used in other places that the Texture
+                // wasn't.)
+                if ((!osgTexEnv) && (!osgTexEnvCombine))
+                {
+                    osgTexEnv = new osg::TexEnv();
+
+                    // Set the default apply mode to MODULATE
+                    osgTexEnv->setMode(osg::TexEnv::MODULATE);
+                }
+                else if (osgTexEnv)
+                    osgTexEnv = new osg::TexEnv(*osgTexEnv);
+                else if (osgTexEnvCombine)
+                    osgTexEnvCombine = 
+                        new osg::TexEnvCombine(*osgTexEnvCombine);
+
+                // Create a new texture generator object for use by the texture
+                // attribute. (We don't want to use the one that came with the
+                // texture object, because it's possible that the TexGen may
+                // have been used in other places that the Texture wasn't.)
+                if (osgTexGen)
+                    osgTexGen = new osg::TexGen(*osgTexGen);
+
+                // Create a new texture matrix object for use by the texture
+                // attribute. (We don't want to use the one that came with the
+                // texture object, because it's possible that the TexMat may
+                // have been used in other places that the Texture wasn't.)
+                if (osgTexMat)
+                    osgTexMat = new osg::TexMat(*osgTexMat);
+
+                vsTextureAttr = 
+                    new vsTextureAttribute((unsigned int)(textureUnit),
+                    (osg::Texture2D *)osgTexture, osgTexEnv, osgTexEnvCombine,
+                    osgTexGen, osgTexMat);
+
+                // Check the status of the override flag
+                osgRefAttrPair = stateSet->getTextureAttributePair(textureUnit,
+                    osg::StateAttribute::TEXTURE);
+                overrideFlag = osgRefAttrPair->second;
+                if (overrideFlag & osg::StateAttribute::OVERRIDE)
+                    vsTextureAttr->setOverride(true);
+
+                // Add the cube map to this node
+                node->addAttribute(vsTextureAttr);
+            }
         }
     }
 

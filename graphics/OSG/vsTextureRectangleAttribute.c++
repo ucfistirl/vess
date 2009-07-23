@@ -1058,6 +1058,17 @@ bool vsTextureRectangleAttribute::isEquivalent(vsAttribute *attribute)
 
 // ------------------------------------------------------------------------
 // Internal function
+// Fetches the OSG Image object from this texture.  Mainly used for 
+// cloning the texture attribute, but sharing the Image
+// ------------------------------------------------------------------------
+osg::Image *vsTextureRectangleAttribute::getOSGImage()
+{
+    // Return our osg::Image 
+    return osgTexImage;
+}
+
+// ------------------------------------------------------------------------
+// Internal function
 // Directly sets the osg::Image object to be used by this texture
 // attribute. Deletes the current Image object, if any. (Deleting the
 // image object will delete its image data as well; this should probably

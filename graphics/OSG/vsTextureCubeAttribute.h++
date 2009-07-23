@@ -75,6 +75,7 @@ VS_INTERNAL:
 
     virtual bool          isEquivalent(vsAttribute *attribute);
 
+    osg::Image            *getOSGImage(int face);
     void                  setOSGImage(int face, osg::Image *osgImage);
 
     osg::TextureCubeMap   *getBaseLibraryObject();

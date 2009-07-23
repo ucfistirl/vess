@@ -938,7 +938,7 @@ void vsTextureCubeAttribute::setTextureUnit(unsigned int unit)
     // Make sure the attribute isn't already attached
     if (isAttached())
     {
-        printf("vsTextureAttribute::setTextureUnit:\n");
+        printf("vsTextureCubeAttribute::setTextureUnit:\n");
         printf("    Cannot change texture unit when texture attribute "
             "is attached!\n");
 
@@ -1131,6 +1131,24 @@ bool vsTextureCubeAttribute::isEquivalent(vsAttribute *attribute)
 
 // ------------------------------------------------------------------------
 // Internal function
+// Fetches the OSG Image object from this texture.  Mainly used for 
+// cloning the texture attribute, but sharing the Image
+// ------------------------------------------------------------------------
+osg::Image *vsTextureCubeAttribute::getOSGImage(int face)
+{
+    // Ensure the face is a valid index
+    if ((face < 0) || (face > (VS_TEXTURE_CUBE_SIDES - 1)))
+    {
+        printf("vsTextureCubeAttribute::getOSGImage: Index out of bounds\n");
+        return NULL;
+    }
+
+    // Return the appropriate osg::Image 
+    return osgTexImage[face];
+}
+
+// ------------------------------------------------------------------------
+// Internal function
 // Directly sets the osg::Image object to be used by this texture
 // attribute. Deletes the current Image object, if any. (Deleting the
 // image object will delete its image data as well; this should probably
@@ -1138,7 +1156,7 @@ bool vsTextureCubeAttribute::isEquivalent(vsAttribute *attribute)
 // ------------------------------------------------------------------------
 void vsTextureCubeAttribute::setOSGImage(int face, osg::Image *osgImage)
 {
-    // Insure the face is a valid index
+    // Ensure the face is a valid index
     if ((face < 0) || (face > (VS_TEXTURE_CUBE_SIDES - 1)))
     {
         printf("vsTextureCubeAttribute::setOSGImage: Index out of bounds\n");
