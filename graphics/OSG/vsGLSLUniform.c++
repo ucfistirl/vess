@@ -223,7 +223,7 @@ void vsGLSLUniform::set(int size, atMatrix mat)
 {
     osg::Matrix2 mat2;
     osg::Matrix3 mat3;
-    osg::Matrixd mat4;
+    osg::Matrixf mat4;
     int i, j;
 
     // Copy the matrix into a suitable form
@@ -254,12 +254,12 @@ void vsGLSLUniform::set(int size, atMatrix mat)
             break;
 
         case 4:
-            // Create an osg::Matrixd from the VESS matrix 
+            // Create an osg::Matrixf from the VESS matrix 
             for (i = 0; i < 4; i++)
                 for (j = 0; j < 4; j++)
-                    mat4(i, j) = mat[j][i];
+                    mat4(i, j) = (float)mat[j][i];
 
-            // Create the osg::Uniform using the Matrixd
+            // Create the osg::Uniform using the Matrixf
             osgUniform->set(mat4);
             break;
 
@@ -401,7 +401,7 @@ void vsGLSLUniform::setEntry(u_long index, int size, atMatrix mat)
 {
     osg::Matrix2 mat2;
     osg::Matrix3 mat3;
-    osg::Matrixd mat4;
+    osg::Matrixf mat4;
     int i, j;
 
     // Copy the matrix into a suitable form
@@ -416,7 +416,7 @@ void vsGLSLUniform::setEntry(u_long index, int size, atMatrix mat)
                 for (j = 0; j < 2; j++)
                     mat2(i, j) = mat[j][i];
 
-            // Create the osg::Uniform using the Matrix2
+            // Set the matrix element
             osgUniform->setElement(index, mat2);
             break;
 
@@ -427,17 +427,17 @@ void vsGLSLUniform::setEntry(u_long index, int size, atMatrix mat)
                 for (j = 0; j < 3; j++)
                     mat3(i, j) = mat[j][i];
 
-            // Create the osg::Uniform using the Matrix3
+            // Set the matrix element
             osgUniform->setElement(index, mat3);
             break;
 
         case 4:
-            // Create an osg::Matrixd from the VESS matrix 
+            // Create an osg::Matrixf from the VESS matrix 
             for (i = 0; i < 4; i++)
                 for (j = 0; j < 4; j++)
-                    mat4(i, j) = mat[j][i];
+                    mat4(i, j) = (float)mat[j][i];
 
-            // Create the osg::Uniform using the Matrixd
+            // Set the matrix element
             osgUniform->setElement(index, mat4);
             break;
 
