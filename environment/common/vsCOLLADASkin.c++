@@ -176,7 +176,6 @@ void vsCOLLADASkin::convertGeometry()
             // Replace the submesh's geometry with the new skeleton
             // mesh geometry
             submesh->setGeometry(skelMesh);
-            delete geom;
         }
 
         // Move on to the next submesh
@@ -600,6 +599,10 @@ void vsCOLLADASkin::processVertexWeights(atXMLDocument *doc,
     // Free the temporary lists
     free(weights);
     free(boneIndices);
+
+    // Clean up the tokenizers
+    delete counts;
+    delete values;
 }
 
 // ------------------------------------------------------------------------
