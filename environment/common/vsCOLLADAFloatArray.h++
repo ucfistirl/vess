@@ -10,6 +10,8 @@ protected:
 
     double    *dataArray;
 
+    double    getFloatToken(char *tokenString, int *idx);
+
 public:
 
                           vsCOLLADAFloatArray(atXMLDocument *doc,

@@ -10,6 +10,8 @@ protected:
 
     int    *dataArray;
 
+    int    getIntToken(char *tokenString, int *idx);
+
 public:
 
                           vsCOLLADAIntArray(atXMLDocument *doc,

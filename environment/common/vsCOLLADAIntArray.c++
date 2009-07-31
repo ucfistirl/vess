@@ -14,8 +14,8 @@ vsCOLLADAIntArray::vsCOLLADAIntArray(atXMLDocument *doc,
 {
     char *attr;
     char *nodeText;
-    char *dataStr;
     int  readCount;
+    int  idx;
 
     // Initialize the array to NULL
     dataArray = NULL;
@@ -42,21 +42,18 @@ vsCOLLADAIntArray::vsCOLLADAIntArray(atXMLDocument *doc,
 
         // Get the text from the child of this node.  This will be the
         // array of values
-        nodeText = strdup(doc->getNodeText(doc->getNextChildNode(current)));
+        nodeText = doc->getNodeText(doc->getNextChildNode(current));
 
         // Parse the data array from the text
         readCount = 0;
-        dataStr = strtok(nodeText, " \n\r\t");
-        while ((readCount < dataCount) && (dataStr != NULL))
+        idx = 0;
+        while ((readCount < dataCount) && (idx >= 0))
         {
             // Store the item parsed from the text
-            dataArray[readCount] = atoi(dataStr);
+            dataArray[readCount] = getIntToken(nodeText, &idx);
 
             // Increment the count
             readCount++;
-
-            // Try to parse the next item
-            dataStr = strtok(NULL, " \n\r\t");
         }
     }
 }
@@ -69,6 +66,49 @@ vsCOLLADAIntArray::~vsCOLLADAIntArray()
     // Clean up the data array
     if (dataArray != NULL)
         free(dataArray);
+}
+
+// ------------------------------------------------------------------------
+// Parses an integer from the given string at the given index and updates
+// the index to point to the next token in the string
+// ------------------------------------------------------------------------
+int vsCOLLADAIntArray::getIntToken(char *tokenString, int *idx)
+{
+    char *src;
+    char *delim;
+    char token[32];
+    int advance;
+    int value;
+
+    // Check for invalid index
+    if (*idx < 0)
+       return 0;
+    
+    // Get a pointer to the token string at the correct index
+    src = &tokenString[*idx];
+
+    // Find the next delimiter in the token string (or the end of the string)
+    delim = strpbrk(src, " \n\r\t");
+    if (delim == NULL)
+        delim = src + strlen(src);
+    
+    // Copy the token
+    strncpy(token, src, delim - src);
+    token[delim - src] = 0;
+
+    // Convert the token to a integer value
+    value = atoi(token);
+
+    // Advance the index past the delimiters
+    advance = strspn(delim, " \n\r\t");
+    *idx += strlen(token) + advance;
+
+    // Check for end of string (we indicate this by setting idx to -1)
+    if (tokenString[*idx] == 0)
+       *idx = -1;
+
+    // Return the integer value
+    return value;
 }
 
 // ------------------------------------------------------------------------
