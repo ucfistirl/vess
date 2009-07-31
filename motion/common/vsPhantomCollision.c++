@@ -54,55 +54,6 @@ vsPhantomCollision::vsPhantomCollision(vsPhantomSystem *thePhantomSys,
 
     // Set the default maximum force
     maximumForce = VS_PHANTOM_COLLISION_DEFAULT_FORCE;
-
-#ifdef VS_PHANTOM_COLLISION_DEBUG
-    // Initialize the geometry used for the lines.
-    forceLine = new vsGeometry();
-    vertOneLine = new vsGeometry();
-    vertTwoLine = new vsGeometry();
-    vertThreeLine = new vsGeometry();
-
-    // Set up the lines.
-    forceLine->setPrimitiveType(VS_GEOMETRY_TYPE_LINES);
-    vertOneLine->setPrimitiveType(VS_GEOMETRY_TYPE_LINES);
-    vertTwoLine->setPrimitiveType(VS_GEOMETRY_TYPE_LINES);
-    vertThreeLine->setPrimitiveType(VS_GEOMETRY_TYPE_LINES);
-
-    forceLine->setPrimitiveCount(1);
-    vertOneLine->setPrimitiveCount(1);
-    vertTwoLine->setPrimitiveCount(1);
-    vertThreeLine->setPrimitiveCount(1);
-
-    // Tell it there are two vertecies.
-    forceLine->setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 2);
-    vertOneLine->setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 2);
-    vertTwoLine->setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 2);
-    vertThreeLine->setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 2);
-
-    // Tell is to use the color for everything.
-    forceLine->setBinding(VS_GEOMETRY_COLORS, VS_GEOMETRY_BIND_OVERALL);
-    vertOneLine->setBinding(VS_GEOMETRY_COLORS, VS_GEOMETRY_BIND_OVERALL);
-    vertTwoLine->setBinding(VS_GEOMETRY_COLORS, VS_GEOMETRY_BIND_OVERALL);
-    vertThreeLine->setBinding(VS_GEOMETRY_COLORS, VS_GEOMETRY_BIND_OVERALL);
-
-    // Tell is there is only one color.
-    forceLine->setDataListSize(VS_GEOMETRY_COLORS, 1);
-    vertOneLine->setDataListSize(VS_GEOMETRY_COLORS, 1);
-    vertTwoLine->setDataListSize(VS_GEOMETRY_COLORS, 1);
-    vertThreeLine->setDataListSize(VS_GEOMETRY_COLORS, 1);
-
-    // Set the color vector.
-    forceLine->setData(VS_GEOMETRY_COLORS, 0, atVector(1.0, 0.0, 0.0, 1.0));
-    vertOneLine->setData(VS_GEOMETRY_COLORS, 0, atVector(0.0, 1.0, 0.0, 1.0));
-    vertTwoLine->setData(VS_GEOMETRY_COLORS, 0, atVector(0.0, 1.0, 0.0, 1.0));
-    vertThreeLine->setData(VS_GEOMETRY_COLORS, 0, atVector(0.0, 1.0, 0.0, 1.0));
-
-    // Add the lines to the scene.
-    scene->addChild(vertOneLine);
-    scene->addChild(vertTwoLine);
-    scene->addChild(vertThreeLine);
-    scene->addChild(forceLine);
-#endif
 }
 
 // ------------------------------------------------------------------------
@@ -111,13 +62,6 @@ vsPhantomCollision::vsPhantomCollision(vsPhantomSystem *thePhantomSys,
 vsPhantomCollision::~vsPhantomCollision()
 {
     delete intersect;
-
-#ifdef VS_PHANTOM_COLLISION_DEBUG
-    delete forceLine;
-    delete vertOneLine;
-    delete vertTwoLine;
-    delete vertThreeLine;
-#endif
 }
 
 // ------------------------------------------------------------------------
@@ -346,12 +290,12 @@ double vsPhantomCollision::getCollisionData(atMatrix globalXform,
     // For each point, figure out if and where an intersection occurred
     for (loop = 0; loop < offsetCount; loop++)
     {
-        if (intersect->getIsectValid(loop))
+        if (intersect->getIntersection(loop)->isValid())
         {
             // Obtain the point and normal of intersection
-            hitPoints1[loop] = intersect->getIsectPoint(loop);
+            hitPoints1[loop] = intersect->getIntersection(loop)->getPoint();
 
-            normals[loop] = intersect->getIsectNorm(loop);
+            normals[loop] = intersect->getIntersection(loop)->getNormal();
 
             // Check to see if we hit the back side of a poly; if so, we
             // need to invert the normal
@@ -407,76 +351,6 @@ double vsPhantomCollision::getCollisionData(atMatrix globalXform,
     {
         return 0.0;
     }
-#ifdef VS_PHANTOM_COLLISION_DEBUG
-    // Draw lines that represent the normals.
-    else if (valid1[0])
-    {
-        atVector    startPoint;
-        atVector    endPoint;
-        vsGeometry  *sectGeometry;
-        atMatrix    sectMatrix;
-        int         indexOne;
-        int         indexTwo;
-        int         indexThree;
-
-        // Draw the three normals around the triangle.
-        sectGeometry = NULL;
-        sectGeometry = intersect->getIsectGeometry(0);
-        sectMatrix = intersect->getIsectXform(0);
-        if (sectGeometry != NULL)
-        {
-            indexOne = intersect->getIsectVertIndex(0, 0);
-            indexTwo = intersect->getIsectVertIndex(0, 1);
-            indexThree = intersect->getIsectVertIndex(0, 2);
-
-            // First Vertex.
-            startPoint = sectGeometry->getData(VS_GEOMETRY_VERTEX_COORDS,
-              indexOne);
-            endPoint = startPoint +
-              (sectGeometry->getData(VS_GEOMETRY_NORMALS, indexOne)*100);
-            startPoint = sectMatrix.getPointXform(startPoint);
-            endPoint = sectMatrix.getPointXform(endPoint);
-            vertOneLine->setData(VS_GEOMETRY_VERTEX_COORDS, 0, startPoint);
-            vertOneLine->setData(VS_GEOMETRY_VERTEX_COORDS, 1, endPoint);
-
-            // Second Vertex.
-            startPoint = sectGeometry->getData(VS_GEOMETRY_VERTEX_COORDS,
-              indexTwo);
-            if (sectGeometry->getBinding(VS_GEOMETRY_NORMALS) ==
-                VS_GEOMETRY_BIND_PER_VERTEX)
-            {
-                endPoint = startPoint +
-                  (sectGeometry->getData(VS_GEOMETRY_NORMALS, indexTwo)*100);
-            }
-            startPoint = sectMatrix.getPointXform(startPoint);
-            endPoint = sectMatrix.getPointXform(endPoint);
-            vertTwoLine->setData(VS_GEOMETRY_VERTEX_COORDS, 0, startPoint);
-            vertTwoLine->setData(VS_GEOMETRY_VERTEX_COORDS, 1, endPoint);
-
-            // Third Vertex.
-            startPoint = sectGeometry->getData(VS_GEOMETRY_VERTEX_COORDS,
-              indexThree);
-            if (sectGeometry->getBinding(VS_GEOMETRY_NORMALS) ==
-                VS_GEOMETRY_BIND_PER_VERTEX)
-            {
-                endPoint = startPoint +
-                  (sectGeometry->getData(VS_GEOMETRY_NORMALS, indexThree)*100);
-            }
-            startPoint = sectMatrix.getPointXform(startPoint);
-            endPoint = sectMatrix.getPointXform(endPoint);
-            vertThreeLine->setData(VS_GEOMETRY_VERTEX_COORDS, 0, startPoint);
-            vertThreeLine->setData(VS_GEOMETRY_VERTEX_COORDS, 1, endPoint);
-        }
-        // Done with triangle normals.
-
-        // Set the two vertecies, start and end points.
-        startPoint = hitPoints1[0];
-        endPoint = startPoint + ((*hitNorm) * (resultDist * 10));
-
-        forceLine->setData(VS_GEOMETRY_VERTEX_COORDS, 0, startPoint);
-        forceLine->setData(VS_GEOMETRY_VERTEX_COORDS, 1, endPoint);
-    }
-#endif
 
     // Return the closest distance
     return resultDist;

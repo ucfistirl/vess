@@ -37,9 +37,6 @@
 #define VS_PHANTOM_COLLISION_MAX_FORCE         8.5
 #define VS_PHANTOM_COLLISION_MAX_PASSES        10
 
-// Define this to have the normal and force vectors drawn as lines.
-//#define VS_PHANTOM_COLLISION_DEBUG
-
 class VESS_SYM vsPhantomCollision : public vsMotionModel
 {
 private:
@@ -52,13 +49,6 @@ private:
 
     atVector           offsetPoints[VS_PHANTOM_COLLISION_POINTS_MAX];
     int                offsetCount;
-
-#ifdef VS_PHANTOM_COLLISION_DEBUG
-    vsGeometry         *forceLine;
-    vsGeometry         *vertOneLine;
-    vsGeometry         *vertTwoLine;
-    vsGeometry         *vertThreeLine;
-#endif
  
     double             sphereRadius;
     double             maximumForce;
