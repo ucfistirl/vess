@@ -5,6 +5,7 @@
 #include "vsCOLLADAEffect.h++"
 #include "vsMaterialAttribute.h++"
 #include "vsTextureAttribute.h++"
+#include "vsList.h++"
 
 class VESS_SYM vsCOLLADAFixedEffect : public vsCOLLADAEffect
 {
@@ -28,7 +29,7 @@ public:
     virtual vsMaterialAttribute     *getMaterial();
     virtual void                    addTexture(atString texCoordName,
                                                vsTextureAttribute *tex);
-    virtual atList                  *getTextures(atString texCoordName);
+    virtual vsList                  *getTextures(atString texCoordName);
     virtual vsTextureAttribute      *getTextureFromParam(atString paramID);
 };
 

@@ -189,7 +189,7 @@ void vsCOLLADAFixedEffect::addTexture(atString texCoordName,
 // Returns the texture attribute corresponding to the given texture
 // coordinate list ID
 // ------------------------------------------------------------------------
-atList *vsCOLLADAFixedEffect::getTextures(atString texCoordID)
+vsList *vsCOLLADAFixedEffect::getTextures(atString texCoordID)
 {
     vsCOLLADATextureSet *texSet;
 
