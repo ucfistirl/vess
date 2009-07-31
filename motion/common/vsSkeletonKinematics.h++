@@ -26,12 +26,13 @@
 #include "vsUpdatable.h++"
 #include "vsSkeleton.h++"
 #include "vsKinematics.h++"
+#include "vsArray.h++"
 
 class VESS_SYM vsSkeletonKinematics : public vsUpdatable
 {
 private:
 
-    vsKinematics      **kinematicsList;
+    vsArray           *kinematicsList;
     vsSkeleton        *skeleton;
     int               kinematicsCount;
 

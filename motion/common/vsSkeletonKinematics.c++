@@ -29,6 +29,7 @@ vsSkeletonKinematics::vsSkeletonKinematics(vsSkeleton *newSkeleton)
 {
     int index;
     vsComponent *bone;
+    vsKinematics *boneKin;
 
     // Keep a reference ot the skeleton.
     skeleton = newSkeleton;
@@ -36,14 +37,14 @@ vsSkeletonKinematics::vsSkeletonKinematics(vsSkeleton *newSkeleton)
 
     // Generate the vsKinematics array.
     kinematicsCount = skeleton->getBoneCount();
-    kinematicsList = new vsKinematics*[kinematicsCount];
+    kinematicsList = new vsArray();
 
     // Create all the proper kinematics objects per bone.
     for (index = 0; index < kinematicsCount; index++)
     {
         bone = skeleton->getBone(index);
-        kinematicsList[index] = new vsKinematics(bone);
-        kinematicsList[index]->ref();
+        boneKin = new vsKinematics(bone);
+        kinematicsList->setEntry(index, boneKin);
     }
 }
 
@@ -52,14 +53,8 @@ vsSkeletonKinematics::vsSkeletonKinematics(vsSkeleton *newSkeleton)
 // ------------------------------------------------------------------------
 vsSkeletonKinematics::~vsSkeletonKinematics()
 {
-    int index;
-
-    // Delete all the vsKinematics in the list.
-    for (index = 0; index < kinematicsCount; index++)
-        vsObject::unrefDelete(kinematicsList[index]);
-
-    // Delete the vsKinematics pointer list.
-    delete [] kinematicsList;
+    // Delete the vsKinematics list (this unreferences all kinematics in it)
+    delete kinematicsList;
 
     // Unreference the skeleton.
     skeleton->unref();
@@ -94,7 +89,7 @@ vsKinematics *vsSkeletonKinematics::getBoneKinematics(int boneID)
     // If given a valid boneID, return the atMatrix for that boneID.
     if ((boneID < kinematicsCount) && (boneID >= 0))
     {
-        returnValue = kinematicsList[boneID];
+        returnValue = (vsKinematics *)kinematicsList->getEntry(boneID);
     }
 
     return returnValue;
@@ -116,7 +111,7 @@ vsKinematics *vsSkeletonKinematics::getBoneKinematics(vsComponent *component)
     // If the boneID is valid, get the proper kinematics object.
     if (boneID > -1)
     {
-        returnValue = kinematicsList[boneID];
+        returnValue = (vsKinematics *)kinematicsList->getEntry(boneID);
     }
 
     return returnValue;
@@ -138,7 +133,7 @@ vsKinematics *vsSkeletonKinematics::getBoneKinematics(char *boneName)
     // If the boneID is valid, get the proper kinematics object.
     if (boneID > -1)
     {
-        returnValue = kinematicsList[boneID];
+        returnValue = (vsKinematics *)kinematicsList->getEntry(boneID);
     }
 
     return returnValue;
@@ -156,7 +151,7 @@ int vsSkeletonKinematics::getBoneIDForKinematics(vsKinematics *kin)
     for (i = 0; i < kinematicsCount; i++)
     {
         // See if this kinematics matches the one specified
-        if (kinematicsList[i] == kin)
+        if (kinematicsList->getEntry(i) == kin)
             return i;
     }
 
@@ -174,7 +169,7 @@ void vsSkeletonKinematics::update()
     // Update all the kinematics objects.
     for (index = 0; index < kinematicsCount; index++)
     {
-        kinematicsList[index]->update();
+        ((vsKinematics *)kinematicsList->getEntry(index))->update();
     }
 }
 
@@ -188,7 +183,7 @@ void vsSkeletonKinematics::update(double deltaTime)
     // Update all the kinematics objects.
     for (index = 0; index < kinematicsCount; index++)
     {
-        kinematicsList[index]->update(deltaTime);
+        ((vsKinematics *)kinematicsList->getEntry(index))->update(deltaTime);
     }
 }
 
@@ -200,6 +195,7 @@ void vsSkeletonKinematics::reset()
     atVector resetVector;
     atQuat resetQuat;
     int index;
+    vsKinematics *kin;
 
     // Set the rotations and position information to neutral values.
     resetVector.setSize(3);
@@ -209,9 +205,10 @@ void vsSkeletonKinematics::reset()
     // Update all the kinematics objects.
     for (index = 0; index < kinematicsCount; index++)
     {
-        kinematicsList[index]->setPosition(resetVector);
-        kinematicsList[index]->setVelocity(resetVector);
-        kinematicsList[index]->setAngularVelocity(resetVector, 0.0);
-        kinematicsList[index]->setOrientation(resetQuat);
+        kin = (vsKinematics *)kinematicsList->getEntry(index);
+        kin->setPosition(resetVector);
+        kin->setVelocity(resetVector);
+        kin->setAngularVelocity(resetVector, 0.0);
+        kin->setOrientation(resetQuat);
     }
 }
