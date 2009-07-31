@@ -15,7 +15,7 @@ vsCOLLADAChannelGroup::vsCOLLADAChannelGroup(vsCOLLADANode *target)
     targetNode->ref();
 
     // Create the channel list
-    channels = new atList();
+    channels = new vsList();
 }
 
 // ------------------------------------------------------------------------
@@ -24,23 +24,8 @@ vsCOLLADAChannelGroup::vsCOLLADAChannelGroup(vsCOLLADANode *target)
 // ------------------------------------------------------------------------
 vsCOLLADAChannelGroup::~vsCOLLADAChannelGroup()
 {
-    vsCOLLADAChannel *channel;
-
-    // Unreference (possibly delete) the channels in the list
-    channel = (vsCOLLADAChannel *)channels->getFirstEntry();
-    while (channel != NULL)
-    {
-        // Remove the channel from the list
-        channels->removeCurrentEntry();
-
-        // Unref/delete the channel
-        vsObject::unrefDelete(channel);
-
-        // Next channel
-        channel = (vsCOLLADAChannel *)channels->getNextEntry();
-    }
-
-    // Delete the list
+    // Delete the list of channels, unreferencing all the channels it
+    // contains
     delete channels;
 
     // Unref/delete the channel target node
@@ -277,9 +262,8 @@ void vsCOLLADAChannelGroup::addChannel(vsCOLLADAChannel *channel)
     // Make sure the channel is valid
     if (channel != NULL)
     {
-        // Add the channel to the list and reference it
+        // Add the channel to the list
         channels->addEntry(channel);
-        channel->ref();
     }
 }
 

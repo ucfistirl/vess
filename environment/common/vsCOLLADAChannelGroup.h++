@@ -7,7 +7,7 @@
 #include "vsCOLLADANode.h++"
 #include "vsPathMotion.h++"
 #include "vsKinematics.h++"
-#include "atList.h++"
+#include "vsList.h++"
 #include "atString.h++"
 
 
@@ -15,7 +15,7 @@ class VESS_SYM vsCOLLADAChannelGroup : public vsObject
 {
 protected:
 
-    atList           *channels;
+    vsList           *channels;
     vsCOLLADANode    *targetNode;
 
     void             setPathPoint(vsPathMotion *path, int pointIndex,
