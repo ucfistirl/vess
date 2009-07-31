@@ -508,8 +508,9 @@ bool vsHandCollision::isColliding(int sensorIndex)
 bool vsHandCollision::isGraspingObject(vsComponent *object)
 {
     bool thumbFlag, fingerFlag;
-    int sensor, node;
-    vsGrowableArray *sensorPath;
+    int sensor;
+    vsNode *node;
+    vsList *sensorPath;
 
     // Initialize the thumb and finger flags to indicate that they are not
     // touching the object
@@ -529,20 +530,20 @@ bool vsHandCollision::isGraspingObject(vsComponent *object)
             if (collisionState & (1 << sensor))
             {
                 // Get the traversal path from the intersection object
-                sensorPath = sphIsect->getIsectPath(sensor);
+                sensorPath = sphIsect->getIntersection(sensor)->getPath();
 
                 // Scan the path array until we run out of nodes, or we find
                 // the object's node
-                node = 0;
-                while ((!thumbFlag) && (sensorPath->getData(node) != NULL))
+                node = (vsNode *) sensorPath->getFirstEntry();
+                while ((!thumbFlag) && (node != NULL))
                 {
                     // If the current path node matches the object's node
                     // the thumb is touching the object in question
-                    if (sensorPath->getData(node) == (void *)object)
+                    if (node == object)
                         thumbFlag = true;
 
                     // Move on to the next node
-                    node++;
+                    node = (vsNode *) sensorPath->getNextEntry();
                 }
             }
 
@@ -566,20 +567,20 @@ bool vsHandCollision::isGraspingObject(vsComponent *object)
                 if (collisionState & (1 << sensor))
                 {
                     // Get the traversal path from the intersection object
-                    sensorPath = sphIsect->getIsectPath(sensor);
+                    sensorPath = sphIsect->getIntersection(sensor)->getPath();
 
                     // Scan the path array until we run out of nodes, or we find
                     // the object's node
-                    node = 0;
-                    while ((!fingerFlag) && (sensorPath->getData(node) != NULL))
+                    node = (vsNode *) sensorPath->getFirstEntry();
+                    while ((!fingerFlag) && (node != NULL))
                     {
                         // If the current path node matches the object's node
                         // the thumb is touching the object in question
-                        if (sensorPath->getData(node) == (void *)object)
+                        if (node == object)
                             fingerFlag = true;
 
                         // Move on to the next node
-                        node++;
+                        node = (vsNode *) sensorPath->getNextEntry();
                     }
                 }
             }
@@ -594,61 +595,11 @@ bool vsHandCollision::isGraspingObject(vsComponent *object)
 }
 
 // ------------------------------------------------------------------------
-// Pass-through function for low-level access to the intersection valid
-// flag
+// Pass-through function for low-level access to the intersection results
 // ------------------------------------------------------------------------
-bool vsHandCollision::getIsectValid(int sensorIndex)
+vsIntersectResult *vsHandCollision::getIntersection(int sensorIndex)
 {
-    return sphIsect->getIsectValid(sensorIndex);
-}
-
-// ------------------------------------------------------------------------
-// Pass-through function for low-level access to the intersection point
-// ------------------------------------------------------------------------
-atVector vsHandCollision::getIsectPoint(int sensorIndex)
-{
-    return sphIsect->getIsectPoint(sensorIndex);
-}
-
-// ------------------------------------------------------------------------
-// Pass-through function for low-level access to the intersection normal
-// ------------------------------------------------------------------------
-atVector vsHandCollision::getIsectNorm(int sensorIndex)
-{
-    return sphIsect->getIsectNorm(sensorIndex);
-}
-
-// ------------------------------------------------------------------------
-// Pass-through function for low-level access to the intersection transform
-// ------------------------------------------------------------------------
-atMatrix vsHandCollision::getIsectXform(int sensorIndex)
-{
-    return sphIsect->getIsectXform(sensorIndex);
-}
-
-// ------------------------------------------------------------------------
-// Pass-through function for low-level access to the intersected primitive
-// index
-// ------------------------------------------------------------------------
-vsGeometry *vsHandCollision::getIsectGeometry(int sensorIndex)
-{
-    return sphIsect->getIsectGeometry(sensorIndex);
-}
-
-// ------------------------------------------------------------------------
-// Pass-through function for low-level access to the intersected geometry
-// ------------------------------------------------------------------------
-int vsHandCollision::getIsectPrimNum(int sensorIndex)
-{
-    return sphIsect->getIsectPrimNum(sensorIndex);
-}
-
-// ------------------------------------------------------------------------
-// Pass-through function for low-level access to the intersection path
-// ------------------------------------------------------------------------
-vsGrowableArray *vsHandCollision::getIsectPath(int sensorIndex)
-{
-    return sphIsect->getIsectPath(sensorIndex);
+    return sphIsect->getIntersection(sensorIndex);
 }
 
 // ------------------------------------------------------------------------
@@ -711,7 +662,7 @@ void vsHandCollision::update()
     for (i = 0; i < numSensors; i++)
     {
         // Check for collisions
-        if (sphIsect->getIsectValid(i))
+        if (sphIsect->getIntersection(i)->isValid())
         {
             // Set the collision flag to true
             hit = true;

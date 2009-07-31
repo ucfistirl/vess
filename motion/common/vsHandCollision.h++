@@ -81,13 +81,7 @@ public:
     bool                  isGraspingObject(vsComponent *object);
     unsigned long         getCollisionState();
 
-    bool                  getIsectValid(int sensorIndex);
-    atVector              getIsectPoint(int sensorIndex);
-    atVector              getIsectNorm(int sensorIndex);
-    atMatrix              getIsectXform(int sensorIndex);
-    vsGeometry            *getIsectGeometry(int sensorIndex);
-    int                   getIsectPrimNum(int sensorIndex);
-    vsGrowableArray       *getIsectPath(int sensorIndex);
+    vsIntersectResult     *getIntersection(int sensorIndex);
 
     void                  enableHighlighting();
     void                  disableHighlighting();
