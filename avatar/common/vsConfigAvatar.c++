@@ -26,10 +26,8 @@
 // ------------------------------------------------------------------------
 // Constructor
 // ------------------------------------------------------------------------
-vsConfigAvatar::vsConfigAvatar() : vsAvatar(), updateList(10, 10)
+vsConfigAvatar::vsConfigAvatar() : vsAvatar()
 {
-    // Initialize the list of updatable objects to empty
-    updateListSize = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -37,11 +35,8 @@ vsConfigAvatar::vsConfigAvatar() : vsAvatar(), updateList(10, 10)
 // Passes the specified scene graph through to the parent class'
 // constructor
 // ------------------------------------------------------------------------
-vsConfigAvatar::vsConfigAvatar(vsNode *scene) : vsAvatar(scene),
-    updateList(10, 10)
+vsConfigAvatar::vsConfigAvatar(vsNode *scene) : vsAvatar(scene)
 {
-    // Initialize the list of updatable objects to empty
-    updateListSize = 0;
 }
 
 // ------------------------------------------------------------------------
@@ -50,13 +45,6 @@ vsConfigAvatar::vsConfigAvatar(vsNode *scene) : vsAvatar(scene),
 // ------------------------------------------------------------------------
 vsConfigAvatar::~vsConfigAvatar()
 {
-    int loop;
-    
-    // Delete each object in the update list
-    for (loop = 0; loop < updateListSize; loop++)
-        if (updateList[loop])
-            delete ((vsUpdatable *)(updateList[loop]));
-
     // Delete any geometry loaded by this avatar
     if (geometryRoot)
     {
@@ -81,9 +69,9 @@ void vsConfigAvatar::update()
     int loop;
     
     // Send an update call to each object in the update list
-    for (loop = 0; loop < updateListSize; loop++)
-        if (updateList[loop])
-            ((vsUpdatable *)(updateList[loop]))->update();
+    for (loop = 0; loop < updateList.getNumEntries(); loop++)
+        if (updateList.getEntry(loop) != NULL)
+            ((vsUpdatable *)(updateList.getEntry(loop)))->update();
 }
 
 // ------------------------------------------------------------------------
@@ -98,9 +86,9 @@ void vsConfigAvatar::update()
 // ------------------------------------------------------------------------
 void vsConfigAvatar::setup()
 {
-    vsGrowableArray kinArray(10, 10);
-    int kinArraySize = 0;
+    vsArray kinArray;
     int loop;
+    char *objType;
 
     // If we're not currently initializing the avatar, abort
     if (!objectArray)
@@ -115,15 +103,16 @@ void vsConfigAvatar::setup()
     // list. Everything else is ignored.
     for (loop = 0; loop < objectCount; loop++)
     {
-        if (!strcmp((char *)(objTypeArray->getData(loop)), "vsKinematics"))
-            kinArray[kinArraySize++] = objectArray->getData(loop);
-        else if (!strcmp((char *)(objTypeArray->getData(loop)), "geometry"))
-            geometryRoot = (vsComponent *)(objectArray->getData(loop));
-        else if (!strncmp((char *)(objTypeArray->getData(loop)), "vs", 2))
-            updateList[updateListSize++] = objectArray->getData(loop);
+        objType = ((atString *)objTypeArray->getEntry(loop))->getString();
+        if (!strcmp(objType, "vsKinematics"))
+            kinArray.addEntry(objectArray->getEntry(loop));
+        else if (!strcmp(objType, "geometry"))
+            geometryRoot = (vsComponent *)(objectArray->getEntry(loop));
+        else if (!strncmp(objType, "vs", 2))
+            updateList.addEntry(objectArray->getEntry(loop));
     }
     
     // Add the stored vsKinematics objects to the end of the update list
-    for (loop = 0; loop < kinArraySize; loop++)
-        updateList[updateListSize++] = kinArray[loop];
+    for (loop = 0; loop < kinArray.getNumEntries(); loop++)
+        updateList.addEntry(kinArray.getEntry(loop));
 }

@@ -32,8 +32,7 @@ class VESS_SYM vsConfigAvatar : public vsAvatar
 {
 private:
 
-    vsGrowableArray    updateList;
-    int                updateListSize;
+    vsArray            updateList;
     
     virtual void       setup();
 
