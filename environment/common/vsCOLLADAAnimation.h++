@@ -17,7 +17,6 @@ protected:
 
     atString                         animationID;
     atMap                            *sources;
-    atMap                            *samplers;
     atList                           *channels;
     atList                           *children;
 

@@ -23,6 +23,9 @@ vsCOLLADAAnimation::vsCOLLADAAnimation(atString id, atXMLDocument *doc,
     atString childID;
     char tmpID[1024];
     vsCOLLADAAnimation *childAnim;
+    atList *idList;
+    atList *samplerList;
+    atString *samplerID;
 
     // Set the animation's ID
     animationID.setString(id);
@@ -66,6 +69,7 @@ vsCOLLADAAnimation::vsCOLLADAAnimation(atString id, atXMLDocument *doc,
             if (sampler->isValid())
             {
                 // Add the sampler to the samplers map
+                sampler->ref();
                 mapID = new atString(sampler->getID());
                 samplers->addEntry(mapID, sampler);
             }
@@ -108,6 +112,38 @@ vsCOLLADAAnimation::vsCOLLADAAnimation(atString id, atXMLDocument *doc,
         // Move on to the next node
         child = doc->getNextSiblingNode(child);
     }
+
+    // We're done with the map of samplers, so clean it up now.  First,
+    // get lists representing the data in the map of samplers we created
+    idList = new atList();
+    samplerList = new atList();
+    samplers->getSortedList(idList, samplerList);
+
+    // Unref/delete the samplers in the map
+    samplerID = (atString *)idList->getFirstEntry();
+    sampler = (vsCOLLADASampler *)samplerList->getFirstEntry();
+    while (sampler != NULL)
+    {
+        // Remove the entry from the map and the two lists
+        samplers->removeEntry(samplerID);
+        idList->removeCurrentEntry();
+        samplerList->removeCurrentEntry();
+
+        // Delete the ID
+        delete samplerID;
+
+        // Unref/delete the sampler
+        vsObject::unrefDelete(sampler);
+
+        // Get the next id/sampler pair
+        samplerID = (atString *)idList->getNextEntry();
+        sampler = (vsCOLLADASampler *)samplerList->getNextEntry();
+    }
+    
+    // Delete the lists and the samplers map
+    delete idList;
+    delete samplerList;
+    delete samplers;
 
     // Now, see if this animation has any children
     child = doc->getNextChildNode(current);
@@ -164,6 +200,8 @@ vsCOLLADAAnimation::vsCOLLADAAnimation(atString id, atXMLDocument *doc,
     atString childID;
     char tmpID[1024];
     vsCOLLADAAnimation *childAnim;
+    atList *samplerList;
+    atString *samplerID;
 
     // Set the animation's ID
     animationID.setString(id);
@@ -237,6 +275,7 @@ vsCOLLADAAnimation::vsCOLLADAAnimation(atString id, atXMLDocument *doc,
             if (sampler->isValid())
             {
                 // Add the sampler to the samplers map
+                sampler->ref();
                 mapID = new atString(sampler->getID());
                 samplers->addEntry(mapID, sampler);
             }
@@ -280,6 +319,38 @@ vsCOLLADAAnimation::vsCOLLADAAnimation(atString id, atXMLDocument *doc,
         child = doc->getNextSiblingNode(child);
     }
 
+    // We're done with the map of samplers, so clean it up now.  First,
+    // get lists representing the data in the map of samplers we created
+    idList = new atList();
+    samplerList = new atList();
+    samplers->getSortedList(idList, samplerList);
+
+    // Unref/delete the samplers in the map
+    samplerID = (atString *)idList->getFirstEntry();
+    sampler = (vsCOLLADASampler *)samplerList->getFirstEntry();
+    while (sampler != NULL)
+    {
+        // Remove the entry from the map and the two lists
+        samplers->removeEntry(samplerID);
+        idList->removeCurrentEntry();
+        samplerList->removeCurrentEntry();
+
+        // Delete the ID
+        delete samplerID;
+
+        // Unref/delete the sampler
+        vsObject::unrefDelete(sampler);
+
+        // Get the next id/sampler pair
+        samplerID = (atString *)idList->getNextEntry();
+        sampler = (vsCOLLADASampler *)samplerList->getNextEntry();
+    }
+    
+    // Delete the lists and the samplers map
+    delete idList;
+    delete samplerList;
+    delete samplers;
+
     // Now, see if this animation has any children
     child = doc->getNextChildNode(current);
     while (child != NULL)
@@ -321,6 +392,7 @@ vsCOLLADAAnimation::~vsCOLLADAAnimation()
     atString *sourceID;
     vsCOLLADADataSource *source;
     vsCOLLADAChannel *channel;
+    vsCOLLADAAnimation *child;
 
     // Get lists representing the data in the map of data sources inherited
     // from the parent animation
@@ -370,6 +442,23 @@ vsCOLLADAAnimation::~vsCOLLADAAnimation()
 
     // Delete the channel list
     delete channels;
+
+    // Unref/delete the child animations in the list of children
+    child = (vsCOLLADAAnimation *)children->getFirstEntry();
+    while (child != NULL)
+    {
+        // Remove the channel from the list
+        children->removeCurrentEntry();
+
+        // Unreference (maybe delete) the channel
+        vsObject::unrefDelete(child);
+
+        // Next channel
+        child = (vsCOLLADAAnimation *)children->getNextEntry();
+    }
+
+    // Delete the list of child animations
+    delete children;
 }
 
 // ------------------------------------------------------------------------
