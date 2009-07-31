@@ -1,10 +1,10 @@
 #ifndef VS_COLLADA_GEOMETRY_HPP
 #define VS_COLLADA_GEOMETRY_HPP
 
-#include "atList.h++"
 #include "atMap.h++"
 #include "atString.h++"
 #include "vsObject.h++"
+#include "vsList.h++"
 #include "vsCOLLADADataSource.h++"
 #include "vsCOLLADASubmesh.h++"
 #include "vsComponent.h++"
@@ -15,7 +15,7 @@ class VESS_SYM vsCOLLADAGeometry : public vsObject
 protected:
 
     atString  geometryID;
-    atList    *submeshList;
+    vsList    *submeshList;
     atMap     *dataSources;
 
     vsCOLLADADataSource    *getDataSource(atString id);

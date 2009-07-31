@@ -19,7 +19,7 @@ vsCOLLADAGeometry::vsCOLLADAGeometry(atString id, atXMLDocument *doc,
     geometryID.setString(id);
 
     // Create the list that will hold our submeshes
-    submeshList = new atList();
+    submeshList = new vsList();
 
     // Create the map that will hold our data sources
     dataSources = new atMap();
@@ -184,9 +184,11 @@ void vsCOLLADAGeometry::processSource(atXMLDocument *doc,
         sourceID = new atString(source->getID());
         dataSources->addEntry(sourceID, source);
     }
-else
-printf("Source %s is invalid (%d data items)\n", source->getID().getString(),
-    source->getDataCount());
+    else
+    {
+        printf("Source %s is invalid (%d data items)\n",
+            source->getID().getString(), source->getDataCount());
+    }
 }
 
 // ------------------------------------------------------------------------
