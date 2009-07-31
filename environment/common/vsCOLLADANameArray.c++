@@ -60,6 +60,9 @@ vsCOLLADANameArray::vsCOLLADANameArray(atXMLDocument *doc,
             // Try to parse the next item
             name = tokens->getToken(" \n\r\t");
         }
+
+        // Done with the tokenizer
+        delete tokens;
     }
 }
 

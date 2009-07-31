@@ -60,6 +60,9 @@ vsCOLLADAIDREFArray::vsCOLLADAIDREFArray(atXMLDocument *doc,
             // Try to parse the next item
             idref = tokens->getToken(" \n\r\t");
         }
+
+        // Done with the tokenizer
+        delete tokens;
     }
 }
 
