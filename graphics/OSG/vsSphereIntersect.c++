@@ -33,18 +33,16 @@
 // ------------------------------------------------------------------------
 // Constructor - Initializes the sphere list
 // ------------------------------------------------------------------------
-vsSphereIntersect::vsSphereIntersect() : sphereList(5, 10), currentPath(0, 10)
+vsSphereIntersect::vsSphereIntersect()
 {
     int loop;
 
     // Initialize the sphere list
     sphereListSize = 0;
 
-    // Initialize the path array
+    // Initialize the list of nodes in the current intersection path
     pathsEnabled = 0;
-    currentPathLength = 0;
-    for (loop = 0; loop < VS_SPH_ISECT_MAX_SPHERES; loop++)
-        sectPath[loop] = NULL;
+    currentPath = new vsList();
 
     // Initialize grouping traversal modes
     switchTravMode = VS_SPH_ISECT_SWITCH_CURRENT;
@@ -57,12 +55,8 @@ vsSphereIntersect::vsSphereIntersect() : sphereList(5, 10), currentPath(0, 10)
 // ------------------------------------------------------------------------
 vsSphereIntersect::~vsSphereIntersect()
 {
-    int loop;
-
-    // Clean up any intersect node paths that have been created
-    for (loop = 0; loop < VS_SPH_ISECT_MAX_SPHERES; loop++)
-        if (sectPath[loop] != NULL)
-            delete (sectPath[loop]);
+   // Clean up the list containing the current traversal path
+   delete currentPath;
 }
 
 // ------------------------------------------------------------------------
@@ -584,8 +578,8 @@ atVector vsSphereIntersect::getNormal(vsGeometry *geometry, int aIndex,
 
 // ------------------------------------------------------------------------
 // VESS internal function.  Tests the given sphere in the sphere list with
-// the given vsGeometry object.  Updates all intersection state object
-// variables for the given sphere index.
+// the given vsGeometry object.  Updates the appropriate intersection
+// result object in the results list as necessary
 // ------------------------------------------------------------------------
 void vsSphereIntersect::intersectWithGeometry(int sphIndex, 
                                               vsGeometry *geometry)
@@ -609,10 +603,13 @@ void vsSphereIntersect::intersectWithGeometry(int sphIndex,
     int closestPrim;
     atVector closestNormal;
     int closestVertIndices[3];
+    vsIntersectResult *sectResult;
+    vsList *sectPath;
     atVector distVec;
+    vsNode *currentNode;
 
     // Get the center point and radius of the sphere
-    sphere = (vsSphere *)sphereList[sphIndex];
+    sphere = (vsSphere *)sphereList.getEntry(sphIndex);
     center = sphere->getCenterPoint();
     radius = sphere->getRadius();
 
@@ -640,6 +637,8 @@ void vsSphereIntersect::intersectWithGeometry(int sphIndex,
             case VS_GEOMETRY_TYPE_LINE_STRIPS:
             case VS_GEOMETRY_TYPE_LINE_LOOPS:
                 // This method does not work with points or lines
+                // JPD:  This wouldn't be hard to implement at all, we should
+                //       do so at some point
                 return;
                 break;
  
@@ -683,7 +682,7 @@ void vsSphereIntersect::intersectWithGeometry(int sphIndex,
                 break;
         }
 
-        // Now intersect the sphere with each triangle of each primitive
+        // Now intersect the sphere with each triangle of the primitive
         for (j = 0; j < triCount; j++)
         {
             // Extract the jth triangle from the primitive.  This is 
@@ -691,42 +690,42 @@ void vsSphereIntersect::intersectWithGeometry(int sphIndex,
             switch (geometry->getPrimitiveType())
             {
                 case VS_GEOMETRY_TYPE_TRIS:
-                    // Get the three vertices of the triangle
+                    // Get indices for the three vertices of the triangle
                     aIndex = 3*i;
                     bIndex = 3*i + 1;
                     cIndex = 3*i + 2;
                     break;
 
                 case VS_GEOMETRY_TYPE_TRI_STRIPS:
-                    // Get the vertices of the jth triangle
+                    // Get the indices of the jth triangle
                     aIndex = lengthSum + j;
                     bIndex = lengthSum + j + 1;
                     cIndex = lengthSum + j + 2;
                     break;
 
                 case VS_GEOMETRY_TYPE_TRI_FANS:
-                    // Get the vertices of the jth triangle
+                    // Get the indices of the jth triangle
                     aIndex = lengthSum;
                     bIndex = lengthSum + j + 1;
                     cIndex = lengthSum + j + 2;
                     break;
 
                 case VS_GEOMETRY_TYPE_QUADS:
-                    // Get the vertices of the jth triangle
+                    // Get the indices of the jth triangle
                     aIndex = 4*i;
                     bIndex = 4*i + j + 1;
                     cIndex = 4*i + j + 2;
                     break;
 
                 case VS_GEOMETRY_TYPE_QUAD_STRIPS:
-                    // Get the vertices of the jth triangle
+                    // Get the indices of the jth triangle
                     aIndex = lengthSum + j;
                     bIndex = lengthSum + j + 1;
                     cIndex = lengthSum + j + 2;
                     break;
 
                 case VS_GEOMETRY_TYPE_POLYS:
-                    // Get the vertices of the jth triangle
+                    // Get the indices of the jth triangle
                     aIndex = lengthSum;
                     bIndex = lengthSum + j + 1;
                     cIndex = lengthSum + j + 2;
@@ -740,10 +739,27 @@ void vsSphereIntersect::intersectWithGeometry(int sphIndex,
                     break;
             }
 
-            // Get the three vertices from the triangle
-            a = geometry->getData(VS_GEOMETRY_VERTEX_COORDS, aIndex);
-            b = geometry->getData(VS_GEOMETRY_VERTEX_COORDS, bIndex);
-            c = geometry->getData(VS_GEOMETRY_VERTEX_COORDS, cIndex);
+            // See if this geometry is indexed
+            if (geometry->getIndexListSize() > 0)
+            {
+                // For each vertex, fetch the index into the vertex array, as
+                // indicated by the index into the index array
+                aIndex = geometry->getIndex(aIndex);
+                bIndex = geometry->getIndex(bIndex);
+                cIndex = geometry->getIndex(cIndex);
+
+                // Now, fetch the actual vertices
+                a = geometry->getData(VS_GEOMETRY_VERTEX_COORDS, aIndex);
+                b = geometry->getData(VS_GEOMETRY_VERTEX_COORDS, bIndex);
+                c = geometry->getData(VS_GEOMETRY_VERTEX_COORDS, cIndex);
+            }
+            else
+            {
+                // Not indexed, so fetch the vertices directly
+                a = geometry->getData(VS_GEOMETRY_VERTEX_COORDS, aIndex);
+                b = geometry->getData(VS_GEOMETRY_VERTEX_COORDS, bIndex);
+                c = geometry->getData(VS_GEOMETRY_VERTEX_COORDS, cIndex);
+            }
 
             // Transform the vertices using the transformation matrix
             // we've accumulated during our traversal
@@ -817,39 +833,37 @@ void vsSphereIntersect::intersectWithGeometry(int sphIndex,
         lengthSum += geometry->getPrimitiveLength(i);
     }
 
-    // Evaluate the closest point and see if we've found a collision
+    // Evaluate the closest point and see if we've found a closer intersection
+    // point
     if ((localSqrDist < closestSqrDist[sphIndex]) && 
         (localSqrDist < AT_SQR(radius)))
     {
-        // Set all the intersection parameters (valid flag, point, normal,
-        // transform, geometry, and primitive index)
-        validFlag[sphIndex] = true;
-        sectPoint[sphIndex] = closestPoint;
-        sectNorm[sphIndex] = closestNormal;
-        sectXform[sphIndex] = currentXform;
-        sectGeom[sphIndex] = geometry;
-        sectPrim[sphIndex] = closestPrim;
-        sectVertIndices[sphIndex][0] = closestVertIndices[0];
-        sectVertIndices[sphIndex][1] = closestVertIndices[1];
-        sectVertIndices[sphIndex][2] = closestVertIndices[2];
+        // Create a new intersection result for this intersection
+        sectResult = new vsIntersectResult(closestPoint, closestNormal,
+                                           currentXform, geometry,
+                                           closestPrim);
+
+        // Replace any existing result in the list with the new result
+        resultList.setEntry(sphIndex, sectResult);
+                                            
+        // Handle the intersection path, if it's enabled
+        if (pathsEnabled)
+        {
+            // Get the intersection path
+            sectPath = sectResult->getPath();
+
+            // Copy the current path into the sphere's intersect path slot
+            currentNode = (vsNode *) currentPath->getFirstEntry();
+            while (currentNode != NULL)
+            {
+                sectPath->addEntry(currentNode);
+                currentNode = (vsNode *) currentPath->getNextEntry();
+            }
+        }
 
         // Remember this distance as the closest distance for the current
         // sphere
         closestSqrDist[sphIndex] = localSqrDist;
-
-        // Handle the intersection path, if it's enabled
-        if (pathsEnabled)
-        {
-            // Create the array for the path, if necessary
-            if (sectPath[sphIndex] == NULL)
-                sectPath[sphIndex] = new vsGrowableArray(10, 10);
-
-            // Copy the current path into the sphere's intersect path slot
-            for (i = 0; i < currentPathLength; i++)
-                (sectPath[sphIndex])->setData(i, currentPath[i]);
-
-            (sectPath[sphIndex])->setData(currentPathLength, NULL);
-        }
     }
 }
 
@@ -887,10 +901,7 @@ void vsSphereIntersect::intersectSpheres(vsNode *targetNode)
     // Next, see if paths are enabled and add this node onto the
     // path
     if (pathsEnabled)
-    {
-        currentPath[currentPathLength] = targetNode;
-        currentPathLength++;
-    }
+        currentPath->addEntry(targetNode);
 
     // See if this is a leaf node or internal node of the graph
     if (targetNode->getNodeType() == VS_NODE_TYPE_GEOMETRY)
@@ -920,7 +931,7 @@ void vsSphereIntersect::intersectSpheres(vsNode *targetNode)
         // then against the geometry, if the bounding box test passes
         for (i = 0; i < sphereListSize; i++)
         {
-            if (intersectWithBox(*(vsSphere *)sphereList[i], osgBox))
+            if (intersectWithBox(*(vsSphere *)sphereList.getEntry(i), osgBox))
             {
                 intersectWithGeometry(i, (vsGeometry *)targetNode);
             }
@@ -1049,7 +1060,10 @@ void vsSphereIntersect::intersectSpheres(vsNode *targetNode)
 
     // Remove the current node from the current path
     if (pathsEnabled)
-        currentPathLength--;
+    {
+        currentPath->getLastEntry();
+        currentPath->removeCurrentEntry();
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -1057,15 +1071,7 @@ void vsSphereIntersect::intersectSpheres(vsNode *targetNode)
 // ------------------------------------------------------------------------
 void vsSphereIntersect::setSphereListSize(int newSize)
 {
-    int loop;
-
-    // Make sure we don't exceed the maximum list size
-    if (newSize > VS_SPH_ISECT_MAX_SPHERES)
-    {
-        printf("vsSphereIntersect::setSphereListSize: Sphere list is limited "
-            "to a size of %d spheres\n", VS_SPH_ISECT_MAX_SPHERES);
-       return;
-    }
+    int idx;
 
     // Make sure the list size is valid (non-negative)
     if (newSize < 0)
@@ -1080,14 +1086,17 @@ void vsSphereIntersect::setSphereListSize(int newSize)
     {
         // Unreference any vsSpheres we've created in the list slots 
         // that are going away.
-        for (loop = newSize; loop < sphereListSize; loop++)
-        {
-            delete (vsSphere *)(sphereList[loop]);
-        }
+        idx = newSize;
+        while (idx < sphereList.getNumEntries())
+            sphereList.removeEntryAtIndex(idx);
+
+        // Do the same with the intersect results
+        idx = newSize;
+        while (idx < resultList.getNumEntries())
+            resultList.removeEntryAtIndex(idx);
     }
     
-    // Re-size the list
-    sphereList.setSize(newSize);
+    // Set the new size
     sphereListSize = newSize;
 }
 
@@ -1107,6 +1116,8 @@ int vsSphereIntersect::getSphereListSize()
 void vsSphereIntersect::setSphere(int sphNum, atVector center, double radius)
 {
     atVector sphCenter;
+    vsSphere *sphere;
+    vsIntersectResult *result;
 
     // Make sure the sphere number is valid
     if ((sphNum < 0) || (sphNum >= sphereListSize))
@@ -1119,19 +1130,23 @@ void vsSphereIntersect::setSphere(int sphNum, atVector center, double radius)
     sphCenter.clearCopy(center);
     sphCenter.setSize(3);
 
+    // See if there is already a sphere at the given index
+    if (sphNum < sphereList.getNumEntries())
+        sphere = (vsSphere *) sphereList.getEntry(sphNum);
+    else
+        sphere = NULL;
+
     // Create the sphere structure if one is not already present
-    if (sphereList[sphNum] == NULL)
+    if (sphere == NULL)
     {
-        sphereList[sphNum] = new vsSphere(sphCenter, radius);
+        sphere = new vsSphere(sphCenter, radius);
+        sphereList.setEntry(sphNum, sphere);
     }
     else
-    {
-        ((vsSphere *)(sphereList[sphNum]))->setSphere(sphCenter, radius);
-    }
+        sphere->setSphere(sphCenter, radius);
 
-    // Mark the sphere's intersection invalid (in case intersect() is never
-    // called)
-    validFlag[sphNum] = false;
+    // Clear the results for this sphere (in case intersect() is never called)
+    resultList.setEntry(sphNum, NULL);
 }
 
 // ------------------------------------------------------------------------
@@ -1140,6 +1155,7 @@ void vsSphereIntersect::setSphere(int sphNum, atVector center, double radius)
 // ------------------------------------------------------------------------
 atVector vsSphereIntersect::getSphereCenter(int sphNum)
 {
+    vsSphere *sphere;
     atVector center;
     
     // Make sure the sphere number is valid
@@ -1151,7 +1167,11 @@ atVector vsSphereIntersect::getSphereCenter(int sphNum)
     }
     
     // Get the sphere's center point
-    center = ((vsSphere *)sphereList[sphNum])->getCenterPoint();
+    sphere = (vsSphere *) sphereList.getEntry(sphNum);
+    if (sphere != NULL)
+        center = sphere->getCenterPoint();
+    else
+        center = atVector(0.0, 0.0, 0.0);
 
     // Return the result
     return center;
@@ -1164,7 +1184,8 @@ atVector vsSphereIntersect::getSphereCenter(int sphNum)
 // ------------------------------------------------------------------------
 double vsSphereIntersect::getSphereRadius(int sphNum)
 {
-    double result;
+    vsSphere *sphere;
+    double radius;
     
     // Make sure the sphere number is valid
     if ((sphNum < 0) || (sphNum >= sphereListSize))
@@ -1174,11 +1195,15 @@ double vsSphereIntersect::getSphereRadius(int sphNum)
         return -1.0;
     }
     
-    // Get the sphere end point
-    result = ((vsSphere *)sphereList[sphNum])->getRadius();
+    // Get the sphere's radius
+    sphere = (vsSphere *) sphereList.getEntry(sphNum);
+    if (sphere != NULL)
+        radius = sphere->getRadius();
+    else
+        radius = 0.0;
 
     // Return the result
-    return result;
+    return radius;
 }
 
 // ------------------------------------------------------------------------
@@ -1278,7 +1303,9 @@ int vsSphereIntersect::getLODTravMode()
 // ------------------------------------------------------------------------
 void vsSphereIntersect::intersect(vsNode *targetNode)
 {
+    vsIntersectResult *result;
     vsSphere sphereArray[VS_SPH_ISECT_MAX_SPHERES];
+    vsSphere *tmpSphere;
     int i;
     vsSphere nodeBound;
     atVector center;
@@ -1288,14 +1315,11 @@ void vsSphereIntersect::intersect(vsNode *targetNode)
     if (sphereListSize <= 0)
         return;
 
-    // Initialize the intersection results
-    memset(validFlag, 0, sizeof(validFlag));
+    // Clean up the current intersection results list
+    resultList.removeAllEntries();
 
     // Initialize the current transform
     currentXform.setIdentity();
-
-    // Initialize the length of the intersection path
-    currentPathLength = 0;
 
     // Initialize the closest distance variables
     for (i = 0; i < sphereListSize; i++)
@@ -1306,7 +1330,7 @@ void vsSphereIntersect::intersect(vsNode *targetNode)
     // Construct a bounding sphere around the intersection spheres
     for (i = 0; i < sphereListSize; i++)
     {
-        sphereArray[i] = *((vsSphere *)sphereList[i]);
+        sphereArray[i] = vsSphere(*(vsSphere *)sphereList.getEntry(i));
     }
     boundSphere.encloseSpheres(sphereArray, sphereListSize);
 
@@ -1323,8 +1347,10 @@ void vsSphereIntersect::intersect(vsNode *targetNode)
 // Returns if the last intersection traversal found an intersection for
 // the specified sphere. The number of the first sphere is 0.
 // ------------------------------------------------------------------------
-bool vsSphereIntersect::getIsectValid(int sphNum)
+vsIntersectResult *vsSphereIntersect::getIntersection(int sphNum)
 {
+    vsIntersectResult *result;
+
     // Make sure the sphere number is valid
     if ((sphNum < 0) || (sphNum >= sphereListSize))
     {
@@ -1333,148 +1359,23 @@ bool vsSphereIntersect::getIsectValid(int sphNum)
         return 0;
     }
 
-    // Return the valid flag value of the corresponding sphere.  This will
-    // be true if there was a valid intersection with this sphere.
-    return validFlag[sphNum];
-}
-
-// ------------------------------------------------------------------------
-// Returns the point of intersection in global coordinates determined
-// during the last intersection traversal for the specified sphere. The
-// number of the first sphere is 0.
-// ------------------------------------------------------------------------
-atVector vsSphereIntersect::getIsectPoint(int sphNum)
-{
-    atVector errResult(3);
-
-    // Make sure the sphere number is valid
-    if ((sphNum < 0) || (sphNum >= sphereListSize))
+    // See if we have any results for this sphere
+    result = (vsIntersectResult *) resultList.getEntry(sphNum);
+    if (result == NULL)
     {
-        printf("vsSphereIntersect::getIsectPoint: Sphere number out of "
-            "bounds\n");
-        return errResult;
+        // Create an invalid result for this sphere and add it to the
+        // list
+        result = new vsIntersectResult();
+        resultList.setEntry(sphNum, result);
+
+        // Return the invalid result, indicating that this sphere didn't
+        // hit anything during the intersection
+        return result;
     }
-
-    // Return the point of intersection for this sphere
-    return sectPoint[sphNum];
-}
-
-// ------------------------------------------------------------------------
-// Returns the polygon normal in global coordinates at the point of
-// intersection determined during the last intersection traversal for the
-// specified sphere. The number of the first sphere is 0.
-// ------------------------------------------------------------------------
-atVector vsSphereIntersect::getIsectNorm(int sphNum)
-{
-    atVector errResult(3);
-
-    // Make sure the sphere number is valid
-    if ((sphNum < 0) || (sphNum >= sphereListSize))
+    else
     {
-        printf("vsSphereIntersect::getIsectNorm: Sphere number out of "
-            "bounds\n");
-        return errResult;
+        // Return the intersection results from the given sphere
+        return (vsIntersectResult *) resultList.getEntry(sphNum);
     }
-
-    // Return the normal vector at this sphere's intersection point
-    return sectNorm[sphNum];
 }
 
-// ------------------------------------------------------------------------
-// Returns a matrix containing the local-to-global coordinate transform for
-// the object intersected with during the last intersection traversal for
-// the specified sphere. Note that the point and normal values for the
-// same sphere already have this data multiplied in. The number of the
-// first sphere is 0.
-// ------------------------------------------------------------------------
-atMatrix vsSphereIntersect::getIsectXform(int sphNum)
-{
-    atMatrix errResult;
-
-    // Make sure this sphere number is valid
-    if ((sphNum < 0) || (sphNum >= sphereListSize))
-    {
-        printf("vsSphereIntersect::getIsectXform: Sphere number out of "
-            "bounds\n");
-
-        // Return an identity matrix
-        errResult.setIdentity();
-        return errResult;
-    }
-
-    // Return the global transform of this intersection
-    return sectXform[sphNum];
-}
-
-// ------------------------------------------------------------------------
-// Returns the geometry object intersected with determined during the last
-// intersection traversal for the specified sphere. The number of the
-// first sphere is 0.
-// ------------------------------------------------------------------------
-vsGeometry *vsSphereIntersect::getIsectGeometry(int sphNum)
-{
-    // Make sure the sphere number is valid
-    if ((sphNum < 0) || (sphNum >= sphereListSize))
-    {
-        printf("vsSphereIntersect::getIsectGeometry: Sphere number out of "
-            "bounds\n");
-        return NULL;
-    }
-
-    // Return the vsGeometry intersected by this sphere
-    return sectGeom[sphNum];
-}
-
-// ------------------------------------------------------------------------
-// Returns the index of the primitive within the geometry object
-// intersected with, determined during the last intersection traversal for
-// the specified sphere. The number of the first sphere is 0.
-// ------------------------------------------------------------------------
-int vsSphereIntersect::getIsectPrimNum(int sphNum)
-{
-    // Make sure the sphere number is valid
-    if ((sphNum < 0) || (sphNum >= sphereListSize))
-    {
-        printf("vsSphereIntersect::getIsectPrimNum: Sphere number out of "
-            "bounds\n");
-        return 0;
-    }
-
-    // Return the primitive index within the intersected vsGeometry
-    return sectPrim[sphNum];
-}
-
-// ------------------------------------------------------------------------
-// Returns a pointer to a vsGrowableArray containing the node path from the
-// scene root node to the intersected node. This array is reused by the
-// intersection object after each intersect call and should not be deleted.
-// Returns NULL if path calculation was not enabled during the last
-// intersection traversal, or if there was no intersection. The number of
-// the first sphere is 0.
-// ------------------------------------------------------------------------
-vsGrowableArray *vsSphereIntersect::getIsectPath(int sphNum)
-{
-    // Make sure the sphere number is valid
-    if ((sphNum < 0) || (sphNum >= sphereListSize))
-    {
-        printf("vsSphereIntersect::getIsectPath: Sphere number out of "
-            "bounds\n");
-        return NULL;
-    }
-
-    // Return NULL if traversal path tracking is not enabled
-    if (!pathsEnabled)
-        return NULL;
-
-    // Return the intersection node path for this sphere.
-    return sectPath[sphNum];
-}
-
-// ------------------------------------------------------------------------
-// Return the index into a geometry's data for the vertices of the
-// polygon where the intersection point was calculated to be.
-// ------------------------------------------------------------------------
-int vsSphereIntersect::getIsectVertIndex(int sphNum, int index)
-{
-    return sectVertIndices[sphNum][index];
-}

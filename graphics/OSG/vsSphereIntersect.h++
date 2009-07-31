@@ -23,11 +23,13 @@
 #ifndef VS_SPHERE_INTERSECT_HPP
 #define VS_SPHERE_INTERSECT_HPP
 
-#include "vsGrowableArray.h++"
-#include "vsSphere.h++"
+#include "atList.h++"
 #include "atMatrix.h++"
 #include "atVector.h++"
+#include "vsArray.h++"
 #include "vsGeometry.h++"
+#include "vsIntersectResult.h++"
+#include "vsSphere.h++"
 
 #define VS_SPH_ISECT_MAX_SPHERES 32
 
@@ -56,9 +58,10 @@ class VESS_SYM vsSphereIntersect
 {
 private:
 
-    vsGrowableArray    sphereList;
     int                sphereListSize;
     int                sphereListChanged;
+    vsArray            sphereList;
+    vsArray            resultList;
 
     vsSphere           boundSphere;
 
@@ -70,18 +73,7 @@ private:
     unsigned int       intersectMask;
 
     atMatrix           currentXform;
-    vsGrowableArray    currentPath;
-    int                currentPathLength;
-
-    // Intersection results
-    bool               validFlag[VS_SPH_ISECT_MAX_SPHERES];
-    atVector           sectPoint[VS_SPH_ISECT_MAX_SPHERES];
-    atVector           sectNorm[VS_SPH_ISECT_MAX_SPHERES];
-    atMatrix           sectXform[VS_SPH_ISECT_MAX_SPHERES];
-    vsGeometry         *sectGeom[VS_SPH_ISECT_MAX_SPHERES];
-    int                sectPrim[VS_SPH_ISECT_MAX_SPHERES];
-    vsGrowableArray    *sectPath[VS_SPH_ISECT_MAX_SPHERES];
-    int                sectVertIndices[VS_SPH_ISECT_MAX_SPHERES][3];
+    vsList             *currentPath;
 
     // Parametric coordinates used during computation of the closest point
     // on a triangle, and subsequent intersection evaluation 
@@ -110,41 +102,34 @@ private:
 
 public:
 
-                       vsSphereIntersect();
-    virtual            ~vsSphereIntersect();
+                        vsSphereIntersect();
+    virtual             ~vsSphereIntersect();
 
-    void               setSphereListSize(int newSize);
-    int                getSphereListSize();
+    void                setSphereListSize(int newSize);
+    int                 getSphereListSize();
 
-    void               setSphere(int sphNum, atVector center, double radius);
-    atVector           getSphereCenter(int sphNum);
-    double             getSphereRadius(int sphNum);
+    void                setSphere(int sphNum, atVector center, double radius);
+    atVector            getSphereCenter(int sphNum);
+    double              getSphereRadius(int sphNum);
 
-    void               setMask(unsigned int newMask);
-    unsigned int       getMask();
+    void                setMask(unsigned int newMask);
+    unsigned int        getMask();
 
-    void               enablePaths();
-    void               disablePaths();
+    void                enablePaths();
+    void                disablePaths();
 
-    void               setSwitchTravMode(int newMode);
-    int                getSwitchTravMode();
+    void                setSwitchTravMode(int newMode);
+    int                 getSwitchTravMode();
 
-    void               setSequenceTravMode(int newMode);
-    int                getSequenceTravMode();
+    void                setSequenceTravMode(int newMode);
+    int                 getSequenceTravMode();
 
-    void               setLODTravMode(int newMode);
-    int                getLODTravMode();
+    void                setLODTravMode(int newMode);
+    int                 getLODTravMode();
 
-    void               intersect(vsNode *targetNode);
+    void                intersect(vsNode *targetNode);
 
-    bool               getIsectValid(int sphNum);
-    atVector           getIsectPoint(int sphNum);
-    atVector           getIsectNorm(int sphNum);
-    atMatrix           getIsectXform(int sphNum);
-    vsGeometry         *getIsectGeometry(int sphNum);
-    int                getIsectPrimNum(int sphNum);
-    vsGrowableArray    *getIsectPath(int sphNum);
-    int                getIsectVertIndex(int sphNum, int index);
+    vsIntersectResult   *getIntersection(int sphNum);
 };
 
 #endif
