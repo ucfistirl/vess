@@ -23,18 +23,11 @@
 //------------------------------------------------------------------------
 
 #include "vsGeometryBase.h++"
-#include "vsComponent.h++"
-#include "vsBackfaceAttribute.h++"
-#include "vsFogAttribute.h++"
-#include "vsMaterialAttribute.h++"
-#include "vsShadingAttribute.h++"
+#include "vsGraphicsState.h++"
 #include "vsTextureAttribute.h++"
 #include "vsTextureCubeAttribute.h++"
 #include "vsTextureRectangleAttribute.h++"
 #include "vsTransformAttribute.h++"
-#include "vsTransparencyAttribute.h++"
-#include "vsWireframeAttribute.h++"
-#include "vsGraphicsState.h++"
 #include <osg/MatrixTransform>
 #include <stdio.h>
 
