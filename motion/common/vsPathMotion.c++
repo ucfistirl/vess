@@ -1,4 +1,4 @@
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 //
 //    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
 //
@@ -9,7 +9,7 @@
 //    E-mail:  vess@ist.ucf.edu
 //    WWW:     http://vess.ist.ucf.edu/
 //
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 //
 //    VESS Module:  vsPathMotion.c++
 //
@@ -18,17 +18,17 @@
 //
 //    Author(s):    Bryan Kline
 //
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
 #include "vsPathMotion.h++"
 
 #include "vsTimer.h++"
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Constructor
 // Initializes private variables
-//------------------------------------------------------------------------
-vsPathMotion::vsPathMotion(vsKinematics *kinematics) : pointList(0, 1)
+// ------------------------------------------------------------------------
+vsPathMotion::vsPathMotion(vsKinematics *kinematics)
 {
     // Reference the kinematics object
     objectKin = kinematics;
@@ -71,10 +71,10 @@ vsPathMotion::vsPathMotion(vsKinematics *kinematics) : pointList(0, 1)
     totalPathTime = 0.0;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Copy constructor.
-//------------------------------------------------------------------------
-vsPathMotion::vsPathMotion(vsPathMotion *original) : pointList(0, 1)
+// ------------------------------------------------------------------------
+vsPathMotion::vsPathMotion(vsPathMotion *original)
 {
     int index;
     vsPathMotionSegment *tempSeg;
@@ -110,48 +110,37 @@ vsPathMotion::vsPathMotion(vsPathMotion *original) : pointList(0, 1)
     totalPathTime = original->totalPathTime;
     
     // Loop through the list of segment points and copy them over.
-    setPointListSize(original->pointList.getSize()); 
+    setPointListSize(original->pointList.getNumEntries()); 
 
-    for(index = 0; index < original->pointList.getSize(); index++)
+    for(index = 0; index < original->pointList.getNumEntries(); index++)
     {
         // Get the segment data structure from the original path motion.
-        tempSeg = ((vsPathMotionSegment*)(original->pointList.getData(index)));
+        tempSeg = ((vsPathMotionSegment*)(original->pointList.getEntry(index)));
         
         // Make sure the segment is not NULL. If it is, we've reached the end
         // of the list, so break out of this loop.
-        if(tempSeg == NULL)
+        if (tempSeg == NULL)
         {
             break;
         }
         
         // Allocate new memory for this segment.
-        tempNewSeg = new vsPathMotionSegment;
-        
-        // Copy over the segment data.   
-        tempNewSeg->position = tempSeg->position;
-        tempNewSeg->orientation = tempSeg->orientation;
-        tempNewSeg->travelTime = tempSeg->travelTime;
-        tempNewSeg->pauseTime = tempSeg->pauseTime;
+        tempNewSeg = tempSeg->clone();
         
         // Add the new segment to our list.
-        pointList.setData(index, tempNewSeg);
+        pointList.setEntry(index, tempNewSeg);
     }
 }
             
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Destructor
 // Deletes privately allocated variables
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 vsPathMotion::~vsPathMotion()
 {
     // Unreference the kinematics object, and delete it if it is no
     // longer in use
     vsObject::unrefDelete(objectKin);
-
-    // Delete all of the currently allocated segment data by setting the
-    // size of the segment list to zero; the size-changing method will
-    // do the actual deletions
-    setPointListSize(0);
 }
 
 // ------------------------------------------------------------------------
@@ -162,51 +151,51 @@ const char *vsPathMotion::getClassName()
     return "vsPathMotion";
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Sets the position interpolation mode
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::setPositionMode(int mode)
 {
     posMode = mode;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the position interpolation mode
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 int vsPathMotion::getPositionMode()
 {
     return posMode;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Sets the orientation interpolation mode
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::setOrientationMode(int mode)
 {
     oriMode = mode;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the orientation interpolation mode
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 int vsPathMotion::getOrientationMode()
 {
     return oriMode;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Sets the path repetition mode
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::setCycleMode(int mode)
 {
     cycleMode = mode;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Sets the number of times to cycle through the path before stopping.
 // The constant VS_PATH_REPEAT_FOREVER directs the path to run an infinite
 // number of times.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::setCycleCount(int cycles)
 {
     if (cycleCount >= 0)
@@ -216,92 +205,92 @@ void vsPathMotion::setCycleCount(int cycles)
             cycles);
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the path repetition mode
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 int vsPathMotion::getCycleMode()
 {
     return cycleMode;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the number of times to cycle through the path before stopping.
 // A return value of VS_PATH_REPEAT_FOREVER indicates that the path is set
 // to run indefinitely.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 int vsPathMotion::getCycleCount()
 {
     return cycleCount;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Sets the radius of the circular arcs used for the corners of the path
 // when in position ROUNDED mode
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::setCornerRadius(double radius)
 {
     if (radius >= 0.0)
         roundCornerRadius = radius;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the radius of the circular arcs used for the corners of the path
 // when in position ROUNDED mode
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 double vsPathMotion::getCornerRadius()
 {
     return roundCornerRadius;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Sets the point to keep the orientation pointed towards when in ATPOINT
 // orientation interpolation mode
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::setLookAtPoint(atVector point)
 {
     lookPoint.clearCopy(point);
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the point to keep the orientation pointed towards when in ATPOINT
 // orientation interpolation mode
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 atVector vsPathMotion::getLookAtPoint()
 {
     return lookPoint;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Sets the 'up' direction for the path, which is used when the
 // orientation interpolation mode is ATPOINT or FORWARD, and which
 // determines how to calculate the roll component of the orientation,
 // which is unspecified in those modes. Passing in a zero vector for the
 // up direction causes the path to use the up direction from the previous
 // orientation each frame, causing a sort of 'free-rolling' effect.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::setUpDirection(atVector up)
 {
     upDirection.clearCopy(up);
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the 'up' direction for the path
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 atVector vsPathMotion::getUpDirection()
 {
     return upDirection;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Resizes the list of key points to the specified size. This method
 // should be called before any calls to modify the points themselves.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::setPointListSize(int size)
 {
     vsPathMotionSegment *segData;
 
     // Bounds checking
-    if ((size < 0) || (size > pointList.getMaxSize()))
+    if (size < 0)
     {
         printf("vsPathMotion::setPointListSize: 'size' parameter (%d) "
             "out of bounds\n", size);
@@ -313,22 +302,17 @@ void vsPathMotion::setPointListSize(int size)
     // size.
     if (size > pointCount)
     {
-        // Increase the size of the point list, and allocate new
-        // segment structures (set to default values) to fill the
-        // new spaces in the list.
-        pointList.setSize(size);
-
         while (pointCount < size)
         {
             // Create a new segment structure and set it to defaults
-            segData = new vsPathMotionSegment;
-            segData->position.set(0.0, 0.0, 0.0);
-            segData->orientation.set(0.0, 0.0, 0.0, 1.0);
-            segData->travelTime = 1.0;
-            segData->pauseTime = 0.0;
+            segData = new vsPathMotionSegment();
+            segData->setPosition(atVector(0.0, 0.0, 0.0));
+            segData->setOrientation(atQuat(0.0, 0.0, 0.0, 1.0));
+            segData->setTravelTime(1.0);
+            segData->setPauseTime(0.0);
 
             // Add the new structure to the list
-            pointList[pointCount] = segData;
+            pointList.setEntry(pointCount, segData);
 
             // Increment the point counter
             pointCount++;
@@ -340,32 +324,26 @@ void vsPathMotion::setPointListSize(int size)
         // structures that are getting discarded.
         while (pointCount > size)
         {
-            // Get the segment structure from the list
-            segData = (vsPathMotionSegment *)(pointList[pointCount-1]);
-
-            // Delete the segment structure
-            delete segData;
+            // Remove the segment at the appropriate index
+            pointList.removeEntryAtIndex(pointCount-1);
 
             // Decrement the point counter
             pointCount--;
         }
-
-        // Shrink the actual list
-        pointList.setSize(size);
     }
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the current size of the point list
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 int vsPathMotion::getPointListSize()
 {
     return pointCount;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Sets the position of one of the key points of the path
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::setPosition(int point, atVector position)
 {
     vsPathMotionSegment *segData;
@@ -379,15 +357,15 @@ void vsPathMotion::setPosition(int point, atVector position)
     }
 
     // Get the segment structure from the points array
-    segData = (vsPathMotionSegment *)(pointList[point]);
+    segData = (vsPathMotionSegment *)(pointList.getEntry(point));
 
     // Set the position, forcing the vector size to stay 3
-    segData->position.clearCopy(position);
+    segData->setPosition(position);
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Sets the orientation of the of the key points of the path
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::setOrientation(int point, atQuat orientation)
 {
     vsPathMotionSegment *segData;
@@ -401,16 +379,16 @@ void vsPathMotion::setOrientation(int point, atQuat orientation)
     }
 
     // Get the segment structure from the points array
-    segData = (vsPathMotionSegment *)(pointList[point]);
+    segData = (vsPathMotionSegment *)(pointList.getEntry(point));
 
     // Set the orientation
-    segData->orientation = orientation;
+    segData->setOrientation(orientation);
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Sets the traversal time for the segment of the path located between
 // this point and the next point on the path
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::setTime(int point, double seconds)
 {
     vsPathMotionSegment *segData;
@@ -424,18 +402,18 @@ void vsPathMotion::setTime(int point, double seconds)
     }
 
     // Get the segment structure from the points array
-    segData = (vsPathMotionSegment *)(pointList[point]);
+    segData = (vsPathMotionSegment *)(pointList.getEntry(point));
 
     // Set the travel time
-    segData->travelTime = seconds;
+    segData->setTravelTime(seconds);
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Sets the amount of time to wait at this point before continuing on to
 // traverse the next segment of the path. Specifying the constant
 // VS_PATH_WAIT_FOREVER for the time causes the path to go into PAUSED
 // mode, to wait at this point until a resume call is made.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::setPauseTime(int point, double seconds)
 {
     vsPathMotionSegment *segData;
@@ -449,15 +427,15 @@ void vsPathMotion::setPauseTime(int point, double seconds)
     }
 
     // Get the segment structure from the points array
-    segData = (vsPathMotionSegment *)(pointList[point]);
+    segData = (vsPathMotionSegment *)(pointList.getEntry(point));
 
     // Set the pause time
-    segData->pauseTime = seconds;
+    segData->setPauseTime(seconds);
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the position of one of the key points of the path
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 atVector vsPathMotion::getPosition(int point)
 {
     vsPathMotionSegment *segData;
@@ -471,15 +449,15 @@ atVector vsPathMotion::getPosition(int point)
     }
 
     // Get the segment structure from the points array
-    segData = (vsPathMotionSegment *)(pointList[point]);
+    segData = (vsPathMotionSegment *)(pointList.getEntry(point));
 
     // Get the position
-    return segData->position;
+    return segData->getPosition();
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the orientation of the of the key points of the path
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 atQuat vsPathMotion::getOrientation(int point)
 {
     vsPathMotionSegment *segData;
@@ -493,16 +471,16 @@ atQuat vsPathMotion::getOrientation(int point)
     }
 
     // Get the segment structure from the points array
-    segData = (vsPathMotionSegment *)(pointList[point]);
+    segData = (vsPathMotionSegment *)(pointList.getEntry(point));
 
     // Get the orientation
-    return segData->orientation;
+    return segData->getOrientation();
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the traversal time for the segment of the path located between
 // this point and the next point on the path
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 double vsPathMotion::getTime(int point)
 {
     vsPathMotionSegment *segData;
@@ -516,18 +494,18 @@ double vsPathMotion::getTime(int point)
     }
 
     // Get the segment structure from the points array
-    segData = (vsPathMotionSegment *)(pointList[point]);
+    segData = (vsPathMotionSegment *)(pointList.getEntry(point));
 
     // Get the travel time
-    return segData->travelTime;
+    return segData->getTravelTime();
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the amount of time to wait at this point before continuing on to
 // traverse the next segment of the path. The constant
 // VS_PATH_WAIT_FOREVER indicates the path should go into PAUSED mode, to
 // wait at this point until a resume call is made.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 double vsPathMotion::getPauseTime(int point)
 {
     vsPathMotionSegment *segData;
@@ -541,27 +519,28 @@ double vsPathMotion::getPauseTime(int point)
     }
 
     // Get the segment structure from the points array
-    segData = (vsPathMotionSegment *)(pointList[point]);
+    segData = (vsPathMotionSegment *)(pointList.getEntry(point));
 
     // Set the pause time
-    return segData->pauseTime;
+    return segData->getPauseTime();
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Automatically calculates the amount of time to spend travelling each
 // segment of the path, based on the lengths of each of the path segments
 // and the total length of the path. Requires that the positions of each
 // of the key points are already set, and the position interpolation mode
 // is already set. Has no effect if the position interpolation mode is
 // NONE.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::autoSetTimes(double totalPathSeconds)
 {
     double *segmentLengths;
     double totalPathLength;
     int loop;
     vsPathMotionSegment *segment;
-    atVector *prevPos, *currentPos, *nextPos, *nextNextPos;
+    atVector prevPos, currentPos, nextPos, nextNextPos;
+    atVector *prevPosPt, *currentPosPt, *nextPosPt, *nextNextPosPt;
 
     // Check for NONE position interpolation mode
     if (posMode == VS_PATH_POS_IMODE_NONE)
@@ -588,48 +567,60 @@ void vsPathMotion::autoSetTimes(double totalPathSeconds)
         // Previous
         segment = getSegmentData(loop - 1);
         if (segment)
-            prevPos = &(segment->position);
+        {
+            prevPos = segment->getPosition();
+            prevPosPt = &prevPos;
+        }
         else
-            prevPos = NULL;
+            prevPosPt = NULL;
 
         // Current
         segment = getSegmentData(loop);
         if (segment)
-            currentPos = &(segment->position);
+        {
+            currentPos = segment->getPosition();
+            currentPosPt = &currentPos;
+        }
         else
-            currentPos = NULL;
+            currentPosPt = NULL;
 
         // Next
         segment = getSegmentData(loop + 1);
         if (segment)
-            nextPos = &(segment->position);
+        {
+            nextPos = segment->getPosition();
+            nextPosPt = &nextPos;
+        }
         else
-            nextPos = NULL;
+            nextPosPt = NULL;
 
         // One-after-next
         segment = getSegmentData(loop + 2);
         if (segment)
-            nextNextPos = &(segment->position);
+        {
+            nextNextPos = segment->getPosition();
+            nextNextPosPt = &nextNextPos;
+        }
         else
-            nextNextPos = NULL;
+            nextNextPosPt = NULL;
 
         // Calculate the length of the segment represented by the four
         // points
         switch (posMode)
         {
             case VS_PATH_POS_IMODE_LINEAR:
-                segmentLengths[loop] = calcSegLengthLinear(currentPos,
-                    nextPos);
+                segmentLengths[loop] = calcSegLengthLinear(currentPosPt,
+                    nextPosPt);
                 break;
 
             case VS_PATH_POS_IMODE_ROUNDED:
-                segmentLengths[loop] = calcSegLengthRoundCorner(prevPos,
-                    currentPos, nextPos, nextNextPos);
+                segmentLengths[loop] = calcSegLengthRoundCorner(prevPosPt,
+                    currentPosPt, nextPosPt, nextNextPosPt);
                 break;
 
             case VS_PATH_POS_IMODE_SPLINE:
-                segmentLengths[loop] = calcSegLengthSpline(prevPos,
-                    currentPos, nextPos, nextNextPos);
+                segmentLengths[loop] = calcSegLengthSpline(prevPosPt,
+                    currentPosPt, nextPosPt, nextNextPosPt);
                 break;
 
             default:
@@ -646,8 +637,8 @@ void vsPathMotion::autoSetTimes(double totalPathSeconds)
     // segment's length
     for (loop = 0; loop < pointCount; loop++)
     {
-        segment = (vsPathMotionSegment *)(pointList[loop]);
-        segment->travelTime = ((segmentLengths[loop] / totalPathLength) *
+        segment = (vsPathMotionSegment *)(pointList.getEntry(loop));
+        segment->setTravelTime((segmentLengths[loop] / totalPathLength) *
             totalPathSeconds);
     }
 
@@ -655,9 +646,9 @@ void vsPathMotion::autoSetTimes(double totalPathSeconds)
     free(segmentLengths);
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Starts the path motion
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::startResume()
 {
     // If we're stopped, reset the path information before starting
@@ -671,42 +662,42 @@ void vsPathMotion::startResume()
     currentPlayMode = VS_PATH_PLAYING;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Pauses the path motion
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::pause()
 {
     currentPlayMode = VS_PATH_PAUSED;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Stops the path motion, resetting it back to the beginning
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::stop()
 {
     currentPlayMode = VS_PATH_STOPPED;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the current play mode
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 int vsPathMotion::getPlayMode()
 {
     return currentPlayMode;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the index of the path segment that we're currently traversing
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 int vsPathMotion::getCurrentSegment()
 {
     return currentSegmentIdx;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Sets any or all of the data in the object from the instructions
 // contained in the specified external data file
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::configureFromFile(char *filename)
 {
     FILE *infile;
@@ -890,26 +881,28 @@ void vsPathMotion::configureFromFile(char *filename)
     fclose(infile);
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // The default update function for the vsPathMotion. Since no delta-time
 // was supplied, it simply calls the main update function with the
 // delta-time determined from the system clock.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::update()
 {
    update((vsTimer::getSystemTimer())->getInterval());
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Updates the motion model by creating new interpolations for the current
 // position and orientation, and applies them to the model's kinematics
 // object. The deltaTime should be measured in seconds.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::update(double deltaTime)
 {
     vsPathMotionSegment *prevSeg, *currentSeg, *nextSeg, *nextNextSeg;
-    atVector *prevSegPos, *currentSegPos, *nextSegPos, *nextNextSegPos;
-    atQuat *prevSegOri, *currentSegOri, *nextSegOri, *nextNextSegOri;
+    atVector prevSegPos, currentSegPos, nextSegPos, nextNextSegPos;
+    atVector *prevSegPosPt, *currentSegPosPt, *nextSegPosPt, *nextNextSegPosPt;
+    atQuat prevSegOri, currentSegOri, nextSegOri, nextNextSegOri;
+    atQuat *prevSegOriPt, *currentSegOriPt, *nextSegOriPt, *nextNextSegOriPt;
     double frameTime, segmentTotalTime;
     atVector newPosition;
     atQuat newOrientation;
@@ -932,13 +925,14 @@ void vsPathMotion::update(double deltaTime)
         frameTime = deltaTime;
 
         // Get the data for the current segment
-        currentSeg = (vsPathMotionSegment *)(pointList[currentSegmentIdx]);
+        currentSeg = (vsPathMotionSegment *)
+            (pointList.getEntry(currentSegmentIdx));
 
         // Determine how much time we actually need to spend on this
         // segment, counting in temporary pauses
-        segmentTotalTime = currentSeg->travelTime;
-        if (currentSeg->pauseTime > 0.0)
-            segmentTotalTime += currentSeg->pauseTime;
+        segmentTotalTime = currentSeg->getTravelTime();
+        if (currentSeg->getPauseTime() > 0.0)
+            segmentTotalTime += currentSeg->getPauseTime();
 
         // Add the 'time last frame' value to the time spent on the
         // current segment
@@ -974,22 +968,24 @@ void vsPathMotion::update(double deltaTime)
                 // on the path to the end of the path
                 currentPlayMode = VS_PATH_STOPPED;
                 currentSegmentIdx = pointCount - 1;
-                currentSeg = (vsPathMotionSegment *)(pointList[currentSegmentIdx]);
-                currentSegmentTime = currentSeg->travelTime;
-                if (currentSeg->pauseTime > 0.0)
-                    currentSegmentTime += currentSeg->pauseTime;
+                currentSeg = (vsPathMotionSegment *)
+                    (pointList.getEntry(currentSegmentIdx));
+                currentSegmentTime = currentSeg->getTravelTime();
+                if (currentSeg->getPauseTime() > 0.0)
+                    currentSegmentTime += currentSeg->getPauseTime();
                 break;
             }
 
             // Get the data corresponding to the new segment
-            currentSeg = (vsPathMotionSegment *)(pointList[currentSegmentIdx]);
+            currentSeg = (vsPathMotionSegment *)
+                (pointList.getEntry(currentSegmentIdx));
 
             // If the new segment has a negative pause time, then go
             // into 'pause indefinitely' mode. Set the current time on the
             // segment to zero, so that the computation step will place
             // the position and orientation at the beginning of this
             // segment.
-            if (currentSeg->pauseTime < 0.0)
+            if (currentSeg->getPauseTime() < 0.0)
             {
                 currentPlayMode = VS_PATH_PAUSED;
                 currentSegmentTime = 0.0;
@@ -1004,13 +1000,13 @@ void vsPathMotion::update(double deltaTime)
             if ((currentSegmentIdx == (pointCount - 1)) &&
                 (cycleMode == VS_PATH_CYCLE_RESTART))
             {
-                currentSeg->travelTime = 0.0;
+                currentSeg->setTravelTime(0.0);
             }
 
             // Calculate the new segment total path time
-            segmentTotalTime = currentSeg->travelTime;
-            if (currentSeg->pauseTime > 0.0)
-                segmentTotalTime += currentSeg->pauseTime;
+            segmentTotalTime = currentSeg->getTravelTime();
+            if (currentSeg->getPauseTime() > 0.0)
+                segmentTotalTime += currentSeg->getPauseTime();
 
         } // if (currentSegmentTime >= segmentTotalTime)
         
@@ -1049,22 +1045,24 @@ void vsPathMotion::update(double deltaTime)
                 // on the path to the end of the path
                 currentPlayMode = VS_PATH_STOPPED;
                 currentSegmentIdx = pointCount - 1;
-                currentSeg = (vsPathMotionSegment *)(pointList[currentSegmentIdx]);
-                currentSegmentTime = currentSeg->travelTime;
-                if (currentSeg->pauseTime > 0.0)
-                    currentSegmentTime += currentSeg->pauseTime;
+                currentSeg = (vsPathMotionSegment *)
+                    (pointList.getEntry(currentSegmentIdx));
+                currentSegmentTime = currentSeg->getTravelTime();
+                if (currentSeg->getPauseTime() > 0.0)
+                    currentSegmentTime += currentSeg->getPauseTime();
                 break;
             }
 
             // Get the data corresponding to the new segment
-            currentSeg = (vsPathMotionSegment *)(pointList[currentSegmentIdx]);
+            currentSeg = (vsPathMotionSegment *)
+                (pointList.getEntry(currentSegmentIdx));
 
             // If the new segment has a negative pause time, then go
             // into 'pause indefinitely' mode. Set the current time on the
             // segment to zero, so that the computation step will place
             // the position and orientation at the beginning of this
             // segment.
-            if (currentSeg->pauseTime < 0.0)
+            if (currentSeg->getPauseTime() < 0.0)
             {
                 currentPlayMode = VS_PATH_PAUSED;
                 currentSegmentTime = 0.0;
@@ -1079,13 +1077,13 @@ void vsPathMotion::update(double deltaTime)
             if ((currentSegmentIdx == 0) &&
                 (cycleMode == VS_PATH_CYCLE_RESTART))
             {
-                currentSeg->travelTime = 0.0;
+                currentSeg->setTravelTime(0.0);
             }
 
             // Calculate the new segment total path time
-            segmentTotalTime = currentSeg->travelTime;
-            if (currentSeg->pauseTime > 0.0)
-                segmentTotalTime += currentSeg->pauseTime;
+            segmentTotalTime = currentSeg->getTravelTime();
+            if (currentSeg->getPauseTime() > 0.0)
+                segmentTotalTime += currentSeg->getPauseTime();
 
         }
     } // if (currentPlayMode == VS_PATH_PLAYING)
@@ -1118,11 +1116,11 @@ void vsPathMotion::update(double deltaTime)
     // Compute the interpolation parameter, which in this case is the
     // amount of time spent on this segment (minus the pause time, if any)
     // over the total travel time for the segment.
-    if (currentSeg->pauseTime > 0.0)
-        parameter = (currentSegmentTime - currentSeg->pauseTime) /
-            currentSeg->travelTime;
+    if (currentSeg->getPauseTime() > 0.0)
+        parameter = (currentSegmentTime - currentSeg->getPauseTime()) /
+            currentSeg->getTravelTime();
     else
-        parameter = currentSegmentTime / currentSeg->travelTime;
+        parameter = currentSegmentTime / currentSeg->getTravelTime();
             
     if (parameter < 0.0)
         parameter = 0.0;
@@ -1131,21 +1129,33 @@ void vsPathMotion::update(double deltaTime)
 
     // Get the positions from the segments
     if (prevSeg)
-        prevSegPos = &(prevSeg->position);
+    {
+        prevSegPos = prevSeg->getPosition();
+        prevSegPosPt = &prevSegPos;
+    }
     else
-        prevSegPos = NULL;
+        prevSegPosPt = NULL;
     if (currentSeg)
-        currentSegPos = &(currentSeg->position);
+    {
+        currentSegPos = currentSeg->getPosition();
+        currentSegPosPt = &currentSegPos;
+    }
     else
-        currentSegPos = NULL;
+        currentSegPosPt = NULL;
     if (nextSeg)
-        nextSegPos = &(nextSeg->position);
+    {
+        nextSegPos = nextSeg->getPosition();
+        nextSegPosPt = &nextSegPos;
+    }
     else
-        nextSegPos = NULL;
+        nextSegPosPt = NULL;
     if (nextNextSeg)
-        nextNextSegPos = &(nextNextSeg->position);
+    {
+        nextNextSegPos = nextNextSeg->getPosition();
+        nextNextSegPosPt = &nextNextSegPos;
+    }
     else
-        nextNextSegPos = NULL;
+        nextNextSegPosPt = NULL;
 
     // Interpolate the position based on the interpolation mode
     switch (posMode)
@@ -1155,38 +1165,50 @@ void vsPathMotion::update(double deltaTime)
             break;
 
         case VS_PATH_POS_IMODE_LINEAR:
-            newPosition = interpolatePosLinear(currentSegPos, nextSegPos,
+            newPosition = interpolatePosLinear(currentSegPosPt, nextSegPosPt,
                 parameter);
             break;
 
         case VS_PATH_POS_IMODE_ROUNDED:
-            newPosition = interpolatePosRoundCorner(prevSegPos,
-                currentSegPos, nextSegPos, nextNextSegPos, parameter);
+            newPosition = interpolatePosRoundCorner(prevSegPosPt,
+                currentSegPosPt, nextSegPosPt, nextNextSegPosPt, parameter);
             break;
 
         case VS_PATH_POS_IMODE_SPLINE:
-            newPosition = interpolatePosSpline(prevSegPos, currentSegPos,
-                nextSegPos, nextNextSegPos, parameter);
+            newPosition = interpolatePosSpline(prevSegPosPt, currentSegPosPt,
+                nextSegPosPt, nextNextSegPosPt, parameter);
             break;
     }
 
     // Get the orientations from the segments
     if (prevSeg)
-        prevSegOri = &(prevSeg->orientation);
+    {
+        prevSegOri = prevSeg->getOrientation();
+        prevSegOriPt = &prevSegOri;
+    }
     else
-        prevSegOri = NULL;
+        prevSegOriPt = NULL;
     if (currentSeg)
-        currentSegOri = &(currentSeg->orientation);
+    {
+        currentSegOri = currentSeg->getOrientation();
+        currentSegOriPt = &currentSegOri;
+    }
     else
-        currentSegOri = NULL;
+        currentSegOriPt = NULL;
     if (nextSeg)
-        nextSegOri = &(nextSeg->orientation);
+    {
+        nextSegOri = nextSeg->getOrientation();
+        nextSegOriPt = &nextSegOri;
+    }
     else
-        nextSegOri = NULL;
+        nextSegOriPt = NULL;
     if (nextNextSeg)
-        nextNextSegOri = &(nextNextSeg->orientation);
+    {
+        nextNextSegOri = nextNextSeg->getOrientation();
+        nextNextSegOriPt = &nextNextSegOri;
+    }
     else
-        nextNextSegOri = NULL;
+        nextNextSegOriPt = NULL;
 
     // Then interpolate the orientation based on the interpolation mode
     switch (oriMode)
@@ -1196,13 +1218,13 @@ void vsPathMotion::update(double deltaTime)
             break;
 
         case VS_PATH_ORI_IMODE_SLERP:
-            newOrientation = interpolateOriSlerp(currentSegOri, nextSegOri,
+            newOrientation = interpolateOriSlerp(currentSegOriPt, nextSegOriPt,
                 parameter);
             break;
 
         case VS_PATH_ORI_IMODE_SPLINE:
-            newOrientation = interpolateOriSpline(prevSegOri, currentSegOri,
-                nextSegOri, nextNextSegOri, parameter);
+            newOrientation = interpolateOriSpline(prevSegOriPt, currentSegOriPt,
+                nextSegOriPt, nextNextSegOriPt, parameter);
             break;
 
         case VS_PATH_ORI_IMODE_ATPOINT:
@@ -1225,27 +1247,27 @@ void vsPathMotion::update(double deltaTime)
     }
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the current position
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 atVector vsPathMotion::getCurrentPosition()
 {
     return currentPos;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Gets the current orientation
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 atQuat vsPathMotion::getCurrentOrientation()
 {
     return currentOri;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Private function
 // Calculates the linear (straight line) length of the path segment
 // defined by the two points. Returns zero if either parameter is NULL.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 double vsPathMotion::calcSegLengthLinear(atVector *vec1, atVector *vec2)
 {
     // NULL parameter check
@@ -1256,7 +1278,7 @@ double vsPathMotion::calcSegLengthLinear(atVector *vec1, atVector *vec2)
     return (*vec1 - *vec2).getMagnitude();
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Private function
 // Calculates the length of the path segment defined by the two points
 // vec1 and vec2, accounting for the rounded-corner property of the ends
@@ -1264,7 +1286,7 @@ double vsPathMotion::calcSegLengthLinear(atVector *vec1, atVector *vec2)
 // circular arcs at the ends of the segment. Returns zero if vec1 or vec2
 // are NULL. Assumes no arc for the beginning or end of the segment if
 // vec0 or vec3 are NULL, respectively.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 double vsPathMotion::calcSegLengthRoundCorner(atVector *vec0, atVector *vec1,
     atVector *vec2, atVector *vec3)
 {
@@ -1371,14 +1393,14 @@ double vsPathMotion::calcSegLengthRoundCorner(atVector *vec0, atVector *vec1,
     return result;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Private function
 // Calculates the length of the path segment defined by the two points
 // vec1 and vec2, accounting for the cubic-spline property of the segment.
 // Uses vec0 and vec3 to calculate the normals of the spline curve at the
 // end points of the segment. Returns zero if vec1 or vec2 are NULL.
 // Assumes values for vec0 and vec3 if either is NULL.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 double vsPathMotion::calcSegLengthSpline(atVector *vec0, atVector *vec1,
     atVector *vec2, atVector *vec3)
 {
@@ -1398,10 +1420,10 @@ double vsPathMotion::calcSegLengthSpline(atVector *vec0, atVector *vec1,
             calcSubsegLengthSpline(vec0, vec1, vec2, vec3, 0.75, 1.00));
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Private function
 // Helper function used by spline arc length calculations
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 double vsPathMotion::calcSubsegLengthSpline(atVector *vec0, atVector *vec1,
     atVector *vec2, atVector *vec3, double start, double end)
 {
@@ -1444,12 +1466,12 @@ double vsPathMotion::calcSubsegLengthSpline(atVector *vec0, atVector *vec1,
             calcSubsegLengthSpline(vec0, vec1, vec2, vec3, mid, end));
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Private function
 // Calculates a point on the path segment specified by the two points
 // using linear interpolation. Returns one of the points if the other
 // point is NULL, or a zero vector if both points are NULL.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 atVector vsPathMotion::interpolatePosLinear(atVector *vec1, atVector *vec2,
     double parameter)
 {
@@ -1468,14 +1490,14 @@ atVector vsPathMotion::interpolatePosLinear(atVector *vec1, atVector *vec2,
     return result;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Private function
 // Calculates a point on the rounded-corner path segment specified by the
 // points vec1 and vec2. Uses vec0 and vec3 to calculate the circular arcs
 // at the ends of the segment. Returns one of vec1 or vec2 if the other
 // is NULL, or a zero vector if both are NULL. Assumes no arc for the
 // beginning or end of the segment of vec0 or vec3 are NULL, respectively.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 atVector vsPathMotion::interpolatePosRoundCorner(atVector *vec0, atVector *vec1,
     atVector *vec2, atVector *vec3, double parameter)
 {
@@ -1657,14 +1679,14 @@ atVector vsPathMotion::interpolatePosRoundCorner(atVector *vec0, atVector *vec1,
     return result;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Private function
 // Calculates a point on the spline-based path segment specified by the
 // points vec1 and vec2. Uses vec0 and vec3 to calculate the tangents of
 // the spline curve at the end points of the segment. Returns one of vec1
 // or vec2 if the other is NULL, or a zero vector if both are NULL.
 // Assumes values for vec0 and vec3 if either is NULL.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 atVector vsPathMotion::interpolatePosSpline(atVector *vec0, atVector *vec1,
     atVector *vec2, atVector *vec3, double parameter)
 {
@@ -1720,13 +1742,13 @@ atVector vsPathMotion::interpolatePosSpline(atVector *vec0, atVector *vec1,
     return result;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Private function
 // Calculates a quaternion that is interpolated between the two given
 // rotational quaternions using spherical linear interpolation. Returns
 // one of the quaterions if the other is NULL, or a no-rotation quaternion
 // if they are both NULL.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 atQuat vsPathMotion::interpolateOriSlerp(atQuat *ori1, atQuat *ori2,
     double parameter)
 {
@@ -1744,7 +1766,7 @@ atQuat vsPathMotion::interpolateOriSlerp(atQuat *ori1, atQuat *ori2,
     return (ori1->slerp(*ori2, parameter));
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Private function
 // Calculates a quaternion that is interpolated between the two given
 // rotational quaternions ori1 and ori2 using spline interpolation. The
@@ -1752,7 +1774,7 @@ atQuat vsPathMotion::interpolateOriSlerp(atQuat *ori1, atQuat *ori2,
 // orientations at the ends of the spline segment. Returns one of ori1 or
 // ori2 if the other is NULL, or a no-rotation quaternion if they are both
 // NULL. Assumes values for ori0 or ori3 if either is NULL.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 atQuat vsPathMotion::interpolateOriSpline(atQuat *ori0, atQuat *ori1,
     atQuat *ori2, atQuat *ori3, double parameter)
 {
@@ -1802,12 +1824,12 @@ atQuat vsPathMotion::interpolateOriSpline(atQuat *ori0, atQuat *ori1,
     return result;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Private function
 // Calculates a rotation quaternion that rotates from the basis
 // orientation to an orientation that points an object at currentPt in the
 // direction of facePt.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 atQuat vsPathMotion::interpolateOriToPt(atVector currentPt, atVector facePt)
 {
     atQuat result(0.0, 0.0, 0.0, 0.0);
@@ -1850,10 +1872,10 @@ atQuat vsPathMotion::interpolateOriToPt(atVector currentPt, atVector facePt)
     return result;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Private function
 // Helper function used by quaternion spline calculations
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 atQuat vsPathMotion::quatHalfway(atQuat a, atQuat b, atQuat c)
 {
     // This function creates a new spline control point, based on the
@@ -1893,10 +1915,10 @@ atQuat vsPathMotion::quatHalfway(atQuat a, atQuat b, atQuat c)
     return (b * bisect);
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Private function
 // Helper function used by update and autoSetTimes functions
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 vsPathMotionSegment *vsPathMotion::getSegmentData(int idx)
 {
     // This function obtains the segment data structure for the specified
@@ -1907,7 +1929,7 @@ vsPathMotionSegment *vsPathMotion::getSegmentData(int idx)
 
     // If in-bounds, always return something usable
     if ((idx >= 0) && (idx < pointCount))
-        return (vsPathMotionSegment *)(pointList[idx]);
+        return (vsPathMotionSegment *)(pointList.getEntry(idx));
 
     // If out-of-bounds and in RESTART mode, return NULL
     if (cycleMode == VS_PATH_CYCLE_RESTART)
@@ -1915,20 +1937,20 @@ vsPathMotionSegment *vsPathMotion::getSegmentData(int idx)
 
     // Out-of-bounds and CLOSED LOOP; wrap around.
     return (vsPathMotionSegment *)
-        (pointList[(idx + pointCount) % pointCount]);
+        (pointList.getEntry((idx + pointCount) % pointCount));
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Return the vsKinematics controlled by this path motion
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 vsKinematics *vsPathMotion::getKinematics()
 {
     return objectKin;
 }
 
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // A function to change the kinematics object that this path motion holds.
-//------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 void vsPathMotion::setKinematics(vsKinematics *newKin)
 {
     objectKin->unref();

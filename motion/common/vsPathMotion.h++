@@ -25,8 +25,10 @@
 
 #include "atVector.h++"
 #include "atQuat.h++"
+#include "vsArray.h++"
 #include "vsKinematics.h++"
 #include "vsMotionModel.h++"
+#include "vsPathMotionSegment.h++"
 
 #define VS_PATH_WAIT_FOREVER  -1
 #define VS_PATH_CYCLE_FOREVER 0
@@ -61,14 +63,6 @@ enum  vsPathPlayMode
     VS_PATH_PLAYING
 };
 
-struct VESS_SYM vsPathMotionSegment
-{
-    atVector    position;
-    atQuat      orientation;
-    double      travelTime;
-    double      pauseTime;
-};
-
 class VESS_SYM vsPathMotion : public vsMotionModel
 {
 private:
@@ -91,7 +85,7 @@ private:
     atVector           upDirection;
 
     int                pointCount;
-    vsGrowableArray    pointList;
+    vsArray            pointList;
 
     atVector           currentPos;
     atQuat             currentOri;
