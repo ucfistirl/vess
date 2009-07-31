@@ -10,6 +10,7 @@
 #include "vsSkeleton.h++"
 #include "vsSkeletonKinematics.h++"
 #include "vsPathMotionManager.h++"
+#include "vsList.h++"
 #include "vsCharacter.h++"
 #include "vsCOLLADAAnimation.h++"
 #include "vsCOLLADADataSource.h++"
@@ -31,10 +32,10 @@ protected:
     vsComponent    *sceneRoot;
     vsCharacter    *sceneCharacter;
 
-    atList         *skeletonList;
-    atList         *skinList;
+    vsList         *skeletonList;
+    vsList         *skinList;
 
-    atList         *animationList;
+    vsList         *animationList;
 
     double         unitScale;
     atMatrix       upAxisTransform;
@@ -80,7 +81,6 @@ protected:
     atVector               parseVector(atXMLDocument *doc,
                                        atXMLDocumentNodePtr text, int size);
 
-    void                   unrefDeleteList(atList *list);
     void                   unrefDeleteMap(atMap *map);
 
 
@@ -176,10 +176,10 @@ protected:
     void           processLibraryVisualScenes(atXMLDocument *doc,
                                               atXMLDocumentNodePtr current);
 
-    void           addChannelsFromAnimation(atList *list,
+    void           addChannelsFromAnimation(vsList *list,
                                             vsCOLLADAAnimation *anim);
-    void           buildAnimations(atList *skeletonList,
-                                   atList *skelKinList);
+    void           buildAnimations(vsList *skeletonList,
+                                   vsList *skelKinList);
     void           buildCharacter(vsCOLLADANode *sceneRootNode,
                                   atMatrix sceneMat);
     void           processScene(atXMLDocument *doc,

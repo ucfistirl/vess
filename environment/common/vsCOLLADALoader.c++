@@ -36,8 +36,8 @@ vsCOLLADALoader::vsCOLLADALoader()
     sceneCharacter= NULL;
 
     // Create lists for the skeletons and skins
-    skeletonList = new atList();
-    skinList = new atList();
+    skeletonList = new vsList();
+    skinList = new vsList();
 
     // Create all library maps
     animationLibrary = new atMap();
@@ -85,8 +85,10 @@ vsCOLLADALoader::~vsCOLLADALoader()
         vsObject::unrefDelete(sceneRoot);
 
     // Clean up the loader's lists
-    unrefDeleteList(skinList);
-    unrefDeleteList(skeletonList);
+    if (skinList != NULL)
+        delete skinList;
+    if (skeletonList != NULL)
+        delete skeletonList;
 
     // Clean up the auxiliary maps
     unrefDeleteMap(animations);
@@ -503,38 +505,11 @@ atVector vsCOLLADALoader::parseVector(atXMLDocument *doc,
         vec.setValue(i, getFloatToken(tokens));
     }
 
+    // Ditch the tokenizer
+    delete tokens;
+
     // Return the vector
     return vec;
-}
-
-// ------------------------------------------------------------------------
-// Convenience method for cleaning up library lists that maintain pointers
-// to reference-counted objects
-// ------------------------------------------------------------------------
-void vsCOLLADALoader::unrefDeleteList(atList *list)
-{
-    vsObject *object;
-
-    // Make sure the list exists
-    if (list == NULL)
-        return;
-
-    // Unreference and delete any objects in the map
-    object = (vsObject *)list->getFirstEntry();
-    while (object != NULL)
-    {
-        // Remove the current entry from the list
-        list->removeCurrentEntry();
-
-        // Unreference and delete the object
-        vsObject::unrefDelete(object);
-
-        // Get the next object from the list
-        object = (vsObject *)list->getNextEntry();
-    }
-
-    // Delete the list
-    delete list;
 }
 
 // ------------------------------------------------------------------------
@@ -1851,7 +1826,7 @@ void vsCOLLADALoader::processInstanceMaterial(atXMLDocument *doc,
     atString semantic;
     atString inputSemantic;
     int set;
-    atList *texList;
+    vsList *texList;
     int unit;
     bool unitsUsed[VS_MAXIMUM_TEXTURE_UNITS];
     vsGeometryBase *geom;
@@ -2253,7 +2228,6 @@ void vsCOLLADALoader::processInstanceController(atXMLDocument *doc,
                         thisSkeleton = createSkeleton(skeletonRoot, skinCtrl);
 
                         // Add the skeleton to the loader's skeleton list
-                        thisSkeleton->ref();
                         skeletonList->addEntry(thisSkeleton);
 
                         // Also add the skeleton to our skeleton map, so
@@ -2294,8 +2268,10 @@ void vsCOLLADALoader::processInstanceController(atXMLDocument *doc,
                     inverseBindMatrices);
 
                 // Add the skin to the skin list
-                skin->ref();
                 skinList->addEntry(skin);
+
+                // Done with the matrix list (the skin makes its own copy)
+                delete inverseBindMatrices;
             }
 
             // Move on to the next node
@@ -2844,7 +2820,7 @@ void vsCOLLADALoader::processLibraryVisualScenes(atXMLDocument *doc,
 // ------------------------------------------------------------------------
 // Extends the given list with the channels from the given animation
 // ------------------------------------------------------------------------
-void vsCOLLADALoader::addChannelsFromAnimation(atList *list,
+void vsCOLLADALoader::addChannelsFromAnimation(vsList *list,
                                                vsCOLLADAAnimation *anim)
 {
     int i;
@@ -2867,15 +2843,15 @@ void vsCOLLADALoader::addChannelsFromAnimation(atList *list,
 // Translates the COLLADA animation objects into equivalent VESS objects
 // (vsPathMotion and/or vsPathMotionManager)
 // ------------------------------------------------------------------------
-void vsCOLLADALoader::buildAnimations(atList *skeletonList,
-                                      atList *skelKinList)
+void vsCOLLADALoader::buildAnimations(vsList *skeletonList,
+                                      vsList *skelKinList)
 {
     atList *animationNameList;
     atList *animationList;
     atString *animationName;
     vsCOLLADAAnimation *animation;
     vsPathMotionManager *pathMotionManager;
-    atList *channelList;
+    vsList *channelList;
     atMap *channelGroupMap;
     vsCOLLADAChannel *channel;
     vsCOLLADAChannelGroup *channelGroup;
@@ -2901,7 +2877,7 @@ void vsCOLLADALoader::buildAnimations(atList *skeletonList,
     while (animation != NULL)
     {
         // Collect the list of channels in this animation
-        channelList = new atList();
+        channelList = new vsList();
         addChannelsFromAnimation(channelList, animation);
 
         // Create a mapping from node ID to the channel group that manipulates
@@ -2952,7 +2928,6 @@ void vsCOLLADALoader::buildAnimations(atList *skeletonList,
                     channelGroup = new vsCOLLADAChannelGroup(targetNode);
 
                     // Ref-count the node and group
-                    targetNode->ref();
                     channelGroup->ref();
 
                     // Add the target node ID/channel group pair to the map
@@ -2967,6 +2942,9 @@ void vsCOLLADALoader::buildAnimations(atList *skeletonList,
             // Next channel
             channel = (vsCOLLADAChannel *)channelList->getNextEntry();
         }
+
+        // We're done with the channel list now
+        delete channelList;
 
         // Now, iterate over the channel groups in the map and instance
         // create vsPathMotion objects for each one.  We use the target node
@@ -3058,7 +3036,7 @@ void vsCOLLADALoader::buildCharacter(vsCOLLADANode *sceneRootNode,
                                      atMatrix sceneMat)
 {
     vsSkeleton *skeleton;
-    atList *skelKinList;
+    vsList *skelKinList;
     atMatrix skelXform;
     atMatrix offset;
     vsComponent *parent;
@@ -3069,59 +3047,62 @@ void vsCOLLADALoader::buildCharacter(vsCOLLADANode *sceneRootNode,
     atMatrix identMatrix;
     vsTransformAttribute *skinXformAttr;
     atArray *animationNamesArray;
-    atArray *animationsArray;
+    vsArray *animationsArray;
     atList *animationNamesList;
     atList *animationsList;
     atString *animationName;
     vsPathMotionManager *animation;
 
-    // Try and remove the character's elements from the scene.  This allows
-    // the character to be handled separately from the remainder of the
-    // scene, which can be useful for some applications.  It also makes
-    // things cleaner if multiple copies of the character will be used
+    // Make sure we have at least one skeleton and at least one skin
     if ((skeletonList->getNumEntries() > 0) &&
         (skinList->getNumEntries() > 0))
     {
         // Create kinematics for the skeletons
         skeleton = (vsSkeleton *)skeletonList->getFirstEntry();
-        skelKinList = new atList();
+        skelKinList = new vsList();
         while (skeleton != NULL)
         {
-           // Remove the skeleton from the scene, unless this skeleton is
-           // a child of a larger skeleton.  First, traverse from the
-           // skeleton root to the top of the scene
-           parent = (vsComponent *)skeleton->getRoot()->getParent(0);
-           while ((parent != NULL) && (!isSkeletonRoot(parent))) 
-               parent = (vsComponent *)parent->getParent(0);
+            // Try and remove the character's elements from the scene.  This
+            // allows the character to be handled separately from the remainder
+            // of the scene, which can be useful for some applications.  It
+            // also makes things cleaner if multiple copies of the character
+            // will be used
 
-           // If the parent ends up NULL, there are no skeletons rooted
-           // above this one, so we can go ahead and remove it
-           if (parent == NULL)
-           {
-               // Get the node's immediate parent
-               parent = (vsComponent *)skeleton->getRoot()->getParent(0);
+            // Remove the skeleton from the scene, unless this skeleton is
+            // a child of a larger skeleton.  First, traverse from the
+            // skeleton root to the top of the scene
+            parent = (vsComponent *)skeleton->getRoot()->getParent(0);
+            while ((parent != NULL) && (!isSkeletonRoot(parent))) 
+                parent = (vsComponent *)parent->getParent(0);
 
-               // This is a separate issue, if the node has no immediate
-               // parent, it must be the root of the entire scene, so we
-               // can't remove it (most scenes won't be arranged this way)
-               if (parent != NULL)
-               {
-                   // Get the skeleton's global scene transform and apply
-                   // it to the skeleton's offset matrix. Also apply the
-                   // additional scene matrix (unit scale and up-axis)
-                   offset = parent->getGlobalXform();
-                   skeleton->setOffsetMatrix(sceneMat * offset);
+            // If the parent ends up NULL, there are no skeletons rooted
+            // above this one, so we can go ahead and remove it
+            if (parent == NULL)
+            {
+                // Get the node's immediate parent
+                parent = (vsComponent *)skeleton->getRoot()->getParent(0);
 
-                   // Now, go ahead and remove the skeleton
-                   parent->removeChild(skeleton->getRoot());
-               }
-           }
+                // This is a separate issue, if the node has no immediate
+                // parent, it must be the root of the entire scene, so we
+                // can't remove it (most scenes won't be arranged this way)
+                if (parent != NULL)
+                {
+                    // Get the skeleton's global scene transform and apply
+                    // it to the skeleton's offset matrix. Also apply the
+                    // additional scene matrix (unit scale and up-axis)
+                    offset = parent->getGlobalXform();
+                    skeleton->setOffsetMatrix(sceneMat * offset);
 
-           // Create a kinematics for the skeleton, and add it to a list
-           skelKinList->addEntry(new vsSkeletonKinematics(skeleton));
+                    // Now, go ahead and remove the skeleton
+                    parent->removeChild(skeleton->getRoot());
+                }
+            }
 
-           // Next skeleton
-           skeleton = (vsSkeleton *)skeletonList->getNextEntry();
+            // Create a kinematics for the skeleton, and add it to a list
+            skelKinList->addEntry(new vsSkeletonKinematics(skeleton));
+
+            // Next skeleton
+            skeleton = (vsSkeleton *)skeletonList->getNextEntry();
         }
 
         // Remove the skins from the scene before creating the character
@@ -3148,7 +3129,7 @@ void vsCOLLADALoader::buildCharacter(vsCOLLADANode *sceneRootNode,
 
         // Create arrays for the animation names and animations
         animationNamesArray = new atArray();
-        animationsArray = new atArray();
+        animationsArray = new vsArray();
         
         // Fill the arrays with the entries in the animations map
         animationNamesList = new atList();
@@ -3181,6 +3162,11 @@ void vsCOLLADALoader::buildCharacter(vsCOLLADANode *sceneRootNode,
             skinList, animationNamesArray, animationsArray);
         sceneCharacter->ref();
         sceneCharacter->update();
+
+        // The character has now taken ownership of the skeleton and skin
+        // lists, so we should give up our local handles to them
+        skeletonList = NULL;
+        skinList = NULL;
     }
     else
     {
