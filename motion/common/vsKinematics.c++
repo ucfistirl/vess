@@ -82,6 +82,11 @@ vsKinematics::vsKinematics(vsComponent *theComponent)
         constraintMinAngle[loop] = -180.0;
         constraintMaxAngle[loop] = 180.0;
     }
+
+    // The update method must be called only if we need to integrate
+    // velocities into position/orientation changes, or if constraints need
+    // to be applied.  Assume at first that we don't need any updates
+    updateRequired = false;
 }
 
 // ------------------------------------------------------------------------
@@ -259,6 +264,11 @@ void vsKinematics::setVelocity(atVector newVelocity)
 
     // Make sure the vector is size 3
     velocity.setSize(3);
+
+    // If the velocity is non-zero, set the flag indicating we require
+    // an update
+    if (fabs(velocity.getMagnitudeSquared()) > 0.0)
+        updateRequired = true;
 }
 
 // ------------------------------------------------------------------------
@@ -282,6 +292,11 @@ void vsKinematics::modifyVelocity(atVector deltaVelocity)
     
     // Add the delta velocity to the current velocity
     velocity += dVel;
+
+    // If the velocity is non-zero, set the flag indicating we require
+    // an update
+    if (fabs(velocity.getMagnitudeSquared()) > 0.0)
+        updateRequired = true;
 }
 
 // ------------------------------------------------------------------------
@@ -312,6 +327,11 @@ void vsKinematics::setAngularVelocity(atVector rotAxis, double degreesPerSec)
     // not quite the same as, the internal representation of a
     // quaternion.
     angularVelocity.set(axis[0], axis[1], axis[2], degreesPerSec);
+
+    // If the angular velocity is non-zero, set the flag that indicates
+    // we require an update
+    if (fabs(degreesPerSec) > 0.0)
+        updateRequired = true;
 }
 
 // ------------------------------------------------------------------------
@@ -377,6 +397,11 @@ void vsKinematics::modifyAngularVelocity(atVector rotAxis,
     }
     else
         angularVelocity.set(0.0, 0.0, 0.0, 0.0);
+
+    // If the angular velocity is non-zero, set the flag that indicates
+    // we require an update
+    if (fabs(angularVelocity[3]) > 0.0)
+        updateRequired = true;
 }
 
 // ------------------------------------------------------------------------
@@ -502,6 +527,9 @@ void vsKinematics::getConstraint(int idx, atVector *axis, double *minAngle,
 void vsKinematics::enableConstrainOnUpdate()
 {
     constrainOnUpdate = true;
+
+    // We're applying constraints now, so we need updates
+    updateRequired = true;
 }
 
 // ------------------------------------------------------------------------
@@ -607,10 +635,14 @@ void vsKinematics::update(double deltaTime)
     atQuat deltaOrient;
     double degrees;
 
+    // If we don't need an update, return immediately
+    if (!updateRequired)
+        return;
+
     // Make sure we have a valid deltaTime
     if (deltaTime <= 0.0)
         return;
-    
+
     // Update the position and orientation from the velocity and angular
     // velocity, respectively.
     modifyPosition(velocity.getScaled(deltaTime));
@@ -630,6 +662,10 @@ void vsKinematics::update(double deltaTime)
     {
         velocity.clear();
         angularVelocity.clear();
+
+        // Velocities are zero again, so we don't need an update unless
+        // constraints are enabled
+        updateRequired = constrainOnUpdate;
     }
 
     // Apply the orientation constraints, if applicable

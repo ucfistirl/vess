@@ -52,6 +52,9 @@ private:
     atVector                constraintAxis[3];
     double                  constraintMinAngle[3];
     double                  constraintMaxAngle[3];
+
+    // Whether or not an update is required
+    bool                    updateRequired;
     
     double                  constrainAngle(double value,
                                            double minDegrees,
