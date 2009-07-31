@@ -10,6 +10,8 @@ protected:
 
     bool    *dataArray;
 
+    bool    getBoolToken(char *tokenStr, int *idx);
+
 public:
 
                           vsCOLLADABoolArray(atXMLDocument *doc,
