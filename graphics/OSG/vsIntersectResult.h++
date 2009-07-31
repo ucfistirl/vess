@@ -22,10 +22,10 @@
 #ifndef VS_INTERSECT_RESULT_HPP
 #define VS_INTERSECT_RESULT_HPP
 
-#include "atList.h++"
 #include "atMatrix.h++"
 #include "atVector.h++"
 
+#include "vsList.h++"
 #include "vsGeometry.h++"
 
 class VESS_SYM vsIntersectResult : public vsObject
@@ -38,7 +38,7 @@ private:
     atMatrix      isectXform;
     vsGeometry    *isectGeometry;
     int           isectPrimitiveIndex;
-    atList        *isectPath;
+    vsList        *isectPath;
 
 public:
 
@@ -56,7 +56,7 @@ public:
     atMatrix      getXform();
     vsGeometry    *getGeometry();
     int           getPrimitiveIndex();
-    atList        *getPath();
+    vsList        *getPath();
 };
 
 #endif

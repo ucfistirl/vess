@@ -37,7 +37,7 @@ vsIntersectResult::vsIntersectResult()
     isectXform.setIdentity();
     isectGeometry = NULL;
     isectPrimitiveIndex = 0;
-    isectPath = new atList();
+    isectPath = new vsList();
 }
 
 // ------------------------------------------------------------------------
@@ -62,7 +62,7 @@ vsIntersectResult::vsIntersectResult(atVector point, atVector normal,
         isectGeometry->ref();
 
     // Begin with an empty list.
-    isectPath = new atList();
+    isectPath = new vsList();
 }
 
 // ------------------------------------------------------------------------
@@ -70,12 +70,12 @@ vsIntersectResult::vsIntersectResult(atVector point, atVector normal,
 // ------------------------------------------------------------------------
 vsIntersectResult::~vsIntersectResult()
 {
+    // Unreference the geometry
     if (isectGeometry)
         vsObject::unrefDelete(isectGeometry);
 
-    // The intersection path consists of VESS nodes that aren't properly
-    // reference tracked within this class. Ensure none of them are deleted.
-    isectPath->removeAllEntries();
+    // Clean up the intersection path (this will unreference the VESS
+    // nodes it contains)
     delete isectPath;
 }
 
@@ -88,6 +88,8 @@ const char *vsIntersectResult::getClassName()
 }
 
 // ------------------------------------------------------------------------
+// Return whether or not we intersected anything, and hence, whether any
+// of our other results are valid
 // ------------------------------------------------------------------------
 bool vsIntersectResult::isValid()
 {
@@ -95,6 +97,7 @@ bool vsIntersectResult::isValid()
 }
 
 // ------------------------------------------------------------------------
+// Return the point of intersection
 // ------------------------------------------------------------------------
 atVector vsIntersectResult::getPoint()
 {
@@ -102,6 +105,7 @@ atVector vsIntersectResult::getPoint()
 }
 
 // ------------------------------------------------------------------------
+// Return the surface normal at the intersection point
 // ------------------------------------------------------------------------
 atVector vsIntersectResult::getNormal()
 {
@@ -109,6 +113,8 @@ atVector vsIntersectResult::getNormal()
 }
 
 // ------------------------------------------------------------------------
+// Return the accumulated scene transform of the geometry that was
+// intersected
 // ------------------------------------------------------------------------
 atMatrix vsIntersectResult::getXform()
 {
@@ -116,6 +122,7 @@ atMatrix vsIntersectResult::getXform()
 }
 
 // ------------------------------------------------------------------------
+// Get the geometry object that was intersected
 // ------------------------------------------------------------------------
 vsGeometry *vsIntersectResult::getGeometry()
 {
@@ -123,6 +130,7 @@ vsGeometry *vsIntersectResult::getGeometry()
 }
 
 // ------------------------------------------------------------------------
+// Get the index of the primitive within the geometry that was intersected
 // ------------------------------------------------------------------------
 int vsIntersectResult::getPrimitiveIndex()
 {
@@ -130,8 +138,10 @@ int vsIntersectResult::getPrimitiveIndex()
 }
 
 // ------------------------------------------------------------------------
+// Get the traversal path from the root of the scene to the geometry that
+// was intersected
 // ------------------------------------------------------------------------
-atList *vsIntersectResult::getPath()
+vsList *vsIntersectResult::getPath()
 {
     return isectPath;
 }
