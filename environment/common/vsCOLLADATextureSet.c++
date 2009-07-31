@@ -7,7 +7,7 @@
 vsCOLLADATextureSet::vsCOLLADATextureSet()
 {
     // Initialize the texture list
-    textureList = new atList();
+    textureList = new vsList();
 }
 
 // ------------------------------------------------------------------------
@@ -15,21 +15,7 @@ vsCOLLADATextureSet::vsCOLLADATextureSet()
 // ------------------------------------------------------------------------
 vsCOLLADATextureSet::~vsCOLLADATextureSet()
 {
-    vsObject *tex;
-
-    // Clean up the texture list
-    tex = (vsObject *)textureList->getFirstEntry();
-    while (tex != NULL)
-    {
-        // Remove the entry from the list
-        textureList->removeCurrentEntry();
-
-        // Unreference and delete the texture
-        vsObject::unrefDelete(tex);
-
-        // Move on to the next entry
-        tex = (vsObject *)textureList->getNextEntry();
-    }
+    delete textureList;
 }
 
 // ------------------------------------------------------------------------
@@ -84,7 +70,6 @@ void vsCOLLADATextureSet::addTexture(vsTextureAttribute *newTexture)
     {
         // We didn't find the texture, so add it to our list
         textureList->addEntry(newTexture);
-        newTexture->ref();
     }
     else
     {
@@ -97,7 +82,7 @@ void vsCOLLADATextureSet::addTexture(vsTextureAttribute *newTexture)
 // ------------------------------------------------------------------------
 // Returns the list of textures in this set
 // ------------------------------------------------------------------------
-atList *vsCOLLADATextureSet::getTextureList()
+vsList *vsCOLLADATextureSet::getTextureList()
 {
     // Return the texture list
     return textureList;
