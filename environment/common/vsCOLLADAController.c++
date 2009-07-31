@@ -11,7 +11,7 @@ vsCOLLADAController::vsCOLLADAController(vsCOLLADAGeometry *source)
     sourceGeometry = source;
     sourceGeometry->ref();
 
-    // Create a list for our data sources
+    // Create a map for our data sources (these will be added by descendants)
     dataSources = new atMap();
 }
 
@@ -23,7 +23,7 @@ vsCOLLADAController::~vsCOLLADAController()
     // Destroy all of our data sources
     delete dataSources;
 
-    // Unreference the source geometry object (don't delete it since it's
-    // owned by the main loader's geometry library map)
-    sourceGeometry->unref();
+    // Unreference the source geometry object
+    vsObject::unrefDelete(sourceGeometry);
 }
+
