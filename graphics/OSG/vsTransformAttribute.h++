@@ -41,7 +41,11 @@ private:
     atMatrix                preMatrix;
     atMatrix                dynMatrix;
     atMatrix                postMatrix;
-    
+
+    bool                    preIdentity;
+    bool                    dynIdentity;
+    bool                    postIdentity;
+
     void                    applyTransformations();
 
 VS_INTERNAL:

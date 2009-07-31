@@ -31,11 +31,17 @@ vsTransformAttribute::vsTransformAttribute()
 {
     componentTop = NULL;
     transform = NULL;
-    
+
     // Initialize the three core transform matrices to the identity.
     preMatrix.setIdentity();
     dynMatrix.setIdentity();
     postMatrix.setIdentity();
+
+    // Initialize the three flags to indicate that all three matrices
+    // are identity
+    preIdentity = true;
+    dynIdentity = true;
+    postIdentity = true;
 }
 
 // ------------------------------------------------------------------------
@@ -93,7 +99,14 @@ vsAttribute *vsTransformAttribute::clone()
 // ------------------------------------------------------------------------
 void vsTransformAttribute::setPreTransform(atMatrix newTransform)
 {
+    // Update the matrix
     preMatrix = newTransform;
+
+    // Update the identity flag
+    if (preMatrix.isIdentity())
+        preIdentity = true;
+    else
+        preIdentity = false;
     
     // If not attached, return.
     if (!attachedCount)
@@ -116,7 +129,14 @@ atMatrix vsTransformAttribute::getPreTransform()
 // ------------------------------------------------------------------------
 void vsTransformAttribute::setDynamicTransform(atMatrix newTransform)
 {
+    // Update the matrix
     dynMatrix = newTransform;
+    
+    // Update the identity flag
+    if (dynMatrix.isIdentity())
+        dynIdentity = true;
+    else
+        dynIdentity = false;
     
     // If not attached, return.
     if (!attachedCount)
@@ -139,7 +159,14 @@ atMatrix vsTransformAttribute::getDynamicTransform()
 // ------------------------------------------------------------------------
 void vsTransformAttribute::setPostTransform(atMatrix newTransform)
 {
+    // Update the matrix
     postMatrix = newTransform;
+    
+    // Update the identity flag
+    if (postMatrix.isIdentity())
+        postIdentity = true;
+    else
+        postIdentity = false;
     
     // If not attached, return.
     if (!attachedCount)
@@ -164,13 +191,9 @@ atMatrix vsTransformAttribute::getPostTransform()
 // ------------------------------------------------------------------------
 void vsTransformAttribute::applyTransformations()
 {
-    atMatrix identityMatrix;
     atMatrix productMatrix;
     osg::Matrixd osgMatrix;
     int loop, sloop;
-
-    // Initialize the identity matrix.
-    identityMatrix.setIdentity();
 
     // Set this to the identity matrix now after storing the value above.
     // This matrix is used to calculate the product of the three matrices.
@@ -178,11 +201,11 @@ void vsTransformAttribute::applyTransformations()
 
     // Multiply the three matrices together.
     // If any happen to be the identity matrix, don't multiply it.
-    if (!(preMatrix == identityMatrix))
+    if (!preIdentity)
         productMatrix = productMatrix * preMatrix;
-    if (!(dynMatrix == identityMatrix))
+    if (!dynIdentity)
         productMatrix = productMatrix * dynMatrix;
-    if (!(postMatrix == identityMatrix))
+    if (!postIdentity)
         productMatrix = productMatrix * postMatrix;
 
     // Yes, the index order is reversed. OSG does its
