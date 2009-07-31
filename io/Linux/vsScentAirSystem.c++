@@ -23,46 +23,30 @@
 
 #define VS_DEFAULT_NUMBER_OF_SCENT_CHANNELS  3
 
-// A Structure to store information about each scent air channel
-struct ScentChannel
-{
-    // When pulsating, how long to keep it on or off (in seconds)
-    double onTime, offTime;
-
-    // The timer to track the pulses
-    vsTimer timer;
-
-    // is the channel physically running at this time?
-    bool isOn;
-
-    // if the zone is marked as on and should be pulsating
-    bool isRunning;
-
-    ScentChannel()
-        : onTime( 1.0 ), offTime( 0.0 ), isRunning( false ), isOn( false )
-        { };
-};
 
 // ------------------------------------------------------------------------
 // Constructor
 // Setup an interface to a Scent Air System through the parallel port
 // ------------------------------------------------------------------------
 vsScentAirSystem::vsScentAirSystem(int portNumber)
-    : scentChannelArray( 0, 1 ), scentChannelCount( 0 ), port( NULL ),
-    parallelPortDataByte( 0x0 )
 {
     char portDevice[30];
     int i;
+
+    // Initialize
+    scentChannelCount = 0;
+    port = NULL;
+    parallelPortDataByte = 0x0;
 
     // Open the requested parallel port
     sprintf(portDevice, "/dev/parport%d", portNumber - 1);
     port = new vsParallelPort(portDevice);
 
     // If the port is open, set up our scent channels
-    if( port->isPortOpen() )
+    if (port->isPortOpen())
     {
         // Set up the scent channels
-        setNumberOfScentChannels( VS_DEFAULT_NUMBER_OF_SCENT_CHANNELS );
+        setNumberOfScentChannels(VS_DEFAULT_NUMBER_OF_SCENT_CHANNELS);
 
 	// Turn all scents off
 	for (i = 0; i < 8; i++)
@@ -73,7 +57,7 @@ vsScentAirSystem::vsScentAirSystem(int portNumber)
     {
         printf("vsScentAirSystem::vsScentAirSystem:  Unable to open port "
             "%s\n", portDevice);
-        setNumberOfScentChannels( 0 );
+        setNumberOfScentChannels(0);
     }
 }
 
@@ -85,7 +69,7 @@ vsScentAirSystem::~vsScentAirSystem()
     int i;
 
     // Clean up all the data we stored on the scent channels
-    setNumberOfScentChannels( 0 );
+    setNumberOfScentChannels(0);
 
     // Close the port, making sure all scents are off first
     if (port)
@@ -98,6 +82,26 @@ vsScentAirSystem::~vsScentAirSystem()
 	// Delete the port object
         delete port;
     }
+}
+
+// ------------------------------------------------------------------------
+// Constructor for the ScentChannel inner class
+// ------------------------------------------------------------------------
+vsScentAirSystem::ScentChannel::ScentChannel()
+{
+    // Initialize to defaults
+    onTime = 1.0;
+    offTime = 0.0;
+    isOn = false;
+    isRunning = false;
+}
+
+// ------------------------------------------------------------------------
+// Required by vsObject
+// ------------------------------------------------------------------------
+const char *vsScentAirSystem::ScentChannel::getClassName()
+{
+    return "vsScentAirSystem::ScentChannel";
 }
 
 // ------------------------------------------------------------------------
@@ -115,13 +119,15 @@ const char * vsScentAirSystem::getClassName()
 void vsScentAirSystem::update()
 {
     int i;
+    ScentChannel *channel;
+
     // Did the parallel port data byte change? If so, we'll update the port
     bool changed = false;
 
     // Update each scent channel
-    for (i=0; i<scentChannelCount; i++)
+    for (i = 0; i < scentChannelCount; i++)
     {
-        ScentChannel * channel = (ScentChannel *)scentChannelArray.getData(i);
+        channel = (ScentChannel *) scentChannelArray.getEntry(i);
 
         // is this channel running? (i.e. it should be emitting scents at the
         // given interval)
@@ -129,9 +135,9 @@ void vsScentAirSystem::update()
         {
             // If the channel is on and it's run for the full onTime
             // (and the off time is not 0.0), turn it off
-            if (channel->isOn
-                    && channel->timer.getElapsed()>=channel->onTime
-                    && !channel->offTime<1.0e-6 )
+            if (channel->isOn &&
+                channel->timer.getElapsed() >= channel->onTime &&
+                !channel->offTime < 1.0e-6 )
             {
                 // Mark the channel as off and restart the timer
                 channel->isOn = false;
@@ -139,12 +145,12 @@ void vsScentAirSystem::update()
 
                 // Change the state of the parallel port and mark that
                 // it needs to be updated
-                setParallelPin( i, false );
+                setParallelPin(i, false);
                 changed = true;
             }
             // If the channel is off and it's run for the full offTime
-            else if (!channel->isOn
-                    && channel->timer.getElapsed()>=channel->offTime )
+            else if (!channel->isOn && 
+                     channel->timer.getElapsed() >= channel->offTime)
             {
                 // Mark the channel as off and restart the timer
                 channel->isOn = true;
@@ -152,61 +158,58 @@ void vsScentAirSystem::update()
 
                 // Change the state of the parallel port and mark that
                 // it needs to be updated
-                setParallelPin( i, true );
+                setParallelPin(i, true);
                 changed = true;
             }
         }
     }
 
     // if we need to update the parallel port, send the new byte
-    if( changed )
-        port->setDataLines( parallelPortDataByte );
+    if (changed)
+        port->setDataLines(parallelPortDataByte);
 }
 
 // ------------------------------------------------------------------------
 // Private
 // Sets the number of scent channels we store data about
 // ------------------------------------------------------------------------
-void vsScentAirSystem::setNumberOfScentChannels( int numberOfChannels )
+void vsScentAirSystem::setNumberOfScentChannels(int numberOfChannels)
 {
     int i;
+    ScentChannel *channel;
 
     if (numberOfChannels >= 0)
     {
         // Are we shrinking the number of channels
-        if (numberOfChannels<scentChannelCount)
+        if (numberOfChannels < scentChannelCount)
         {
-            for( i=numberOfChannels; i<scentChannelCount; i++ )
+            while (numberOfChannels < scentChannelArray.getNumEntries())
             {
-                ScentChannel * channel =
-                    (ScentChannel *)scentChannelArray.getData(i);
+                channel = (ScentChannel *)
+                    scentChannelArray.getEntry(numberOfChannels);
 
                 // If this channel is on, turn it off
-                if( channel->isOn )
+                if (channel->isOn)
                 {
-                    setParallelPin( i, false );
+                    setParallelPin(i, false);
 
                     // Output the new data byte
-                    port->setDataLines( parallelPortDataByte );
+                    port->setDataLines(parallelPortDataByte);
                 }
 
-                // Free the channel's data
-                delete channel;
+                // Remove the channel from the array (it will be deleted)
+                scentChannelArray.removeEntryAtIndex(numberOfChannels);
             }
         }
 
-        // Set the new size of the array
-        scentChannelArray.setSize(numberOfChannels);
-
         // If the array grew in size, allocate the new structures
-        if (numberOfChannels>scentChannelCount)
+        if (numberOfChannels > scentChannelCount)
         {
-            for (i=scentChannelCount; i<numberOfChannels; i++)
+            for (i = scentChannelCount; i < numberOfChannels; i++)
             {
-                // Allocate & Store the data for the new channel
-                ScentChannel * channel = new ScentChannel;
-
-                scentChannelArray.setData(i, (void *)channel);
+                // Allocate & store the data for the new channel
+                channel = new ScentChannel();
+                scentChannelArray.setEntry(i, channel);
             }
         }
 
@@ -227,13 +230,12 @@ int vsScentAirSystem::getNumberOfScentChannels()
 // Private
 // Set a bit in a byte to the given value
 // ------------------------------------------------------------------------
-void vsScentAirSystem::setParallelPin( int pin, bool state )
+void vsScentAirSystem::setParallelPin(int pin, bool state)
 {
     // If it's a valid pin on the port [0,8) 
-    if (pin>=0 && pin<8)
+    if (pin >= 0 && pin < 8)
         parallelPortDataByte =
-            (parallelPortDataByte & ~(1<<pin))
-            | (( state ? 1 : 0 )<<pin);
+            (parallelPortDataByte & ~(1 << pin)) | ((state ? 1 : 0) << pin);
 }
 
 // ------------------------------------------------------------------------
@@ -241,14 +243,14 @@ void vsScentAirSystem::setParallelPin( int pin, bool state )
 // long a channel should be on or off without worrying about doing it
 // yourself.
 // ------------------------------------------------------------------------
-void vsScentAirSystem::setPulseRate( int whichChannel,
-        double onTime, double offTime )
+void vsScentAirSystem::setPulseRate(int whichChannel, double onTime,
+                                    double offTime)
 {
     // Is this a valid channel?
-    if (whichChannel>=0 && whichChannel<scentChannelCount)
+    if (whichChannel >= 0 && whichChannel < scentChannelCount)
     {
         ScentChannel * channel =
-            (ScentChannel *)scentChannelArray.getData(whichChannel);
+            (ScentChannel *)scentChannelArray.getEntry(whichChannel);
 
         // Set the new times
         channel->onTime = onTime;
@@ -259,15 +261,15 @@ void vsScentAirSystem::setPulseRate( int whichChannel,
 // ------------------------------------------------------------------------
 // Turn a scent channel on or off
 // ------------------------------------------------------------------------
-void vsScentAirSystem::setChannelState( int whichChannel, bool isOn )
+void vsScentAirSystem::setChannelState(int whichChannel, bool isOn)
 {
-    if (whichChannel>=0 && whichChannel<scentChannelCount)
+    if (whichChannel >= 0 && whichChannel < scentChannelCount)
     {
         ScentChannel * channel =
-            (ScentChannel *)scentChannelArray.getData(whichChannel);
+            (ScentChannel *) scentChannelArray.getEntry(whichChannel);
 
         // If this ScentAir channel is not already running...
-        if( isOn && !channel->isRunning )
+        if (isOn && !channel->isRunning)
         {
             // Mark the channel as on
             channel->isRunning = true;
@@ -275,12 +277,12 @@ void vsScentAirSystem::setChannelState( int whichChannel, bool isOn )
             channel->timer.mark();
 
             // Turn this scent on now
-            setParallelPin( whichChannel, true );
+            setParallelPin(whichChannel, true);
 
             // Set the parallel port to the new data byte
-            port->setDataLines( parallelPortDataByte );
+            port->setDataLines(parallelPortDataByte);
         }
-        else if( !isOn && channel->isRunning )
+        else if (!isOn && channel->isRunning)
         {
             // Mark the channel as off
             channel->isRunning = false;
@@ -288,10 +290,10 @@ void vsScentAirSystem::setChannelState( int whichChannel, bool isOn )
             channel->timer.mark();
 
             // Turn this scent off now
-            setParallelPin( whichChannel, false );
+            setParallelPin(whichChannel, false);
 
             // Set the parallel port to the new data byte
-            port->setDataLines( parallelPortDataByte );
+            port->setDataLines(parallelPortDataByte);
         }
     }
 }
@@ -299,13 +301,13 @@ void vsScentAirSystem::setChannelState( int whichChannel, bool isOn )
 // ------------------------------------------------------------------------
 // Find out if a channel is on or off
 // ------------------------------------------------------------------------
-bool vsScentAirSystem::getChannelState( int whichChannel )
+bool vsScentAirSystem::getChannelState(int whichChannel)
 {
     // Is this a valid channel?
     if (whichChannel>=0 && whichChannel<scentChannelCount)
     {
         ScentChannel * channel =
-            (ScentChannel *)scentChannelArray.getData(whichChannel);
+            (ScentChannel *)scentChannelArray.getEntry(whichChannel);
 
         // Return if the channel is on
         return channel->isRunning;
