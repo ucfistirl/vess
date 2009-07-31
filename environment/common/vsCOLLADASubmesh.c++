@@ -173,11 +173,20 @@ vsCOLLADASubmesh::vsCOLLADASubmesh(atXMLDocument *doc,
 // ------------------------------------------------------------------------
 vsCOLLADASubmesh::~vsCOLLADASubmesh()
 {
-    // Unreference (and possibly delete) our geometry node
+    // Unreference our geometry node.  This will also delete it unless it's
+    // been instanced into a scene somewhere
     vsObject::unrefDelete(geometry);
 
     // Delete the input list and data sources
     delete inputList;
+}
+
+// ------------------------------------------------------------------------
+// Return the name of this class
+// ------------------------------------------------------------------------
+const char *vsCOLLADASubmesh::getClassName()
+{
+    return "vsCOLLADASubmesh";
 }
 
 // ------------------------------------------------------------------------
@@ -290,8 +299,8 @@ int vsCOLLADASubmesh::getGeometryDataList(atString semantic, int set)
 }   
 
 // ------------------------------------------------------------------------
-// Simple convenience method.  Retrieves the next token from the given
-// string tokenizer and converts it to an integer before returning it
+// Parse an integer token from the given string at the given index and
+// return it.  Update the index to point to the next token in the string
 // ------------------------------------------------------------------------
 int vsCOLLADASubmesh::getIntToken(char *tokenString, int *idx)
 {
@@ -652,7 +661,7 @@ void vsCOLLADASubmesh::setGeometry(vsGeometryBase *newGeom)
     {
         // Unreference the old geometry
         if (geometry)
-            geometry->unref();
+            vsObject::unrefDelete(geometry);
 
         // Store and reference the new geometry
         geometry = newGeom;

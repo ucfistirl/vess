@@ -12,7 +12,7 @@
 #include "vsCOLLADAInputEntry.h++"
 
 
-class VESS_SYM vsCOLLADASubmesh : public atItem
+class VESS_SYM vsCOLLADASubmesh : public vsObject
 {
 protected:
 
@@ -45,6 +45,8 @@ public:
                                           atMap *sources,
                                           atList *meshVertexInputs);
                          ~vsCOLLADASubmesh();
+
+   virtual const char     *getClassName();
 
    vsGeometryBase         *getGeometry();
    void                   setGeometry(vsGeometryBase *newGeom);
