@@ -774,8 +774,7 @@ osg::Node *vsIntersect::getBaseLibraryObject(vsNode *node)
 
 // ------------------------------------------------------------------------
 // Private function
-// Populates the intersection result fields at the specified index with
-// the information from the provided intersection.
+// Clears the array of intersection results
 // ------------------------------------------------------------------------
 void vsIntersect::clearIntersectionResults()
 {
@@ -816,7 +815,7 @@ void vsIntersect::populateIntersection(int index,
     atMatrix sectXform;
     vsGeometry *sectGeom;
     int sectPrim;
-    atList *sectPath;
+    vsList *sectPath;
     osg::Vec3 sectPointLocal;
     osg::Transform *xform;
     osg::MatrixTransform *matXform;
