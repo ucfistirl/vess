@@ -29,9 +29,10 @@
 #define VS_CHARACTER_HPP
 
 #include "atItem.h++"
-#include "atList.h++"
-#include "atMap.h++"
+#include "atArray.h++"
 #include "atString.h++"
+#include "vsArray.h++"
+#include "vsList.h++"
 #include "vsSkeleton.h++"
 #include "vsSkeletonKinematics.h++"
 #include "vsSkin.h++"
@@ -39,23 +40,20 @@
 #include "vsPathMotionManager.h++"
 #include "vsGLSLProgramAttribute.h++"
 #include "vsGLSLUniform.h++"
-#include "vsTransparencyAttribute.h++"
-#include "vsMaterialAttribute.h++"
 
 #define VS_CHAR_MAX_BONES 36
-
 
 class VESS_SYM vsCharacter : public vsUpdatable
 {
 protected:
 
-    atList                     *characterSkeletons;
-    atList                     *skeletonKinematics;
-    atList                     *characterSkins;
+    vsList                     *characterSkeletons;
+    vsList                     *skeletonKinematics;
+    vsList                     *characterSkins;
     vsComponent                *characterMesh;
 
     atArray                    *characterAnimationNames;
-    atArray                    *characterAnimations;
+    vsArray                    *characterAnimations;
 
     vsPathMotionManager        *currentAnimation;
 
@@ -72,12 +70,11 @@ protected:
     bool                       transitioning;
     vsPathMotionManager        *transitionAnimation;
 
-    atList                     *skinProgramList;
+    vsList                     *skinProgramList;
 
     bool                       hardwareSkinning;
     bool                       validFlag;
 
-    vsComponent                *findLCA(atList *subMeshes);
     vsGLSLProgramAttribute     *createDefaultSkinProgram();
 
     void                    transitionToAnimation(vsPathMotionManager * target,
@@ -90,11 +87,11 @@ public:
                                           vsSkeletonKinematics *skelKin,
                                           vsSkin *skin,
                                           atArray *animationNames,
-                                          atArray *animations);
-                              vsCharacter(atList *skeletons, atList *skelKins,
-                                          atList *skins,
+                                          vsArray *animations);
+                              vsCharacter(vsList *skeletons, vsList *skelKins,
+                                          vsList *skins,
                                           atArray *animationNames,
-                                          atArray *animations);
+                                          vsArray *animations);
                               ~vsCharacter();
 
     virtual const char        *getClassName();

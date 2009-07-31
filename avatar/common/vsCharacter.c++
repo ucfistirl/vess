@@ -28,14 +28,13 @@
 #include "vsCharacter.h++"
 #include "vsSkinProgramNode.h++"
 
-
 // ------------------------------------------------------------------------
 // Constructor for a simple character with a single skeleton, kinematics,
 // and skin, and a set of animations
 // ------------------------------------------------------------------------
 vsCharacter::vsCharacter(vsSkeleton *skeleton, vsSkeletonKinematics *skelKin,
                          vsSkin *skin, atArray *animationNames,
-                         atArray *animations)
+                         vsArray *animations)
 {
     vsGLSLProgramAttribute *skinProgram;
     vsComponent *skinRoot;
@@ -43,16 +42,15 @@ vsCharacter::vsCharacter(vsSkeleton *skeleton, vsSkeletonKinematics *skelKin,
     vsPathMotionManager *animation;
 
     // Create the lists for skeletons, kinematics, and skins
-    characterSkeletons = new atList();
-    skeletonKinematics = new atList();
-    characterSkins = new atList();
+    characterSkeletons = new vsList();
+    skeletonKinematics = new vsList();
+    characterSkins = new vsList();
 
     // Check the skeleton to see if it's valid
     if (skeleton != NULL)
     {
-        // Add the lone skeleton to the list and reference it
+        // Add the lone skeleton to the list
         characterSkeletons->addEntry(skeleton);
-        skeleton->ref();
     }
     else
         printf("vsCharacter::vsCharacter: Skeleton is not valid!\n");
@@ -60,9 +58,8 @@ vsCharacter::vsCharacter(vsSkeleton *skeleton, vsSkeletonKinematics *skelKin,
     // Check the skeleton kinematics to see if it's valid
     if (skelKin != NULL)
     {
-        // Add the lone kinematics to the list and reference it
+        // Add the lone kinematics to the list
         skeletonKinematics->addEntry(skelKin);
-        skelKin->ref();
     }
     else
         printf("vsCharacter::vsCharacter: Skeleton kinematics is not "
@@ -71,9 +68,8 @@ vsCharacter::vsCharacter(vsSkeleton *skeleton, vsSkeletonKinematics *skelKin,
     // Check the skin to see if it's valid
     if (skin != NULL)
     {
-        // Add the lone skin to the list and reference it
+        // Add the lone skin to the list
         characterSkins->addEntry(skin);
-        skin->ref();
     }
     else
         printf("vsCharacter::vsCharacter: Skin is not valid!\n");
@@ -106,15 +102,8 @@ vsCharacter::vsCharacter(vsSkeleton *skeleton, vsSkeletonKinematics *skelKin,
     if (characterAnimationNames == NULL)
         characterAnimationNames = new atArray();
     if (characterAnimations == NULL)
-        characterAnimations = new atArray();
+        characterAnimations = new vsArray();
 
-    // Reference all the animations
-    for (i = 0; i < characterAnimations->getNumEntries(); i++)
-    {
-        animation = (vsPathMotionManager *)characterAnimations->getEntry(i);
-        animation->ref();
-    }
-   
     // Initialize the animation state
     currentAnimation = NULL;
     defaultAnimation = NULL;
@@ -134,7 +123,7 @@ vsCharacter::vsCharacter(vsSkeleton *skeleton, vsSkeletonKinematics *skelKin,
 
     // Create a list to associate each skin with the GLSL program that
     // handles it
-    skinProgramList = new atList();
+    skinProgramList = new vsList();
 
     // Start out assuming we're not hardware skinning
     hardwareSkinning = false;
@@ -148,16 +137,17 @@ vsCharacter::vsCharacter(vsSkeleton *skeleton, vsSkeletonKinematics *skelKin,
         // the skinning)
         skinProgram = (vsGLSLProgramAttribute *)skin->getRootComponent()->
             getTypedAttribute(VS_ATTRIBUTE_TYPE_GLSL_PROGRAM, 0);
-
-        // If we didn't find a program, create a default one
         if (skinProgram == NULL) 
+        {
+            // Create a default skin program
             skinProgram = createDefaultSkinProgram();
 
-        // Set the new skin program
-        if (setSkinProgram(skin, skinProgram))
-        {
-            // We're now set up for hardware skinning, so try to enable it
-            enableHardwareSkinning();
+            // Set the new skin program
+            if (setSkinProgram(skin, skinProgram))
+            {
+                // We're now set up for hardware skinning, so try to enable it
+                enableHardwareSkinning();
+            }
         }
     }
     else
@@ -171,11 +161,10 @@ vsCharacter::vsCharacter(vsSkeleton *skeleton, vsSkeletonKinematics *skelKin,
 // Constructor for a complex character consisting of one or more skeletons,
 // kinematics, and skins, along with a set of animations
 // ------------------------------------------------------------------------
-vsCharacter::vsCharacter(atList *skeletons, atList *skelKins,
-                         atList *skins, atArray *animationNames,
-                         atArray *animations)
+vsCharacter::vsCharacter(vsList *skeletons, vsList *skelKins,
+                         vsList *skins, atArray *animationNames,
+                         vsArray *animations)
 {
-    atList *submeshList;
     vsSkeleton *skeleton;
     vsSkeletonKinematics *skelKin;
     vsSkin *skin;
@@ -195,7 +184,7 @@ vsCharacter::vsCharacter(atList *skeletons, atList *skelKins,
     if (characterSkeletons == NULL)
     {
         // The skeleton list doesn't exist, so create it
-        characterSkeletons = new atList();
+        characterSkeletons = new vsList();
     }
     if (characterSkeletons->getNumEntries() == 0)
     {
@@ -203,22 +192,11 @@ vsCharacter::vsCharacter(atList *skeletons, atList *skelKins,
         printf("vsCharacter::vsCharacter:  No skeleton found!\n");
     }
 
-    // Reference all skeletons in the list
-    skeleton = (vsSkeleton *)characterSkeletons->getFirstEntry();
-    while (skeleton != NULL)
-    {
-        // Reference the skeleton
-        skeleton->ref();
-
-        // Get the next skeleton
-        skeleton = (vsSkeleton *)characterSkeletons->getNextEntry();
-    }
-
     // Make sure we have at least one skeleton kinematics
     if (skeletonKinematics == NULL)
     {
         // The skeleton kinematics list doesn't exist, so create it
-        skeletonKinematics = new atList();
+        skeletonKinematics = new vsList();
     }
     if (skeletonKinematics->getNumEntries() == 0)
     {
@@ -226,38 +204,16 @@ vsCharacter::vsCharacter(atList *skeletons, atList *skelKins,
         printf("vsCharacter::vsCharacter:  No kinematics found!\n");
     }
 
-    // Reference all skeleton kinematics in the list
-    skelKin = (vsSkeletonKinematics *)skeletonKinematics->getFirstEntry();
-    while (skelKin != NULL)
-    {
-        // Reference the skeleton
-        skelKin->ref();
-
-        // Get the next skeleton
-        skelKin = (vsSkeletonKinematics *)skeletonKinematics->getNextEntry();
-    }
-
     // Make sure we have at least one skin
     if (characterSkins == NULL)
     {
         // The skeleton list doesn't exist, so create it
-        characterSkins = new atList();
+        characterSkins = new vsList();
     }
     if (characterSkins->getNumEntries() == 0)
     {
         // The skin list is empty
         printf("vsCharacter::vsCharacter:  No skin found!\n");
-    }
-
-    // Reference all skins in the list
-    skin = (vsSkin *)characterSkins->getFirstEntry();
-    while (skin != NULL)
-    {
-        // Reference the skin
-        skin->ref();
-
-        // Get the next skin
-        skin = (vsSkin *)characterSkins->getNextEntry();
     }
 
     // Create a common component for all the skin meshes
@@ -290,14 +246,7 @@ vsCharacter::vsCharacter(atList *skeletons, atList *skelKins,
     if (characterAnimationNames == NULL)
         characterAnimationNames = new atArray();
     if (characterAnimations == NULL)
-        characterAnimations = new atArray();
-   
-    // Reference all the animations
-    for (i = 0; i < characterAnimations->getNumEntries(); i++)
-    {
-        animation = (vsPathMotionManager *)characterAnimations->getEntry(i);
-        animation->ref();
-    }
+        characterAnimations = new vsArray();
    
     // Initialize the animation state
     currentAnimation = NULL;
@@ -319,7 +268,7 @@ vsCharacter::vsCharacter(atList *skeletons, atList *skelKins,
     // Create a list that will store a skin program for each skin in
     // our character (the programs must be distinct, because there will
     // be different sets of skin matrices for each skin)
-    skinProgramList = new atList();
+    skinProgramList = new vsList();
 
     // Start out assuming we're not hardware skinning
     hardwareSkinning = false;
@@ -337,17 +286,17 @@ vsCharacter::vsCharacter(atList *skeletons, atList *skelKins,
             // the skinning)
             skinProgram = (vsGLSLProgramAttribute *)skin->getRootComponent()->
                 getTypedAttribute(VS_ATTRIBUTE_TYPE_GLSL_PROGRAM, 0);
-
-            // If we didn't find a program, create a default one
             if (skinProgram == NULL) 
+            {
+                // Create a default skin program
                 skinProgram = createDefaultSkinProgram();
 
-            // Set the new skin program
-            skinProgram = createDefaultSkinProgram();
-            if (!setSkinProgram(skin, skinProgram))
-            {
-                printf("vsCharacter::vsCharacter:  Failed to set skin "
-                    "program on skin!\n");
+                // Set the new skin program
+                if (!setSkinProgram(skin, skinProgram))
+                {
+                    printf("vsCharacter::vsCharacter:  Failed to set skin "
+                        "program on skin!\n");
+                }
             }
 
             // Next skin
@@ -369,9 +318,6 @@ vsCharacter::vsCharacter(atList *skeletons, atList *skelKins,
 // ------------------------------------------------------------------------
 vsCharacter::~vsCharacter()
 {
-    vsObject *obj;
-    int i;
-   
     // Clean up the skinning program and uniforms
     disableHardwareSkinning();
     delete skinProgramList;
@@ -382,61 +328,13 @@ vsCharacter::~vsCharacter()
 
     // Clean up the animations array
     if (characterAnimations != NULL)
-    {
-        // Unreference all the array's items
-        for (i = 0; i < characterAnimations->getNumEntries(); i++)
-        {
-            obj = (vsObject *)characterAnimations->getEntry(i);
-            vsObject::unrefDelete(obj);
-        }
-
-        // Flush and delete the array
-        characterAnimations->removeAllEntries();
         delete characterAnimations;
-    }
 
-    // Clean up the various character components, starting with the
-    // kinematics
-    obj = (vsObject *)skeletonKinematics->getFirstEntry();
-    while (obj != NULL)
-    {
-        // Remove the entry from the list
-        skeletonKinematics->removeCurrentEntry();
-
-        // Unreference the entry
-        vsObject::unrefDelete(obj);
-
-        // Get the new head of the list
-        obj = (vsObject *)skeletonKinematics->getFirstEntry();
-    }
-
-    // Next, the skins
-    obj = (vsObject *)characterSkins->getFirstEntry();
-    while (obj != NULL)
-    {
-        // Remove the entry from the list
-        characterSkins->removeCurrentEntry();
-
-        // Unreference the entry
-        vsObject::unrefDelete(obj);
-
-        // Get the new head of the list
-        obj = (vsObject *)characterSkins->getFirstEntry();
-    }
-
-    // Then, the skeletons
-    obj = (vsObject *)characterSkeletons->getFirstEntry();
-    while (obj != NULL)
-    {
-        // Remove the entry from the list
-        characterSkeletons->removeCurrentEntry();
-
-        // Unreference the entry
-        vsObject::unrefDelete(obj);
-
-        // Get the new head of the list
-        obj = (vsObject *)characterSkeletons->getFirstEntry();
-    }
+    // Clean up the other character components (skeleton kinematics,
+    // skins, and skeletons)
+    delete skeletonKinematics;
+    delete characterSkins;
+    delete characterSkeletons;
 
     // Finally, clean up the mesh
     if (characterMesh != NULL)
@@ -809,18 +707,18 @@ const char *vsCharacter::getClassName()
 vsCharacter *vsCharacter::clone()
 {
     vsCharacter * character;
-    atList *newSkeletonList;
+    vsList *newSkeletonList;
     atMatrix scale;
     atMatrix offset;
     vsSkeleton *skeleton;
     vsSkeleton *newSkeleton;
-    atList *newSkelKinList;
+    vsList *newSkelKinList;
     vsSkeletonKinematics *skelKin;
     vsSkeletonKinematics *newSkelKin;
     vsKinematics *kin;
     vsKinematics *newKin;
     vsSkin *skin;
-    atList *newSkinList;
+    vsList *newSkinList;
     vsSkin *newSkin;
     vsComponent *newSkinRoot;
     vsGLSLProgramAttribute *newSkinProg;
@@ -830,7 +728,7 @@ vsCharacter *vsCharacter::clone()
     atArray *newAnimationNames;
     atString *name;
     atString *newName;
-    atArray *newAnimations;
+    vsArray *newAnimations;
     vsPathMotionManager *animation;
     vsPathMotionManager *newAnimation;
     int boneID;
@@ -844,8 +742,8 @@ vsCharacter *vsCharacter::clone()
 
     // Create a new list for skeletons, and also create a list for
     // skeleton kinematics objects
-    newSkeletonList = new atList();
-    newSkelKinList = new atList();
+    newSkeletonList = new vsList();
+    newSkelKinList = new vsList();
 
     // Iterate over the list of skeletons
     skeleton = (vsSkeleton *)characterSkeletons->getFirstEntry();
@@ -885,7 +783,7 @@ vsCharacter *vsCharacter::clone()
     }
 
     // Create a new list for skins
-    newSkinList = new atList();
+    newSkinList = new vsList();
 
     // Iterate over the list of skins
     skin = (vsSkin *)characterSkins->getFirstEntry();
@@ -907,7 +805,10 @@ vsCharacter *vsCharacter::clone()
         newSkinProg = (vsGLSLProgramAttribute *)newSkinRoot->
             getTypedAttribute(VS_ATTRIBUTE_TYPE_GLSL_PROGRAM, 0);
         if (newSkinProg != NULL)
+        {
             newSkinRoot->removeAttribute(newSkinProg);
+            vsObject::checkDelete(newSkinProg);
+        }
 
         // Move on to the next skin
         skin = (vsSkin *)characterSkins->getNextEntry();
@@ -961,7 +862,7 @@ vsCharacter *vsCharacter::clone()
     }
 
     // Clone the array of animations
-    newAnimations = new atArray();
+    newAnimations = new vsArray();
     for (i = 0; i < characterAnimations->getNumEntries(); i++)
     {
         // Get the i'th name
@@ -1027,7 +928,9 @@ vsCharacter *vsCharacter::clone()
     }
     
     // Create a character using the skeletons, skins, kinematics, and
-    // animations that we just finished creating
+    // animations that we just finished creating.  The character takes
+    // ownership of these lists directly, so we don't need to do anything
+    // else with them
     character = new vsCharacter(newSkeletonList, newSkelKinList,
         newSkinList, newAnimationNames, newAnimations);
 
@@ -1637,7 +1540,7 @@ vsGLSLProgramAttribute *vsCharacter::getSkinProgram(vsSkin *skin)
 bool vsCharacter::setSkinProgram(vsSkin *skin, vsGLSLProgramAttribute *prog)
 {
     vsGLSLUniform *boneList;
-    vsGLSLProgramAttribute *oldProgram;
+    vsGLSLProgramAttribute *currentProgram;
     vsSkinProgramNode *node;
 
     // Don't bother doing anything if the character isn't valid
@@ -1660,17 +1563,25 @@ bool vsCharacter::setSkinProgram(vsSkin *skin, vsGLSLProgramAttribute *prog)
         return false;
     }
 
+    // Get the program that's currently attached to the skin (if any)
+    currentProgram = (vsGLSLProgramAttribute *) skin->getRootComponent()->
+        getTypedAttribute(VS_ATTRIBUTE_TYPE_GLSL_PROGRAM, 0);
+
     // Find the program that goes with the given skin (if any)
     node = (vsSkinProgramNode *)skinProgramList->getFirstEntry();
     while ((node != NULL) && (node->getSkin() != skin))
         node = (vsSkinProgramNode *)skinProgramList->getNextEntry();
     if (node != NULL)
     {
-        // Remove the program from the mesh if we're currently using
-        // hardware skinning
-        oldProgram = node->getProgram();
-        if ((oldProgram != NULL) && (hardwareSkinning))
-            skin->getRootComponent()->removeAttribute(oldProgram);
+        // See if the new program matches the program currently attached to
+        // the skin (don't do anything if so)
+        if (prog != currentProgram)
+        {
+            // Remove the program from the mesh if we're currently using
+            // hardware skinning
+            if (currentProgram != NULL)
+                skin->getRootComponent()->removeAttribute(currentProgram);
+        }
 
         // Set and reference the new program and uniform, if the program
         // is no longer referenced by any other node, this will also
@@ -1679,14 +1590,22 @@ bool vsCharacter::setSkinProgram(vsSkin *skin, vsGLSLProgramAttribute *prog)
     }
     else
     {
+        // If there is an program currently attached, remove it, and delete
+        // it if it's unreferenced
+        if (currentProgram != NULL)
+        {
+            skin->getRootComponent()->removeAttribute(currentProgram);
+            vsObject::checkDelete(currentProgram);
+        }
+
         // Create a new skin program node with the given skin and program
         node = new vsSkinProgramNode(skin, prog);
         skinProgramList->addEntry(node);
     }
 
-    // Attach the program to the mesh, if we're currently using hardware
+    // Attach the program to the mesh if we're currently using hardware
     // skinning
-    if (hardwareSkinning)
+    if ((hardwareSkinning) && (prog != currentProgram))
         skin->getRootComponent()->addAttribute(prog);
 
     // Return true to indicate the new program is ready to go
@@ -1830,8 +1749,13 @@ void vsCharacter::update(double deltaTime)
                 // poses 
                 for (i = 0; i < skin->getSkeleton()->getBoneCount(); i++)
                 {
-                    skinMatrix = skin->getSkinMatrix(i);
-                    matrixList->setEntry(i, skinMatrix);
+                    // Don't bother updating the matrix for this bone if
+                    // the skin doesn't use it
+                    if (skin->usesBone(i))
+                    {
+                        skinMatrix = skin->getSkinMatrix(i);
+                        matrixList->setEntry(i, skinMatrix);
+                    }
                 }
             }
         }
