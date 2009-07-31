@@ -1057,6 +1057,9 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     // We're done with the polygon offset values
     free(offsetArray);
 
+    // We're also done with the smoothing visitor
+    delete smoother;
+
     // If we encountered any non-Geometry Drawables on the Geode, represent
     // them in the scene graph by creating a new node to hold the Geode and
     // adding it to the geode component.
