@@ -148,7 +148,7 @@ vsCharacter *vsCal3DLoader::loadCharacter(char *filename)
     vsSkeletonKinematics *skeletonKin;
     atString *subMeshFile;
     atList *subMeshes;
-    atArray *animations;
+    vsArray *animations;
     atArray *animationNames;
     int loop;
     vsPathMotionManager *animation;
@@ -176,7 +176,7 @@ vsCharacter *vsCal3DLoader::loadCharacter(char *filename)
     subMeshes = new atList();
     
     // Create the animation arrays
-    animations = new atArray();
+    animations = new vsArray();
     animationNames = new atArray();
 
     // Reinitialize the scale matrix to identity, in case no scale is found
