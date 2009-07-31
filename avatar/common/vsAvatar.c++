@@ -50,7 +50,8 @@
 #include "vsViewpointAttribute.h++"
 #include "vsWindowSystem.h++"
 #include "vsFPSMotion.h++"
-#include <string.h>
+#include "atString.h++"
+#include "atStringTokenizer.h++"
 
 // Include the vsWSSpaceball class if we're configured for a Linux or IRIX
 // system
@@ -124,8 +125,10 @@ void vsAvatar::init(char *configFile)
 {
     char lineBuffer[256];
     int lineType;
-    char objectType[256], objectName[256];
-    void *newObject;
+    atStringTokenizer *tokens;
+    atString *objectType;
+    atString *objectName;
+    vsObject *newObject;
     int loop;
     
     // Make sure init() is only called once
@@ -155,9 +158,9 @@ void vsAvatar::init(char *configFile)
     
     // Create the parallel object/object name/object type arrays
     // and initialize the object count to 0
-    objectArray = new vsGrowableArray(10, 10);
-    objNameArray = new vsGrowableArray(10, 10);
-    objTypeArray = new vsGrowableArray(10, 10);
+    objectArray = new vsArray();
+    objNameArray = new atArray();
+    objTypeArray = new atArray();
     objectCount = 0;
 
     // Parse the config file
@@ -172,10 +175,13 @@ void vsAvatar::init(char *configFile)
             continue;
 
         // Get the object type and name from the line
-        sscanf(lineBuffer, "%s %s", objectType, objectName);
+        tokens = new atStringTokenizer(lineBuffer);
+        objectType = tokens->getToken(" \n\r\t");
+        objectName = tokens->getToken(" \n\r\t");
+        delete tokens;
         
         // Create the new object based on the type field
-        newObject = createObject(objectType);
+        newObject = createObject(objectType->getString());
         
         // Add the object, the object name, and the object type
         // to the respective array
@@ -186,14 +192,7 @@ void vsAvatar::init(char *configFile)
     // configuration
     setup();
     
-    // Clean up the string objects
-    for (loop = 0; loop < objectCount; loop++)
-    {
-        free(objNameArray->getData(loop));
-        free(objTypeArray->getData(loop));
-    }
-    
-    // Clean up everything else
+    // Clean up everything
     fclose(cfgFile);
     cfgFile = NULL;
     masterScene = NULL;
@@ -221,16 +220,17 @@ vsNode *vsAvatar::getGeometry()
 // currently being initialized. The strings passed in are duplicated; the
 // space they occupy can be reused after this function finishes.
 // ------------------------------------------------------------------------
-void vsAvatar::addObjectToArrays(void *object, char *name, char *type)
+void vsAvatar::addObjectToArrays(vsObject *object, atString *name,
+                                 atString *type)
 {
     if (!objectArray)
         return;
 
     // Store the given data in our data arrays and increment the
     // current-stored-nuber-of-objects counter
-    objectArray->setData(objectCount, object);
-    objNameArray->setData(objectCount, strdup(name));
-    objTypeArray->setData(objectCount, strdup(type));
+    objectArray->addEntry(object);
+    objNameArray->addEntry(name);
+    objTypeArray->addEntry(type);
     objectCount++;
 }
 
@@ -337,7 +337,7 @@ int vsAvatar::readCfgLine(char *buffer)
 // object with a name equal to the 'targetStr' parameter. Returns a pointer
 // to the object if found, NULL otherwise. This is a case-sensitive search.
 // ------------------------------------------------------------------------
-void *vsAvatar::findObject(char *targetStr)
+vsObject *vsAvatar::findObject(char *targetStr)
 {
     int loop;
 
@@ -351,10 +351,10 @@ void *vsAvatar::findObject(char *targetStr)
     {
         // Check the target name against the loop'th object's name
         if (strcmp(targetStr,
-            (const char *)(objNameArray->getData(loop))) == 0)
+            (const char *)(objNameArray->getEntry(loop))) == 0)
         {
             // Found it!  Return a pointer to the associated object
-            return objectArray->getData(loop);
+            return objectArray->getEntry(loop);
         }
     }
 
@@ -372,7 +372,7 @@ void *vsAvatar::findObject(char *targetStr)
 // here. All of the make* functions have access to the configuration file
 // in order to read in required data.
 // ------------------------------------------------------------------------
-void *vsAvatar::createObject(char *idString)
+vsObject *vsAvatar::createObject(char *idString)
 {
     // Hand off processing to the object creation function corresponding
     // to the given type name
@@ -455,7 +455,7 @@ void *vsAvatar::createObject(char *idString)
 // Creates a scene graph from data in the configuration file, and returns
 // a pointer to the root node.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeGeometry()
+vsObject *vsAvatar::makeGeometry()
 {
     vsDatabaseLoader *dbLoader;
     vsOptimizer *optimizer;
@@ -674,7 +674,7 @@ void *vsAvatar::makeGeometry()
 // Creates a vsView and a vsViewpointAttribute together, and attaches them
 // to a specifed vsPane and vsComponent, respectively.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeViewpoint()
+vsObject *vsAvatar::makeViewpoint()
 {
     vsPane *pane = NULL;
     char cfgLine[256];
@@ -796,7 +796,7 @@ void *vsAvatar::makeViewpoint()
 // Motion models that can use a vsInputAxis or vsInputButton take one of
 // these objects and get the axis or button from that.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeIODevice()
+vsObject *vsAvatar::makeIODevice()
 {
     char cfgLine[256];
     char token[256];
@@ -884,8 +884,8 @@ void *vsAvatar::makeIODevice()
                     if (!wsys)
                     {
                         wsys = new vsWindowSystem(window);
-                        addObjectToArrays(wsys, "vsWindowSystem",
-                            "vsWindowSystem");
+                        addObjectToArrays(wsys, new atString("vsWindowSystem"),
+                            new atString("vsWindowSystem"));
                     }
 
                     // Determine if a keyboard or mouse is desired
@@ -946,7 +946,7 @@ void *vsAvatar::makeIODevice()
 // Creates a vsSequencer from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsSequencer()
+vsObject *vsAvatar::makeVsSequencer()
 {
     char cfgLine[256];
     char token[256];
@@ -1006,7 +1006,7 @@ void *vsAvatar::makeVsSequencer()
 // Creates a vsISTJoystickBox from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsISTJoystickBox()
+vsObject *vsAvatar::makeVsISTJoystickBox()
 {
     char cfgLine[256];
     char token[256];
@@ -1051,7 +1051,7 @@ void *vsAvatar::makeVsISTJoystickBox()
 // Creates a vsUnwinder from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsUnwinder()
+vsObject *vsAvatar::makeVsUnwinder()
 {
     char cfgLine[256];
     char token[256];
@@ -1110,7 +1110,7 @@ void *vsAvatar::makeVsUnwinder()
 // Creates a vsLinuxJoystickSystem from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsLinuxJoystickSystem()
+vsObject *vsAvatar::makeVsLinuxJoystickSystem()
 {
     char cfgLine[256];
     char token[256];
@@ -1160,7 +1160,7 @@ void *vsAvatar::makeVsLinuxJoystickSystem()
 // Creates a vsFlockOfBirds from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsFlockOfBirds()
+vsObject *vsAvatar::makeVsFlockOfBirds()
 {
     char cfgLine[256];
     char token[256];
@@ -1323,7 +1323,7 @@ void *vsAvatar::makeVsFlockOfBirds()
 // Creates a vsSerialMotionStar from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsSerialMotionStar()
+vsObject *vsAvatar::makeVsSerialMotionStar()
 {
     char cfgLine[256];
     char token[256];
@@ -1472,7 +1472,7 @@ void *vsAvatar::makeVsSerialMotionStar()
 // Creates a vsFastrak from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsFastrak()
+vsObject *vsAvatar::makeVsFastrak()
 {
     char cfgLine[256];
     char token[256];
@@ -1565,7 +1565,7 @@ void *vsAvatar::makeVsFastrak()
 // Creates a vsIS600 from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsIS600()
+vsObject *vsAvatar::makeVsIS600()
 {
     char cfgLine[256];
     char token[256];
@@ -1642,7 +1642,7 @@ void *vsAvatar::makeVsIS600()
 // Creates a vsEthernetMotionStar from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsEthernetMotionStar()
+vsObject *vsAvatar::makeVsEthernetMotionStar()
 {
     char cfgLine[256];
     char token[256];
@@ -1794,7 +1794,7 @@ void *vsAvatar::makeVsEthernetMotionStar()
 // Creates a vsPolaris from data in the configuration file, and returns a 
 // pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsPolaris()
+vsObject *vsAvatar::makeVsPolaris()
 {
     char cfgLine[256];
     char token[256];
@@ -1887,7 +1887,7 @@ void *vsAvatar::makeVsPolaris()
 // Creates a vsWSSpaceball from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsWSSpaceball()
+vsObject *vsAvatar::makeVsWSSpaceball()
 {
     char cfgLine[256];
     char token[256];
@@ -1930,8 +1930,8 @@ void *vsAvatar::makeVsWSSpaceball()
                         // Create a new window system object on the
                         // specified window
                         wsys = new vsWindowSystem(window);
-                        addObjectToArrays(wsys, "vsWindowSystem",
-                            "vsWindowSystem");
+                        addObjectToArrays(wsys, new atString("vsWindowSystem"),
+                            new atString("vsWindowSystem"));
                     }
                 }
             }
@@ -1963,7 +1963,7 @@ void *vsAvatar::makeVsWSSpaceball()
 // Creates a vsPinchGloveBox from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsPinchGloveBox()
+vsObject *vsAvatar::makeVsPinchGloveBox()
 {
     char cfgLine[256];
     char token[256];
@@ -2014,7 +2014,7 @@ void *vsAvatar::makeVsPinchGloveBox()
 // Creates a vsCyberGloveBox from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsCyberGloveBox()
+vsObject *vsAvatar::makeVsCyberGloveBox()
 {
     char cfgLine[256];
     char token[256];
@@ -2071,7 +2071,7 @@ void *vsAvatar::makeVsCyberGloveBox()
 // Creates a vsButtonAxis from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsButtonAxis()
+vsObject *vsAvatar::makeVsButtonAxis()
 {
     char cfgLine[256];
     char token[256];
@@ -2191,7 +2191,7 @@ void *vsAvatar::makeVsButtonAxis()
 // Creates a vsKinematics from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsKinematics()
+vsObject *vsAvatar::makeVsKinematics()
 {
     char cfgLine[256];
     char token[256];
@@ -2300,7 +2300,7 @@ void *vsAvatar::makeVsKinematics()
 // Creates a vs3TrackerArm from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVs3TrackerArm()
+vsObject *vsAvatar::makeVs3TrackerArm()
 {
     char cfgLine[256];
     char token[256];
@@ -2428,7 +2428,7 @@ void *vsAvatar::makeVs3TrackerArm()
 // Creates a vsAxisRotation from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsAxisRotation()
+vsObject *vsAvatar::makeVsAxisRotation()
 {
     char cfgLine[256];
     char token[256];
@@ -2575,7 +2575,7 @@ void *vsAvatar::makeVsAxisRotation()
 // Creates a vsCollision from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsCollision()
+vsObject *vsAvatar::makeVsCollision()
 {
     char cfgLine[256];
     char token[256];
@@ -2710,7 +2710,7 @@ void *vsAvatar::makeVsCollision()
 // Creates a vsDrivingMotion from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsDrivingMotion()
+vsObject *vsAvatar::makeVsDrivingMotion()
 {
     char cfgLine[256];
     char token[256];
@@ -2928,7 +2928,7 @@ void *vsAvatar::makeVsDrivingMotion()
 // Creates a vsFlyingMotion from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsFlyingMotion()
+vsObject *vsAvatar::makeVsFlyingMotion()
 {
     char cfgLine[256];
     char token[256];
@@ -3152,7 +3152,7 @@ void *vsAvatar::makeVsFlyingMotion()
 // Creates a vsDifferentialTrackedOrientation from data in the 
 // configuration file, and returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsDifferentialTrackedOrientation()
+vsObject *vsAvatar::makeVsDifferentialTrackedOrientation()
 {
     char cfgLine[256];
     char token[256];
@@ -3258,7 +3258,7 @@ void *vsAvatar::makeVsDifferentialTrackedOrientation()
 // Creates a vsPathMotion from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsPathMotion()
+vsObject *vsAvatar::makeVsPathMotion()
 {
     char cfgLine[256];
     char token[256];
@@ -3323,7 +3323,7 @@ void *vsAvatar::makeVsPathMotion()
 // Creates a vsTerrainFollow from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsTerrainFollow()
+vsObject *vsAvatar::makeVsTerrainFollow()
 {
     char cfgLine[256];
     char token[256];
@@ -3408,7 +3408,7 @@ void *vsAvatar::makeVsTerrainFollow()
 // Creates a vsTrackballMotion from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsTrackballMotion()
+vsObject *vsAvatar::makeVsTrackballMotion()
 {
     char cfgLine[256];
     char token[256];
@@ -3568,7 +3568,7 @@ void *vsAvatar::makeVsTrackballMotion()
 // Creates a vsTrackedMotion from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsTrackedMotion()
+vsObject *vsAvatar::makeVsTrackedMotion()
 {
     char cfgLine[256];
     char token[256];
@@ -3692,7 +3692,7 @@ void *vsAvatar::makeVsTrackedMotion()
 // Protected function
 // Creates a vsVestSystem object that will communicate with IST's vest
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsVestSystem()
+vsObject *vsAvatar::makeVsVestSystem()
 {
     char configLine[256];
     char command[256];
@@ -3710,7 +3710,7 @@ void *vsAvatar::makeVsVestSystem()
                     command );
     }
 
-    return (void *)(new vsVestSystem(port));
+    return (vsObject *)(new vsVestSystem(port));
 }
 
 // ------------------------------------------------------------------------
@@ -3718,7 +3718,7 @@ void *vsAvatar::makeVsVestSystem()
 // Creates a vsWalkArticulation from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsWalkArticulation()
+vsObject *vsAvatar::makeVsWalkArticulation()
 {
     char cfgLine[256];
     char token[256];
@@ -3821,7 +3821,7 @@ void *vsAvatar::makeVsWalkArticulation()
 // Creates a vsWalkInPlace from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsWalkInPlace()
+vsObject *vsAvatar::makeVsWalkInPlace()
 {
     char cfgLine[256];
     char token[256];
@@ -4018,7 +4018,7 @@ void *vsAvatar::makeVsWalkInPlace()
 // Creates a vsFPSMotion from data in the configuration file, and
 // returns a pointer to it.
 // ------------------------------------------------------------------------
-void *vsAvatar::makeVsFPSMotion()
+vsObject *vsAvatar::makeVsFPSMotion()
 {
     char cfgLine[256];
     char token[256];

@@ -23,10 +23,10 @@
 #define VS_AVATAR_HPP
 
 #include "vsUpdatable.h++"
-#include "vsGrowableArray.h++"
+#include "vsArray.h++"
 #include "vsNode.h++"
 #include "vsOptimizer.h++"
-#include <stdio.h>
+#include "atString.h++"
 
 #define VS_AVATAR_LOCAL_ISECT_MASK 0x01000000
 
@@ -43,11 +43,12 @@ protected:
 
     FILE               *cfgFile;
     vsNode             *masterScene;
-    vsGrowableArray    *objectArray;
-    vsGrowableArray    *objNameArray;
-    vsGrowableArray    *objTypeArray;
+    vsArray            *objectArray;
+    atArray            *objNameArray;
+    atArray            *objTypeArray;
     int                objectCount;
-    void               addObjectToArrays(void *object, char *name, char *type);
+    void               addObjectToArrays(vsObject *object, atString *name,
+                                         atString *type);
 
     bool               isInitted;
     
@@ -55,9 +56,9 @@ protected:
 
     int                readCfgLine(char *buffer);
     
-    void               *findObject(char *targetStr);
+    vsObject           *findObject(char *targetStr);
     
-    virtual void       *createObject(char *idString);
+    virtual vsObject   *createObject(char *idString);
 
     virtual void       setup() = 0;
 
@@ -65,49 +66,49 @@ protected:
     // the associated type
 
     // special objects
-    void               *makeGeometry();
-    void               *makeViewpoint();
-    void               *makeIODevice();
-    void               *makeVsSequencer();
+    vsObject           *makeGeometry();
+    vsObject           *makeViewpoint();
+    vsObject           *makeIODevice();
+    vsObject           *makeVsSequencer();
 
     // input objects
-    void               *makeVsISTJoystickBox();
-    void               *makeVsUnwinder();
-    void               *makeVsFlockOfBirds();
-    void               *makeVsSerialMotionStar();
-    void               *makeVsFastrak();
-    void               *makeVsIS600();
-    void               *makeVsEthernetMotionStar();
-    void               *makeVsPolaris();
-    void               *makeVsWSSpaceball();
-    void               *makeVsPinchGloveBox();
-    void               *makeVsCyberGloveBox();
+    vsObject           *makeVsISTJoystickBox();
+    vsObject           *makeVsUnwinder();
+    vsObject           *makeVsFlockOfBirds();
+    vsObject           *makeVsSerialMotionStar();
+    vsObject           *makeVsFastrak();
+    vsObject           *makeVsIS600();
+    vsObject           *makeVsEthernetMotionStar();
+    vsObject           *makeVsPolaris();
+    vsObject           *makeVsWSSpaceball();
+    vsObject           *makeVsPinchGloveBox();
+    vsObject           *makeVsCyberGloveBox();
 
 #ifdef __linux__
-    void               *makeVsLinuxJoystickSystem();
+    vsObject           *makeVsLinuxJoystickSystem();
 #endif
 
     // input adapters
-    void               *makeVsButtonAxis();
+    vsObject           *makeVsButtonAxis();
 
     // motion model objects
-    void               *makeVsKinematics();
-    void               *makeVs3TrackerArm();
-    void               *makeVsAxisRotation();
-    void               *makeVsCollision();
-    void               *makeVsDrivingMotion();
-    void               *makeVsFlyingMotion();
-    void               *makeVsDifferentialTrackedOrientation();
-    void               *makeVsPathMotion();
-    void               *makeVsTerrainFollow();
-    void               *makeVsTrackballMotion();
-    void               *makeVsTrackedMotion();
-    void               *makeVsWalkArticulation();
-    void               *makeVsWalkInPlace();
-    void               *makeVsFPSMotion();
+    vsObject           *makeVsKinematics();
+    vsObject           *makeVs3TrackerArm();
+    vsObject           *makeVsAxisRotation();
+    vsObject           *makeVsCollision();
+    vsObject           *makeVsDrivingMotion();
+    vsObject           *makeVsFlyingMotion();
+    vsObject           *makeVsDifferentialTrackedOrientation();
+    vsObject           *makeVsPathMotion();
+    vsObject           *makeVsTerrainFollow();
+    vsObject           *makeVsTrackballMotion();
+    vsObject           *makeVsTrackedMotion();
+    vsObject           *makeVsWalkArticulation();
+    vsObject           *makeVsWalkInPlace();
+    vsObject           *makeVsFPSMotion();
 
     // haptics objects
-    void               *makeVsVestSystem();
+    vsObject           *makeVsVestSystem();
 
 public:
 
