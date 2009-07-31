@@ -59,7 +59,7 @@ vsSkin::vsSkin(vsComponent *newRoot, vsSkeleton *newSkeleton,
     // (there may be multiple geometry objects that comprise the skin as
     // a whole) 
     subMeshCount = 0;
-    meshList = new atArray();
+    meshList = new vsArray();
 
     // Traverse the children of the root mesh component, and add all
     // skeleton mesh geometries to our mesh array
@@ -69,15 +69,16 @@ vsSkin::vsSkin(vsComponent *newRoot, vsSkeleton *newSkeleton,
     skeleton = NULL;
     boneMatrixList = NULL;
 
+    // Initialize the lists of final matrices
+    skinMatrixList = NULL;
+    skinITMatrixList = NULL;
+
+    // Initialize the array that flags whether or not a given bone is in use
+    boneUsed = NULL;
+
     // If we have a skeleton to work with, use it.
     if (newSkeleton)
         setSkeleton(newSkeleton);
-
-    // Create the final skin matrix list and the list of corresponding
-    // inverse transpose matrices (the actual matrices will be created
-    // on the first update() call)
-    skinMatrixList = new atArray();
-    skinITMatrixList = new atArray();
 }
 
 //------------------------------------------------------------------------
@@ -118,7 +119,7 @@ vsSkin::vsSkin(vsSkin *original)
     // (there may be multiple geometry objects that comprise the skin as
     // a whole) 
     subMeshCount = 0;
-    meshList = new atArray();
+    meshList = new vsArray();
 
     // Traverse the children of the root mesh component, and add all
     // skeleton mesh geometries to our mesh array
@@ -128,6 +129,10 @@ vsSkin::vsSkin(vsSkin *original)
     skeleton = NULL;
     boneMatrixList = NULL;
 
+    // Initialize the lists of final matrices
+    skinMatrixList = NULL;
+    skinITMatrixList = NULL;
+
     // If the original skin referenced a skeleton, reference the same
     // skeleton with the new skin.   This allows both skins to be controlled
     // by the same skeleton.  If the desire is to use a clone of the
@@ -135,12 +140,6 @@ vsSkin::vsSkin(vsSkin *original)
     // cloned and then applied to this skin using setSkeleton()
     if (original->skeleton)
         setSkeleton(original->skeleton);
-
-    // Create the final skin matrix list and the list of corresponding
-    // inverse transpose matrices (the actual matrices will be created
-    // on the first update() call)
-    skinMatrixList = new atArray();
-    skinITMatrixList = new atArray();
 }
 
 //------------------------------------------------------------------------
@@ -154,19 +153,25 @@ vsSkin::~vsSkin()
     if (skeleton != NULL)
         vsObject::unrefDelete(skeleton);
 
-    // Unreference all the mesh geometry nodes.
-    for (index = 0; index < subMeshCount; index++)
-    {
-        ((vsSkeletonMeshGeometry *) meshList->getEntry(index))->unref();
-    }
+    // Delete the submesh list, (this will unreference all the mesh geometry
+    // nodes and delete them if they're no longer in use)
+    delete meshList;
 
-    // Unreference and attempt to delete the root bone.
+    // Unreference and attempt to delete the root component of the skin
     vsObject::unrefDelete(rootComponent);
 
-    // Remove all of the submeshes from the mesh array and delete it (the
-    // submeshes might still be in use elsewhere, so don't delete them)
-    meshList->removeAllEntries();
-    delete meshList;
+    // Delete the list of bone space matrices
+    delete boneSpaceMatrixList;
+
+    // Also, delete the final matrix lists (if they exist)
+    if (skinMatrixList != NULL)
+        delete skinMatrixList;
+    if (skinITMatrixList != NULL)
+        delete skinITMatrixList;
+
+    // Clean up the list of bones in use
+    if (boneUsed != NULL)
+        delete [] boneUsed;
 }
 
 // ------------------------------------------------------------------------
@@ -195,9 +200,6 @@ void vsSkin::findSubmeshes(vsNode *node)
         // Add the node to our list
         meshList->setEntry(subMeshCount, node);
 
-        // Reference the node while we're keeping track of it
-        node->ref();
-
         // Increment the submesh count
         subMeshCount++;
     }
@@ -208,6 +210,47 @@ void vsSkin::findSubmeshes(vsNode *node)
         // Iterate over the children and search for submeshes on them
         for (i = 0; i < node->getChildCount(); i++)
             findSubmeshes(node->getChild(i));
+    }
+}
+
+// ------------------------------------------------------------------------
+// Scans the mesh list to figure out which of the skeleton's bones are used
+// by this skin.  This can improve update performance by skipping over
+// unused bones.
+// ------------------------------------------------------------------------
+void vsSkin::findUsedBones()
+{
+    vsSkeletonMeshGeometry *mesh;
+    int i, j;
+    atVector bones, weights;
+
+    // Create the "bone used" array and clear it to false
+    boneUsed = new bool[skeleton->getBoneCount()];
+    memset(boneUsed, 0, sizeof(bool) * skeleton->getBoneCount());
+
+    // Iterate over the meshes
+    for (i = 0; i < meshList->getNumEntries(); i++)
+    {
+        // Get the next mesh
+        mesh = (vsSkeletonMeshGeometry *)meshList->getEntry(i);
+
+        // Iterate over the mesh's vertices
+        for (j = 0; j < mesh->getDataListSize(VS_GEOMETRY_VERTEX_COORDS); j++)
+        {
+            // Get the weights and bone indices
+            bones = mesh->getData(VS_GEOMETRY_BONE_INDICES, j);
+            weights = mesh->getData(VS_GEOMETRY_VERTEX_WEIGHTS, j);
+
+            // Mark the bones that are in use
+            if (weights[0] > 1.0e-4)
+                boneUsed[(int)bones[0]] = true;
+            if (weights[1] > 1.0e-4)
+                boneUsed[(int)bones[1]] = true;
+            if (weights[2] > 1.0e-4)
+                boneUsed[(int)bones[2]] = true;
+            if (weights[3] > 1.0e-4)
+                boneUsed[(int)bones[3]] = true;
+        }
     }
 }
 
@@ -240,16 +283,41 @@ vsComponent *vsSkin::getRootComponent()
 // ------------------------------------------------------------------------
 void vsSkin::setSkeleton(vsSkeleton *newSkeleton)
 {
-    // Unreference the previous skeleton may have have been using.
+    atMatrix *newMatrix;
+    int i;
+
+    // Unreference the previous skeleton we may have been using
     if (skeleton)
         skeleton->unref();
 
-    // Store a reference to the skeleton, and make it count.
+    // Store a reference to the skeleton, and make it count
     skeleton = newSkeleton;
     skeleton->ref();
 
-    // Store a reference to the matrix lists, so we do not need to keep asking.
+    // Store a reference to the matrix lists, so we do not need to keep asking
     boneMatrixList = skeleton->getBoneMatrixList();
+
+    // Delete and re-create the final skin matrix list and the list of
+    // corresponding inverse transpose matrices
+    if (skinMatrixList != NULL)
+        delete skinMatrixList;
+    skinMatrixList = new atArray();
+    if (skinITMatrixList != NULL)
+        delete skinITMatrixList;
+    skinITMatrixList = new atArray();
+
+    // Make sure there is a matrix in the two final matrix lists for each
+    // bone in the skeleton
+    for (i = 0; i < skeleton->getBoneCount(); i++)
+    {
+        newMatrix = new atMatrix();
+        skinMatrixList->setEntry(i, newMatrix);
+        newMatrix = new atMatrix();
+        skinITMatrixList->setEntry(i, newMatrix);
+    }
+
+    // Finally, figure out which bones are used by this skin
+    findUsedBones();
 }
 
 // ------------------------------------------------------------------------
@@ -259,6 +327,20 @@ void vsSkin::setSkeleton(vsSkeleton *newSkeleton)
 vsSkeleton *vsSkin::getSkeleton()
 {
     return skeleton;
+}
+
+// ------------------------------------------------------------------------
+// Return whether or not this skin uses the given bone
+// ------------------------------------------------------------------------
+bool vsSkin::usesBone(int boneIndex)
+{
+    // If we haven't yet constructed the boneUsed array, assume that the
+    // given bone is in use, otherwise return whether or not the bone is
+    // in use by the skin
+    if (boneUsed == NULL)
+        return true;
+    else
+        return boneUsed[boneIndex];
 }
 
 // ------------------------------------------------------------------------
@@ -305,47 +387,43 @@ void vsSkin::update()
 
     for (i = 0; i < skeleton->getBoneCount(); i++)
     {
-        // Get or create the final matrix for this bone
-        finalMatrix = (atMatrix *)skinMatrixList->getEntry(i);
-        if (finalMatrix == NULL)
+        // See if this bone is used by the skin
+        if ((boneUsed == NULL) || (boneUsed[i]))
         {
-            finalMatrix = new atMatrix();
-            skinMatrixList->setEntry(i, finalMatrix);
+            // Get the final matrix for this bone
+            finalMatrix = (atMatrix *)skinMatrixList->getEntry(i);
+
+            // Get the bone matrix
+            if (boneMatrixList != NULL)
+                boneMatrix = (atMatrix *)boneMatrixList->getEntry(i);
+            else
+                boneMatrix = NULL;
+
+            // Get our bone space transform
+            boneSpaceMatrix = (atMatrix *)boneSpaceMatrixList->getEntry(i);
+
+            // Make sure the two matrices are valid
+            if ((boneMatrix != NULL) && (boneSpaceMatrix != NULL))
+            {
+                // Combine the bone matrix with the bone space transform to
+                // create the final matrix
+                *finalMatrix = (*boneMatrix) * (*boneSpaceMatrix);
+            }
+            else
+            {
+                // Just set the final matrix to identity
+                finalMatrix->setIdentity();
+            }
+
+            // Get the corresponding inverse transpose matrix
+            finalITMatrix = (atMatrix *)skinITMatrixList->getEntry(i);
+
+            // Update the final inverse transpose matrix (use the quicker
+            // inverse operation that assumes only rotations and translations
+            // in the matrix)
+            *finalITMatrix = finalMatrix->getInverseRigid();
+            finalITMatrix->transpose();
         }
-
-        // Get the bone matrix
-        if (boneMatrixList != NULL)
-            boneMatrix = (atMatrix *)boneMatrixList->getEntry(i);
-        else
-            boneMatrix = NULL;
-
-        // Get our bone space transform
-        boneSpaceMatrix = (atMatrix *)boneSpaceMatrixList->getEntry(i);
-
-        // Make sure the two matrices are valid
-        if ((boneMatrix != NULL) && (boneSpaceMatrix != NULL))
-        {
-            // Combine the bone matrix with the bone space transform to
-            // create the final matrix
-            *finalMatrix = (*boneMatrix) * (*boneSpaceMatrix);
-        }
-        else
-        {
-            // Just set the final matrix to identity
-            finalMatrix->setIdentity();
-        }
-
-        // Get or create the corresponding inverse transpose matrix
-        finalITMatrix = (atMatrix *)skinITMatrixList->getEntry(i);
-        if (finalITMatrix == NULL)
-        {
-            finalITMatrix = new atMatrix();
-            skinITMatrixList->setEntry(i, finalITMatrix);
-        }
-
-        // Update the final inverse transpose matrix
-        *finalITMatrix = finalMatrix->getInverse();
-        finalITMatrix->transpose();
     }
 }
 

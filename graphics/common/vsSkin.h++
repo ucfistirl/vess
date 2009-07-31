@@ -26,13 +26,14 @@
 #include "vsComponent.h++"
 #include "vsSkeleton.h++"
 #include "vsSkeletonMeshGeometry.h++"
+#include "vsArray.h++"
 #include "atArray.h++"
 
 class VESS_SYM vsSkin : public vsUpdatable
 {
 private:
 
-    atArray                   *meshList;
+    vsArray                   *meshList;
     int                       subMeshCount;
     vsComponent               *rootComponent;
     vsSkeleton                *skeleton;
@@ -42,7 +43,10 @@ private:
     atArray                   *skinMatrixList;
     atArray                   *skinITMatrixList;
 
+    bool                      *boneUsed;
+
     void                      findSubmeshes(vsNode *node);
+    void                      findUsedBones();
 
 public:
 
@@ -62,6 +66,7 @@ public:
     void                      setSkeleton(vsSkeleton *newSkeleton);
     vsSkeleton                *getSkeleton();
 
+    bool                      usesBone(int boneIndex);
     atMatrix                  getSkinMatrix(int boneIndex);
 
     virtual void              update();
