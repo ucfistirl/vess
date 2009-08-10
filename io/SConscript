@@ -37,7 +37,7 @@ if opSystem == 'Linux':
 else:
    use1394 = False
    usePSpace = False
-   useVRPN = False
+   useVRPN = config.getboolean('io', 'vrpnEnabled')
 
 if opSystem == 'Windows':
    useCGrasp = config.getboolean('io', 'cgraspEnabled')
@@ -114,7 +114,7 @@ if usePSpace:
 
 # See if we should add VRPN support
 if useVRPN:
-   osSrc += ' vsVRPNTrackingSystem.c++ vsHiball.c++'
+   commonSrc += ' vsVRPNTrackingSystem.c++ vsHiball.c++'
 
 
 # Add the directories to the include path
@@ -164,8 +164,8 @@ if usePSpace:
 if useVRPN:
    vrpnPath = config.get('io', 'vrpnPath')
    ioIncPath.extend(Split(vrpnPath + '/include'))
-   ioLibPath.extend(Split(vrpnPath + '/libs'))
-   ioLibs.extend(Split('vrpn quat'))
+   ioLibPath.extend(Split(vrpnPath + '/lib'))
+   ioLibs.extend(Split('vrpn'))
 
 
 # Create the final list of sources
