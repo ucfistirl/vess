@@ -93,7 +93,7 @@ pspaceEnabled = no
 owlPath =
 
 # Enable/disable Virtual Reality Peripheral Network support
-pspaceEnabled = no
+vrpnEnabled = no
 
 # Path for VRPN libraries
 vrpnPath =
