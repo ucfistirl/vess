@@ -36,7 +36,7 @@
 #include <vrpn_Tracker.h>
 
 
-class vsVRPNTrackingSystem : public vsTrackingSystem
+class VESS_SYM vsVRPNTrackingSystem : public vsTrackingSystem
 {
 protected:
 

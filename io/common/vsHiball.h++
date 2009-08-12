@@ -26,7 +26,7 @@
 
 #include "vsVRPNTrackingSystem.h++"
 
-class vsHiball : public vsVRPNTrackingSystem
+class VESS_SYM vsHiball : public vsVRPNTrackingSystem
 {
 public:
 
