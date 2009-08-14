@@ -27,9 +27,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifndef _MSC_VER
-    #include <unistd.h>
-#endif
 
 // ------------------------------------------------------------------------
 // Constructor.  Creates and initializes the vsIntersenseTrackingSystem
@@ -198,12 +195,18 @@ bool vsIntersenseTrackingSystem::configureSystem()
         case ISD_INTERTRAX_3:
             printf("(InterTrax3)\n");
             break;
+
+#if ISENSE_VER >= 4
+
         case ISD_IMUK:
             printf("(K-Sensor)\n");
             break;
         case ISD_ICUBE2B_PRO:
             printf("(InertiaCube2B Pro)\n");
             break;
+
+#endif
+
         default:
             printf("(Unknown)\n");
             printf("  WARNING:  Unknown Tracker Model.  Results may be "
@@ -578,74 +581,156 @@ void vsIntersenseTrackingSystem::disableLEDs()
 
 // ------------------------------------------------------------------------
 // Retrieves fresh data from the InterSense device and updates all 
-// vsMotionTrackers and vsJoysticks (if any)
+// vsMotionTrackers and vsJoysticks (if any). Unfortunately, the update()
+// method must be different depending on the version of the InterSense SDK
+// we're linking with
 // ------------------------------------------------------------------------
-void vsIntersenseTrackingSystem::update()
-{
-    ISD_TRACKING_DATA_TYPE trackerData;
-    int trackerNum;
-    atVector position;
-    atQuat orientation;
-    vsInputAxis *axis;
-    int i, j;
+#if ISENSE_VER >= 4
 
-    // Get the latest data from the hardware
-    ISD_GetTrackingData(systemHandle, &trackerData);
-
-    // Extract the relevant data from the tracker data structure
-    for (i = 1; i <= systemInfo.Capability.MaxStations; i++)
+    // SDK version 4
+    void vsIntersenseTrackingSystem::update()
     {
-        // See if this record matches a valid tracker
-        trackerNum = stationToTracker[i];
-        if ((trackerNum >= 0) && (trackerNum < numTrackers))
+        ISD_TRACKING_DATA_TYPE  trackerData;
+        int trackerNum;
+        atVector position;
+        atQuat orientation;
+        vsInputAxis *axis;
+        int i, j;
+
+        // Get the latest data from the hardware
+        ISD_GetTrackingData(systemHandle, &trackerData);
+
+        // Extract the relevant data from the tracker data structure
+        for (i = 1; i <= systemInfo.Capability.MaxStations; i++)
         {
-            // Extract and set the position for this tracker
-            position.set(trackerData.Station[i-1].Position[AT_X],
-                trackerData.Station[i-1].Position[AT_Y], 
-                trackerData.Station[i-1].Position[AT_Z]);
-            position = coordXform.rotatePoint(position);
-            tracker[trackerNum]->setPosition(position);
+            // See if this record matches a valid tracker
+            trackerNum = stationToTracker[i];
+            if ((trackerNum >= 0) && (trackerNum < numTrackers))
+            {
+                // Extract and set the position for this tracker
+                position.set(trackerData.Station[i-1].Position[AT_X],
+                    trackerData.Station[i-1].Position[AT_Y], 
+                    trackerData.Station[i-1].Position[AT_Z]);
+                position = coordXform.rotatePoint(position);
+                tracker[trackerNum]->setPosition(position);
 
-            // Extract and set the orientation for this tracker
-            if (trackerConfig[i].AngleFormat == ISD_QUATERNION)
-            {
-                orientation.set(trackerData.Station[i-1].Quaternion[1],
-                    trackerData.Station[i-1].Quaternion[2], 
-                    trackerData.Station[i-1].Quaternion[3], 
-                    trackerData.Station[i-1].Quaternion[0]);
-                tracker[trackerNum]->setOrientation(orientation);
-            }
-            else
-            {
-                orientation.setEulerRotation(AT_EULER_ANGLES_ZXY_R,
-                    -trackerData.Station[i-1].Euler[0],
-                    trackerData.Station[i-1].Euler[1],
-                    trackerData.Station[i-1].Euler[2]);
-                tracker[trackerNum]->setOrientation(orientation);
-            }
-            orientation = coordXform * orientation * coordXform;
-
-            // See if this tracker has a joystick associated with it
-            if (hasJoystick(trackerNum))
-            {
-                // Iterate over the joystick's axes
-                for (j = 0; j < joystick[trackerNum]->getNumAxes(); j++)
+                // Extract and set the orientation for this tracker
+                if (trackerConfig[i].AngleFormat == ISD_QUATERNION)
                 {
-                    // Update this axis with the latest state
-                    axis = joystick[trackerNum]->getAxis(j);
-                    axis->setPosition(trackerData.Station[i-1].AnalogData[j]);
+                    orientation.set(trackerData.Station[i-1].Quaternion[1],
+                        trackerData.Station[i-1].Quaternion[2], 
+                        trackerData.Station[i-1].Quaternion[3], 
+                        trackerData.Station[i-1].Quaternion[0]);
+                    tracker[trackerNum]->setOrientation(orientation);
                 }
-
-                // Iterate over the joystick's buttons
-                for (j = 0; j < joystick[trackerNum]->getNumButtons(); j++)
+                else
                 {
-                    // Update this button with the latest state
-                    if (trackerData.Station[i-1].ButtonState[j])
-                        joystick[trackerNum]->getButton(j)->setPressed();
-                    else
-                        joystick[trackerNum]->getButton(j)->setReleased();
+                    orientation.setEulerRotation(AT_EULER_ANGLES_ZXY_R,
+                        -trackerData.Station[i-1].Euler[0],
+                        trackerData.Station[i-1].Euler[1],
+                        trackerData.Station[i-1].Euler[2]);
+                    tracker[trackerNum]->setOrientation(orientation);
+                }
+                orientation = coordXform * orientation * coordXform;
+
+                // See if this tracker has a joystick associated with it
+                if (hasJoystick(trackerNum))
+                {
+                    // Iterate over the joystick's axes
+                    for (j = 0; j < joystick[trackerNum]->getNumAxes(); j++)
+                    {
+                        // Update this axis with the latest state
+                        axis = joystick[trackerNum]->getAxis(j);
+                        axis->setPosition(
+                            trackerData.Station[i-1].AnalogData[j]);
+                    }
+
+                    // Iterate over the joystick's buttons
+                    for (j = 0; j < joystick[trackerNum]->getNumButtons(); j++)
+                    {
+                        // Update this button with the latest state
+                        if (trackerData.Station[i-1].ButtonState[j])
+                            joystick[trackerNum]->getButton(j)->setPressed();
+                        else
+                            joystick[trackerNum]->getButton(j)->setReleased();
+                    }
                 }
             }
         }
     }
-}
+
+#else
+
+    // SDK version 3
+    void vsIntersenseTrackingSystem::update()
+    {
+        ISD_TRACKER_DATA_TYPE  trackerData;
+        int trackerNum;
+        atVector position;
+        atQuat orientation;
+        vsInputAxis *axis;
+        int i, j;
+
+        // Get the latest data from the hardware
+        ISD_GetData(systemHandle, &trackerData);
+
+        // Extract the relevant data from the tracker data structure
+        for (i = 1; i <= systemInfo.Capability.MaxStations; i++)
+        {
+            // See if this record matches a valid tracker
+            trackerNum = stationToTracker[i];
+            if ((trackerNum >= 0) && (trackerNum < numTrackers))
+            {
+                // Extract and set the position for this tracker
+                position.set(trackerData.Station[i-1].Position[AT_X],
+                    trackerData.Station[i-1].Position[AT_Y], 
+                    trackerData.Station[i-1].Position[AT_Z]);
+                position = coordXform.rotatePoint(position);
+                tracker[trackerNum]->setPosition(position);
+
+                // Extract and set the orientation for this tracker
+                if (trackerConfig[i].AngleFormat == ISD_QUATERNION)
+                {
+                    orientation.set(trackerData.Station[i-1].Orientation[1],
+                        trackerData.Station[i-1].Orientation[2], 
+                        trackerData.Station[i-1].Orientation[3], 
+                        trackerData.Station[i-1].Orientation[0]);
+                    tracker[trackerNum]->setOrientation(orientation);
+                }
+                else
+                {
+                    orientation.setEulerRotation(AT_EULER_ANGLES_ZXY_R,
+                        -trackerData.Station[i-1].Orientation[0],
+                        trackerData.Station[i-1].Orientation[1],
+                        trackerData.Station[i-1].Orientation[2]);
+                    tracker[trackerNum]->setOrientation(orientation);
+                }
+                orientation = coordXform * orientation * coordXform;
+
+                // See if this tracker has a joystick associated with it
+                if (hasJoystick(trackerNum))
+                {
+                    // Iterate over the joystick's axes
+                    for (j = 0; j < joystick[trackerNum]->getNumAxes(); j++)
+                    {
+                        // Update this axis with the latest state
+                        axis = joystick[trackerNum]->getAxis(j);
+                        axis->setPosition(
+                            trackerData.Station[i-1].AnalogData[j]);
+                    }
+
+                    // Iterate over the joystick's buttons
+                    for (j = 0; j < joystick[trackerNum]->getNumButtons(); j++)
+                    {
+                        // Update this button with the latest state
+                        if (trackerData.Station[i-1].ButtonState[j])
+                            joystick[trackerNum]->getButton(j)->setPressed();
+                        else
+                            joystick[trackerNum]->getButton(j)->setReleased();
+                    }
+                }
+            }
+        }
+    }
+
+#endif
