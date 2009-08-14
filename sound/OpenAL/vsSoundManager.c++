@@ -32,7 +32,6 @@ vsSoundManager *vsSoundManager::instance = NULL;
 // ------------------------------------------------------------------------
 vsSoundManager::vsSoundManager()
 {
-    bool alError;
     int i;
 
     // Initialize the soundPipe pointer to NULL
