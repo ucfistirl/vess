@@ -8,6 +8,7 @@ Import('vessEnv')
 ioEnv = vessEnv.Clone()
 
 # Get the include and library paths as well as the list of libraries
+ioDefs = ioEnv['CPPDEFINES']
 ioIncPath = ioEnv['CPPPATH']
 ioLibPath = ioEnv['LIBPATH']
 ioLibs = ioEnv['LIBS']
@@ -147,12 +148,15 @@ if useIsense:
    isensePath = config.get('io', 'isensePath')
    ioIncPath.extend(Split(isensePath))
 
+   isenseVer = config.get('io', 'isenseMajorVer')
+
    # Library path depends on operating system
    if opSystem == 'Linux':
       ioLibPath.extend(Split(isensePath + '/Linux/x86'))
    else:
       ioLibPath.extend(Split(isensePath))
 
+   ioDefs.extend(Split('ISENSE_VER=' + isenseVer))
    ioLibs.extend(Split('isense'))
 
 if usePSpace:
