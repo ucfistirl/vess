@@ -86,6 +86,10 @@ isenseEnabled = no
 # Path for the InterSense library
 isensePath = L:/InterSense_SDK_404.02
 
+# Major version number for the InterSense library.  For example, this would
+# be 4 for version 4.04 of the InterSense SDK.
+isenseMajorVer = 4
+
 # Enable/disable PhaseSpace Motion Digitizer support
 pspaceEnabled = no
 
@@ -96,7 +100,7 @@ owlPath =
 vrpnEnabled = no
 
 # Path for VRPN libraries
-vrpnPath =
+vrpnPath = L:/vrpn-06.06beta4
 
 
 

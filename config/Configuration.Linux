@@ -53,7 +53,7 @@ soundEnabled = yes
 audioLibrary = OpenAL
 
 # OpenAL - Audio library
-oalPath = /irl/tools/libs/openal-soft-1.4.272
+oalPath = /irl/tools/libs/openal-soft-1.8.466
 
 # ALUT - OpenAL Utility Toolkit (required if OpenAL is selected)
 alutPath = /irl/tools/libs/alut-1.1.0
@@ -80,6 +80,10 @@ isenseEnabled = no
 # Path for the InterSense library
 isensePath = /irl/tools/libs/InterSense_SDK_404.02
 
+# Major version number for the InterSense library.  For example, this would
+# be 4 for version 4.04 of the InterSense SDK.
+isenseMajorVer = 4
+
 # Enable/disable PhaseSpace Motion Digitizer support
 pspaceEnabled = no
 
@@ -90,7 +94,7 @@ owlPath =
 vrpnEnabled = no
 
 # Path for VRPN libraries
-vrpnPath =
+vrpnPath = /irl/tools/libs/vrpn-06.06beta4
 
 
 
