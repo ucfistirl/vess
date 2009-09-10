@@ -1823,7 +1823,7 @@ void vsGeometryBase::optimizeVertices()
                     candidateCount[v1]--;
                     if (j < candidateCount[v1])
                         memmove(&candidateList[v1][j], &candidateList[v1][j+1],
-                            sizeof(u_int) * candidateCount[v1] - j);
+                            sizeof(u_int) * (candidateCount[v1] - j));
                 }
             }
 
