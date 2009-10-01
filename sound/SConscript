@@ -11,6 +11,7 @@ soundEnv = vessEnv.Clone()
 soundIncPath = soundEnv['CPPPATH']
 soundLibPath = soundEnv['LIBPATH']
 soundLibs = soundEnv['LIBS']
+soundDefs = soundEnv['CPPDEFINES']
 
 
 # Import the VESS configuration
@@ -28,6 +29,8 @@ useSound = config.getboolean('sound', 'soundEnabled')
 if not useSound:
    soundTuple = [], soundEnv
    Return('soundTuple')
+else:
+   soundDefs.extend(Split('VS_SOUND_ENABLED=1'))
 
 
 # Figure out which audio library to use
