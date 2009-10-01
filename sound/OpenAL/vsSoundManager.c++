@@ -340,6 +340,11 @@ void vsSoundManager::removeSoundPipe(vsSoundPipe *pipe)
         return;
     }
 
+    // Revoke the OpenAL source for all VESS sound sources and delete all
+    // of the OpenAL sources created by this pipe (the easy way to do
+    // this is to set the voice limit to zero)
+    setVoiceLimit(0);
+
     // Unreference the sound pipe and set the pointer to NULL
     soundPipe->unref();
     soundPipe = NULL;
@@ -404,6 +409,9 @@ void vsSoundManager::removeSoundSource(vsSoundSourceAttribute *attr)
         // can use it
         if (soundSources[attrIndex]->source->isActive())
         {
+            // Lock the source before we take its voice away
+            soundSources[attrIndex]->source->lockSource();
+
             // Get the source's voice ID and return it to the list of
             // available voices
             voices[numVoices] = soundSources[attrIndex]->source->getVoiceID();
@@ -411,6 +419,9 @@ void vsSoundManager::removeSoundSource(vsSoundSourceAttribute *attr)
 
             // Revoke the source's voice ID
             soundSources[attrIndex]->source->revokeVoice();
+
+            // Release the source's lock
+            soundSources[attrIndex]->source->unlockSource();
         }
 
         // Unreference the attribute
@@ -529,6 +540,13 @@ void vsSoundManager::setVoiceLimit(int newLimit)
     int i;
     ALuint nextVoice;
 
+    // Make sure we're connected to an audio device
+    if (soundPipe == NULL)
+    {
+        printf("vsSoundManager::setVoiceLimit:  No sound pipe available!\n");
+        return;
+    }
+
     // Make sure we don't try to exceed the hardware's capabilities
     if (newLimit > hardwareVoiceLimit)
     {
@@ -601,6 +619,9 @@ void vsSoundManager::setVoiceLimit(int newLimit)
                 // take)
                 if (soundSources[i]->source->isActive())
                 {
+                    // Lock the source before we take it's voice away
+                    soundSources[i]->source->lockSource();
+            
                     // Revoke the source's voice and delete it
                     nextVoice = soundSources[i]->source->getVoiceID();
                     soundSources[i]->source->revokeVoice();
@@ -609,6 +630,9 @@ void vsSoundManager::setVoiceLimit(int newLimit)
                     // Make sure it was really deleted
                     if (alGetError() == AL_NO_ERROR)
                         difference++;
+
+                    // Release the source lock
+                    soundSources[i]->source->unlockSource();
                 }
 
                 // Move to the next source
