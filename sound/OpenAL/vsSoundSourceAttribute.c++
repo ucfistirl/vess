@@ -378,7 +378,8 @@ void vsSoundSourceAttribute::assignVoice(int voiceID)
 // ------------------------------------------------------------------------
 // VESS internal function
 // Revoke's the source's OpenAL source ID (voice), making the source
-// inactive
+// inactive.  This function should be called only when the caller has
+// locked the source
 // ------------------------------------------------------------------------
 void vsSoundSourceAttribute::revokeVoice()
 {
