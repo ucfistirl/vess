@@ -45,6 +45,10 @@
 #include "vsTextBuilder.h++"
 #include "vsScentManager.h++"
 
+#ifdef VS_SOUND_ENABLED
+   #include "vsSoundManager.h++"
+#endif
+
 vsSystem *vsSystem::systemObject = NULL;
 
 // ------------------------------------------------------------------------
@@ -115,6 +119,16 @@ vsSystem::~vsSystem()
     rootSequencer->unref();
     delete rootSequencer;
 
+#ifdef VS_SOUND_ENABLED
+
+    // Delete the sound manager
+    vsSoundManager::deleteInstance();
+
+#endif
+
+    // Delete the scent manager
+    vsScentManager::deleteInstance();
+
 #ifdef VESS_DEBUG
     FILE *outfile = fopen("vess_objects.log", "w");
     if (outfile)
@@ -125,9 +139,6 @@ vsSystem::~vsSystem()
 
     vsObject::deleteObjectList();
 #endif
-
-    // Delete the scent manager
-    vsScentManager::deleteInstance();
 
     // Clear the static class member to NULL
     systemObject = NULL;
