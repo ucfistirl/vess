@@ -222,7 +222,7 @@ vsPane::~vsPane()
 
     // Unreference the VESS scene
     if (sceneRoot != NULL)
-        sceneRoot->unref();
+        vsObject::unrefDelete(sceneRoot);
     
     // Remove the pane from the its window
     parentWindow->removePane(this);
@@ -306,7 +306,7 @@ void vsPane::setScene(vsScene *newScene)
         }
 
         // Now, unreference the scene
-        sceneRoot->unref();
+        vsObject::unrefDelete(sceneRoot);
     }
 
     // Reference the new scene
