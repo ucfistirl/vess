@@ -26,6 +26,8 @@
 #include "vsGrowableArray.h++"
 
 vsTreeMap *vsObject::currentObjectList = NULL;
+pthread_once_t vsObject::initObjectListOnce = PTHREAD_ONCE_INIT;
+pthread_mutex_t vsObject::objectListMutex;
 
 //------------------------------------------------------------------------
 // Constructor - Initializes the magic number and reference count
@@ -39,12 +41,16 @@ vsObject::vsObject()
     refCount = 0;
 
 #ifdef VESS_DEBUG
-    // Get or create a tree map as a list for all allocated objects
-    if (!currentObjectList)
-        currentObjectList = new vsTreeMap();
+
+    // Make sure the vsObject list is initialized (we use a pthread_once to
+    // make sure the initialization only happens once)
+    pthread_once(&initObjectListOnce, initObjectList);
 
     // Add this object to the object list
+    pthread_mutex_lock(&objectListMutex);
     currentObjectList->addEntry(this, NULL);
+    pthread_mutex_unlock(&objectListMutex);
+
 #endif
 }
 
@@ -65,10 +71,32 @@ vsObject::~vsObject()
     magicNumber = 0;
 
 #ifdef VESS_DEBUG
+
+    // Lock the object list mutex
+    pthread_mutex_lock(&objectListMutex);
+
     // Remove this object from the object list
     if (currentObjectList)
         currentObjectList->deleteEntry(this);
+
+    // Release the object list mutex
+    pthread_mutex_unlock(&objectListMutex);
+
 #endif
+}
+
+//------------------------------------------------------------------------
+// Initalize the object list that keeps track of all allocated VESS
+// object
+//------------------------------------------------------------------------
+void vsObject::initObjectList()
+{
+    // Create a mutex to protect the object list (very necessary if we're
+    // running multiple threads)
+    pthread_mutex_init(&objectListMutex, NULL);
+
+    // Create a tree map as a list for all allocated objects
+    currentObjectList = new vsTreeMap();
 }
 
 //------------------------------------------------------------------------
@@ -200,5 +228,6 @@ void vsObject::deleteObjectList()
     {
         delete currentObjectList;
         currentObjectList = NULL;
+        pthread_mutex_destroy(&objectListMutex);
     }
 }

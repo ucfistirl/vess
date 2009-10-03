@@ -24,8 +24,9 @@
 
 #include "vsGlobals.h++"
 #include "atItem.h++"
-#include <stdio.h>
 #include "vsTreeMap.h++"
+#include <stdio.h>
+#include <pthread.h>
 
 #define VS_OBJ_MAGIC_NUMBER 0xFEEDF00D
 
@@ -33,11 +34,15 @@ class VESS_SYM vsObject : public atItem
 {
 private:
 
-    static vsTreeMap    *currentObjectList;
+    static vsTreeMap         *currentObjectList;
+    static pthread_once_t    initObjectListOnce;
+    static pthread_mutex_t   objectListMutex;
 
-    int                 magicNumber;
+    int                      magicNumber;
     
-    int                 refCount;
+    int                      refCount;
+
+    static void              initObjectList();
 
 public:
 
@@ -61,3 +66,4 @@ public:
 };
 
 #endif
+
