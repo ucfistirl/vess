@@ -44,7 +44,7 @@ vsPathMotionSegment::~vsPathMotionSegment()
 // ------------------------------------------------------------------------
 const char *vsPathMotionSegment::getClassName()
 {
-    return "vsPathMotionSegmentSegment";
+    return "vsPathMotionSegment";
 }
 
 // ------------------------------------------------------------------------
