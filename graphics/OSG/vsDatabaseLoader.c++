@@ -1127,7 +1127,8 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     osg::Material *osgMaterial;
     vsMaterialAttribute *vsMaterialAttr;
 
-    osg::Texture *osgTexture;
+    osg::Texture2D *osgTexture2D;
+    osg::TextureCubeMap *osgTextureCube;
     osg::Image *osgImage;
     osg::TexEnv *osgTexEnv;
     osg::TexGen *osgTexGen;
@@ -1135,7 +1136,6 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     osg::TexMat *osgTexMat;
     vsTextureAttribute *vsTextureAttr;
     vsTextureCubeAttribute *vsTextureCubeAttr;
-    vsTextureCubeAttribute *tempCube;
 
     int blendMode;
     vsTransparencyAttribute *vsTransparencyAttr;
@@ -1265,13 +1265,13 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
         // think that there's no texture at all. Since VESS currently only
         // supports 2-dimensional textures and texture cube maps anyway, this
         // is considered acceptable behavior.
-        if (osgTexture = dynamic_cast<osg::Texture2D *>
+        if (osgTexture2D = dynamic_cast<osg::Texture2D *>
             (stateSet->getTextureAttribute(textureUnit,
             osg::StateAttribute::TEXTURE)))
         {
             // Check for a previous encounter with this texture
             vsTextureAttr = (vsTextureAttribute *)
-                (attrMap->mapSecondToFirst(osgTexture));
+                (attrMap->mapSecondToFirst(osgTexture2D));
 
             if (!vsTextureAttr)
             {
@@ -1312,8 +1312,8 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
 
                 vsTextureAttr = 
                     new vsTextureAttribute((unsigned int)(textureUnit),
-                    (osg::Texture2D *)osgTexture, osgTexEnv, osgTexEnvCombine,
-                    osgTexGen, osgTexMat);
+                        osgTexture2D, osgTexEnv, osgTexEnvCombine,
+                        osgTexGen, osgTexMat);
 
                 // Check the status of the override flag
                 osgRefAttrPair = stateSet->getTextureAttributePair(textureUnit,
@@ -1324,7 +1324,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
 
                 // Record that we've seen this texture, in case it comes up
                 // again
-                attrMap->registerLink(vsTextureAttr, osgTexture);
+                attrMap->registerLink(vsTextureAttr, osgTexture2D);
 
                 // Add the texture to this node
                 node->addAttribute(vsTextureAttr);
@@ -1332,10 +1332,9 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
             else
             {
                 // We've seen this one before, create a new texture, but
-                // share the image data
-                osgImage = vsTextureAttr->getOSGImage();
-                vsTextureAttr = new vsTextureAttribute(textureUnit);
-                vsTextureAttr->setOSGImage(osgImage);
+                // share the image data (do a shallow copy)
+                osgTexture2D = new osg::Texture2D(*osgTexture2D,
+                                                  osg::CopyOp::SHALLOW_COPY);
 
                 // Create a new texture environment object for use by the
                 // texture attribute. (We don't want to use the one that came
@@ -1371,8 +1370,8 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
 
                 vsTextureAttr = 
                     new vsTextureAttribute((unsigned int)(textureUnit),
-                    (osg::Texture2D *)osgTexture, osgTexEnv, osgTexEnvCombine,
-                    osgTexGen, osgTexMat);
+                        osgTexture2D, osgTexEnv, osgTexEnvCombine,
+                        osgTexGen, osgTexMat);
 
                 // Check the status of the override flag
                 osgRefAttrPair = stateSet->getTextureAttributePair(textureUnit,
@@ -1386,13 +1385,13 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
             }
         }
         // Else test if there is a TextureCubeMap instead of a Texture2D
-        else if (osgTexture = dynamic_cast<osg::TextureCubeMap *>
+        else if (osgTextureCube = dynamic_cast<osg::TextureCubeMap *>
                 (stateSet->getTextureAttribute(textureUnit,
                 osg::StateAttribute::TEXTURE)))
         {
             // Check for a previous encounter with this texture
             vsTextureCubeAttr = (vsTextureCubeAttribute *)
-                (attrMap->mapSecondToFirst(osgTexture));
+                (attrMap->mapSecondToFirst(osgTextureCube));
 
             if (!vsTextureCubeAttr)
             {
@@ -1440,8 +1439,8 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
 
                 vsTextureCubeAttr =
                     new vsTextureCubeAttribute(textureUnit,
-                    (osg::TextureCubeMap *) osgTexture, osgTexEnv, 
-                    osgTexEnvCombine, osgTexGen, osgTexMat);
+                        osgTextureCube, osgTexEnv, osgTexEnvCombine,
+                        osgTexGen, osgTexMat);
 
                 // Check the status of the override flag
                 osgRefAttrPair = stateSet->getTextureAttributePair(
@@ -1452,7 +1451,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
 
                 // Record that we've seen this texture, in case it comes up
                 // again
-                attrMap->registerLink(vsTextureCubeAttr, osgTexture);
+                attrMap->registerLink(vsTextureCubeAttr, osgTextureCube);
 
                 // Add the cube map to this node
                 node->addAttribute(vsTextureCubeAttr);
@@ -1460,14 +1459,9 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
             else
             {
                 // We've seen this one before, create a new cube map, but
-                // share the image data
-                tempCube = vsTextureCubeAttr;
-                vsTextureCubeAttr = new vsTextureCubeAttribute(textureUnit);
-                for (loop = 0; loop < 6; loop++)
-                {
-                    osgImage = vsTextureCubeAttr->getOSGImage(loop);
-                    vsTextureCubeAttr->setOSGImage(loop, osgImage);
-                }
+                // share the image data (do a shallow copy)
+                osgTextureCube = new osg::TextureCubeMap(*osgTextureCube,
+                                                    osg::CopyOp::SHALLOW_COPY);
 
                 // Create a new texture environment object for use by the
                 // texture attribute. (We don't want to use the one that came
@@ -1501,10 +1495,10 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
                 if (osgTexMat)
                     osgTexMat = new osg::TexMat(*osgTexMat);
 
-                vsTextureAttr = 
-                    new vsTextureAttribute((unsigned int)(textureUnit),
-                    (osg::Texture2D *)osgTexture, osgTexEnv, osgTexEnvCombine,
-                    osgTexGen, osgTexMat);
+                vsTextureCubeAttr = 
+                    new vsTextureCubeAttribute((unsigned int)(textureUnit),
+                        osgTextureCube, osgTexEnv, osgTexEnvCombine,
+                        osgTexGen, osgTexMat);
 
                 // Check the status of the override flag
                 osgRefAttrPair = stateSet->getTextureAttributePair(textureUnit,
@@ -1514,7 +1508,7 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
                     vsTextureAttr->setOverride(true);
 
                 // Add the cube map to this node
-                node->addAttribute(vsTextureAttr);
+                node->addAttribute(vsTextureCubeAttr);
             }
         }
     }
