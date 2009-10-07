@@ -70,9 +70,11 @@ vsIntersect::vsIntersect()
 vsIntersect::~vsIntersect()
 {
     // Clean up any intersect node paths that have been created.
-    clearIntersectionResults();
+    delete resultList;
+    delete segList;
 
-    // Delete the vsIntersectTraverser
+    // Delete the vsIntersectTraverser. Note that this is an OSG object (not a
+    // vsObject), so unref is the proper method to call.
     intersectTraverser->unref();
 }
 
