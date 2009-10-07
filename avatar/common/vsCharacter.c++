@@ -39,7 +39,6 @@ vsCharacter::vsCharacter(vsSkeleton *skeleton, vsSkeletonKinematics *skelKin,
     vsGLSLProgramAttribute *skinProgram;
     vsComponent *skinRoot;
     int i;
-    vsPathMotionManager *animation;
 
     // Create the lists for skeletons, kinematics, and skins
     characterSkeletons = new vsList();
@@ -171,7 +170,6 @@ vsCharacter::vsCharacter(vsList *skeletons, vsList *skelKins,
     vsComponent *lca;
     vsGLSLProgramAttribute *skinProgram;
     int i;
-    vsPathMotionManager *animation;
 
     // Assume ownership of all five containers of character pieces
     characterSkeletons = skeletons;
@@ -643,6 +641,13 @@ void vsCharacter::transitionToAnimation(vsPathMotionManager *target,
 
     // Stop the current animation
     currentAnimation->stop();
+
+    // See whether the current animation is already a transition.
+    if (transitioning)
+    {
+        // We don't need the current animation anymore. Free it.
+        delete currentAnimation;
+    }
 
     // Set the transition path's properties and start it up.
     transitionAnimation->setCycleMode(VS_PATH_CYCLE_RESTART);
