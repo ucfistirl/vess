@@ -626,6 +626,9 @@ void vsPathMotion::autoSetTimes(double totalPathSeconds)
             default:
                 printf("vsPathMotion::autoSetTimes: Unrecognized position"
                     " interpolation mode constant\n");
+
+                // Free the memory before returning.
+                free(segmentLengths);
                 return;
         }
 
@@ -1953,7 +1956,7 @@ vsKinematics *vsPathMotion::getKinematics()
 // ------------------------------------------------------------------------
 void vsPathMotion::setKinematics(vsKinematics *newKin)
 {
-    objectKin->unref();
+    vsObject::unrefDelete(objectKin);
     objectKin = newKin;
     objectKin->ref();
 }
