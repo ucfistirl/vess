@@ -565,6 +565,7 @@ void vsCharacter::transitionToAnimation(vsPathMotionManager *target,
 
     // Create the vsPathMotionManager representing the transition animation
     transitionAnimation = new vsPathMotionManager();
+    transitionAnimation->ref();
 
     // Loop through the path motions until we've hit the end of one of the
     // managers
@@ -646,8 +647,9 @@ void vsCharacter::transitionToAnimation(vsPathMotionManager *target,
     // See whether the current animation is already a transition.
     if (transitioning)
     {
-        // We don't need the current animation anymore. Free it.
-        delete currentAnimation;
+        // This must have been a temporary transition animation. We don't need
+        // it anymore so free its memory.
+        vsObject::unrefDelete(currentAnimation);
     }
 
     // Set the transition path's properties and start it up.
@@ -691,7 +693,7 @@ void vsCharacter::finishTransition()
     if (transitionAnimation != NULL)
     {
         // Delete the transition animation
-        delete transitionAnimation;
+        vsObject::unrefDelete(transitionAnimation);
         transitionAnimation = NULL;
     }
 
