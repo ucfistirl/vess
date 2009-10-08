@@ -112,6 +112,7 @@ vsCharacter::vsCharacter(vsSkeleton *skeleton, vsSkeletonKinematics *skelKin,
     oneTimeStarted = false;
     finalStarted = false;
     transitionAnimation = NULL;
+    transitioning = false;
 
     // Set the flag to indicate whether or not the character is valid
     if ((characterSkeletons->getNumEntries() > 0) &&
