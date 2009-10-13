@@ -133,6 +133,9 @@ vsSkin::vsSkin(vsSkin *original)
     skinMatrixList = NULL;
     skinITMatrixList = NULL;
 
+    // Initialize the array that flags whether or not a given bone is in use
+    boneUsed = NULL;
+
     // If the original skin referenced a skeleton, reference the same
     // skeleton with the new skin.   This allows both skins to be controlled
     // by the same skeleton.  If the desire is to use a clone of the
