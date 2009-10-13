@@ -224,6 +224,10 @@ void vsSkin::findUsedBones()
     int i, j;
     atVector bones, weights;
 
+    // See if we already have a "bone used" array, and clean it up if so
+    if (boneUsed != NULL)
+       delete [] boneUsed;
+
     // Create the "bone used" array and clear it to false
     boneUsed = new bool[skeleton->getBoneCount()];
     memset(boneUsed, 0, sizeof(bool) * skeleton->getBoneCount());
