@@ -1331,10 +1331,10 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
             }
             else
             {
-                // We've seen this one before, create a new texture, but
-                // share the image data (do a shallow copy)
-                osgTexture2D = new osg::Texture2D(*osgTexture2D,
-                                                  osg::CopyOp::SHALLOW_COPY);
+                // We've seen this one before, share the OSG texture object
+                // from the previous instance, but copy the other related OSG
+                // objects to make sure the texture is rendered properly
+                osgTexture2D = vsTextureAttr->getBaseLibraryObject();
 
                 // Create a new texture environment object for use by the
                 // texture attribute. (We don't want to use the one that came
@@ -1458,10 +1458,10 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
             }
             else
             {
-                // We've seen this one before, create a new cube map, but
-                // share the image data (do a shallow copy)
-                osgTextureCube = new osg::TextureCubeMap(*osgTextureCube,
-                                                    osg::CopyOp::SHALLOW_COPY);
+                // We've seen this one before, share the OSG texture object
+                // from the previous instance, but copy the other related OSG
+                // objects to make sure the cube map is rendered properly
+                osgTextureCube = vsTextureCubeAttr->getBaseLibraryObject();
 
                 // Create a new texture environment object for use by the
                 // texture attribute. (We don't want to use the one that came

@@ -243,12 +243,13 @@ vsAttribute *vsTextureCubeAttribute::clone()
     osg::TexMat *newOSGTexMat;
     int i;
 
-    // Create copies of the OSG texture objects used by this attribute
+    // Share the osg::TextureCube object that we're using
     if (osgTextureCube)
-        newOSGTextureCube = new osg::TextureCubeMap(*osgTextureCube);
+        newOSGTextureCube = osgTextureCube;
     else
         newOSGTextureCube = NULL;
 
+    // Create copies of the remaining texture-related objects
     // Texture enviroment
     if (osgTexEnv)
         newOSGTexEnv = new osg::TexEnv(*osgTexEnv);
@@ -276,12 +277,6 @@ vsAttribute *vsTextureCubeAttribute::clone()
     newAttrib = new vsTextureCubeAttribute(this->textureUnit,
         newOSGTextureCube, newOSGTexEnv, newOSGTexEnvCombine, newOSGTexGen,
         newOSGTexMat);
-
-    // Attach and reference the texture image.   We re-use the image data
-    // instead of cloning it to save on texture memory.  Typically, when
-    // cloning a texture, you want to use the same image anyway
-    for (i = 0; i < VS_TEXTURE_CUBE_SIDES; i++)
-        newAttrib->setOSGImage(i, osgTexImage[i]);
 
     // Return the clone
     return newAttrib;

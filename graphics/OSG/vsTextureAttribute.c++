@@ -219,12 +219,13 @@ vsAttribute *vsTextureAttribute::clone()
     osg::TexGen *newOSGTexGen;
     osg::TexMat *newOSGTexMat;
 
-    // Create copies of the OSG texture objects used by this attribute
+    // Share the OSG Texture2D object
     if (osgTexture)
-        newOSGTexture = new osg::Texture2D(*osgTexture);
+        newOSGTexture = osgTexture;
     else
         newOSGTexture = NULL;
 
+    // Create copies of the remaining texture-related objects
     // Texture enviroment
     if (osgTexEnv)
         newOSGTexEnv = new osg::TexEnv(*osgTexEnv);

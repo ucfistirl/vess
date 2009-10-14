@@ -195,12 +195,13 @@ vsAttribute *vsTextureRectangleAttribute::clone()
     osg::TexGen *newOSGTexGen;
     osg::TexMat *newOSGTexMat;
 
-    // Create copies of the OSG texture objects used by this attribute
+    // Share the osg::TextureRectangle object that we're using
     if (osgTexture)
-        newOSGTexture = new osg::TextureRectangle(*osgTexture);
+        newOSGTexture = osgTexture;
     else
         newOSGTexture = NULL;
 
+    // Create copies of the remaining texture-related objects
     // Texture enviroment
     if (osgTexEnv)
         newOSGTexEnv = new osg::TexEnv(*osgTexEnv);
