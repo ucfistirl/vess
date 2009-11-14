@@ -524,6 +524,7 @@ void vsCharacter::transitionToAnimation(vsPathMotionManager *target,
     vsPathMotion *targetPath;
     int index;
     int targetIndex;
+    vsPathMotionManager *newTransition;
     vsKinematics *sourceKin;
     vsKinematics *targetKin;
 
@@ -535,11 +536,10 @@ void vsCharacter::transitionToAnimation(vsPathMotionManager *target,
         return;
     }
 
-    // If the current animation is NULL, start the target animation
-    // immediately
+    // See if the current animation is NULL
     if (currentAnimation == NULL)
     {
-        // Nothing to start from, so just activate the final animation
+        // Nothing to start from, so just activate the target animation
         // now
         currentAnimation = target;
 
@@ -557,7 +557,7 @@ void vsCharacter::transitionToAnimation(vsPathMotionManager *target,
             currentAnimation->setCycleCount(VS_PATH_CYCLE_FOREVER);
         }
 
-        // Start the new animation
+        // Start the target animation immediately
         currentAnimation->stop();
         currentAnimation->startResume();
 
@@ -565,8 +565,7 @@ void vsCharacter::transitionToAnimation(vsPathMotionManager *target,
     }
 
     // Create the vsPathMotionManager representing the transition animation
-    transitionAnimation = new vsPathMotionManager();
-    transitionAnimation->ref();
+    newTransition = new vsPathMotionManager();
 
     // Loop through the path motions until we've hit the end of one of the
     // managers
@@ -635,7 +634,7 @@ void vsCharacter::transitionToAnimation(vsPathMotionManager *target,
 
             // Add this path motion (corresponding only to a single bone in the
             // skeleton) to the overall animation
-            transitionAnimation->addPathMotion(transPath);
+            newTransition->addPathMotion(transPath);
         }
 
         // Next bone
@@ -645,21 +644,26 @@ void vsCharacter::transitionToAnimation(vsPathMotionManager *target,
     // Stop the current animation
     currentAnimation->stop();
 
-    // See whether the current animation is already a transition.
-    if (transitioning)
+    // See whether the current animation was also a transition
+    if (currentAnimation == transitionAnimation)
     {
-        // This must have been a temporary transition animation. We don't need
-        // it anymore so free its memory.
-        vsObject::unrefDelete(currentAnimation);
+        // Delete the previous transition
+        vsObject::unrefDelete(transitionAnimation);
     }
 
-    // Set the transition path's properties and start it up.
+    // Set the new transition animation
+    transitionAnimation = newTransition;
+    transitionAnimation->ref();
+
+    // Set the transition's properties and start it up
     transitionAnimation->setCycleMode(VS_PATH_CYCLE_RESTART);
     transitionAnimation->setCycleCount(1);
     transitionAnimation->stop();
     transitionAnimation->startResume();
-    currentAnimation = transitionAnimation;
     transitioning = true;
+
+    // Make the transition animation current
+    currentAnimation = transitionAnimation;
 }
 
 // ------------------------------------------------------------------------
