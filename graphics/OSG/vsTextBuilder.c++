@@ -161,8 +161,8 @@ vsTextBuilder::vsTextBuilder(char *newFont, atVector newColor,
     if (newColor.getSize() < 4)
         fontColor[3] = 1.0;
 
-    // Default font resolution is 128x128
-    fontResolution = osgText::FontResolution(128,128);
+    // Default font resolution is 256x256
+    fontResolution = osgText::FontResolution(256, 256);
 
     // Copy the font transformation matrix
     transformMatrix = newTransform;
@@ -257,6 +257,10 @@ void vsTextBuilder::setFont(char *newFont)
         // get tempted to delete it
         if (osgFont)
             osgFont->ref();
+
+        // Increase the glyph image margin to 3 pixels, to avoid minification
+        // artifacts (glyphs bleeding into other glyphs)
+        osgFont->setGlyphImageMargin(3);
 
         // Error checking
         if (!osgFont)
