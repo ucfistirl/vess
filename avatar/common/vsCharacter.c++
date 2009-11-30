@@ -1298,7 +1298,23 @@ void vsCharacter::setCurrentAnimation(vsPathMotionManager *anim)
 
     // Deactivate the previous animation
     if (currentAnimation != NULL)
-        currentAnimation->stop();
+    {
+        // See whether we need to break out of a transition first
+        if (transitioning)
+        {
+            // Free the transition animation
+            vsObject::unrefDelete(transitionAnimation);
+            transitionAnimation = NULL;
+
+            // We are no longer transitioning
+            transitioning = false;
+        }
+        else
+        {
+            // Simply halt the previous animation
+            currentAnimation->stop();
+        }
+    }
 
     // Set the new animation
     currentAnimation = anim;
@@ -1505,7 +1521,18 @@ bool vsCharacter::isAnimationFinal()
 // ------------------------------------------------------------------------
 void vsCharacter::restartAnimation()
 {
-    // Reinitialize all animation state
+    // See whether we need to break out of a transition first
+    if (transitioning)
+    {
+        // Free the temporary transition animation
+        vsObject::unrefDelete(transitionAnimation);
+        transitionAnimation = NULL;
+
+        // Set transitioning back to false
+        transitioning = false;
+    }
+
+    // Reinitialize the other animation state variables
     loopingAnimation = NULL;
     loopStarted = false;
     oneTimeAnimation = NULL;
