@@ -46,6 +46,9 @@ commonSrc = 'vsCal3DAnimationLoader.c++ vsCal3DLoader.c++ \
 if useVideo:
    commonSrc += ' vsMovieReader.c++ vsMovieWriter.c++'
 
+   # This flag is required by ffmpeg because it uses macros from stdint.h
+   environmentDefs.extend(Split('__STDC_CONSTANT_MACROS'))
+
 
 # Add the environment subdirectories to the include path
 environmentIncPath.extend(Split(commonDir))

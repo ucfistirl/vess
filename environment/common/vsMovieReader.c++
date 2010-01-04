@@ -52,6 +52,7 @@ vsMovieReader::vsMovieReader()
     playMode = VS_MOVIE_STOPPED;
     memset(audioBuffer, 0, sizeof(audioBuffer));
     audioBufferSize = 0;
+    scaleContext = NULL;
 
     // Initialize packet queues
     videoQueue = new vsMoviePacketQueue;
@@ -196,6 +197,7 @@ bool vsMovieReader::openFile(char *filename)
         videoStream = NULL;
         videoCodec = NULL;
         videoStreamIndex = -1;
+        scaleContext = NULL;
     }
     else
     {
@@ -215,6 +217,7 @@ bool vsMovieReader::openFile(char *filename)
             videoStream = NULL;
             videoCodec = NULL;
             videoStreamIndex = -1;
+            scaleContext = NULL;
         }
         else
         {
@@ -265,6 +268,13 @@ bool vsMovieReader::openFile(char *filename)
                         timePerFrame *= 1000.0;
                     }
                 }
+
+                // Create a swscale context so we can convert the image format
+                // to a format we can use
+                scaleContext = sws_getCachedContext(scaleContext,
+                   videoCodecContext->width, videoCodecContext->height,
+                   videoCodecContext->pix_fmt, imageWidth, imageHeight,
+                   PIX_FMT_RGB24, SWS_BICUBIC, NULL, NULL, NULL);
             }
         }
     }
@@ -425,6 +435,10 @@ void vsMovieReader::closeFile()
         videoCodec = NULL;
         videoCodecContext = NULL;
         videoStreamIndex = -1;
+
+        // Also free the software scale context
+        sws_freeContext(scaleContext);
+        scaleContext = NULL;
     }
 
     // Close the audio codec context
@@ -708,8 +722,8 @@ void vsMovieReader::readNextFrame()
             {
                 // Specify that we want the output in 3-bytes-per-pixel RGB
                 // format
-                img_convert(rgbFrame, PIX_FMT_RGB24, (AVPicture *)videoFrame, 
-                    videoCodecContext->pix_fmt, imageWidth, imageHeight);
+                sws_scale(scaleContext, videoFrame->data, videoFrame->linesize,
+                    0, imageHeight, rgbFrame->data, rgbFrame->linesize);
 
                 // Release the packet
                 av_free_packet(&moviePacket);
@@ -744,9 +758,12 @@ void vsMovieReader::readNextFrame()
                 // Lock the audio mutex
                 pthread_mutex_lock(&audioMutex);
 
+                // Calculate the available space in the audio buffer
+                outputSize = sizeof(audioBuffer) - audioBufferSize;
+
                 // Decode a chunk of the packet's data
                 readSize = 
-                    avcodec_decode_audio(audioCodecContext, 
+                    avcodec_decode_audio2(audioCodecContext, 
                         (short *)audioBufferPtr, &outputSize, dataPtr,
                         size);
 

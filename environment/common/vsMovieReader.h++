@@ -32,8 +32,9 @@
 
 extern "C"
 {
-#include "ffmpeg/avcodec.h"
-#include "ffmpeg/avformat.h"
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
+#include "libswscale/swscale.h"
 }
 
 #define VS_MOVIE_PACKET_QUEUE_SIZE 8
@@ -79,6 +80,8 @@ private:
     unsigned char         audioBuffer[AVCODEC_MAX_AUDIO_FRAME_SIZE * 8];
     int                   audioBufferSize;
     vsSoundStream         *soundStream;
+
+    SwsContext            *scaleContext;
 
     int                   imageWidth;
     int                   imageHeight;

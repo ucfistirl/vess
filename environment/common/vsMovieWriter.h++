@@ -30,8 +30,9 @@
 
 extern "C"
 {
-#include "ffmpeg/avcodec.h"
-#include "ffmpeg/avformat.h"
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
+#include "libswscale/swscale.h"
 }
 
 #define VS_MOVIE_WRITER_DEFAULT_WIDTH       640
@@ -78,9 +79,8 @@ private:
     AVCodec               *vCodec;
 
     AVFrame               *rgbFrame;
-    AVFrame               *conversionFrame;
-    AVFrame               *resampleFrame;
-    ImgReSampleContext    *resampleContext;
+    AVFrame               *videoFrame;
+    SwsContext            *scaleContext;
 
     uint8_t               *vOutputBuffer;
     int                   vOutputBufferSize;

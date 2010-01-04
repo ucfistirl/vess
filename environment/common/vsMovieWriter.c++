@@ -426,9 +426,8 @@ bool vsMovieWriter::openFile(char *filename)
         vOutputBuffer = NULL;
     }
 
-    // Allocate a frame for the RGB24-format data. This frame will be necessary
-    // in all cases, as the data received from the vsVideoQueue will be in
-    // RGB24 format.
+    // Allocate a frame for the RGB24-format data. This frame will hold the
+    // data from the video queue in RGB24 format.
     rgbFrame = allocFrame(PIX_FMT_RGB24, videoQueue->getWidth(),
         videoQueue->getHeight());
     if (rgbFrame == NULL)
@@ -446,124 +445,56 @@ bool vsMovieWriter::openFile(char *filename)
     }
 
     // A frame is also required for the final converted image (conversion not
-    // to be confused with encoding). If the final image format is RGB24, then
-    // an additional frame isn't necessary for the conversion step, but if the
-    // format differs, a second frame must be allocated for output purposes.
-    if (vCodecContext->pix_fmt != PIX_FMT_RGB24)
+    // to be confused with encoding).  Attempt to allocate the video frame.
+    videoFrame = allocFrame(vCodecContext->pix_fmt, videoQueue->getWidth(),
+        videoQueue->getHeight());
+    if (videoFrame == NULL)
     {
-        // Attempt to allocate the temporary image.
-        conversionFrame = allocFrame(vCodecContext->pix_fmt,
-            videoQueue->getWidth(), videoQueue->getHeight());
-        if (conversionFrame == NULL)
+        // Free the video output buffer if exists.
+        if (vOutputBuffer)
         {
-            // Free the video output buffer if exists.
-            if (vOutputBuffer)
-            {
-                free(vOutputBuffer);
-            }
-
-            // Free the rgbFrame, which is always allocated.
-            free(rgbFrame->data[0]);
-            av_free(rgbFrame);
-
-            // Print an error message and return.
-            fprintf(stderr, "vsMovieWriter::openFile: "
-                "Unable to allocate output image frame!\n");
-            return false;
-        }
-    }
-    else
-    {
-        // Simply use the RGB frame for the output frame.
-        conversionFrame = rgbFrame;
-    }
-
-    // Yet another frame is required for resampling the converted image from
-    // its input size to the desired output size, but only if the input and
-    // output sizes differ.
-    if ((vCodecContext->width != videoQueue->getWidth()) ||
-        (vCodecContext->height != videoQueue->getHeight()))
-    {
-        // The aspect ratio is the same, so no bars should be necessary. This
-        // allows for the use of a simple resampler.
-        resampleContext = img_resample_init(vCodecContext->width,
-            vCodecContext->height, videoQueue->getWidth(),
-            videoQueue->getHeight());
-        if (resampleContext == NULL)
-        {
-            // Free the video output buffer if exists.
-            if (vOutputBuffer)
-            {
-                free(vOutputBuffer);
-            }
-
-            // First, ensure the conversion frame is not deleted twice if it
-            // shares the same frame data as the rgb frame.
-            if (conversionFrame == rgbFrame)
-            {
-                conversionFrame = NULL;
-            }
-
-            // Now free the rgb frame and its data buffer.
-            free(rgbFrame->data[0]);
-            av_free(rgbFrame);
-
-            // Now free the conversion frame if it is still unique.
-            if (conversionFrame)
-            {
-                free(conversionFrame->data[0]);
-                av_free(conversionFrame);
-            }
-
-            // Print an error message and return.
-            fprintf(stderr, "vsMovieWriter::openFile: "
-                "Unable to initialize resampling context!\n");
-            return false;
+            free(vOutputBuffer);
         }
 
-        // Create a frame to hold the resampled data.
-        resampleFrame = allocFrame(vCodecContext->pix_fmt,
-            vCodecContext->width, vCodecContext->height);
-        if (resampleFrame == NULL)
-        {
-            // Free the video output buffer if exists.
-            if (vOutputBuffer)
-            {
-                free(vOutputBuffer);
-            }
+        // Free the rgbFrame
+        free(rgbFrame->data[0]);
+        av_free(rgbFrame);
 
-            // First, ensure the conversion frame is not deleted twice if it
-            // shares the same frame data as the rgb frame.
-            if (conversionFrame == rgbFrame)
-            {
-                conversionFrame = NULL;
-            }
-
-            // Now free the rgb frame and its data buffer.
-            free(rgbFrame->data[0]);
-            av_free(rgbFrame);
-
-            // Now free the conversion frame if it is still unique.
-            if (conversionFrame)
-            {
-                free(conversionFrame->data[0]);
-                av_free(conversionFrame);
-            }
-
-            // Free the resampling context if it exists.
-            img_resample_close(resampleContext);
-
-            // Print an error message and return.
-            fprintf(stderr, "vsMovieWriter::openFile: "
-                "Unable to allocate resampling frame!\n");
-            return false;
-        }
+        // Print an error message and return.
+        fprintf(stderr, "vsMovieWriter::openFile: "
+            "Unable to allocate output image frame!\n");
+        return false;
     }
-    else
+
+    // Create a software scale context that will handle the image format
+    // conversion and resampling of the input image to the video frame
+    scaleContext = sws_getCachedContext(scaleContext,
+        vCodecContext->width, vCodecContext->height, vCodecContext->pix_fmt,
+        videoQueue->getWidth(), videoQueue->getHeight(), PIX_FMT_RGB24,
+        SWS_BICUBIC, NULL, NULL, NULL);
+    if (scaleContext == NULL)
     {
-        // Simply use the output frame for the resampled frame.
-        resampleContext = NULL;
-        resampleFrame = conversionFrame;
+        // Free the video output buffer if exists.
+        if (vOutputBuffer)
+        {
+            free(vOutputBuffer);
+        }
+
+        // Now free the rgb frame and its data buffer.
+        free(rgbFrame->data[0]);
+        av_free(rgbFrame);
+
+        // Now free the video frame.
+        if (videoFrame)
+        {
+            free(videoFrame->data[0]);
+            av_free(videoFrame);
+        }
+
+        // Print an error message and return.
+        fprintf(stderr, "vsMovieWriter::openFile: "
+            "Unable to initialize scale context!\n");
+        return false;
     }
 
     // Find a codec matching the audio codec context.
@@ -576,45 +507,20 @@ bool vsMovieWriter::openFile(char *filename)
             free(vOutputBuffer);
         }
 
-        // First, ensure the conversion and resample frames are not deleted
-        // twice if they share the same frame data as the rgb frame.
-        if (conversionFrame == rgbFrame)
-        {
-            conversionFrame = NULL;
-        }
-
-        if (resampleFrame == rgbFrame)
-        {
-            resampleFrame = NULL;
-        }
-
         // Now free the rgb frame and its data buffer.
         free(rgbFrame->data[0]);
         av_free(rgbFrame);
 
-        if (conversionFrame)
+        if (videoFrame)
         {
-            // Ensure the resample frame is not deleted twice if it shares
-            // the same frame data as the output frame.
-            if (resampleFrame == conversionFrame)
-            {
-                resampleFrame = NULL;
-            }
-
-            free(conversionFrame->data[0]);
-            av_free(conversionFrame);
+            free(videoFrame->data[0]);
+            av_free(videoFrame);
         }
 
-        // Free the resampling context if it exists.
-        if (resampleContext)
+        // Free the scale context if it exists.
+        if (scaleContext)
         {
-            img_resample_close(resampleContext);
-        }
-
-        if (resampleFrame)
-        {
-            free(resampleFrame->data[0]);
-            av_free(resampleFrame);
+            sws_freeContext(scaleContext);
         }
 
         fprintf(stderr, "vsMovieWriter::openFile: Unable to find audio "
@@ -683,45 +589,21 @@ bool vsMovieWriter::openFile(char *filename)
                 free(vOutputBuffer);
             }
 
-            // First, ensure the conversion and resample frames are not deleted
-            // twice if they share the same frame data as the rgb frame.
-            if (conversionFrame == rgbFrame)
-            {
-                conversionFrame = NULL;
-            }
-
-            if (resampleFrame == rgbFrame)
-            {
-                resampleFrame = NULL;
-            }
-
             // Now free the rgb frame and its data buffer.
             free(rgbFrame->data[0]);
             av_free(rgbFrame);
 
-            if (conversionFrame)
+            // Free the video frame and its data buffer.
+            if (videoFrame)
             {
-                // Ensure the resample frame is not deleted twice if it shares
-                // the same frame data as the output frame.
-                if (resampleFrame == conversionFrame)
-                {
-                    resampleFrame = NULL;
-                }
-
-                free(conversionFrame->data[0]);
-                av_free(conversionFrame);
+                free(videoFrame->data[0]);
+                av_free(videoFrame);
             }
 
-            if (resampleFrame)
+            // Free the scale context if it exists.
+            if (scaleContext)
             {
-                free(resampleFrame->data[0]);
-                av_free(resampleFrame);
-            }
-
-            // Free the resampling context if it exists.
-            if (resampleContext)
-            {
-                img_resample_close(resampleContext);
+                sws_freeContext(scaleContext);
             }
 
             // Free the audio output buffer in all cases.
@@ -807,52 +689,32 @@ void vsMovieWriter::closeFile()
         // check may be necessary.
         if (rgbFrame)
         {
-            // First, ensure the output and resample frames are not deleted
-            // twice if they share the same frame data as the rgb frame.
-            if (conversionFrame == rgbFrame)
-            {
-                conversionFrame = NULL;
-            }
-            if (resampleFrame == rgbFrame)
-            {
-                resampleFrame = NULL;
-            }
-
             // Now free the rgb frame and its data buffer.
             free(rgbFrame->data[0]);
             av_free(rgbFrame);
         }
 
-        if (conversionFrame)
+        // Do the same for the video frame
+        if (videoFrame)
         {
-            // Ensure the resample frame is not deleted twice if it shares the
-            // same frame data as the output frame.
-            if (resampleFrame == conversionFrame)
-            {
-                resampleFrame = NULL;
-            }
-
-            free(conversionFrame->data[0]);
-            av_free(conversionFrame);
+            free(videoFrame->data[0]);
+            av_free(videoFrame);
         }
 
-        if (resampleFrame)
+        // Free the scale context
+        if (scaleContext)
         {
-            free(resampleFrame->data[0]);
-            av_free(resampleFrame);
+            sws_freeContext(scaleContext);
         }
 
-        if (resampleContext)
-        {
-            img_resample_close(resampleContext);
-        }
-
+        // Free the output buffer
         if (vOutputBuffer)
         {
             free(vOutputBuffer);
         }
     }
 
+    // Clean up the audio stream data
     if (aStream)
     {
         avcodec_close(aStream->codec);
@@ -863,7 +725,7 @@ void vsMovieWriter::closeFile()
 
     // Officially close the output file.
     if (!(movieFormat->flags & AVFMT_NOFILE))
-        url_fclose(&movieContext->pb);
+        url_fclose(movieContext->pb);
 
     // Mark that the file has been closed successfully.
     fileOpen = false;
@@ -1261,27 +1123,9 @@ void vsMovieWriter::writeFrame()
     AVPacket videoPacket;
     int videoPacketSize;
 
-    // Test the pixel format to see if conversion is necessary.
-    if (vCodecContext->pix_fmt != PIX_FMT_RGB24)
-    {
-        // If the codec format isn't RGB24, then the video buffer
-        // is attached to a temporary frame that IS in RGB24, which
-        // will now be converted into the main frame. In the case
-        // that the desired format is RGB24, the video buffer will
-        // already be attached to the main frame.
-        img_convert((AVPicture *)conversionFrame, vCodecContext->pix_fmt,
-            (AVPicture *)rgbFrame, PIX_FMT_RGB24, videoQueue->getWidth(),
-            videoQueue->getHeight());
-    }
-
-    // Test the dimensions to see if resampling is necessary.
-    if ((vCodecContext->width != videoQueue->getWidth()) ||
-        (vCodecContext->height != videoQueue->getHeight()))
-    {
-        // Resample the data in the output frame.
-        img_resample(resampleContext, (AVPicture *)resampleFrame,
-            (const AVPicture *)conversionFrame);
-    }
+    // Convert and resample the data in the output frame.
+    sws_scale(scaleContext, videoFrame->data, videoFrame->linesize,
+        0, vCodecContext->height, rgbFrame->data, rgbFrame->linesize);
 
     // The write procedure is dependent upon the picture format.
     if (movieContext->oformat->flags & AVFMT_RAWPICTURE)
@@ -1296,7 +1140,7 @@ void vsMovieWriter::writeFrame()
 
         // The size and data are taken straight from the frame.
         videoPacket.size = sizeof(AVPicture);
-        videoPacket.data = (uint8_t *)resampleFrame;
+        videoPacket.data = (uint8_t *)videoFrame;
  
         // Write the next video frame.
         av_write_frame(movieContext, &videoPacket);
@@ -1305,7 +1149,7 @@ void vsMovieWriter::writeFrame()
     {
         // Attempt to encode the image, storing the final size.
         videoPacketSize = avcodec_encode_video(vCodecContext, vOutputBuffer,
-            vOutputBufferSize, resampleFrame);
+            vOutputBufferSize, videoFrame);
 
         // The size will be zero if the image was buffered.
         if (videoPacketSize > 0)
