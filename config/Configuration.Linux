@@ -6,7 +6,7 @@
 [base]
 
 # Path for ATLAS - Low-level support library (required)
-atlasPath = /irl/work/jdaly/atlas
+atlasPath = #../atlas
 
 # Path for HLA RTI - Used by ATLAS for HLA networking (required)
 rtiPath = /irl/tools/libs/rtis-1.3_D18A
