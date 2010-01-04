@@ -107,5 +107,5 @@ vrpnPath = /irl/tools/libs/vrpn-06.06beta4
 videoEnabled = yes
 
 # Path for ffmpeg (audio/video encode/decode library)
-ffmpegPath = /irl/tools/libs/ffmpeg
+ffmpegPath = /irl/tools/libs/ffmpeg-0.5
 
