@@ -84,11 +84,11 @@ vhtPath =
 isenseEnabled = no
 
 # Path for the InterSense library
-isensePath = L:/InterSense_SDK_404.02
+isensePath = L:/InterSense_SDK_389
 
 # Major version number for the InterSense library.  For example, this would
 # be 4 for version 4.04 of the InterSense SDK.
-isenseMajorVer = 4
+isenseMajorVer = 3
 
 # Enable/disable PhaseSpace Motion Digitizer support
 pspaceEnabled = no
@@ -113,5 +113,5 @@ vrpnPath = L:/vrpn-06.06beta4
 videoEnabled = yes
 
 # Path for ffmpeg (audio/video encode/decode library)
-ffmpegPath = L:/ffmpeg
+ffmpegPath = L:/ffmpeg-0.5
 
