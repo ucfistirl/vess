@@ -62,10 +62,10 @@ soundEnabled = yes
 audioLibrary = OpenAL
 
 # OpenAL - Audio library
-oalPath = L:/openal
+oalPath = L:/openal-1.1-sdk-3.5
 
 # ALUT - OpenAL Utility Toolkit (required if OpenAL is selected)
-alutPath = L:/alut
+alutPath = L:/freealut-1.1.0
 
 
 
