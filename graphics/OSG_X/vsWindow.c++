@@ -945,12 +945,16 @@ vsWindow::~vsWindow()
     }
     else
     {
-        // Destroy the on-screen GLX drawable
-        glXDestroyWindow(display, drawable);
-
         // See if we created the main window
         if (createdXWindow)
         {
+           // The drawable has to be destroyed only if we created the window
+           // ourselves. The owner of the window can destroy the parent window
+           // of the drawable, which will also delete the drawable along with
+           // it. This is because the drawable is created as a child of the 
+           // original parent window.
+           glXDestroyWindow(display, drawable);
+
            // Destroy the window itself
            XDestroyWindow(display, xWindow);
         }
