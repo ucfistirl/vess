@@ -100,7 +100,6 @@ vsTextureRectangleAttribute::vsTextureRectangleAttribute(unsigned int unit)
     setApplyMode(VS_TEXTURE_APPLY_MODULATE);
 }
 
-
 // ------------------------------------------------------------------------
 // Internal function
 // Constructor - Sets the texture attribute up as already attached
@@ -236,6 +235,9 @@ vsAttribute *vsTextureRectangleAttribute::clone()
     // cloning a texture, you want to use the same image anyway
     newAttrib->setOSGImage(osgTexImage);
 
+    // Give the clone our name
+    newAttrib->setName((char *)getName());
+    
     // Return the clone
     return newAttrib;
 }
@@ -246,7 +248,8 @@ vsAttribute *vsTextureRectangleAttribute::clone()
 void vsTextureRectangleAttribute::setImage(unsigned char *imageData,
     int xSize, int ySize, int dataFormat)
 {
-    int format;
+    int internalFormat;
+    int pixelFormat;
 
     // Create and reference an osg::Image if none exists
     if (!osgTexImage)
@@ -260,16 +263,40 @@ void vsTextureRectangleAttribute::setImage(unsigned char *imageData,
     switch (dataFormat)
     {
         case VS_TEXTURE_DFORMAT_INTENSITY:
-            format = GL_LUMINANCE;
+            internalFormat = GL_LUMINANCE;
+            pixelFormat = GL_LUMINANCE;
             break;
         case VS_TEXTURE_DFORMAT_INTENSITY_ALPHA:
-            format = GL_LUMINANCE_ALPHA;
+            internalFormat = GL_LUMINANCE_ALPHA;
+            pixelFormat = GL_LUMINANCE_ALPHA;
             break;
         case VS_TEXTURE_DFORMAT_RGB:
-            format = GL_RGB;
+            internalFormat = GL_RGB;
+            pixelFormat = GL_RGB;
             break;
         case VS_TEXTURE_DFORMAT_RGBA:
-            format = GL_RGBA;
+            internalFormat = GL_RGBA;
+            pixelFormat = GL_RGBA;
+            break;
+        case VS_TEXTURE_DFORMAT_BGRA:
+            internalFormat = GL_RGBA;
+            pixelFormat = GL_BGRA;
+            break;
+        case VS_TEXTURE_DFORMAT_DXT1:
+            internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+            pixelFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+            break;
+        case VS_TEXTURE_DFORMAT_DXT1_ALPHA:
+            internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+            pixelFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+            break;
+        case VS_TEXTURE_DFORMAT_DXT3:
+            internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+            pixelFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+            break;
+        case VS_TEXTURE_DFORMAT_DXT5:
+            internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+            pixelFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
             break;
         default:
             printf("vsTextureRectangleAttribute::setImage: "
@@ -278,7 +305,7 @@ void vsTextureRectangleAttribute::setImage(unsigned char *imageData,
     }
 
     // Pass the image data and settings to the osg::Image
-    osgTexImage->setImage(xSize, ySize, 1, GL_RGBA, format,
+    osgTexImage->setImage(xSize, ySize, 1, internalFormat, pixelFormat,
         GL_UNSIGNED_BYTE, imageData, osg::Image::USE_MALLOC_FREE, 1);
 }
 
@@ -323,6 +350,21 @@ void vsTextureRectangleAttribute::getImage(unsigned char **imageData,
         case GL_RGBA:
             format = VS_TEXTURE_DFORMAT_RGBA;
             break;
+        case GL_BGRA:
+            format = VS_TEXTURE_DFORMAT_BGRA;
+            break;
+        case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+            format = VS_TEXTURE_DFORMAT_DXT1;
+            break;
+        case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+            format = VS_TEXTURE_DFORMAT_DXT1_ALPHA;
+            break;
+        case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+            format = VS_TEXTURE_DFORMAT_DXT3;
+            break;
+        case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+            format = VS_TEXTURE_DFORMAT_DXT5;
+            break;
         default:
             format = -1;
             break;
@@ -357,7 +399,8 @@ void vsTextureRectangleAttribute::loadImageFromFile(char *filename)
     options = new osgDB::ReaderWriter::Options("dds_flip");
     options->ref();
 
-    // Read the image file into a new osg::Image object
+    // Read the image file into a new osg::Image object, passing the options
+    // object
     osgTexImage = osgDB::readImageFile(filename, options);
 
     // Get rid of the options object
@@ -397,7 +440,26 @@ bool vsTextureRectangleAttribute::isTransparent()
 {
     // See if we have a texture image loaded
     if (osgTexImage)
-        return osgTexImage->isImageTranslucent();
+    {
+        // See if OSG thinks the image is translucent first
+        if (osgTexImage->isImageTranslucent())
+           return true;
+        else
+        {
+           // OSG has a hard time detecting transparency in compressed
+           // textures.  If the image data format is compressed and it
+           // has an alpha channel, we'll assume it is translucent
+           if ((osgTexImage->getPixelFormat() == 
+                    GL_COMPRESSED_RGBA_S3TC_DXT1_EXT) ||
+               (osgTexImage->getPixelFormat() == 
+                    GL_COMPRESSED_RGBA_S3TC_DXT3_EXT) ||
+               (osgTexImage->getPixelFormat() == 
+                    GL_COMPRESSED_RGBA_S3TC_DXT5_EXT))
+              return true;
+           else
+              return false;
+        }
+    }
 
     // No texture image, so not transparent
     return false;
@@ -967,6 +1029,9 @@ void vsTextureRectangleAttribute::detach(vsNode *node)
     if (osgTexGen)
         osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexGen,
             osg::StateAttribute::INHERIT);
+    if (osgTexEnvCombine)
+        osgStateSet->setTextureAttributeAndModes(textureUnit, osgTexEnvCombine,
+            osg::StateAttribute::INHERIT);
 
     // Finish with standard StateAttribute detaching
     vsStateAttribute::detach(node);
@@ -1041,6 +1106,18 @@ bool vsTextureRectangleAttribute::isEquivalent(vsAttribute *attribute)
     if (val1 != val2)
         return false;
 
+    // Compare magnification filter modes
+    val1 = getMagFilter();
+    val2 = attr->getMagFilter();
+    if (val1 != val2)
+        return false;
+
+    // Compare minification filter modes
+    val1 = getMinFilter();
+    val2 = attr->getMinFilter();
+    if (val1 != val2)
+        return false;
+
     // Compare texture unit
     val1 = getTextureUnit();
     val2 = attr->getTextureUnit();
@@ -1083,7 +1160,8 @@ void vsTextureRectangleAttribute::setOSGImage(osg::Image *osgImage)
 
     // Store and reference the new image
     osgTexImage = osgImage;
-    osgTexImage->ref();
+    if (osgTexImage)
+        osgTexImage->ref();
 
     // Instruct the OSG texture object to use the new image
     osgTexture->setImage(osgTexImage);

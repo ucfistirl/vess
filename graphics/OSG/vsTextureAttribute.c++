@@ -269,7 +269,8 @@ vsAttribute *vsTextureAttribute::clone()
 void vsTextureAttribute::setImage(unsigned char *imageData, int xSize,
     int ySize, int dataFormat)
 {
-    int format;
+    int internalFormat;
+    int pixelFormat;
 
     // Create and reference an osg::Image if none exists
     if (!osgTexImage)
@@ -279,23 +280,44 @@ void vsTextureAttribute::setImage(unsigned char *imageData, int xSize,
         osgTexture->setImage(osgTexImage);
     }
 
-    // Translate the image format into an OSG-friendly value
+    // Translate the image format into OSG-friendly values
     switch (dataFormat)
     {
         case VS_TEXTURE_DFORMAT_INTENSITY:
-            format = GL_LUMINANCE;
+            internalFormat = GL_LUMINANCE;
+            pixelFormat = GL_LUMINANCE;
             break;
         case VS_TEXTURE_DFORMAT_INTENSITY_ALPHA:
-            format = GL_LUMINANCE_ALPHA;
+            internalFormat = GL_LUMINANCE_ALPHA;
+            pixelFormat = GL_LUMINANCE_ALPHA;
             break;
         case VS_TEXTURE_DFORMAT_RGB:
-            format = GL_RGB;
+            internalFormat = GL_RGB;
+            pixelFormat = GL_RGB;
             break;
         case VS_TEXTURE_DFORMAT_RGBA:
-            format = GL_RGBA;
+            internalFormat = GL_RGBA;
+            pixelFormat = GL_RGBA;
             break;
         case VS_TEXTURE_DFORMAT_BGRA:
-            format = GL_BGRA;
+            internalFormat = GL_RGBA;
+            pixelFormat = GL_BGRA;
+            break;
+        case VS_TEXTURE_DFORMAT_DXT1:
+            internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+            pixelFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+            break;
+        case VS_TEXTURE_DFORMAT_DXT1_ALPHA:
+            internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+            pixelFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+            break;
+        case VS_TEXTURE_DFORMAT_DXT3:
+            internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+            pixelFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+            break;
+        case VS_TEXTURE_DFORMAT_DXT5:
+            internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+            pixelFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
             break;
         default:
             printf("vsTextureAttribute::setImage: Bad data format value");
@@ -303,7 +325,7 @@ void vsTextureAttribute::setImage(unsigned char *imageData, int xSize,
     }
 
     // Pass the image data and settings to the osg::Image
-    osgTexImage->setImage(xSize, ySize, 1, GL_RGBA, format,
+    osgTexImage->setImage(xSize, ySize, 1, internalFormat, pixelFormat,
         GL_UNSIGNED_BYTE, imageData, osg::Image::USE_MALLOC_FREE, 1);
 }
 
@@ -350,6 +372,18 @@ void vsTextureAttribute::getImage(unsigned char **imageData, int *xSize,
             break;
         case GL_BGRA:
             format = VS_TEXTURE_DFORMAT_BGRA;
+            break;
+        case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+            format = VS_TEXTURE_DFORMAT_DXT1;
+            break;
+        case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+            format = VS_TEXTURE_DFORMAT_DXT1_ALPHA;
+            break;
+        case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+            format = VS_TEXTURE_DFORMAT_DXT3;
+            break;
+        case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+            format = VS_TEXTURE_DFORMAT_DXT5;
             break;
         default:
             format = -1;
@@ -444,7 +478,26 @@ bool vsTextureAttribute::isTransparent()
 {
     // See if we have a texture image loaded
     if (osgTexImage)
-        return osgTexImage->isImageTranslucent();
+    {
+        // See if OSG thinks the image is translucent first
+        if (osgTexImage->isImageTranslucent())
+           return true;
+        else
+        {
+           // OSG has a hard time detecting transparency in compressed
+           // textures.  If the image data format is compressed and it
+           // has an alpha channel, we'll assume it is translucent
+           if ((osgTexImage->getPixelFormat() == 
+                    GL_COMPRESSED_RGBA_S3TC_DXT1_EXT) ||
+               (osgTexImage->getPixelFormat() == 
+                    GL_COMPRESSED_RGBA_S3TC_DXT3_EXT) ||
+               (osgTexImage->getPixelFormat() == 
+                    GL_COMPRESSED_RGBA_S3TC_DXT5_EXT))
+              return true;
+           else
+              return false;
+        }
+    }
 
     // No texture image, so not transparent
     return false;
