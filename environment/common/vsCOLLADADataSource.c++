@@ -362,7 +362,8 @@ void vsCOLLADADataSource::processTechniqueCommon(atXMLDocument *doc,
 
                     // Now, get the parameter type
                     attr = doc->getNodeAttribute(param, "type");
-                    if (strcmp(attr, "Name") == 0)
+                    if ((strcmp(attr, "Name") == 0) ||
+                        (strcmp(attr, "name") == 0))
                     {
                         // String
                         paramFormat[paramCount] = VS_CDS_STRING;
