@@ -1131,6 +1131,7 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
     double r, g, b, a;
     double shiny;
     double nearFog, farFog;
+    int format;
     int mode;
     int shadingData;
     bool attrData;
@@ -1600,6 +1601,46 @@ void vsScenePrinter::writeScene(vsNode *targetNode, FILE *outfile,
                         fprintf(outfile, "Texture Unit:  %d\n",
                             ((vsTextureAttribute *)attribute)->
                             getTextureUnit());
+
+                        // Data format
+                        ((vsTextureAttribute *)attribute)->
+                            getImage(NULL, NULL, NULL, &format);
+                        writeBlanks(outfile, (treeDepth * 2) + 3);
+                        fprintf(outfile, "Data Format:   ");
+                        switch (format)
+                        {
+                            case VS_TEXTURE_DFORMAT_INTENSITY:
+                                fprintf(outfile, "INTENSITY\n");
+                                break;
+   
+                            case VS_TEXTURE_DFORMAT_INTENSITY_ALPHA:
+                                fprintf(outfile, "INTENSITY_ALPHA\n");
+                                break;
+
+                            case VS_TEXTURE_DFORMAT_RGB:
+                                fprintf(outfile, "RGB\n");
+                                break;
+
+                            case VS_TEXTURE_DFORMAT_RGBA:
+                                fprintf(outfile, "RGBA\n");
+                                break;
+  
+                            case VS_TEXTURE_DFORMAT_DXT1:
+                                fprintf(outfile, "DXT1\n");
+                                break;
+
+                            case VS_TEXTURE_DFORMAT_DXT1_ALPHA:
+                                fprintf(outfile, "DXT1_ALPHA\n");
+                                break;
+
+                            case VS_TEXTURE_DFORMAT_DXT3:
+                                fprintf(outfile, "DXT3\n");
+                                break;
+
+                            case VS_TEXTURE_DFORMAT_DXT5:
+                                fprintf(outfile, "DXT5\n");
+                                break;
+                        }
                      
                         // Texture application mode
                         writeBlanks(outfile, (treeDepth * 2) + 3);
