@@ -925,15 +925,6 @@ vsWindow::~vsWindow()
     // Remove the window from its screen
     parentScreen->removeWindow(this);
 
-    // WORKAROUND:  Make this window's context current, so we can flush the
-    // GL pipeline before destroying it.  This step shouldn't be necessary,
-    // according to the GLX specification, but we need it to work around an
-    // issue with the OpenGL driver that can sometimes cause crashes when a
-    // GLX window or context is deleted
-    makeCurrent();
-    glFlush();
-    glXWaitGL();
-
     // Destroy the rendering context
     glXDestroyContext(display, glContext);
 
@@ -945,19 +936,23 @@ vsWindow::~vsWindow()
     }
     else
     {
+        // Destroy the GLX drawable attached to the X Window
+        glXDestroyWindow(display, drawable);
+
         // See if we created the main window
         if (createdXWindow)
         {
-           // The drawable has to be destroyed only if we created the window
-           // ourselves. The owner of the window can destroy the parent window
-           // of the drawable, which will also delete the drawable along with
-           // it. This is because the drawable is created as a child of the 
-           // original parent window.
-           glXDestroyWindow(display, drawable);
-
            // Destroy the window itself
            XDestroyWindow(display, xWindow);
         }
+
+        // Sync OpenGL and the X Server so all of the code above executes
+        // before we move on.  If we don't do this, we can run into issues
+        // with the X and OpenGL event queues (the X window could be deleted
+        // before the GLX window, which would cause the glXDestroyWindow call
+        // to fail)
+        glFinish();
+        XSync(display, False);
     }
 }
     
