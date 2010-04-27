@@ -146,6 +146,8 @@ bool vsSoundPacketStream::queueBuffer(void *audioData, u_long length)
 
     // Queue the buffer on the source
     alSourceQueueBuffers(sourceID, 1, &buffer);
+
+    return true;
 }
 
 // ------------------------------------------------------------------------
