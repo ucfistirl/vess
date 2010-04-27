@@ -39,7 +39,6 @@
 // This class also does not support the buttons on FOB 6D Mouse devices.
 // (The position tracking features are supported).
 
-#include <windows.h>
 #include "vsSerialPort.h++"
 #include "vsMotionTracker.h++"
 #include "vsTrackingSystem.h++"
