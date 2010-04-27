@@ -29,12 +29,24 @@
 
 #define VS_IB_DBLCLICK_INTERVAL  0.4
 
+enum ButtonState
+{
+   VS_IB_STABLE,
+   VS_IB_THIS_FRAME,
+   VS_IB_LAST_FRAME
+};
+
 class VESS_SYM vsInputButton : public vsUpdatable
 {
 protected:
 
-    // Indicates the state of the button
+    // Indicates the immediate state of the button (simple pressed/released)
     bool         pressed;
+
+    // Temporal states of the button (indicates button press/release relative
+    // to the button update() cycle)
+    ButtonState   pressedState;
+    ButtonState   releasedState;
 
     // Timer to measure time between button presses
     vsTimer      *buttonTimer;
@@ -62,6 +74,8 @@ public:
     virtual const char *    getClassName();
 
     bool                    isPressed(void);
+    bool                    wasPressed(void);
+    bool                    wasReleased(void);
     bool                    wasDoubleClicked(void);
 
     void                    setDoubleClickInterval(double interval);

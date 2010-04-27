@@ -30,6 +30,8 @@ vsInputButton::vsInputButton(void)
 {
     // Initialize variables
     pressed = false;
+    pressedState = VS_IB_STABLE;
+    releasedState = VS_IB_STABLE;
     doubleClicked = false;
     doubleClickInterval = VS_IB_DBLCLICK_INTERVAL;
     
@@ -59,6 +61,34 @@ const char * vsInputButton::getClassName()
 // ------------------------------------------------------------------------
 void vsInputButton::update()
 {
+    // Update the button press temporal state
+    if (pressedState == VS_IB_THIS_FRAME)
+    {
+        // Update the state to "last frame", meaning that the button
+        // was pressed during the frame prior to this update
+        pressedState = VS_IB_LAST_FRAME;
+    }
+    else
+    {
+        // Update the state to stable, meaning that the button
+        // state hasn't changed since the previous update
+        pressedState = VS_IB_STABLE;
+    }
+
+    // Update the button release temporal state (note that both a press and
+    // a release can occur during the same frame)
+    if (releasedState == VS_IB_THIS_FRAME)
+    {
+        // Update the state to "last frame", meaning that the button
+        // was released during the frame prior to this update
+        releasedState = VS_IB_LAST_FRAME;
+    }
+    else
+    {
+        // Update the state to stable, meaning that the button
+        // state hasn't changed since the previous update
+        releasedState = VS_IB_STABLE;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -67,6 +97,26 @@ void vsInputButton::update()
 bool vsInputButton::isPressed(void)
 {
     return pressed;
+}
+
+// ------------------------------------------------------------------------
+// Returns whether or not the button was pressed at some time during the
+// previous frame (update() must be called once before this method will
+// return the correct value)
+// ------------------------------------------------------------------------
+bool vsInputButton::wasPressed(void)
+{
+    return (pressedState == VS_IB_LAST_FRAME);
+}
+
+// ------------------------------------------------------------------------
+// Returns whether or not the button was released at some time during the
+// previous frame (like wasPressed(), update() must be called once before
+// this method will return the correct value)
+// ------------------------------------------------------------------------
+bool vsInputButton::wasReleased(void)
+{
+    return (releasedState == VS_IB_LAST_FRAME);
 }
 
 // ------------------------------------------------------------------------
@@ -83,10 +133,15 @@ bool vsInputButton::wasDoubleClicked(void)
 void vsInputButton::setPressed(void)
 {
     // Don't count this as a press if the button is already pressed
+    // (polled devices often send constant "setPressed" messages as long as
+    // the button is pressed)
     if (!pressed)
     {
         // Set the button to pressed
         pressed = true;
+
+        // Set the button pressed state to "this frame" (a press just occured)
+        pressedState = VS_IB_THIS_FRAME;
 
         // Mark the button press time
         buttonTimer->mark();
@@ -109,7 +164,18 @@ void vsInputButton::setPressed(void)
 // ------------------------------------------------------------------------
 void vsInputButton::setReleased(void)
 {
-    pressed = false;
+    // Don't count this as a release if the button is already released
+    // (polled devices often send constant "setReleased" messages as long as
+    // the button is released)
+    if (pressed)
+    {
+        // Set the button to not pressed
+        pressed = false;
+
+        // Set the button released state to "this frame" (a release
+        // just occured)
+        releasedState = VS_IB_THIS_FRAME;
+    }
 }
 
 // ------------------------------------------------------------------------
