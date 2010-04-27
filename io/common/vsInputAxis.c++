@@ -208,7 +208,7 @@ double vsInputAxis::getNormalizedValue(double rawValue)
 
 // ------------------------------------------------------------------------
 // If we are set to normalize, return the scaled axis position based on the
-// axis range and indle position.  If not, return the raw device position
+// axis range and idle position.  If not, return the raw device position
 //
 // The normalized value will be between -1.0 and 1.0
 // ------------------------------------------------------------------------
