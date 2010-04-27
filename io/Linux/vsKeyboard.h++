@@ -44,15 +44,6 @@ enum
     VS_KB_MODE_TERMINAL
 };
 
-// Key "states"
-enum
-{
-    VS_KB_STABLE,
-    VS_KB_JUST_PRESSED,
-    VS_KB_JUST_RELEASED,
-    VS_KB_STILL_RELEASED
-};
-
 // Enum to index the non-printable keys into the vsInputButton array
 // the printable keys will map directly to the corresponding X keysyms 
 enum
@@ -130,7 +121,6 @@ protected:
     // Keyboard "buttons"
     int              numButtons;
     vsInputButton    *button[VS_KB_MAX_BUTTONS];
-    int              keyState[VS_KB_MAX_BUTTONS];
 
     // The current and last command strings
     char             command[VS_KB_COMMAND_LENGTH];

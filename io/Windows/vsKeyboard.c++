@@ -546,9 +546,6 @@ void vsKeyboard::pressKey(unsigned virtKey, unsigned flags)
         // Press the corresponding input button
         (button[index])->setPressed();
 
-        // Set the state to "just pressed"
-        keyState[index] = VS_KB_JUST_PRESSED;
-
         // Check the keyboard mode (terminal or button).  
         // In button mode, the keyboard simply keeps track of the state of
         // each keyboard "button".  In terminal mode, the keyboard also 
@@ -630,11 +627,8 @@ void vsKeyboard::releaseKey(unsigned virtKey, unsigned flags)
     // Make sure the key is valid
     if (index >= 0)
     {
-        // Set the key to "just released" if it is currently pressed
-        if ((button[index])->isPressed())
-        {
-            keyState[index] = VS_KB_JUST_RELEASED;
-        }
+        // Release the button
+        (button[index])->setReleased();
     }
 }
 
@@ -696,40 +690,16 @@ void vsKeyboard::update()
 {
     int i;
 
-    // Make sure a key press is acknowledged for at least one frame
-    // This helps account for slow frame rates
-
-    // For each key...
-    for (i = 0; i < numButtons; i++)
+    // Update all keyboard buttons
+    for (i = 0; i < VS_KB_MAX_BUTTONS; i++)
     {
-        // If this key is currently pressed...
-        if (button[i]->isPressed())
+        // Skip the lower-case letters, as they're simply mirrors of the
+        // corresponding upper-case letters
+        if ((i < 'a') || (i > 'z'))
         {
-            // Process the key based on its current state
-            if (keyState[i] == VS_KB_STILL_RELEASED)
-            {
-                // The key has been released for one complete frame,
-                // so we can safely release the button now.
-                keyState[i] = VS_KB_STABLE;
-                (button[i])->setReleased();
-            }
-            else if (keyState[i] == VS_KB_JUST_RELEASED)
-            {
-                // The key was just released, so set its state to
-                // "still released."  We'll actually release it next
-                // frame.
-                keyState[i] = VS_KB_STILL_RELEASED;
-            }
-            else if (keyState[i] == VS_KB_JUST_PRESSED)
-            {
-                // We're not so worried about presses, just set
-                // it to stable immediately.
-                keyState[i] = VS_KB_STABLE;
-            }
+            (button[i])->update();
         }
     }
-
-    vsIODevice::update();
 }
 
 // ------------------------------------------------------------------------

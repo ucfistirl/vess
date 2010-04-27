@@ -28,7 +28,6 @@
 // Windows systems.
 
 #include "vsIODevice.h++"
-#include <windows.h>
 
 #define VS_KB_MAX_BUTTONS    150
 
