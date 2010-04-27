@@ -30,6 +30,9 @@
 #define VS_MOUSE_MAX_AXES    3
 #define VS_MOUSE_MAX_BUTTONS 5
 
+// The mouse wheel will be on the third axis
+#define VS_MOUSE_WHEEL_AXIS  2
+
 class VESS_SYM vsMouse : public vsIODevice
 {
 protected:
