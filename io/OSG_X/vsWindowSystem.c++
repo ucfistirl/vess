@@ -71,9 +71,16 @@ vsWindowSystem::vsWindowSystem(vsWindow *mainWindow)
     keyboard = new vsKeyboard(VS_KB_MODE_BUTTON);
     keyboard->ref();
 
-    // Most mice have 2 axes and 3 buttons
-    mouse = new vsMouse(2, 3, xSize, ySize);
+    // Most mice have at least 2 axes and 3 buttons, but many mice have a
+    // wheel that X interprets as buttons 4 (scroll up) and 5 (scroll down).
+    // We'll convert the wheel "buttons" into a non-normalized axis, so
+    // user programs can track the relative axis changes
+    mouse = new vsMouse(3, 3, xSize, ySize);
     mouse->ref();
+
+    // Set the mouse wheel "buttons" to their default indices
+    mouse_wheel_up_button_index = VS_WS_MOUSE_WHEEL_UP_BUTTON_DEFAULT;
+    mouse_wheel_down_button_index = VS_WS_MOUSE_WHEEL_DOWN_BUTTON_DEFAULT;
 
     // Assume the mouse isn't in the window yet (an EnterNotify or 
     // PointerMotion event will change this)
@@ -183,12 +190,37 @@ bool vsWindowSystem::isMouseInWindow()
 }
 
 // ------------------------------------------------------------------------
+// Sets index of the two "buttons" used to represent mouse wheel scrolling.
+// The popular Linux X servers (X.org and XFree86) use this technique to
+// represent the wheel.  The button indices are 1-based to match the
+// X server's configuration file
+// ------------------------------------------------------------------------
+void vsWindowSystem::setMouseWheelButtons(int upButton, int downButton)
+{
+    mouse_wheel_up_button_index = upButton;
+    mouse_wheel_down_button_index = downButton;
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the indices of the two "buttons" used to represent mouse
+// wheel scrolling
+// ------------------------------------------------------------------------
+void vsWindowSystem::getMouseWheelButtons(int *upButton, int *downButton)
+{
+    if (upButton != NULL)
+        *upButton = mouse_wheel_up_button_index;
+    if (downButton != NULL)
+        *downButton = mouse_wheel_down_button_index;
+}
+
+// ------------------------------------------------------------------------
 // Update function for window system.  This will route all the input events 
 // to the correct devices
 // ------------------------------------------------------------------------
 void vsWindowSystem::update()
 {
     XEvent            event;
+    XEvent            nextEvent;
     XWindowAttributes xattr;
     char              buffer[50];
     KeySym            keySym;
@@ -196,6 +228,8 @@ void vsWindowSystem::update()
     Window            childWin;
     int               rootX, rootY, winX, winY;
     unsigned int      modMask;
+    vsInputAxis       *axis;
+    double            pos;
     
     // Check to make sure that we have a valid display
     if (!display)
@@ -221,28 +255,71 @@ void vsWindowSystem::update()
                 break;
 
             case KeyRelease:
-                // Look up the string representing the key
-                XLookupString(&(event.xkey), buffer, 
-                    sizeof(buffer), &keySym, NULL); 
+                // See if the next event in the queue is a KeyPress event
+                // for the same key (if so, it may be an auto-repeat event)
+                if (XCheckWindowEvent(display, window, KeyPressMask,
+                                      &nextEvent))
+                {
+                    // See if this event's timestamp matches the key release's
+                    // timestamp
+                    if (nextEvent.xkey.time == event.xkey.time)
+                    {
+                        // This event is an auto-repeat of the same key, so
+                        // ignore both of them
+                    }
+                    else
+                    {
+                        // Not an auto-repeat, put the event back and process
+                        // the original event normally
+                        XPutBackEvent(display, &nextEvent);
 
-                // Pass the X KeySym and the string to the keyboard
-                // to release the key
-                keyboard->releaseKey(keySym);
+                        // Look up the string representing the key
+                        XLookupString(&(event.xkey), buffer, 
+                            sizeof(buffer), &keySym, NULL); 
+
+                        // Pass the X KeySym and the string to the keyboard
+                        // to release the key
+                        keyboard->releaseKey(keySym);
+                    }
+                }
+                else
+                {
+                    // Look up the string representing the key
+                    XLookupString(&(event.xkey), buffer, 
+                        sizeof(buffer), &keySym, NULL); 
+
+                    // Pass the X KeySym and the string to the keyboard
+                    // to release the key
+                    keyboard->releaseKey(keySym);
+                }
                 break;
 
             case ButtonPress:
+
                 // Press the appropriate vsInputButton on the mouse
-                switch (event.xbutton.button)
+                if (event.xbutton.button == Button1)
                 {
-                    case Button1:
-                        mouse->getButton(0)->setPressed();
-                        break;
-                    case Button2:
-                        mouse->getButton(1)->setPressed();
-                        break;
-                    case Button3:
-                        mouse->getButton(2)->setPressed();
-                        break;
+                    mouse->getButton(0)->setPressed();
+                }
+                else if (event.xbutton.button == Button2)
+                {
+                    mouse->getButton(1)->setPressed();
+                }
+                else if (event.xbutton.button == Button3)
+                {
+                    mouse->getButton(2)->setPressed();
+                }
+                else if (event.xbutton.button == mouse_wheel_up_button_index)
+                {
+                    axis = mouse->getAxis(VS_MOUSE_WHEEL_AXIS);
+                    pos = axis->getPosition();
+                    axis->setPosition(pos + 1.0);
+                }
+                else if (event.xbutton.button == mouse_wheel_down_button_index)
+                {
+                    axis = mouse->getAxis(VS_MOUSE_WHEEL_AXIS);
+                    pos = axis->getPosition();
+                    axis->setPosition(pos - 1.0);
                 }
                 break;
 

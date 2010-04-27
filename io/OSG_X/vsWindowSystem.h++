@@ -35,7 +35,10 @@
 #include "vsMouse.h++"
 #include "vsKeyboard.h++"
 
-#define VS_WS_MOUSE_WRAP_THRESHOLD_DEFAULT 6
+#define VS_WS_MOUSE_WRAP_THRESHOLD_DEFAULT     6
+
+#define VS_WS_MOUSE_WHEEL_UP_BUTTON_DEFAULT    4
+#define VS_WS_MOUSE_WHEEL_DOWN_BUTTON_DEFAULT  5
 
 class vsWindowSystem : public vsIOSystem
 {
@@ -70,6 +73,10 @@ protected:
     // Sets how many pixels from the edge of the window that will cause the
     // mouse to wrap
     int                mouseWrapping[2];
+
+    // Button indices that the X server uses to report mouse wheel movement
+    int                mouse_wheel_up_button_index;
+    int                mouse_wheel_down_button_index;
 
 VS_INTERNAL:
 
@@ -108,6 +115,9 @@ public:
     void                  setMouseWrapThreshold( int axis, int threshold );
     int                   getMouseWrapThreshold( int axis );
     bool                  didMouseWrap( int axis );
+
+    void                  setMouseWheelButtons(int upButton, int downButton);
+    void                  getMouseWheelButtons(int *upButton, int *downButton);
 
     virtual void          update();
 };

@@ -65,9 +65,11 @@ vsWindowSystem::vsWindowSystem(vsWindow *mainWindow)
     // change this later
     keyboard = new vsKeyboard(VS_KB_MODE_BUTTON);
 
-    // Assume the mouse has 2 axes and 3 buttons.  If only 2 buttons are
-    // present, button 1 (the middle button) will simply never be pressed.
-    mouse = new vsMouse(2, 3, xSize, ySize);
+    // Most mice have 2 axes and 3 buttons, but some mice have a wheel that
+    // can be rotated.  We'll use a third axis (the "Z axis") in non-normalized
+    // mode for the wheel.  This way, applications can track relative
+    // movements of the wheel axis to do what they need with it
+    mouse = new vsMouse(3, 3, xSize, ySize);
 
     // Assume the mouse isn't in the window yet
     mouseInWindow = false;
@@ -575,6 +577,10 @@ LRESULT CALLBACK vsWindowSystem::inputWindowProc(HWND msWindow, UINT message,
     vsWindow *vessWindow;
     vsWindowSystem *windowSys;
     int xPos, yPos;
+    int delta;
+    double wheelDelta;
+    vsInputAxis *axis;
+    double pos;
     
     // Get the VESS window and window system from the msWindow parameter
     vessWindow = (vsWindow *)vsWindow::getMap()->mapFirstToSecond(msWindow);
@@ -597,9 +603,20 @@ LRESULT CALLBACK vsWindowSystem::inputWindowProc(HWND msWindow, UINT message,
     switch (message)
     {
         case WM_KEYDOWN:
-            // Pass the message to the keyboard.  The vsKeyboard object will
-            // handle the keyboard mapping.
-            windowSys->keyboard->pressKey((unsigned)wParam, (unsigned)lParam);
+            // Check for auto-repeats
+            if ((lParam & 0x40000000) == 0)
+            {
+               // The key was up before this message was sent, so we should
+               // process it.  Pass the message to the keyboard.  The
+               // vsKeyboard object will handle the keyboard mapping.
+               windowSys->keyboard->
+                  pressKey((unsigned)wParam, (unsigned)lParam);
+            }
+            else
+            {
+               // The key was already down before this message was sent (i.e.:
+               // the key was auto-repeated), so ignore this message
+            }
             break;
             
         case WM_KEYUP:
@@ -635,8 +652,17 @@ LRESULT CALLBACK vsWindowSystem::inputWindowProc(HWND msWindow, UINT message,
             else
             {
                 // Otherwise, we'll process the key as a normal VESS keystroke
-                windowSys->keyboard->releaseKey((unsigned)wParam, 
-                    (unsigned)lParam);
+                // First, check for auto-repeats
+                if ((lParam & 0x40000000) == 0)
+                {
+                    // Not an auto-repeat, so press the key as usual
+                    windowSys->keyboard->releaseKey((unsigned)wParam, 
+                        (unsigned)lParam);
+                }
+                else
+                {
+                    // This was an auto-repeated key, so ignore it
+                }
             }
             break;
             
@@ -707,6 +733,23 @@ LRESULT CALLBACK vsWindowSystem::inputWindowProc(HWND msWindow, UINT message,
             
             // Release the right mouse button
             windowSys->mouse->getButton(2)->setReleased();
+            break;
+
+        case WM_MOUSEWHEEL:
+            // Extract the mouse wheel delta from the parameters, this delta
+            // is a multiple of WHEEL_DELTA units (WHEEL_DELTA is defined by
+            // Windows, and is currently 120)
+            delta = GET_WHEEL_DELTA_WPARAM(wParam);
+
+            // Scale the value to a multiple of UNITS_PER_WHEEL_CLICK, so that
+            // 1 wheel rotation "click-stop" is equivalent to 1 unit on the
+            // vsMouse's wheel axis
+            wheelDelta = (double) delta / (double) WHEEL_DELTA;
+
+            // Add the wheel delta to the mouse's wheel axis
+            axis = windowSys->mouse->getAxis(VS_MOUSE_WHEEL_AXIS);
+            pos = axis->getPosition();
+            axis->setPosition(pos + wheelDelta);
             break;
             
         default:

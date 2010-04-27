@@ -24,14 +24,13 @@
 #ifndef VS_WINDOW_SYSTEM_HPP
 #define VS_WINDOW_SYSTEM_HPP
 
-#include <windows.h>
 #include "vsObjectMap.h++"
 #include "vsIOSystem.h++"
 #include "vsWindow.h++"
 #include "vsMouse.h++"
 #include "vsKeyboard.h++"
 
-#define VS_WS_MOUSE_WRAP_THRESHOLD_DEFAULT 6
+#define VS_WS_MOUSE_WRAP_THRESHOLD_DEFAULT     6
 
 class VESS_SYM vsWindowSystem : public vsIOSystem
 {
@@ -69,7 +68,7 @@ protected:
     // Sets how many pixels from the edge of the window that will cause the
     // mouse to wrap
     int                         mouseWrapping[2];    
-    
+
     // Original window procedure for the window (set by the vsWindow class)
     WNDPROC                     originalWindowProc;
     
