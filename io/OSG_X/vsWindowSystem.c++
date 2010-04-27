@@ -260,9 +260,10 @@ void vsWindowSystem::update()
                 if (XCheckWindowEvent(display, window, KeyPressMask,
                                       &nextEvent))
                 {
-                    // See if this event's timestamp matches the key release's
-                    // timestamp
-                    if (nextEvent.xkey.time == event.xkey.time)
+                    // See if this event's keycode and timestamp matches the
+                    // key release's keycode and timestamp
+                    if ((nextEvent.xkey.keycode == event.xkey.keycode) &&
+                        (nextEvent.xkey.time == event.xkey.time))
                     {
                         // This event is an auto-repeat of the same key, so
                         // ignore both of them
