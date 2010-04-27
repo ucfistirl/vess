@@ -22,7 +22,6 @@
 #ifndef VS_SERIAL_PORT_HPP
 #define VS_SERIAL_PORT_HPP
 
-#include <windows.h>
 #include "vsGlobals.h++"
 #include "vsObject.h++"
 

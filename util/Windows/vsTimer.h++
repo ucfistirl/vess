@@ -23,7 +23,6 @@
 #define VS_TIMER_HPP
 
 #include "vsGlobals.h++"
-#include <windows.h>
 
 class VESS_SYM vsTimer
 {
