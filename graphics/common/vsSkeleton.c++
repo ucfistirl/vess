@@ -217,10 +217,8 @@ void vsSkeleton::updateMatrices(vsNode *node, atMatrix currentMatrix)
         if (transform)
         {
             // Multiply this Transform's matrix into the accumulated
-            // transform.  We know that the pre- and post-transforms are both
-            // identity matrices, so we can just get the dynamic transform and
-            // save some work
-            localMatrix = transform->getDynamicTransform();
+            // transform
+            localMatrix = transform->getCombinedTransform();
             currentMatrix.postMultiply(localMatrix);
         }
 
@@ -451,10 +449,8 @@ void vsSkeleton::makeBoneGeometry(vsComponent *currentBone,
             VS_ATTRIBUTE_TYPE_TRANSFORM, 0);
 
         // Transform the origin to where the bone is defined, this
-        // will be the end point of the line.  We know that the pre- and
-        // post-transform matrices are both identity, so we can just get
-        // the dynamic transform
-        boneMatrix = boneTrans->getDynamicTransform();
+        // will be the end point of the line
+        boneMatrix = boneTrans->getCombinedTransform();
         point = boneMatrix.getPointXform(atVector(0.0, 0.0, 0.0));
         currentBoneLine->setData(VS_GEOMETRY_VERTEX_COORDS, 1, point);
     }
