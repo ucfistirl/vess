@@ -66,6 +66,7 @@ private:
 
 public:
                             vsScentAirSystem(int portNumber);
+                            vsScentAirSystem(char *portDev);
     virtual                 ~vsScentAirSystem();
 
     virtual const char *    getClassName();

@@ -52,18 +52,7 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
 
     // Determine the platform-dependent serial device
     // name
-
-#ifdef IRIX
-    sprintf(portDevice, "/dev/ttyd%d", portNumber);
-#endif
-
-#ifdef IRIX64
-    sprintf(portDevice, "/dev/ttyd%d", portNumber);
-#endif
-
-#ifdef __linux__
     sprintf(portDevice, "/dev/ttyS%d", portNumber - 1);
-#endif
 
     // Initialize variables
     multiSerial = false;
@@ -175,6 +164,128 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
 }
 
 // ------------------------------------------------------------------------
+// Constructs a tracking system on the specified port with the given number
+// of FBB devices.  If nTrackers is zero, the class attempts to determine
+// the number automatically.
+// ------------------------------------------------------------------------
+vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
+    char *portDev, int nTrackers, int dFormat, long baud, int mode)
+    : vsTrackingSystem()
+{
+    int    i;
+    bool   result;
+    atQuat quat1, quat2, xformQuat;
+
+    // Initialize variables
+    multiSerial = false;
+    forked = false;
+    serverPID = 0;
+    configuration = mode;
+    addressMode = 0;
+    ercAddress = 0;
+    numTrackers = 0;
+    streaming = false;
+
+    // Initialize all trackers and ports to NULL
+    for (i = 0; i < VS_AS_MAX_TRACKERS; i++)
+    {
+        tracker[i] = NULL;
+        port[i] = NULL;
+    }
+
+    // Set up a coordinate conversion quaternion that converts from native
+    // Ascension coordinates to VESS coordinates
+    quat1.setAxisAngleRotation(0, 0, 1, 90);
+    quat2.setAxisAngleRotation(0, 1, 0, 180);
+    coordXform = quat2 * quat1;
+
+    // Open serial port
+    port[0] = new vsSerialPort(portDev, baud, 8, 'N', 1);
+
+    // Check to see if the port is valid
+    if (port[0])
+    {
+        // Drop the RTS line to put the flock into FLY mode
+        port[0]->setRTS(false);
+
+        // Set the DTR line to make sure the flock knows the host is ready
+        port[0]->setDTR(true);
+
+        // Wait for the bird to wake up
+        sleep(1);
+
+        // Check the configuration flag
+        if (configuration == VS_AS_MODE_STANDALONE)
+        {
+            // Standalone configuration, tracker number is 0
+            // no initialization needed
+            numTrackers = 1;
+            tracker[0] = new vsMotionTracker(0);
+
+            setDataFormat(dFormat);
+        }
+        else
+        {
+            // Get the system configuration from the master bird and
+            // create motion trackers
+            enumerateTrackers();
+             
+            // Check the number of expected trackers with the number
+            // found
+            if (numTrackers < nTrackers)
+            {
+                printf("vsAscensionSerialTrackingSystem::"
+                    "vsAscensionSerialTrackingSystem:\n");
+                printf("    WARNING -- Only %d sensors found, expecting %d\n",
+                    numTrackers, nTrackers);
+            }
+
+            // Check to see if we have as many trackers as we should,
+            // and print an error message if necessary (a value of zero
+            // for the parameter means "use all trackers" so this can't 
+            // produce an error).
+            if ((numTrackers > nTrackers) && (nTrackers > 0))
+            {
+                printf("vsAscensionSerialTrackingSystem::"
+                    "vsAscensionSerialTrackingSystem:\n");
+                printf("   Configuring %d of %d sensors\n", 
+                    nTrackers, numTrackers);
+
+                numTrackers = nTrackers;
+            }
+
+            // Set the requested data format on all trackers
+            setDataFormat(dFormat);
+
+            // Attempt to start the system
+            result = initializeFlock();
+
+            // Check the initialization result and print the status
+            if (result != 0)
+            {
+                printf("vsAscensionSerialTrackingSystem::"
+                    "vsAscensionSerialTrackingSystem:\n");
+                printf("   Flock running on %s with %d sensors\n", 
+                    portDev, numTrackers);
+            }
+            else
+            {
+                printf("vsAscensionSerialTrackingSystem::"
+                    "vsAscensionSerialTrackingSystem:\n");
+                printf("   Flock did not initialize properly.\n");
+            }
+        }
+    }
+    else
+    {
+        // Couldn't open the serial port
+        printf("vsAscensionSerialTrackingSystem::"
+            "vsAscensionSerialTrackingSystem:\n");
+        printf("   Unable to open serial port %s", portDev);
+    }
+}
+
+// ------------------------------------------------------------------------
 // Constructs a tracking system on the specified ports with the given 
 // number of trackers.  The nTrackers parameter must be correctly specified 
 // (a value of zero is not valid in multi-serial configurations).
@@ -208,6 +319,102 @@ vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
 #endif
 
             port[i] = new vsSerialPort(portDevice, baud, 8, 'N', 1);
+
+            // Drop the RTS line to put the flock into FLY mode
+            port[i]->setRTS(false);
+
+            // Set the DTR line to make sure the flock knows the host is ready
+            port[i]->setDTR(true);
+        }
+
+        // Initialize variables
+        multiSerial = true;
+        configuration = VS_AS_MODE_FLOCK;
+        addressMode = 0;
+        ercAddress = 0;
+        numTrackers = 0;
+
+        // Set up the coordinate conversion matrix that converts from native
+        // Ascension coordinates to VESS coordinates
+        quat1.setAxisAngleRotation(0, 0, 1, 90);
+        quat2.setAxisAngleRotation(0, 1, 0, 180);
+        coordXform = quat2 * quat1;
+
+        // Get the system configuration from the first bird and create
+        // the motion trackers
+        enumerateTrackers();
+
+        // Check to see if we have all the trackers requested, and print
+        // an error message if not.
+        if (numTrackers < nTrackers)
+        {
+            printf("vsAscensionSerialTrackingSystem::"
+                "vsAscensionSerialTrackingSystem:\n");
+            printf("   Incorrect number of sensors specified\n");
+        }
+
+        // Also check if we have more trackers than requested, and print
+        // a status message if so.
+        if (numTrackers > nTrackers) 
+        {
+            printf("vsAscensionSerialTrackingSystem::"
+                "vsAscensionSerialTrackingSystem:\n");
+            printf("   Configuring %d of %d sensors\n", nTrackers, numTrackers);
+
+            numTrackers = nTrackers;
+        }
+
+        // Set all trackers to the requested data format
+        setDataFormat(dFormat);
+
+        // Attempt to start the flock
+        result = initializeFlock();
+
+        // Check the initialization result and print a status message.
+        if (result != 0)
+        {
+            printf("vsAscensionSerialTrackingSystem::"
+                "vsAscensionSerialTrackingSystem:\n");
+            printf("   System running on multiple ports with %d sensors\n",
+                numTrackers);
+        }
+        else
+        {
+            printf("vsAscensionSerialTrackingSystem::"
+                "vsAscensionSerialTrackingSystem:\n");
+            printf("   System did not initialize properly.\n");
+        }
+    }
+    else
+    {
+        // Tried to use the multi-serial constructor on a single tracker
+        // system
+        printf("vsAscensionSerialTrackingSystem::"
+            "vsAscensionSerialTrackingSystem:\n");
+        printf("   Can't use multi-serial mode on a single tracker system.\n");
+    }
+}
+
+// ------------------------------------------------------------------------
+// Constructs a tracking system on the specified ports with the given 
+// number of trackers.  The nTrackers parameter must be correctly specified 
+// (a value of zero is not valid in multi-serial configurations).
+// ------------------------------------------------------------------------
+vsAscensionSerialTrackingSystem::vsAscensionSerialTrackingSystem(
+    char *portDevs[], int nTrackers, int dFormat, long baud)
+    : vsTrackingSystem()
+{
+    bool   result;
+    int    i;
+    atQuat quat1, quat2, xformQuat;
+
+    // This constructor shouldn't be used if only one tracker exists
+    if (nTrackers > 1)
+    {
+        // Open a serial port for each tracker
+        for (i = 0; i < nTrackers; i++)
+        {
+            port[i] = new vsSerialPort(portDevs[i], baud, 8, 'N', 1);
 
             // Drop the RTS line to put the flock into FLY mode
             port[i]->setRTS(false);

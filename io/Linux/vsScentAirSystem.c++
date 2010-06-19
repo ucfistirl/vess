@@ -62,6 +62,41 @@ vsScentAirSystem::vsScentAirSystem(int portNumber)
 }
 
 // ------------------------------------------------------------------------
+// Constructor
+// Setup an interface to a Scent Air System through the parallel port
+// ------------------------------------------------------------------------
+vsScentAirSystem::vsScentAirSystem(char *portDev)
+{
+    int i;
+
+    // Initialize
+    scentChannelCount = 0;
+    port = NULL;
+    parallelPortDataByte = 0x0;
+
+    // Open the requested parallel port
+    port = new vsParallelPort(portDev);
+
+    // If the port is open, set up our scent channels
+    if (port->isPortOpen())
+    {
+        // Set up the scent channels
+        setNumberOfScentChannels(VS_DEFAULT_NUMBER_OF_SCENT_CHANNELS);
+
+	// Turn all scents off
+	for (i = 0; i < 8; i++)
+            setParallelPin(i, false);
+	port->setDataLines(parallelPortDataByte);
+    }
+    else
+    {
+        printf("vsScentAirSystem::vsScentAirSystem:  Unable to open port "
+            "%s\n", portDev);
+        setNumberOfScentChannels(0);
+    }
+}
+
+// ------------------------------------------------------------------------
 // Destructor
 // ------------------------------------------------------------------------
 vsScentAirSystem::~vsScentAirSystem()

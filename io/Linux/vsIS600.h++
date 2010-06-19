@@ -230,6 +230,8 @@ public:
 
                                vsIS600(int portNumber, long baud, 
                                          int nTrackers);
+                               vsIS600(char *portDev, long baud, 
+                                         int nTrackers);
     virtual                    ~vsIS600();
 
     // Inherited from vsObject

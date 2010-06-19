@@ -107,6 +107,79 @@ vsPolaris::vsPolaris(int portNumber, long baud, int nTrackers)
 }
 
 // ------------------------------------------------------------------------
+// Creates a vsPolaris object on the given serial port using the given
+// baud rate and number of trackers.  Note that only wired trackers are
+// counted by default.  Any wireless trackers must be added separately,
+// since the system cannot detect them automatically.
+// ------------------------------------------------------------------------
+vsPolaris::vsPolaris(char *portDev, long baud, int nTrackers)
+{
+    int i;
+    atQuat quat1, quat2;
+
+    // Initialize data members
+    memset(tracker, 0, sizeof(tracker));
+    memset(portHandle, 0, sizeof(portHandle));
+
+    // Test for endianness
+    bigEndian = isBigEndian();
+
+    // Set up coordinate conversion
+    quat1.setAxisAngleRotation(0, 1, 0, 90.0);
+    quat2.setAxisAngleRotation(1, 0, 0, 90.0);
+    coordXform = quat1 * quat2;
+    coordXformInv = coordXform.getConjugate();
+
+    // Initialize the reference frame to identity.  This assumes that
+    // the tracker's cameras are mounted facing forward
+    referenceFrame.set(0.0, 0.0, 0.0, 1.0);
+
+    // Open the port
+    port = new vsSerialPort(portDev, 9600, 8, 'N', 1);
+
+    // Initialize the Polaris hardware
+    initializeSystem(baud);
+
+    // Count the active trackers attached to the system
+    numTrackers = enumerateTrackers();
+
+    // Print a warning if we have too few trackers, or an informational
+    // message if we're not using all available trackers
+    if (numTrackers < nTrackers)
+    {
+        printf("vsPolaris::vsPolaris:  WARNING -- Only %d trackers found,"
+            " expecting %d.\n", numTrackers, nTrackers);
+    }
+    else if ((numTrackers > nTrackers) && (nTrackers != 0))
+    {
+        printf("vsPolaris::vsPolaris:  Configuring %d of %d trackers.\n",
+            numTrackers, nTrackers);
+    }
+
+    // Test the environment for infrared interference.  Print a warning
+    // if stray infrared light is detected.
+    if (testIR() == false)
+    {
+        printf("vsPolaris::vsPolaris:  WARNING -- Infrared interference "
+            "detected!\n");
+    }
+
+    // Start tracking the markers
+    startTracking();
+
+    // Ping 10 times to "warm up" the tracking system (recommended procedure
+    // according to NDI techs)
+    for (i = 0; i < 10; i++)
+    {
+        ping();
+        getBinaryReply();
+    }
+
+    // Issue one final ping to prepare the first set of tracker data
+    ping();
+}
+
+// ------------------------------------------------------------------------
 // Destructor.  Shuts down the Polaris and closes the serial port
 // ------------------------------------------------------------------------
 vsPolaris::~vsPolaris()

@@ -277,8 +277,14 @@ public:
                                vsAscensionSerialTrackingSystem(int portNumber, 
                                      int nTrackers, int dataFormat, long baud, 
                                      int mode);
+                               vsAscensionSerialTrackingSystem(char *portDev, 
+                                     int nTrackers, int dataFormat, long baud, 
+                                     int mode);
                                vsAscensionSerialTrackingSystem(
                                    int portNumbers[], int nTrackers,
+                                   int dataFormat, long baud);
+                               vsAscensionSerialTrackingSystem(
+                                   char *portDevs[], int nTrackers,
                                    int dataFormat, long baud);
     virtual                    ~vsAscensionSerialTrackingSystem();
 

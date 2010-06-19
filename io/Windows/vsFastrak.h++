@@ -202,6 +202,8 @@ public:
 
                                vsFastrak(int portNumber, long baud, 
                                          int nTrackers);
+                               vsFastrak(char *portDev, long baud, 
+                                         int nTrackers);
     virtual                    ~vsFastrak();
 
     // Inherited from vsObject

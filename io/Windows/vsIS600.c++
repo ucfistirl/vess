@@ -41,22 +41,7 @@ vsIS600::vsIS600(int portNumber, long baud, int nTrackers)
 
     // Determine the platform-dependent serial device
     // name
-
-#ifdef IRIX
-    sprintf(portDevice, "/dev/ttyd%d", portNumber);
-#endif
-
-#ifdef IRIX64
-    sprintf(portDevice, "/dev/ttyd%d", portNumber);
-#endif
-
-#ifdef __linux__
-    sprintf(portDevice, "/dev/ttyS%d", portNumber - 1);
-#endif
-
-#ifdef WIN32
     sprintf(portDevice, "COM%d", portNumber);
-#endif
 
     // Initialize variables
     port = NULL;
@@ -123,6 +108,86 @@ vsIS600::vsIS600(int portNumber, long baud, int nTrackers)
     {
         printf("vsIS600::vsIS600: "
             "Unable to open serial port %s", portDevice);
+    }
+
+}
+
+// ------------------------------------------------------------------------
+// Constructs a vsIS600 on the specified port with the given number of
+// trackers.  If nTrackers is zero, the class attempts to determine the 
+// number automatically
+// ------------------------------------------------------------------------
+vsIS600::vsIS600(char *portDev, long baud, int nTrackers)
+         : vsTrackingSystem()
+{
+    int    i;
+    atQuat quat1, quat2;
+
+    // Initialize variables
+    port = NULL;
+    numTrackers = 0;
+    forked = false;
+    serverThreadID = 0;
+    streaming = false;
+
+    // Set up a coordinate conversion quaternion that will convert
+    // Polhemus (Intersense) coordinates to VESS coordinates
+    quat1.setAxisAngleRotation(0, 0, 1, 90);
+    quat2.setAxisAngleRotation(0, 1, 0, 180);
+    coordXform = quat2 * quat1;
+
+    // Initialize the motion tracker array
+    for (i = 0; i < VS_IS_MAX_TRACKERS; i++)
+    {
+        tracker[i] = NULL;
+    }
+
+    // Open serial port at the given baud rate
+    port = new vsSerialPort(portDev, baud, 8, 'N', 1);
+
+    // Make sure the serial port opened properly
+    if (port)
+    {
+        // Determine the number of available trackers
+        enumerateTrackers();
+
+        // Check the number of expected trackers with the number found
+        if (numTrackers < nTrackers)
+        {
+            printf("vsIS600::vsIS600: "
+                "WARNING -- Only %d trackers found, expecting %d\n",
+                numTrackers, nTrackers);
+        }
+
+        // Print a status message if we're using fewer trackers than available
+        if ((numTrackers > nTrackers) && (nTrackers > 0))
+        {
+            printf("vsIS600::vsIS600: Configuring %d of %d trackers\n",
+                nTrackers, numTrackers);
+
+            numTrackers = nTrackers;
+        }
+
+        // Check the endianness of the host machine
+        bigEndian = isBigEndian();
+
+        // Use binary output mode
+        setBinaryOutput();
+
+        // Initialize the output format
+        initOutputFormat();
+
+        // Print status
+        printf("vsIS600::vsIS600: IS-600 running on %s "
+            "with %d tracker(s)\n", portDev, numTrackers);
+
+        // Request the first data packet
+        ping();
+    }
+    else
+    {
+        printf("vsIS600::vsIS600: "
+            "Unable to open serial port %s", portDev);
     }
 
 }

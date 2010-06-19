@@ -100,6 +100,8 @@ public:
 
                                vsPolaris(int portNumber, long baud, 
                                          int numTrackers);
+                               vsPolaris(char *portDev, long baud, 
+                                         int numTrackers);
     virtual                    ~vsPolaris();
 
     virtual const char         *getClassName();
