@@ -452,6 +452,34 @@ vsObject *vsAvatar::createObject(char *idString)
 
 // ------------------------------------------------------------------------
 // Protected function
+// Returns a serial port device name corresponding to the given input.  If
+// the input is a simple number, it returns the device name associated with
+// that port number, otherwise, it simply returns the input
+// ------------------------------------------------------------------------
+char *vsAvatar::getSerialPortName(char *portStr)
+{
+   long  number;
+   char  *endPtr;
+
+   // See if the given string is only a number
+   number = strtol(portStr, &endPtr, 10);
+   if (*endPtr == '\0')
+   {
+#ifdef __linux__
+      sprintf(portStr, "/dev/ttyS%d", number - 1);
+#endif
+
+#ifdef WIN32
+      sprintf(portStr, "COM%d", number - 1);
+#endif
+   }
+
+   // Return the serial port device name
+   return portStr;
+}
+
+// ------------------------------------------------------------------------
+// Protected function
 // Creates a scene graph from data in the configuration file, and returns
 // a pointer to the root node.
 // ------------------------------------------------------------------------
@@ -1011,7 +1039,10 @@ vsObject *vsAvatar::makeVsISTJoystickBox()
     char cfgLine[256];
     char token[256];
     int lineType = 0;
-    int portNumber = -1;
+    char portDev[32];
+
+    // Initialize
+    portDev[0] = 0;
 
     // Read all the parameters
     while (lineType != VS_AVT_LINE_END)
@@ -1028,7 +1059,8 @@ vsObject *vsAvatar::makeVsISTJoystickBox()
         if (!strcmp(token, "port"))
         {
             // Set the serial port for the joystick box
-            sscanf(cfgLine, "%*s %d", &portNumber);
+            sscanf(cfgLine, "%*s %d", portDev);
+            getSerialPortName(portDev);
         }
         else
             printf("vsAvatar::makeVsISTJoystickBox: Unrecognized token '%s'\n",
@@ -1036,14 +1068,14 @@ vsObject *vsAvatar::makeVsISTJoystickBox()
     }
     
     // Make sure the port was set
-    if (portNumber == -1)
+    if (portDev[0] == 0)
     {
-        printf("vsAvatar::makeVsISTJoystickBox: No port number specified\n");
+        printf("vsAvatar::makeVsISTJoystickBox: No port specified\n");
         return NULL;
     }
 
     // Create and return the vsISTJoystickBox
-    return (new vsISTJoystickBox(portNumber));
+    return (new vsISTJoystickBox(portDev));
 }
 
 // ------------------------------------------------------------------------
@@ -1056,9 +1088,12 @@ vsObject *vsAvatar::makeVsUnwinder()
     char cfgLine[256];
     char token[256];
     int lineType = 0;
-    int portNumber = -1;
+    char portDev[32];
     int joy1 = 1;
     int joy2 = 0;
+
+    // Initialize
+    portDev[0] = 0;
 
     // Read the parameters
     while (lineType != VS_AVT_LINE_END)
@@ -1075,7 +1110,8 @@ vsObject *vsAvatar::makeVsUnwinder()
         if (!strcmp(token, "port"))
         {
             // Set the serial port for the box
-            sscanf(cfgLine, "%*s %d", &portNumber);
+            sscanf(cfgLine, "%*s %s", portDev);
+            getSerialPortName(portDev);
         }
         else if (!strcmp(token, "joy1"))
         {
@@ -1093,15 +1129,15 @@ vsObject *vsAvatar::makeVsUnwinder()
     }
     
     // Make sure the serial port was set properly
-    if (portNumber == -1)
+    if (portDev[0] == 0)
     {
-        printf("vsAvatar::makeVsUnwinder: No port number specified\n");
+        printf("vsAvatar::makeVsUnwinder: No port specified\n");
         return NULL;
     }
 
     // Create the unwinder object with the specified parameters and
     // return it
-    return (new vsUnwinder(portNumber, joy1, joy2));
+    return (new vsUnwinder(portDev, joy1, joy2));
 }
 
 #ifdef __linux__
@@ -1117,6 +1153,9 @@ vsObject *vsAvatar::makeVsLinuxJoystickSystem()
     int lineType = 0;
     char portName[256];
     vsLinuxJoystickSystem *result;
+
+    // Initialize
+    portName[0] = 0;
 
     // Read the parameters for the object
     while (lineType != VS_AVT_LINE_END)
@@ -1144,8 +1183,7 @@ vsObject *vsAvatar::makeVsLinuxJoystickSystem()
     // Make sure the port device was set properly
     if (strlen(portName) == 0)
     {
-        printf("vsAvatar::makeVsLinuxJoystickSystem: "
-            "No port number specified\n");
+        printf("vsAvatar::makeVsLinuxJoystickSystem: No port specified\n");
         return NULL;
     }
 
@@ -1166,7 +1204,8 @@ vsObject *vsAvatar::makeVsFlockOfBirds()
     char token[256];
     char strValue[256];
     int lineType = 0;
-    int portNumbers[200];
+    char portDev[32];
+    char *portDevs[200];
     int whichPort;
     int nTrackers = 0;
     int dataFormat = VS_AS_DATA_POS_QUAT;
@@ -1177,9 +1216,10 @@ vsObject *vsAvatar::makeVsFlockOfBirds()
     bool multiFlag = false;
     bool forkFlag = false;
     vsFlockOfBirds *result;
+    int i;
     
-    // Set the first port number to a sentinel value
-    portNumbers[0] = -1;
+    // Initialize the port device array
+    memset(portDevs, 0, sizeof(portDevs));
 
     // Read the parameters for the object
     while (lineType != VS_AVT_LINE_END)
@@ -1196,15 +1236,25 @@ vsObject *vsAvatar::makeVsFlockOfBirds()
         if (!strcmp(token, "port"))
         {
             // Set the serial port
-            sscanf(cfgLine, "%*s %d", &(portNumbers[0]));
+            sscanf(cfgLine, "%*s %s", portDev);
+            getSerialPortName(portDev);
+
+            // Copy the device name to the port devices array
+            portDevs[0] = (char *) malloc(32);
+            strcpy(portDevs[0], portDev);
         }
         else if (!strcmp(token, "mport"))
         {
             // For multi-port systems, set the serial port for
             // the given bird
             sscanf(cfgLine, "%*s %d", &whichPort);
-            sscanf(cfgLine, "%*s %*d %d", &(portNumbers[whichPort]));
+            sscanf(cfgLine, "%*s %*d %s", portDev);
+            getSerialPortName(portDev);
             multiFlag = true;
+
+            // Copy the device name to the port devices array
+            portDevs[whichPort] = (char *) malloc(32);
+            strcpy(portDevs[whichPort], portDev);
         }
         else if (!strcmp(token, "trackers"))
         {
@@ -1291,19 +1341,19 @@ vsObject *vsAvatar::makeVsFlockOfBirds()
     }
 
     // Make sure at least one serial port was specified
-    if (portNumbers[0] == -1)
+    if (portDevs[0] == NULL)
     {
-        printf("vsAvatar::makeVsFlockOfBirds: Port number(s) not specified\n");
+        printf("vsAvatar::makeVsFlockOfBirds: Port(s) not specified\n");
         return NULL;
     }
 
     // Call the appropriate constructor based on the number of serial ports
     // used
     if (multiFlag)
-        result = new vsFlockOfBirds(portNumbers, nTrackers, dataFormat,
+        result = new vsFlockOfBirds(portDevs, nTrackers, dataFormat,
             baud);
     else
-        result = new vsFlockOfBirds(portNumbers[0], nTrackers, dataFormat,
+        result = new vsFlockOfBirds(portDevs[0], nTrackers, dataFormat,
             baud, mode);
 
     // Set the hemisphere, if it was configured in the config file
@@ -1313,6 +1363,11 @@ vsObject *vsAvatar::makeVsFlockOfBirds()
     // Fork the process if the system was configured to fork
     if (forkFlag)
         result->forkTracking();
+
+    // Clean up the port devices array
+    for (i = 0; i < 200; i++)
+        if (portDevs[i] != NULL)
+            free(portDevs[i]);
 
     // Return the created flock of birds object
     return result;
@@ -1329,7 +1384,8 @@ vsObject *vsAvatar::makeVsSerialMotionStar()
     char token[256];
     char strValue[256];
     int lineType = 0;
-    int portNumbers[200];
+    char portDev[32];
+    char *portDevs[200];
     int whichPort;
     int nTrackers = 0;
     int dataFormat = VS_AS_DATA_POS_QUAT;
@@ -1339,10 +1395,11 @@ vsObject *vsAvatar::makeVsSerialMotionStar()
     bool multiFlag = false;
     bool forkFlag = false;
     vsSerialMotionStar *result;
-    
-    // Set the first port number to a sentinel value
-    portNumbers[0] = -1;
+    int i;
 
+    // Initialize the port devices array
+    memset(portDevs, 0, sizeof(portDevs));
+    
     // Read the parameters
     while (lineType != VS_AVT_LINE_END)
     {
@@ -1358,15 +1415,25 @@ vsObject *vsAvatar::makeVsSerialMotionStar()
         if (!strcmp(token, "port"))
         {
             // Set the serial port
-            sscanf(cfgLine, "%*s %d", &(portNumbers[0]));
+            sscanf(cfgLine, "%*s %s", portDev);
+            getSerialPortName(portDev);
+
+            // Copy the device name to the port devices array
+            portDevs[0] = (char *) malloc(32);
+            strcpy(portDevs[0], portDev);
         }
         else if (!strcmp(token, "mport"))
         {
             // For multi-port systems, set the serial port for
             // the given bird
             sscanf(cfgLine, "%*s %d", &whichPort);
-            sscanf(cfgLine, "%*s %*d %d", &(portNumbers[whichPort]));
+            sscanf(cfgLine, "%*s %*d %s", portDev);
+            getSerialPortName(portDev);
             multiFlag = true;
+
+            // Copy the device name to the port devices array
+            portDevs[whichPort] = (char *) malloc(32);
+            strcpy(portDevs[whichPort], portDev);
         }
         else if (!strcmp(token, "trackers"))
         {
@@ -1440,7 +1507,7 @@ vsObject *vsAvatar::makeVsSerialMotionStar()
     }
     
     // Make sure at least one serial port was specified
-    if (portNumbers[0] == -1)
+    if (portDevs[0] == NULL)
     {
         printf("vsAvatar::makeVsSerialMotionStar: Port number(s) not "
             "specified\n");
@@ -1449,10 +1516,10 @@ vsObject *vsAvatar::makeVsSerialMotionStar()
 
     // Call the appropriate constructor based on the number of ports used
     if (multiFlag)
-        result = new vsSerialMotionStar(portNumbers, nTrackers, dataFormat,
+        result = new vsSerialMotionStar(portDevs, nTrackers, dataFormat,
             baud);
     else
-        result = new vsSerialMotionStar(portNumbers[0], nTrackers, dataFormat,
+        result = new vsSerialMotionStar(portDevs[0], nTrackers, dataFormat,
             baud);
 
     // Set the hemisphere if it was specified in the config file
@@ -1462,6 +1529,11 @@ vsObject *vsAvatar::makeVsSerialMotionStar()
     // Fork the process if configured to do so
     if (forkFlag)
         result->forkTracking();
+
+    // Clean up the port devices array
+    for (i = 0; i < 200; i++)
+        if (portDevs[i] != NULL)
+            free(portDevs[i]);
 
     // Return the created motion star object
     return result;
@@ -1477,7 +1549,7 @@ vsObject *vsAvatar::makeVsFastrak()
     char cfgLine[256];
     char token[256];
     int lineType = 0;
-    int portNumber = -1;
+    char portDev[32];
     int baud = 9600;
     int nTrackers = 0;
     int intValue;
@@ -1486,6 +1558,9 @@ vsObject *vsAvatar::makeVsFastrak()
     int stationNum, loop;
     double hemiX, hemiY, hemiZ;
     vsFastrak *result;
+
+    // Initialize the port device
+    portDev[0] = 0;
 
     // Read all the parameters for this object
     while (lineType != VS_AVT_LINE_END)
@@ -1502,7 +1577,8 @@ vsObject *vsAvatar::makeVsFastrak()
         if (!strcmp(token, "port"))
         {
             // Set the serial port
-            sscanf(cfgLine, "%*s %d", &portNumber);
+            sscanf(cfgLine, "%*s %s", &portDev);
+            getSerialPortName(portDev);
         }
         else if (!strcmp(token, "baud"))
         {
@@ -1538,14 +1614,14 @@ vsObject *vsAvatar::makeVsFastrak()
     }
     
     // Make sure the serial port was specified
-    if (portNumber == -1)
+    if (portDev[0] == 0)
     {
-        printf("vsAvatar::makeVsFastrak: No port number specified\n");
+        printf("vsAvatar::makeVsFastrak: No port specified\n");
         return NULL;
     }
 
     // Create the object
-    result = new vsFastrak(portNumber, baud, nTrackers);
+    result = new vsFastrak(portDev, baud, nTrackers);
     
     // Set the hemisphere of each tracker if specified
     for (loop = 0; loop < VS_FT_MAX_TRACKERS; loop++)
@@ -1570,12 +1646,15 @@ vsObject *vsAvatar::makeVsIS600()
     char cfgLine[256];
     char token[256];
     int lineType = 0;
-    int portNumber = -1;
+    char portDev[32];
     int baud = 9600;
     int nTrackers = 0;
     int intValue;
     bool forkFlag = false;
     vsIS600 *result;
+
+    // Initialize the port device
+    portDev[0] = 0;
 
     // Read all of the settings for this object
     while (lineType != VS_AVT_LINE_END)
@@ -1592,7 +1671,8 @@ vsObject *vsAvatar::makeVsIS600()
         if (!strcmp(token, "port"))
         {
             // Set the serial port
-            sscanf(cfgLine, "%*s %d", &portNumber);
+            sscanf(cfgLine, "%*s %s", portDev);
+            getSerialPortName(portDev);
         }
         else if (!strcmp(token, "baud"))
         {
@@ -1620,14 +1700,14 @@ vsObject *vsAvatar::makeVsIS600()
     }
     
     // Make sure the serial port was specified
-    if (portNumber == -1)
+    if (portDev[0] == 0)
     {
-        printf("vsAvatar::makeVsIS600: No port number specified\n");
+        printf("vsAvatar::makeVsIS600: No port specified\n");
         return NULL;
     }
 
     // Create the vsIS600 object
-    result = new vsIS600(portNumber, baud, nTrackers);
+    result = new vsIS600(portDev, baud, nTrackers);
     
     // Fork the tracking process if so configured
     if (forkFlag)
@@ -1800,13 +1880,16 @@ vsObject *vsAvatar::makeVsPolaris()
     char token[256];
     int lineType = 0;
     long baudRate = 9600;
-    int portNumber = -1;
+    char portDev[32];
     int nTrackers = 0;
     bool refSet = false;
     double h, p, r;
     int intValue;
     bool forkFlag = false;
     vsPolaris *result;
+
+    // Initialize the port device name
+    portDev[0] = 0;
     
     // Read all the parameters for this object
     while (lineType != VS_AVT_LINE_END)
@@ -1823,7 +1906,8 @@ vsObject *vsAvatar::makeVsPolaris()
         if (!strcmp(token, "port"))
         {
             // Set the serial port number used by the system
-            sscanf(cfgLine, "%*s %d", &portNumber);
+            sscanf(cfgLine, "%*s %s", portDev);
+            getSerialPortName(portDev);
         }
         else if (!strcmp(token, "baud"))
         {
@@ -1857,14 +1941,14 @@ vsObject *vsAvatar::makeVsPolaris()
     }
 
     // Make sure the serial port number is set
-    if (portNumber == -1)
+    if (portDev[0] == 0)
     {
-        printf("vsAvatar::makeVsPolaris: No port number specified\n");
+        printf("vsAvatar::makeVsPolaris: No port specified\n");
         return NULL;
     }
 
     // Construct the object
-    result = new vsPolaris(portNumber, baudRate, nTrackers);
+    result = new vsPolaris(portDev, baudRate, nTrackers);
 
     // See if the reference frame was altered
     if (refSet)
@@ -1968,8 +2052,11 @@ vsObject *vsAvatar::makeVsPinchGloveBox()
     char cfgLine[256];
     char token[256];
     int lineType = 0;
-    int portNumber = -1;
+    char portDev[32];
     int baud = 9600;
+
+    // Initialize the port device name
+    portDev[0] = 0;
 
     // Get the settings for this object
     while (lineType != VS_AVT_LINE_END)
@@ -1986,7 +2073,8 @@ vsObject *vsAvatar::makeVsPinchGloveBox()
         if (!strcmp(token, "port"))
         {
             // Set the serial port
-            sscanf(cfgLine, "%*s %d", &portNumber);
+            sscanf(cfgLine, "%*s %s", portDev);
+            getSerialPortName(portDev);
         }
         else if (!strcmp(token, "baud"))
         {
@@ -1999,14 +2087,14 @@ vsObject *vsAvatar::makeVsPinchGloveBox()
     }
     
     // Make sure the serial port is properly set
-    if (portNumber == -1)
+    if (portDev[0] == 0)
     {
-        printf("vsAvatar::makeVsPinchGloveBox: No port number specified\n");
+        printf("vsAvatar::makeVsPinchGloveBox: No port specified\n");
         return NULL;
     }
     
     // Create and return the object
-    return (new vsPinchGloveBox(portNumber, baud));
+    return (new vsPinchGloveBox(portDev, baud));
 }
 
 // ------------------------------------------------------------------------
@@ -2019,9 +2107,12 @@ vsObject *vsAvatar::makeVsCyberGloveBox()
     char cfgLine[256];
     char token[256];
     int lineType = 0;
-    int portNumber = -1;
+    char portDev[32];
     int baud = 9600;
     int numSensors = 0;
+
+    // Initialize the port device name
+    portDev[0] = 0;
 
     // Read all the parameters for this object
     while (lineType != VS_AVT_LINE_END)
@@ -2038,7 +2129,8 @@ vsObject *vsAvatar::makeVsCyberGloveBox()
         if (!strcmp(token, "port"))
         {
             // Set the serial port
-            sscanf(cfgLine, "%*s %d", &portNumber);
+            sscanf(cfgLine, "%*s %s", portDev);
+            getSerialPortName(portDev);
         }
         else if (!strcmp(token, "baud"))
         {
@@ -2056,14 +2148,14 @@ vsObject *vsAvatar::makeVsCyberGloveBox()
     }
     
     // Make sure the serial port is properly set
-    if (portNumber == -1)
+    if (portDev[0] == 0)
     {
-        printf("vsAvatar::makeVsCyberGloveBox: No port number specified\n");
+        printf("vsAvatar::makeVsCyberGloveBox: No port specified\n");
         return NULL;
     }
     
     // Create and return the object
-    return (new vsCyberGloveBox(portNumber, baud, numSensors));
+    return (new vsCyberGloveBox(portDev, baud, numSensors));
 }
 
 // ------------------------------------------------------------------------

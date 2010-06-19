@@ -60,6 +60,8 @@ protected:
     
     virtual vsObject   *createObject(char *idString);
 
+    virtual char       *getSerialPortName(char *portStr);
+
     virtual void       setup() = 0;
 
     // The various functions called by createObject to make objects of
