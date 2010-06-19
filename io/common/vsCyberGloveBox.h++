@@ -105,6 +105,8 @@ public:
 
                            vsCyberGloveBox(int portNum, long baud, 
                                            int nSensors);
+                           vsCyberGloveBox(char *portDev, long baud, 
+                                           int nSensors);
     virtual                ~vsCyberGloveBox();
 
     // Inherited from vsObject

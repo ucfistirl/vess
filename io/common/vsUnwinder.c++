@@ -63,18 +63,89 @@ vsUnwinder::vsUnwinder(int portNumber, int joy1, int joy2)
 
 
     // Determine the serial device name
-
-#ifdef IRIX
-    sprintf(portDevice, "/dev/ttyd%d", portNumber);
-#endif
-
-#ifdef IRIX64
-    sprintf(portDevice, "/dev/ttyd%d", portNumber);
-#endif
-
 #ifdef __linux__
     sprintf(portDevice, "/dev/ttyS%d", portNumber - 1);
 #endif
+
+#ifdef WIN32
+    sprintf(portDevice, "COM%d", portNumber);
+#endif
+
+    // Open serial port
+    port = new vsSerialPort(portDevice, 9600, 8, 'N', 1);
+    port->ref();
+
+    // Set to polled mode
+    buf = 'p';
+    port->writePacket(&buf, 1);
+    usleep(100000);
+
+    // Set to normal (not on-change) mode
+    buf = 'X';
+    port->writePacket(&buf, 1);
+    usleep(100000);
+
+    // Set to binary mode
+    buf = 'n';
+    port->writePacket(&buf, 1);
+    usleep(100000);
+
+    // Set Unwinder to 38400 baud
+    buf = '7';
+    port->writePacket(&buf, 1);
+    usleep(100000);
+
+    // Adjust serial port to match the new baud rate
+    port->setBaudRate(38400);
+    port->flushPort();
+
+    // Report status
+    printf("vsUnwinder::vsUnwinder: Unwinder created on port %s\n", portDevice);
+    printf("vsUnwinder::vsUnwinder:   with %d joystick(s)\n", numJoysticks);
+
+    // Ping for the first update packet
+    ping();
+}
+
+// ------------------------------------------------------------------------
+// Constructor.  Sets up a vsUnwinder on the specified serial port
+// ------------------------------------------------------------------------
+vsUnwinder::vsUnwinder(char *portDev, int joy1, int joy2)
+          : vsJoystickBox()
+{
+    int           i;
+    unsigned char buf;
+
+    // Initialize variables
+    numJoysticks = 0;
+    for (i = 0; i < VS_UW_MAX_JOYSTICKS; i++)
+    {
+        joystick[i] = NULL;
+    }
+
+    // Construct joysticks in normalized mode, using the default
+    // axis extents of the Unwinder
+    if (joy1) 
+    {
+        numJoysticks++;
+        joystick[0] = 
+            new vsJoystick(VS_UW_NUM_AXES, VS_UW_NUM_BUTTONS,
+                           VS_UW_AXIS_MIN, VS_UW_AXIS_MAX);
+        joystick[0]->ref();
+    }
+    if (joy2) 
+    {
+        numJoysticks++;
+        joystick[1] = 
+            new vsJoystick(VS_UW_NUM_AXES, VS_UW_NUM_BUTTONS,
+                           VS_UW_AXIS_MIN, VS_UW_AXIS_MAX);
+        joystick[1]->ref();
+    }
+
+
+    // Get the serial device name
+    memset(portDevice, 0, sizeof(portDevice));
+    strncpy(portDevice, portDev, sizeof(portDevice)-1);
 
     // Open serial port
     port = new vsSerialPort(portDevice, 9600, 8, 'N', 1);

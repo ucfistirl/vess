@@ -42,14 +42,6 @@ vsVestSystem::vsVestSystem( int portNumber )
     // Determine the platform-dependent serial device
     // name
 
-#ifdef IRIX
-    sprintf(portDevice, "/dev/ttyd%d", portNumber);
-#endif
-
-#ifdef IRIX64
-    sprintf(portDevice, "/dev/ttyd%d", portNumber);
-#endif
-
 #ifdef __linux__
     sprintf(portDevice, "/dev/ttyS%d", portNumber - 1);
 #endif
@@ -59,6 +51,38 @@ vsVestSystem::vsVestSystem( int portNumber )
 #endif
 
     port = new vsSerialPort(portDevice);
+
+    // Check: Does starting the vest turn all zones to off?
+
+    // Create the vest object
+    vest = new vsVest( VS_VEST_NUMBER_OF_ZONES );
+    vest->ref();
+
+    // Configure the vest
+    for(i=0; i<VS_VEST_NUMBER_OF_ZONES; i++)
+    {
+        // check to see if this vest zone is on
+        vsInputButton * button = vest->getButton(i);
+        if ( currentState & (1<<i) )
+            button->setPressed();
+        else
+            button->setReleased();
+    }
+
+    initializeVest();
+}
+
+// -----------------------------------------------------------------------
+// Initialize the vest for use
+// -----------------------------------------------------------------------
+vsVestSystem::vsVestSystem( char *portDev)
+    : vestState( VS_VEST_STATE_UNKNOWN ), zonesChanged(false),
+    currentState( 0 ), bufferLength( 0 ), bytesToIgnore( 0 )
+{
+    int    i;
+
+    // Open the serial port
+    port = new vsSerialPort(portDev);
 
     // Check: Does starting the vest turn all zones to off?
 

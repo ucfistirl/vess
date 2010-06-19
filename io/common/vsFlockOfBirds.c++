@@ -37,6 +37,19 @@ vsFlockOfBirds::vsFlockOfBirds(int portNumber, int nTrackers, int dFormat,
 }
 
 // ------------------------------------------------------------------------
+// Constructs a Flock of Birds on the specified port with the given number
+// of FBB devices.  If nTrackers is zero, the class attempts to determine
+// the number automatically.
+// ------------------------------------------------------------------------
+vsFlockOfBirds::vsFlockOfBirds(char *portDev, int nTrackers, int dFormat,
+                               long baud, int mode)
+    : vsAscensionSerialTrackingSystem(portDev, nTrackers, dFormat, baud,
+                                      mode)
+  
+{
+}
+
+// ------------------------------------------------------------------------
 // Constructs a Flock of Birds on the specified ports with the given number
 // of trackers.  The nTrackers parameter must be correctly specified (a 
 // value of zero is not valid in multi-serial configurations).
@@ -44,6 +57,17 @@ vsFlockOfBirds::vsFlockOfBirds(int portNumber, int nTrackers, int dFormat,
 vsFlockOfBirds::vsFlockOfBirds(int portNumbers[], int nTrackers, int dFormat, 
                                long baud)
     : vsAscensionSerialTrackingSystem(portNumbers, nTrackers, dFormat, baud)
+{
+}
+
+// ------------------------------------------------------------------------
+// Constructs a Flock of Birds on the specified ports with the given number
+// of trackers.  The nTrackers parameter must be correctly specified (a 
+// value of zero is not valid in multi-serial configurations).
+// ------------------------------------------------------------------------
+vsFlockOfBirds::vsFlockOfBirds(char *portDevs[], int nTrackers, int dFormat, 
+                               long baud)
+    : vsAscensionSerialTrackingSystem(portDevs, nTrackers, dFormat, baud)
 {
 }
 

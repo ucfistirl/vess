@@ -73,8 +73,8 @@ protected:
 
 public:
 
-                          vsUnwinder(int portNumber, 
-                                     int joy1, int joy2);
+                          vsUnwinder(int portNumber, int joy1, int joy2);
+                          vsUnwinder(char *portDev, int joy1, int joy2);
     virtual               ~vsUnwinder();
 
     virtual const char    *getClassName();

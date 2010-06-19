@@ -44,16 +44,12 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
     port = NULL;
     gloves = NULL;
 
-#ifdef IRIX
-    sprintf(portDevice, "/dev/ttyd%d", portNumber);
-#endif
-
-#ifdef IRIX64
-    sprintf(portDevice, "/dev/ttyd%d", portNumber);
-#endif
-
 #ifdef __linux__
     sprintf(portDevice, "/dev/ttyS%d", portNumber - 1);
+#endif
+
+#ifdef WIN32
+    sprintf(portDevice, "COM%d", portNumber);
 #endif
 
     // Open the serial port
@@ -65,6 +61,119 @@ vsPinchGloveBox::vsPinchGloveBox(int portNumber, long baud)
     {
         // Print status
         printf("Fakespace PINCH glove system opened on %s\n", portDevice);
+
+        // Send bytes until we get a '?' back from the PINCH box
+        // This will synchronize the driver with the box's 2-byte command
+        // format
+        buf[1] = 0x00;
+        while (buf[1] != '?')
+        {
+            // Send an 'A'
+            buf[0] = 'A';
+            port->writePacket(buf, 1);
+
+            // Wait for the hardware
+            usleep(100000);
+
+            // Read the response
+            memset(buf, 0, 3);
+            port->readPacket(buf, 3);
+        }
+
+        // Flush the port
+        port->flushPort();
+
+        // Turn off time stamps
+        buf[0] = VS_PG_CMD_TIMESTAMP;
+        port->writePacket(buf, 1);
+        usleep(1000);
+        buf[0] = '0';
+        port->writePacket(buf, 1);
+        usleep(1000);
+        readPacket(buf, 100, VS_PG_RESPONSE_PACKET);
+        usleep(1000);
+
+        // Set protocol version to 1
+        buf[0] = VS_PG_CMD_VERSION;
+        port->writePacket(buf, 1);
+        usleep(1000);
+        buf[0] = '1';
+        port->writePacket(buf, 1);
+        usleep(1000);
+        readPacket(buf, 100, VS_PG_RESPONSE_PACKET);
+        usleep(1000);
+
+        // Get the device information
+
+        // Firmware revision
+        printf("Revision   :  ");
+        buf[0] = VS_PG_CMD_CONFIG;
+        port->writePacket(buf, 1);
+        usleep(1000);
+        buf[0] = VS_PG_CONFIG_CPU;
+        port->writePacket(buf, 1);
+        usleep(1000);
+        size = readPacket(buf, 100, VS_PG_RESPONSE_PACKET);
+        buf[size] = 0;
+        printf("%s\n", (char *)&(buf[1]));
+        usleep(1000);
+
+        // Left glove
+        printf("Left Glove :  ");
+        buf[0] = VS_PG_CMD_CONFIG;
+        port->writePacket(buf, 1);
+        usleep(1000);
+        buf[0] = VS_PG_CONFIG_LEFT;
+        port->writePacket(buf, 1);
+        usleep(1000);
+        size = readPacket(buf, 100, VS_PG_RESPONSE_PACKET);
+        buf[size] = 0;
+        printf("%s\n", (char *)&(buf[1]));
+        usleep(1000);
+
+        // Right glove
+        printf("Right Glove:  ");
+        buf[0] = VS_PG_CMD_CONFIG;
+        port->writePacket(buf, 1);
+        usleep(1000);
+        buf[0] = VS_PG_CONFIG_RIGHT;
+        port->writePacket(buf, 1);
+        usleep(1000);
+        size = readPacket(buf, 100, VS_PG_RESPONSE_PACKET);
+        buf[size] = 0;
+        printf("%s\n", (char *)&(buf[1]));
+        usleep(1000);
+
+        // Create the gloves object and initialize it
+        gloves = new vsChordGloves();
+        gloves->ref();
+        gloves->clearContacts();
+    }
+}
+
+// ------------------------------------------------------------------------
+// Constructor.  Opens a PINCH glove box on the given serial port and 
+// gets its information.
+// ------------------------------------------------------------------------
+vsPinchGloveBox::vsPinchGloveBox(char *portDev, long baud)
+               : vsIOSystem()
+{
+    unsigned char buf[100];
+    int           size;
+
+    // Initialize variables
+    port = NULL;
+    gloves = NULL;
+
+    // Open the serial port
+    port = new vsSerialPort(portDev, baud, 8, 'N', 1);
+    port->ref();
+
+    // Make sure it opened properly
+    if (port)
+    {
+        // Print status
+        printf("Fakespace PINCH glove system opened on %s\n", portDev);
 
         // Send bytes until we get a '?' back from the PINCH box
         // This will synchronize the driver with the box's 2-byte command

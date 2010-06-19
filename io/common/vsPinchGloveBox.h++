@@ -77,6 +77,7 @@ protected:
 public:
 
                           vsPinchGloveBox(int portNumber, long baud);
+                          vsPinchGloveBox(char *portDev, long baud);
     virtual               ~vsPinchGloveBox();
 
     virtual const char    *getClassName();

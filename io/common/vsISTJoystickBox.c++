@@ -34,18 +34,41 @@ vsISTJoystickBox::vsISTJoystickBox(int portNumber)
 
     // Determine the platform-dependent serial device
     // name
-
-#ifdef IRIX
-    sprintf(portDevice, "/dev/ttyd%d", portNumber);
-#endif
-
-#ifdef IRIX64
-    sprintf(portDevice, "/dev/ttyd%d", portNumber);
-#endif
-
 #ifdef __linux__
     sprintf(portDevice, "/dev/ttyS%d", portNumber - 1);
 #endif
+
+#ifdef WIN32
+    sprintf(portDevice, "COM%d", portNumber);
+#endif
+
+    // Create a 2-axis 2-button joystick in normalized axis mode
+    joystick = new vsJoystick(VS_ISTJS_NUM_AXES, VS_ISTJS_NUM_BUTTONS,
+                              VS_ISTJS_AXIS_MIN, VS_ISTJS_AXIS_MAX);
+    joystick->ref();
+
+    // Open serial port
+    port = new vsSerialPort(portDevice, 9600, 8, 'N', 1);
+    port->ref();
+
+    // Ping the box to get the first packet ready
+    ping();
+}
+
+// ------------------------------------------------------------------------
+// Constructor.  Sets up a vsISTJoystickBox on the specified serial port
+// ------------------------------------------------------------------------
+vsISTJoystickBox::vsISTJoystickBox(char *portDev)
+             : vsJoystickBox()
+{
+    // Initialize variables
+    joystick = NULL;
+    port = NULL;
+
+    // Determine the platform-dependent serial device
+    // name
+    memset(portDevice, 0, sizeof(portDevice));
+    strncpy(portDevice, portDev, sizeof(portDevice-1));
 
     // Create a 2-axis 2-button joystick in normalized axis mode
     joystick = new vsJoystick(VS_ISTJS_NUM_AXES, VS_ISTJS_NUM_BUTTONS,

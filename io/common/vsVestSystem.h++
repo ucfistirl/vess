@@ -73,6 +73,7 @@ protected:
 public:
 
                             vsVestSystem( int portNumber );
+                            vsVestSystem( char *portDev );
     virtual                 ~vsVestSystem();
 
     // Inherited from vsObject

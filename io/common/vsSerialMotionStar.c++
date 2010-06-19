@@ -37,6 +37,18 @@ vsSerialMotionStar::vsSerialMotionStar(int portNumber, int nTrackers,
 }
 
 // ------------------------------------------------------------------------
+// Constructs a Serial MotionStar on the specified port with the given 
+// number of FBB devices.  If nTrackers is zero, the class attempts to 
+// determine the number automatically.
+// ------------------------------------------------------------------------
+vsSerialMotionStar::vsSerialMotionStar(char *portDev, int nTrackers, 
+                                       int dFormat, long baud)
+    : vsAscensionSerialTrackingSystem(portDev, nTrackers, dFormat, baud,
+                                      VS_AS_MODE_FLOCK)
+{
+}
+
+// ------------------------------------------------------------------------
 // Constructs a Serial MotionStar on the specified ports with the given 
 // number of trackers.  The nTrackers parameter must be correctly specified 
 // (a value of zero is not valid in multi-serial configurations).
@@ -44,6 +56,17 @@ vsSerialMotionStar::vsSerialMotionStar(int portNumber, int nTrackers,
 vsSerialMotionStar::vsSerialMotionStar(int portNumbers[], int nTrackers, 
                                        int dFormat, long baud)
     : vsAscensionSerialTrackingSystem(portNumbers, nTrackers, dFormat, baud)
+{
+}
+
+// ------------------------------------------------------------------------
+// Constructs a Serial MotionStar on the specified ports with the given 
+// number of trackers.  The nTrackers parameter must be correctly specified 
+// (a value of zero is not valid in multi-serial configurations).
+// ------------------------------------------------------------------------
+vsSerialMotionStar::vsSerialMotionStar(char *portDevs[], int nTrackers, 
+                                       int dFormat, long baud)
+    : vsAscensionSerialTrackingSystem(portDevs, nTrackers, dFormat, baud)
 {
 }
 

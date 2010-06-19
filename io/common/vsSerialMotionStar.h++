@@ -38,7 +38,11 @@ public:
 
                           vsSerialMotionStar(int portNumber, int nTrackers, 
                                              int dataFormat, long baud);
+                          vsSerialMotionStar(char *portDev, int nTrackers, 
+                                             int dataFormat, long baud);
                           vsSerialMotionStar(int portNumbers[], int nTrackers, 
+                                             int dataFormat, long baud);
+                          vsSerialMotionStar(char *portDevs[], int nTrackers, 
                                              int dataFormat, long baud);
 
     virtual const char    *getClassName();

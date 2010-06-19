@@ -32,14 +32,6 @@ vsCyberGloveBox::vsCyberGloveBox(int portNum, long baud, int nSensors)
     char portDevice[50];
 
     // Figure out which serial port device to use
-#ifdef IRIX
-    sprintf(portDevice, "/dev/ttyd%d", portNum);
-#endif
-
-#ifdef IRIX64
-    sprintf(portDevice, "/dev/ttyd%d", portNum);
-#endif
-
 #ifdef __linux__
     sprintf(portDevice, "/dev/ttyS%d", portNum - 1);
 #endif
@@ -50,6 +42,72 @@ vsCyberGloveBox::vsCyberGloveBox(int portNum, long baud, int nSensors)
 
     // Open the serial port
     port = new vsSerialPort(portDevice, baud, 8, 'N', 1);
+    port->ref();
+
+    // Initialize variables
+    numSensors = 0;
+    touchInstalled = false;
+
+    // Initialize the glove box
+    if (port)
+    {
+        // Initialize hardware
+        initialize();
+
+        // Check the number of sensors specified with the number found
+        // on the glove
+        if ((nSensors < numSensors) && (nSensors != 0))
+        {
+            printf("vsCyberGloveBox::vsCyberGloveBox:  WARNING: Only using "
+                   "%d sensors (%d available)\n", nSensors, numSensors);
+    
+            numSensors = nSensors;
+        }
+        else if (nSensors > numSensors)
+        {
+            printf("vsCyberGloveBox::vsCyberGloveBox:  WARNING: %d sensors "
+                   "requested, but only %d available\n", nSensors, numSensors);
+        }
+
+        // The number should be 18 or 22, otherwise we can't be sure of
+        // the sensor-to-joint mapping
+        if ((numSensors != 18) && (numSensors != 22))
+        {
+            printf("vsCyberGloveBox::vsCyberGloveBox:\n");
+            printf("    WARNING: Expected either 18 or 22 sensors\n");
+            printf("    Sensor values may not be matched with the proper "
+                   "joints\n");
+        }
+
+        // If we have less than 22 sensors, we don't have distal joint
+        // information, so configure the vsArticulationGlove to estimate
+        // them
+        if (numSensors < 22)
+        {
+            // Estimate the distal interphalangial joints
+            glove = new vsArticulationGlove(true);
+            glove->ref();
+        }
+        else
+        {
+            // Use the distal interphalangial joint sensors (don't estimate)
+            glove = new vsArticulationGlove(false);
+            glove->ref();
+        }
+
+        // Request the first update
+        ping();
+    }
+}
+
+// ------------------------------------------------------------------------
+// Constructor.  Sets up the serial port connection and creates the 
+// vsArticulationGlove object
+// ------------------------------------------------------------------------
+vsCyberGloveBox::vsCyberGloveBox(char *portDev, long baud, int nSensors)
+{
+    // Open the serial port
+    port = new vsSerialPort(portDev, baud, 8, 'N', 1);
     port->ref();
 
     // Initialize variables

@@ -59,6 +59,7 @@ protected:
 public:
 
                           vsISTJoystickBox(int portNumber);
+                          vsISTJoystickBox(char *portDev);
     virtual               ~vsISTJoystickBox();
 
     virtual const char    *getClassName();

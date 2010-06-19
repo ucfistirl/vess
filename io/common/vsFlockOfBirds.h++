@@ -33,7 +33,11 @@ public:
 
                           vsFlockOfBirds(int portNumber, int nTrackers, 
                                          int dataFormat, long baud, int mode);
+                          vsFlockOfBirds(char *portDev, int nTrackers, 
+                                         int dataFormat, long baud, int mode);
                           vsFlockOfBirds(int portNumbers[], int nTrackers,
+                                         int dataFormat, long baud);
+                          vsFlockOfBirds(char *portDevs[], int nTrackers,
                                          int dataFormat, long baud);
 
     virtual const char    *getClassName();
