@@ -42,21 +42,22 @@ private:
 
 public:
 
-                  vsIntersectResult();
-                  vsIntersectResult(atVector point, atVector normal,
-                      atMatrix xform, vsGeometry *geometry,
-                      int primitiveIndex);
-    virtual       ~vsIntersectResult();
+                         vsIntersectResult();
+                         vsIntersectResult(atVector point, atVector normal,
+                                           atMatrix xform,
+                                           vsGeometry *geometry,
+                                           int primitiveIndex);
+    virtual              ~vsIntersectResult();
 
-    virtual const char *getClassName();
+    virtual const char   *getClassName();
 
-    bool          isValid();
-    atVector      getPoint();
-    atVector      getNormal();
-    atMatrix      getXform();
-    vsGeometry    *getGeometry();
-    int           getPrimitiveIndex();
-    vsList        *getPath();
+    bool                 isValid();
+    atVector             getPoint();
+    atVector             getNormal();
+    atMatrix             getXform();
+    vsGeometry           *getGeometry();
+    int                  getPrimitiveIndex();
+    vsList               *getPath();
 };
 
 #endif

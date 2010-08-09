@@ -48,69 +48,70 @@ class VESS_SYM vsIntersect : public vsObject
 {
 private:
 
-    int                     facingMode;
-    bool                    clipSensitivity;
-    bool                    pathsEnabled;
+    int                          facingMode;
+    bool                         clipSensitivity;
+    bool                         pathsEnabled;
 
     osgUtil::IntersectorGroup    *osgIsectGroup;
-    vsIntersectTraverser    *intersectTraverser;
+    vsIntersectTraverser         *intersectTraverser;
 
-    int                     segListSize;
-    atArray                 *segList;
-    atArray                 *resultList;
+    int                          segListSize;
+    atArray                      *segList;
+    atArray                      *resultList;
 
-    osg::Node               *getBaseLibraryObject(vsNode *node);
+    osg::Node                    *getBaseLibraryObject(vsNode *node);
 
     typedef osgUtil::LineSegmentIntersector::Intersection    SegIntersection;
 
-    void                    clearIntersectionResults();
-    void                    populateIntersection(
-                                int index,
-                                const SegIntersection *intersection);
-    bool                    isClipped(osg::Node * node, osg::Vec3 point);
+    void                         clearIntersectionResults();
+    void                         populateIntersection(
+                                         int index,
+                                         const SegIntersection *intersection);
+    bool                         isClipped(osg::Node * node, osg::Vec3 point);
 
 public:
 
-                       vsIntersect();
-    virtual            ~vsIntersect();
+                         vsIntersect();
+    virtual              ~vsIntersect();
 
-    virtual const char *getClassName();
+    virtual const char   *getClassName();
 
-    void               setSegListSize(int newSize);
-    int                getSegListSize();
+    void                 setSegListSize(int newSize);
+    int                  getSegListSize();
 
-    void               setSeg(int segNum, atVector startPt, atVector endPt);
-    void               setSeg(int segNum, atVector startPt,
-                              atVector directionVec, double length);
-    atVector           getSegStartPt(int segNum);
-    atVector           getSegEndPt(int segNum);
-    atVector           getSegDirection(int segNum);
-    double             getSegLength(int segNum);
+    void                 setSeg(int segNum, atVector startPt, atVector endPt);
+    void                 setSeg(int segNum, atVector startPt,
+                                atVector directionVec, double length);
+    atVector             getSegStartPt(int segNum);
+    atVector             getSegEndPt(int segNum);
+    atVector             getSegDirection(int segNum);
+    double               getSegLength(int segNum);
 
-    void               setPickSeg(int segNum, vsPane *pane, double x, double y);
+    void                 setPickSeg(int segNum, vsPane *pane,
+                                    double x, double y);
 
-    void               setMask(unsigned int newMask);
-    unsigned int       getMask();
+    void                 setMask(unsigned int newMask);
+    unsigned int         getMask();
 
-    void               enableClipSensitivity();
-    void               disableClipSensitivity();
+    void                 enableClipSensitivity();
+    void                 disableClipSensitivity();
 
-    void               enablePaths();
-    void               disablePaths();
+    void                 enablePaths();
+    void                 disablePaths();
 
-    void               setFacingMode(int newMode);
-    int                getFacingMode();
+    void                 setFacingMode(int newMode);
+    int                  getFacingMode();
 
-    void               setSequenceTravMode(int newMode);
-    int                getSequenceTravMode();
+    void                 setSequenceTravMode(int newMode);
+    int                  getSequenceTravMode();
 
-    void               setSwitchTravMode(int newMode);
-    int                getSwitchTravMode();
+    void                 setSwitchTravMode(int newMode);
+    int                  getSwitchTravMode();
 
-    void               setLODTravMode(int newMode);
-    int                getLODTravMode();
+    void                 setLODTravMode(int newMode);
+    int                  getLODTravMode();
 
-    void               intersect(vsNode *targetNode);
+    void                 intersect(vsNode *targetNode);
 
     vsIntersectResult    *getIntersection(int segNum);
 };
