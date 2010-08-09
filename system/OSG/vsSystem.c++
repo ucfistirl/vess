@@ -103,7 +103,6 @@ vsSystem::~vsSystem()
     osgFrameStamp->unref();
     
     // Delete statically-created objects in the various VESS classes
-    vsGeometry::clearBinSortModes();
     vsGraphicsState::deleteInstance();
     vsViewpointAttribute::deleteMap();
     vsNode::deleteMap();
@@ -563,7 +562,7 @@ void vsSystem::drawFrame()
     // If any of the vsGeometry's render bin modes changed last frame,
     // then we need to mark every geometry object in existance as dirty so
     // that the bin mode change gets applied to all geometry objects.
-    if (vsGeometry::binModesChanged)
+    if (vsRenderBin::binModesChanged)
     {
         for (screenLoop = 0; screenLoop < screenCount; screenLoop++)
         {
@@ -585,7 +584,7 @@ void vsSystem::drawFrame()
         }
         
         // Now that we've done our job, don't do it again next frame
-        vsGeometry::binModesChanged = false;
+        vsRenderBin::binModesChanged = false;
     }
     
     // Mark the system timer for this frame
