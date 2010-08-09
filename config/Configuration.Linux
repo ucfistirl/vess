@@ -53,7 +53,7 @@ soundEnabled = yes
 audioLibrary = OpenAL
 
 # OpenAL - Audio library
-oalPath = /irl/tools/libs/openal-soft-1.8.466
+oalPath = /irl/tools/libs/openal-soft-1.12.854
 
 # ALUT - OpenAL Utility Toolkit (required if OpenAL is selected)
 alutPath = /irl/tools/libs/alut-1.1.0
@@ -72,7 +72,7 @@ dc1394Enabled = no
 raw1394Path =
 
 # Path for the dc1394_control library
-dc1394Path =
+dc1394Path = /irl/tools/libs/libdc1394-2.1.2
 
 # Enable/disable InterSense tracker support
 isenseEnabled = no
