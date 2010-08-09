@@ -247,7 +247,7 @@ void vsParticle::initHardware(vsDynamicGeometry *sharedGeom, int primIndex)
 }
 
 // ------------------------------------------------------------------------
-// Print the name of this class
+// Set the particle's render bin
 // ------------------------------------------------------------------------
 void vsParticle::setRenderBin(int newBin)
 {
@@ -256,7 +256,7 @@ void vsParticle::setRenderBin(int newBin)
     if (!hardwareShading)
     {
         // Change the render bin on our quad
-        quadGeometry->setRenderBin(newBin);
+        quadGeometry->setRenderBin(vsRenderBin::getBin(newBin));
     }
 }
 
@@ -299,6 +299,7 @@ void vsParticle::activate(vsParticleSettings *settings, atMatrix emitMatrix,
     int loop;
     double variances[4];
     double min, max;
+    vsRenderBin *bin;
 
     // Don't activate an active particle
     if (active)
@@ -497,7 +498,10 @@ void vsParticle::activate(vsParticleSettings *settings, atMatrix emitMatrix,
 
     // If we're using software rendering, set the render bin on our quad
     if (!hardwareShading)
-        quadGeometry->setRenderBin(settings->getRenderBin());
+    {
+        bin = vsRenderBin::getBin(settings->getRenderBin());
+        quadGeometry->setRenderBin(bin);
+    }
 
     // * Use the particle update function to advance the particle in time to
     // be in sync with the rest of the active particles 

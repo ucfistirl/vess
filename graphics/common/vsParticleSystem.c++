@@ -681,13 +681,17 @@ void vsParticleSystem::setRenderBin(int newBin)
 {
     vsParticle *particle;
     int loop;
+    vsRenderBin *bin;
 
     // Change the bin number for all new particles
     settings.setRenderBin(newBin);
     
     // Set the render bin on the shared geometry node.
     if (sharedGeom != NULL)
-        sharedGeom->setRenderBin(settings.getRenderBin());
+    {
+        bin = vsRenderBin::getBin(settings.getRenderBin());
+        sharedGeom->setRenderBin(bin);
+    }
 
     // Set the render bin on all existing particles
     for (loop = 0; loop < particleListSize; loop++)
