@@ -28,6 +28,7 @@
 #include "atVector.h++"
 #include "vsAttribute.h++"
 #include "vsNode.h++"
+#include "vsRenderBin.h++"
 #include <osg/Geode>
 #include <osg/Geometry>
 
@@ -134,12 +135,6 @@ enum vsGeometryDataBinding
     VS_GEOMETRY_BIND_PER_VERTEX
 };
 
-enum vsGeometryBinSortMode
-{
-    VS_GEOMETRY_SORT_STATE,
-    VS_GEOMETRY_SORT_DEPTH
-};
-
 #define VS_GEOMETRY_MAX_LIST_INDEX 1000000
 
 // The maximum texture units that VESS can support.
@@ -172,8 +167,7 @@ protected:
     
     bool                lightingEnable;
     
-    static vsTreeMap    *binModeList;
-    int                 renderBin;
+    vsRenderBin         *renderBin;
 
     void                rebuildPrimitives();
 
@@ -184,8 +178,6 @@ protected:
     bool                areVerticesEquivalent(int v1, int v2);
 
 VS_INTERNAL:
-
-    static bool     binModesChanged;
 
     virtual bool    addParent(vsNode *newParent);
     virtual bool    removeParent(vsNode *targetParent);
@@ -239,12 +231,8 @@ public:
     virtual void          disableLighting();
     bool                  isLightingEnabled();
     
-    void                  setRenderBin(int binNum);
-    int                   getRenderBin();
-    
-    static void           setBinSortMode(int binNum, int sortMode);
-    static int            getBinSortMode(int binNum);
-    static void           clearBinSortModes();
+    void                  setRenderBin(vsRenderBin *newBin);
+    vsRenderBin           *getRenderBin();
     
     virtual void          getBoundSphere(atVector *centerPoint, double *radius);
     virtual atMatrix      getGlobalXform();

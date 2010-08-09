@@ -31,9 +31,6 @@
 #include <osg/MatrixTransform>
 #include <stdio.h>
 
-vsTreeMap *vsGeometryBase::binModeList = NULL;
-bool vsGeometryBase::binModesChanged = false;
-
 // ------------------------------------------------------------------------
 // Default Constructor - does nothing in the base class
 // ------------------------------------------------------------------------
@@ -79,8 +76,8 @@ vsGeometryBase::vsGeometryBase() : parentList(5, 5)
     // Lighting is enabled by default
     lightingEnable = true;
 
-    // Set the render bin to the default (indicated by -1)
-    renderBin = -1;
+    // Set the render bin to NULL (just use the default bin)
+    renderBin = NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -1248,80 +1245,23 @@ bool vsGeometryBase::isLightingEnabled()
 // ------------------------------------------------------------------------
 // Sets the rendering bin to place this object's geometry into
 // ------------------------------------------------------------------------
-void vsGeometryBase::setRenderBin(int binNum)
+void vsGeometryBase::setRenderBin(vsRenderBin *newBin)
 {
-    renderBin = binNum;
+    // Unreference the old bin, if necessary
+    if (renderBin != NULL)
+       renderBin->unref();
+
+    // Store the new bin and reference it
+    renderBin = newBin;
+    renderBin->ref();
 }
 
 // ------------------------------------------------------------------------
 // Gets the rendering bin that this object's geometry is placed into
 // ------------------------------------------------------------------------
-int vsGeometryBase::getRenderBin()
+vsRenderBin *vsGeometryBase::getRenderBin()
 {
     return renderBin;
-}
-
-// ------------------------------------------------------------------------
-// Static function
-// Sets the geometry sorting mode for the specified bin number. Note that
-// this is a *global* change; this will change the sorting mode for all
-// geometry objects that use the specified bin number.
-// ------------------------------------------------------------------------
-void vsGeometryBase::setBinSortMode(int binNum, int sortMode)
-{
-    // Create the list if it doesn't already exist
-    if (!binModeList)
-        binModeList = new vsTreeMap();
-
-    // If the target bin is already specified, change its value; else,
-    // add a new bin entry to the list.
-    if (binModeList->containsKey((void *)binNum))
-        binModeList->changeValue((void *)binNum, (void *)sortMode);
-    else
-        binModeList->addEntry((void *)binNum, (void *)sortMode);
-
-    // Mark that the global bin list changed so that the system object
-    // will notice it next drawFrame() and force an update of all geometry
-    // objects' bin data.
-    binModesChanged = true;
-}
-
-// ------------------------------------------------------------------------
-// Static function
-// Gets the geometry sorting mode for the specified bin number
-// ------------------------------------------------------------------------
-int vsGeometryBase::getBinSortMode(int binNum)
-{
-    // If there's no list, return a default value
-    if (!binModeList)
-        return VS_GEOMETRY_SORT_STATE;
-
-    // If there's no specified mode for the desired bin, return a
-    // default value
-    if (!(binModeList->containsKey((void *)binNum)))
-        return VS_GEOMETRY_SORT_STATE;
-
-    // Otherwise, return the bin's mode according to its setting in the
-    // bin mode list
-    return (int)(binModeList->getValue((void *)binNum));
-}
-
-// ------------------------------------------------------------------------
-// Static function
-// Clears all of the specified render bin sorting modes from the list by
-// deleting the list; all sort mode queries return 'state-sorted' by
-// default if there is no list.
-// ------------------------------------------------------------------------
-void vsGeometryBase::clearBinSortModes()
-{
-    // Delete the bin mode list, this will cause all render bins to be
-    // state sorted
-    if (binModeList)
-    {
-        delete binModeList;
-        binModeList = NULL;
-        binModesChanged = true;
-    }
 }
 
 // ------------------------------------------------------------------------
@@ -2539,16 +2479,18 @@ void vsGeometryBase::applyAttributes()
     // If the render bin is specified, set the bin details in the state
     // set. This overrides any bin set by attributes, notably transparency
     // attributes.
-    if (renderBin >= 0)
+    if (renderBin != NULL)
     {
         // Get the bin's sort mode
-        sortMode = getBinSortMode(renderBin);
+        sortMode = renderBin->getSortMode();
 
         // Set the sort order on the corresponding osg::RenderBin
-        if (sortMode == VS_GEOMETRY_SORT_DEPTH)
-            osgStateSet->setRenderBinDetails(renderBin, "DepthSortedBin");
+        if (sortMode == VS_RENDER_BIN_SORT_DEPTH)
+            osgStateSet->
+                setRenderBinDetails(renderBin->getNumber(), "DepthSortedBin");
         else
-            osgStateSet->setRenderBinDetails(renderBin, "RenderBin");
+            osgStateSet->
+                setRenderBinDetails(renderBin->getNumber(), "RenderBin");
     }
 }
 
