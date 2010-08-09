@@ -153,6 +153,13 @@ void vsCOLLADAEffectParameter::processSampler2D(atXMLDocument *doc,
     textureValue = new vsTextureAttribute();
     textureValue->ref();
 
+    // Initialize the wrap mode in both directions to WRAP
+    // (per the COLLADA spec)
+    textureValue->setBoundaryMode(VS_TEXTURE_DIRECTION_S,
+        VS_TEXTURE_BOUNDARY_REPEAT);
+    textureValue->setBoundaryMode(VS_TEXTURE_DIRECTION_T,
+        VS_TEXTURE_BOUNDARY_REPEAT);
+
     // Read the sampler settings, and apply them to the texture
     samplerNode = doc->getNextChildNode(current);
     while (samplerNode != NULL)
