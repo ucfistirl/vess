@@ -490,8 +490,6 @@ vsParticleSystem::vsParticleSystem(vsGLSLProgramAttribute *shaderAttr)
 // ------------------------------------------------------------------------
 vsParticleSystem::~vsParticleSystem()
 {
-    int loop;
-
     // Destroy all of the particles in the list
     while (particleList.getNumEntries() > 0)
     {
@@ -1371,11 +1369,6 @@ void vsParticleSystem::getParticleColor(atVector *initial,
 vsParticle *vsParticleSystem::createParticle()
 {
     vsParticle *result;
-    vsComponent *translationComponent, *billboardComponent;
-    vsComponent *rotScaleComponent;
-    vsGeometry *geometry;
-    vsTransformAttribute *translateAttr, *rotScaleAttr;
-    vsBillboardAttribute *bbAttr;
     int primIndex;
 
     // Create the particle
@@ -1463,7 +1456,7 @@ void vsParticleSystem::activateParticle(vsParticle *particle,
     double frameRatio;
     double distance;
     double headingDegs, pitchDegs;
-    double min, max;
+    double min;
 
     // Don't activate an active particle
     if (particle->isActive())

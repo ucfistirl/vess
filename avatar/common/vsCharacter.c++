@@ -38,7 +38,6 @@ vsCharacter::vsCharacter(vsSkeleton *skeleton, vsSkeletonKinematics *skelKin,
 {
     vsGLSLProgramAttribute *skinProgram;
     vsComponent *skinRoot;
-    int i;
 
     // Create the lists for skeletons, kinematics, and skins
     characterSkeletons = new vsList();
@@ -165,12 +164,8 @@ vsCharacter::vsCharacter(vsList *skeletons, vsList *skelKins,
                          vsList *skins, atArray *animationNames,
                          vsArray *animations)
 {
-    vsSkeleton *skeleton;
-    vsSkeletonKinematics *skelKin;
     vsSkin *skin;
-    vsComponent *lca;
     vsGLSLProgramAttribute *skinProgram;
-    int i;
 
     // Assume ownership of all five containers of character pieces
     characterSkeletons = skeletons;
@@ -1288,10 +1283,6 @@ void vsCharacter::switchAnimation(atString name)
 // ------------------------------------------------------------------------
 void vsCharacter::setCurrentAnimation(vsPathMotionManager *anim)
 {
-    vsSkeletonKinematics *kin;
-    vsSkeleton *skeleton;
-    vsSkin *skin;
-
     // Don't do anything if the character isn't valid
     if (!validFlag)
         return;

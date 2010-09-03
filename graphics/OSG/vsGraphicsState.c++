@@ -31,8 +31,7 @@ vsGraphicsState *vsGraphicsState::classInstance = NULL;
 vsGraphicsState::vsGraphicsState()
 {
     // Create the array of active locally-scoped lights
-    localLights = new vsGrowableArray(8, 1);
-    localLightsCount = 0;
+    localLights = new vsArray();
 
     // Initialize the scene pointer to NULL
     scene = NULL;
@@ -93,6 +92,8 @@ void vsGraphicsState::deleteInstance()
 // ------------------------------------------------------------------------
 void vsGraphicsState::clearState()
 {
+    vsLightAttribute *light;
+
     // Clear the current transparency attribute and override flag
     transparencyAttr = NULL;
     transparencyLock = NULL;
@@ -100,8 +101,25 @@ void vsGraphicsState::clearState()
     // Clear the current scene pointer
     scene = NULL;
 
-    // Reset the active local light source count to 0
-    localLightsCount = 0;
+    // Remove all local light sources, being careful to not let them get
+    // deleted (This keeps the original behavior of not reference counting
+    // anything, otherwise, we could just call removeAllEntries())
+    while (localLights->getNumEntries() > 0)
+    {
+        // Get the first entry
+        light = (vsLightAttribute *) localLights->getEntry(0);
+
+        // Reference the entry temporarily (if it's valid)
+        if (light != NULL)
+           light->ref();
+      
+        // Remove the entry at the head of the list (even if it's NULL)
+        localLights->removeEntryAtIndex(0);
+
+        // Unreference the entry (if it's valid)
+        if (light != NULL)
+           light->unref();
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -127,7 +145,7 @@ void vsGraphicsState::addLocalLight(vsLightAttribute *lightAttrib)
 {
     // Add the given light attribute to the end of the local light array
     // and increment the local light count
-    (*localLights)[localLightsCount++] = lightAttrib;
+    localLights->addEntry(lightAttrib);
 }
 
 // ------------------------------------------------------------------------
@@ -141,24 +159,18 @@ void vsGraphicsState::removeLocalLight(vsLightAttribute *lightAttrib)
     // Initialize the index to 0.
     index = 0;
 
-    // Check all lights in the local light array
-    for (index = 0; index < localLightsCount; index++)
-    {
-        // If we've found the matching light, set it to NULL.
-        if ((*localLights)[index] == lightAttrib)
-        {
-            // Decrement the count to reflect the removed light.
-            // Place what was the last element into the removed slot.
-            (*localLights)[index] = (*localLights)[--localLightsCount];
-        }
-    }
+    // Try to remove the light from the list (keep a temporary reference to
+    // it to keep it from getting deleted)
+    lightAttrib->ref();
+    localLights->removeEntry(lightAttrib);
+    lightAttrib->unref();
 }
 
 // ------------------------------------------------------------------------
 // Internal function
 // Retrieves the array of local lights to add
 // ------------------------------------------------------------------------
-vsGrowableArray *vsGraphicsState::getLocalLightsArray()
+vsArray *vsGraphicsState::getLocalLightsArray()
 {
     return localLights;
 }
@@ -169,7 +181,7 @@ vsGrowableArray *vsGraphicsState::getLocalLightsArray()
 // ------------------------------------------------------------------------
 int vsGraphicsState::getLocalLightsCount()
 {
-    return localLightsCount;
+    return localLights->getNumEntries();
 }
 
 // ------------------------------------------------------------------------

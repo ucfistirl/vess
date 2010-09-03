@@ -53,7 +53,8 @@ sgSrc='vsAttribute.c++ vsBackfaceAttribute.c++ vsBillboardAttribute.c++ \
        vsGLSLShader.c++ vsGLSLUniform.c++ vsGraphicsState.c++ vsIntersect.c++ \
        vsIntersectResult.c++ vsIntersectTraverser.c++ vsLightAttribute.c++ \
        vsLineWidthAttribute.c++ vsLODAttribute.c++ vsMaterialAttribute.c++ \
-       vsNode.c++ vsRenderBin.c++ vsScene.c++ vsSequenceAttribute.c++ \
+       vsNode.c++ vsOSGAttribute.c++ vsOSGNode.c++ vsOSGStateSet.c++ \
+       vsRenderBin.c++ vsScene.c++ vsSequenceAttribute.c++ \
        vsShaderAttribute.c++ vsShadingAttribute.c++ \
        vsSkeletonMeshGeometry.c++ vsSphereIntersect.c++ vsStateAttribute.c++ \
        vsSwitchAttribute.c++ vsTextBuilder.c++ vsTextureAttribute.c++ \
@@ -71,6 +72,10 @@ if sceneGraph == 'OSG':
 sgWsDir = '#graphics/' + sceneGraph + '_' + windowSystem
 sgWsSrc = 'vsPane.c++ vsPipe.c++ vsScreen.c++ vsWindow.c++'
 
+# Add any extra source files that this specific scene graph and window system
+# combination needs
+if sceneGraph == 'OSG' and windowSystem == 'Windows':
+   sgWsSrc += ' vsHWND.c++'
 
 # Add the directories to the include path
 gfxIncPath.extend(Split(commonDir))

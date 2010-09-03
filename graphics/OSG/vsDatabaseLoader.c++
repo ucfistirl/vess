@@ -44,6 +44,8 @@
 #include "atList.h++"
 #include "atString.h++"
 #include "atStringTokenizer.h++"
+#include "vsOSGNode.h++"
+#include "vsOSGAttribute.h++"
 #include <osgDB/Registry>
 #include <osgDB/ReadFile>
 #include <osgDB/WriteFile>
@@ -75,10 +77,8 @@
 // Constructor - Adds the given file extension as the first in the loader's
 // list of file extensions. Initializes the list of important node names.
 // ------------------------------------------------------------------------
-vsDatabaseLoader::vsDatabaseLoader() : nodeNames(0, 50)
+vsDatabaseLoader::vsDatabaseLoader()
 {
-    nodeNameCount = 0;
-    
     // Get the default loader path from the environment variable; the path
     // variable is intiialized to something just to give the clearPath()
     // function something to delete.
@@ -135,14 +135,7 @@ const char *vsDatabaseLoader::getClassName()
 void vsDatabaseLoader::addImportantNodeName(char *newName)
 {
     // Allocate space for and duplicate the given name
-    nodeNames[nodeNameCount] = stringDup(newName);
-
-    // Check for failure
-    if (!(nodeNames[nodeNameCount]))
-        printf("vsDatabaseLoader::addImportantNodeName: Error allocating "
-            "space for node name string\n");
-    else
-        nodeNameCount++;
+    nodeNames.addEntry(new atString(newName));
 }
 
 // ------------------------------------------------------------------------
@@ -150,13 +143,19 @@ void vsDatabaseLoader::addImportantNodeName(char *newName)
 // ------------------------------------------------------------------------
 void vsDatabaseLoader::clearNames()
 {
-    int loop;
-    
-    // Delete each name in the list
-    for (loop = 0; loop < nodeNameCount; loop++)
-        free(nodeNames[loop]);
+    atString *name;
 
-    nodeNameCount = 0;
+    // Flush the node names list
+    name = (atString *) nodeNames.getFirstEntry();
+    while (name != NULL)
+    {
+       // Remove this name from the list and delete it
+       nodeNames.removeCurrentEntry();
+       delete name;
+
+       // Get the name that's now first in the list
+       name = (atString *) nodeNames.getFirstEntry();
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -320,7 +319,7 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
     // .dds files we load to be flipped vertically (this accounts for the
     // differences in texture coordinate systems between DirectX and
     // OpenGL
-    options = new osgDB::ReaderWriter::Options("dds_flip");
+    options = new osgDB::ReaderWriter::Options("dds_flip,preserveObject");
     options->ref();
 
     // Load the specified file into an OSG scene graph
@@ -376,26 +375,32 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
 // ------------------------------------------------------------------------
 bool vsDatabaseLoader::importanceCheck(osg::Node *targetNode)
 {
-    int loop;
-    const char *targetName;
+    atString targetName;
+    atString *importantName;
     
     // The node is automatically important if the 'all' mode is set
     if (loaderModes & VS_DATABASE_MODE_NAME_ALL)
         return true;
 
     // Get the name from the OSG Node
-    targetName = targetNode->getName().c_str();
+    targetName.setString(targetNode->getName().c_str());
 
     // Check the node's name against the list of important names
-    for (loop = 0; loop < nodeNameCount; loop++)
-        if (!strcmp((char *)(nodeNames[loop]), targetName))
-            return true;
+    importantName = (atString *) nodeNames.getFirstEntry();
+    while ((importantName != NULL) &&
+           (!targetName.equals(importantName)))
+        importantName = (atString *) nodeNames.getNextEntry();
+
+    // If we found a name match, return true immediately
+    if (importantName != NULL)
+        return true;
 
     // Check for a transform and the transforms-are-important enable
     if ((loaderModes & VS_DATABASE_MODE_NAME_XFORM) && 
         (dynamic_cast<osg::Transform *>(targetNode) != NULL))
         return true;
 
+    // Otherwise, the node is not important
     return false;
 }
 
@@ -407,6 +412,7 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
     vsObjectMap *attrMap)
 {
     vsNode *result;
+    vsOSGNode *osgNode;
     vsComponent *newComponent;
     osg::Group *osgGroup;
     vsNode *child;
@@ -448,7 +454,9 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
 
     // Determine if we've seen (and converted) this node before; just
     // return the already-converted node if we have.
-    result = (vsNode *)(nodeMap->mapSecondToFirst(node));
+    osgNode = new vsOSGNode(node);
+    result = (vsNode *)(nodeMap->mapSecondToFirst(osgNode));
+    delete osgNode;
     if (result)
         return result;
 
@@ -727,7 +735,7 @@ vsNode *vsDatabaseLoader::convertNode(osg::Node *node, vsObjectMap *nodeMap,
     if ((result->getNodeType() == VS_NODE_TYPE_GEOMETRY) ||
         (result->getNodeType() == VS_NODE_TYPE_UNMANAGED))
     {
-        nodeMap->registerLink(result, node);
+        nodeMap->registerLink(result, new vsOSGNode(node));
     }
 
     return result;
@@ -1117,6 +1125,8 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
 void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     vsObjectMap *attrMap)
 {
+    vsOSGAttribute *osgAttr;
+
     const osg::StateSet::RefAttributePair *osgRefAttrPair;
     unsigned int overrideFlag;
     int textureUnit;
@@ -1129,7 +1139,6 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
 
     osg::Texture2D *osgTexture2D;
     osg::TextureCubeMap *osgTextureCube;
-    osg::Image *osgImage;
     osg::TexEnv *osgTexEnv;
     osg::TexGen *osgTexGen;
     osg::TexEnvCombine *osgTexEnvCombine;
@@ -1209,8 +1218,9 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
     if (osgMaterial)
     {
         // Check for a previous encounter with this material
+        osgAttr = new vsOSGAttribute(osgMaterial);
         vsMaterialAttr = (vsMaterialAttribute *)
-            (attrMap->mapSecondToFirst(osgMaterial));
+            (attrMap->mapSecondToFirst(osgAttr));
         
         if (!vsMaterialAttr)
         {
@@ -1226,7 +1236,12 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
                 vsMaterialAttr->setOverride(true);
 
             // Record that we've seen this material, in case it comes up again
-            attrMap->registerLink(vsMaterialAttr, osgMaterial);
+            attrMap->registerLink(vsMaterialAttr, osgAttr);
+        }
+        else
+        {
+            // Dont need the wrapped material anymore
+            delete osgAttr;
         }
 
         // Recognized or not, add the material to this node
@@ -1270,8 +1285,9 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
             osg::StateAttribute::TEXTURE)))
         {
             // Check for a previous encounter with this texture
+            osgAttr = new vsOSGAttribute(osgTexture2D);
             vsTextureAttr = (vsTextureAttribute *)
-                (attrMap->mapSecondToFirst(osgTexture2D));
+                (attrMap->mapSecondToFirst(osgAttr));
 
             if (!vsTextureAttr)
             {
@@ -1324,13 +1340,17 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
 
                 // Record that we've seen this texture, in case it comes up
                 // again
-                attrMap->registerLink(vsTextureAttr, osgTexture2D);
+                attrMap->registerLink(vsTextureAttr, osgAttr);
 
                 // Add the texture to this node
                 node->addAttribute(vsTextureAttr);
             }
             else
             {
+                // We don't need the wrapped attribute (it's already in the
+                // map)
+                delete osgAttr;
+
                 // We've seen this one before, share the OSG texture object
                 // from the previous instance, but copy the other related OSG
                 // objects to make sure the texture is rendered properly
@@ -1390,8 +1410,9 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
                 osg::StateAttribute::TEXTURE)))
         {
             // Check for a previous encounter with this texture
+            osgAttr = new vsOSGAttribute(osgTextureCube);
             vsTextureCubeAttr = (vsTextureCubeAttribute *)
-                (attrMap->mapSecondToFirst(osgTextureCube));
+                (attrMap->mapSecondToFirst(osgAttr));
 
             if (!vsTextureCubeAttr)
             {
@@ -1451,13 +1472,17 @@ void vsDatabaseLoader::convertAttrs(vsNode *node, osg::StateSet *stateSet,
 
                 // Record that we've seen this texture, in case it comes up
                 // again
-                attrMap->registerLink(vsTextureCubeAttr, osgTextureCube);
+                attrMap->registerLink(vsTextureCubeAttr, osgAttr);
 
                 // Add the cube map to this node
                 node->addAttribute(vsTextureCubeAttr);
             }
             else
             {
+                // We don't need the wrapped attribute (it's already in the
+                // map)
+                delete osgAttr;
+
                 // We've seen this one before, share the OSG texture object
                 // from the previous instance, but copy the other related OSG
                 // objects to make sure the cube map is rendered properly
@@ -1741,7 +1766,7 @@ void vsDatabaseLoader::convertLOD(vsComponent *lodComponent, osg::LOD *osgLOD)
     int loop, sloop;
     bool flag;
     float tempFloat;
-    vsGrowableArray nodeList(10, 10);
+    vsArray nodeList;
     int nodeListSize;
     vsNode *childNode;
     vsComponent *childComponent;
@@ -1802,8 +1827,8 @@ void vsDatabaseLoader::convertLOD(vsComponent *lodComponent, osg::LOD *osgLOD)
         // Always getting the first node ensures that the nodes are
         // transferred in the correct order
         childNode = lodComponent->getChild(0);
+        nodeList.addEntry(childNode);
         lodComponent->removeChild(childNode);
-        nodeList[loop] = childNode;
     }
 
     // * For each range, determine which nodes should be visible within
@@ -1821,12 +1846,12 @@ void vsDatabaseLoader::convertLOD(vsComponent *lodComponent, osg::LOD *osgLOD)
         
         // For each node whose osg range includes the midpoint value, add
         // that node to the new component
-        for (sloop = 0; sloop < nodeListSize; sloop++)
+        for (sloop = 0; sloop < nodeList.getNumEntries(); sloop++)
         {
             if ((midpoint > osgLOD->getMinRange(sloop)) &&
                 (midpoint < osgLOD->getMaxRange(sloop)))
             {
-                childNode = (vsNode *)(nodeList[sloop]);
+                childNode = (vsNode *)(nodeList.getEntry(sloop));
 
                 // If the child can't have any more parents, then we need
                 // to add a clone of the child instead
@@ -1875,7 +1900,7 @@ void vsDatabaseLoader::convertDecal(vsComponent *decalComponent,
     int loop, sloop;
     bool flag;
     double tempDouble;
-    vsGrowableArray decalChildren(10, 10);
+    vsArray decalChildren;
     vsNode *decalChild;
     double closestDist;
     int closestIdx;
@@ -1947,8 +1972,8 @@ void vsDatabaseLoader::convertDecal(vsComponent *decalComponent,
     for (loop = 0; loop < offsetValuesSize; loop++)
     {
         decalChild = decalComponent->getChild(0);
+        decalChildren.addEntry(decalChild);
         decalComponent->removeChild(decalChild);
-        decalChildren[loop] = decalChild;
     }
     
     // Add a vsDecalAttribute to the decalComponent, and add a number of
@@ -1982,7 +2007,7 @@ void vsDatabaseLoader::convertDecal(vsComponent *decalComponent,
         // Add the child to the newly determined 'closest' component
         childComponent = ((vsComponent *)
             (decalComponent->getChild(closestIdx)));
-        childComponent->addChild((vsNode *)(decalChildren[loop]));
+        childComponent->addChild((vsNode *)(decalChildren.getEntry(loop)));
     }
     
     // Clean up

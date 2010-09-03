@@ -24,7 +24,6 @@
 #define VS_SHADER_ATTRIBUTE_HPP
 
 #include "vsStateAttribute.h++"
-#include "vsGrowableArray.h++"
 #include <osg/VertexProgram>
 #include <osg/FragmentProgram>
 
@@ -40,10 +39,7 @@ private:
     char                   *fragmentProgramFile;
     char                   *fragmentProgramSource;
 
-    virtual void        setOSGAttrModes(vsNode *node);
-
-    vsGrowableArray     *vertexParameterArray;
-    vsGrowableArray     *fragmentParameterArray;
+    virtual void           setOSGAttrModes(vsNode *node);
 
 VS_INTERNAL:
 

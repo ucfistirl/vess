@@ -18,11 +18,6 @@ vsCOLLADAFixedEffect::vsCOLLADAFixedEffect(atString id)
 // ------------------------------------------------------------------------
 vsCOLLADAFixedEffect::~vsCOLLADAFixedEffect()
 {
-    atList *keys;
-    atString *key;
-    atList *values;
-    vsTextureAttribute *tex;
-
     // Delete the material attribute (if any)
     if (material != NULL)
         vsObject::unrefDelete(material);
@@ -214,7 +209,6 @@ vsTextureAttribute *vsCOLLADAFixedEffect::getTextureFromParam(atString paramID)
     vsTextureAttribute *samplerTex;
     int mode;
     vsTextureAttribute *returnTex;
-    char name[256];
 
     // Get the parameter, or bail if we can't find it
     samplerParam = getParameter(paramID);

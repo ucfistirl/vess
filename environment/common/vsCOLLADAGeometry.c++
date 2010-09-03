@@ -11,9 +11,7 @@ vsCOLLADAGeometry::vsCOLLADAGeometry(atString id, atXMLDocument *doc,
 {
     atXMLDocumentNodePtr child;
     char *attr;
-    char tempStr[32];
     atString name;
-    atString *geomID;
 
     // Set the geometry's ID
     geometryID.setString(id);
@@ -198,13 +196,10 @@ void vsCOLLADAGeometry::processMesh(atXMLDocument *doc,
                                   atXMLDocumentNodePtr current,
                                   atString id, atString name)
 {   
-    vsCOLLADAGeometry *geom; 
     atXMLDocumentNodePtr child;
     atList *meshVertexInputs;
     atXMLDocumentNodePtr input;
-    char *attr;
     vsCOLLADASubmesh *submesh;
-    atString *geomID; 
 
     // Process the sources first.  Iterate over the children of the mesh
     // and process all those that are "source" nodes

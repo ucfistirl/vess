@@ -45,7 +45,7 @@ vsIntersectResult::vsIntersectResult()
 // This constructor accepts the necessary fields and assumes validity.
 // ------------------------------------------------------------------------
 vsIntersectResult::vsIntersectResult(atVector point, atVector normal,
-    atMatrix xform, vsGeometry *geometry, int primitiveIndex)
+    atMatrix xform, vsGeometryBase *geometry, int primitiveIndex)
 {
     // Indicate that this is a valid intersection.
     validFlag = true;
@@ -124,7 +124,7 @@ atMatrix vsIntersectResult::getXform()
 // ------------------------------------------------------------------------
 // Get the geometry object that was intersected
 // ------------------------------------------------------------------------
-vsGeometry *vsIntersectResult::getGeometry()
+vsGeometryBase *vsIntersectResult::getGeometry()
 {
     return isectGeometry;
 }

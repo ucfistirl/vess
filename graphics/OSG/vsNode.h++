@@ -26,7 +26,7 @@
 class vsAttribute;
 
 #include "vsObject.h++"
-#include "vsGrowableArray.h++"
+#include "vsArray.h++"
 #include "atVector.h++"
 #include "atMatrix.h++"
 #include "vsAttribute.h++"
@@ -56,8 +56,7 @@ private:
 
 protected:
 
-    vsGrowableArray    attributeList;
-    int                attributeCount;
+    vsArray            attributeList;
 
     bool               dirtyFlag;
 

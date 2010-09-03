@@ -23,6 +23,7 @@
 //------------------------------------------------------------------------
 
 #include "vsSkeletonMeshGeometry.h++"
+#include "vsOSGNode.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Creates an OSG geode and geometry and connects
@@ -49,7 +50,7 @@ vsSkeletonMeshGeometry::vsSkeletonMeshGeometry()
     osgGeometry->setDataVariance(osg::Object::DYNAMIC);
 
     // Register this node and osg::Geode in the node map
-    getMap()->registerLink(this, osgGeode);
+    getMap()->registerLink(this, new vsOSGNode(osgGeode));
 }
 
 // ------------------------------------------------------------------------
@@ -57,8 +58,6 @@ vsSkeletonMeshGeometry::vsSkeletonMeshGeometry()
 // ------------------------------------------------------------------------
 vsSkeletonMeshGeometry::~vsSkeletonMeshGeometry()
 {
-    int loop;
-
     // Remove all parents
     detachFromParents();
 

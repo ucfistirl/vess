@@ -85,37 +85,46 @@ vsPathMotion::vsPathMotion(vsPathMotion *original)
     objectKin = original->objectKin;
     objectKin->ref();
    
-    // Copy other data members.
+    // Copy the play mode
     currentPlayMode = original->currentPlayMode;
     
+    // Copy the position and orientation interpolation modes
     posMode = original->posMode;
     oriMode = original->oriMode;
     
+    // Copy the path cycling settings
     cycleMode = original->cycleMode;
     cycleCount = original->cycleCount;
     currentCycleCount = original->currentCycleCount;
     
+    // Copy the radius for rounded corner interpolation
     roundCornerRadius = original->roundCornerRadius;
     
+    // Copy the look point and up directions for look-at orienation
+    // interpolation
     lookPoint = original->lookPoint;
     upDirection = original->upDirection;
     
-    pointCount = original->pointCount;
+    // Set up the point list with the correct number of points (we'll
+    // replace the actual point entries below)
+    pointCount = 0;
+    setPointListSize(original->pointList.getNumEntries()); 
+
+    // Copy the current position and orientation
     currentPos = original->currentPos;
     currentOri = original->currentOri;
     
+    // Copy the current segment and time information
     currentSegmentIdx = original->currentSegmentIdx;
     currentSegmentTime = original->currentSegmentTime;
     totalTime = original->totalTime;
     totalPathTime = original->totalPathTime;
     
-    // Loop through the list of segment points and copy them over.
-    setPointListSize(original->pointList.getNumEntries()); 
-
-    for(index = 0; index < original->pointList.getNumEntries(); index++)
+    // Copy the data for each path point
+    for(index = 0; index < pointCount; index++)
     {
         // Get the segment data structure from the original path motion.
-        tempSeg = ((vsPathMotionSegment*)(original->pointList.getEntry(index)));
+        tempSeg = (vsPathMotionSegment*) (original->pointList.getEntry(index));
         
         // Make sure the segment is not NULL. If it is, we've reached the end
         // of the list, so break out of this loop.
@@ -124,10 +133,10 @@ vsPathMotion::vsPathMotion(vsPathMotion *original)
             break;
         }
         
-        // Allocate new memory for this segment.
+        // Clone the point data at this segment, and put it in our list
+        // at the correct position (this will replace the empty point that
+        // we created above)
         tempNewSeg = tempSeg->clone();
-        
-        // Add the new segment to our list.
         pointList.setEntry(index, tempNewSeg);
     }
 }
@@ -757,6 +766,8 @@ void vsPathMotion::configureFromFile(char *filename)
                 setOrientationMode(VS_PATH_ORI_IMODE_NONE);
             else if (!strcmp(constantStr, "VS_PATH_ORI_IMODE_SLERP"))
                 setOrientationMode(VS_PATH_ORI_IMODE_SLERP);
+            else if (!strcmp(constantStr, "VS_PATH_ORI_IMODE_NLERP"))
+                setOrientationMode(VS_PATH_ORI_IMODE_NLERP);
             else if (!strcmp(constantStr, "VS_PATH_ORI_IMODE_SPLINE"))
                 setOrientationMode(VS_PATH_ORI_IMODE_SPLINE);
             else if (!strcmp(constantStr, "VS_PATH_ORI_IMODE_ATPOINT"))
@@ -1222,6 +1233,11 @@ void vsPathMotion::update(double deltaTime)
 
         case VS_PATH_ORI_IMODE_SLERP:
             newOrientation = interpolateOriSlerp(currentSegOriPt, nextSegOriPt,
+                parameter);
+            break;
+
+        case VS_PATH_ORI_IMODE_NLERP:
+            newOrientation = interpolateOriNlerp(currentSegOriPt, nextSegOriPt,
                 parameter);
             break;
 
@@ -1767,6 +1783,30 @@ atQuat vsPathMotion::interpolateOriSlerp(atQuat *ori1, atQuat *ori2,
 
     // Quaternions can do slerp by themselves; return their answer
     return (ori1->slerp(*ori2, parameter));
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Calculates a quaternion that is interpolated between the two given
+// rotational quaternions using spherical linear interpolation. Returns
+// one of the quaterions if the other is NULL, or a no-rotation quaternion
+// if they are both NULL.
+// ------------------------------------------------------------------------
+atQuat vsPathMotion::interpolateOriNlerp(atQuat *ori1, atQuat *ori2,
+    double parameter)
+{
+    atQuat result(0.0, 0.0, 0.0, 1.0);
+
+    // NULL parameter check
+    if (!ori1 && !ori2)
+        return result;
+    if (!ori1)
+        return *ori2;
+    if (!ori2)
+        return *ori1;
+
+    // Quaternions can do nlerp by themselves; return their answer
+    return (ori1->nlerp(*ori2, parameter));
 }
 
 // ------------------------------------------------------------------------

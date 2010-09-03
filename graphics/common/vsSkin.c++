@@ -29,8 +29,6 @@ vsSkin::vsSkin(vsComponent *newRoot, vsSkeleton *newSkeleton,
                atArray *boneSpaceMatrices)
 {
     int index;
-    int childCount;
-    vsNode *childNode;
     atMatrix *sourceMatrix;
     atMatrix *matrix;
 
@@ -87,8 +85,6 @@ vsSkin::vsSkin(vsComponent *newRoot, vsSkeleton *newSkeleton,
 vsSkin::vsSkin(vsSkin *original)
 {
     int index;
-    int childCount;
-    vsNode *childNode;
     atMatrix *sourceMatrix;
     atMatrix *matrix;
 
@@ -150,8 +146,6 @@ vsSkin::vsSkin(vsSkin *original)
 //------------------------------------------------------------------------
 vsSkin::~vsSkin()
 {
-    int index;
-
     // Unreference the skeleton object.
     if (skeleton != NULL)
         vsObject::unrefDelete(skeleton);

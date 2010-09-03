@@ -568,7 +568,6 @@ void vsCOLLADALoader::unrefDeleteMap(atMap *map)
 void vsCOLLADALoader::processAnimation(atXMLDocument *doc,
                                        atXMLDocumentNodePtr current)
 {
-    atXMLDocumentNodePtr child;
     char *attr;
     atString *id;
     vsCOLLADAAnimation *anim;
@@ -709,18 +708,13 @@ vsCOLLADAEffectParameter *vsCOLLADALoader::processNewParam(
                                                  atXMLDocumentNodePtr current)
 {
     atXMLDocumentNodePtr child;
-    atXMLDocumentNodePtr surfaceNode;
-    atXMLDocumentNodePtr tempNode;
-    atXMLDocumentNodePtr samplerNode;
     char sid[256];
     char *text;
     vsCOLLADAEffectParameter *param;
-    atStringTokenizer *tokens;
     atVector values;
     vsTextureAttribute *libTexture;
     vsTextureAttribute *paramTexture;
     atString imageID;
-    char name[256];
 
     // Start with no parameter
     param = NULL;
@@ -1442,12 +1436,10 @@ void vsCOLLADALoader::processLibraryGeometries(atXMLDocument *doc,
 void vsCOLLADALoader::processImage(atXMLDocument *doc,
                                    atXMLDocumentNodePtr current)
 {
-    char *attr;
     atString *id;
     atXMLDocumentNodePtr child;
     vsTextureAttribute *texture;
     char *filename;
-    char name[256];
     atString texFile;
 
     // Get the ID of the image
@@ -1544,8 +1536,6 @@ void vsCOLLADALoader::processLight(atXMLDocument *doc,
     double constantAtten;
     double linearAtten;
     double quadraticAtten;
-    double spotExponent;
-    double spotAngle;
 
     // Get the light ID
     attr = doc->getNodeAttribute(current, "id");
@@ -1703,7 +1693,6 @@ void vsCOLLADALoader::processSetParam(atXMLDocument *doc,
 {
     atString paramName;
     vsCOLLADAEffectParameter *param;
-    atXMLDocumentNodePtr valueNode;
 
     // Look up the parameter in the effect
     paramName = atString(doc->getNodeAttribute(current, "ref"));
@@ -1736,7 +1725,6 @@ void vsCOLLADALoader::processMaterial(atXMLDocument *doc,
     atString effectID;
     vsCOLLADAEffect *effect;
     vsCOLLADAEffect *materialEffect;
-    vsCOLLADAEffectParameter *param;
 
     // Get the id of the material
     id = new atString(doc->getNodeAttribute(current, "id"));
@@ -2061,9 +2049,7 @@ vsSkeleton *vsCOLLADALoader::createSkeleton(vsCOLLADANode *root,
     int i;
     vsCOLLADADataSource *source;
     vsCOLLADANode *joint;
-    vsCOLLADANode *skeletonRoot;
     vsSkeleton *newSkeleton;
-    vsNode *parent;
 
     // Create an array to hold the bone nodes for the skeleton
     bones = new atArray();
@@ -2140,7 +2126,6 @@ void vsCOLLADALoader::processInstanceController(atXMLDocument *doc,
     vsCOLLADAController *libraryCtrl;
     vsComponent *geomComponent;
     atXMLDocumentNodePtr child;
-    vsCOLLADAEffect *materialEffect;
     vsCOLLADANode *skeletonRoot;
     vsCOLLADASkin *skinCtrl;
     vsSkeleton *thisSkeleton;
@@ -2295,7 +2280,6 @@ void vsCOLLADALoader::processInstanceGeometry(atXMLDocument *doc,
     vsCOLLADAGeometry *libraryGeom;
     vsComponent *geomComponent;
     atXMLDocumentNodePtr child;
-    vsCOLLADAEffect *materialEffect;
 
     // First, look up the geometry in the library
     attr = doc->getNodeAttribute(current, "url");
@@ -2456,7 +2440,6 @@ void vsCOLLADALoader::processLOD(char *properties, vsCOLLADANode *node)
 {
     char *ptr;
     int rangeCount;
-    int lodCount;
     int i;
     char nodeName[64];
     int level[16];
@@ -2593,7 +2576,6 @@ void vsCOLLADALoader::processNodeExtra(atXMLDocument *doc,
                                        vsCOLLADANode *node)
 {
     atXMLDocumentNodePtr technique;
-    atXMLDocumentNodePtr child;
     char *attr;
 
     // Traverse the children of the extra tag
@@ -2638,9 +2620,6 @@ void vsCOLLADALoader::processNodePass2(atXMLDocument *doc,
     atString id;
     vsCOLLADANode *thisNode;
     atXMLDocumentNodePtr child;
-    vsTransformAttribute *xformAttr;
-    vsCOLLADATransform *xform;
-    atString *rootID;
     bool isSkeletonRoot;
     int childIndex;
 
@@ -3045,7 +3024,6 @@ void vsCOLLADALoader::buildCharacter(vsCOLLADANode *sceneRootNode,
     vsComponent *skinParent;
     atMatrix skinXform;
     atMatrix identMatrix;
-    vsTransformAttribute *skinXformAttr;
     atArray *animationNamesArray;
     vsArray *animationsArray;
     atList *animationNamesList;

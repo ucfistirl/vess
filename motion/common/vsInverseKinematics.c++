@@ -26,10 +26,9 @@
 // ------------------------------------------------------------------------
 // Constructor
 // ------------------------------------------------------------------------
-vsInverseKinematics::vsInverseKinematics() : kinematicsArray(1, 1)
+vsInverseKinematics::vsInverseKinematics()
 {
     // The default kinematics chain size is one
-    kinematicsArraySize = 0;
     setKinematicsChainSize(1);
 
     // The default endpoint is one unit in the y-direction from the last joint
@@ -46,16 +45,6 @@ vsInverseKinematics::vsInverseKinematics() : kinematicsArray(1, 1)
 // ------------------------------------------------------------------------
 vsInverseKinematics::~vsInverseKinematics()
 {
-    int loop;
-    vsKinematics *kin;
-
-    // Release all of the kinematics objects
-    for (loop = 0; loop < kinematicsArraySize; loop++)
-    {
-        kin = (vsKinematics *)(kinematicsArray[loop]);
-        if (kin)
-            vsObject::unrefDelete(kin);
-    }
 }
 
 // ------------------------------------------------------------------------
@@ -71,8 +60,6 @@ const char *vsInverseKinematics::getClassName()
 // ------------------------------------------------------------------------
 void vsInverseKinematics::setKinematicsChainSize(int size)
 {
-    int loop;
-
     // Bounds checking
     if (size < 1)
     {
@@ -80,14 +67,6 @@ void vsInverseKinematics::setKinematicsChainSize(int size)
             "Invalid size (%d)\n", size);
         return;
     }
-
-    // Resize the kinematics array to match the desired size
-    kinematicsArray.setSize(size);
-
-    // If we are growing the array, fill in the new spaces with NULL values
-    if (size > kinematicsArraySize)
-        for (loop = kinematicsArraySize; loop < size; loop++)
-            kinematicsArray[loop] = NULL;
 
     // Record the new array size
     kinematicsArraySize = size;
@@ -109,6 +88,8 @@ int vsInverseKinematics::getKinematicsChainSize()
 void vsInverseKinematics::setKinematicsObject(int jointIdx,
     vsKinematics *kinematics)
 {
+    vsKinematics *oldKin;
+
     // Bounds checking
     if ((jointIdx < 0) || (jointIdx >= kinematicsArraySize))
     {
@@ -125,14 +106,11 @@ void vsInverseKinematics::setKinematicsObject(int jointIdx,
         return;
     }
 
-    // Release the previous kinematics object, if any
-    if (kinematicsArray[jointIdx])
-        vsObject::unrefDelete((vsKinematics *)(kinematicsArray[jointIdx]));
-
-    // Set the kinematics object on the desired joint, and reference it
-    kinematicsArray[jointIdx] = kinematics;
-    if (kinematics)
-        kinematics->ref();
+    // Add the new kinematics and release the previous kinematics object,
+    // if any
+    oldKin = (vsKinematics *) kinematicsArray.setEntry(jointIdx, kinematics);
+    if (oldKin != NULL)
+        vsObject::checkDelete(oldKin);
 }
 
 // ------------------------------------------------------------------------
@@ -151,7 +129,7 @@ vsKinematics* vsInverseKinematics::getKinematicsObject(int jointIdx)
     }
 
     // Get the kinematics object on the desired joint
-    return (vsKinematics *)(kinematicsArray[jointIdx]);
+    return (vsKinematics *)kinematicsArray.getEntry(jointIdx);
 }
 
 // ------------------------------------------------------------------------
@@ -287,17 +265,19 @@ void vsInverseKinematics::reachForPoint(atVector targetPoint)
     // Clear out the current rotations, for good measure
     for (loop = 0; loop < kinematicsArraySize; loop++)
     {
-        jointKin = (vsKinematics *)(kinematicsArray[loop]);
+        jointKin = (vsKinematics *)kinematicsArray.getEntry(loop);
         jointKin->setOrientation(atQuat(0.0, 0.0, 0.0, 1.0));
     }
 
     // Get the kinematics object corresponding to the last joint in the chain
-    endKinematics = (vsKinematics *)(kinematicsArray[kinematicsArraySize - 1]);
+    endKinematics = (vsKinematics *)
+        (kinematicsArray.getEntry(kinematicsArraySize - 1));
 
     // Prime the loop by computing the current end effector location and
     // distance to target
     tempMat = endKinematics->getComponent()->getGlobalXform();
-    currentEndpoint = tempMat.getPointXform(endpointOffset + endKinematics->getCenterOfMass());
+    currentEndpoint = tempMat.getPointXform(
+        endpointOffset + endKinematics->getCenterOfMass());
     currentDistance = (currentEndpoint - targetPt).getMagnitude();
 
     // Run the cyclic-coordinate descent algorithm. This algorithm adjusts
@@ -320,7 +300,7 @@ void vsInverseKinematics::reachForPoint(atVector targetPoint)
         {
             // Get the kinematics object from the joint in question, and
             // use that to determine the location of the joint's origin
-            jointKin = (vsKinematics *)(kinematicsArray[loop]);
+            jointKin = (vsKinematics *)(kinematicsArray.getEntry(loop));
             tempMat = jointKin->getComponent()->getParent(0)->getGlobalXform();
             jointPoint = tempMat.getPointXform(jointKin->getCenterOfMass());
 

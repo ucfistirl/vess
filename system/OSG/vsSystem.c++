@@ -38,7 +38,6 @@
 #include "vsGeometry.h++"
 #include "vsOptimizer.h++"
 #include "vsGraphicsState.h++"
-#include "vsGrowableArray.h++"
 #include "vsDatabaseLoader.h++"
 #include "vsViewpointAttribute.h++"
 #include "vsWindowSystem.h++"
@@ -324,7 +323,7 @@ void vsSystem::preFrameTraverse(vsNode *node)
     vsComponent *component;
     vsNode *childNode;
     vsGraphicsState *graphicsState;
-    vsGrowableArray *localLightArray;
+    vsArray *localLightArray;
     vsLocalLightCallback *localLightCallback;
     osg::Geode *geode;
     osg::Drawable *drawable;
@@ -390,8 +389,8 @@ void vsSystem::preFrameTraverse(vsNode *node)
                 // If there are lights to apply, set them on the callback.
                 if (localLightArrayLength > 0)
                 {
-                    callbackLightCount = localLightCallback->setLocalLights(
-                        localLightArray, localLightArrayLength);
+                    callbackLightCount =
+                        localLightCallback->setLocalLights(localLightArray);
                 }
 
                 // If the callback has zero lights, remove the callback.
@@ -414,8 +413,7 @@ void vsSystem::preFrameTraverse(vsNode *node)
             else if (localLightArrayLength > 0)
             {
                 // Create the callback with the lights to add.
-                localLightCallback = new vsLocalLightCallback(localLightArray,
-                    localLightArrayLength);
+                localLightCallback = new vsLocalLightCallback(localLightArray);
                 localLightCallback->ref();
 
                 // Set the callback on the drawable.

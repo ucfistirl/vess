@@ -27,6 +27,7 @@
 #include "vsSkeletonMeshGeometry.h++"
 #include "vsScene.h++"
 #include "vsUnmanagedNode.h++"
+#include "vsOSGNode.h++"
 
 #include <osg/StateAttribute>
 #include <osg/StateSet>
@@ -815,12 +816,14 @@ void vsIntersect::populateIntersection(int index,
     vsNode *vessNode;
     atVector sectPoint, sectNorm;
     atMatrix sectXform;
-    vsGeometry *sectGeom;
+    osg::Geode *osgGeode;
+    vsOSGNode *osgNode;
+    vsGeometryBase *sectGeom;
     int sectPrim;
     vsList *sectPath;
     osg::Vec3 sectPointLocal;
     osg::Transform *xform;
-    osg::MatrixTransform *matXform;
+    osg::MatrixTransform *matXform; 
 
     // Check whether the intersection is considered valid or not.
     if (intersection == NULL)
@@ -859,10 +862,22 @@ void vsIntersect::populateIntersection(int index,
     sectPoint.set(hitPoint[0], hitPoint[1], hitPoint[2]);
     sectNorm.set(polyNormal[0], polyNormal[1], polyNormal[2]);
 
-    // Get the vsGeometry and the primitive index intersected
+    // Get the OSG Drawable (probably Geometry) that was intersected
     osgDrawable = intersection->drawable.get();
-    sectGeom = (vsGeometry *)((vsNode::getMap())->
-        mapSecondToFirst(osgDrawable));
+
+    // Get its parent Geode (VESS enforces only 1 Geometry per Geode on
+    // all managed geometry)
+    osgGeode = (osg::Geode *)osgDrawable->getParent(0);
+
+    // Look up the corresponding vsGeometryBase node in the map
+    osgNode = new vsOSGNode(osgGeode);
+    sectGeom = (vsGeometryBase *)((vsNode::getMap())->
+        mapSecondToFirst(osgNode));
+
+    // Done with the osgNode wrapper
+    delete osgNode;
+
+    // Get the index of the primitive within the geometry that was intersected
     sectPrim = intersection->primitiveIndex;
 
     // Create the intersection result now and place it in the array.
@@ -927,13 +942,17 @@ void vsIntersect::populateIntersection(int index,
                 {
                     // Determine if there is a valid mapping (not all OSG nodes
                     // will have a corresponding VESS node).
+                    osgNode = new vsOSGNode(pathNode);
                     vessNode = (vsNode *)
-                        ((vsNode::getMap())->mapSecondToFirst(pathNode));
+                        ((vsNode::getMap())->mapSecondToFirst(osgNode));
                     if (vessNode)
                     {
                         // Add this node to the array.
                         sectPath->addEntry(vessNode);
                     }
+                  
+                    // Done with the wrapped node
+                    delete osgNode;
                 }
             }
         }

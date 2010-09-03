@@ -146,8 +146,7 @@ class VESS_SYM vsGeometryBase : public vsNode
 {
 protected:
 
-    vsGrowableArray     parentList;
-    int                 parentCount;
+    vsArray *           parentList;
 
     osg::Geode          *osgGeode;
     osg::Geometry       *osgGeometry;

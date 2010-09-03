@@ -22,7 +22,7 @@ commonSrc = 'vs3TrackerArm.c++ vs4TrackerHead.c++ vs8TrackerArm.c++ \
              vsRelativeMouseMotion.c++ vsRelativeObjectMotion.c++ \
              vsSkeletonKinematics.c++ vsSphericalMotion.c++ \
              vsTerrainFollow.c++ vsTrackballMotion.c++ vsTrackedMotion.c++ \
-             vsWalkArticulation.c++ vsWalkInPlace.c++'
+             vsWalkArticulation.c++ vsWalkArticData.c++ vsWalkInPlace.c++'
 
 
 # Add the directories to the include path

@@ -26,7 +26,6 @@
 #include "atArray.h++"
 #include "atVector.h++"
 
-#include "vsGrowableArray.h++"
 #include "vsGeometry.h++"
 #include "vsPane.h++"
 #include "vsIntersectResult.h++"

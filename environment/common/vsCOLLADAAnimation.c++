@@ -14,7 +14,6 @@ vsCOLLADAAnimation::vsCOLLADAAnimation(atString id, atXMLDocument *doc,
 {
     atXMLDocumentNodePtr child;
     char *attr;
-    char tempStr[32];
     atString name;
     atString *mapID;
     atMap *samplers;
@@ -191,7 +190,6 @@ vsCOLLADAAnimation::vsCOLLADAAnimation(atString id, atXMLDocument *doc,
     atString *sourceID;
     vsCOLLADADataSource *source;
     char *attr;
-    char tempStr[32];
     atString name;
     atString *mapID;
     atMap *samplers;

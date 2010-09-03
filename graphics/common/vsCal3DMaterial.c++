@@ -109,8 +109,6 @@ int vsCal3DMaterial::getTextureCount()
 // ------------------------------------------------------------------------
 void vsCal3DMaterial::setTexture(int unit, vsTextureAttribute *tex)
 {
-    vsTextureAttribute *oldTex;
-
     // Replace any existing texture on the given unit with the new texture
     textures.setEntry(unit, tex);
 }

@@ -25,7 +25,7 @@
 #include "vsObject.h++"
 #include "vsComponent.h++"
 #include "vsGeometry.h++"
-#include "vsGrowableArray.h++"
+#include "atList.h++"
 #include "vsGLSLUniform.h++"
 #include "atList.h++"
 
@@ -45,36 +45,35 @@ class VESS_SYM vsDatabaseLoader : public vsObject
 {
 private:
 
-    vsGrowableArray    nodeNames;
-    int                nodeNameCount;
+    atList    nodeNames;
     
-    char               *loaderFilePath;
+    char      *loaderFilePath;
 
-    int                unitMode;
+    int       unitMode;
 
-    int                loaderModes;
+    int       loaderModes;
 
-    bool               importanceCheck(osg::Node *targetNode);
+    bool      importanceCheck(osg::Node *targetNode);
 
-    char               *stringDup(char *from);
+    char      *stringDup(char *from);
 
-    vsNode             *convertGeode(osg::Geode *geode,
-                                     vsObjectMap *attrMap);
-    void               convertAttrs(vsNode *node, osg::StateSet *stateSet,
-                                    vsObjectMap *attrMap);
-    void               convertLOD(vsComponent *lodComponent,
-                                  osg::LOD *osgLOD);
-    void               convertDecal(vsComponent *decalComponent,
-                                    double *offsetValues, int offsetValuesSize);
+    vsNode    *convertGeode(osg::Geode *geode,
+                            vsObjectMap *attrMap);
+    void      convertAttrs(vsNode *node, osg::StateSet *stateSet,
+                           vsObjectMap *attrMap);
+    void      convertLOD(vsComponent *lodComponent,
+                         osg::LOD *osgLOD);
+    void      convertDecal(vsComponent *decalComponent,
+                           double *offsetValues, int offsetValuesSize);
 
-    int                copyData(vsGeometry *targetGeometry, int targetDataType,
-                                int startIdx,
-                                osg::PrimitiveSet *osgPrimitiveSet,
-                                int sourceBinding, osg::Array *sourceArray,
-                                osg::IndexArray *indexArray);
+    int       copyData(vsGeometry *targetGeometry, int targetDataType,
+                       int startIdx,
+                       osg::PrimitiveSet *osgPrimitiveSet,
+                       int sourceBinding, osg::Array *sourceArray,
+                       osg::IndexArray *indexArray);
 
-    void               copyUniformValues(vsGLSLUniform *uniform,
-                                         osg::Uniform *osgUniform);
+    void      copyUniformValues(vsGLSLUniform *uniform,
+                                osg::Uniform *osgUniform);
 
 VS_INTERNAL:
 

@@ -27,7 +27,6 @@
 // Constructor, create a context for the shaders and initializes them to NULL
 // ------------------------------------------------------------------------
 vsGLSLProgramAttribute::vsGLSLProgramAttribute()
-                      : attachedNodes(5, 5)
 {
     // Create the osg::Program
     osgProgram = new osg::Program();
@@ -97,9 +96,6 @@ void vsGLSLProgramAttribute::setOSGAttrModes(vsNode *node)
 // ------------------------------------------------------------------------
 void vsGLSLProgramAttribute::attach(vsNode *node)
 {
-    // Keep track of the node we're attaching to
-    attachedNodes[attachedCount] = node;
-
     // Do normal vsStateAttribute attaching (this increments the attached
     // count)
     vsStateAttribute::attach(node);
@@ -118,7 +114,6 @@ void vsGLSLProgramAttribute::detach(vsNode *node)
 {
     osg::StateSet *osgStateSet;
     int i;
-    int attachedIndex;
 
     // Get the node's StateSet
     osgStateSet = getOSGStateSet(node);
@@ -130,29 +125,6 @@ void vsGLSLProgramAttribute::detach(vsNode *node)
     // Remove all Uniforms
     for (i = 0; i < numUniforms; i++)
         osgStateSet->removeUniform(uniforms[i]->getBaseLibraryObject());
-
-    // Locate the node in our list of attached nodes
-    attachedIndex = 0;
-    while ((attachedIndex < attachedCount) && 
-           ((vsNode *)(attachedNodes[attachedIndex]) != node))
-        attachedIndex++;
-
-    // If we found the node, remove it from the list
-    if (attachedIndex < attachedCount)
-    {
-        // Remove the attached node from our list
-        attachedNodes[attachedIndex] = NULL;
-
-        // If the attached node isn't at the end of the list, slide the rest
-        // into its place
-        if (attachedIndex < (attachedCount-1))
-        {
-            memmove(&attachedNodes[attachedIndex], 
-                &attachedNodes[attachedIndex+1], 
-                (attachedCount-attachedIndex-1) * sizeof(vsNode *));
-            attachedNodes[attachedCount-1] = NULL;
-        }
-    }
 
     // Finish detaching the attribute (this will decrement the attachedCount)
     vsStateAttribute::detach(node);
@@ -320,6 +292,7 @@ vsGLSLShader *vsGLSLProgramAttribute::getShader(int index)
 void vsGLSLProgramAttribute::addUniform(vsGLSLUniform *uniform)
 {
     int i;
+    vsNode *node;
 
     // Make sure the uniform is valid
     if (uniform == NULL)
@@ -337,9 +310,15 @@ void vsGLSLProgramAttribute::addUniform(vsGLSLUniform *uniform)
     // Add the uniform to the OSG StateSet, if the program is attached to
     // something
     if (attachedCount > 0)
-        for (i = 0; i < attachedCount; i++)
-            getOSGStateSet((vsNode *)(attachedNodes[i]))->
-                addUniform(uniform->getBaseLibraryObject());
+    {
+        // Iterate over the attached nodes
+        for (i = 0; i < ownerList.getNumEntries(); i++)
+        {
+            // Add the uniform to the node's StateSet
+            node = (vsNode *) ownerList.getEntry(i);
+            getOSGStateSet(node)->addUniform(uniform->getBaseLibraryObject());
+        }
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -348,6 +327,7 @@ void vsGLSLProgramAttribute::addUniform(vsGLSLUniform *uniform)
 void vsGLSLProgramAttribute::removeUniform(vsGLSLUniform *uniform)
 {
     int i, j;
+    vsNode *node;
 
     // Make sure the uniform is valid
     if (uniform == NULL)
@@ -374,9 +354,14 @@ void vsGLSLProgramAttribute::removeUniform(vsGLSLUniform *uniform)
         // attached to something
         if (attachedCount > 0)
         {
-            for (j = 0; j < attachedCount; j++)
-                getOSGStateSet((vsNode *)(attachedNodes[j]))->
-                    removeUniform(uniform->getBaseLibraryObject());
+            // Iterate over the attached nodes
+            for (j = 0; j < ownerList.getNumEntries(); j++)
+            {
+                // Add the uniform to the node's StateSet
+                node = (vsNode *) ownerList.getEntry(j);
+                getOSGStateSet(node)->
+                   removeUniform(uniform->getBaseLibraryObject());
+            }
         }
 
         // Remove it from our array

@@ -24,7 +24,7 @@
 #define VS_UNMANAGED_NODE_HPP
 
 #include "vsAttribute.h++"
-#include "vsGrowableArray.h++"
+#include "vsArray.h++"
 #include "atMatrix.h++"
 #include "vsNode.h++"
 #include "atVector.h++"
@@ -34,8 +34,7 @@ class VESS_SYM vsUnmanagedNode : public vsNode
 {
 private:
 
-    vsGrowableArray    parentList;
-    int                parentCount;
+    vsArray            parentList;
 
     osg::Node          *osgNode;
 

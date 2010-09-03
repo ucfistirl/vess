@@ -45,6 +45,7 @@ enum  vsPathOrientInterpolationMode
 {
     VS_PATH_ORI_IMODE_NONE,
     VS_PATH_ORI_IMODE_SLERP,
+    VS_PATH_ORI_IMODE_NLERP,
     VS_PATH_ORI_IMODE_SPLINE,
     VS_PATH_ORI_IMODE_ATPOINT,
     VS_PATH_ORI_IMODE_FORWARD
@@ -114,6 +115,8 @@ private:
                                             double parameter);
 
     atQuat             interpolateOriSlerp(atQuat *ori1, atQuat *ori2,
+                                           double parameter);
+    atQuat             interpolateOriNlerp(atQuat *ori1, atQuat *ori2,
                                            double parameter);
     atQuat             interpolateOriSpline(atQuat *ori0, atQuat *ori1,
                                             atQuat *ori2, atQuat *ori3,

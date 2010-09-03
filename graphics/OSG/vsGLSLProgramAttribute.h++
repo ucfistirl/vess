@@ -26,6 +26,7 @@
 #include "vsStateAttribute.h++"
 #include "vsGLSLShader.h++"
 #include "vsGLSLUniform.h++"
+#include "vsArray.h++"
 #include <osg/Program>
 
 #define VS_GPROG_MAX_SHADERS 16
@@ -49,9 +50,9 @@ private:
     int               bindingLocation[VS_GPROG_MAX_BINDINGS];
     int               numVertexAttrBindings;
 
-    vsGrowableArray   attachedNodes;
+    vsArray           attachedNodes;
 
-    virtual void     setOSGAttrModes(vsNode *node);
+    virtual void      setOSGAttrModes(vsNode *node);
 
 VS_INTERNAL:
 

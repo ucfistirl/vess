@@ -37,13 +37,10 @@ vsObjectMap *vsNode::nodeMap = NULL;
 // ------------------------------------------------------------------------
 // Constructor - Clears the node's name
 // ------------------------------------------------------------------------
-vsNode::vsNode() : attributeList(10, 5)
+vsNode::vsNode()
 {
     // Initialize node name to empty
     nodeName[0] = 0;
-
-    // Start with no attributes
-    attributeCount = 0;
 
     // Start dirty (require a preFrameTraversal from the beginning)
     dirtyFlag = true;
@@ -272,13 +269,7 @@ vsBox vsNode::getAxisAlignedBoundingBox()
 void vsNode::addAttribute(vsAttribute *newAttribute)
 {
     // Add the attribute to this node's attributeList
-    attributeList[attributeCount] = newAttribute;
-
-    // Increment the attribute count
-    attributeCount++;
-
-    // Reference the attribute
-    newAttribute->ref();
+    attributeList.addEntry(newAttribute);
 
     // Call the attribute's attach() method with this node
     newAttribute->attach(this);
@@ -290,35 +281,26 @@ void vsNode::addAttribute(vsAttribute *newAttribute)
 // ------------------------------------------------------------------------
 void vsNode::removeAttribute(vsAttribute *targetAttribute)
 {
-    int loop, sloop;
+    bool result;
 
-    // Search for the attribute in our attributeList
-    for (loop = 0; loop < attributeCount; loop++)
+    // Try to remove the attribute from our list (keep a temporary reference
+    // to it in order to keep it from getting deleted)
+    targetAttribute->ref();
+    result = attributeList.removeEntry(targetAttribute);
+    targetAttribute->unref();
+    
+    // See if the remove operation succeeded
+    if (result == true)
     {
-        // Check the current attribute to see if it's the one we're removing
-        if (attributeList[loop] == targetAttribute)
-        {
-            // Detach the attribute
-            targetAttribute->detach(this);
-            
-            // Slide the remaining attributes in the list down by one
-            for (sloop = loop; sloop < attributeCount-1; sloop++)
-                attributeList[sloop] = attributeList[sloop+1];
-
-            // Decrement the node's attribute count
-            attributeCount--;
-
-            // Unreference the removed attribute
-            targetAttribute->unref();
-            
-            // Nothing more to do, return immediately
-            return;
-        }
+        // Detach the attribute from this node
+        targetAttribute->detach(this);
     }
-
-    // Print an error if we don't find it
-    printf("vsNode::removeAttribute: Specified attribute isn't part of "
-        "this node\n");
+    else
+    {
+        // Attribute isn't attached to this node, so print an error
+        printf("vsNode::removeAttribute: Specified attribute isn't part of "
+            "this node\n");
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -326,7 +308,7 @@ void vsNode::removeAttribute(vsAttribute *targetAttribute)
 // ------------------------------------------------------------------------
 int vsNode::getAttributeCount()
 {
-    return attributeCount;
+    return attributeList.getNumEntries();
 }
 
 // ------------------------------------------------------------------------
@@ -336,14 +318,14 @@ int vsNode::getAttributeCount()
 vsAttribute *vsNode::getAttribute(int index)
 {
     // Make sure the given index is valid
-    if ((index < 0) || (index >= attributeCount))
+    if ((index < 0) || (index >= attributeList.getNumEntries()))
     {
         printf("vsNode::getAttribute: Index out of bounds\n");
         return NULL;
     }
 
     // Return the attribute at the given index in the attribute list
-    return (vsAttribute *)(attributeList[index]);
+    return (vsAttribute *) attributeList.getEntry(index);
 }
 
 // ------------------------------------------------------------------------
@@ -354,23 +336,26 @@ vsAttribute *vsNode::getAttribute(int index)
 vsAttribute *vsNode::getTypedAttribute(int attribType, int index)
 {
     int loop, count;
+    vsAttribute *attr;
 
     // Initialize the count to 0, this will keep track of the number
     // of the given type of attribute we've found in the list so far
     count = 0;
 
     // Iterate through the attribute list
-    for (loop = 0; loop < attributeCount; loop++)
+    for (loop = 0; loop < attributeList.getNumEntries(); loop++)
     {
+        // Get the attribute from the list
+        attr = (vsAttribute *) attributeList.getEntry(loop);
+
         // Check the current attribute's type
-        if (attribType ==
-            ((vsAttribute *)(attributeList[loop]))->getAttributeType())
+        if (attribType == attr->getAttributeType())
         {
             // Match, check the count to see if this is the attribute we
             // want.  If so, return it, otherwise, just increment the count
             // and keep looking.
             if (index == count)
-                return (vsAttribute *)(attributeList[loop]);
+                return attr;
             else
                 count++;
         }
@@ -388,23 +373,26 @@ vsAttribute *vsNode::getTypedAttribute(int attribType, int index)
 vsAttribute *vsNode::getCategoryAttribute(int attribCategory, int index)
 {
     int loop, count;
+    vsAttribute *attr;
 
     // Initialize the count to 0, this will keep track of the number
     // of the given type of attribute we've found in the list so far
     count = 0;
 
     // Iterate through the attribute list
-    for (loop = 0; loop < attributeCount; loop++)
+    for (loop = 0; loop < attributeList.getNumEntries(); loop++)
     {
+        // Get the attribute from the list
+        attr = (vsAttribute *) attributeList.getEntry(loop);
+
         // Check the current attribute's category
-        if (attribCategory ==
-            ((vsAttribute *)(attributeList[loop]))->getAttributeCategory())
+        if (attribCategory == attr->getAttributeCategory())
         {
             // Match, check the count to see if this is the attribute we
             // want.  If so, return it, otherwise, just increment the count
             // and keep looking.
             if (index == count)
-                return (vsAttribute *)(attributeList[loop]);
+                return attr;
             else
                 count++;
         }
@@ -420,15 +408,18 @@ vsAttribute *vsNode::getCategoryAttribute(int attribCategory, int index)
 vsAttribute *vsNode::getNamedAttribute(char *attribName)
 {
     int loop;
+    vsAttribute *attr;
 
     // Iterate through the attribute list
-    for (loop = 0; loop < attributeCount; loop++)
+    for (loop = 0; loop < attributeList.getNumEntries(); loop++)
     {
+        // Get the attribute
+        attr = (vsAttribute *) attributeList.getEntry(loop);
+
         // Check the current attribute's name against the target name.
         // Return the attribute if they match.
-        if (!strcmp(attribName,
-            ((vsAttribute *)(attributeList[loop]))->getName()))
-            return (vsAttribute *)(attributeList[loop]);
+        if (strcmp(attribName, attr->getName()) == 0)
+            return attr;
     }
 
     return NULL;
@@ -557,8 +548,8 @@ void vsNode::saveCurrentAttributes()
 
     // Iterate through the attribute list, and tell each attribute to
     // save its current state
-    for (loop = 0; loop < attributeCount; loop++)
-        ((vsAttribute *)(attributeList[loop]))->saveCurrent();
+    for (loop = 0; loop < attributeList.getNumEntries(); loop++)
+        ((vsAttribute *)(attributeList.getEntry(loop)))->saveCurrent();
 }
 
 // ------------------------------------------------------------------------
@@ -571,8 +562,8 @@ void vsNode::applyAttributes()
 
     // Iterate through the attribute list, and instruct each attribute
     // to apply its settings to the current graphics state
-    for (loop = 0; loop < attributeCount; loop++)
-        ((vsAttribute *)(attributeList[loop]))->apply();
+    for (loop = 0; loop < attributeList.getNumEntries(); loop++)
+        ((vsAttribute *)(attributeList.getEntry(loop)))->apply();
 }
 
 // ------------------------------------------------------------------------
@@ -585,8 +576,8 @@ void vsNode::restoreSavedAttributes()
 
     // Iterate through the attribute list, and tell each attribute to
     // restore its previous state
-    for (loop = 0; loop < attributeCount; loop++)
-        ((vsAttribute *)(attributeList[loop]))->restoreSaved();
+    for (loop = 0; loop < attributeList.getNumEntries(); loop++)
+        ((vsAttribute *)(attributeList.getEntry(loop)))->restoreSaved();
 }
 
 // ------------------------------------------------------------------------
@@ -660,6 +651,7 @@ void vsNode::dirtyUp()
 void vsNode::dirtyDown()
 {
     int loop;
+    vsAttribute *attr;
 
     // Mark this node dirty
     dirtyFlag = true;
@@ -668,13 +660,13 @@ void vsNode::dirtyDown()
     // clear their vsScene pointer, so it can be reset on the 
     // next preFrameTraversal.   This is necessary in case a node with a 
     // light attribute is being moved to a different scene graph.
-    for (loop = 0; loop < attributeCount; loop++)
+    for (loop = 0; loop < attributeList.getNumEntries(); loop++)
     {
-        if (((vsAttribute *)attributeList[loop])->getAttributeType() ==
-            VS_ATTRIBUTE_TYPE_LIGHT)
-        {
-            ((vsLightAttribute *)attributeList[loop])->setScene(NULL);
-        }
+        // Get the attribute
+        attr = (vsAttribute *) attributeList.getEntry(loop);
+
+        if (attr->getAttributeType() == VS_ATTRIBUTE_TYPE_LIGHT)
+            ((vsLightAttribute *) attr)->setScene(NULL);
     }
 
     // Traverse all children and mark them dirty as well

@@ -26,7 +26,7 @@
 #include "vsNode.h++"
 #include "vsAttribute.h++"
 #include "vsBox.h++"
-#include "vsGrowableArray.h++"
+#include "vsArray.h++"
 #include "atVector.h++"
 #include <osg/Group>
 
@@ -34,8 +34,7 @@ class VESS_SYM vsComponent : public vsNode
 {
 private:
 
-    int                childCount;
-    vsGrowableArray    childList;
+    vsArray            *childList;
 
     vsNode             *parentNode;
 

@@ -24,8 +24,8 @@ opSystem = platform.system()
 
 # Enumerate the common source files
 commonDir = '#util/common'
-commonSrc = 'vsArray.c++ vsBox.c++ vsChromaKey.c++ vsGrowableArray.c++ \
-             vsImage.c++ vsLineSegment.c++ vsList.c++ vsMultiQueue.c++ \
+commonSrc = 'vsArray.c++ vsBox.c++ vsChromaKey.c++ vsImage.c++ \
+             vsLineSegment.c++ vsList.c++ vsMap.c++ vsMultiQueue.c++ \
              vsObject.c++ vsObjectMap.c++ vsSequencer.c++ vsShape.c++ \
              vsSphere.c++ vsTreeMap.c++ vsUpdatable.c++ vsVideoQueue.c++'
 

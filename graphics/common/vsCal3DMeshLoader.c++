@@ -135,7 +135,6 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
     int                    textureCount;
     int                    currentTexture;
     int                    x, y, z, w;
-    int                    index;
     char                   *tempString;
     vsMaterialAttribute    *tempMat;
     vsCal3DMaterial        *materialData;

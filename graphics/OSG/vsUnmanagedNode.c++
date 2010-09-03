@@ -22,23 +22,21 @@
 
 #include <stdio.h>
 #include "vsUnmanagedNode.h++"
+#include "vsOSGNode.h++"
 #include <osg/MatrixTransform>
 #include <osg/StateAttribute>
 
 // ------------------------------------------------------------------------
 // Constructor -
 // ------------------------------------------------------------------------
-vsUnmanagedNode::vsUnmanagedNode(osg::Node *newNode) : parentList(5, 5)
+vsUnmanagedNode::vsUnmanagedNode(osg::Node *newNode)
 {
-    // Initialize the number of parents to zero
-    parentCount = 0;
-
     // Create an osg::Node
     osgNode = newNode;
     osgNode->ref();
 
     // Register this unmanaged node and osg::Node in the node map
-    getMap()->registerLink(this, osgNode);
+    getMap()->registerLink(this, new vsOSGNode(osgNode));
 }
 
 // ------------------------------------------------------------------------
@@ -132,7 +130,7 @@ bool vsUnmanagedNode::replaceChild(vsNode *targetChild, vsNode *newChild)
 // ------------------------------------------------------------------------
 int vsUnmanagedNode::getParentCount()
 {
-    return parentCount;
+    return parentList.getNumEntries();
 }
 
 // ------------------------------------------------------------------------
@@ -143,14 +141,14 @@ vsNode *vsUnmanagedNode::getParent(int index)
 {
     // Check the index to make sure it refers to a valid parent, complain 
     // and return NULL if not
-    if ((index < 0) || (index >= parentCount))
+    if ((index < 0) || (index >= parentList.getNumEntries()))
     {
         printf("vsUnmanagedNode::getParent: Bad parent index\n");
         return NULL;
     }
     
     // Return the requested parent
-    return (vsNode *)(parentList[index]);
+    return (vsNode *) parentList.getEntry(index);
 }
 
 // ------------------------------------------------------------------------
@@ -334,7 +332,7 @@ osg::Node *vsUnmanagedNode::getBaseLibraryObject()
 bool vsUnmanagedNode::addParent(vsNode *newParent)
 {
     // Add the parent to our parent list and reference it
-    parentList[parentCount++] = newParent;
+    parentList.addEntry(newParent);
     
     // Return success
     return true;
@@ -346,28 +344,16 @@ bool vsUnmanagedNode::addParent(vsNode *newParent)
 // ------------------------------------------------------------------------
 bool vsUnmanagedNode::removeParent(vsNode *targetParent)
 {
-    int loop, sloop;
+    bool result;
 
-    // Look for the given "parent" in the parent list
-    for (loop = 0; loop < parentCount; loop++)
-    {
-        // See if this is the parent we're looking for
-        if (targetParent == parentList[loop])
-        {
-            // 'Slide' the parents down to cover up the removed one
-            for (sloop = loop; sloop < parentCount-1; sloop++)
-                parentList[sloop] = parentList[sloop+1];
+    // Try to remove the parent from our list (keep a temporary reference
+    // to it, so it doesn't get deleted)
+    targetParent->ref();
+    result = parentList.removeEntry(targetParent);
+    targetParent->unref();
 
-            // Remove the given parent
-            parentCount--;
-
-            // Return that the remove succeeded
-            return true;
-        }
-    }
-
-    // Return failure if the specified parent isn't found
-    return false;
+    // Return whether or not the remove operation succeeded
+    return result;
 }
 
 // ------------------------------------------------------------------------

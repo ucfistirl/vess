@@ -31,7 +31,6 @@
 vsSkeleton::vsSkeleton(atArray *componentList, int listLength,
                        vsComponent *root)
 {
-    vsNode *parent;
     vsComponent *bone;
     int i;
 

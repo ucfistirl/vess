@@ -25,7 +25,6 @@
 // Default constructor
 // ------------------------------------------------------------------------
 vsClipAttribute::vsClipAttribute()
-               : attachedNodes(5, 5)
 {
     // Initialize the number of planes to 0
     numPlanes = 0;
@@ -40,8 +39,10 @@ vsClipAttribute::vsClipAttribute()
 // ------------------------------------------------------------------------
 vsClipAttribute::~vsClipAttribute()
 {
+    int i;
+
     // Iterate over the array of planes
-    for (int i = 0; i < VS_CLIPATTR_MAX_PLANES; i++)
+    for (i = 0; i < VS_CLIPATTR_MAX_PLANES; i++)
     {
         // If this clipping plane exists, remove it
         if (planeArray[i] != NULL)
@@ -79,8 +80,8 @@ int vsClipAttribute::getAttributeCategory()
 vsAttribute *vsClipAttribute::clone()
 {
     vsClipAttribute *newAttrib;
-    int i;
     osg::Vec4d planeCoeffs;
+    int i;
     
     // Create a new clip attribute
     newAttrib = new vsClipAttribute();
@@ -148,7 +149,6 @@ void vsClipAttribute::setClipPlane(int planeIndex, double a, double b,
                                    double c, double d)
 {
     osg::ClipPlane *plane;
-    int i;
 
     // Validate the plane index (it can't be negative or greater than
     // the maximum)
@@ -175,15 +175,7 @@ void vsClipAttribute::setClipPlane(int planeIndex, double a, double b,
         planeArray[planeIndex]->ref();
 
         // Update the StateSets of any nodes we're attached to
-        if (attachedCount > 0)
-        {
-            // Iterate over the nodes we're attached to
-            for (i = 0; i < attachedCount; i++)
-            {
-                // Update the attribute and modes for this node
-                setOSGAttrModes((vsNode *)(attachedNodes[i]));
-            }
-        }
+        setAllOwnersOSGAttrModes();
     }
 }
 
@@ -213,8 +205,6 @@ void vsClipAttribute::setClipPlane(int planeIndex, atVector pointOnPlane,
 // ------------------------------------------------------------------------
 void vsClipAttribute::removeClipPlane(int planeIndex)
 {
-    int i;
-
     // Check the index
     if ((planeIndex < 0) || (planeIndex >= VS_CLIPATTR_MAX_PLANES))
     {
@@ -231,15 +221,7 @@ void vsClipAttribute::removeClipPlane(int planeIndex)
         planeArray[planeIndex] = NULL;
 
         // Update the StateSets of any nodes we're attached to
-        if (attachedCount > 0)
-        {
-            // Iterate over the nodes we're attached to
-            for (i = 0; i < attachedCount; i++)
-            {
-                // Update the attribute and modes for this node
-                setOSGAttrModes((vsNode *)(attachedNodes[i]));
-            }
-        }
+        setAllOwnersOSGAttrModes();
     }
 }
 
@@ -403,10 +385,6 @@ bool vsClipAttribute::isEquivalent(vsAttribute *attribute)
 // ------------------------------------------------------------------------
 void vsClipAttribute::attach(vsNode *node)
 {
-    // Remember the node we're attaching to.  We need to be able to update
-    // each attached node's StateSet if any of the planes change.
-    attachedNodes[attachedCount] = node;
-    
     // Do standard vsStateAttribute attaching (this includes incrementing
     // the attachedCount, so we don't do that ourselves)
     vsStateAttribute::attach(node);
@@ -423,7 +401,6 @@ void vsClipAttribute::detach(vsNode *node)
 {
     osg::StateSet *osgStateSet;
     int i;
-    int attachedIndex;
 
     // Get the OSG StateSet from this node
     osgStateSet = getOSGStateSet(node);
@@ -438,31 +415,7 @@ void vsClipAttribute::detach(vsNode *node)
               osg::StateAttribute::INHERIT);
     }
 
-    // Locate the node in our list of attached nodes
-    attachedIndex = 0;
-    while ((attachedIndex < attachedCount) &&
-           ((vsNode *)(attachedNodes[attachedIndex]) != node))
-        attachedIndex++;
-
-    // If we found the node, remove it from the list
-    if (attachedIndex < attachedCount)
-    {
-        // Remove the attached node from our list
-        attachedNodes[attachedIndex] = NULL;
-
-        // If the attached node isn't at the end of the list, slide the rest
-        // into its place
-        if (attachedIndex < (attachedCount-1))
-        {
-            memmove(&attachedNodes[attachedIndex],
-                &attachedNodes[attachedIndex+1],
-                (attachedCount-attachedIndex-1) * sizeof(vsNode *));
-            attachedNodes[attachedCount-1] = NULL;
-        }
-    }
-
-    // Detach from the node (this properly decrements attachedCount, so
-    // we don't explicitly do it here)
+    // Detach from the node
     vsStateAttribute::detach(node);
 }
 

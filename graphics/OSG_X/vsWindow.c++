@@ -40,7 +40,6 @@ int vsWindow::windowCount = 0;
 // based on the value of the stereo parameter
 // ------------------------------------------------------------------------
 vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo) 
-    : childPaneList(1, 1)
 {
     vsPipe *parentPipe;
     GLXFBConfig *configList;
@@ -88,9 +87,6 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
         frameBufferAttributes[18] = 0;
     }
     
-    // Initialize the pane count
-    childPaneCount = 0;
-
     // Assign this window an index and increment the window count.
     // Note: this procedure may need to be protected for thread-safeness 
     // if OSG becomes multi-threaded.
@@ -310,7 +306,7 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
 // based on the value of the stereo parameter
 // ------------------------------------------------------------------------
 vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height, 
-                   bool hideBorder, bool stereo) : childPaneList(1, 1)
+                   bool hideBorder, bool stereo)
 {
     vsPipe *parentPipe;
     Display *xWindowDisplay;
@@ -357,9 +353,6 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
         frameBufferAttributes[17] = 1;
         frameBufferAttributes[18] = 0;
     }
-    
-    // Initialize the pane count
-    childPaneCount = 0;
     
     // Assign this window an index and increment the window count.
     // Note: this procedure may need to be protected for thread-safeness 
@@ -579,7 +572,6 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
 // rendering.
 // ------------------------------------------------------------------------
 vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
- : childPaneList(1, 1)
 {
     vsPipe *parentPipe;
     Display *display;
@@ -635,9 +627,6 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
     drawableWidth = offScreenWidth;
     drawableHeight = offScreenHeight;
 
-    // Initialize the pane count
-    childPaneCount = 0;
-    
     // Assign this window an index and increment the window count.
     // Note: this procedure may need to be protected for thread-safeness 
     // if OSG becomes multi-threaded.
@@ -690,7 +679,7 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
 // Constructor - Initializes the window by making use of the existing X
 // Window passed in.
 // ------------------------------------------------------------------------
-vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
+vsWindow::vsWindow(vsScreen *parent, Window xWin)
 {
     vsPipe *parentPipe;
     Display *xWindowDisplay;
@@ -728,9 +717,6 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
         printf("    If a BadWindow error appears below, make sure your code\n");
         printf("    is not using this outdated constructor.\n");
     }
-
-    // Initialize the pane count
-    childPaneCount = 0;
 
     // Assign this window an index and increment the window count.
     // Note: this procedure may need to be protected for thread-safeness 
@@ -912,6 +898,7 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin) : childPaneList(1, 1)
 vsWindow::~vsWindow()
 {
     Display *display;
+    vsPane *pane;
 
     display = parentScreen->getParentPipe()->getXDisplay();
 
@@ -919,8 +906,20 @@ vsWindow::~vsWindow()
     // The vsPane destructor includes a call to the parent vsWindow (this)
     // to remove it from the pane list. Keep deleting vsPanes and eventually
     // the list will go away by itself.
-    while (childPaneCount > 0)
-        delete ((vsPane *)(childPaneList[0]));
+    while (childPaneList.getNumEntries() > 0)
+    {
+        // Get the next pane at the front of the list
+        pane = (vsPane *) childPaneList.getEntry(0);
+
+        // Remove the pane from the list (keep a temporary reference to keep
+        // it from being deleted early)
+        pane->ref();
+        childPaneList.removeEntry(pane);
+        pane->unref();
+
+        // Delete the pane
+        delete pane;
+    }
     
     // Remove the window from its screen
     parentScreen->removeWindow(this);
@@ -987,7 +986,7 @@ vsScreen *vsWindow::getParentScreen()
 // ------------------------------------------------------------------------
 int vsWindow::getChildPaneCount()
 {
-    return childPaneCount;
+    return childPaneList.getNumEntries();
 }
 
 // ------------------------------------------------------------------------
@@ -997,14 +996,14 @@ int vsWindow::getChildPaneCount()
 vsPane *vsWindow::getChildPane(int index)
 {
     // Make sure the index is valid
-    if ((index < 0) || (index >= childPaneCount))
+    if ((index < 0) || (index >= childPaneList.getNumEntries()))
     {
         printf("vsWindow::getChildPane: Index out of bounds\n");
         return NULL;
     }
 
     // Return the requested pane
-    return (vsPane *)(childPaneList[index]);
+    return (vsPane *) childPaneList.getEntry(index);
 }
 
 // ------------------------------------------------------------------------
@@ -1332,10 +1331,7 @@ Window vsWindow::getBaseLibraryObject()
 void vsWindow::addPane(vsPane *newPane)
 {
     // Add pane to window's internal list
-    childPaneList[childPaneCount++] = newPane;
-
-    // Reference the pane
-    newPane->ref();
+    childPaneList.addEntry(newPane);
 }
 
 // ------------------------------------------------------------------------
@@ -1344,35 +1340,17 @@ void vsWindow::addPane(vsPane *newPane)
 // ------------------------------------------------------------------------
 void vsWindow::removePane(vsPane *targetPane)
 {
-    // Remove pane from window's internal list
-    int loop, sloop;
+    bool result;
     
-    // Iterate through the child pane list and look for the pane in 
-    // question
-    for (loop = 0; loop < childPaneCount; loop++)
-    {
-        // See if the current pane is the pane we want
-        if (targetPane == childPaneList[loop])
-        {
-            // Found the target pane, slide the remaining panes down
-            // in the list
-            for (sloop = loop; sloop < (childPaneCount-1); sloop++)
-                childPaneList[sloop] = childPaneList[sloop+1];
+    // Try to remove the pane in question (keep a temporary reference to
+    // the pane to keep it from being deleted)
+    targetPane->ref();
+    result = childPaneList.removeEntry(targetPane);
+    targetPane->unref();
 
-            // Decrement the pane count
-            childPaneCount--;
-
-            // Unreference the pane
-            targetPane->unref();
-
-            // We're done
-            return;
-        }
-    }
-
-    // If we get here, we didn't find the requested pane, so print an
-    // error
-    printf("vsWindow::removePane: Specified pane not part of window\n");
+    // Print an error if we failed to remove the pane
+    if (result == false)
+        printf("vsWindow::removePane: Specified pane not part of window\n");
 }
 
 // ------------------------------------------------------------------------
@@ -1385,18 +1363,17 @@ void vsWindow::bringPaneToFront(vsPane *targetPane)
     
     // Iterate through the child pane list and look for the pane in 
     // question
-    for (loop = 0; loop < childPaneCount; loop++)
+    for (loop = 0; loop < childPaneList.getNumEntries(); loop++)
     {
         // See if the current pane is the pane we want
-        if (targetPane == childPaneList[loop])
+        if (targetPane == childPaneList.getEntry(loop))
         {
-            // Found the target pane, slide the remaining panes down
-            // in the list
-            for (sloop = loop; sloop < (childPaneCount-1); sloop++)
-                childPaneList[sloop] = childPaneList[sloop+1];
-
-            // Put the target pane at the end of the list
-            childPaneList[childPaneCount-1] = targetPane;
+            // Found the target pane, remove it from the list and add it
+            // back to the end (keep a reference to it while we do this)
+            targetPane->ref();
+            childPaneList.removeEntry(targetPane);
+            childPaneList.addEntry(targetPane);
+            targetPane->unref();
 
             // We're done
             return;
@@ -1418,19 +1395,17 @@ void vsWindow::sendPaneToBack(vsPane *targetPane)
 
     // Iterate through the child pane list and look for the pane in 
     // question
-    for (loop = 0; loop < childPaneCount; loop++)
+    for (loop = 0; loop < childPaneList.getNumEntries(); loop++)
     {
         // See if the current pane is the pane we want
-        if (targetPane == childPaneList[loop])
+        if (targetPane == childPaneList.getEntry(loop))
         {
-            // Found the target pane, slide the preceding panes up
-            // in the list to make room for the target pane at the
-            // beginning
-            for (sloop = loop; sloop > 0; sloop--)
-                childPaneList[sloop-1] = childPaneList[sloop];
-
-            // Put the target pane at the front of the list
-            childPaneList[0] = targetPane;
+            // Found the target pane, remove it from the list, and insert
+            // it at the beginning.  Keep a reference to it while we do this
+            targetPane->ref();
+            childPaneList.removeEntry(targetPane);
+            childPaneList.insertEntry(0, targetPane);
+            targetPane->unref();
 
             // We're done
             return;
@@ -1520,8 +1495,8 @@ void vsWindow::update()
             {
                 case ConfigureNotify:
                     // Resize each pane to match the new window dimensions
-                    for (i = 0; i < childPaneCount; i++)
-                        ((vsPane *)childPaneList[i])->resize();
+                    for (i = 0; i < childPaneList.getNumEntries(); i++)
+                        ((vsPane *) childPaneList.getEntry(i))->resize();
                     break;
             }
         }

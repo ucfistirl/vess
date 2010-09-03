@@ -34,12 +34,12 @@
 // ------------------------------------------------------------------------
 // Default Constructor - does nothing in the base class
 // ------------------------------------------------------------------------
-vsGeometryBase::vsGeometryBase() : parentList(5, 5)
+vsGeometryBase::vsGeometryBase()
 {
     int loop;
 
-    // Initialize number of parents to zero
-    parentCount = 0;
+    // Initialize the parent list
+    parentList = new vsArray();
 
     // Create an osg::Geode
     osgGeode = new osg::Geode();
@@ -102,6 +102,10 @@ vsGeometryBase::~vsGeometryBase()
     // Unlink and destroy the OSG objects
     osgGeometry->unref();
     osgGeode->unref();
+
+    // Destroy the parent list (this unreferences all parent nodes in the
+    // list as well)
+    delete parentList;
 }
 
 // ------------------------------------------------------------------------
@@ -109,7 +113,7 @@ vsGeometryBase::~vsGeometryBase()
 // ------------------------------------------------------------------------
 int vsGeometryBase::getParentCount()
 {
-    return parentCount;
+    return parentList->getNumEntries();
 }
 
 // ------------------------------------------------------------------------
@@ -120,14 +124,14 @@ vsNode *vsGeometryBase::getParent(int index)
 {
     // Check the index to make sure it refers to a valid parent, complain 
     // and return NULL if not
-    if ((index < 0) || (index >= parentCount))
+    if ((index < 0) || (index >= parentList->getNumEntries()))
     {
         printf("vsGeometryBase::getParent: Bad parent index\n");
         return NULL;
     }
     
     // Return the requested parent
-    return (vsNode *)(parentList[index]);
+    return (vsNode *)(parentList->getEntry(index));
 }
 
 // ------------------------------------------------------------------------
@@ -1124,8 +1128,6 @@ u_int vsGeometryBase::getIndex(int indexIndex)
 // ------------------------------------------------------------------------
 void vsGeometryBase::setIndexList(u_int *indexBuffer)
 {
-    int i;
-
     // Don't try to set it if it isn't there
     if (indexList == NULL)
     {
@@ -1146,8 +1148,6 @@ void vsGeometryBase::setIndexList(u_int *indexBuffer)
 // ------------------------------------------------------------------------
 void vsGeometryBase::getIndexList(u_int *indexBuffer)
 {
-    int i;
-
     // If we have no index list, don't try to retrieve anything
     if (indexList == NULL)
         return;
@@ -2344,11 +2344,9 @@ void vsGeometryBase::notifyOSGDataChanged(int whichData)
 // ------------------------------------------------------------------------
 bool vsGeometryBase::addParent(vsNode *newParent)
 {
-    // Add the parent to our parent list and reference it
-    parentList[parentCount++] = newParent;
-    
-    // Return success
-    return true;
+    // Add the parent to our parent list and reference it (return whether
+    // or not the add operation succeeded)
+    return parentList->addEntry(newParent);
 }
 
 // ------------------------------------------------------------------------
@@ -2357,28 +2355,19 @@ bool vsGeometryBase::addParent(vsNode *newParent)
 // ------------------------------------------------------------------------
 bool vsGeometryBase::removeParent(vsNode *targetParent)
 {
-    int loop, sloop;
+    bool result;
 
-    // Look for the given "parent" in the parent list
-    for (loop = 0; loop < parentCount; loop++)
-    {
-        // See if this is the parent we're looking for
-        if (targetParent == parentList[loop])
-        {
-            // 'Slide' the parents down to cover up the removed one
-            for (sloop = loop; sloop < parentCount-1; sloop++)
-                parentList[sloop] = parentList[sloop+1];
+    // Temporarily reference the target parent
+    targetParent->ref();
 
-            // Remove the given parent
-            parentCount--;
+    // Try to remove the parent from the list, and keep track of the result
+    result = parentList->removeEntry(targetParent);
 
-            // Return that the remove succeeded
-            return true;
-        }
-    }
+    // Unreference (don't delete) the target parent
+    targetParent->unref();
 
-    // Return failure if the specified parent isn't found
-    return false;
+    // Return the result
+    return result;
 }
 
 // ------------------------------------------------------------------------

@@ -32,7 +32,7 @@ class vsScreen;
 #undef index
 #include "vsPipe.h++"
 #include "vsWindow.h++"
-#include "vsGrowableArray.h++"
+#include "vsArray.h++"
 
 #define VS_MAX_SCREEN_COUNT 10
 
@@ -47,8 +47,7 @@ private:
 
     int                screenIndex;
 
-    vsGrowableArray    childWindowList;
-    int                childWindowCount;
+    vsArray            childWindowList;
 
                        vsScreen(vsPipe *parent, int index);
     virtual            ~vsScreen();

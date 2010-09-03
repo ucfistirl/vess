@@ -35,8 +35,6 @@
 // ------------------------------------------------------------------------
 vsSphereIntersect::vsSphereIntersect()
 {
-    int loop;
-
     // Initialize the sphere list
     sphereListSize = 0;
 
@@ -1117,7 +1115,6 @@ void vsSphereIntersect::setSphere(int sphNum, atVector center, double radius)
 {
     atVector sphCenter;
     vsSphere *sphere;
-    vsIntersectResult *result;
 
     // Make sure the sphere number is valid
     if ((sphNum < 0) || (sphNum >= sphereListSize))
@@ -1303,9 +1300,7 @@ int vsSphereIntersect::getLODTravMode()
 // ------------------------------------------------------------------------
 void vsSphereIntersect::intersect(vsNode *targetNode)
 {
-    vsIntersectResult *result;
     vsSphere sphereArray[VS_SPH_ISECT_MAX_SPHERES];
-    vsSphere *tmpSphere;
     int i;
     vsSphere nodeBound;
     atVector center;

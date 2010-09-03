@@ -23,6 +23,7 @@
 //------------------------------------------------------------------------
 
 #include "vsDynamicGeometry.h++"
+#include "vsOSGNode.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Creates an OSG geode and geometry and connects
@@ -39,7 +40,7 @@ vsDynamicGeometry::vsDynamicGeometry()
     osgGeometry->setDataVariance(osg::Object::DYNAMIC);
 
     // Register this node and osg::Geode in the node map
-    getMap()->registerLink(this, osgGeode);
+    getMap()->registerLink(this, new vsOSGNode(osgGeode));
 }
 
 // ------------------------------------------------------------------------
@@ -562,8 +563,6 @@ void vsDynamicGeometry::setIndex(int indexIndex, u_int newIndex)
 // ------------------------------------------------------------------------
 void vsDynamicGeometry::setIndexList(u_int *indexBuffer)
 {
-    int i;
-
     // Don't try to set it if it isn't there
     if (indexList == NULL)
     {

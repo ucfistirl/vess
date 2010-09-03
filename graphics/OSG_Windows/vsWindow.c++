@@ -20,6 +20,7 @@
 //------------------------------------------------------------------------
 
 #include "vsWindow.h++"
+#include "vsHWND.h++"
 #include <stdio.h>
 #include <osg/Image>
 #include <osgDB/WriteFile>
@@ -52,14 +53,11 @@ PFNWGLQUERYPBUFFERARBPROC vsWindow::wglQueryPbufferARB = NULL;
 // based on the value of the stereo parameter
 // ------------------------------------------------------------------------
 vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo) 
-         : childPaneList(1, 1)
 {
     vsPipe *parentPipe;
     DWORD windowStyle;
     PIXELFORMATDESCRIPTOR pixelFormatDesc, stereoPFD;
-
-    // Initialize the pane count
-    childPaneCount = 0;
+    vsHWND *windowWrapper;
 
     // Flag that this window is not an offscreen window
     isOffScreenWindow = false;
@@ -214,7 +212,8 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     parentScreen->addWindow(this);
     
     // Register a mapping between this vsWindow and its MS window handle
-    getMap()->registerLink(msWindow, this);
+    windowWrapper = new vsHWND(msWindow);
+    getMap()->registerLink(windowWrapper, this);
 
     // Indicate that the window is not for off-screen rendering
     isOffScreenWindow = false;
@@ -229,15 +228,13 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
 // based on the value of the stereo parameter
 // ------------------------------------------------------------------------
 vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height, 
-                   bool hideBorder, bool stereo) : childPaneList(1, 1)
+                   bool hideBorder, bool stereo)
 {
     vsPipe *parentPipe;
     DWORD windowStyle;
     PIXELFORMATDESCRIPTOR pixelFormatDesc, stereoPFD;
+    vsHWND *windowWrapper;
     
-    // Initialize the pane count
-    childPaneCount = 0;
-
     // Flag that this window is an offscreen window
     isOffScreenWindow = false;
 
@@ -388,7 +385,8 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     parentScreen->addWindow(this);
 
     // Register a mapping between this vsWindow and its MS window handle
-    getMap()->registerLink(msWindow, this);
+    windowWrapper = new vsHWND(msWindow);
+    getMap()->registerLink(windowWrapper, this);
 
     // Indicate that the window is not for off-screen rendering
     isOffScreenWindow = false;
@@ -402,7 +400,6 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
 // constructor creates a window for off-screen rendering with a PBuffer.
 // ------------------------------------------------------------------------
 vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
-         : childPaneList(1, 1)
 {
     vsPipe *parentPipe;
     UINT numFormats;
@@ -427,9 +424,6 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
     // Store the values for the width and height
     drawableWidth = offScreenWidth;
     drawableHeight = offScreenHeight;
-
-    // Initialize the pane count
-    childPaneCount = 0;
 
     // Flag that this window is an offscreen window
     isOffScreenWindow = true;
@@ -575,13 +569,11 @@ vsWindow::vsWindow(vsScreen *parent, int offScreenWidth, int offScreenHeight)
 // Window passed in.  This requires "subclassing" the window class of the
 // given window and installing a second main window procedure.
 // ------------------------------------------------------------------------
-vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
+vsWindow::vsWindow(vsScreen *parent, HWND msWin)
 {
     vsPipe *parentPipe;
     PIXELFORMATDESCRIPTOR pixelFormatDesc;
-    
-    // Initialize the pane count
-    childPaneCount = 0;
+    vsHWND *windowWrapper;
     
     // Flag that this window is not an offscreen window
     isOffScreenWindow = false;
@@ -651,7 +643,8 @@ vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
     parentScreen->addWindow(this);
     
     // Register a mapping between this vsWindow and its MS window handle
-    getMap()->registerLink(msWindow, this);
+    windowWrapper = new vsHWND(msWindow);
+    getMap()->registerLink(windowWrapper, this);
 
     // Indicate that the window is not for off-screen rendering
     isOffScreenWindow = false;
@@ -662,6 +655,9 @@ vsWindow::vsWindow(vsScreen *parent, HWND msWin) : childPaneList(1, 1)
 // ------------------------------------------------------------------------
 vsWindow::~vsWindow()
 {
+    vsPane *pane;
+    vsHWND *windowWrapper;
+
     // Make this window's context current
     makeCurrent();
     
@@ -669,9 +665,21 @@ vsWindow::~vsWindow()
     // The vsPane destructor includes a call to the parent vsWindow (this)
     // to remove it from the pane list. Keep deleting vsPanes and eventually
     // the list will go away by itself.
-    while (childPaneCount > 0)
-        delete ((vsPane *)(childPaneList[0]));
+    while (childPaneList.getNumEntries() > 0)
+    {
+        // Get the next pane at the front of the list
+        pane = (vsPane *) childPaneList.getEntry(0);
 
+        // Remove the pane from the list (keep a temporary reference to keep
+        // it from being deleted early)
+        pane->ref();
+        childPaneList.removeEntry(pane);
+        pane->unref();
+
+        // Delete the pane
+        delete pane;
+    }
+    
     // Remove the window from its screen
     parentScreen->removeWindow(this);
 
@@ -690,8 +698,12 @@ vsWindow::~vsWindow()
     else
     {
         // Remove the window mapping
-        if (getMap()->mapSecondToFirst(this))
+        windowWrapper = (vsHWND *) getMap()->mapSecondToFirst(this);
+        if (windowWrapper != NULL)
+        {
             getMap()->removeLink(this, VS_OBJMAP_SECOND_LIST);
+            delete windowWrapper;
+        }
 
         // Destroy the MS window, if we created it
         if (createdMSWindow)
@@ -720,7 +732,7 @@ vsScreen *vsWindow::getParentScreen()
 // ------------------------------------------------------------------------
 int vsWindow::getChildPaneCount()
 {
-    return childPaneCount;
+    return childPaneList.getNumEntries();
 }
 
 // ------------------------------------------------------------------------
@@ -730,14 +742,14 @@ int vsWindow::getChildPaneCount()
 vsPane *vsWindow::getChildPane(int index)
 {
     // Make sure the index is valid
-    if ((index < 0) || (index >= childPaneCount))
+    if ((index < 0) || (index >= childPaneList.getNumEntries()))
     {
         printf("vsWindow::getChildPane: Index out of bounds\n");
         return NULL;
     }
 
     // Return the requested pane
-    return (vsPane *)(childPaneList[index]);
+    return (vsPane *) childPaneList.getEntry(index);
 }
 
 // ------------------------------------------------------------------------
@@ -1012,10 +1024,7 @@ HWND vsWindow::getBaseLibraryObject()
 void vsWindow::addPane(vsPane *newPane)
 {
     // Add pane to window's internal list
-    childPaneList[childPaneCount++] = newPane;
-
-    // Reference the pane
-    newPane->ref();
+    childPaneList.addEntry(newPane);
 }
 
 // ------------------------------------------------------------------------
@@ -1024,35 +1033,17 @@ void vsWindow::addPane(vsPane *newPane)
 // ------------------------------------------------------------------------
 void vsWindow::removePane(vsPane *targetPane)
 {
-    // Remove pane from window's internal list
-    int loop, sloop;
+    bool result;
     
-    // Iterate through the child pane list and look for the pane in 
-    // question
-    for (loop = 0; loop < childPaneCount; loop++)
-    {
-        // See if the current pane is the pane we want
-        if (targetPane == childPaneList[loop])
-        {
-            // Found the target pane, slide the remaining panes down
-            // in the list
-            for (sloop = loop; sloop < (childPaneCount-1); sloop++)
-                childPaneList[sloop] = childPaneList[sloop+1];
+    // Try to remove the pane in question (keep a temporary reference to
+    // the pane to keep it from being deleted)
+    targetPane->ref();
+    result = childPaneList.removeEntry(targetPane);
+    targetPane->unref();
 
-            // Decrement the pane count
-            childPaneCount--;
-
-            // Unreference the pane
-            targetPane->unref();
-
-            // We're done
-            return;
-        }
-    }
-
-    // If we get here, we didn't find the requested pane, so print an
-    // error
-    printf("vsWindow::removePane: Specified pane not part of window\n");
+    // Print an error if we failed to remove the pane
+    if (result == false)
+        printf("vsWindow::removePane: Specified pane not part of window\n");
 }
 
 // ------------------------------------------------------------------------
@@ -1061,22 +1052,21 @@ void vsWindow::removePane(vsPane *targetPane)
 // ------------------------------------------------------------------------
 void vsWindow::bringPaneToFront(vsPane *targetPane)
 {
-    int loop, sloop;
+    int loop;
     
     // Iterate through the child pane list and look for the pane in 
     // question
-    for (loop = 0; loop < childPaneCount; loop++)
+    for (loop = 0; loop < childPaneList.getNumEntries(); loop++)
     {
         // See if the current pane is the pane we want
-        if (targetPane == childPaneList[loop])
+        if (targetPane == childPaneList.getEntry(loop))
         {
-            // Found the target pane, slide the remaining panes down
-            // in the list
-            for (sloop = loop; sloop < (childPaneCount-1); sloop++)
-                childPaneList[sloop] = childPaneList[sloop+1];
-
-            // Put the target pane at the end of the list
-            childPaneList[childPaneCount-1] = targetPane;
+            // Found the target pane, remove it from the list and add it
+            // back to the end (keep a reference to it while we do this)
+            targetPane->ref();
+            childPaneList.removeEntry(targetPane);
+            childPaneList.addEntry(targetPane);
+            targetPane->unref();
 
             // We're done
             return;
@@ -1094,23 +1084,21 @@ void vsWindow::bringPaneToFront(vsPane *targetPane)
 // ------------------------------------------------------------------------
 void vsWindow::sendPaneToBack(vsPane *targetPane)
 {
-    int loop, sloop;
+    int loop;
 
     // Iterate through the child pane list and look for the pane in 
     // question
-    for (loop = 0; loop < childPaneCount; loop++)
+    for (loop = 0; loop < childPaneList.getNumEntries(); loop++)
     {
         // See if the current pane is the pane we want
-        if (targetPane == childPaneList[loop])
+        if (targetPane == childPaneList.getEntry(loop))
         {
-            // Found the target pane, slide the preceding panes up
-            // in the list to make room for the target pane at the
-            // beginning
-            for (sloop = loop; sloop > 0; sloop--)
-                childPaneList[sloop-1] = childPaneList[sloop];
-
-            // Put the target pane at the front of the list
-            childPaneList[0] = targetPane;
+            // Found the target pane, remove it from the list, and insert
+            // it at the beginning.  Keep a reference to it while we do this
+            targetPane->ref();
+            childPaneList.removeEntry(targetPane);
+            childPaneList.insertEntry(0, targetPane);
+            targetPane->unref();
 
             // We're done
             return;
@@ -1138,6 +1126,8 @@ int vsWindow::getWindowNumber()
 // ------------------------------------------------------------------------
 void vsWindow::makeCurrent()
 {
+    BOOL result;
+
     // If the window is off-screen, make sure the Pbuffer is still valid
     if(isOffScreenWindow)
     {
@@ -1171,8 +1161,6 @@ void vsWindow::makeCurrent()
         }
     }
 
-    bool result;
-
     // Try to make this window's GLX context current
     result = wglMakeCurrent(deviceContext, glContext);
 
@@ -1194,9 +1182,10 @@ void vsWindow::makeCurrent()
 // ------------------------------------------------------------------------
 void vsWindow::swapBuffers()
 {
-    bool result = true;
+    BOOL result;
     
     // Make sure the window is on-screen before trying to swap
+    result = TRUE;
     if(!isOffScreenWindow)
     {
         // Try to swap the buffers on the MS window's GDI context
@@ -1246,9 +1235,12 @@ LRESULT CALLBACK vsWindow::mainWindowProc(HWND msWindow, UINT message,
     int i;
     int width, height;
     vsWindow *window;
+    vsHWND *windowWrapper;
 
     // Get the vsWindow corresponding to the given HWND
-    window = (vsWindow *)(getMap()->mapFirstToSecond(msWindow));
+    windowWrapper = new vsHWND(msWindow);
+    window = (vsWindow *)(getMap()->mapFirstToSecond(windowWrapper));
+    delete windowWrapper;
 
     // Make sure we know about this window.  If not, just let Windows
     // handle the message
@@ -1265,8 +1257,8 @@ LRESULT CALLBACK vsWindow::mainWindowProc(HWND msWindow, UINT message,
             height = HIWORD(lParam);
             
             // Resize each pane to match
-            for (i = 0; i < window->childPaneCount; i++)
-                ((vsPane *)(window->childPaneList[i]))->resize();
+            for (i = 0; i < window->childPaneList.getNumEntries(); i++)
+                ((vsPane *)(window->childPaneList.getEntry(i)))->resize();
             break;
             
             default:
@@ -1289,9 +1281,12 @@ LRESULT CALLBACK vsWindow::subclassedWindowProc(HWND msWindow, UINT message,
     int width, height;
     vsWindow *window;
     LRESULT result;
+    vsHWND *windowWrapper;
 
     // Get the vsWindow corresponding to the given HWND
-    window = (vsWindow *)(getMap()->mapFirstToSecond(msWindow));
+    windowWrapper = new vsHWND(msWindow);
+    window = (vsWindow *)(getMap()->mapFirstToSecond(windowWrapper));
+    delete windowWrapper;
 
     // Make sure we know about this window.  If not, just let Windows
     // handle the message
@@ -1308,8 +1303,8 @@ LRESULT CALLBACK vsWindow::subclassedWindowProc(HWND msWindow, UINT message,
             height = HIWORD(lParam);
             
             // Resize each pane to match
-            for (i = 0; i < window->childPaneCount; i++)
-                ((vsPane *)(window->childPaneList[i]))->resize();
+            for (i = 0; i < window->childPaneList.getNumEntries(); i++)
+                ((vsPane *)(window->childPaneList.getEntry(i)))->resize();
             break;
     }
     

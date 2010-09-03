@@ -35,10 +35,6 @@ vsShaderAttribute::vsShaderAttribute()
     fragmentProgram = NULL;
     fragmentProgramFile = NULL;
     fragmentProgramSource = NULL;
-
-    // Create the arrays that will store a vector of parameter data.
-    vertexParameterArray = new vsGrowableArray(96, 16);
-    fragmentParameterArray = new vsGrowableArray(96, 16);
 }
 
 // ------------------------------------------------------------------------
@@ -46,9 +42,6 @@ vsShaderAttribute::vsShaderAttribute()
 // ------------------------------------------------------------------------
 vsShaderAttribute::~vsShaderAttribute()
 {
-    int length;
-    osg::Vec4 *vector;
-
     // If there are any filename and source strings, free them.
     if (vertexProgramFile)
         free(vertexProgramFile);
@@ -58,28 +51,6 @@ vsShaderAttribute::~vsShaderAttribute()
         free(fragmentProgramFile);
     if (fragmentProgramSource)
         free(fragmentProgramSource);
-
-    // Delete any vectors we have in the vertex parameter array.
-    length = vertexParameterArray->getSize();
-    for (length--; length > -1; length--)
-    {
-        vector = (osg::Vec4 *) vertexParameterArray->getData(length);
-        if (vector)
-            delete vector;
-    }
-
-    // Delete any vectors we have in the fragment parameter array.
-    length = fragmentParameterArray->getSize();
-    for (length--; length > -1; length--)
-    {
-        vector = (osg::Vec4 *) fragmentParameterArray->getData(length);
-        if (vector)
-            delete vector;
-    }
-
-    // Delete the arrays.
-    delete vertexParameterArray;
-    delete fragmentParameterArray;
 
     // Unreference the programs if they exist.
     if (vertexProgram)
@@ -435,7 +406,7 @@ char *vsShaderAttribute::getFragmentSource()
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setVertexLocalParameter(int index, float x)
 {
-    osg::Vec4 *osgVector;
+    osg::Vec4 osgVector;
 
     // Insure the vertex program is valid.
     if (vertexProgram == NULL)
@@ -445,21 +416,9 @@ void vsShaderAttribute::setVertexLocalParameter(int index, float x)
         return;
     }
 
-    // Get whatever we happen to have in the array at the given index.
-    osgVector = (osg::Vec4 *) vertexParameterArray->getData(index);
-
-    // If the data is NULL, create a new vector and place it there.
-    if (osgVector == NULL)
-    {
-        osgVector = new osg::Vec4();
-        vertexParameterArray->setData(index, osgVector);
-    }
-
-    // Set the osgVector to the new values, unused ones should be zero.
-    osgVector->set(x, 0.0, 0.0, 0.0);
-
-    // Set the vector to the vertex program.
-    vertexProgram->setProgramLocalParameter(index, *osgVector);
+    // Create a vector for the parameter, and set it to the vertex program.
+    osgVector.set(x, 0.0, 0.0, 0.0);
+    vertexProgram->setProgramLocalParameter(index, osgVector);
 }
 
 // ------------------------------------------------------------------------
@@ -468,7 +427,7 @@ void vsShaderAttribute::setVertexLocalParameter(int index, float x)
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y)
 {
-    osg::Vec4 *osgVector;
+    osg::Vec4 osgVector;
 
     // Insure the vertex program is valid.
     if (vertexProgram == NULL)
@@ -478,21 +437,9 @@ void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y)
         return;
     }
 
-    // Get whatever we happen to have in the array at the given index.
-    osgVector = (osg::Vec4 *) vertexParameterArray->getData(index);
-
-    // If the data is NULL, create a new vector and place it there.
-    if (osgVector == NULL)
-    {
-        osgVector = new osg::Vec4();
-        vertexParameterArray->setData(index, osgVector);
-    }
-
-    // Set the osgVector to the new values, unused ones should be zero.
-    osgVector->set(x, y, 0.0, 0.0);
-
-    // Set the vector to the vertex program.
-    vertexProgram->setProgramLocalParameter(index, *osgVector);
+    // Create a vector for the parameter, and set it to the vertex program.
+    osgVector.set(x, y, 0.0, 0.0);
+    vertexProgram->setProgramLocalParameter(index, osgVector);
 }
 
 // ------------------------------------------------------------------------
@@ -502,7 +449,7 @@ void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y)
 void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y,
                                                 float z)
 {
-    osg::Vec4 *osgVector;
+    osg::Vec4 osgVector;
 
     // Insure the vertex program is valid.
     if (vertexProgram == NULL)
@@ -512,21 +459,9 @@ void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y,
         return;
     }
 
-    // Get whatever we happen to have in the array at the given index.
-    osgVector = (osg::Vec4 *) vertexParameterArray->getData(index);
-
-    // If the data is NULL, create a new vector and place it there.
-    if (osgVector == NULL)
-    {
-        osgVector = new osg::Vec4();
-        vertexParameterArray->setData(index, osgVector);
-    }
-
-    // Set the osgVector to the new values, unused ones should be zero.
-    osgVector->set(x, y, z, 0.0);
-
-    // Set the vector to the vertex program.
-    vertexProgram->setProgramLocalParameter(index, *osgVector);
+    // Create a vector for the parameter, and set it to the vertex program.
+    osgVector.set(x, y, z, 0.0);
+    vertexProgram->setProgramLocalParameter(index, osgVector);
 }
 
 // ------------------------------------------------------------------------
@@ -536,7 +471,7 @@ void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y,
 void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y,
                                                 float z, float w)
 {
-    osg::Vec4 *osgVector;
+    osg::Vec4 osgVector;
 
     // Insure the vertex program is valid.
     if (vertexProgram == NULL)
@@ -546,21 +481,9 @@ void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y,
         return;
     }
 
-    // Get whatever we happen to have in the array at the given index.
-    osgVector = (osg::Vec4 *) vertexParameterArray->getData(index);
-
-    // If the data is NULL, create a new vector and place it there.
-    if (osgVector == NULL)
-    {
-        osgVector = new osg::Vec4();
-        vertexParameterArray->setData(index, osgVector);
-    }
-
-    // Set the osgVector to the new values, unused ones should be zero.
-    osgVector->set(x, y, z, w);
-
-    // Set the vector to the vertex program.
-    vertexProgram->setProgramLocalParameter(index, *osgVector);
+    // Create a vector for the parameter, and set it to the vertex program.
+    osgVector.set(x, y, z, w);
+    vertexProgram->setProgramLocalParameter(index, osgVector);
 }
 
 // ------------------------------------------------------------------------
@@ -570,9 +493,8 @@ void vsShaderAttribute::setVertexLocalParameter(int index, float x, float y,
 void vsShaderAttribute::setVertexLocalParameter(int index,
                                                 const atVector &value)
 {
-    osg::Vec4 *osgVector;
-    float v[4];
-    int loop, size;
+    atVector v;
+    osg::Vec4 osgVector;
 
     // Insure the vertex program is valid.
     if (vertexProgram == NULL)
@@ -582,31 +504,15 @@ void vsShaderAttribute::setVertexLocalParameter(int index,
         return;
     }
 
-    // Get whatever we happen to have in the array at the given index.
-    osgVector = (osg::Vec4 *) vertexParameterArray->getData(index);
+    // Clear-copy the input vector, so the extra elements (beyond the
+    // vector's size) are set to zero.  Then, set the copy to size 4.
+    v.clearCopy(value);
+    v.setSize(4);
 
-    // If the data is NULL, create a new vector and place it there.
-    if (osgVector == NULL)
-    {
-        osgVector = new osg::Vec4();
-        vertexParameterArray->setData(index, osgVector);
-    }
-
-    // Initialized the values to zero.
-    v[0] = v[1] = v[2] = v[3] = 0.0;
-
-    // Get the size of the vector.
-    size = value.getSize();
-
-    // Get the valid values from the vector, depending on its size.
-    for (loop = 0; loop < size; loop++)
-        v[loop] = value.getValue(loop);
-
-    // Set the osgVector to the new values, unused ones should be zero.
-    osgVector->set(v[0], v[1], v[2], v[3]);
-
-    // Set the vector to the vertex program.
-    vertexProgram->setProgramLocalParameter(index, *osgVector);
+    // Create an OSG vector for the parameter, and set it to the
+    // vertex program.
+    osgVector.set(v[AT_X], v[AT_Y], v[AT_Z], v[AT_W]);
+    vertexProgram->setProgramLocalParameter(index, osgVector);
 }
 
 // ------------------------------------------------------------------------
@@ -615,24 +521,35 @@ void vsShaderAttribute::setVertexLocalParameter(int index,
 // ------------------------------------------------------------------------
 atVector vsShaderAttribute::getVertexLocalParameter(int index)
 {
-    osg::Vec4 *osgVector;
+    osg::VertexProgram::LocalParamList           params;
+    osg::VertexProgram::LocalParamList::iterator itr;
+    osg::Vec4                                    value;
+
     atVector resultVector;
 
+    // Fetch the vertex program's local parameters
+    params = vertexProgram->getLocalParameters();
+
     // Get the vector for the specified position.
-    osgVector = (osg::Vec4 *) vertexParameterArray->getData(index);
-                                                                                                                                                                                   
-    // If it does not exist, just set the result to all zeros.
-    if (osgVector == NULL)
+    itr = params.find(index);
+
+    // See if we got a valid parameter
+    if (itr == params.end())
     {
-        resultVector.set(0.0, 0.0, 0.0, 0.0);
+        // There is no parameter at this index, so return an empty vector
+        resultVector.setSize(4);
+        resultVector.clear();
     }
-    // Else set the result to the stored vector's values.
     else
     {
-        resultVector.set(osgVector->x(), osgVector->y(), osgVector->z(),
-            osgVector->w());
+        // Get the parameter's value
+        value = itr->second;
+
+        // Translate to an atVector
+        resultVector.set(value.x(), value.y(), value.z(), value.w());
     }
 
+    // Return the result
     return resultVector;
 }
 
@@ -642,7 +559,7 @@ atVector vsShaderAttribute::getVertexLocalParameter(int index)
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setFragmentLocalParameter(int index, float x)
 {
-    osg::Vec4 *osgVector;
+    osg::Vec4 osgVector;
 
     // Insure the fragment program is valid.
     if (fragmentProgram == NULL)
@@ -652,21 +569,9 @@ void vsShaderAttribute::setFragmentLocalParameter(int index, float x)
         return;
     }
 
-    // Get whatever we happen to have in the array at the given index.
-    osgVector = (osg::Vec4 *) fragmentParameterArray->getData(index);
-
-    // If the data is NULL, create a new vector and place it there.
-    if (osgVector == NULL)
-    {
-        osgVector = new osg::Vec4();
-        fragmentParameterArray->setData(index, osgVector);
-    }
-
-    // Set the osgVector to the new values, unused ones should be zero.
-    osgVector->set(x, 0.0, 0.0, 0.0);
-
-    // Set the vector to the fragment program.
-    fragmentProgram->setProgramLocalParameter(index, *osgVector);
+    // Create a vector for the parameter, and set it to the vertex program.
+    osgVector.set(x, 0.0, 0.0, 0.0);
+    fragmentProgram->setProgramLocalParameter(index, osgVector);
 }
 
 // ------------------------------------------------------------------------
@@ -675,7 +580,7 @@ void vsShaderAttribute::setFragmentLocalParameter(int index, float x)
 // ------------------------------------------------------------------------
 void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y)
 {
-    osg::Vec4 *osgVector;
+    osg::Vec4 osgVector;
 
     // Insure the fragment program is valid.
     if (fragmentProgram == NULL)
@@ -685,21 +590,9 @@ void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y)
         return;
     }
 
-    // Get whatever we happen to have in the array at the given index.
-    osgVector = (osg::Vec4 *) fragmentParameterArray->getData(index);
-
-    // If the data is NULL, create a new vector and place it there.
-    if (osgVector == NULL)
-    {
-        osgVector = new osg::Vec4();
-        fragmentParameterArray->setData(index, osgVector);
-    }
-
-    // Set the osgVector to the new values, unused ones should be zero.
-    osgVector->set(x, y, 0.0, 0.0);
-
-    // Set the vector to the fragment program.
-    fragmentProgram->setProgramLocalParameter(index, *osgVector);
+    // Create a vector for the parameter, and set it to the vertex program.
+    osgVector.set(x, y, 0.0, 0.0);
+    fragmentProgram->setProgramLocalParameter(index, osgVector);
 }
 
 // ------------------------------------------------------------------------
@@ -709,7 +602,7 @@ void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y)
 void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y,
                                                   float z)
 {
-    osg::Vec4 *osgVector;
+    osg::Vec4 osgVector;
 
     // Insure the fragment program is valid.
     if (fragmentProgram == NULL)
@@ -719,21 +612,9 @@ void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y,
         return;
     }
 
-    // Get whatever we happen to have in the array at the given index.
-    osgVector = (osg::Vec4 *) fragmentParameterArray->getData(index);
-
-    // If the data is NULL, create a new vector and place it there.
-    if (osgVector == NULL)
-    {
-        osgVector = new osg::Vec4();
-        fragmentParameterArray->setData(index, osgVector);
-    }
-
-    // Set the osgVector to the new values, unused ones should be zero.
-    osgVector->set(x, y, z, 0.0);
-
-    // Set the vector to the fragment program.
-    fragmentProgram->setProgramLocalParameter(index, *osgVector);
+    // Create a vector for the parameter, and set it to the vertex program.
+    osgVector.set(x, y, z, 0.0);
+    fragmentProgram->setProgramLocalParameter(index, osgVector);
 }
 
 // ------------------------------------------------------------------------
@@ -743,7 +624,7 @@ void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y,
 void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y,
                                                   float z, float w)
 {
-    osg::Vec4 *osgVector;
+    osg::Vec4 osgVector;
 
     // Insure the fragment program is valid.
     if (fragmentProgram == NULL)
@@ -753,21 +634,9 @@ void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y,
         return;
     }
 
-    // Get whatever we happen to have in the array at the given index.
-    osgVector = (osg::Vec4 *) fragmentParameterArray->getData(index);
-
-    // If the data is NULL, create a new vector and place it there.
-    if (osgVector == NULL)
-    {
-        osgVector = new osg::Vec4();
-        fragmentParameterArray->setData(index, osgVector);
-    }
-
-    // Set the osgVector to the new values, unused ones should be zero.
-    osgVector->set(x, y, z, w);
-                                                                                
-    // Set the vector to the fragment program.
-    fragmentProgram->setProgramLocalParameter(index, *osgVector);
+    // Create a vector for the parameter, and set it to the vertex program.
+    osgVector.set(x, y, z, w);
+    fragmentProgram->setProgramLocalParameter(index, osgVector);
 }
 
 // ------------------------------------------------------------------------
@@ -777,9 +646,8 @@ void vsShaderAttribute::setFragmentLocalParameter(int index, float x, float y,
 void vsShaderAttribute::setFragmentLocalParameter(int index,
                                                   const atVector &value)
 {
-    osg::Vec4 *osgVector;
-    float v[4];
-    int loop, size;
+    osg::Vec4 osgVector;
+    atVector v;
 
     // Insure the fragment program is valid.
     if (fragmentProgram == NULL)
@@ -789,31 +657,15 @@ void vsShaderAttribute::setFragmentLocalParameter(int index,
         return;
     }
 
-    // Get whatever we happen to have in the array at the given index.
-    osgVector = (osg::Vec4 *) fragmentParameterArray->getData(index);
+    // Clear-copy the input vector, to ensure any extra elements (beyond
+    // the vector's size) are set to zero.  Then set the copy's size to 4.
+    v.clearCopy(value);
+    v.setSize(4);
 
-    // If the data is NULL, create a new vector and place it there.
-    if (osgVector == NULL)
-    {
-        osgVector = new osg::Vec4();
-        fragmentParameterArray->setData(index, osgVector);
-    }
-
-    // Initialized the values to zero.
-    v[0] = v[1] = v[2] = v[3] = 0.0;
-
-    // Get the size of the vector.
-    size = value.getSize();
-
-    // Get the valid values from the vector, depending on its size.
-    for (loop = 0; loop < size; loop++)
-        v[loop] = value.getValue(loop);
-
-    // Set the osgVector to the new values, unused ones should be zero.
-    osgVector->set(v[0], v[1], v[2], v[3]);
-
-    // Set the vector to the fragment program.
-    fragmentProgram->setProgramLocalParameter(index, *osgVector);
+    // Create an OSG vector for the parameter, and set it to the
+    // vertex program.
+    osgVector.set(v[AT_X], v[AT_Y], v[AT_Z], v[AT_W]);
+    fragmentProgram->setProgramLocalParameter(index, osgVector);
 }
 
 // ------------------------------------------------------------------------
@@ -822,22 +674,32 @@ void vsShaderAttribute::setFragmentLocalParameter(int index,
 // ------------------------------------------------------------------------
 atVector vsShaderAttribute::getFragmentLocalParameter(int index)
 {
-    osg::Vec4 *osgVector;
+    osg::FragmentProgram::LocalParamList           params;
+    osg::FragmentProgram::LocalParamList::iterator itr;
+    osg::Vec4                                      value;
+
     atVector resultVector;
 
-    // Get the vector for the specified position.
-    osgVector = (osg::Vec4 *) fragmentParameterArray->getData(index);
+    // Fetch the fragment program's local parameters
+    params = fragmentProgram->getLocalParameters();
 
-    // If it does not exist, just set the result to all zeros.
-    if (osgVector == NULL)
+    // Get the vector for the specified position.
+    itr = params.find(index);
+
+    // See if we got a valid parameter
+    if (itr == params.end())
     {
-        resultVector.set(0.0, 0.0, 0.0, 0.0);
+        // There is no parameter at this index, so return an empty vector
+        resultVector.setSize(4);
+        resultVector.clear();
     }
-    // Else set the result to the stored vector's values.
     else
     {
-        resultVector.set(osgVector->x(), osgVector->y(), osgVector->z(),
-            osgVector->w());
+        // Get the parameter's value
+        value = itr->second;
+
+        // Translate to an atVector
+        resultVector.set(value.x(), value.y(), value.z(), value.w());
     }
 
     return resultVector;

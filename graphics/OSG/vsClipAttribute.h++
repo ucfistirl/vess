@@ -36,8 +36,6 @@ private:
     osg::ClipPlane     *planeArray[VS_CLIPATTR_MAX_PLANES];
     int                numPlanes;
 
-    vsGrowableArray    attachedNodes;
-
     virtual void       setOSGAttrModes(vsNode *node);
 
 VS_INTERNAL:

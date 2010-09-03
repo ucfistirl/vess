@@ -15,8 +15,6 @@
 vsCOLLADADataSource::vsCOLLADADataSource(atXMLDocument *doc,
                                          atXMLDocumentNodePtr current)
 {
-    atXMLDocumentNodePtr accessor;
-    atXMLDocumentNodePtr param;
     char *refName;
     int valid;
     vsCOLLADAIDREFArray *idrefArray;
@@ -387,31 +385,36 @@ void vsCOLLADADataSource::processTechniqueCommon(atXMLDocument *doc,
                         paramFormat[paramCount] = VS_CDS_INT;
                         paramSize[paramCount] = 1;
                     }
-                    else if (strcmp(attr, "float") == 0)
+                    else if ((strcmp(attr, "float") == 0) ||
+                             (strcmp(attr, "double") == 0))
                     {
                         // Single float
                         paramFormat[paramCount] = VS_CDS_FLOAT;
                         paramSize[paramCount] = 1;
                     }
-                    else if (strcmp(attr, "float2") == 0)
+                    else if ((strcmp(attr, "float2") == 0) ||
+                             (strcmp(attr, "double2") == 0))
                     {
                         // 2-element float vector
                         paramFormat[paramCount] = VS_CDS_VECTOR;
                         paramSize[paramCount] = 2;
                     }
-                    else if (strcmp(attr, "float3") == 0)
+                    else if ((strcmp(attr, "float3") == 0) ||
+                             (strcmp(attr, "double3") == 0))
                     {
                         // 3-element float vector
                         paramFormat[paramCount] = VS_CDS_VECTOR;
                         paramSize[paramCount] = 3;
                     }
-                    else if (strcmp(attr, "float4") == 0)
+                    else if ((strcmp(attr, "float4") == 0) ||
+                             (strcmp(attr, "double4") == 0))
                     {
                         // 4-element float vector
                         paramFormat[paramCount] = VS_CDS_VECTOR;
                         paramSize[paramCount] = 4;
                     }
-                    else if (strcmp(attr, "float4x4") == 0)
+                    else if ((strcmp(attr, "float4x4") == 0) ||
+                             (strcmp(attr, "double4x4") == 0))
                     {
                         // 4x4 matrix
                         paramFormat[paramCount] = VS_CDS_MATRIX;

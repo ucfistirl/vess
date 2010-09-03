@@ -30,14 +30,16 @@
 // sets up the frames of the walk animation
 // ------------------------------------------------------------------------
 vsWalkArticulation::vsWalkArticulation(vsKinematics *objectKin,
-    char *walkDataFilename) : keyframeData(10, 10)
+                                       char *walkDataFilename)
 {
     FILE *datafile;
     char lineBuffer[256];
     double h, p, r;
     atQuat jointRot;
+    double dist;
     int loop;
     vsWalkArticData *keyData;
+    vsWalkArticData *tempFrame;
 
     // Store the given root kinematics object
     rootKin = objectKin;
@@ -54,7 +56,6 @@ vsWalkArticulation::vsWalkArticulation(vsKinematics *objectKin,
     // Frame zero (the first frame) is special; it is the neutral (not moving)
     // position of the joints, and is not part of the cycle while the object
     // is moving.
-    keyframeCount = 0;
     keyframeIndex = 0;
     datafile = fopen(walkDataFilename, "r");
     if (datafile)
@@ -63,7 +64,7 @@ vsWalkArticulation::vsWalkArticulation(vsKinematics *objectKin,
         {
             // Create a walk articulation data structure to hold the
 	    // frame information
-            keyData = (vsWalkArticData *)(malloc(sizeof(vsWalkArticData)));
+            keyData = new vsWalkArticData();
 
             // Read the articulation data, one line for each joint
             for (loop = 0; loop < 6; loop++)
@@ -76,22 +77,22 @@ vsWalkArticulation::vsWalkArticulation(vsKinematics *objectKin,
                 switch (loop)
                 {
                     case 0:
-                        keyData->leftHip = jointRot;
+                        keyData->setLeftHip(jointRot);
                         break;
                     case 1:
-                        keyData->leftKnee = jointRot;
+                        keyData->setLeftKnee(jointRot);
                         break;
                     case 2:
-                        keyData->leftAnkle = jointRot;
+                        keyData->setLeftAnkle(jointRot);
                         break;
                     case 3:
-                        keyData->rightHip = jointRot;
+                        keyData->setRightHip(jointRot);
                         break;
                     case 4:
-                        keyData->rightKnee = jointRot;
+                        keyData->setRightKnee(jointRot);
                         break;
                     case 5:
-                        keyData->rightAnkle = jointRot;
+                        keyData->setRightAnkle(jointRot);
                         break;
                 }
             }
@@ -99,12 +100,12 @@ vsWalkArticulation::vsWalkArticulation(vsKinematics *objectKin,
             // The seventh line in each frame is the distance over which the
             // data in that frame is active.
             getLine(datafile, lineBuffer);
-            sscanf(lineBuffer, "%lf", &(keyData->distance));
+            sscanf(lineBuffer, "%lf", &dist);
+            keyData->setDistance(dist);
 
             // Store the articulation information in our keyframe array, and
 	    // increment the total-number-of-frames counter
-            keyframeData[keyframeCount] = keyData;
-            keyframeCount++;
+            keyframeData.addEntry(keyData);
         }
         fclose(datafile);
     }
@@ -113,18 +114,18 @@ vsWalkArticulation::vsWalkArticulation(vsKinematics *objectKin,
             "keyframe data file %s\n", walkDataFilename);
 
     // Initialize the keyframe pointers
-    if (keyframeCount > 0)
+    if (keyframeData.getNumEntries() > 0)
     {
-        fromKeyframe = (vsWalkArticData *)(keyframeData[0]);
-        toKeyframe = (vsWalkArticData *)(keyframeData[0]);
+        fromKeyframe = (vsWalkArticData *) keyframeData.getEntry(0);
+        toKeyframe = (vsWalkArticData *) keyframeData.getEntry(0);
     }
 
     // Check to see if only one frame was specified; if so, then duplicate
     // that frame.
-    if (keyframeCount == 1)
+    if (keyframeData.getNumEntries() == 1)
     {
-	keyframeData[1] = keyframeData[0];
-	keyframeCount = 2;
+        tempFrame = (vsWalkArticData *) keyframeData.getEntry(0);
+	keyframeData.addEntry(tempFrame->clone());
     }
     
     // Initialize the object to not-currently-moving values
@@ -138,11 +139,8 @@ vsWalkArticulation::vsWalkArticulation(vsKinematics *objectKin,
 // ------------------------------------------------------------------------
 vsWalkArticulation::~vsWalkArticulation()
 {
-    int loop;
-
-    // Delete the articulation data
-    for (loop = 0; loop < keyframeCount; loop++)
-        free(keyframeData[loop]);
+    // The keyframes in the keyframeData array will be deleted when the
+    // array itself goes out of scope
 }
 
 // ------------------------------------------------------------------------
@@ -225,9 +223,13 @@ vsKinematics *vsWalkArticulation::getJointKinematics(int whichJoint)
 void vsWalkArticulation::update()
 {
     double speed;
+    int keyframeCount;
+
+    // Get the number of keyframes
+    keyframeCount = keyframeData.getNumEntries();
 
     // If no frames were specified (for whatever reason), abort.
-    if (keyframeCount == 0)
+    if (keyframeCount <= 0)
         return;
 
     // Get the current travel speed, ignoring what direction it's in
@@ -248,8 +250,8 @@ void vsWalkArticulation::update()
             travelDist = 0.0;
             keyframeIndex = 1;
             waitTime = -1.0;
-            fromKeyframe = (vsWalkArticData *)(keyframeData[0]);
-            toKeyframe = (vsWalkArticData *)(keyframeData[1]);
+            fromKeyframe = (vsWalkArticData *) keyframeData.getEntry(0);
+            toKeyframe = (vsWalkArticData *) keyframeData.getEntry(1);
             moveState = VS_WALK_ARTIC_MOVING;
         }
         else if (moveState == VS_WALK_ARTIC_STOPPING)
@@ -264,18 +266,19 @@ void vsWalkArticulation::update()
             waitTime = -1.0;
             captureStopFrame();
             fromKeyframe = &stopKeyframe;
-            toKeyframe = (vsWalkArticData *)(keyframeData[keyframeIndex]);
+            toKeyframe = (vsWalkArticData *)
+                keyframeData.getEntry(keyframeIndex);
             moveState = VS_WALK_ARTIC_MOVING;
         }
 
 	// Calculate the distance travelled, and use that to determine if
 	// we should switch to the next key frame in the sequence
         travelDist += (vsTimer::getSystemTimer()->getInterval()) * speed;
-        while (travelDist > toKeyframe->distance)
+        while (travelDist > toKeyframe->getDistance())
         {
             // Subtract the distance that the destination keyframe
 	    // covers from the total travelled distance
-            travelDist -= toKeyframe->distance;
+            travelDist -= toKeyframe->getDistance();
 
             // Increment the current animation frame index
             keyframeIndex = ((keyframeIndex + 1) % keyframeCount);
@@ -285,7 +288,8 @@ void vsWalkArticulation::update()
             // Set the old animation data to the new data, and the new
 	    // data to the next frame in the sequence
             fromKeyframe = toKeyframe;
-            toKeyframe = (vsWalkArticData *)(keyframeData[keyframeIndex]);
+            toKeyframe = (vsWalkArticData *)
+                keyframeData.getEntry(keyframeIndex);
         }
     }
     else if (moveState != VS_WALK_ARTIC_STOPPED)
@@ -303,7 +307,7 @@ void vsWalkArticulation::update()
             waitTime = 0.0;
             captureStopFrame();
             fromKeyframe = &stopKeyframe;
-            toKeyframe = (vsWalkArticData *)(keyframeData[0]);
+            toKeyframe = (vsWalkArticData *) keyframeData.getEntry(0);
             moveState = VS_WALK_ARTIC_STOPPING;
         }
         
@@ -315,43 +319,22 @@ void vsWalkArticulation::update()
         // Check if we are stopping, and if we have been stopping long
 	// enough to consider ourselves completely stopped
         if ((moveState == VS_WALK_ARTIC_STOPPING) &&
-            (waitTime > toKeyframe->distance))
+            (waitTime > toKeyframe->getDistance()))
         {
             // * Finish stopping
 	    // Set both frames to interpolate between to the static frame,
 	    // and set the movement state to 'not-moving'.
             travelDist = 0.0;
             waitTime = -1.0;
-            fromKeyframe = (vsWalkArticData *)(keyframeData[0]);
-            toKeyframe = (vsWalkArticData *)(keyframeData[0]);
+            fromKeyframe = (vsWalkArticData *) keyframeData.getEntry(0);
+            toKeyframe = (vsWalkArticData *) keyframeData.getEntry(0);
             keyframeIndex = 0;
             moveState = VS_WALK_ARTIC_STOPPED;
         }
     }
 
-    // * Interpolate the joint positions
-    // For each active joint, compute that joint's orientation by using
-    // the atQuat slerp() call to interpolate the joint's orientation
-    // between the two currently active keyframes, using the distance that
-    // the object has travelled as the interpolation value.
-    if (leftHipKin)
-        leftHipKin->setOrientation(fromKeyframe->leftHip.
-            slerp(toKeyframe->leftHip, (travelDist / toKeyframe->distance)));
-    if (leftKneeKin)
-        leftKneeKin->setOrientation(fromKeyframe->leftKnee.
-            slerp(toKeyframe->leftKnee, (travelDist / toKeyframe->distance)));
-    if (leftAnkleKin)
-        leftAnkleKin->setOrientation(fromKeyframe->leftAnkle.
-            slerp(toKeyframe->leftAnkle, (travelDist / toKeyframe->distance)));
-    if (rightHipKin)
-        rightHipKin->setOrientation(fromKeyframe->rightHip.
-            slerp(toKeyframe->rightHip, (travelDist / toKeyframe->distance)));
-    if (rightKneeKin)
-        rightKneeKin->setOrientation(fromKeyframe->rightKnee.
-            slerp(toKeyframe->rightKnee, (travelDist / toKeyframe->distance)));
-    if (rightAnkleKin)
-        rightAnkleKin->setOrientation(fromKeyframe->rightAnkle.
-            slerp(toKeyframe->rightAnkle, (travelDist / toKeyframe->distance)));
+    // * Interpolate the new joint positions
+    interpolateKeys(fromKeyframe, toKeyframe, travelDist);
 }
 
 // ------------------------------------------------------------------------
@@ -396,32 +379,139 @@ void vsWalkArticulation::captureStopFrame()
     // copy a no-rotation value instead.
 
     if (leftHipKin)
-        stopKeyframe.leftHip = leftHipKin->getOrientation();
+        stopKeyframe.setLeftHip(leftHipKin->getOrientation());
     else
-        stopKeyframe.leftHip.set(0.0, 0.0, 0.0, 1.0);
+        stopKeyframe.setLeftHip(atQuat(0.0, 0.0, 0.0, 1.0));
 
     if (leftKneeKin)
-        stopKeyframe.leftKnee = leftKneeKin->getOrientation();
+        stopKeyframe.setLeftKnee(leftKneeKin->getOrientation());
     else
-        stopKeyframe.leftKnee.set(0.0, 0.0, 0.0, 1.0);
+        stopKeyframe.setLeftKnee(atQuat(0.0, 0.0, 0.0, 1.0));
 
     if (leftAnkleKin)
-        stopKeyframe.leftAnkle = leftAnkleKin->getOrientation();
+        stopKeyframe.setLeftAnkle(leftAnkleKin->getOrientation());
     else
-        stopKeyframe.leftAnkle.set(0.0, 0.0, 0.0, 1.0);
+        stopKeyframe.setLeftAnkle(atQuat(0.0, 0.0, 0.0, 1.0));
 
     if (rightHipKin)
-        stopKeyframe.rightHip = rightHipKin->getOrientation();
+        stopKeyframe.setRightHip(rightHipKin->getOrientation());
     else
-        stopKeyframe.rightHip.set(0.0, 0.0, 0.0, 1.0);
+        stopKeyframe.setRightHip(atQuat(0.0, 0.0, 0.0, 1.0));
 
     if (rightKneeKin)
-        stopKeyframe.rightKnee = rightKneeKin->getOrientation();
+        stopKeyframe.setRightKnee(rightKneeKin->getOrientation());
     else
-        stopKeyframe.rightKnee.set(0.0, 0.0, 0.0, 1.0);
+        stopKeyframe.setRightKnee(atQuat(0.0, 0.0, 0.0, 1.0));
 
     if (rightAnkleKin)
-        stopKeyframe.rightAnkle = rightAnkleKin->getOrientation();
+        stopKeyframe.setRightAnkle(rightAnkleKin->getOrientation());
     else
-        stopKeyframe.rightAnkle.set(0.0, 0.0, 0.0, 1.0);
+        stopKeyframe.setRightAnkle(atQuat(0.0, 0.0, 0.0, 1.0));
+}
+
+// ------------------------------------------------------------------------
+// Private function.
+// Interpolates between two keyframes using the given travel distance as
+// a parameter
+// ------------------------------------------------------------------------
+void vsWalkArticulation::interpolateKeys(vsWalkArticData *key1,
+                                         vsWalkArticData *key2,
+                                         double dist)
+{
+    atQuat a, b;
+    double t;
+    atQuat result;
+
+    // For each active joint, compute that joint's orientation by using
+    // the atQuat slerp() call to interpolate the joint's orientation
+    // between the two currently active keyframes, using the distance that
+    // the object has travelled as the interpolation value.
+    if (leftHipKin)
+    {
+        // Get the two key joint angles
+        a = key1->getLeftHip();
+        b = key2->getLeftHip();
+
+        // Compute the interpolation parameter
+        t = dist / key2->getDistance();
+
+        // Slerp the two angles and set the result on the joint
+        result = a.slerp(b, t);
+        leftHipKin->setOrientation(result);
+    }
+
+    // Same procedure for the left knee
+    if (leftKneeKin)
+    {
+        // Get the two key joint angles
+        a = key1->getLeftKnee();
+        b = key2->getLeftKnee();
+
+        // Compute the interpolation parameter
+        t = dist / key2->getDistance();
+
+        // Slerp the two angles and set the result on the joint
+        result = a.slerp(b, t);
+        leftKneeKin->setOrientation(result);
+    }
+
+    // Same procedure for the left ankle
+    if (leftAnkleKin)
+    {
+        // Get the two key joint angles
+        a = key1->getLeftAnkle();
+        b = key2->getLeftAnkle();
+
+        // Compute the interpolation parameter
+        t = dist / key2->getDistance();
+
+        // Slerp the two angles and set the result on the joint
+        result = a.slerp(b, t);
+        leftAnkleKin->setOrientation(result);
+    }
+
+    // Same procedure for the right hip
+    if (rightHipKin)
+    {
+        // Get the two key joint angles
+        a = key1->getRightHip();
+        b = key2->getRightHip();
+
+        // Compute the interpolation parameter
+        t = dist / key2->getDistance();
+
+        // Slerp the two angles and set the result on the joint
+        result = a.slerp(b, t);
+        rightHipKin->setOrientation(result);
+    }
+
+    // Same procedure for the right knee
+    if (rightKneeKin)
+    {
+        // Get the two key joint angles
+        a = key1->getRightKnee();
+        b = key2->getRightKnee();
+
+        // Compute the interpolation parameter
+        t = dist / key2->getDistance();
+
+        // Slerp the two angles and set the result on the joint
+        result = a.slerp(b, t);
+        rightKneeKin->setOrientation(result);
+    }
+
+    // Same procedure for the right ankle
+    if (rightAnkleKin)
+    {
+        // Get the two key joint angles
+        a = key1->getRightAnkle();
+        b = key2->getRightAnkle();
+
+        // Compute the interpolation parameter
+        t = dist / key2->getDistance();
+
+        // Slerp the two angles and set the result on the joint
+        result = a.slerp(b, t);
+        rightAnkleKin->setOrientation(result);
+    }
 }

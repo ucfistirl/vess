@@ -88,7 +88,6 @@ void vsCOLLADASkin::convertGeometry()
     atVector *vecList;
     vsAttribute *attrib;
     int *intList;
-    u_int *uintList;
     int listSize;
     int i;
     int whichData;

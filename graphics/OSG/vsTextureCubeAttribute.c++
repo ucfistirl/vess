@@ -241,7 +241,6 @@ vsAttribute *vsTextureCubeAttribute::clone()
     osg::TexEnvCombine *newOSGTexEnvCombine;
     osg::TexGen *newOSGTexGen;
     osg::TexMat *newOSGTexMat;
-    int i;
 
     // Share the osg::TextureCube object that we're using
     if (osgTextureCube)

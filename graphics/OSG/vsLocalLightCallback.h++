@@ -25,30 +25,28 @@
 #define VS_LOCAL_LIGHT_CALLBACK_HPP
 
 #include "vsLightAttribute.h++"
-#include "vsGrowableArray.h++"
+#include "vsArray.h++"
 #include <osg/Drawable>
 
 class VESS_SYM vsLocalLightCallback : public osg::Drawable::DrawCallback
 {
 private:
 
-   vsGrowableArray     *localLightList;
-   int                 localLightCount;
+   vsArray     *localLightList;
 
 public:
 
                     vsLocalLightCallback(vsLightAttribute *la);
-                    vsLocalLightCallback(vsGrowableArray *lightArray,
-                                         int length);
+                    vsLocalLightCallback(vsArray *lightArray);
 
     virtual         ~vsLocalLightCallback();
 
-    int             setLocalLights(vsGrowableArray *lightArray, int length);
+    int             setLocalLights(vsArray *lightArray);
 
-    int             addLocalLights(vsGrowableArray *lightArray, int length);
+    int             addLocalLights(vsArray *lightArray);
     int             addLocalLight(vsLightAttribute *la);
 
-    int             removeLocalLights(vsGrowableArray *lightArray, int length);
+    int             removeLocalLights(vsArray *lightArray);
     int             removeLocalLight(vsLightAttribute *la);
 
     int             getLocalLightCount();

@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include "vsWindowSystem.h++"
+#include "vsHWND.h++"
 #include <windowsx.h>
 
 // NOTE:  This implementation uses Open Scene Graph and MS Windows functions
@@ -581,10 +582,13 @@ LRESULT CALLBACK vsWindowSystem::inputWindowProc(HWND msWindow, UINT message,
     double wheelDelta;
     vsInputAxis *axis;
     double pos;
+    vsHWND *windowWrapper;
     
-    // Get the VESS window and window system from the msWindow parameter
-    vessWindow = (vsWindow *)vsWindow::getMap()->mapFirstToSecond(msWindow);
-    windowSys = (vsWindowSystem *)getMap()->mapFirstToSecond(vessWindow);
+    // Look up the corresponding VESS window from the msWindow parameter
+    windowWrapper = new vsHWND(msWindow);
+    vessWindow = (vsWindow *)
+        vsWindow::getMap()->mapFirstToSecond(windowWrapper);
+    delete windowWrapper;
     
     // Make sure we know about this window.  If not, just let Windows
     // handle the message
@@ -592,6 +596,9 @@ LRESULT CALLBACK vsWindowSystem::inputWindowProc(HWND msWindow, UINT message,
     {
         return DefWindowProc(msWindow, message, wParam, lParam);
     }
+
+    // Look up the window system by the VESS window
+    windowSys = (vsWindowSystem *)getMap()->mapFirstToSecond(vessWindow);
 
     // Make sure we have a window system.  If not, just let Windows
     // handle the message

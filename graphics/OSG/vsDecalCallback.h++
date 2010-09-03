@@ -25,6 +25,7 @@
 #define VS_DECAL_CALLBACK_HPP
 
 #include "vsDecalAttribute.h++"
+#include "atArray.h++"
 #include <osg/NodeCallback>
 
 class VESS_SYM vsDecalCallback : public osg::NodeCallback
@@ -33,8 +34,7 @@ private:
 
     vsDecalAttribute    *decalAttr;
     
-    vsGrowableArray     stateSetArray;
-    int                 stateSetArraySize;
+    atArray             *stateSetArray;
     
     void                checkSize(int newSize);
 

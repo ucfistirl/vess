@@ -32,20 +32,20 @@ class VESS_SYM vsIntersectResult : public vsObject
 {
 private:
 
-    bool          validFlag;
-    atVector      isectPoint;
-    atVector      isectNormal;
-    atMatrix      isectXform;
-    vsGeometry    *isectGeometry;
-    int           isectPrimitiveIndex;
-    vsList        *isectPath;
+    bool              validFlag;
+    atVector          isectPoint;
+    atVector          isectNormal;
+    atMatrix          isectXform;
+    vsGeometryBase    *isectGeometry;
+    int               isectPrimitiveIndex;
+    vsList            *isectPath;
 
 public:
 
                          vsIntersectResult();
                          vsIntersectResult(atVector point, atVector normal,
                                            atMatrix xform,
-                                           vsGeometry *geometry,
+                                           vsGeometryBase *geometry,
                                            int primitiveIndex);
     virtual              ~vsIntersectResult();
 
@@ -55,7 +55,7 @@ public:
     atVector             getPoint();
     atVector             getNormal();
     atMatrix             getXform();
-    vsGeometry           *getGeometry();
+    vsGeometryBase       *getGeometry();
     int                  getPrimitiveIndex();
     vsList               *getPath();
 };

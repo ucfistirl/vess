@@ -45,7 +45,7 @@ vsScreen *vsScreen::getScreen(int index)
 {
     // Make sure the index doesn't exceed the screen count
     if (index >= screenCount)
-	return NULL;
+        return NULL;
 
     // Return the requested screen
     return screenList[index];
@@ -73,7 +73,7 @@ vsPipe *vsScreen::getParentPipe()
 // ------------------------------------------------------------------------
 int vsScreen::getChildWindowCount()
 {
-    return childWindowCount;
+    return childWindowList.getNumEntries();
 }
 
 // ------------------------------------------------------------------------
@@ -83,14 +83,14 @@ int vsScreen::getChildWindowCount()
 vsWindow *vsScreen::getChildWindow(int index)
 {
     // Make sure the window index is valid
-    if ((index < 0) || (index >= childWindowCount))
+    if ((index < 0) || (index >= childWindowList.getNumEntries()))
     {
         printf("vsScreen::getChildWindow: Index out of bounds\n");
         return NULL;
     }
 
     // Return the requested window
-    return (vsWindow *)(childWindowList[index]);
+    return (vsWindow *) childWindowList.getEntry(index);
 }
 
 // ------------------------------------------------------------------------
@@ -116,13 +116,10 @@ void vsScreen::getScreenSize(int *width, int *height)
 // Initializes the child window list and sets this object as a child of its
 // parent pipe
 // ------------------------------------------------------------------------
-vsScreen::vsScreen(vsPipe *parent, int index) : childWindowList(1, 1)
+vsScreen::vsScreen(vsPipe *parent, int index)
 {
     // Save the index of this screen
     screenIndex = index;
-
-    // Initialize the window count
-    childWindowCount = 0;
 
     // Save the parent vsPipe
     parentPipe = parent;
@@ -137,12 +134,28 @@ vsScreen::vsScreen(vsPipe *parent, int index) : childWindowList(1, 1)
 // ------------------------------------------------------------------------
 vsScreen::~vsScreen()
 {
+    vsWindow *win;
+
     // Delete all child windows
     // The vsWindow destructor includes a call to the parent vsScreen (this)
     // to remove it from the window list. Keep deleting vsWindows and
     // eventually the list will go away by itself.
-    while (childWindowCount > 0)
-        delete ((vsWindow *)(childWindowList[0]));
+    while (childWindowList.getNumEntries() > 0)
+    {
+        // Get the new head of the list
+        win = (vsWindow *) childWindowList.getEntry(0);
+
+        // Remove the window from the list.  We need to keep a reference to
+        // the window while we remove it, so the list doesn't delete it early.
+        // Unfortunately, this is the only way to properly delete it
+        // right now.  The next version of VESS should fix this.
+        win->ref();
+        childWindowList.removeEntry(win);
+        win->unref();
+
+        // Finally, delete the window
+        delete win;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -189,10 +202,7 @@ void vsScreen::done()
 void vsScreen::addWindow(vsWindow *newWindow)
 {
     // Add window to screen's internal list
-    childWindowList[childWindowCount++] = newWindow;
-
-    // Reference the window
-    newWindow->ref();
+    childWindowList.addEntry(newWindow);
 }
 
 // ------------------------------------------------------------------------
@@ -201,29 +211,17 @@ void vsScreen::addWindow(vsWindow *newWindow)
 // ------------------------------------------------------------------------
 void vsScreen::removeWindow(vsWindow *targetWindow)
 {
-    int loop, sloop;
+    bool result;
     
-    // Remove window from screen's internal list
-    for (loop = 0; loop < childWindowCount; loop++)
-        if (targetWindow == childWindowList[loop])
-        {
-            // Found the target window, move the remaining windows down
-            // in the list
-            for (sloop = loop; sloop < (childWindowCount-1); sloop++)
-                childWindowList[sloop] = childWindowList[sloop+1];
+    // Try to remove window from screen's internal list
+    targetWindow->ref();
+    result = childWindowList.removeEntry(targetWindow);
+    targetWindow->unref();
 
-            // Decrement the window count
-            childWindowCount--;
-
-            // Unreference the window
-            targetWindow->unref();
-
-            // We're done, so return now
-            return;
-        }
-
-    // If we get here, we couldn't find the window in question
-    printf("vsScreen::removeWindow: Specified window not part of screen\n");
+    // If we failed to remove it, print an error
+    if (result == false)
+        printf("vsScreen::removeWindow: "
+            "Specified window not part of screen\n");
 }
 
 // ------------------------------------------------------------------------

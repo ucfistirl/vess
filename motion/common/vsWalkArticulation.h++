@@ -26,7 +26,8 @@
 
 #include "vsMotionModel.h++"
 #include "vsKinematics.h++"
-#include "vsGrowableArray.h++"
+#include "vsArray.h++"
+#include "vsWalkArticData.h++"
 
 #define VS_WALK_ARTIC_JOINT_COUNT 6
 
@@ -38,13 +39,6 @@ enum  vsWalkArticJoints
     VS_WALK_ARTIC_RIGHT_HIP,
     VS_WALK_ARTIC_RIGHT_KNEE,
     VS_WALK_ARTIC_RIGHT_ANKLE
-};
-
-struct VESS_SYM vsWalkArticData
-{
-    atQuat leftHip, leftKnee, leftAnkle;
-    atQuat rightHip, rightKnee, rightAnkle;
-    double distance;
 };
 
 enum  vsWalkArticState
@@ -63,8 +57,7 @@ private:
     vsKinematics       *leftHipKin, *leftKneeKin, *leftAnkleKin;
     vsKinematics       *rightHipKin, *rightKneeKin, *rightAnkleKin;
     
-    vsGrowableArray    keyframeData;
-    int                keyframeCount;
+    vsArray            keyframeData;
     vsWalkArticData    stopKeyframe;
     
     vsWalkArticData    *fromKeyframe, *toKeyframe;
@@ -77,6 +70,8 @@ private:
 
     void               getLine(FILE *in, char *buffer);
     void               captureStopFrame();
+    void               interpolateKeys(vsWalkArticData *key1,
+                                       vsWalkArticData *key2, double dist);
 
 public:
 

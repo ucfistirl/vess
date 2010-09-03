@@ -23,7 +23,6 @@
 #include "vsGlobals.h++"
 
 #include "vsObject.h++"
-#include "vsGrowableArray.h++"
 
 vsTreeMap *vsObject::currentObjectList = NULL;
 pthread_once_t vsObject::initObjectListOnce = PTHREAD_ONCE_INIT;
@@ -187,9 +186,8 @@ void vsObject::unrefDelete(vsObject *obj)
 //------------------------------------------------------------------------
 void vsObject::printCurrentObjects(FILE *outfile)
 {
-    vsGrowableArray keyList(1, 1);
-    vsGrowableArray valueList(1, 1);
-    int listSize, loop;
+    atList keyList;
+    int listSize;
     vsObject *currentObj;
 
     // Bail if no object list present
@@ -197,22 +195,23 @@ void vsObject::printCurrentObjects(FILE *outfile)
         return;
 
     // Get the size of the list
-    listSize = currentObjectList->getEntryCount();
+    listSize = currentObjectList->getNumEntries();
 
     // Get a sorted list of keys and values from the tree map
-    currentObjectList->getSortedList(&keyList, &valueList);
+    currentObjectList->getSortedList(&keyList, NULL);
 
     // Print all objects that are currently allocated to the output file
     fprintf(outfile, "list of allocated objects (%d):\n", listSize);
-    for (loop = 0; loop < listSize; loop++)
+    currentObj = (vsObject *) keyList.getFirstEntry();
+    while (currentObj != NULL)
     {
-        // Get the next object
-        currentObj = (vsObject *)(keyList[loop]);
-
         // Print the object's characteristics to the file
         fprintf(outfile, "  object: %p   refcount = %d   class = \"%s\"   valid = %s\n",
             currentObj, currentObj->getRefCount(), currentObj->getClassName(),
             (currentObj->isValidObject() ? "TRUE" : "FALSE"));
+
+        // Next object
+        currentObj = (vsObject *) keyList.getNextEntry();
     }
 }
 

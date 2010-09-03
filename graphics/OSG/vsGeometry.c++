@@ -20,6 +20,7 @@
 //------------------------------------------------------------------------
 
 #include "vsGeometry.h++"
+#include "vsOSGNode.h++"
 
 // ------------------------------------------------------------------------
 // Default Constructor - Creates an OSG geode and geometry and connects
@@ -34,7 +35,7 @@ vsGeometry::vsGeometry()
     osgGeometry->setDataVariance(osg::Object::STATIC);
 
     // Register this node and osg::Geode in the node map
-    getMap()->registerLink(this, osgGeode);
+    getMap()->registerLink(this, new vsOSGNode(osgGeode));
 }
 
 // ------------------------------------------------------------------------

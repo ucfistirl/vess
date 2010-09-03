@@ -25,7 +25,7 @@
 
 #include "vsTransparencyAttribute.h++"
 #include "vsLightAttribute.h++"
-#include "vsGrowableArray.h++"
+#include "vsArray.h++"
 #include "vsScene.h++"
 
 class VESS_SYM vsGraphicsState : public vsObject
@@ -38,8 +38,7 @@ private:
 
     vsScene                    *scene;
 
-    vsGrowableArray            *localLights;
-    int                        localLightsCount;
+    vsArray                    *localLights;
 
     void                       *transparencyLock;
 
@@ -47,18 +46,18 @@ private:
 
 VS_INTERNAL:
 
-    virtual            ~vsGraphicsState();
+    virtual   ~vsGraphicsState();
 
-    void               applyState(osg::StateSet *stateSet);
+    void      applyState(osg::StateSet *stateSet);
 
-    void               addLocalLight(vsLightAttribute *lightAttrib);
-    void               removeLocalLight(vsLightAttribute *lightAttrib);
+    void      addLocalLight(vsLightAttribute *lightAttrib);
+    void      removeLocalLight(vsLightAttribute *lightAttrib);
 
-    vsGrowableArray    *getLocalLightsArray();
-    int                getLocalLightsCount();
+    vsArray   *getLocalLightsArray();
+    int       getLocalLightsCount();
 
-    void               setCurrentScene(vsScene *newScene);
-    vsScene            *getCurrentScene();
+    void      setCurrentScene(vsScene *newScene);
+    vsScene   *getCurrentScene();
 
 public:
 

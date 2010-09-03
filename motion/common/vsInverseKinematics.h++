@@ -24,13 +24,14 @@
 #define VS_INVERSE_KINEMATICS_HPP
 
 #include "vsKinematics.h++"
+#include "vsArray.h++"
 
 class VESS_SYM vsInverseKinematics : public vsObject
 {
 private:
 
     // Array of kinematics objects
-    vsGrowableArray    kinematicsArray;
+    vsArray            kinematicsArray;
     int                kinematicsArraySize;
 
     // Vector from last joint point to end effector

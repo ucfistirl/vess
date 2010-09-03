@@ -129,7 +129,6 @@ void vsAvatar::init(char *configFile)
     atString *objectType;
     atString *objectName;
     vsObject *newObject;
-    int loop;
     
     // Make sure init() is only called once
     if (isInitted)
@@ -2673,7 +2672,6 @@ vsObject *vsAvatar::makeVsCollision()
     char token[256];
     int lineType = 0;
     vsKinematics *kinematics = NULL;
-    int pointCount = 0;
     unsigned int isectMask = 0xFFFFFFFF;
     int cmode = VS_COLLISION_MODE_STOP;
     double margin = VS_COLLISION_DEFAULT_MARGIN;
@@ -2682,7 +2680,8 @@ vsObject *vsAvatar::makeVsCollision()
     double x, y, z;
     int loop;
     int pointIdx;
-    vsGrowableArray pointArray(8, 8);
+    atArray pointArray;
+    atVector *point;
 
     // Read the parameters for this object
     while (lineType != VS_AVT_LINE_END)
@@ -2708,12 +2707,14 @@ vsObject *vsAvatar::makeVsCollision()
             sscanf(cfgLine, "%*s %d %lf %lf %lf", &pointIdx, &x, &y, &z);
             if ((pointIdx >= 0) && (pointIdx < VS_COLLISION_POINTS_MAX))
             {
-                for (loop = pointCount; loop <= pointIdx; loop++)
-                    pointArray[loop] = NULL;
-                pointCount = pointIdx+1;
-                if (pointArray[pointIdx])
-                    delete ((atVector *)(pointArray[pointIdx]));
-                pointArray[pointIdx] = new atVector(x, y, z);
+                // See if there's already a point at this index, and delete
+                // it if so
+                point = (atVector *) pointArray.getEntry(pointIdx);
+                if (point != NULL)
+                    delete point;
+
+                // Set the new point at this index
+                pointArray.setEntry(pointIdx, new atVector(x, y, z));
             }
             else
                 printf("vsAvatar::makeVsCollision (point): "
@@ -2778,15 +2779,18 @@ vsObject *vsAvatar::makeVsCollision()
     result = new vsCollision(kinematics, masterScene);
     
     // Set up the hot points as specified in the file
-    result->setPointCount(pointCount);
-    for (loop = 0; loop < pointCount; loop++)
-        if (pointArray[loop])
+    result->setPointCount(pointArray.getNumEntries());
+    for (loop = 0; loop < pointArray.getNumEntries(); loop++)
+    {
+        // Get the point
+        point = (atVector *) pointArray.getEntry(loop);
+        if (point != NULL)
         {
-            result->setPoint(loop, *((atVector *)(pointArray[loop])));
-            delete ((atVector *)(pointArray[loop]));
+            result->setPoint(loop, *point);
         }
         else
             result->setPoint(loop, atVector(0.0, 0.0, 0.0));
+    }
 
     // Set the remaining parameters
     result->setCollisionMode(cmode);

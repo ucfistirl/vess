@@ -43,7 +43,6 @@ void vsCOLLADAChannelGroup::setPathPoint(vsPathMotion *path, int pointIndex,
                                          vsCOLLADAKeyframe *keyframe,
                                          vsCOLLADAKeyframe *lastKeyframe)
 {
-    double previousTime;
     atVector basePos, keyPos;
     atQuat baseOrn, keyOrn;
     double tmpX, tmpY, tmpZ, tmpW;
@@ -296,9 +295,6 @@ vsPathMotion *vsCOLLADAChannelGroup::instance(vsKinematics *kin)
     vsPathMotion *pathMotion;
     int numChannels;
     vsCOLLADAChannel *channel;
-    double currentTime;
-    double *nextTimes;
-    double minTime;
     char xformSID[512];
     char *ch;
     char baseTarget[256];

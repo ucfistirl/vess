@@ -30,11 +30,9 @@
 // ------------------------------------------------------------------------
 // Constructor - Initializes save and owner lists
 // ------------------------------------------------------------------------
-vsStateAttribute::vsStateAttribute() : attrSaveList(1, 1), ownerList(10, 50)
+vsStateAttribute::vsStateAttribute()
 {
     // Initialize class members
-    attrSaveCount = 0;
-    ownerCount = 0;
     overrideFlag = false;
 }
 
@@ -84,8 +82,8 @@ void vsStateAttribute::markOwnersDirty()
     int loop;
     
     // Iterate through the list of attached nodes, marking each one dirty
-    for (loop = 0; loop < ownerCount; loop++)
-        ((vsNode *)(ownerList[loop]))->dirty();
+    for (loop = 0; loop < ownerList.getNumEntries(); loop++)
+        ((vsNode *)(ownerList.getEntry(loop)))->dirty();
 }
 
 // ------------------------------------------------------------------------
@@ -137,8 +135,8 @@ void vsStateAttribute::setAllOwnersOSGAttrModes()
     
     // Iterate through the list of nodes attached to this attribute,
     // calling the setOSGAttrModes() method on each node
-    for (loop = 0; loop < ownerCount; loop++)
-        setOSGAttrModes((vsNode *)(ownerList[loop]));
+    for (loop = 0; loop < ownerList.getNumEntries(); loop++)
+        setOSGAttrModes((vsNode *)(ownerList.getEntry(loop)));
 }
 
 // ------------------------------------------------------------------------
@@ -149,8 +147,7 @@ void vsStateAttribute::setAllOwnersOSGAttrModes()
 void vsStateAttribute::attach(vsNode *theNode)
 {
     // Add the node to our owner list and increment the owner count
-    ownerList[ownerCount] = theNode;
-    ownerCount++;
+    ownerList.addEntry(theNode);
 
     // Mark the given node dirty
     theNode->dirty();
@@ -166,27 +163,9 @@ void vsStateAttribute::attach(vsNode *theNode)
 // ------------------------------------------------------------------------
 void vsStateAttribute::detach(vsNode *theNode)
 {
-    int loop;
-    
-    // Find the given node in our owner list
-    for (loop = 0; loop < ownerCount; loop++)
-    {
-        // Check if the current node is the node we're looking for
-        if (theNode == ownerList[loop])
-        {
-            // Remove the node from the owner list, replacing it with
-            // the node at the end of the list
-            ownerList[loop] = ownerList[ownerCount-1];
-
-            // Decrement the owner count
-            ownerCount--;
-
-            // Mark the node dirty
-            theNode->dirty();
-
-            // Finish the vsAttribute detaching
-            vsAttribute::detach(theNode);
-            return;
-        }
-    }
+    // Try to remove the given node (keep a temporary reference to it, so
+    // it doesn't get deleted in the process)
+    theNode->ref();
+    ownerList.removeEntry(theNode);
+    theNode->unref();
 }

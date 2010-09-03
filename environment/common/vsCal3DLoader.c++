@@ -142,7 +142,6 @@ vsCharacter *vsCal3DLoader::loadCharacter(char *filename)
     char *fieldValue;
     char *delimiter = " =\r\n";
     double scaleValue;
-    int index;
     vsSkeleton *skeleton;
     atArray *boneMatrices;
     vsSkeletonKinematics *skeletonKin;

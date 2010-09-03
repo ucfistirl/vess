@@ -268,7 +268,7 @@ void vsTransparencyAttribute::saveCurrent()
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
     // Save the current transparency settings
-    attrSaveList[attrSaveCount++] = gState->getTransparency();
+    attrSaveList.addEntry(gState->getTransparency());
 }
 
 // ------------------------------------------------------------------------
@@ -292,14 +292,28 @@ void vsTransparencyAttribute::apply()
 // ------------------------------------------------------------------------
 void vsTransparencyAttribute::restoreSaved()
 {
+    int index;
+    vsTransparencyAttribute *transp;
+
     // Get the current vsGraphicsState object
     vsGraphicsState *gState = vsGraphicsState::getInstance();
 
-    // Restore the previous transparency settings to the vsGraphicsState
+    // Restore the previous transparency override value
     if (overrideFlag)
         gState->unlockTransparency(this);
-    gState->setTransparency(
-        (vsTransparencyAttribute *)(attrSaveList[--attrSaveCount]));
+    index = attrSaveList.getNumEntries() - 1;
+    transp = (vsTransparencyAttribute *) attrSaveList.getEntry(index);
+    gState->setTransparency(transp);
+
+    // Remove the transparency settings from the list (note that this
+    // may be NULL if there was no previous transparency setting).  If 
+    // it is not NULL, keep a temporary reference to it to be sure that it
+    // isn't deleted
+    if (transp != NULL)
+       transp->ref();
+    attrSaveList.removeEntryAtIndex(index);
+    if (transp != NULL)
+       transp->unref();
 }
 
 // ------------------------------------------------------------------------

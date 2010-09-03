@@ -35,7 +35,7 @@ class vsWindow;
 #include "vsScreen.h++"
 #include "vsPane.h++"
 #include "vsObjectMap.h++"
-#include "vsGrowableArray.h++"
+#include "vsArray.h++"
 #include "vsImage.h++"
 
 #define VS_WINDOW_DEFAULT_WIDTH  640
@@ -49,8 +49,7 @@ private:
 
     vsScreen                   *parentScreen;
 
-    vsGrowableArray            childPaneList;
-    int                        childPaneCount;
+    vsArray                    childPaneList;
 
     int                        windowNumber;
 

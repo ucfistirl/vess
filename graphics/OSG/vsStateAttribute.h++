@@ -23,7 +23,8 @@
 #define VS_STATE_ATTRIBUTE_HPP
 
 #include "vsGlobals.h++"
-#include "vsGrowableArray.h++"
+#include "vsArray.h++"
+#include "vsList.h++"
 #include "vsAttribute.h++"
 #include <osg/StateSet>
 
@@ -31,11 +32,9 @@ class VESS_SYM vsStateAttribute : public vsAttribute
 {
 protected:
 
-    vsGrowableArray    attrSaveList;
-    int                attrSaveCount;
+    vsArray            attrSaveList;
     
-    vsGrowableArray    ownerList;
-    int                ownerCount;
+    vsArray            ownerList;
     
     bool               overrideFlag;
     

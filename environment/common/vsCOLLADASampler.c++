@@ -343,7 +343,7 @@ bool vsCOLLADASampler::processSamplerInterpolation(vsCOLLADADataSource *source)
     //     COLLADA     vsPathMotion (position)   (orientation)
     //     ---------------------------------------------------
     //     STEP                      NONE           NONE
-    //     LINEAR                    LINEAR         SLERP
+    //     LINEAR                    LINEAR         NLERP
     //     CARDINAL                  SPLINE         SPLINE
     //     BEZIER                    SPLINE         SPLINE
     //     HERMITE                   SPLINE         SPLINE
@@ -383,9 +383,16 @@ bool vsCOLLADASampler::processSamplerInterpolation(vsCOLLADADataSource *source)
         else if (strcmp(mode.getString(), "LINEAR") == 0)
         {  
             // LINEAR translates to linear interpolation on positions,
-            // and SLERP (Spherical Linear intERPolation) on orientations
+            // and NLERP (Normalized Linear intERPolation) on orientations.
+            // Since we're interpolating between sample points on an animation
+            // curve, each orientation sample isn't likely to be that different
+            // from the last.  This means that the velocity distortion from
+            // the non-spherical interpolation is not likely to be noticeable,
+            // and nlerp is much cheaper to compute than slerp.  Also, unlike
+            // slerp, nlerp is commutative, so it's easier to blend multiple
+            // animation curves together.
             positionInterp = VS_PATH_POS_IMODE_LINEAR;
-            orientationInterp = VS_PATH_ORI_IMODE_SLERP;
+            orientationInterp = VS_PATH_ORI_IMODE_NLERP;
         }
         else if ((strcmp(mode.getString(), "CARDINAL") == 0) ||
                  (strcmp(mode.getString(), "BEZIER") == 0) ||
