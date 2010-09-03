@@ -1,97 +1,80 @@
-//------------------------------------------------------------------------
-//
-//    VIRTUAL ENVIRONMENT SOFTWARE SANDBOX (VESS)
-//
-//    Copyright (c) 2001, University of Central Florida
-//
-//       See the file LICENSE for license information
-//
-//    E-mail:  vess@ist.ucf.edu
-//    WWW:     http://vess.ist.ucf.edu/
-//
-//------------------------------------------------------------------------
-//
-//    VESS Module:  vsTreeMap.h++
-//
-//    Description:  Utility class that implements a mapping from key
-//                  values to data values, stored using a red-black
-//                  tree algorithm
-//
-//    Author(s):    Bryan Kline
-//
-//------------------------------------------------------------------------
 
 #ifndef VS_TREE_MAP_HPP
 #define VS_TREE_MAP_HPP
 
-#include "vsGlobals.h++"
-#include "vsGrowableArray.h++"
+#include "atGlobals.h++"
+#include "atList.h++"
+#include "atItem.h++"
+#include "atNotifier.h++"
+#include "atOSDefs.h++"
+#include "atPair.h++"
 
-enum  vsTreeMapColor
+enum vsTreeMapColor
 {
     VS_TREE_MAP_BLACK,
     VS_TREE_MAP_RED
 };
 
-enum  vsTreeMapChildType
+enum vsTreeMapChildType
 {
     VS_TREE_MAP_LEFTCHILD,
     VS_TREE_MAP_RIGHTCHILD,
     VS_TREE_MAP_ROOTNODE
 };
 
-struct VESS_SYM vsTreeMapNode
+struct vsTreeMapNode
 {
-    vsTreeMapNode   *leftChild;
-    vsTreeMapNode   *rightChild;
-    vsTreeMapNode   *parent;
-    int             color;
+    vsTreeMapNode *   leftChild;
+    vsTreeMapNode *   rightChild;
+    vsTreeMapNode *   parent;
+    int               color;
     
-    void            *nodeKey;
-    void            *nodeValue;
+    atItem *          nodeKey;
+    atItem *          nodeValue;
 };
 
-class VESS_SYM vsTreeMap
+class VESS_SYM vsTreeMap : public atNotifier
 {
 private:
 
-    vsTreeMapNode    *treeRoot;
-    int              treeSize;
+    vsTreeMapNode *   treeRoot;
+    u_long            treeSize;
     
-    vsTreeMapNode    *findNode(vsTreeMapNode *node, void *key);
-    void             rebalanceInsert(vsTreeMapNode *node);
-    void             rebalanceDelete(vsTreeMapNode *parent,
-                                     int deletedChildType);
-    void             deleteNode(vsTreeMapNode *node);
-    vsTreeMapNode    *getInorderSuccessor(vsTreeMapNode *node);
-    void             rotateLeft(vsTreeMapNode *node);
-    void             rotateRight(vsTreeMapNode *node);
-    void             deleteTree(vsTreeMapNode *node);
-    int              getChildType(vsTreeMapNode *node);
-    void             fillArrays(vsTreeMapNode *node, int *arrayPos,
-                                vsGrowableArray *keyList,
-                                vsGrowableArray *valueList);
+    void              clear();
+
+    vsTreeMapNode *   findNode(vsTreeMapNode * node, atItem * key);
+    void              rebalanceInsert(vsTreeMapNode * node);
+    void              rebalanceDelete(vsTreeMapNode * parent,
+                                      int deletedChildType);
+    void              deleteNode(vsTreeMapNode * node);
+    void              removeNode(vsTreeMapNode * node);
+    vsTreeMapNode *   getInorderSuccessor(vsTreeMapNode * node);
+    void              rotateLeft(vsTreeMapNode * node);
+    void              rotateRight(vsTreeMapNode * node);
+    void              deleteTree(vsTreeMapNode * node, bool deleteContents);
+    int               getChildType(vsTreeMapNode * node);
+    void              fillLists(vsTreeMapNode * node, atList * keyList,
+                                atList * valueList);
+    void              printTree(vsTreeMapNode * node, int indent);
 
 public:
 
                 vsTreeMap();
-                ~vsTreeMap();
+    virtual     ~vsTreeMap();
 
-    bool        addEntry(void *key, void *value);
-    bool        deleteEntry(void *key);
-    int         getEntryCount();
+    bool        addEntry(atItem * key, atItem * value);
+    atPair *    removeEntry(atItem * key);
+    void        removeAllEntries();
+    u_long      getNumEntries();
     
-    bool        containsKey(void *key);
-    void        *getValue(void *key);
-    bool        changeValue(void *key, void *newValue);
+    bool        containsKey(atItem * key);
+    atItem *    getValue(atItem * key);
+    atItem *    changeValue(atItem * key, atItem * newValue);
 
-    void        clear();
+    void        getSortedList(atList * keyList,
+                              atList * valueList);
 
-    void        getSortedList(vsGrowableArray *keyList,
-                              vsGrowableArray *valueList);
+    void        print();
 };
-
-
-
 
 #endif
