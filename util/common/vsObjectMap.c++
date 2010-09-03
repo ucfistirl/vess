@@ -14,7 +14,9 @@
 //    VESS Module:  vsObjectMap.c++
 //
 //    Description:  Utility class that implements a list of paired object
-//                  pointers
+//                  pointers.  This class is designed to be thread-safe,
+//                  so it should be OK for multiple threads to access and
+//                  manipulate the map concurrently.
 //
 //    Author(s):    Bryan Kline
 //
@@ -48,8 +50,10 @@ vsObjectMap::~vsObjectMap()
     // using it
     lockMap();
 
-    // Destroy the tree maps
+    // Destroy the maps, but keep the contents intact
+    firstList->removeAllEntries();
     delete firstList;
+    secondList->removeAllEntries();
     delete secondList;
 
     // Release the map lock
@@ -82,7 +86,7 @@ void vsObjectMap::unlockMap()
 // Adds a connection between the two given objects to the object map's
 // list
 // ------------------------------------------------------------------------
-void vsObjectMap::registerLink(void *firstObject, void *secondObject)
+void vsObjectMap::registerLink(vsObject *firstObject, vsObject *secondObject)
 {
     // Lock the map
     lockMap();
@@ -116,9 +120,9 @@ void vsObjectMap::registerLink(void *firstObject, void *secondObject)
 // whichList constant specifies which list of objects the function should
 // search in for the link to delete.
 // ------------------------------------------------------------------------
-bool vsObjectMap::removeLink(void *theObject, int whichList)
+bool vsObjectMap::removeLink(vsObject *theObject, int whichList)
 {
-    void *otherListObjPtr;
+    vsObject *otherListObjPtr;
 
     // Lock the map
     lockMap();
@@ -133,9 +137,9 @@ bool vsObjectMap::removeLink(void *theObject, int whichList)
                 // Determine which object in the second map corresponds
 		// to the object in the first, and remove each object
 		// from its associated map
-                otherListObjPtr = firstList->getValue(theObject);
-                firstList->deleteEntry(theObject);
-                secondList->deleteEntry(otherListObjPtr);
+                otherListObjPtr = (vsObject *) firstList->getValue(theObject);
+                firstList->removeEntry(theObject);
+                secondList->removeEntry(otherListObjPtr);
 
                 // Unlock the map
                 unlockMap();
@@ -152,9 +156,9 @@ bool vsObjectMap::removeLink(void *theObject, int whichList)
                 // Determine which object in the first map corresponds
 		// to the object in the second, and remove each object
 		// from its associated map
-                otherListObjPtr = secondList->getValue(theObject);
-                secondList->deleteEntry(theObject);
-                firstList->deleteEntry(otherListObjPtr);
+                otherListObjPtr = (vsObject *) secondList->getValue(theObject);
+                secondList->removeEntry(theObject);
+                firstList->removeEntry(otherListObjPtr);
 
                 // Unlock the map
                 unlockMap();
@@ -172,9 +176,9 @@ bool vsObjectMap::removeLink(void *theObject, int whichList)
                 // Determine which object in the second map corresponds
 		// to the object in the first, and remove each object
 		// from its associated map
-                otherListObjPtr = firstList->getValue(theObject);
-                firstList->deleteEntry(theObject);
-                secondList->deleteEntry(otherListObjPtr);
+                otherListObjPtr = (vsObject *) firstList->getValue(theObject);
+                firstList->removeEntry(theObject);
+                secondList->removeEntry(otherListObjPtr);
 
                 // Unlock the map
                 unlockMap();
@@ -187,9 +191,9 @@ bool vsObjectMap::removeLink(void *theObject, int whichList)
                 // Determine which object in the first map corresponds
 		// to the object in the second, and remove each object
 		// from its associated map
-                otherListObjPtr = secondList->getValue(theObject);
-                secondList->deleteEntry(theObject);
-                firstList->deleteEntry(otherListObjPtr);
+                otherListObjPtr = (vsObject *) secondList->getValue(theObject);
+                secondList->removeEntry(theObject);
+                firstList->removeEntry(otherListObjPtr);
 
                 // Unlock the map
                 unlockMap();
@@ -217,8 +221,8 @@ void vsObjectMap::removeAllLinks()
     lockMap();
 
     // Empty both maps
-    firstList->clear();
-    secondList->clear();
+    firstList->removeAllEntries();
+    secondList->removeAllEntries();
 
     // Unlock the map
     unlockMap();
@@ -228,15 +232,15 @@ void vsObjectMap::removeAllLinks()
 // Searches for the given object in the first list of objects, and returns
 // the corresponding second object if found.
 // ------------------------------------------------------------------------
-void *vsObjectMap::mapFirstToSecond(void *firstObject)
+vsObject *vsObjectMap::mapFirstToSecond(vsObject *firstObject)
 {
-    void *secondObject;
+    vsObject *secondObject;
 
     // Lock the map
     lockMap();
 
     // Get the object corresponding to the first object from the first map
-    secondObject = firstList->getValue(firstObject);
+    secondObject = (vsObject *) firstList->getValue(firstObject);
 
     // Unlock the map
     unlockMap();
@@ -249,15 +253,15 @@ void *vsObjectMap::mapFirstToSecond(void *firstObject)
 // Searches for the given object in the second list of objects, and returns
 // the corresponding first object if found.
 // ------------------------------------------------------------------------
-void *vsObjectMap::mapSecondToFirst(void *secondObject)
+vsObject *vsObjectMap::mapSecondToFirst(vsObject *secondObject)
 {
-    void *firstObject;
+    vsObject *firstObject;
 
     // Lock the map
     lockMap();
 
     // Get the object corresponding to the second object from the second map
-    firstObject = secondList->getValue(secondObject);
+    firstObject = (vsObject *) secondList->getValue(secondObject);
 
     // Unlock the map
     unlockMap();

@@ -14,7 +14,9 @@
 //    VESS Module:  vsObjectMap.h++
 //
 //    Description:  Utility class that implements a list of paired object
-//                  pointers
+//                  pointers.  This class is designed to be thread safe,
+//                  so it should be OK for multiple threads to access
+//                  and manipulate the map concurrently.
 //
 //    Author(s):    Bryan Kline
 //
@@ -23,6 +25,7 @@
 #ifndef VS_OBJECT_MAP_HPP
 #define VS_OBJECT_MAP_HPP
 
+#include "vsObject.h++"
 #include "vsTreeMap.h++"
 #include <pthread.h>
 
@@ -50,12 +53,12 @@ public:
                 vsObjectMap();
                 ~vsObjectMap();
 
-    void        registerLink(void *firstObject, void *secondObject);
-    bool        removeLink(void *theObject, int whichList);
+    void        registerLink(vsObject *firstObject, vsObject *secondObject);
+    bool        removeLink(vsObject *theObject, int whichList);
     void        removeAllLinks();
 
-    void        *mapFirstToSecond(void *firstObject);
-    void        *mapSecondToFirst(void *secondObject);
+    vsObject    *mapFirstToSecond(vsObject *firstObject);
+    vsObject    *mapSecondToFirst(vsObject *secondObject);
 };
 
 #endif
