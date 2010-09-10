@@ -113,7 +113,8 @@ private:
     double                audioElapsed;
     double                curVideoTimestamp;
 
-    AVFrame               *allocFrame(int format, int width, int height);
+    AVFrame               *allocFrame(PixelFormat format, int width,
+                                      int height);
 
     static void           *writeLoopFixed(void *userData);
     static void           *writeLoopReal(void *userData);

@@ -43,7 +43,7 @@ vsMovieWriter::vsMovieWriter(const char *format)
     av_register_all();
 
     // Allocate the format context, which will store data.
-    movieContext = av_alloc_format_context();
+    movieContext = avformat_alloc_context();
     if (movieContext == NULL)
     {
         fprintf(stderr, "vsMovieWriter::vsMovieWriter: Unable to allocate "
@@ -52,7 +52,7 @@ vsMovieWriter::vsMovieWriter(const char *format)
     }
 
     // Apply the format information to the output context.
-    movieFormat = guess_format(format, NULL, NULL);
+    movieFormat = av_guess_format(format, NULL, NULL);
     if (movieFormat == NULL)
     {
         fprintf(stderr, "vsMovieWriter::vsMovieWriter: Could not guess a "
@@ -824,7 +824,7 @@ double vsMovieWriter::getTimeElapsed()
 // or NULL if such a frame cannot be allocated. Note that the data buffer
 // for the frame is allocated and set as well.
 // ------------------------------------------------------------------------
-AVFrame *vsMovieWriter::allocFrame(int format, int width, int height)
+AVFrame *vsMovieWriter::allocFrame(PixelFormat format, int width, int height)
 {
     AVFrame *frame;
     uint8_t *imageBuffer;

@@ -687,6 +687,7 @@ void vsMovieReader::readNextFrame()
     int readSize;
     int gotPicture;
     AVPacket moviePacket;
+    AVPacket decodePacket;
     unsigned char *audioBufferPtr;
     int size, outputSize;
     unsigned char *dataPtr;
@@ -714,8 +715,8 @@ void vsMovieReader::readNextFrame()
 
             // Allocate a video frame and decode the video packet
             readSize = 
-                avcodec_decode_video(videoCodecContext, videoFrame, 
-                    &gotPicture, moviePacket.data, moviePacket.size);
+                avcodec_decode_video2(videoCodecContext, videoFrame, 
+                    &gotPicture, &moviePacket);
 
             // If the video codec gave us a full picture, output it now
             if ((readSize >= 0) && (gotPicture))
@@ -748,12 +749,16 @@ void vsMovieReader::readNextFrame()
         // Get a packet from the audio queue
         if (dequeuePacket(audioQueue, &moviePacket))
         {
+            // The audio AVPacket might contain multiple frames worth of
+            // data (depending on the codec in use).  Set up a temporary
+            // AVPacket to keep track of our decoding progress (only the
+            // data and size fields are needed for the decode process)
+            decodePacket.data = moviePacket.data;
+            decodePacket.size = moviePacket.size;
+
             // Decode the packet data
-            size = moviePacket.size;
-            dataPtr = moviePacket.data;
-            audioBufferPtr = 
-                (unsigned char *)&audioBuffer[audioBufferSize];
-            while (size > 0)
+            audioBufferPtr = (unsigned char *)&audioBuffer[audioBufferSize];
+            while (decodePacket.size > 0)
             {
                 // Lock the audio mutex
                 pthread_mutex_lock(&audioMutex);
@@ -763,21 +768,20 @@ void vsMovieReader::readNextFrame()
 
                 // Decode a chunk of the packet's data
                 readSize = 
-                    avcodec_decode_audio2(audioCodecContext, 
-                        (short *)audioBufferPtr, &outputSize, dataPtr,
-                        size);
+                    avcodec_decode_audio3(audioCodecContext, 
+                        (short *)audioBufferPtr, &outputSize, &decodePacket);
 
                 // If we hit an error, bail out of this frame
                 if ((readSize < 0) || (outputSize < 0))
                 {
-                    size = 0;
+                    decodePacket.size = 0;
                 }
                 else
                 {
                     // Update the amount of data left to read as
                     // well as the input and output data pointers
-                    size -= readSize;
-                    dataPtr += readSize;
+                    decodePacket.data += readSize;
+                    decodePacket.size -= readSize;
                     audioBufferPtr += outputSize;
                     audioBufferSize += outputSize;
                 }
@@ -788,7 +792,6 @@ void vsMovieReader::readNextFrame()
 
             // Release the packet
             av_free_packet(&moviePacket);
-
         }
     }
 
