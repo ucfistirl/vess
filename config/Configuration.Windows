@@ -113,5 +113,5 @@ vrpnPath = L:/vrpn-06.06beta4
 videoEnabled = yes
 
 # Path for ffmpeg (audio/video encode/decode library)
-ffmpegPath = L:/ffmpeg-0.5
+ffmpegPath = L:/ffmpeg-0.6
 
