@@ -93,7 +93,6 @@ private:
     double                currentFrameTime;
     double                totalFileTime;
     int                   playMode;
-vsTimer *playTimer;
 
     void                  readNextFrame();
     void                  copyFrame();
