@@ -59,7 +59,7 @@ if useVideo:
    ffmpegPath = config.get('environment', 'ffmpegPath')
    environmentIncPath.extend(Split(ffmpegPath + '/include'))
    environmentLibPath.extend(Split(ffmpegPath + '/lib'))
-   environmentLibs.extend(Split('avformat avcodec avutil'))
+   environmentLibs.extend(Split('avformat avcodec avutil swscale'))
 
 
 # Create the final list of sources
