@@ -101,8 +101,10 @@ public:
                                               double *constant);
 
     void                   setPosition(double x, double y, double z, double w);
+    void                   setPosition(atVector newPos);
     void                   getPosition(double *x, double *y, double *z,
                                        double *w);
+    atVector               getPosition();
 
     void                   setSpotlightDirection(double dx, double dy,
                                                  double dz);

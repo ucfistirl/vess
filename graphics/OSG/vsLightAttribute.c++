@@ -104,6 +104,7 @@ vsAttribute *vsLightAttribute::clone()
 {
     vsLightAttribute *newAttrib;
     double p1, p2, p3, p4;
+    atVector pVec;
  
     // Create another light attribute
     newAttrib = new vsLightAttribute();
@@ -117,8 +118,8 @@ vsAttribute *vsLightAttribute::clone()
     newAttrib->setSpecularColor(p1, p2, p3);
     getAttenuationVals(&p1, &p2, &p3);
     newAttrib->setAttenuationVals(p1, p2, p3);
-    getPosition(&p1, &p2, &p3, &p4);
-    newAttrib->setPosition(p1, p2, p3, p4);
+    pVec = getPosition();
+    newAttrib->setPosition(pVec);
     getSpotlightDirection(&p1, &p2, &p3);
     newAttrib->setSpotlightDirection(p1, p2, p3);
     getSpotlightValues(&p1, &p2);
@@ -286,6 +287,30 @@ void vsLightAttribute::setPosition(double x, double y, double z, double w)
 }
 
 // ------------------------------------------------------------------------
+// Sets the position of this light source. The fourth value, w, is a
+// homogeneous coordinate scale; passing in 0 for w results in a light
+// source that is infinitely far away from the viewer.
+// ------------------------------------------------------------------------
+void vsLightAttribute::setPosition(atVector newPos)
+{
+    int oldSize;
+    osg::Vec4 positionVector;
+
+    // Resize the vector to have four elements.  If Z is missing, assume 0,
+    // and if W is missing, assume 1 (point light)
+    oldSize = newPos.getSize();
+    newPos.setSize(4);
+    if (oldSize <= 3)
+       newPos[AT_Z] = 0.0;
+    if (oldSize <= 4)
+       newPos[AT_W] = 1.0;
+
+    // Store the location in an OSG vector and pass it to the Light object
+    positionVector.set(newPos[AT_X], newPos[AT_Y], newPos[AT_Z], newPos[AT_W]);
+    lightObject->setPosition(positionVector);
+}
+
+// ------------------------------------------------------------------------
 // Retrieves the position and coordinate scale for this light source. NULL
 // pointers may be passed in for undesired values.
 // ------------------------------------------------------------------------
@@ -306,6 +331,22 @@ void vsLightAttribute::getPosition(double *x, double *y, double *z, double *w)
         *z = positionVector.x();
     if (w)
         *w = positionVector.w();
+}
+
+// ------------------------------------------------------------------------
+// Retrieves the position and coordinate scale for this light source. NULL
+// pointers may be passed in for undesired values.
+// ------------------------------------------------------------------------
+atVector vsLightAttribute::getPosition()
+{
+    osg::Vec4 positionVector;
+   
+    // Retrieve the position from the OSG Light object
+    positionVector = lightObject->getPosition();
+   
+    // Return the position as an atVector
+    return atVector(positionVector.x(), positionVector.y(), positionVector.z(),
+                    positionVector.w());
 }
 
 // ------------------------------------------------------------------------
