@@ -90,10 +90,11 @@ private:
     unsigned char         *outputBuffer;
     double                lastTimeStamp;
     double                lastFrameInterval;
-    double                currentFrameTime;
+    double                currentTime;
     double                totalFileTime;
     int                   playMode;
 
+    void                  forceReadFrame();
     void                  readNextFrame();
     void                  copyFrame();
 
@@ -126,6 +127,7 @@ public:
     int              getWidth();
     int              getHeight();
     int              getDataSize();
+    double           getTotalTime();
     double           getTimePerFrame();
 
     void             setVideoBuffer(unsigned char *dataOutputBuffer);
@@ -135,7 +137,7 @@ public:
 
     void             advanceFrame();
     void             advanceTime(double seconds);
-    double           getTotalTime();
+    void             jumpToTime(double seconds);
     void             restart();
     int              getPlayMode();
 };

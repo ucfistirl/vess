@@ -47,7 +47,7 @@ vsMovieReader::vsMovieReader()
     imageHeight = 0;
     timePerFrame = 0.0;
     outputBuffer = NULL;
-    currentFrameTime = 0.0;
+    currentTime = 0.0;
     totalFileTime = 0.0;
     playMode = VS_MOVIE_STOPPED;
     memset(audioBuffer, 0, sizeof(audioBuffer));
@@ -391,11 +391,13 @@ bool vsMovieReader::openFile(char *filename)
     // See if we got at least one kind of stream
     if (videoCodecContext || audioCodecContext)
     {
+        // TODO: Attempt to calculate the total file time
+        totalFileTime = 0.0;
+
         // Reset the video time parameters (We have to do this _before_ we 
         // call readNextframe(), as that function won't work if the play 
         // mode is STOPPED.)
-        currentFrameTime = 0.0;
-        totalFileTime = 0.0;
+        currentTime = 0.0;
         lastTimeStamp = 0.0;
         lastFrameInterval = timePerFrame;
         playMode = VS_MOVIE_PLAYING;
@@ -488,7 +490,7 @@ void vsMovieReader::closeFile()
     imageWidth = 0;
     imageHeight = 0;
     timePerFrame = 0.0;
-    currentFrameTime = 0.0;
+    currentTime = 0.0;
     totalFileTime = 0.0;
 
     // Reset the audio parameters
@@ -519,6 +521,14 @@ int vsMovieReader::getHeight()
 int vsMovieReader::getDataSize()
 {
     return (imageWidth * imageHeight * 3);
+}
+
+// ------------------------------------------------------------------------
+// Returns the total elapsed time for the video
+// ------------------------------------------------------------------------
+double vsMovieReader::getTotalTime()
+{
+    return totalFileTime;
 }
 
 // ------------------------------------------------------------------------
@@ -575,6 +585,10 @@ void vsMovieReader::advanceFrame()
 
     // Copy the data to the output area
     copyFrame();
+
+    // We need to update the currentTime value to the timestamp of the
+    // latest frame so that advanceTime will still work after this call
+    currentTime = lastTimeStamp;
 }
 
 // ------------------------------------------------------------------------
@@ -585,19 +599,21 @@ void vsMovieReader::advanceFrame()
 // ------------------------------------------------------------------------
 void vsMovieReader::advanceTime(double seconds)
 {
-    bool frameAdvanced = false;
+    bool frameAdvanced;
 
     // If there's no valid video decoder for this object, abort
     if (!videoCodecContext && !audioCodecContext)
         return;
 
     // Add the specified time to the video timer
-    currentFrameTime += seconds;
-    totalFileTime += seconds;
+    currentTime += seconds;
+
+    // We haven't yet needed to move forward a frame
+    frameAdvanced = false;
 
     // Read frames from the stream as long as the frame's timestamp is
     // less than the current file time
-    while ((lastTimeStamp < totalFileTime) && 
+    while ((lastTimeStamp < currentTime) && 
            ((playMode == VS_MOVIE_PLAYING) || (playMode == VS_MOVIE_EOF)))
     {
         readNextFrame();
@@ -605,8 +621,8 @@ void vsMovieReader::advanceTime(double seconds)
     }
 
     // Clip the total file time if it ran off the end of the movie.
-    if (lastTimeStamp < totalFileTime)
-        totalFileTime = lastTimeStamp;
+    if (lastTimeStamp < currentTime)
+        currentTime = lastTimeStamp;
 
     // Copy the frame data over, if we advanced to a new one
     if (frameAdvanced)
@@ -614,11 +630,69 @@ void vsMovieReader::advanceTime(double seconds)
 }
 
 // ------------------------------------------------------------------------
-// Returns the total elapsed time for the video
+// Attempts to jump to a specific timestamp (in seconds)
 // ------------------------------------------------------------------------
-double vsMovieReader::getTotalTime()
-{
-    return totalFileTime;
+void vsMovieReader::jumpToTime(double seconds)
+{ 
+    int64_t targetTimeStamp;
+
+    // If there's no valid video decoder for this object, abort
+    if (!videoCodecContext && !audioCodecContext)
+        return;
+
+    // Make sure we have a file open already
+    if (!movieFile)
+        return;
+
+    // Flush both queues
+    flushQueue(videoQueue);
+    flushQueue(audioQueue);
+
+    // Empty the audio buffer
+    audioBufferSize = 0;
+
+    // Acquire the file mutex
+    pthread_mutex_lock(&fileMutex);
+
+    // Make sure we have a valid stream to seek within
+    if (videoStreamIndex >= 0)
+    {
+        // Calculate the timestamp in stream units
+        targetTimeStamp = (int64_t)(seconds / av_q2d(videoStream->time_base));
+
+        // Jump to the desired frame using the video stream as the basis
+        av_seek_frame(movieFile, videoStreamIndex, targetTimeStamp, 0);
+
+        // Flush the internal buffers of the video stream
+        // TODO: Why don't we have to do this for the audio stream?
+        avcodec_flush_buffers(videoCodecContext);
+    }
+    else if (audioStreamIndex >= 0)
+    {
+        // Calculate the timestamp in stream units
+        targetTimeStamp = (int64_t)(seconds / av_q2d(audioStream->time_base));
+
+        // Jump to the desired frame using the audio stream as the basis
+        av_seek_frame(movieFile, audioStreamIndex, targetTimeStamp, 0);
+    }
+
+    // Release the file mutex
+    pthread_mutex_unlock(&fileMutex);
+
+    // Reset the video timers
+    currentTime = seconds;
+    totalFileTime = 0.0;
+    lastTimeStamp = 0.0;
+    lastFrameInterval = 0.0;
+
+    // Mark the file as ready to play (we have to do this _before_ we call
+    // advanceFrame(), as that function won't work if the play mode is
+    // STOPPED.)
+    playMode = VS_MOVIE_PLAYING;
+
+    // Re-prime the video
+    forceReadFrame();
+    advanceFrame();
 }
 
 // ------------------------------------------------------------------------
@@ -656,7 +730,7 @@ void vsMovieReader::restart()
     pthread_mutex_unlock(&fileMutex);
 
     // Reset the video timers
-    currentFrameTime = 0.0;
+    currentTime = 0.0;
     totalFileTime = 0.0;
     lastTimeStamp = 0.0;
     lastFrameInterval = timePerFrame;
@@ -667,6 +741,7 @@ void vsMovieReader::restart()
     playMode = VS_MOVIE_PLAYING;
 
     // Re-prime the video
+    forceReadFrame();
     advanceFrame();
 }
 
@@ -676,6 +751,60 @@ void vsMovieReader::restart()
 int vsMovieReader::getPlayMode()
 {
     return playMode;
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// ------------------------------------------------------------------------
+void vsMovieReader::forceReadFrame()
+{
+    int readStatus;
+    AVPacket moviePacket;
+    bool needVideo;
+
+    // Can't do anything if we're not in a PLAYING mode
+    if ((playMode != VS_MOVIE_PLAYING) && (playMode != VS_MOVIE_EOF))
+        return;
+
+    // Get the next packets from the queue
+    if (videoCodecContext != NULL)
+    {
+        // Indicate that we still need to read at least one video frame
+        needVideo = true;
+
+        // Acquire the file mutex
+        pthread_mutex_lock(&fileMutex);
+
+        // Try to read a packet
+        readStatus = av_read_frame(movieFile, &moviePacket);
+        while ((readStatus >= 0) && (needVideo))
+        {
+            // If we got a valid packet, enqueue it on the appropriate queue
+            if ((moviePacket.stream_index == videoStreamIndex) &&
+                (videoCodecContext != NULL))
+            {
+                // Place the packet on the video queue
+                enqueuePacket(videoQueue, &moviePacket);
+
+                // We no longer need a video frame
+                needVideo = false;
+            }
+            else if ((moviePacket.stream_index == audioStreamIndex) &&
+                     (audioCodecContext != NULL))
+            {
+                // Place the packet on the audio queue
+                enqueuePacket(audioQueue, &moviePacket);
+            }
+            else
+            {
+                // This packet comes from an unknown stream. Discard it.
+                av_free_packet(&moviePacket);
+            }
+        }
+
+        // Release the file mutex
+        pthread_mutex_unlock(&fileMutex);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -714,9 +843,8 @@ void vsMovieReader::readNextFrame()
             }
 
             // Allocate a video frame and decode the video packet
-            readSize = 
-                avcodec_decode_video2(videoCodecContext, videoFrame, 
-                    &gotPicture, &moviePacket);
+            readSize = avcodec_decode_video2(videoCodecContext, videoFrame,
+                &gotPicture, &moviePacket);
 
             // If the video codec gave us a full picture, output it now
             if ((readSize >= 0) && (gotPicture))
@@ -732,6 +860,7 @@ void vsMovieReader::readNextFrame()
 
             // Remember the time stamp
             lastTimeStamp = timeStamp;
+printf("lastTimeStamp = %0.3lf\n", timeStamp);
         }
         else if (playMode == VS_MOVIE_EOF)
         {
@@ -872,7 +1001,6 @@ bool vsMovieReader::dequeuePacket(vsMoviePacketQueue *queue, AVPacket *packet)
 
     // Try to get the packet from the head of the queue
     packetQueueEntry = queue->head;
-
     if (packetQueueEntry != NULL)
     {
         // Update the queue
@@ -990,11 +1118,10 @@ void *vsMovieReader::fileThreadFunc(void *readerObject)
 
                 // Try to read a packet
                 readStatus = av_read_frame(instance->movieFile, &moviePacket);
-
-                // If we got a valid packet, enqueue it on the appropriate
-                // queue
                 if (readStatus >= 0)
                 {
+                    // If we got a valid packet, enqueue it on the appropriate
+                    // queue
                     if ((moviePacket.stream_index == 
                             instance->videoStreamIndex) &&
                         (instance->videoCodecContext != NULL))
