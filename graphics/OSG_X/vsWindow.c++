@@ -911,13 +911,8 @@ vsWindow::~vsWindow()
         // Get the next pane at the front of the list
         pane = (vsPane *) childPaneList.getEntry(0);
 
-        // Remove the pane from the list (keep a temporary reference to keep
-        // it from being deleted early)
-        pane->ref();
-        childPaneList.removeEntry(pane);
-        pane->unref();
-
-        // Delete the pane
+        // Delete the pane. The pane destructor will call removePane on this
+        // window, so we don't need to remove it from our list explicitly.
         delete pane;
     }
     
@@ -1350,7 +1345,10 @@ void vsWindow::removePane(vsPane *targetPane)
 
     // Print an error if we failed to remove the pane
     if (result == false)
+    {
         printf("vsWindow::removePane: Specified pane not part of window\n");
+        abort();
+    }
 }
 
 // ------------------------------------------------------------------------
