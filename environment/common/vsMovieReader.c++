@@ -873,7 +873,6 @@ void vsMovieReader::readNextFrame()
 
             // Remember the time stamp
             lastTimeStamp = timeStamp;
-printf("lastTimeStamp = %0.3lf\n", timeStamp);
         }
         else if (playMode == VS_MOVIE_EOF)
         {
