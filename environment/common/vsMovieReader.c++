@@ -391,8 +391,23 @@ bool vsMovieReader::openFile(char *filename)
     // See if we got at least one kind of stream
     if (videoCodecContext || audioCodecContext)
     {
-        // TODO: Attempt to calculate the total file time
-        totalFileTime = 0.0;
+        // Attempt to calculate the total file time. Initialize the duration
+        // to the value of the format context.
+        totalFileTime = movieFile->duration * av_q2d(AV_TIME_BASE_Q);
+
+        // Check the length of each stream
+        for (int i = 0; i < movieFile->nb_streams; i++)
+        {
+            // Calculate the duration according to this stream, in its local
+            // time base
+            double streamDuration = movieFile->streams[i]->duration *
+                av_q2d(movieFile->streams[i]->time_base);
+
+            // If this stream is longer than any previously encountered,
+            // store it as the new total file duration
+            if (streamDuration > totalFileTime)
+                totalFileTime = streamDuration;
+        }
 
         // Reset the video time parameters (We have to do this _before_ we 
         // call readNextframe(), as that function won't work if the play 
@@ -681,7 +696,6 @@ void vsMovieReader::jumpToTime(double seconds)
 
     // Reset the video timers
     currentTime = seconds;
-    totalFileTime = 0.0;
     lastTimeStamp = 0.0;
     lastFrameInterval = 0.0;
 
@@ -731,7 +745,6 @@ void vsMovieReader::restart()
 
     // Reset the video timers
     currentTime = 0.0;
-    totalFileTime = 0.0;
     lastTimeStamp = 0.0;
     lastFrameInterval = timePerFrame;
 
