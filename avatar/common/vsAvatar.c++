@@ -307,7 +307,22 @@ int vsAvatar::readCfgLine(char *buffer)
             p = strchr(inBuffer, ' ');
             if (!p)
                 continue;
+
+            // Copy the line to the buffer
             strcpy(buffer, &(p[1]));
+
+            // Strip trailing whitespace
+            p = buffer + strlen(buffer) - 1;
+            while ((p > buffer) && ((*p == ' ') || (*p == '\t') ||
+                   (*p == '\n') || (*p == '\r')))
+            {
+                // Set the whitespace character to NULL and back up a
+                // character in the string
+                *p = 0;
+                p--;
+            }
+
+            // Return that we parsed a parameter line
             return VS_AVT_LINE_PARAM;
         }
         else if (!strcmp(keyword, "type"))
@@ -339,6 +354,7 @@ int vsAvatar::readCfgLine(char *buffer)
 vsObject *vsAvatar::findObject(char *targetStr)
 {
     int loop;
+    atString *objName;
 
     // If the target is NULL, or if the object arrays aren't currently
     // in use, abort.
@@ -349,8 +365,8 @@ vsObject *vsAvatar::findObject(char *targetStr)
     for (loop = 0; loop < objectCount; loop++)
     {
         // Check the target name against the loop'th object's name
-        if (strcmp(targetStr,
-            (const char *)(objNameArray->getEntry(loop))) == 0)
+        objName = (atString *)objNameArray->getEntry(loop);
+        if (atString(targetStr).equals(objName))
         {
             // Found it!  Return a pointer to the associated object
             return objectArray->getEntry(loop);
@@ -1211,6 +1227,10 @@ vsObject *vsAvatar::makeVsFlockOfBirds()
     int baud = 9600;
     int mode = VS_AS_MODE_FLOCK;
     int hemisphere = -1;
+    int defaultHemisphere = -1;
+    int hemispheres[200];
+    int argc;
+    char *ptr;
     int intValue;
     bool multiFlag = false;
     bool forkFlag = false;
@@ -1219,6 +1239,10 @@ vsObject *vsAvatar::makeVsFlockOfBirds()
     
     // Initialize the port device array
     memset(portDevs, 0, sizeof(portDevs));
+
+    // Initialize the hemispheres array
+    for (i = 0; i < 200; i++)
+       hemispheres[i] = -1;
 
     // Read the parameters for the object
     while (lineType != VS_AVT_LINE_END)
@@ -1314,10 +1338,24 @@ vsObject *vsAvatar::makeVsFlockOfBirds()
         }
         else if (!strcmp(token, "hemisphere"))
         {
-            // Set the transmitter hemisphere in which the birds will 
-            // operate
-            sscanf(cfgLine, "%*s %s", strValue);
-            
+            // Count the number of arguments to the "set hemisphere" command.
+            // This determines whether we're setting the default hemisphere
+            // or the hemisphere for an individual tracker
+            argc = 1;
+            ptr = cfgLine;
+            while ((ptr = strpbrk(ptr, " \t\n\r")) != NULL)
+            {
+                argc++;
+                ptr += strspn(ptr, " \t\n\r");
+            }
+
+            // Now, read the arguments
+            if (argc == 2)
+               sscanf(cfgLine, "%*s %s", strValue);
+            else
+               sscanf(cfgLine, "%*s %d %s", &intValue, strValue);
+
+            // Parse the hemisphere setting
             if (!strcmp(strValue, "VS_AS_HSPH_FORWARD"))
                 hemisphere = VS_AS_HSPH_FORWARD;
             else if (!strcmp(strValue, "VS_AS_HSPH_AFT"))
@@ -1333,6 +1371,13 @@ vsObject *vsAvatar::makeVsFlockOfBirds()
             else
                 printf("vsAvatar::makeVsFlockOfBirds (hemisphere): "
                     "Unrecognized hemisphere constant '%s'\n", strValue);
+
+            // Set the hemisphere in which this tracker (if a tracker was
+            // specified) or all trackers will operate
+            if (argc == 2)
+                defaultHemisphere = hemisphere;
+            else
+                hemispheres[intValue] = hemisphere;
         }
         else
             printf("vsAvatar::makeVsFlockOfBirds: Unrecognized token '%s'\n",
@@ -1355,9 +1400,14 @@ vsObject *vsAvatar::makeVsFlockOfBirds()
         result = new vsFlockOfBirds(portDevs[0], nTrackers, dataFormat,
             baud, mode);
 
-    // Set the hemisphere, if it was configured in the config file
-    if (hemisphere != -1)
-        result->setActiveHemisphere(VS_AS_ALL_TRACKERS, hemisphere);
+    // Set the default hemisphere, if it was configured in the config file
+    if (defaultHemisphere != -1)
+        result->setActiveHemisphere(VS_AS_ALL_TRACKERS, defaultHemisphere);
+
+    // Set hemispheres for individual trackers, if configured
+    for (i = 0; i < 200; i++)
+        if (hemispheres[i] != -1)
+            result->setActiveHemisphere(i, hemispheres[i]);
 
     // Fork the process if the system was configured to fork
     if (forkFlag)
@@ -1390,6 +1440,10 @@ vsObject *vsAvatar::makeVsSerialMotionStar()
     int dataFormat = VS_AS_DATA_POS_QUAT;
     int baud = 9600;
     int hemisphere = -1;
+    int defaultHemisphere = -1;
+    int hemispheres[200];
+    int argc;
+    char *ptr;
     int intValue;
     bool multiFlag = false;
     bool forkFlag = false;
@@ -1399,6 +1453,10 @@ vsObject *vsAvatar::makeVsSerialMotionStar()
     // Initialize the port devices array
     memset(portDevs, 0, sizeof(portDevs));
     
+    // Initialize the hemispheres array
+    for (i = 0; i < 200; i++)
+       hemispheres[i] = -1;
+
     // Read the parameters
     while (lineType != VS_AVT_LINE_END)
     {
@@ -1480,10 +1538,24 @@ vsObject *vsAvatar::makeVsSerialMotionStar()
         }
         else if (!strcmp(token, "hemisphere"))
         {
-            // Set the transmitter hemisphere in which the birds will 
-            // operate
-            sscanf(cfgLine, "%*s %s", strValue);
-            
+            // Count the number of arguments to the "set hemisphere" command.
+            // This determines whether we're setting the default hemisphere
+            // or the hemisphere for an individual tracker
+            argc = 1;
+            ptr = cfgLine;
+            while ((ptr = strpbrk(ptr, " \t\n\r")) != NULL)
+            {
+                argc++;
+                ptr += strspn(ptr, " \t\n\r");
+            }
+
+            // Now, read the arguments
+            if (argc == 2)
+               sscanf(cfgLine, "%*s %s", strValue);
+            else
+               sscanf(cfgLine, "%*s %d %s", &intValue, strValue);
+
+            // Parse the hemisphere setting
             if (!strcmp(strValue, "VS_AS_HSPH_FORWARD"))
                 hemisphere = VS_AS_HSPH_FORWARD;
             else if (!strcmp(strValue, "VS_AS_HSPH_AFT"))
@@ -1499,6 +1571,13 @@ vsObject *vsAvatar::makeVsSerialMotionStar()
             else
                 printf("vsAvatar::makeVsSerialMotionStar (hemisphere): "
                     "Unrecognized hemisphere constant '%s'\n", strValue);
+
+            // Set the hemisphere in which this tracker (if a tracker was
+            // specified) or all trackers will operate
+            if (argc == 2)
+                defaultHemisphere = hemisphere;
+            else
+                hemispheres[intValue] = hemisphere;
         }
         else
             printf("vsAvatar::makeVsSerialMotionStar: Unrecognized "
@@ -1521,9 +1600,14 @@ vsObject *vsAvatar::makeVsSerialMotionStar()
         result = new vsSerialMotionStar(portDevs[0], nTrackers, dataFormat,
             baud);
 
-    // Set the hemisphere if it was specified in the config file
-    if (hemisphere != -1)
-        result->setActiveHemisphere(VS_AS_ALL_TRACKERS, hemisphere);
+    // Set the default hemisphere, if it was configured in the config file
+    if (defaultHemisphere != -1)
+        result->setActiveHemisphere(VS_AS_ALL_TRACKERS, defaultHemisphere);
+
+    // Set hemispheres for individual trackers, if configured
+    for (i = 0; i < 200; i++)
+        if (hemispheres[i] != -1)
+            result->setActiveHemisphere(i, hemispheres[i]);
 
     // Fork the process if configured to do so
     if (forkFlag)
@@ -1731,6 +1815,11 @@ vsObject *vsAvatar::makeVsEthernetMotionStar()
     int nTrackers = 0;
     int dataFormat = VS_BN_FLOCK_POSITIONQUATERNION;
     int hemisphere = -1;
+    int defaultHemisphere = -1;
+    int hemispheres[200];
+    int i;
+    int argc;
+    char *ptr;
     int intValue;
     bool masterFlag = true;
     bool forkFlag = false;
@@ -1738,6 +1827,10 @@ vsObject *vsAvatar::makeVsEthernetMotionStar()
     
     // Clear the server name as a sentinel value
     serverName[0] = 0;
+
+    // Initialize the hemispheres array
+    for (i = 0; i < 200; i++)
+       hemispheres[i] = -1;
 
     // Read all the parameters for this object
     while (lineType != VS_AVT_LINE_END)
@@ -1814,9 +1907,24 @@ vsObject *vsAvatar::makeVsEthernetMotionStar()
         }
         else if (!strcmp(token, "hemisphere"))
         {
-            // Set the active hemisphere for the trackers
-            sscanf(cfgLine, "%*s %s", strValue);
-            
+            // Count the number of arguments to the "set hemisphere" command.
+            // This determines whether we're setting the default hemisphere
+            // or the hemisphere for an individual tracker
+            argc = 1;
+            ptr = cfgLine;
+            while ((ptr = strpbrk(ptr, " \t\n\r")) != NULL)
+            {
+                argc++;
+                ptr += strspn(ptr, " \t\n\r");
+            }
+
+            // Now, read the arguments
+            if (argc == 2)
+               sscanf(cfgLine, "%*s %s", strValue);
+            else
+               sscanf(cfgLine, "%*s %d %s", &intValue, strValue);
+
+            // Parse the hemisphere setting
             if (!strcmp(strValue, "VS_BN_FRONT_HEMISPHERE"))
                 hemisphere = VS_BN_FRONT_HEMISPHERE;
             else if (!strcmp(strValue, "VS_BN_REAR_HEMISPHERE"))
@@ -1832,6 +1940,13 @@ vsObject *vsAvatar::makeVsEthernetMotionStar()
             else
                 printf("vsAvatar::makeVsEthernetMotionStar (hemisphere): "
                     "Unrecognized hemisphere constant '%s'\n", strValue);
+
+            // Set the hemisphere in which this tracker (if a tracker was
+            // specified) or all trackers will operate
+            if (argc == 2)
+                defaultHemisphere = hemisphere;
+            else
+                hemispheres[intValue] = hemisphere;
         }
         else
             printf("vsAvatar::makeVsEthernetMotionStar: Unrecognized "
@@ -1856,9 +1971,14 @@ vsObject *vsAvatar::makeVsEthernetMotionStar()
     result = new vsEthernetMotionStar(serverName, portNumber, nTrackers,
         masterFlag, dataFormat);
 
-    // Set the hemisphere on all the trackers if a hemisphere was specified
-    if (hemisphere != -1)
-        result->setActiveHemisphere(VS_MSTAR_ALL_TRACKERS, hemisphere);
+    // Set the default hemisphere, if it was configured in the config file
+    if (defaultHemisphere != -1)
+        result->setActiveHemisphere(VS_MSTAR_ALL_TRACKERS, defaultHemisphere);
+
+    // Set hemispheres for individual trackers, if configured
+    for (i = 0; i < 200; i++)
+        if (hemispheres[i] != -1)
+            result->setActiveHemisphere(i, hemispheres[i]);
 
     // Fork the process if so configured
     if (forkFlag)
