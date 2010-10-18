@@ -127,8 +127,9 @@ public:
     int              getWidth();
     int              getHeight();
     int              getDataSize();
-    double           getTotalTime();
     double           getTimePerFrame();
+    double           getTotalTime();
+    double           getCurrentTime();
 
     void             setVideoBuffer(unsigned char *dataOutputBuffer);
     unsigned char    *getVideoBuffer();

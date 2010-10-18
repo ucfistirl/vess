@@ -539,7 +539,15 @@ int vsMovieReader::getDataSize()
 }
 
 // ------------------------------------------------------------------------
-// Returns the total elapsed time for the video
+// Gets the number of seconds each frame fo the video should be displayed
+// ------------------------------------------------------------------------
+double vsMovieReader::getTimePerFrame()
+{
+    return timePerFrame;
+}
+
+// ------------------------------------------------------------------------
+// Returns the total time for the video
 // ------------------------------------------------------------------------
 double vsMovieReader::getTotalTime()
 {
@@ -547,11 +555,11 @@ double vsMovieReader::getTotalTime()
 }
 
 // ------------------------------------------------------------------------
-// Gets the number of seconds each frame fo the video should be displayed
+// Returns the elapsed time for the video
 // ------------------------------------------------------------------------
-double vsMovieReader::getTimePerFrame()
+double vsMovieReader::getCurrentTime()
 {
-    return timePerFrame;
+    return currentTime;
 }
 
 // ------------------------------------------------------------------------
@@ -648,7 +656,7 @@ void vsMovieReader::advanceTime(double seconds)
 // Attempts to jump to a specific timestamp (in seconds)
 // ------------------------------------------------------------------------
 void vsMovieReader::jumpToTime(double seconds)
-{ 
+{
     int64_t targetTimeStamp;
 
     // If there's no valid video decoder for this object, abort
