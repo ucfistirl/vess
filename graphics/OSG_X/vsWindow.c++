@@ -30,6 +30,16 @@
 // created.  Used to assign a unique index to each window
 int vsWindow::windowCount = 0;
 
+// Structure for X window manager decoration hints
+struct vsWindowManagerHints
+{
+    uint32_t   flags;
+    uint32_t   functions;
+    uint32_t   decorations;
+    int32_t    inputMode;
+    uint32_t   status;
+};
+
 // ------------------------------------------------------------------------
 // Constructor - Initializes the window by creating a GLX window and 
 // creating connections with that, verifying that the window is being 
@@ -51,7 +61,7 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     Window parentID, rootID;
     XWindowAttributes winXAttr, topXAttr;
     Colormap colorMap;
-    PropMotifWmHints motifHints;
+    vsWindowManagerHints wmHints;
     Atom property, propertyType;
     XSetWindowAttributes setWinAttrs;
     XEvent event;
@@ -180,8 +190,8 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
     // Make the border hidden if requested
     if (hideBorder)
     {
-        // Use the Motif interface for hiding decorations.  Most modern
-        // window managers honor this request.
+        // Use the defacto (Motif) extension for configuring window
+        // manager decorations
 
         // Get the atom for the decorations property.  The last argument
         // specifies that we only want the property if it exists (i.e.:
@@ -196,17 +206,23 @@ vsWindow::vsWindow(vsScreen *parent, bool hideBorder, bool stereo)
         }
         else
         {
-            // Set up the property, zero in the decorations field means
-            // no decorations
-            motifHints.flags = MWM_HINTS_DECORATIONS;
-            motifHints.decorations = 0;
+            // Set up the property:
+            //   flags = 2        ->  Configure Decorations
+            //   decorations = 0  ->  No Decorations
+            //
+            // The rest of the fields are ignored
+            //
+            wmHints.flags = 2;
+            wmHints.functions = 0;
+            wmHints.decorations = 0;
+            wmHints.inputMode = 0;
+            wmHints.status = 0;
 
             // Change the property
             propertyType = property;
             XChangeProperty(xWindowDisplay, xWindow, property, propertyType,
-                            sizeof(unsigned long) * 8, PropModeReplace, 
-                            (unsigned char *) &motifHints,
-                            PROP_MOTIF_WM_HINTS_ELEMENTS);
+                            32, PropModeReplace,
+                            (unsigned char *) &wmHints, 5);
         }
     }
 
@@ -318,7 +334,7 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
     Window parentID, rootID;
     XWindowAttributes winXAttr, topXAttr;
     Colormap colorMap;
-    PropMotifWmHints motifHints;
+    vsWindowManagerHints wmHints;
     Atom property, propertyType;
     XSetWindowAttributes setWinAttrs;
     XEvent event;
@@ -463,17 +479,23 @@ vsWindow::vsWindow(vsScreen *parent, int x, int y, int width, int height,
         }
         else
         {
-            // Set up the property, zero in the decorations field means
-            // no decorations
-            motifHints.flags = MWM_HINTS_DECORATIONS;
-            motifHints.decorations = 0;
+            // Set up the property:
+            //   flags = 2        ->  Configure Decorations
+            //   decorations = 0  ->  No Decorations
+            //
+            // The rest of the fields are ignored
+            //
+            wmHints.flags = 2;
+            wmHints.functions = 0;
+            wmHints.decorations = 0;
+            wmHints.inputMode = 0;
+            wmHints.status = 0;
 
             // Change the property
             propertyType = property;
             XChangeProperty(xWindowDisplay, xWindow, property, propertyType,
-                            sizeof(unsigned long) * 8, PropModeReplace, 
-                            (unsigned char *) &motifHints,
-                            PROP_MOTIF_WM_HINTS_ELEMENTS);
+                            32, PropModeReplace, 
+                            (unsigned char *) &wmHints, 5);
         }
         
     }
