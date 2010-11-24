@@ -148,7 +148,7 @@ elif opSystem == 'Linux':
 
    # Add the RTI
    rtiPath = config.get('base', 'rtiPath')
-   addExternal(rtiPath, '/include/1.3', '/lib/linux_g++-4.1', 'rti13')
+   addExternal(rtiPath, '/include/1.3', '/lib/linux_g++-4.4', 'rti13')
 
    # Add libxml2
    xmlPath = config.get('base', 'xmlPath')
