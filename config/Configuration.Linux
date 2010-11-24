@@ -9,7 +9,7 @@
 atlasPath = #../atlas
 
 # Path for HLA RTI - Used by ATLAS for HLA networking (required)
-rtiPath = /irl/tools/libs/rtis-1.3_D18A
+rtiPath = /irl/tools/libs/rtis-1.3_D22
 
 # Path for libxml2 - Used by ATLAS for parsing XML documents (required)
 xmlPath = /usr
@@ -36,7 +36,7 @@ jpegPath = /usr
 sceneGraph = OSG
 
 # Path to Open Scene Graph (required if "OSG" is selected)
-osgPath = /irl/tools/libs/OpenSceneGraph-2.8.0
+osgPath = /irl/tools/libs/OpenSceneGraph-2.8.3
 
 
 
@@ -56,7 +56,7 @@ audioLibrary = OpenAL
 oalPath = /irl/tools/libs/openal-soft-1.12.854
 
 # ALUT - OpenAL Utility Toolkit (required if OpenAL is selected)
-alutPath = /irl/tools/libs/alut-1.1.0
+alutPath = /irl/tools/libs/freealut-1.1.0
 
 
 
@@ -72,7 +72,7 @@ dc1394Enabled = no
 raw1394Path =
 
 # Path for the dc1394_control library
-dc1394Path = /irl/tools/libs/libdc1394-2.1.2
+dc1394Path = /usr/lib
 
 # Enable/disable InterSense tracker support
 isenseEnabled = no
