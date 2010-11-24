@@ -25,7 +25,6 @@
 #include <osgDB/WriteFile>
 #include <string>
 #include "vsWindow.h++"
-#include <Xm/MwmUtil.h>
 
 // Static class member that maintains a count of the number of windows
 // created.  Used to assign a unique index to each window
