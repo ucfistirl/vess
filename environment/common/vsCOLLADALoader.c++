@@ -30,7 +30,7 @@ vsCOLLADALoader::~vsCOLLADALoader()
     delete pathList;
 
     // Delete the main document
-    delete mainDocument;
+    vsObject::unrefDelete(mainDocument);
 }
 
 // ------------------------------------------------------------------------
@@ -145,6 +145,10 @@ void vsCOLLADALoader::parseFile(const char *filename)
     char *ptr;
     vsCOLLADADocument *colladaDoc;
 
+    // If we have a main document loaded already, delete it now
+    vsObject::unrefDelete(mainDocument);
+    mainDocument = NULL;
+
     // Find the full path to the requested file
     path = findFile(filename);
 
@@ -203,6 +207,7 @@ void vsCOLLADALoader::parseFile(const char *filename)
     {
         // Create a COLLADA document from the XML document
         mainDocument = new vsCOLLADADocument(doc, pathList);
+        mainDocument->ref();
     }
 
     // We're done with the XML reader and document now
