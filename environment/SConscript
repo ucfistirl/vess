@@ -33,14 +33,15 @@ commonSrc = 'vsCal3DAnimationLoader.c++ vsCal3DLoader.c++ \
              vsCOLLADAAnimation.c++ vsCOLLADABoolArray.c++ \
              vsCOLLADAChannel.c++ vsCOLLADAChannelGroup.c++ \
              vsCOLLADAController.c++ vsCOLLADADataArray.c++ \
-             vsCOLLADADataSource.c++  vsCOLLADAEffect.c++ \
-             vsCOLLADAEffectParameter.c++ vsCOLLADAFixedEffect.c++ \
-             vsCOLLADAFloatArray.c++  vsCOLLADAGeometry.c++ \
-             vsCOLLADAIDREFArray.c++ vsCOLLADAInputEntry.c++ \
-             vsCOLLADAIntArray.c++ vsCOLLADAKeyframe.c++ vsCOLLADALoader.c++ \
-             vsCOLLADANameArray.c++ vsCOLLADANode.c++ vsCOLLADANodeRef.c++ \
-             vsCOLLADASampler.c++ vsCOLLADASkin.c++ vsCOLLADASubmesh.c++ \
-             vsCOLLADATextureSet.c++ vsCOLLADATransform.c++'
+             vsCOLLADADataSource.c++  vsCOLLADADocument.c++ \
+             vsCOLLADAEffect.c++ vsCOLLADAEffectParameter.c++ \
+             vsCOLLADAFixedEffect.c++ vsCOLLADAFloatArray.c++  \
+             vsCOLLADAGeometry.c++ vsCOLLADAIDREFArray.c++ \
+             vsCOLLADAInputEntry.c++ vsCOLLADAIntArray.c++ \
+             vsCOLLADAKeyframe.c++ vsCOLLADALoader.c++ vsCOLLADANameArray.c++ \
+             vsCOLLADANode.c++ vsCOLLADANodeRef.c++ vsCOLLADASampler.c++ \
+             vsCOLLADASkin.c++ vsCOLLADASubmesh.c++ vsCOLLADATextureSet.c++ \
+             vsCOLLADATransform.c++'
 
 # Add the video classes if they're enabled
 if useVideo:
