@@ -146,8 +146,11 @@ void vsCOLLADALoader::parseFile(const char *filename)
     vsCOLLADADocument *colladaDoc;
 
     // If we have a main document loaded already, delete it now
-    vsObject::unrefDelete(mainDocument);
-    mainDocument = NULL;
+    if (mainDocument != NULL)
+    {
+       vsObject::unrefDelete(mainDocument);
+       mainDocument = NULL;
+    }
 
     // Find the full path to the requested file
     path = findFile(filename);
