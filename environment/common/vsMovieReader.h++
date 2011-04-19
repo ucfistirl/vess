@@ -63,6 +63,8 @@ private:
     vsMoviePacketQueue    *videoQueue;
     vsMoviePacketQueue    *audioQueue;
 
+    AVRational            avTimeBaseQ;
+
     AVCodecContext        *videoCodecContext;
     AVStream              *videoStream;
     AVCodec               *videoCodec;

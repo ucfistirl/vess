@@ -54,6 +54,11 @@ vsMovieReader::vsMovieReader()
     audioBufferSize = 0;
     scaleContext = NULL;
 
+    // Normally, the AV_TIME_BASE_Q constant from ffmpeg is used for this,
+    // but Visual C++ doesn't seem to like the syntax of the #define
+    avTimeBaseQ.num = 1;
+    avTimeBaseQ.den = AV_TIME_BASE;
+
     // Initialize packet queues
     videoQueue = new vsMoviePacketQueue;
     videoQueue->head = NULL;
@@ -393,7 +398,7 @@ bool vsMovieReader::openFile(char *filename)
     {
         // Attempt to calculate the total file time. Initialize the duration
         // to the value of the format context.
-        totalFileTime = movieFile->duration * av_q2d(AV_TIME_BASE_Q);
+        totalFileTime = movieFile->duration * av_q2d(avTimeBaseQ);
 
         // Check the length of each stream
         for (int i = 0; i < movieFile->nb_streams; i++)
