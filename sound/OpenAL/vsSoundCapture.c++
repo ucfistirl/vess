@@ -369,13 +369,13 @@ void vsSoundCapture::pause()
                 fprintf(stderr, "vsSoundCapture::pause: "
                     "alcCaptureStop failed! Invalid device!\n");
             }
-        }
 
-        // Grab any lingering samples in the device buffer and throw them
-        // away
-        alcGetIntegerv(captureDevice, ALC_CAPTURE_SAMPLES,
-            sizeof(ALint), &count);
-        alcCaptureSamples(captureDevice, buffer, count);
+            // Grab any lingering samples in the device buffer and throw them
+            // away
+            alcGetIntegerv(captureDevice, ALC_CAPTURE_SAMPLES,
+                sizeof(ALint), &count);
+            alcCaptureSamples(captureDevice, buffer, count);
+        }
 
         // Mark that the current state is paused.
         capturePaused = true;
