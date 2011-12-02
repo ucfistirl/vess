@@ -31,6 +31,9 @@
 //------------------------------------------------------------------------
 vsCal3DLoader::vsCal3DLoader()
 {
+    // Set the notification name on this object
+    setName("vsCal3DLoader");
+
     // Create the three sub-loaders for meshes, bones, and animations
     meshLoader = new vsCal3DMeshLoader();
     boneLoader = new vsCal3DBoneLoader();
@@ -57,16 +60,15 @@ vsCal3DLoader::~vsCal3DLoader()
 // ------------------------------------------------------------------------
 // Given a filename (without prepended directory), this function will find
 // return a filename that exists with a prepended directory that has been
-// added to the DirectoryNode listing. If there is no file in the
-// listed directories, this function will return NULL. This is a private
-// helper function
+// added to the directoryList listing. If there is no file in the listed
+// directories, this function will return NULL. This is a private helper function
 // ------------------------------------------------------------------------
-char *vsCal3DLoader::findFile(char *filename)
+atString vsCal3DLoader::findFile(atString filename)
 {
    atString *path;
    char *absoluteFilename;
    char tempString[500];
-   
+
    // Loop through the list of directories
    path = (atString *)directoryList->getFirstEntry();
    while(path != NULL)
@@ -74,7 +76,7 @@ char *vsCal3DLoader::findFile(char *filename)
       // Create the tempString
       strcpy(tempString, path->getString());
       strcat(tempString, "/");
-      strcat(tempString, filename);
+      strcat(tempString, filename.getString());
       
       // See if this file can be read by this process. 
       if(access(tempString, R_OK) == 0)
@@ -86,7 +88,7 @@ char *vsCal3DLoader::findFile(char *filename)
          strcpy(absoluteFilename, tempString);
          
          // Return it
-         return absoluteFilename;
+         return atString(absoluteFilename);
       }
       
       // Try the next directory
@@ -134,6 +136,7 @@ void vsCal3DLoader::addFilePath(const char *dirName)
 //------------------------------------------------------------------------
 vsCharacter *vsCal3DLoader::loadCharacter(char *filename)
 {
+    atString filepath;
     FILE *filePointer;
     int fileSize;
     int fileLineLength;
@@ -158,13 +161,13 @@ vsCharacter *vsCal3DLoader::loadCharacter(char *filename)
     vsSkin *skin;
     vsCharacter *character;
     
-    // Change the filename to a string with the directory appended
-    filename = findFile(filename);
-    
+    // Determine the file path with the directory appended
+    filepath = findFile(filename);
+
     // Open the file, print error and return if error
-    if ((filePointer = fopen(filename, "r")) == NULL)
+    if ((filePointer = fopen(filepath.getString(), "r")) == NULL)
     {
-        printf("vsCal3DLoader::parseFile: Error opening file!\n");
+        notify(AT_ERROR, "vsCal3DLoader::parseFile: Error opening file!\n");
         return NULL;
     }
 
@@ -257,7 +260,7 @@ vsCharacter *vsCal3DLoader::loadCharacter(char *filename)
             {
                 if (fieldValue = strtok(NULL, delimiter))
                 {
-                    // Grab the mesh filename and put it in a list
+                    // Grab the mesh file name and put it in a list
                     subMeshFile = new atString(fieldValue);
                     subMeshes->addEntry(subMeshFile);
                 }
@@ -272,7 +275,7 @@ vsCharacter *vsCal3DLoader::loadCharacter(char *filename)
                         loadAnimation(fieldValue, skeletonKin);
 
                     // If the animation loaded successfully, create a name
-                    // for it, based on the filename
+                    // for it, based on the file name
                     if (animation != NULL)
                     {
                         // Add the animation to our animation array
@@ -284,7 +287,7 @@ vsCharacter *vsCal3DLoader::loadCharacter(char *filename)
                         // Get the name without any of the path information,
                         // so we can compare it to the given animation name
                         // Cal3D does not specify an animation name in the XML,
-                        // so we make use of the filename, without extension
+                        // so we make use of the file name, without extension
                         // and path
                         loop = (strlen(tempName) - 1);
                         while ((loop != -1) && (tempName[loop] != '/'))

@@ -55,7 +55,7 @@ private:
     vsSkeleton                *loadSkeleton(char *filename);
     vsPathMotionManager       *loadAnimation(char *filename);
     
-    char *                    findFile(char *filename);
+    atString                  findFile(atString filename);
 
 VS_INTERNAL:
 
