@@ -74,8 +74,11 @@ bool vsOSGNode::equals(atItem *otherItem)
     else
     {
         // We're interested in the wrapped OSG Node objects, and not their
-        // VESS wrappers, so compare the addresses of the OSG Nodes
-        if (this->getNode() == otherNode->getNode())
+        // VESS wrappers, so compare the addresses of the OSG Nodes.
+        // We need to cast these to the intptr type to prevent a number of
+        // potential pitfalls regarding address comparisons and overloaded
+        // operators on our wrapped objects.
+        if (((intptr_t)this->getNode()) == ((intptr_t)otherNode->getNode()))
             return true;
     }
 
@@ -102,8 +105,11 @@ int vsOSGNode::compare(atItem *otherItem)
     else
     {
         // We're interested in the wrapped OSG Node objects, and not their
-        // VESS wrappers, so compare the addresses of the OSG Node objects
-        return (otherNode->getNode() - this->getNode());
+        // VESS wrappers, so compare the addresses of the OSG Node objects.
+        // We need to cast these to the intptr type to prevent a number of
+        // potential pitfalls regarding address comparisons and overloaded
+        // operators on our wrapped objects.
+        return (((intptr_t)otherNode->getNode()) - ((intptr_t)this->getNode()));
     }
 }
 
