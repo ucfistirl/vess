@@ -45,7 +45,9 @@
 // ------------------------------------------------------------------------
 vsCal3DBoneLoader::vsCal3DBoneLoader()
 {
-   directoryList = NULL;
+   // Set the notification name
+   setName("vsCal3DBoneLoader");
+
    boneSpaceMatrixList = NULL;
 }
 
@@ -54,16 +56,6 @@ vsCal3DBoneLoader::vsCal3DBoneLoader()
 // ------------------------------------------------------------------------
 vsCal3DBoneLoader::~vsCal3DBoneLoader()
 {
-   // Clear out the directory listing.
-   DirectoryNode *tempNode;
-   while (directoryList != NULL)
-   {
-      tempNode = directoryList;
-      directoryList = directoryList->next;
-      delete tempNode->dirName;
-      delete tempNode;
-   }
-
    // Delete the bone space matrices (if any)
    if (boneSpaceMatrixList)
        delete boneSpaceMatrixList;
@@ -76,21 +68,21 @@ vsCal3DBoneLoader::~vsCal3DBoneLoader()
 // listed directories, this function will return NULL. This is a private
 // helper function.
 // ------------------------------------------------------------------------
-char *vsCal3DBoneLoader::findFile(char *filename)
+atString vsCal3DBoneLoader::findFile(atString filename)
 {
-   DirectoryNode *tempNode;
+   atString *path;
    char *absoluteFilename;
    char tempString[500];
-   
+
    // Loop through the list of directories.
-   tempNode = directoryList;
-   while(tempNode != NULL)
+   path = (atString *)directoryList.getFirstEntry();
+   while (path)
    {
       // Create the tempString
-      strcpy(tempString, tempNode->dirName);
+      strcpy(tempString, path->getString());
       strcat(tempString, "/");
-      strcat(tempString, filename);
-      
+      strcat(tempString, filename.getString());
+
       // See if this file can be read by this process. 
       if(access(tempString, R_OK) == 0)
       {
@@ -101,10 +93,11 @@ char *vsCal3DBoneLoader::findFile(char *filename)
          strcpy(absoluteFilename, tempString);
          
          // Return it.
-         return absoluteFilename;
+         return atString(absoluteFilename);
       }
       
-      tempNode = tempNode->next;
+      // Move on to the next path
+      path = (atString *)directoryList.getNextEntry();
    }
    
    
@@ -117,16 +110,14 @@ char *vsCal3DBoneLoader::findFile(char *filename)
 // ------------------------------------------------------------------------
 void vsCal3DBoneLoader::addFilePath(const char *dirName)
 {
-   DirectoryNode *newNode;
-   
-   // Create the node and copy the directory name.
-   newNode = (DirectoryNode*)(malloc(sizeof(DirectoryNode)));
-   newNode->dirName = (char*)(calloc(strlen(dirName)+2, sizeof(char)));
-   strcpy(newNode->dirName, dirName);
-   
-   // Put it at the beginning of the linked list.
-   newNode->next = directoryList;
-   directoryList = newNode;
+   atString *directory;
+
+   // Create a new string and fill it with the specified directory 
+   directory = new atString();
+   directory->setString(dirName);
+
+   // Add the new directory to our list
+   directoryList.addEntry(directory);
 }
 
 // ------------------------------------------------------------------------
@@ -149,6 +140,7 @@ vsComponent *vsCal3DBoneLoader::getRootBone(vsComponent *current)
 // ------------------------------------------------------------------------
 vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
 {
+    atString                filepath;
     FILE                    *filePointer;
     char                    *fileBuffer;
     long                    fileSize;
@@ -200,12 +192,12 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
     rootComponent = NULL;
     
     // Prepend an appropriate directory name from the listing we have.
-    filename = findFile(filename);
+    filepath = findFile(filename);
     
     // Attempt to open the file for reading.
-    if ((filePointer = fopen(filename, "r")) == NULL)
+    if ((filePointer = fopen(filepath.getString(), "r")) == NULL)
     {
-        fprintf(stderr, "vsCal3DBoneLoader::parseXML: Error opening file!\n");
+        notify(AT_ERROR, "parseXML: Error opening file!\n");
         return NULL;
     }
 
@@ -245,8 +237,7 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
     // If our document is NULL, then we could not parse it properly.
     if (document == NULL)
     {
-        fprintf(stderr, "vsCal3DBoneLoader::parseXML: Document not parsed "
-            "successfully.\n");
+        notify(AT_ERROR, "parseXML: Document not parsed successfully.\n");
         xmlFreeDoc(document);
         delete [] fileBuffer;
         return NULL;
@@ -258,7 +249,7 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
     // If the root element is NULL, then the file is empty.
     if (current == NULL)
     {
-        fprintf(stderr, "vsCal3DBoneLoader::parseXML: Empty document.\n");
+        notify(AT_ERROR, "parseXML: Empty document.\n");
         xmlFreeDoc(document);
         delete [] fileBuffer;
         return NULL;
@@ -293,8 +284,8 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
                 }
                 else
                 {
-                    fprintf(stderr, "vsCal3DBoneLoader::parseXML: File older "
-                        "than version 900!\n");
+                    notify(AT_ERROR,
+                           "parseXML: File older than version 900!\n");
                 }
             }
 
@@ -307,8 +298,7 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
     // print error, free resources and return.
     if (!validVersion)
     {
-        fprintf(stderr, "vsCal3DBoneLoader::parseXML: Document of wrong "
-            "type.\n");
+        notify(AT_ERROR, "parseXML: Document of wrong type.\n");
         xmlFreeDoc(document);
         delete [] fileBuffer;
         return NULL;
@@ -317,7 +307,7 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
     // If we have no bones, then it is an error.
     if (boneCount == 0)
     {
-        fprintf(stderr, "vsCal3DBoneLoader::parseXML: No bones found!\n");
+        notify(AT_ERROR, "parseXML: No bones found!\n");
         xmlFreeDoc(document);
         delete [] fileBuffer;
         return NULL;
@@ -336,7 +326,6 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
     for (boneID = 0; boneID < boneCount; boneID++)
     {
         currentComponent = new vsComponent();
-        currentComponent->ref();
         boneList->setEntry(boneID, currentComponent);
 
         currentBoneSpaceMatrix = new atMatrix();
@@ -382,7 +371,7 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
             // Get the component that should correspond to the current bone.
             // If it does not exist, create it.
             currentComponent = (vsComponent *) boneList->getEntry(boneID);
-            if (!currentComponent)
+            if (currentComponent == NULL)
             {
                 currentComponent = new vsComponent();
                 boneList->setEntry(boneID, currentComponent);
@@ -442,10 +431,9 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
                     // Create it if necessary.
                     childComponent = (vsComponent *)
                         boneList->getEntry(boneChildID);
-                    if (!childComponent)
+                    if (childComponent == NULL)
                     {
                         childComponent = new vsComponent();
-                        childComponent->ref();
                         boneList->setEntry(boneChildID, childComponent);
                     }
 
@@ -536,33 +524,35 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
             // Report if we did not find the rotation or translation.
             if (!validTranslation)
             {
-                fprintf(stderr, "vsCal3DBoneLoader::parseXML: Could not find "
-                    "translation information!\n");
+                notify(AT_ERROR,
+                       "parseXML: Could not find translation information!\n");
             }
             if (!validRotation)
             {
-                fprintf(stderr, "vsCal3DBoneLoader::parseXML: Could not find "
-                    "rotation information!\n");
+                notify(AT_ERROR,
+                       "parseXML: Could not find rotation information!\n");
             }
             // Report if we did not find the rotation or translation.
             if (!validLocalTranslation)
             {
-                fprintf(stderr,
-                    "vsCal3DBoneLoader::parseXML: Could not find local "
-                    "translation information!\n");
+                notify(AT_ERROR,
+                       "parseXML: Could not find local translation "
+                       "information!\n");
             }
             if (!validLocalRotation)
             {
-                fprintf(stderr, "vsCal3DBoneLoader::parseXML: Could not find "
-                    "local rotation information!\n");
+                notify(AT_ERROR,
+                       "parseXML: Could not find local rotation "
+                       "information!\n");
             }
 
             // Check the children count and see if we found the right number.
             if (boneChildrenCount != boneChildrenProcessed)
             {
-                fprintf(stderr, "vsCal3DBoneLoader::parseXML: Possible error "
-                    "in children specification.\n\tExpected: %d \tFound:%d\n",
-                    boneChildrenCount, boneChildrenProcessed);
+                notify(AT_ERROR,
+                       "parseXML: Possible error in children specification.\n"
+                       "\tExpected: %d \tFound:%d\n",
+                       boneChildrenCount, boneChildrenProcessed);
             }
 
             // Combine the translation and rotation.
@@ -594,9 +584,9 @@ vsSkeleton *vsCal3DBoneLoader::parseXML(char *filename)
     // SKELETON property, then assume an error.
     if (bonesProcessed != boneCount)
     {
-        fprintf(stderr, "vsCal3DBoneLoader::parseXML: Possible error "
-            "in bone specification.\n\tExpected: %d \tFound:%d\n", boneCount,
-            bonesProcessed);
+        notify(AT_ERROR,
+               "parseXML: Possible error in bone specification.\n"
+               "\tExpected: %d \tFound:%d\n", boneCount, bonesProcessed);
 
         xmlFreeDoc(document);
         delete [] fileBuffer;
@@ -638,8 +628,7 @@ vsSkeleton *vsCal3DBoneLoader::loadSkeleton(char *filename)
     // If the name is only a file ending, return NULL.
     if (nameLength < 5)
     {
-        fprintf(stderr,
-            "vsCal3DBoneLoader::loadSkeleton: Load of '%s' failed\n", filename);
+        notify(AT_ERROR, "loadSkeleton: Load of '%s' failed\n", filename);
         return NULL;
     }
 
@@ -658,14 +647,13 @@ vsSkeleton *vsCal3DBoneLoader::loadSkeleton(char *filename)
     // If it is the binary version, print an error.
     else if (strcmp(fileEnding, ".CSF") == 0)
     {
-        fprintf(stderr, "vsCal3DBoneLoader::loadSkeleton: Load of '%s' failed\n"
+        notify(AT_ERROR, "loadSkeleton: Load of '%s' failed\n"
             "\tCan only load the .xsf variants.\n", filename);
     }
     // If it is an unknown type, print an error.
     else
     {
-        fprintf(stderr,
-            "vsCal3DBoneLoader::loadSkeleton: Load of '%s' failed\n", filename);
+        notify(AT_ERROR, "loadSkeleton: Load of '%s' failed\n", filename);
     }
 
     return NULL;

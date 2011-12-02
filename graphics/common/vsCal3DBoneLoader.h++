@@ -22,6 +22,10 @@
 #ifndef VS_CAL3D_BONE_LOADER_HPP
 #define VS_CAL3D_BONE_LOADER_HPP
 
+#include "atArray.h++"
+#include "atList.h++"
+#include "atString.h++"
+
 #include "vsObject.h++"
 #include "vsSkeleton.h++"
 #include "vsComponent.h++"
@@ -32,27 +36,16 @@
 #define VS_CAL3D_XML_SKELETON_END_TAG   "</VESS_CAL3D_SKELETON>"
 
 
-#ifndef __DIRECTORY_NODE__
-#define __DIRECTORY_NODE__
-struct DirectoryNode
-{
-   char *dirName;
-   DirectoryNode *next;
-};
-#endif
-
 class VESS_SYM vsCal3DBoneLoader : public vsObject
 {
 private:
 
-    DirectoryNode      *directoryList;
+    atList             directoryList;
     atArray            *boneSpaceMatrixList;
 
     vsComponent        *getRootBone(vsComponent *current);
     vsSkeleton         *parseXML(char *filename);
-    char *             findFile(char *filename);
-
-VS_INTERNAL:
+    atString           findFile(atString filename);
 
 public:
 
