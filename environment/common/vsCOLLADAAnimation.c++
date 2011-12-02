@@ -478,6 +478,11 @@ void vsCOLLADAAnimation::processSource(atXMLDocument *doc,
         sourceID = new atString(source->getID());
         sources->addEntry(sourceID, source);
     }
+    else
+    {
+        // Delete the invalid source
+        delete source;
+    }
 }
 
 // ------------------------------------------------------------------------
