@@ -155,8 +155,8 @@ int vsCOLLADAGeometry::getGeometryDataList(atString semantic, int set)
     else
     {
         // Print an error message
-        printf("vsCOLLADGeometry::getGeometryDataList:\n");
-        printf("    Unknown semantic '%s'\n", semantic.getString());
+        notify(AT_ERROR, "vsCOLLADGeometry::getGeometryDataList:\n");
+        notify(AT_ERROR, "    Unknown semantic '%s'\n", semantic.getString());
 
         // Return -1 to indicate an error
         return -1;
@@ -184,8 +184,12 @@ void vsCOLLADAGeometry::processSource(atXMLDocument *doc,
     }
     else
     {
-        printf("Source %s is invalid (%d data items)\n",
+        // Indicate failure
+        notify(AT_WARN, "Source %s is invalid (%d data items)\n",
             source->getID().getString(), source->getDataCount());
+
+        // Free the invalid source
+        delete source;
     }
 }
 
@@ -261,7 +265,7 @@ void vsCOLLADAGeometry::processMesh(atXMLDocument *doc,
                 input = doc->getNextSiblingNode(input);
             }
         }
-    
+
         // Try the next node
         child = doc->getNextSiblingNode(child); 
     }
@@ -286,8 +290,7 @@ void vsCOLLADAGeometry::processMesh(atXMLDocument *doc,
                                            meshVertexInputs);
 
             // Add the submesh to the submesh list
-            if (submesh != NULL)
-                submeshList->addEntry(submesh);
+            submeshList->addEntry(submesh);
         }
 
         // Try the next node
@@ -319,16 +322,17 @@ void vsCOLLADAGeometry::processInput(atXMLDocument *doc,
     attr = doc->getNodeAttribute(current, "source");
     sourceID.setString(attr);
 
-    // Get the data source referenced by this ID
-    dataSource = getDataSource(sourceID);
-
     // Get the semantic
     attr = doc->getNodeAttribute(current, "semantic");
     semantic.setString(attr);
 
-if (dataSource == NULL)
-    printf("Can't find %s data source (id = %s)\n",
-         semantic.getString(), sourceID.getString());
+    // Get the data source referenced by this ID
+    dataSource = getDataSource(sourceID);
+    if (dataSource == NULL)
+    {
+        notify(AT_WARN, "Can't find %s data source (id = %s)\n",
+            semantic.getString(), sourceID.getString());
+    }
 
     // Get the input offset
     attr = doc->getNodeAttribute(current, "offset");
