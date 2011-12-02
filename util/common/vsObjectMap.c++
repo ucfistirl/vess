@@ -37,8 +37,8 @@ vsObjectMap::vsObjectMap()
     pthread_mutex_init(&mapLock, NULL);
 
     // Create a pair of tree maps to hold the object associations
-    firstList = new vsTreeMap();
-    secondList = new vsTreeMap();
+    forwardMap = new vsTreeMap();
+    reverseMap = new vsTreeMap();
 }
 
 // ------------------------------------------------------------------------
@@ -51,10 +51,10 @@ vsObjectMap::~vsObjectMap()
     lockMap();
 
     // Destroy the maps, but keep the contents intact
-    firstList->removeAllEntries();
-    delete firstList;
-    secondList->removeAllEntries();
-    delete secondList;
+    forwardMap->removeAllEntries();
+    delete forwardMap;
+    reverseMap->removeAllEntries();
+    delete reverseMap;
 
     // Release the map lock
     unlockMap();
@@ -83,8 +83,7 @@ void vsObjectMap::unlockMap()
 }
 
 // ------------------------------------------------------------------------
-// Adds a connection between the two given objects to the object map's
-// list
+// Adds a connection between the two given objects
 // ------------------------------------------------------------------------
 void vsObjectMap::registerLink(vsObject *firstObject, vsObject *secondObject)
 {
@@ -92,24 +91,24 @@ void vsObjectMap::registerLink(vsObject *firstObject, vsObject *secondObject)
     lockMap();
 
     // Check for duplicates
-    if (firstList->containsKey(firstObject))
+    if (forwardMap->containsKey(firstObject))
     {
-        printf("vsObjectMap::registerLink: firstObject already appears in "
-            "first object list\n");
+        notify(AT_WARN, "vsObjectMap::registerLink: firstObject already "
+            "appears in forward object map\n");
         return;
     }
-    if (secondList->containsKey(secondObject))
+    if (reverseMap->containsKey(secondObject))
     {
-        printf("vsObjectMap::registerLink: secondObject already appears in "
-            "second object list\n");
+        notify(AT_WARN, "vsObjectMap::registerLink: secondObject already "
+            "appears in reverse object map\n");
         return;
     }
-    
+
     // Add a connection from the first object to the second object to
-    // the first map, and a connection from the second object to the
-    // first object to the second map
-    firstList->addEntry(firstObject, secondObject);
-    secondList->addEntry(secondObject, firstObject);
+    // the forward map, and a connection from the second object to the
+    // first object to the reverse map
+    forwardMap->addEntry(firstObject, secondObject);
+    reverseMap->addEntry(secondObject, firstObject);
 
     // Unlock the map
     unlockMap();
@@ -120,96 +119,85 @@ void vsObjectMap::registerLink(vsObject *firstObject, vsObject *secondObject)
 // whichList constant specifies which list of objects the function should
 // search in for the link to delete.
 // ------------------------------------------------------------------------
-bool vsObjectMap::removeLink(vsObject *theObject, int whichList)
+vsObject *vsObjectMap::removeLink(vsObject *theObject, int whichList)
 {
-    vsObject *otherListObjPtr;
+    vsObject    *otherListObjPtr;
+    atPair      *pair;
 
     // Lock the map
     lockMap();
 
-    // Interpret the whichList constant
-    switch (whichList)
+    // Test whether we should look in the forward map
+    if (whichList != VS_OBJMAP_SECOND_LIST)
     {
-        case VS_OBJMAP_FIRST_LIST:
-            // Search the first map for the specified key
-            if (firstList->containsKey(theObject))
-            {
-                // Determine which object in the second map corresponds
-		// to the object in the first, and remove each object
-		// from its associated map
-                otherListObjPtr = (vsObject *) firstList->getValue(theObject);
-                firstList->removeEntry(theObject);
-                secondList->removeEntry(otherListObjPtr);
+        // Search the forward map for the specified key
+        if (forwardMap->containsKey(theObject))
+        {
+            // Determine which object in the reverse map corresponds
+            // to the object in the forward, and remove each object
+            // from its associated map
+            otherListObjPtr = (vsObject *) forwardMap->getValue(theObject);
 
-                // Unlock the map
-                unlockMap();
+            // Remove the forward mapping, clearing the pair so its contents
+            // are not double-deleted
+            pair = forwardMap->removeEntry(theObject);
+            pair->removeFirst();
+            pair->removeSecond();
+            delete pair;
 
-		// Return true to indicate success
-                return true;
-            }
-            break;
+            // Remove the reverse mapping, clearing the pair so its contents
+            // are not double-deleted
+            pair = reverseMap->removeEntry(otherListObjPtr);
+            pair->removeFirst();
+            pair->removeSecond();
+            delete pair;
 
-        case VS_OBJMAP_SECOND_LIST:
-            // Search the second map for the specified key
-            if (secondList->containsKey(theObject))
-            {
-                // Determine which object in the first map corresponds
-		// to the object in the second, and remove each object
-		// from its associated map
-                otherListObjPtr = (vsObject *) secondList->getValue(theObject);
-                secondList->removeEntry(theObject);
-                firstList->removeEntry(otherListObjPtr);
+            // Unlock the map
+            unlockMap();
 
-                // Unlock the map
-                unlockMap();
+            // Return the other object pointer
+            return otherListObjPtr;
+        }
+    }
 
-		// Return true to indicate success
-                return true;
-            }
-            break;
+    // Test whether we should look in the reverse map
+    if (whichList != VS_OBJMAP_FIRST_LIST)
+    {
+        // Search the reverse map for the specified key
+        if (reverseMap->containsKey(theObject))
+        {
+            // Determine which object in the forward map corresponds
+            // to the object in the reverse, and remove each object
+            // from its associated map
+            otherListObjPtr = (vsObject *) reverseMap->getValue(theObject);
 
-        case VS_OBJMAP_EITHER_LIST:
-            // Search the first map for the specified key, and the second
-	    // map if the key isn't found in the first
-            if (firstList->containsKey(theObject))
-            {
-                // Determine which object in the second map corresponds
-		// to the object in the first, and remove each object
-		// from its associated map
-                otherListObjPtr = (vsObject *) firstList->getValue(theObject);
-                firstList->removeEntry(theObject);
-                secondList->removeEntry(otherListObjPtr);
+            // Remove the reverse mapping, clearing the pair so its contents
+            // are not double-deleted
+            pair = reverseMap->removeEntry(theObject);
+            pair->removeFirst();
+            pair->removeSecond();
+            delete pair;
 
-                // Unlock the map
-                unlockMap();
+            // Remove the forward mapping, clearing the pair so its contents
+            // are not double-deleted
+            pair = forwardMap->removeEntry(otherListObjPtr);
+            pair->removeFirst();
+            pair->removeSecond();
+            delete pair;
 
-		// Return true to indicate success
-                return true;
-            }
-            if (secondList->containsKey(theObject))
-            {
-                // Determine which object in the first map corresponds
-		// to the object in the second, and remove each object
-		// from its associated map
-                otherListObjPtr = (vsObject *) secondList->getValue(theObject);
-                secondList->removeEntry(theObject);
-                firstList->removeEntry(otherListObjPtr);
+            // Unlock the map
+            unlockMap();
 
-                // Unlock the map
-                unlockMap();
-
-		// Return true to indicate success
-                return true;
-            }
-            break;
+            // Return the other object pointer
+            return otherListObjPtr;
+        }
     }
 
     // Unlock the map
     unlockMap();
 
-    // Return false to indicate that we couldn't find the requested object
-    // in the requested map(s)
-    return false;
+    // Indicate that we couldn't find the object in the requested map(s)
+    return NULL;
 }
 
 // ------------------------------------------------------------------------
@@ -217,20 +205,97 @@ bool vsObjectMap::removeLink(vsObject *theObject, int whichList)
 // ------------------------------------------------------------------------
 void vsObjectMap::removeAllLinks()
 {
+    // The default behavior is to leave all memory alone
+    removeAllLinks(VS_OBJMAP_ACTION_NONE, VS_OBJMAP_ACTION_NONE);
+}
+
+// ------------------------------------------------------------------------
+// Completely clears out the object map's list of links, handling the keys
+// and values based on the specified actions
+// ------------------------------------------------------------------------
+void vsObjectMap::removeAllLinks(vsObjectMapClearAction firstListAction,
+                                 vsObjectMapClearAction secondListAction)
+{
+    atList firstList;
+    atList secondList;
+    vsObject *firstObj;
+    vsObject *secondObj;
+
     // Lock the map
     lockMap();
 
-    // Empty both maps
-    firstList->removeAllEntries();
-    secondList->removeAllEntries();
+    // Fetch all of the mappings from the forward map
+    forwardMap->getSortedList(&firstList, &secondList);
+
+    // Empty both maps using the method that orphans all memory. After
+    // this our local lists will have the only references to the values
+    forwardMap->removeAllEntries();
+    reverseMap->removeAllEntries();
+
+    // Process each list
+    firstObj = (vsObject *)firstList.getFirstEntry();
+    secondObj = (vsObject *)secondList.getFirstEntry();
+    while ((firstObj != NULL) || (secondObj != NULL))
+    {
+        // Remove the items from the lists so they aren't mistakenly freed
+        // when the list goes out of scope
+        firstList.removeCurrentEntry();
+        secondList.removeCurrentEntry();
+
+        // Handle the first item
+        switch (firstListAction)
+        {
+            case VS_OBJMAP_ACTION_DELETE:
+                delete firstObj;
+                break;
+
+            case VS_OBJMAP_ACTION_UNREF_DELETE:
+                vsObject::unrefDelete(firstObj);
+                break;
+
+            case VS_OBJMAP_ACTION_CHECK_DELETE:
+                vsObject::checkDelete(firstObj);
+                break;
+
+            // Do nothing in either of these cases
+            case VS_OBJMAP_ACTION_NONE:
+            default:
+                break;
+        }
+
+        // Handle the second item
+        switch (secondListAction)
+        {
+            case VS_OBJMAP_ACTION_DELETE:
+                delete secondObj;
+                break;
+
+            case VS_OBJMAP_ACTION_UNREF_DELETE:
+                vsObject::unrefDelete(secondObj);
+                break;
+
+            case VS_OBJMAP_ACTION_CHECK_DELETE:
+                vsObject::checkDelete(secondObj);
+                break;
+
+            // Do nothing in either of these cases
+            case VS_OBJMAP_ACTION_NONE:
+            default:
+                break;
+        }
+
+        // Move on to the new first entries in the lists
+        firstObj = (vsObject *)firstList.getFirstEntry();
+        secondObj = (vsObject *)secondList.getFirstEntry();
+    }
 
     // Unlock the map
     unlockMap();
 }
 
 // ------------------------------------------------------------------------
-// Searches for the given object in the first list of objects, and returns
-// the corresponding second object if found.
+// Searches for the given object in the forward list of objects, and
+// returns the corresponding second object if found.
 // ------------------------------------------------------------------------
 vsObject *vsObjectMap::mapFirstToSecond(vsObject *firstObject)
 {
@@ -239,8 +304,8 @@ vsObject *vsObjectMap::mapFirstToSecond(vsObject *firstObject)
     // Lock the map
     lockMap();
 
-    // Get the object corresponding to the first object from the first map
-    secondObject = (vsObject *) firstList->getValue(firstObject);
+    // Get the object corresponding to the first object from the forward map
+    secondObject = (vsObject *) forwardMap->getValue(firstObject);
 
     // Unlock the map
     unlockMap();
@@ -250,7 +315,7 @@ vsObject *vsObjectMap::mapFirstToSecond(vsObject *firstObject)
 }
 
 // ------------------------------------------------------------------------
-// Searches for the given object in the second list of objects, and returns
+// Searches for the given object in the reverse map of objects, and returns
 // the corresponding first object if found.
 // ------------------------------------------------------------------------
 vsObject *vsObjectMap::mapSecondToFirst(vsObject *secondObject)
@@ -260,8 +325,8 @@ vsObject *vsObjectMap::mapSecondToFirst(vsObject *secondObject)
     // Lock the map
     lockMap();
 
-    // Get the object corresponding to the second object from the second map
-    firstObject = (vsObject *) secondList->getValue(secondObject);
+    // Get the object corresponding to the second object from the reverse map
+    firstObject = (vsObject *) reverseMap->getValue(secondObject);
 
     // Unlock the map
     unlockMap();
@@ -269,3 +334,123 @@ vsObject *vsObjectMap::mapSecondToFirst(vsObject *secondObject)
     // Return the object we found (if any)
     return firstObject;
 }
+
+// ------------------------------------------------------------------------
+// Confirms that all mappings are sane, optionally printing the contents of
+// each map if an invalid mapping is found
+// ------------------------------------------------------------------------
+bool vsObjectMap::validate(bool printOnError)
+{
+    bool forwardResult;
+    bool reverseResult;
+    bool mapValid;
+
+    // Indicate our validation
+    notify(AT_INFO, "Comparing maps: %d items vs %d items\n",
+           forwardMap->getNumEntries(), reverseMap->getNumEntries());
+
+    // Lock the map to prevent modification while we validate its contents
+    lockMap();
+
+    // Validate the map in both directions
+    forwardResult = validate(forwardMap, reverseMap, "forward");
+    reverseResult = validate(reverseMap, forwardMap, "reverse");
+
+    // Determine whether we succeeded
+    mapValid = (forwardResult && reverseResult);
+
+    // Test whether we need to print on error
+    if ((mapValid == false) && (printOnError == true))
+    {
+        // Indicate an error
+        notify(AT_INFO, "Validation error\n");
+
+        // Print the forward map
+        notify(AT_INFO, "Printing forward map\n");
+        forwardMap->print();
+
+        // Print the reverse map
+        notify(AT_INFO, "Printing reverse map\n");
+        reverseMap->print();
+    }
+    
+    // Yield exclusive access to the map
+    unlockMap();
+
+    // Return our result
+    return mapValid;
+}
+
+// ------------------------------------------------------------------------
+// Confirms that all mappings from one map to another are valid, that is
+// that each key in the first map points to a valid value, that that value
+// exists as a key in the second map, and that the value indicated by that
+// key in the second map is the original key in the first map. If any of
+// these conditions fail for any key, false is returned.
+// ------------------------------------------------------------------------
+bool vsObjectMap::validate(vsTreeMap * mapA, vsTreeMap * mapB, char * direction)
+{
+    bool        isValid;
+    atList      firstKeys;
+    vsObject    *firstItem;
+    vsObject    *secondItem;
+    vsObject    *firstItemAgain;
+
+    // Begin in the valid state
+    isValid = true;
+
+    // Fetch the list of keys in our first map
+    mapA->getSortedList(&firstKeys, NULL);
+
+    // Iterate across all entries in the list of keys
+    firstItem = (vsObject *)firstKeys.getFirstEntry();
+    while (firstItem)
+    {
+        // Find the item to which our current key maps
+        secondItem = (vsObject *)mapA->getValue(firstItem);
+        if (secondItem == NULL)
+        {
+            // Indicate failure
+            notify(AT_ERROR, "Invalid %s mapping: %p to NULL\n",
+                   direction, firstItem);
+            isValid = false;
+        }
+        else if (mapB->containsKey(secondItem) == false)
+        {
+            // Indicate failure
+            notify(AT_ERROR, "Forward-only %s mapping: %p to %p (no key)\n",
+                   direction, firstItem, secondItem);
+            isValid = false;
+        }
+        else
+        {
+            // Find the item in the first map that the value maps back to
+            firstItemAgain = (vsObject *)mapB->getValue(secondItem);
+            if (firstItemAgain == NULL)
+            {
+                // Indicate failure
+                notify(AT_ERROR, "Forward-only %s mapping: %p to %p to NULL\n",
+                       direction, firstItem, secondItem);
+                isValid = false;
+            }
+            else if (firstItem != firstItemAgain)
+            {
+                // Indicate failure
+                notify(AT_ERROR, "Nonsense %s mapping: %p to %p to %p\n",
+                       direction, firstItem, secondItem, firstItemAgain);
+                isValid = false;
+            }
+        }
+
+        // Remove the current (first) entry so it isn't deleted when the list
+        // goes out of scope
+        firstKeys.removeCurrentEntry();
+
+        // Move on to the new first entry
+        firstItem = (vsObject *)firstKeys.getFirstEntry();
+    }
+
+    // Return success or failure
+    return isValid;
+}
+

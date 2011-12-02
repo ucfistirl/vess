@@ -29,24 +29,36 @@
 #include "vsTreeMap.h++"
 #include <pthread.h>
 
-enum  vsObjectMapList
+enum vsObjectMapList
 {
     VS_OBJMAP_FIRST_LIST,
     VS_OBJMAP_SECOND_LIST,
     VS_OBJMAP_EITHER_LIST
 };
 
-class VESS_SYM vsObjectMap
+enum vsObjectMapClearAction
+{
+    VS_OBJMAP_ACTION_DELETE,
+    VS_OBJMAP_ACTION_UNREF_DELETE,
+    VS_OBJMAP_ACTION_CHECK_DELETE,
+    VS_OBJMAP_ACTION_NONE,
+};
+
+class VESS_SYM vsObjectMap : public atNotifier
 {
 private:
 
-    vsTreeMap         *firstList;
-    vsTreeMap         *secondList;
+    vsTreeMap         *forwardMap;
+    vsTreeMap         *reverseMap;
 
     pthread_mutex_t   mapLock;
 
+
     void              lockMap();
     void              unlockMap();
+
+    bool              validate(vsTreeMap * mapA, vsTreeMap * mapB,
+                               char * direction);
 
 public:
 
@@ -54,11 +66,16 @@ public:
                 ~vsObjectMap();
 
     void        registerLink(vsObject *firstObject, vsObject *secondObject);
-    bool        removeLink(vsObject *theObject, int whichList);
+    vsObject    *removeLink(vsObject *theObject, int whichList);
+
     void        removeAllLinks();
+    void        removeAllLinks(vsObjectMapClearAction firstListAction,
+                               vsObjectMapClearAction secondListAction);
 
     vsObject    *mapFirstToSecond(vsObject *firstObject);
     vsObject    *mapSecondToFirst(vsObject *secondObject);
+
+    bool        validate(bool printOnError);
 };
 
 #endif
