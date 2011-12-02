@@ -82,6 +82,7 @@ protected:
                                        atXMLDocumentNodePtr text, int size);
 
     void                   unrefDeleteMap(atMap *map);
+    void                   unrefDeleteTreeMap(atMap *map);
 
 
     void           processAnimation(atXMLDocument *doc,

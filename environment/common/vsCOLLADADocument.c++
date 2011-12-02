@@ -86,30 +86,36 @@ vsCOLLADADocument::vsCOLLADADocument(atXMLDocument * doc, atList *paths)
 // ------------------------------------------------------------------------
 vsCOLLADADocument::~vsCOLLADADocument()
 {
-    // Delete the scene's character (if any)
-    if (sceneCharacter != NULL)
-        vsObject::unrefDelete(sceneCharacter);
-
-    // Unreference/delete the scene we created (if any)
-    if (sceneRoot != NULL)
-        vsObject::unrefDelete(sceneRoot);
-
     // Clean up the document's lists
     if (skinList != NULL)
         delete skinList;
     if (skeletonList != NULL)
         delete skeletonList;
 
+    // Delete the scene's character (if any)
+    if (sceneCharacter != NULL)
+        vsObject::unrefDelete(sceneCharacter);
+
+    // Unreference/delete the scene we created (if any)
+    if (sceneRoot != NULL)
+    {
+        sceneRoot->deleteTree();
+        vsObject::unrefDelete(sceneRoot);
+    }
+
     // Clean up the auxiliary maps
     unrefDeleteMap(animations);
     unrefDeleteMap(skeletonRoots);
     unrefDeleteMap(skeletons);
 
+    // These two maps need special handling, as their values are scene graph
+    // portions that need to be processed with deleteTree
+    unrefDeleteTreeMap(visualSceneLibrary);
+    unrefDeleteTreeMap(nodeLibrary);
+
     // Clean up the library maps
     unrefDeleteMap(animationLibrary);
     unrefDeleteMap(animationClipLibrary);
-    unrefDeleteMap(visualSceneLibrary);
-    unrefDeleteMap(nodeLibrary);
     unrefDeleteMap(controllerLibrary);
     unrefDeleteMap(geometryLibrary);
     unrefDeleteMap(materialLibrary);
@@ -570,6 +576,57 @@ void vsCOLLADADocument::unrefDeleteMap(atMap *map)
     delete values;
     delete map;
 }
+
+// ------------------------------------------------------------------------
+// Convenience method for cleaning up library maps that maintain pointers
+// to scene subgraphs by calling deleteTree before losing the reference
+// ------------------------------------------------------------------------
+void vsCOLLADADocument::unrefDeleteTreeMap(atMap *map)
+{
+    atList *keys;
+    atList *values;
+    atString *key;
+    vsComponent *value;
+
+    // Make sure the map exists
+    if (map == NULL)
+        return;
+
+    // Get lists of the keys and values in the map
+    keys = new atList();
+    values = new atList();
+    map->getSortedList(keys, values);
+
+    // Unreference and delete any objects in the map
+    key = (atString *)keys->getFirstEntry();
+    value = (vsComponent *)values->getFirstEntry();
+    while (key != NULL)
+    {
+        // Remove the current entry from both lists
+        keys->removeCurrentEntry();
+        values->removeCurrentEntry();
+
+        // Remove the entry from the map
+        map->removeEntry(key);
+
+        // Unreference and delete the object
+        value->deleteTree();
+        vsObject::unrefDelete(value);
+
+        // Delete the key
+        delete key;
+
+        // Get the next key and value from the list
+        key = (atString *)keys->getNextEntry();
+        value = (vsComponent *)values->getNextEntry();
+    }
+
+    // Delete the two lists and the map
+    delete keys;
+    delete values;
+    delete map;
+}
+
 
 // ------------------------------------------------------------------------
 // Processes an <animation> XML subtree and creates an animation library
@@ -2082,9 +2139,11 @@ vsSkeleton *vsCOLLADADocument::createSkeleton(vsCOLLADANode *root,
             }
             else
             {
-                // Print an error and bail
-                printf("vsCOLLADADocument::createSkeleton: ID %s not found!\n",
-                    source->getString(i).getString());
+                // Print an error
+                notify(AT_WARN,
+                       "vsCOLLADADocument::createSkeleton:\n"
+                       "    ID %s not found!\n",
+                       source->getString(i).getString());
             }
         }
     }
@@ -2103,9 +2162,11 @@ vsSkeleton *vsCOLLADADocument::createSkeleton(vsCOLLADANode *root,
             {
                 // Notify the user that we couldn't find one of the joints
                 // in the skeleton
-                printf("vsCOLLADADocument::createSkeleton: SID %s not found "
-                    "under node %s!\n", source->getString(i).getString(),
-                    root->getID().getString());
+                notify(AT_WARN,
+                       "vsCOLLADADocument::createSkeleton:\n"
+                       "    SID %s not found under node %s!\n",
+                       source->getString(i).getString(),
+                       root->getID().getString());
             }
 */
         }
@@ -2234,9 +2295,10 @@ void vsCOLLADADocument::processInstanceController(atXMLDocument *doc,
                     else
                     {
                         // Print an error about the missing skeleton
-                        printf("vsCOLLADADocument::createSkeleton:  Unable to "
-                            "find skeleton at node '%s'\n",
-                             skeletonRootURI.getString());
+                        notify(AT_WARN,
+                               "vsCOLLADADocument::createSkeleton:\n"
+                               "    Unable to find skeleton at node '%s'\n",
+                               skeletonRootURI.getString());
                     }
                 }
 
