@@ -290,8 +290,8 @@ int vsCOLLADASubmesh::getGeometryDataList(atString semantic, int set)
     else
     {
         // Print an error message
-        printf("vsCOLLADGeometry::getGeometryDataList:\n");
-        printf("    Unknown semantic '%s'\n", semantic.getString());
+        notify(AT_WARN, "vsCOLLADGeometry::getGeometryDataList:\n");
+        notify(AT_WARN, "    Unknown semantic '%s'\n", semantic.getString());
 
         // Return -1 to indicate an error
         return -1;
@@ -607,16 +607,18 @@ void vsCOLLADASubmesh::processInput(atXMLDocument *doc,
     attr = doc->getNodeAttribute(current, "source");
     sourceID.setString(attr);
 
-    // Get the data source referenced by this ID
-    dataSource = getDataSource(sourceID);
-
     // Get the semantic
     attr = doc->getNodeAttribute(current, "semantic");
     semantic.setString(attr);
 
-if (dataSource == NULL)
-    printf("Can't find %s data source (id = %s)\n",
-         semantic.getString(), sourceID.getString());
+    // Get the data source referenced by this ID
+    dataSource = getDataSource(sourceID);
+    if (dataSource == NULL)
+    {
+        // Indicate that there's been a problem
+        notify(AT_WARN, "Can't find %s data source (id = %s)\n",
+            semantic.getString(), sourceID.getString());
+    }
 
     // Get the input offset
     attr = doc->getNodeAttribute(current, "offset");
@@ -668,7 +670,10 @@ void vsCOLLADASubmesh::setGeometry(vsGeometryBase *newGeom)
         geometry->ref();
     }
     else
-        printf("vsCOLLADASubmesh::setGeometry: NULL geometry specified\n");
+    {
+        notify(AT_WARN, "vsCOLLADASubmesh::setGeometry:\n");
+        notify(AT_WARN, "    NULL geometry specified\n");
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -759,8 +764,8 @@ int vsCOLLADASubmesh::getIndex(int indexIndex)
     // Validate the index's index in the list
     if ((indexIndex < 0) || (indexIndex >= indexListSize))
     {
-        printf("vsCOLLADASubmesh::getIndex:  Invalid list index (%d)\n",
-            indexIndex);
+        notify(AT_WARN, "vsCOLLADASubmesh::getIndex:\n");
+        notify(AT_WARN, "    Invalid list index (%d)\n", indexIndex);
         return -1;
     }
 
@@ -776,11 +781,12 @@ void vsCOLLADASubmesh::setIndex(int indexIndex, int indexValue)
     // Validate the index's index in the list
     if ((indexIndex < 0) || (indexIndex >= indexListSize))
     {
-        printf("vsCOLLADASubmesh::setIndex:  Invalid list index (%d)\n",
-            indexIndex);
+        notify(AT_WARN, "vsCOLLADASubmesh::setIndex:\n");
+        notify(AT_WARN, "    Invalid list index (%d)\n", indexIndex);
         return;
     }
 
     // Set the new index value in the list
     indexList[indexIndex] = indexValue;
 }
+
