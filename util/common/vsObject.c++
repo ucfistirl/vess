@@ -59,15 +59,13 @@ vsObject::vsObject()
 //------------------------------------------------------------------------
 vsObject::~vsObject()
 {
+    atPair *objListEntry;
+
     // Error checking
     if (magicNumber != VS_OBJ_MAGIC_NUMBER)
-        printf("vsObject::~vsObject: Deletion of invalid object\n");
+        notify(AT_WARN, "vsObject::~vsObject: Deletion of invalid object\n");
     else if (refCount != 0)
-        printf("vsObject::~vsObject: Deletion of referenced object\n");
-
-    // Remove the magic number so VESS knows this isn't a valid object
-    // anymore
-    magicNumber = 0;
+        notify(AT_WARN, "vsObject::~vsObject: Deletion of referenced object\n");
 
 #ifdef VESS_DEBUG
 
@@ -76,12 +74,24 @@ vsObject::~vsObject()
 
     // Remove this object from the object list
     if (currentObjectList)
-        currentObjectList->deleteEntry(this);
+    {
+        // Remove the entry for this object from the global object map
+        objListEntry = currentObjectList->removeEntry(this);
+
+        // Remove this object from the pair before deleting it, otherwise the
+        // pair will try to free its memory again in its destructor
+        objListEntry->removeFirst();
+        delete objListEntry;
+    }
 
     // Release the object list mutex
     pthread_mutex_unlock(&objectListMutex);
 
 #endif
+
+    // Remove the magic number so VESS knows this isn't a valid object
+    // anymore
+    magicNumber = 0;
 }
 
 //------------------------------------------------------------------------
@@ -106,7 +116,7 @@ void vsObject::ref()
     // Magic number verify
     if (magicNumber != VS_OBJ_MAGIC_NUMBER)
     {
-        printf("vsObject::ref: Operation on invalid object\n");
+        notify(AT_WARN, "vsObject::ref: Operation on invalid object\n");
         return;
     }
     
@@ -122,13 +132,14 @@ void vsObject::unref()
     // Magic number verify
     if (magicNumber != VS_OBJ_MAGIC_NUMBER)
     {
-        printf("vsObject::unref: Operation on invalid object\n");
+        notify(AT_WARN, "vsObject::unref: Operation on invalid object\n");
         return;
     }
+
     // Reference count verify
     if (refCount < 1)
     {
-        printf("vsObject::unref: Called on unreferenced object\n");
+        notify(AT_WARN, "vsObject::unref: Called on unreferenced object\n");
         return;
     }
     
@@ -213,20 +224,27 @@ void vsObject::printCurrentObjects(FILE *outfile)
         // Next object
         currentObj = (vsObject *) keyList.getNextEntry();
     }
+
+    // Remove the keys so they aren't deleted when the list goes out of scope
+    keyList.removeAllEntries();
 }
 
 //------------------------------------------------------------------------
 // Static function
-// Writes a list of currently allocated vsObjects out to the specified
-// file
+// Deletes any vsObject type items that still exist
 //------------------------------------------------------------------------
 void vsObject::deleteObjectList()
 {
     // Check if the list exists before deleting it
     if (currentObjectList)
     {
+        // Remove all items from the map before deleting it
+        currentObjectList->removeAllEntries();
         delete currentObjectList;
         currentObjectList = NULL;
+
+        // Get rid of the mutex that protects this object as well
         pthread_mutex_destroy(&objectListMutex);
     }
 }
+
