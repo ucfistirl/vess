@@ -840,7 +840,7 @@ void vsTreeMap::fillLists(vsTreeMapNode * node, atList * keyList, atList * value
 void vsTreeMap::print()
 {
     // Print a header for the map tree first
-    printf("vsTreeMap %p (%lu entries):\n", this, treeSize);
+    notify(AT_INFO, "vsTreeMap %p (%lu entries):\n", this, treeSize);
 
     // Call the recursive printTree() method with the root of the red-black
     // tree and a zero indent
@@ -851,90 +851,119 @@ void vsTreeMap::print()
 void vsTreeMap::printTree(vsTreeMapNode *node, int indent)
 {
     int i;
+    char buf[512];
+    int idx;
     atString * itemStr;
 
     // Print this node's information
     // Start with an opening brace
+    idx = 0;
     for (i = 0; i < indent; i++)
-        printf(" ");
-    printf("{\n");
+        idx += sprintf(&buf[idx], " ");
+    sprintf(&buf[idx], "{\n");
+
+    notify(AT_INFO, buf);
+    idx = 0;
 
     // Print the node's address
     for (i = 0; i < indent+2; i++)
-        printf(" ");
-    printf("Node         %p\n", node);
+        idx += sprintf(&buf[idx], " ");
+    idx += sprintf(&buf[idx], "Node         %p\n", node);
+
+    notify(AT_INFO, buf);
+    idx = 0;
 
     // Print the node's color
     for (i = 0; i < indent+2; i++)
-        printf(" ");
+        idx += sprintf(&buf[idx], " ");
     switch(node->color)
     {
         case VS_TREE_MAP_BLACK:
-            printf("Color        %s\n", "BLACK");
+            idx += sprintf(&buf[idx], "Color        %s\n", "BLACK");
             break;
         case VS_TREE_MAP_RED:
-            printf("Color        %s\n", "RED");
+            idx += sprintf(&buf[idx], "Color        %s\n", "RED");
             break;
     };
 
+    notify(AT_INFO, buf);
+    idx = 0;
+
     // Print the node's key item pointer
     for (i = 0; i < indent+2; i++)
-        printf(" ");
-    printf("Key          %p", node->nodeKey);
+        idx += sprintf(&buf[idx], " ");
+    idx += sprintf(&buf[idx], "Key          %p", node->nodeKey);
 
     // If the node key is an atString, append the string to the printout
     // for additional information
     if (itemStr = dynamic_cast<atString *>(node->nodeKey))
-        printf("  \"%s\"\n", itemStr->getString());
+        idx += sprintf(&buf[idx], "  \"%s\"\n", itemStr->getString());
     else
-        printf("\n");
+        idx += sprintf(&buf[idx], "\n");
+
+    notify(AT_INFO, buf);
+    idx = 0;
 
     // Print the node's value item pointer
     for (i = 0; i < indent+2; i++)
-        printf(" ");
-    printf("Value        %p", node->nodeValue);
+        idx += sprintf(&buf[idx], " ");
+    idx += sprintf(&buf[idx], "Value        %p", node->nodeValue);
 
     // If the node value is an atString, append the string to the printout
     // for additional information
     if (itemStr = dynamic_cast<atString *>(node->nodeValue))
-        printf("  \"%s\"\n", itemStr->getString());
+        idx += sprintf(&buf[idx], "  \"%s\"\n", itemStr->getString());
     else
-        printf("\n");
+        idx += sprintf(&buf[idx], "\n");
 
     // Leave a blank line before printing the linkage information
-    printf("\n");
+    idx += sprintf(&buf[idx], "\n");
+
+    notify(AT_INFO, buf);
+    idx = 0;
 
     // Print the node's parent node pointer
     for (i = 0; i < indent+2; i++)
-        printf(" ");
-    printf("Parent       %p\n", node->parent);
+        idx += sprintf(&buf[idx], " ");
+    idx += sprintf(&buf[idx], "Parent       %p\n", node->parent);
+
+    notify(AT_INFO, buf);
+    idx = 0;
 
     // Now, traverse and print the subtrees
     // First, the left child
     for (i = 0; i < indent+2; i++)
-        printf(" ");
+        idx += sprintf(&buf[idx], " ");
     if (node->leftChild != NULL)
     {
-        printf("Left Child:  %p\n", node->leftChild);
+        idx += sprintf(&buf[idx], "Left Child:  %p\n", node->leftChild);
         printTree(node->leftChild, indent + 2);
     }
     else
-        printf("Left Child:  (none)\n");
+        idx += sprintf(&buf[idx], "Left Child:  (none)\n");
+
+    notify(AT_INFO, buf);
+    idx = 0;
 
     // Then, the right child
     for (i = 0; i < indent+2; i++)
-        printf(" ");
+        idx += sprintf(&buf[idx], " ");
     if (node->rightChild != NULL)
     {
-        printf("Right Child: %p\n", node->rightChild);
+        idx += sprintf(&buf[idx], "Right Child: %p\n", node->rightChild);
         printTree(node->rightChild, indent + 2);
     }
     else
-        printf("Right Child: (none)\n");
+        idx += sprintf(&buf[idx], "Right Child: (none)\n");
+
+    notify(AT_INFO, buf);
+    idx = 0;
 
     // Finish with a closing brace
     for (i = 0; i < indent; i++)
-        printf(" ");
-    printf("}\n");
+        idx += sprintf(&buf[idx], " ");
+    idx += sprintf(&buf[idx], "}\n");
+
+    notify(AT_INFO, buf);
 }
 
