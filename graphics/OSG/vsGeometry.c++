@@ -44,14 +44,18 @@ vsGeometry::vsGeometry()
 // ------------------------------------------------------------------------
 vsGeometry::~vsGeometry()
 {
+    vsObject *nodeRefObj;
+
     // Remove all parents
     detachFromParents();
 
     // Remove all attributes
     deleteAttributes();
 
-    // Remove the link to the osg node from the object map
-    getMap()->removeLink(this, VS_OBJMAP_FIRST_LIST);
+    // Remove the link to the osg node from the object map and free its
+    // vsOSGNode wrapper
+    nodeRefObj = getMap()->removeLink(this, VS_OBJMAP_FIRST_LIST);
+    delete nodeRefObj;
 }
 
 // ------------------------------------------------------------------------
