@@ -145,8 +145,6 @@ void vsComponent::deleteTree()
     vsList         attributes;
     vsNode         *parent;
 
-notify(AT_INFO, "deleteTree called on %p (%s)\n", this, getName());
-
     // Dirty the current node
     dirtyFlag = true;
 
