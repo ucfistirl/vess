@@ -43,8 +43,8 @@ private:
     osg::Group         *bottomGroup;
 
     virtual vsNode    *cloneTreeRecursive();
-    virtual bool      addChild(vsNode *newChild, bool dirtyFlag);
-    virtual bool      removeChild(vsNode *newChild, bool dirtyFlag);
+    virtual bool      addChild(vsNode *newChild, bool shouldDirty);
+    virtual bool      removeChild(vsNode *newChild, bool shouldDirty);
 
 VS_INTERNAL:
 

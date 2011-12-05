@@ -70,6 +70,8 @@ vsComponent::vsComponent()
 // ------------------------------------------------------------------------
 vsComponent::~vsComponent()
 {
+    vsObject *nodeRefObj;
+
     // Remove all parents
     detachFromParents();
 
@@ -80,7 +82,9 @@ vsComponent::~vsComponent()
     deleteAttributes();
 
     // Remove the node map entry that relates the component to its Groups
-    getMap()->removeLink(this, VS_OBJMAP_FIRST_LIST);
+    // and free its vsOSGNode wrapper
+    nodeRefObj = getMap()->removeLink(this, VS_OBJMAP_FIRST_LIST);
+    delete nodeRefObj;
 
     // Unlink and destroy the OSG objects
     topGroup->removeChild(lightHook);
@@ -136,41 +140,83 @@ vsNode *vsComponent::cloneTree()
 // ------------------------------------------------------------------------
 void vsComponent::deleteTree()
 {
-    vsNode *node;
-   
-    // Delete all children of this node
-    while (getChildCount() > 0)
+    vsNode         *child;
+    vsAttribute    *attribute;
+    vsList         attributes;
+    vsNode         *parent;
+
+notify(AT_INFO, "deleteTree called on %p (%s)\n", this, getName());
+
+    // Dirty the current node
+    dirtyFlag = true;
+
+    // Delete all children of this node. We can always get the first child,
+    // because removing a child causes all of the other children to slide
+    // over to fill the gap.
+    child = getChild(0);
+    while (child)
     {
-        // We can always get the first child, because removing a child
-        // causes all of the other children to slide over to fill the
-        // gap.
-        node = getChild(0);
+        // Have this node delete its subgraph
+        child->deleteTree();
 
-        // See if this node is a component
-        if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
+        // Remove the child from this node without marking the tree as dirty.
+        // The child and its entire subgraph have already been marked dirty by
+        // the deleteTree call, and calling dirty recursively can cause
+        // performance issues
+        removeChild(child, false);
+
+        // Remove any attributes from this node, as each of them may reference
+        // the node cyclically. If other references remain once we've remove
+        // those attributes, they will be replaced, otherwise we will delete
+        // the node and any attributes that don't have external references.
+        while (child->getAttributeCount() > 0)
         {
-            // Delete the subgraph below the selected child
-            ((vsComponent *)node)->deleteTree();
+            // Fetch the attribute itself (we can always grab the first since
+            // the list slides down when we remove one)
+            attribute = child->getAttribute(0);
 
-            // Remove the child from this node, but don't mark it dirty
-            // (components can only have one parent, so we won't need
-            // to dirty this node in any case)
-            removeChild(node, false);
+            // Add the attribute to our list. This will add a reference,
+            // preventing it from being deleted during this process.
+            attributes.addEntry(attribute);
+
+            // Remove the attribute from the node
+            child->removeAttribute(attribute);
+        }
+
+        // Test whether the node no longer has any references
+        if (child->getRefCount() == 0)
+        {
+            // The attributes were the only objects referencing the node.
+            // Free it.
+            delete child;
         }
         else
         {
-            // Remove the child from this node, but don't mark it dirty yet
-            removeChild(node, false);
+            // The node has references remaining and will not be deleted. Give
+            // its attributes back to it.
+            attribute = (vsAttribute *)attributes.getFirstEntry();
+            while (attribute)
+            {
+                // Add the attribute
+                child->addAttribute(attribute);
 
-            // If the node is clean and it has any remaining parents, mark
-            // it dirty manually
-            if ((node->getParentCount() > 0) && (!node->isDirty()))
-               node->dirty();
+                // Move on to the next attribute
+                attribute = (vsAttribute *)attributes.getNextEntry();
+            }
         }
 
-        // Delete the child if it's now unowned
-        vsObject::checkDelete(node);
+        // Empty the list, which will unrefDelete any attributes that are no
+        // longer referenced
+        attributes.removeAllEntries();
+
+        // Move on to the new first child node
+        child = getChild(0);
     }
+
+    // Attempt to fetch the parent so we can dirty it if necessary.
+    parent = getParent(0);
+    if ((parent != NULL) && (!parent->isDirty()))
+        parent->dirty();
 }
 
 // ------------------------------------------------------------------------
@@ -836,7 +882,7 @@ vsNode *vsComponent::cloneTreeRecursive()
 // to the dirty flag).  Most of the time, the dirty process needs to be
 // done, but there are cases where we don't want this
 // ------------------------------------------------------------------------
-bool vsComponent::addChild(vsNode *newChild, bool dirtyFlag)
+bool vsComponent::addChild(vsNode *newChild, bool shouldDirty)
 {
     vsComponent *childComponent;
     vsGeometry *childGeometry;
@@ -895,7 +941,7 @@ bool vsComponent::addChild(vsNode *newChild, bool dirtyFlag)
         switchAttr->addMask(this, newChild);
 
     // See if we should mark the affected nodes dirty
-    if (dirtyFlag)
+    if (shouldDirty)
     {
         // Mark the entire tree above and below this node as needing an
         // update
@@ -911,7 +957,7 @@ bool vsComponent::addChild(vsNode *newChild, bool dirtyFlag)
 // to the dirty flag).  Most of the time, the dirty process needs to be
 // done, but there are cases where we don't want this
 // ------------------------------------------------------------------------
-bool vsComponent::removeChild(vsNode *targetChild, bool dirtyFlag)
+bool vsComponent::removeChild(vsNode *targetChild, bool shouldDirty)
 {
     bool result; 
     vsComponent *childComponent;
@@ -920,7 +966,7 @@ bool vsComponent::removeChild(vsNode *targetChild, bool dirtyFlag)
     vsSkeletonMeshGeometry *childSkeletonMeshGeometry;
     vsUnmanagedNode *childUnmanagedNode;
     vsSwitchAttribute *switchAttr;
-    
+
     // Add a temporary reference to the target child to keep it from
     // getting deleted
     targetChild->ref();
@@ -936,7 +982,7 @@ bool vsComponent::removeChild(vsNode *targetChild, bool dirtyFlag)
 
     // Mark the entire portion of the tree that has any connection
     // to this node as needing of an update
-    if (dirtyFlag)
+    if (shouldDirty)
         targetChild->dirty();
 
     // Detach the OSG nodes; checks for the type of the
@@ -980,9 +1026,10 @@ bool vsComponent::removeChild(vsNode *targetChild, bool dirtyFlag)
     // Check for errors as we remove this component from the
     // child's parent list
     if (targetChild->removeParent(this) == false)
-        printf("vsComponent::removeChild: Scene graph inconsistency: "
-            "child to be removed does not have this component as "
-            "a parent\n");
+    {
+        notify(AT_WARN, "vsComponent::removeChild: Scene graph inconsistency: "
+            "child to be removed does not have this component as a parent\n");
+    }
 
     // Remove our temporary reference (don't delete it)
     targetChild->unref();
