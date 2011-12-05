@@ -51,17 +51,6 @@ vsNode::vsNode()
 // ------------------------------------------------------------------------
 vsNode::~vsNode()
 {
-//    vsAttribute *attr;
-
-    // Remove all attached attributes; destroy those that aren't being
-    // used by other nodes.
-//    while (getAttributeCount() > 0)
-//    {
-//        attr = getAttribute(0);
-//        removeAttribute(attr);
-//        vsObject::checkDelete(attr);
-//    }
-
     // The node shouldn't have any more attributes, parents, or children.
     // It's the derived class' responsibility to get rid of all of those
     // in its destructor. We can't check the number of children or parents
@@ -71,7 +60,7 @@ vsNode::~vsNode()
     // on the node, because that information is stored here. Make sure that
     // there aren't any attributes left; signal an error if there are.
     if (getAttributeCount() > 0)
-        printf("vsNode::~vsNode: Node contains unremoved attributes\n");
+        notify(AT_WARN, "~vsNode: Node contains unremoved attributes\n");
 }
 
 // ------------------------------------------------------------------------
@@ -85,35 +74,6 @@ vsNode::~vsNode()
 vsNode *vsNode::cloneTree()
 {
     return this;
-}
-
-// ------------------------------------------------------------------------
-// Destroys the entire scene graph rooted at this node, up to but not
-// including this node itself. Deletes any objects whose reference counts
-// reach zero.
-// ------------------------------------------------------------------------
-void vsNode::deleteTree()
-{
-    vsNode *node;
-    
-    // Delete all children of this node
-    while (getChildCount() > 0)
-    {
-        // We can always get the first child, because removing a child
-        // causes all of the other children to slide over to fill the
-        // gap.
-        node = getChild(0);
-
-        // Delete the subgraph below the selected child
-        if (node->getNodeType() == VS_NODE_TYPE_COMPONENT)
-            ((vsComponent *)node)->deleteTree();
-
-        // Remove the child from this node
-        removeChild(node);
-
-        // Delete the child if it's now unowned
-        vsObject::checkDelete(node);
-    }
 }
 
 // ------------------------------------------------------------------------
@@ -298,8 +258,8 @@ void vsNode::removeAttribute(vsAttribute *targetAttribute)
     else
     {
         // Attribute isn't attached to this node, so print an error
-        printf("vsNode::removeAttribute: Specified attribute isn't part of "
-            "this node\n");
+        notify(AT_WARN, "vsNode::removeAttribute: Specified attribute isn't "
+            "part of this node\n");
     }
 }
 
@@ -320,7 +280,7 @@ vsAttribute *vsNode::getAttribute(int index)
     // Make sure the given index is valid
     if ((index < 0) || (index >= attributeList.getNumEntries()))
     {
-        printf("vsNode::getAttribute: Index out of bounds\n");
+        notify(AT_WARN, "vsNode::getAttribute: Index out of bounds\n");
         return NULL;
     }
 

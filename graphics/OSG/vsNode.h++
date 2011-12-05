@@ -91,7 +91,7 @@ public:
     virtual             ~vsNode();
 
     virtual vsNode      *cloneTree();
-    virtual void        deleteTree();
+    virtual void        deleteTree() = 0;
 
     virtual int         getNodeType() = 0;
 
