@@ -74,8 +74,8 @@ vsViewpointAttribute::vsViewpointAttribute(vsView *theView)
 // ------------------------------------------------------------------------
 vsViewpointAttribute::~vsViewpointAttribute()
 {
-    // If we're attached to a vsView, remove the link to the before 
-    // deleting 
+    // If we're attached to a vsView, remove the link from it to this
+    // viewpoint attribute
     if (viewObject)
         getMap()->removeLink(viewObject, VS_OBJMAP_FIRST_LIST);
 }
