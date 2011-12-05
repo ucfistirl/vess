@@ -47,9 +47,9 @@
 // ------------------------------------------------------------------------
 vsCal3DMeshLoader::vsCal3DMeshLoader()
 {
+    setName("vsCal3DMeshLoader");
+
     materialList = new vsArray();
-    
-    directoryList = new atList();
 }
 
 // ------------------------------------------------------------------------
@@ -59,9 +59,6 @@ vsCal3DMeshLoader::~vsCal3DMeshLoader()
 {
     clearMaterials();
     delete materialList;
-    
-    // Clear out the directory listing.
-    delete directoryList;
 }
 
 // ------------------------------------------------------------------------
@@ -71,20 +68,20 @@ vsCal3DMeshLoader::~vsCal3DMeshLoader()
 // directories, this function will return NULL. This is a private helper
 // function.
 // ------------------------------------------------------------------------
-char *vsCal3DMeshLoader::findFile(char *filename)
+atString vsCal3DMeshLoader::findFile(atString filename)
 {
    atString *tempPath;
    char *absoluteFilename;
    char tempString[500];
    
    // Loop through the list of directories.
-   tempPath = (atString *) directoryList->getFirstEntry();
+   tempPath = (atString *) directoryList.getFirstEntry();
    while(tempPath != NULL)
    {
       // Create the tempString
       strcpy(tempString, tempPath->getString());
       strcat(tempString, "/");
-      strcat(tempString, filename);
+      strcat(tempString, filename.getString());
       
       // See if this file can be read by this process. 
       if(access(tempString, R_OK) == 0)
@@ -96,12 +93,12 @@ char *vsCal3DMeshLoader::findFile(char *filename)
          strcpy(absoluteFilename, tempString);
          
          // Return it.
-         return absoluteFilename;
+         return atString(absoluteFilename);
       }
       
-      tempPath = (atString *) directoryList->getNextEntry();
+      tempPath = (atString *) directoryList.getNextEntry();
    }
-   
+
    // We didn't find the file, so just return the original string.
    return filename;
 }
@@ -111,12 +108,14 @@ char *vsCal3DMeshLoader::findFile(char *filename)
 // ------------------------------------------------------------------------
 void vsCal3DMeshLoader::addFilePath(const char *dirName)
 {
-   char *dir;
+   atString *filename;
 
-   // Add the directory name to the list (the const isn't a problem because
-   // atString makes its own copy of the string)
-   dir = const_cast<char *>(dirName);
-   directoryList->addEntry(new atString(dir));
+   // Create a new string to hold our filename
+   filename = new atString();
+   filename->setString(dirName);
+
+   // Add our string to the list of directories
+   directoryList.addEntry(filename);
 }
 
 // ------------------------------------------------------------------------
@@ -124,6 +123,7 @@ void vsCal3DMeshLoader::addFilePath(const char *dirName)
 // ------------------------------------------------------------------------
 void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
 {
+    atString               filepath;
     FILE                   *filePointer;
     char                   *fileBuffer;
     long                   fileSize;
@@ -136,21 +136,21 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
     int                    currentTexture;
     int                    x, y, z, w;
     char                   *tempString;
+    atString               tempPath;
     vsMaterialAttribute    *tempMat;
     vsCal3DMaterial        *materialData;
     vsCal3DMaterial        *oldMaterial;
 
     currentTexture = 0;
     validVersion = false;
-    
+
     // Prepend the directory information to the filename
-    filename = findFile(filename);
-    
+    filepath = findFile(filename);
+
     // If the file opening failed, print error and return.
-    if ((filePointer = fopen(filename, "r")) == NULL)
+    if ((filePointer = fopen(filepath.getString(), "r")) == NULL)
     {
-        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMaterial: Error opening "
-            "file!\n");
+        notify(AT_ERROR, "parseXMLMaterial: Error opening file!\n");
         return;
     }
 
@@ -190,8 +190,8 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
     // If our document is NULL, then we could not parse it properly.
     if (document == NULL)
     {
-        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMaterial: Document not "
-            "parsed successfully.\n");
+        notify(AT_ERROR,
+               "parseXMLMaterial: Document not parsed successfully.\n");
         xmlFreeDoc(document);
         delete [] fileBuffer;
         return;
@@ -203,8 +203,7 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
     // If the root element is NULL, then the file is empty.
     if (current == NULL)
     {
-        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMaterial: Empty "
-            "document.\n");
+        notify(AT_ERROR, "parseXMLMaterial: Empty document.\n");
         xmlFreeDoc(document);
         delete [] fileBuffer;
         return;
@@ -216,8 +215,8 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
     if (oldMaterial)
     {
         // Print an error that a previously defined material will be replaced
-        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMaterial: Error: multiple "
-            "definitions for material: %d\n", materialCount);
+        notify(AT_ERROR, "parseXMLMaterial: Error: multiple definitions for "
+               "material: %d\n", materialCount);
     }
 
     // Add the material to the material array in the proper slot
@@ -268,8 +267,7 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
     // print error, free resources and return.
     if (!validVersion)
     {
-        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMaterial: Document of "
-            "wrong type.\n");
+        notify(AT_ERROR, "parseXMLMaterial: Document of wrong type.\n");
         xmlFreeDoc(document);
         delete [] fileBuffer;
         return;
@@ -332,12 +330,12 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
         {
             if (currentTexture == materialData->getTextureCount())
             {
-                fprintf(stderr, "vsCal3DMeshLoader::parseXMLMaterial: Too many "
-                    "MAP children encountered!");
+                notify(AT_ERROR,
+                       "parseXMLMaterial: Too many MAP children encountered!");
             }
             else
             {
-                tempString = findFile(
+                tempPath = findFile(
                         (char *) XML_GET_CONTENT(current->children));
                         
                 // Create a vsTextureAttribute for the texture, this attribute
@@ -345,7 +343,7 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
                 // Saves a significant amount of memory since textures
                 // are often shared between meshes.
                 vsTextureAttribute *textureAttr = new vsTextureAttribute();
-                textureAttr->loadImageFromFile(tempString);
+                textureAttr->loadImageFromFile(tempPath.getString());
                 textureAttr->setBoundaryMode(VS_TEXTURE_DIRECTION_ALL,
                                              VS_TEXTURE_BOUNDARY_CLAMP);
                 textureAttr->setMagFilter(VS_TEXTURE_MAGFILTER_LINEAR);
@@ -378,6 +376,7 @@ void vsCal3DMeshLoader::parseXMLMaterial(char *filename)
 vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                                              vsComponent *rootNode)
 {
+    atString               filepath;
     FILE                   *filePointer;
     char                   *fileBuffer;
     long                   fileSize;
@@ -428,12 +427,12 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
     validVersion = false;
     
     // Prepend the directory information to the filename
-    filename = findFile(filename);
+    filepath = findFile(filename);
     
     // If the file opening failed, print error and return.
-    if ((filePointer = fopen(filename, "r")) == NULL)
+    if ((filePointer = fopen(filepath.getString(), "r")) == NULL)
     {
-        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: Error opening "
+        notify(AT_ERROR, "vsCal3DMeshLoader::parseXMLMesh: Error opening "
             "file!\n");
         return NULL;
     }
@@ -474,8 +473,7 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
     // If our document is NULL, then we could not parse it properly.
     if (document == NULL)
     {
-        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: Document not parsed "
-            "successfully.\n");
+        notify(AT_ERROR, "parseXMLMesh: Document not parsed successfully.\n");
         xmlFreeDoc(document);
         delete [] fileBuffer;
         return NULL;
@@ -487,7 +485,7 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
     // If the root element is NULL, then the file is empty.
     if (current == NULL)
     {
-        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: Empty document.\n");
+        notify(AT_ERROR, "parseXMLMesh: Empty document.\n");
         xmlFreeDoc(document);
         delete [] fileBuffer;
         return NULL;
@@ -529,7 +527,7 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
     // If we have no bones, then it is an error.
     if (subMeshCount == 0)
     {
-        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: No meshes found!\n");
+        notify(AT_ERROR, "parseXMLMesh: No meshes found!\n");
         xmlFreeDoc(document);
         delete [] fileBuffer;
         return NULL;
@@ -539,8 +537,7 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
     // print error, free resources and return.
     if (!validVersion)
     {
-        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: Document of wrong "
-            "type.\n");
+        notify(AT_ERROR, "parseXMLMesh: Document of wrong type.\n");
         xmlFreeDoc(document);
         delete [] fileBuffer;
         return NULL;
@@ -620,10 +617,8 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
             resultMesh->setName(&geometryName[index+1]);
 
             // If no component is defined, make a new one.
-            if (!resultComponent)
-            {
+            if (resultComponent == NULL)
                 resultComponent = new vsComponent();
-            }
 
             // Add the new mesh to the component.
             resultComponent->addChild(resultMesh);
@@ -739,10 +734,10 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                             if (vertexInfluences >
                                 VS_CAL3D_MESH_LOADER_MAX_INFLUENCES)
                             {
-                                fprintf(stderr,
-                                    "vsCal3DMeshLoader::parseXMLMesh: Bone "
-                                    "influences greater than %d, truncating\n",
-                                    VS_CAL3D_MESH_LOADER_MAX_INFLUENCES);
+                                notify(AT_ERROR, 
+                                       "parseXMLMesh: Bone influences greater "
+                                       "than %d, truncating\n",
+                                       VS_CAL3D_MESH_LOADER_MAX_INFLUENCES);
                             }
                         }
 
@@ -809,11 +804,10 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                             // Too many encountered, print error.
                             else
                             {
-                                fprintf(stderr,
-                                    "vsCal3DMeshLoader::parseXMLMesh: "
-                                    "Encountered more than %d texture "
-                                    "coordinates, ignoring the rest\n",
-                                    VS_MAXIMUM_TEXTURE_UNITS);
+                                notify(AT_ERROR, "parseXMLMesh: Encountered "
+                                       "more than %d texture coordinates, "
+                                       "ignoring the rest\n",
+                                       VS_MAXIMUM_TEXTURE_UNITS);
                             }
                         }
                         // Process the INFLUENCE child.
@@ -858,11 +852,10 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                             // Too many encountered, print error.
                             else
                             {
-                                fprintf(stderr,
-                                    "vsCal3DMeshLoader::parseXMLMesh: "
-                                    "Encountered more than %d influences, "
-                                    "ignoring the rest\n",
-                                    VS_CAL3D_MESH_LOADER_MAX_INFLUENCES);
+                                notify(AT_ERROR, 
+                                       "parseXMLMesh: Encountered more than "
+                                       "%d influences, ignoring the rest\n",
+                                       VS_CAL3D_MESH_LOADER_MAX_INFLUENCES);
                             }
                         }
 
@@ -874,20 +867,20 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
                     // the number specified do not match, print an error.
                     if (meshTexCoords != meshTexCoordsProcessed)
                     {
-                        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: "
-                            "Mismatched texcoordinate data\n"
-                            "\tExpected: %d  Got: %d\n", meshTexCoords,
-                            meshTexCoordsProcessed);
+                        notify(AT_ERROR,
+                               "parseXMLMesh: Mismatched texcoordinate data\n"
+                               "\tExpected: %d  Got: %d\n",
+                               meshTexCoords, meshTexCoordsProcessed);
                     }
 
                     // If the number of influences processed and
                     // the number specified do not match, print an error.
                     if (vertexInfluences != vertexInfluencesProcessed)
                     {
-                        fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: "
-                            "Mismatched vertex influences data\n"
-                            "\tExpected: %d  Got: %d\n", vertexInfluences,
-                            vertexInfluencesProcessed);
+                        notify(AT_ERROR,
+                               "parseXMLMesh: Mismatched vertex influences\n"
+                               "\tExpected: %d  Got: %d\n", vertexInfluences,
+                               vertexInfluencesProcessed);
                     }
 
                     // Ensure weights are normalized [0, 1].
@@ -929,9 +922,8 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
             // do not match, print an error.
             if (meshVerticesProcessed != meshVertices)
             {
-                fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: Mismatched "
-                    "vertex data\n");
-                fprintf(stderr, "\tExpected: %d  Got: %d\n", meshVertices,
+                notify(AT_ERROR, "parseXMLMesh: Mismatched vertex data\n");
+                notify(AT_ERROR, "\tExpected: %d  Got: %d\n", meshVertices,
                     meshVerticesProcessed);
             }
 
@@ -981,9 +973,8 @@ vsComponent *vsCal3DMeshLoader::parseXMLMesh(char *filename,
             // do not match, print an error.
             if (meshIndicesProcessed != (meshFaces * 3))
             {
-                fprintf(stderr, "vsCal3DMeshLoader::parseXMLMesh: Mismatched "
-                    "face/index data\n");
-                fprintf(stderr, "\tExpected: %d  Got: %d\n", meshFaces*3,
+                notify(AT_ERROR, "parseXMLMesh: Mismatched face/index data\n");
+                notify(AT_ERROR, "\tExpected: %d  Got: %d\n", meshFaces*3,
                     meshIndicesProcessed);
             }
 
@@ -1042,7 +1033,7 @@ void vsCal3DMeshLoader::loadMaterial(char *filename)
     // print an error.
     if (nameLength < 5)
     {
-        fprintf(stderr, "vsCal3DMeshLoader::loadMaterial: Load of '%s' "
+        notify(AT_ERROR, "vsCal3DMeshLoader::loadMaterial: Load of '%s' "
             "failed\n", filename);
         return;
     }
@@ -1063,14 +1054,14 @@ void vsCal3DMeshLoader::loadMaterial(char *filename)
     // If it ends in the binary type file ending, print an approriate error.
     else if (strcmp(fileEnding, ".CRF") == 0)
     {
-        fprintf(stderr, "vsCal3DMeshLoader::loadMaterial: Load of '%s' failed\n"
+        notify(AT_ERROR, "loadMaterial: Load of '%s' failed\n"
             "\tCan only load the .xrf variants.\n", filename);
     }
     // If it ends in anything else, print an approriate error.
     else
     {
-        fprintf(stderr, "vsCal3DMeshLoader::loadMaterial: Load of '%s' "
-            "failed!\n\tUnknown file ending.\n", filename);
+        notify(AT_ERROR, "loadMaterial: Load of '%s' failed!\n"
+            "\tUnknown file ending.\n", filename);
     }
 }
 
@@ -1088,8 +1079,7 @@ vsComponent *vsCal3DMeshLoader::loadMesh(char *filename)
     // print an error.
     if (nameLength < 5)
     {
-        fprintf(stderr, "vsCal3DMeshLoader::loadMesh: Load of '%s' failed\n",
-            filename);
+        notify(AT_ERROR, "loadMesh: Load of '%s' failed\n", filename);
         return NULL;
     }
 
@@ -1109,13 +1099,13 @@ vsComponent *vsCal3DMeshLoader::loadMesh(char *filename)
     // If it ends in the binary type file ending, print an approriate error.
     else if (strcmp(fileEnding, ".CMF") == 0)
     {
-        fprintf(stderr, "vsCal3DMeshLoader::loadMesh: Load of '%s' failed\n"
+        notify(AT_ERROR, "loadMesh: Load of '%s' failed\n"
             "\tCan only load the .xmf variants.\n", filename);
     }
     // If it ends in anything else, print an approriate error.
     else
     {
-        fprintf(stderr, "vsCal3DMeshLoader::loadMesh: Load of '%s' failed\n"
+        notify(AT_ERROR, "loadMesh: Load of '%s' failed\n"
             "\tUnknown file ending.\n", filename);
     }
 
@@ -1137,8 +1127,7 @@ vsComponent *vsCal3DMeshLoader::loadMesh(char *filename, vsComponent *rootNode)
     // print an error.
     if (nameLength < 5)
     {
-        fprintf(stderr, "vsCal3DMeshLoader::loadMesh: Load of '%s' failed\n",
-            filename);
+        notify(AT_ERROR, "loadMesh: Load of '%s' failed\n", filename);
         return NULL;
     }
 
@@ -1158,13 +1147,13 @@ vsComponent *vsCal3DMeshLoader::loadMesh(char *filename, vsComponent *rootNode)
     // If it ends in the binary type file ending, print an approriate error.
     else if (strcmp(fileEnding, ".CMF") == 0)
     {
-        fprintf(stderr, "vsCal3DMeshLoader::loadMesh: Load of '%s' failed\n"
+        notify(AT_ERROR, "loadMesh: Load of '%s' failed\n"
             "\tCan only load the .xmf variants.\n", filename);
     }
     // If it ends in anything else, print an approriate error.
     else
     {
-        fprintf(stderr, "vsCal3DMeshLoader::loadMesh: Load of '%s' failed\n"
+        notify(AT_ERROR, "loadMesh: Load of '%s' failed\n"
             "\tUnknown file ending.\n", filename);
     }
 

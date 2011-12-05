@@ -22,12 +22,14 @@
 #ifndef VS_CAL3D_MESH_LOADER_HPP
 #define VS_CAL3D_MESH_LOADER_HPP
 
+#include "atList.h++"
+#include "atString.h++"
+
 #include "vsObject.h++"
 #include "vsArray.h++"
 #include "vsComponent.h++"
 #include "vsTextureAttribute.h++"
 #include "vsGeometry.h++"
-#include "atList.h++"
 
 // Tags used to enclose the entire files, needed for the xml library
 // to properly parse it.
@@ -47,11 +49,11 @@ private:
     vsComponent               *parseXMLMesh(char *filename,
                                             vsComponent *rootNode);
 
+    atList                    directoryList;
     vsArray                   *materialList;
     int                       materialCount;
-    atList                    *directoryList;
     
-    char *                    findFile(char *filename);
+    atString                  findFile(atString filename);
 
 VS_INTERNAL:
 
