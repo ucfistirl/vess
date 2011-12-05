@@ -117,6 +117,7 @@ vsSkeleton::~vsSkeleton()
     vsComponent *bone;
 
     // Delete the root node which will in turn delete all the children.
+    skeletonRoot->deleteTree();
     vsObject::unrefDelete(skeletonRoot);
 
     // Unreference (and possibly delete) all bones in the component map
