@@ -109,6 +109,14 @@ vsGeometryBase::~vsGeometryBase()
 }
 
 // ------------------------------------------------------------------------
+// Destroys the entire scene graph rooted at this node. Since geometry can
+// not have children, this method does nothing.
+// ------------------------------------------------------------------------
+void vsGeometryBase::deleteTree()
+{
+}
+
+// ------------------------------------------------------------------------
 // Retrieves the number of parent nodes for this node
 // ------------------------------------------------------------------------
 int vsGeometryBase::getParentCount()

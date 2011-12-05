@@ -195,6 +195,8 @@ public:
 
     virtual int           getNodeType() = 0;
 
+    virtual void          deleteTree();
+
     virtual int           getParentCount();
     virtual vsNode        *getParent(int index);
 
