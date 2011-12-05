@@ -342,15 +342,22 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
 
     // Convert the OSG scene graph into a VESS one
     dbRoot = convertNode(osgScene, nodeMap, attrMap);
-    
+
     // Dispose of the OSG scene graph, as it is no longer needed; all of
     // it's information is in the VESS scene now.
     osgScene->unref();
-    
-    // Dispose of the object maps
+
+    // Dispose of the node map
     delete nodeMap;
+
+    // Dispose of the attribute map as well. We want to get rid of any
+    // vsOSGAttribute objects on the right hand side of the map first,
+    // as they will be orphaned otherwise. We can use delete here since
+    // they aren't really reference tracked and only exist within the
+    // scope of this method.
+    attrMap->removeAllLinks(VS_OBJMAP_ACTION_NONE, VS_OBJMAP_ACTION_DELETE);
     delete attrMap;
-    
+
     // Run the geometry-merging pass of the optimizer over the new
     // VESS scene, as the vsGeometries created by the OSG to VESS
     // conversion process are very inefficient
@@ -358,7 +365,7 @@ vsComponent *vsDatabaseLoader::loadDatabase(char *databaseFilename)
     optimizer->setOptimizations(VS_OPTIMIZER_MERGE_GEOMETRY);
     optimizer->optimize(dbRoot);
     delete optimizer;
-    
+
     // Package the resulting database into its own component and return
     result = new vsComponent();
     result->addChild(dbRoot);
@@ -2432,3 +2439,4 @@ void vsDatabaseLoader::copyUniformValues(vsGLSLUniform *uniform,
            break;
     }
 }
+
