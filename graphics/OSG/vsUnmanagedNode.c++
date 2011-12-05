@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include "vsUnmanagedNode.h++"
 #include "vsOSGNode.h++"
+#include <osg/Light>
 #include <osg/MatrixTransform>
 #include <osg/StateAttribute>
 
@@ -44,9 +45,13 @@ vsUnmanagedNode::vsUnmanagedNode(osg::Node *newNode)
 // ------------------------------------------------------------------------
 vsUnmanagedNode::~vsUnmanagedNode()
 {
-    // Unregister this node, then allow the node to be deleted by losing the
-    // reference to it.
-    getMap()->removeLink(this, VS_OBJMAP_FIRST_LIST);
+    vsObject *nodeRefObj;
+
+    // Unregister this node and get rid of its vsOSGNode wrapper
+    nodeRefObj = getMap()->removeLink(this, VS_OBJMAP_FIRST_LIST);
+    delete nodeRefObj;
+
+    // Allow the node to be deleted by losing the reference to it.
     osgNode->unref();
 }
 
