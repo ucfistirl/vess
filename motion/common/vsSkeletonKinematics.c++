@@ -57,7 +57,7 @@ vsSkeletonKinematics::~vsSkeletonKinematics()
     delete kinematicsList;
 
     // Unreference the skeleton.
-    skeleton->unref();
+    vsObject::unrefDelete(skeleton);
 }
 
 // ------------------------------------------------------------------------
