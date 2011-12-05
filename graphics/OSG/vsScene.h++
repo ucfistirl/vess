@@ -75,6 +75,7 @@ public:
     virtual const char      *getClassName();
 
     virtual vsNode          *cloneTree();
+    virtual void            deleteTree();
 
     virtual bool            addChild(vsNode *newChild);
     virtual bool            insertChild(vsNode *newChild, int index);

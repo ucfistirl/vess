@@ -141,6 +141,81 @@ vsNode *vsScene::cloneTree()
 }
 
 // ------------------------------------------------------------------------
+// Destroys the entire scene graph rooted at this node, up to but not
+// including this node itself. Deletes any objects whose reference counts
+// reach zero.
+// ------------------------------------------------------------------------
+void vsScene::deleteTree()
+{
+    vsNode         *child;
+    vsAttribute    *attribute;
+    vsList         attributes;
+
+    // Dirty the current node
+    dirtyFlag = true;
+
+    // Delete the child of this node. We can always get the first child,
+    // because this type of node can only have one child
+    child = getChild(0);
+    if (child)
+    {
+        // Have this child node delete its subgraph
+        child->deleteTree();
+
+        // Remove the child from this node. The vsComponent deleteTree method
+        // uses a special removeChild method which doesn't dirty the scene
+        // graph, but in our case the entire subgraph has already been dirtied
+        // by our call to deleteTree
+        removeChild(child);
+
+        // Remove any attributes from this node, as each of them references the
+        // node cyclically. If other references remain once we've remove those
+        // attributes, they will be replaced, otherwise we will delete the node
+        // and any attributes that don't have external references.
+        while (child->getAttributeCount() > 0)
+        {
+            // Fetch the attribute itself (we can always grab the first since
+            // the list slides down when we remove one)
+            attribute = child->getAttribute(0);
+
+            // Add the attribute to our list. This will add a reference,
+            // preventing it from being deleted during this process.
+            attributes.addEntry(attribute);
+
+            // Remove the attribute from the node
+            child->removeAttribute(attribute);
+        }
+
+        // Test whether the node no longer has any references
+        if (child->getRefCount() == 0)
+        {
+            // The attributes were the only objects referencing the node.
+            // Free it.
+            delete child;
+        }
+        else
+        {
+            // The node has references remaining and will not be deleted. Give
+            // its attributes back to it.
+            attribute = (vsAttribute *)attributes.getFirstEntry();
+            while (attribute)
+            {
+                // Add the attribute
+                child->addAttribute(attribute);
+
+                // Move on to the next attribute
+                attribute = (vsAttribute *)attributes.getNextEntry();
+            }
+        }
+
+        // Empty the list, which will unrefDelete any attributes that are no
+        // longer referenced
+        attributes.removeAllEntries();
+    }
+}
+
+
+// ------------------------------------------------------------------------
 // Add a node to this node's child list
 // ------------------------------------------------------------------------
 bool vsScene::addChild(vsNode *newChild)
@@ -301,15 +376,15 @@ bool vsScene::removeChild(vsNode *targetChild)
     // Make sure the target child is actually our child
     if (child != targetChild)
     {
-        printf("vsScene::removeChild: 'targetChild' is not a child of "
-            "this node\n");
+        notify(AT_ERROR, "vsScene::removeChild: 'targetChild' is not a child "
+            "of this node\n");
         return false;
     }
 
     // Mark the entire portion of the tree that has any connection
     // to this node as needing of an update
     targetChild->dirty();
-        
+
     // Detach the OSG nodes; checks for the type of the component because
     // the getBaseLibraryObject call is not virtual. The type can't be a
     // vsScene, because a scene node would never have a parent.
@@ -345,13 +420,14 @@ bool vsScene::removeChild(vsNode *targetChild)
     // Finish the VESS detachment
     child = NULL;
     targetChild->unref();
-    
+
     // Check for errors as we remove this component from the
     // child's parent list
     if (targetChild->removeParent(this) == false)
-        printf("vsScene::removeChild: Scene graph inconsistency: "
-            "child to be removed does not have this component as "
-            "a parent\n");
+    {
+        notify(AT_WARN, "vsScene::removeChild: Scene graph inconsistency: "
+            "child to be removed does not have this component as a parent\n");
+    }
 
     // Return success
     return true;
