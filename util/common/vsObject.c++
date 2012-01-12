@@ -173,6 +173,8 @@ bool vsObject::isValidObject()
 //------------------------------------------------------------------------
 void vsObject::checkDelete(vsObject *obj)
 {
+    if (obj == NULL)
+        return;
     if (obj->getRefCount() == 0)
         delete obj;
 }
