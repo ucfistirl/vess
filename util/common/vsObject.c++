@@ -184,6 +184,8 @@ void vsObject::checkDelete(vsObject *obj)
 //------------------------------------------------------------------------
 void vsObject::unrefDelete(vsObject *obj)
 {
+    if (obj == NULL)
+        return;
     if (obj->getRefCount() > 0)
         obj->unref();
     if (obj->getRefCount() == 0)
