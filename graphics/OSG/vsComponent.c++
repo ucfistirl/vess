@@ -148,12 +148,14 @@ void vsComponent::deleteTree()
     // Dirty the current node
     dirtyFlag = true;
 
-    // Delete all children of this node. We can always get the first child,
-    // because removing a child causes all of the other children to slide
-    // over to fill the gap.
-    child = getChild(0);
-    while (child)
+    // Delete all children of this node
+    while (getChildCount() > 0)
     {
+        // Get the first child of this node and delete it (we can always get
+        // the first child, because removing a child causes all of the other
+        // children to slide over to fill the gap)
+        child = getChild(0);
+
         // Have this node delete its subgraph
         child->deleteTree();
 
@@ -206,9 +208,6 @@ void vsComponent::deleteTree()
         // Empty the list, which will unrefDelete any attributes that are no
         // longer referenced
         attributes.removeAllEntries();
-
-        // Move on to the new first child node
-        child = getChild(0);
     }
 
     // Attempt to fetch the parent so we can dirty it if necessary.
@@ -508,6 +507,7 @@ vsNode *vsComponent::getChild(int index)
     if ((index < 0) || (index >= childList->getNumEntries()))
     {
         printf("vsComponent::getChild: Bad child index\n");
+abort();
         return NULL;
     }
     
