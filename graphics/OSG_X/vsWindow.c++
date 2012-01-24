@@ -811,7 +811,7 @@ vsWindow::vsWindow(vsScreen *parent, Window xWin)
     else
     {
         // Print a warning about the possible visual mismatch
-        printf("vsWindow::vsWindow:  Unable to to find exact visual match ");
+        printf("vsWindow::vsWindow:  Unable to find exact visual match ");
         printf("for given window\n");
 
         // Use the first configuration chosen by the driver
