@@ -485,6 +485,13 @@ void vsMenuSystem::update()
         curObj = menuIter->getObject();
     }
 
+    // Clean up the iterator if we used one
+    if (menuIter)
+    {
+        delete menuIter;
+        menuIter = NULL;
+    }
+
     // Make sure there is an object selected before sending any signals
     if (selectedObj)
     {
@@ -517,11 +524,14 @@ void vsMenuSystem::update()
         // This slightly slower method is used to preserve the validity of any
         // frame pointers in use outside of this class
         menuFrame->setFrame(curFrame);
-        delete curFrame;
 
         // Rebuild the menu system in the new location
         rebuildMenu();
     }
+
+    // Delete the working frame we created
+    delete curFrame;
+    curFrame = NULL;
 
     // Update all of the button press states for the next frame
     for (i = 0; i < VS_MENU_ACTION_COUNT; i++)
