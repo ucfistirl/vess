@@ -155,7 +155,9 @@ void vsMenuLabel::setText(char *text)
         menuComponent->removeChild(textComponent);
 
         // Delete the old text
-        vsObject::checkDelete(textComponent);
+        textComponent->deleteTree();
+        delete textComponent;
+        textComponent = NULL;
     }
 
     // If the text object exists, create a component representation of it
