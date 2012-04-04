@@ -27,13 +27,11 @@
 #include "vsIOSystem.h++"
 #include "vsJoystick.h++"
 
-#include <linux/joystick.h>
+#include <linux/input.h>
 
-#define VS_LINUX_JS_AXIS_MIN       -32767
-#define VS_LINUX_JS_AXIS_MAX        32767
+#define VS_LINUX_JS_AXIS_MIN       -128
+#define VS_LINUX_JS_AXIS_MAX        127
 
-#define VS_LINUX_JS_BUTTON_PRESSED  1
-#define VS_LINUX_JS_BUTTON_RELEASED 0
 
 class vsLinuxJoystickSystem : public vsIOSystem
 {
@@ -41,11 +39,11 @@ protected:
 
     // Joystick port name and file descriptor
     char               portName[256];
-    int                portFileDescriptor;
+    int                portFD;
 
-    // Structure to hold the current joystick data
-    // (struct js_event is defined in linux/joystick.h)
-    struct js_event    joystickEvent;
+    // Axis and button mappings
+    int                firstButton;
+    int                axisMap[ABS_MAX];
 
     // Joystick connected to this system
     vsJoystick         *joystick;

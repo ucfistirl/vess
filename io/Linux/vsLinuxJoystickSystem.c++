@@ -35,14 +35,26 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+// Quick macro to perform bitwise tests on large buffers
+#define TEST_BIT(bit, bitmask) \
+   (((1 << ((bit) & 7)) & (((const unsigned char *) bitmask)[(bit) >> 3])) != 0)
+
 // ------------------------------------------------------------------------
 // Constructor. Creates a vsJoystick object from the specified port
 // ------------------------------------------------------------------------
 vsLinuxJoystickSystem::vsLinuxJoystickSystem(char *joystickPortName)
     : vsIOSystem()
 {   
-    char totalAxes;
-    char totalButtons;
+    int numAxes;
+    int lastButton;
+    int i;
+    uint8_t absBits[ABS_MAX/8+1];
+    uint8_t keyBits[KEY_MAX/8+1];
+    struct input_absinfo axisInfo;
+    vsInputAxis *axis;
+    double travel;
+    double idle;
+    double thresh;
 
     // Initialize the joystick member to NULL
     joystick = NULL;
@@ -52,10 +64,10 @@ vsLinuxJoystickSystem::vsLinuxJoystickSystem(char *joystickPortName)
     strcpy(portName, joystickPortName);
 
     // Open the joystick port in read only and non-blocking modes
-    portFileDescriptor = open(portName, O_RDONLY | O_NONBLOCK);
+    portFD = open(portName, O_RDONLY | O_NONBLOCK);
 
     // open() returns -1 if an error occurred trying to open a port
-    if (portFileDescriptor == -1)
+    if (portFD == -1)
     {
         printf("vsLinuxJoystickSystem::vsLinuxJoystickSystem: Unable to "
             "open joystick port\n");
@@ -63,13 +75,87 @@ vsLinuxJoystickSystem::vsLinuxJoystickSystem(char *joystickPortName)
         return;
     }
 
-    // Read the number of axes and buttons
-    ioctl(portFileDescriptor, JSIOCGAXES,    &totalAxes);
-    ioctl(portFileDescriptor, JSIOCGBUTTONS, &totalButtons);
+    // Get the axis configuration bitmask
+    memset(absBits, 0, sizeof(absBits));
+    if (ioctl(portFD, EVIOCGBIT(EV_ABS, sizeof(absBits)), &absBits) < 0)
+    {
+        printf("vsLinuxJoystickSystem::vsLinuxJoystickSystem: Unable to "
+            "determine axis configuration\n");
+
+        return;
+    }
+
+    // Get the key (button) configuration bitmask
+    memset(keyBits, 0, sizeof(keyBits));
+    if (ioctl(portFD, EVIOCGBIT(EV_KEY, sizeof(keyBits)), &keyBits) < 0)
+    {
+        printf("vsLinuxJoystickSystem::vsLinuxJoystickSystem: Unable to "
+            "determine button configuration\n");
+
+        return;
+    }
+
+    // Interpret the bitmasks, first the axes
+    numAxes = 0;
+    memset(axisMap, 0, sizeof(axisMap));
+    for (i = 0; i < ABS_MAX; i++)
+    {
+        // Is this axis there?
+        if (TEST_BIT(i, absBits))
+        {
+            // Map the axis index to the current axis count (so we get a
+            // contiguous list of axis indices in our vsJoystick)
+            axisMap[i] = numAxes;
+
+            // Found another axis
+            numAxes++;
+        }
+        else
+           axisMap[i] = -1;
+    }
+
+    // Next, the buttons
+    firstButton = -1;
+    lastButton = -1;
+    for (i = 0; i < KEY_MAX; i++)
+    {
+        // Is this button there?
+        if (TEST_BIT(i, keyBits))
+        {
+            // Is this the first button we found?  Remember it if so
+            if (firstButton < 0)
+                firstButton = i;
+
+            // Remember the last button that we find
+            lastButton = i;
+        }
+    }
 
     // Create the joystick
-    joystick = new vsJoystick(int(totalAxes), int(totalButtons),
-        VS_LINUX_JS_AXIS_MIN, VS_LINUX_JS_AXIS_MAX);
+    joystick = new vsJoystick(numAxes, lastButton - firstButton + 1);
+
+    // Configure the axes
+    for (i = 0; i < ABS_MAX; i++)
+    {
+        // Map the axis index
+        if (axisMap[i] > -1)
+        {
+           // Fetch the configuration
+           ioctl(portFD, EVIOCGABS(i), &axisInfo);
+
+           // Get the axis from the joystick
+           axis = joystick->getAxis(axisMap[i]);
+
+           // Set the axis parameters
+           travel = (double) axisInfo.maximum - (double) axisInfo.minimum;
+           idle = travel / 2.0 + (double) axisInfo.minimum;
+           thresh = (double) axisInfo.flat / travel;
+           axis->setRange(axisInfo.minimum, axisInfo.maximum);
+           axis->setIdlePosition(idle);
+           axis->setThreshold(thresh);
+           axis->setNormalized(true);
+       }
+    }
 
     // Update once to get the initial joystick state
     update();
@@ -81,8 +167,8 @@ vsLinuxJoystickSystem::vsLinuxJoystickSystem(char *joystickPortName)
 vsLinuxJoystickSystem::~vsLinuxJoystickSystem()
 {
     // Close the joystick port
-    close(portFileDescriptor);
-    portFileDescriptor = -1;
+    close(portFD);
+    portFD = -1;
 }
 
 // ------------------------------------------------------------------------
@@ -114,43 +200,55 @@ vsJoystick *vsLinuxJoystickSystem::getJoystick()
 // ------------------------------------------------------------------------
 void vsLinuxJoystickSystem::update()
 {
-    vsInputAxis   *axis;
+    int axisNum;
+    vsInputAxis *axis;
     vsInputButton *button;
-
+    int bytesRead;
+    int eventsRead;
+    int buttonIndex;
+    struct input_event events[64];
+    int i;
+    
     // Read all events on the driver queue (read() returns -1
     // when there are no events pending to be read on the queue)
-    while ((portFileDescriptor >= 0) && 
-        (read(portFileDescriptor, &joystickEvent, sizeof(struct js_event)) > 0))
+    bytesRead = read(portFD, events, sizeof(events));
+    if (bytesRead > 0)
     {
-        // Do not differentiate between init events and real events
-        joystickEvent.type &= ~JS_EVENT_INIT;
-
-        switch (joystickEvent.type)
+        eventsRead = bytesRead / sizeof(struct input_event);
+        for (i = 0; i < eventsRead; i++)
         {
-            // Handle axis events (joystick moved)
-            case JS_EVENT_AXIS:
-                // Get the appropriate axis from the joystick
-                axis = joystick->getAxis(joystickEvent.number);
+            switch (events[i].type)
+            {
+                // Handle axis events (joystick moved)
+                case EV_ABS:
 
-                // Set the axis's position
-                axis->setPosition(joystickEvent.value);
-                break;
+                    // Get the appropriate axis from the joystick
+                    axis = joystick->getAxis(axisMap[events[i].code]);
 
-            // Handle button events (pressed or released)
-            case JS_EVENT_BUTTON:
-                // Get the appropriate button from the joystick
-                button = joystick->getButton(joystickEvent.number);
+                    // Set the axis's position
+                    axis->setPosition(events[i].value);
+                    break;
 
-                // Set the button's state
-                if (joystickEvent.value == VS_LINUX_JS_BUTTON_PRESSED)
-                    button->setPressed();
-                else if (joystickEvent.value == VS_LINUX_JS_BUTTON_RELEASED)
-                    button->setReleased();
-                break;
+                // Handle button events (pressed or released)
+                case EV_KEY:
 
-            default:
-                // Do nothing
-                break;
+                    // Translate the event code to a button index
+                    buttonIndex = events[i].code - firstButton;
+
+                    // Get the appropriate button from the joystick
+                    button = joystick->getButton(buttonIndex);
+
+                    // Set the button's state
+                    if (events[i].value == 0)
+                        button->setReleased();
+                    else
+                        button->setPressed();
+                    break;
+
+                default:
+                    // Do nothing
+                    break;
+            }
         }
     }
 
