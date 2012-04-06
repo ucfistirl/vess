@@ -69,11 +69,13 @@ if opSystem == 'Windows':
    # /Zc:forScope = Use standard C++ scoping rules in for loops
    # /GR          = Enable C++ run-time type information
    # /Gd          = Use __cdecl calling convention
-   # /Z7          = Generate debug information
-   compileFlags = Split('/nologo /MD /O2 /EHsc /W3 /Zc:forScope /GR /Gd /Z7')
+   # /Zi          = Generate debug information
+   # /MP          = Use multiprocess compilation
+   compileFlags =  Split('/nologo /MD /O2 /EHsc /W3 /Zc:forScope /GR /Gd')
+   compileFlags += Split('/Zi /MP')
 
    # Additional flags to disable useless warnings
-   compileFlags += Split('/wd4091 /wd4275 /wd4290')
+   compileFlags += Split('/wd4091 /wd4275 /wd4290 /wd4068')
 
    # Import ATLAS symbols and export VESS symbols
    defines = Split('ATLAS_SYM=IMPORT VESS_SYM=EXPORT')
@@ -86,7 +88,8 @@ if opSystem == 'Windows':
    # /OPT:REF        = Optimize away unreferenced code
    # /OPT:ICF        = Optimize away redundant function packages
    # /INCREMENTAL:NO = Do not perform incremental linking
-   linkFlags = Split('/DEBUG /OPT:REF /OPT:ICF /INCREMENTAL:NO')
+   # /MANIFEST       = Generate a manifest file
+   linkFlags = Split('/DEBUG /OPT:REF /OPT:ICF /INCREMENTAL:NO /MANIFEST')
 
 else:
 
@@ -225,6 +228,11 @@ Default(vess)
 
 # Under Windows, embed the manifest into the .dll
 embedManifest(vessEnv, vess, 2)
+
+# Add some additional files to be cleaned (compiler metadata, debug info, etc)
+if str(Platform()) == 'win32':
+   Clean(vess, Glob('*.pdb'))
+   Clean(vess, Glob('*.manifest'))
 
 # Set up a test target so we can build test programs with the current VESS
 # environment, first see if "test" exists
