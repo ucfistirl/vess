@@ -152,6 +152,12 @@ vsPane::vsPane(vsWindow *parent)
     osgSceneView->
         setComputeNearFarMode(osgUtil::CullVisitor::DO_NOT_COMPUTE_NEAR_FAR);
 
+    // Cull against all six frustum planes (by default only the sides of
+    // the frustum are used for culling, as the near and far plane are
+    // automatically computed)
+    osgSceneView->
+        setCullingMode(osg::CullSettings::VIEW_FRUSTUM_CULLING);
+
     // Create the global OpenGL state settings
     defaultState = new osg::StateSet;
     defaultState->setGlobalDefaults();
@@ -299,11 +305,6 @@ void vsPane::setScene(vsScene *newScene)
         {
             // Stop using this database pager in our SceneView object
             osgSceneView->getCullVisitor()->setDatabaseRequestHandler(NULL);
-
-            // Tell the old database pager not to compile any GL objects for
-            // us anymore
-            osgDBPager->setCompileGLObjectsForContextID(
-                osgSceneView->getState()->getContextID(), false);
         }
 
         // Now, unreference the scene
@@ -323,11 +324,6 @@ void vsPane::setScene(vsScene *newScene)
             // Set the database handler on our SceneView's culling traverser
             osgSceneView->getCullVisitor()->
                 setDatabaseRequestHandler(osgDBPager);
-
-            // Tell the database pager to compile OpenGL objects for this
-            // view's context
-            osgDBPager->setCompileGLObjectsForContextID(
-                osgSceneView->getState()->getContextID(), true);
         }
     }
 

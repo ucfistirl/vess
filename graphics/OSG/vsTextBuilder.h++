@@ -62,7 +62,7 @@ private:
 
     atMatrix                  scaleMatrix;
 
-    osgText::Font::Glyph      *osgGlyphArray[256];
+    osgText::Glyph            *osgGlyphArray[256];
     vsTextureAttribute        *textureAttrArray[256];
 
     void                      setupTextureAttribute(unsigned char ch);
@@ -73,7 +73,7 @@ private:
 
 VS_INTERNAL:
 
-    osgText::Font::Glyph      *getOSGGlyph(unsigned char ch);
+    osgText::Glyph            *getOSGGlyph(unsigned char ch);
     vsTextureAttribute        *getTextureAttribute(unsigned char ch);
 
 public:

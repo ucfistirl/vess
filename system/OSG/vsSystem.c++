@@ -727,12 +727,6 @@ void vsSystem::drawFrame()
                         osgDBPager = NULL;
                     if (osgDBPager)
                     {
-                        // Tell the pager to compile any new GL objects
-                        // it has loaded
-                        osgDBPager->compileGLObjects(
-                            *(targetPane->getBaseLibraryObject()->getState()),
-                            availableTime);
-
                         // Tell the target pane to flush any GL objects that
                         // have been deleted
                         targetPane->getBaseLibraryObject()->

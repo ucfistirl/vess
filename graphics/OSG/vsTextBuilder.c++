@@ -52,7 +52,7 @@ vsTextBuilder::vsTextBuilder()
     transformMatrix.setIdentity();
 
     // Default font resolution is 128x128
-    fontResolution = osgText::FontResolution(128,128);
+    fontResolution = osgText::FontResolution(128, 128);
 
     // Default text justification is left justified
     fontJustification = VS_TEXTBUILDER_JUSTIFY_LEFT;
@@ -76,7 +76,7 @@ vsTextBuilder::vsTextBuilder(char *newFont)
     fontColor.set(1.0, 1.0, 1.0, 1.0);
 
     // Default font resolution is 128x128
-    fontResolution = osgText::FontResolution(128,128);
+    fontResolution = osgText::FontResolution(128, 128);
 
     // Default transformation is none
     transformMatrix.setIdentity();
@@ -118,7 +118,7 @@ vsTextBuilder::vsTextBuilder(char *newFont, atVector newColor)
         fontColor[3] = 1.0;
 
     // Default font resolution is 128x128
-    fontResolution = osgText::FontResolution(128,128);
+    fontResolution = osgText::FontResolution(128, 128);
 
     // Default transformation is none
     transformMatrix.setIdentity();
@@ -161,8 +161,8 @@ vsTextBuilder::vsTextBuilder(char *newFont, atVector newColor,
     if (newColor.getSize() < 4)
         fontColor[3] = 1.0;
 
-    // Default font resolution is 256x256
-    fontResolution = osgText::FontResolution(256, 256);
+    // Default font resolution is 128x128
+    fontResolution = osgText::FontResolution(128, 128);
 
     // Copy the font transformation matrix
     transformMatrix = newTransform;
@@ -338,7 +338,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
 {
     vsComponent *result;
     vsGeometry *letterGeom;
-    osgText::Font::Glyph *osgGlyph;
+    osgText::Glyph *osgGlyph;
     vsTextureAttribute *letterTextureAttr;
     int loop;
     char previousChar;
@@ -411,8 +411,11 @@ vsComponent *vsTextBuilder::buildText(char *text)
             {
                 // Get the inter-characer spacing between the previous
                 // character and the new one
-                osgFontKerning = osgFont->getKerning(fontResolution,
-                    previousChar, text[loop], osgText::KERNING_UNFITTED);
+                //osgFontKerning = osgFont->getKerning(fontResolution,
+                //    previousChar, text[loop], osgText::KERNING_UNFITTED);
+                osgFontKerning = osgFont->getKerning(
+                    (unsigned int) previousChar, (unsigned int) text[loop],
+                    osgText::KERNING_UNFITTED);
 
                 // Advance the draw position by the horizontal spacing value
                 currentPos[AT_X] += osgFontKerning[0];
@@ -427,17 +430,21 @@ vsComponent *vsTextBuilder::buildText(char *text)
             letterGeom->setPrimitiveCount(1);
 
             // Color
-            letterGeom->setBinding(VS_GEOMETRY_COLORS, VS_GEOMETRY_BIND_OVERALL);
+            letterGeom->setBinding(VS_GEOMETRY_COLORS,
+                VS_GEOMETRY_BIND_OVERALL);
             letterGeom->setDataListSize(VS_GEOMETRY_COLORS, 1);
             letterGeom->setData(VS_GEOMETRY_COLORS, 0, fontColor);
 
             // Normal
-            letterGeom->setBinding(VS_GEOMETRY_NORMALS, VS_GEOMETRY_BIND_OVERALL);
+            letterGeom->setBinding(VS_GEOMETRY_NORMALS,
+                VS_GEOMETRY_BIND_OVERALL);
             letterGeom->setDataListSize(VS_GEOMETRY_NORMALS, 1);
-            letterGeom->setData(VS_GEOMETRY_NORMALS, 0, atVector(0.0, -1.0, 0.0));
+            letterGeom->setData(VS_GEOMETRY_NORMALS, 0,
+                atVector(0.0, -1.0, 0.0));
 
             // Vertex and texture coordinates
-            letterGeom->setBinding(VS_GEOMETRY_TEXTURE_COORDS, VS_GEOMETRY_BIND_PER_VERTEX);
+            letterGeom->setBinding(VS_GEOMETRY_TEXTURE_COORDS,
+                VS_GEOMETRY_BIND_PER_VERTEX);
             letterGeom->setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 4);
             letterGeom->setDataListSize(VS_GEOMETRY_TEXTURE_COORDS, 4);
 
@@ -447,33 +454,43 @@ vsComponent *vsTextBuilder::buildText(char *text)
 
             // bottom left
             offset.set(0.0, 0.0, 0.0);
-            letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 0, currentPos + bearing + offset);
-            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 0, atVector(0.0, 0.0));
+            letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 0,
+                currentPos + bearing + offset);
+            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 0,
+                atVector(0.0, 0.0));
 
             // bottom right
             offset.set(charWidth, 0.0, 0.0);
-            letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 1, currentPos + bearing + offset);
-            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 1, atVector(1.0, 0.0));
+            letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 1,
+                currentPos + bearing + offset);
+            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 1,
+                atVector(1.0, 0.0));
 
             // top right
             offset.set(charWidth, 0.0, charHeight);
-            letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 2, currentPos + bearing + offset);
-            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 2, atVector(1.0, 1.0));
+            letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 2,
+                currentPos + bearing + offset);
+            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 2,
+                atVector(1.0, 1.0));
 
             // top left
             offset.set(0.0, 0.0, charHeight);
-            letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 3, currentPos + bearing + offset);
-            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 3, atVector(0.0, 1.0));
+            letterGeom->setData(VS_GEOMETRY_VERTEX_COORDS, 3,
+                currentPos + bearing + offset);
+            letterGeom->setData(VS_GEOMETRY_TEXTURE_COORDS, 3,
+                atVector(0.0, 1.0));
 
             // Get the texture for the character and attach it to the geometry
-            letterTextureAttr = getTextureAttribute((unsigned char)(text[loop]));
+            letterTextureAttr =
+                getTextureAttribute((unsigned char)(text[loop]));
             letterGeom->addAttribute(letterTextureAttr);
 
             // Add the new geometry to the parent component
             result->addChild(letterGeom);
 
             // Advance the 'draw position'
-            currentPos[AT_X] += osgGlyph->getHorizontalAdvance();
+            currentPos[AT_X] +=
+               osgGlyph->getHorizontalAdvance() * fontResolution.first;
         }
 
         // Record the current character for the next iteration
@@ -508,7 +525,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
 // Private function
 // Retrieves the OSG Glyph object corresponsing to the given character code
 // ------------------------------------------------------------------------
-osgText::Font::Glyph *vsTextBuilder::getOSGGlyph(unsigned char ch)
+osgText::Glyph *vsTextBuilder::getOSGGlyph(unsigned char ch)
 {
     // Make sure that the specified Glyph exists
     if (!(osgGlyphArray[ch]))
