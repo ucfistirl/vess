@@ -80,6 +80,7 @@ private:
 
     AVFrame               *rgbFrame;
     AVFrame               *videoFrame;
+    AVFrame               *audioFrame;
     SwsContext            *scaleContext;
 
     uint8_t               *vOutputBuffer;

@@ -63,74 +63,94 @@ vsMovieWriter::vsMovieWriter(const char *format)
     // Store the format in the output context.
     movieContext->oformat = movieFormat;
 
-    // Create a new video stream with an ID of 0.
-    vStreamIndex = 0;
-    vStream = av_new_stream(movieContext, vStreamIndex);
-    if (vStream == NULL)
+    // Set up an encoder for the video data
+    vCodec = avcodec_find_encoder(movieFormat->video_codec);
+    if (vCodec != NULL)
     {
-        fprintf(stderr, "vsMovieWriter::vsMovieWriter: Unable to create video "
-            "stream!\n");
-        return;
+        // Create a new video stream using the above video codec
+        vStream = avformat_new_stream(movieContext, vCodec);
+        if (vStream == NULL)
+        {
+            fprintf(stderr, "vsMovieWriter::vsMovieWriter: Unable to "
+                "create video stream!\n");
+            return;
+        }
+
+        // Fetch the stream's index within the movie, as well as the
+        // audio codec context
+        vStreamIndex = vStream->index;
+        vCodecContext = vStream->codec;
+
+        // Fill in codec information with default values.
+        vCodecContext->bit_rate = VS_MOVIE_WRITER_DEFAULT_BITRATE;
+        vCodecContext->width = VS_MOVIE_WRITER_DEFAULT_WIDTH;
+        vCodecContext->height = VS_MOVIE_WRITER_DEFAULT_HEIGHT;
+
+        // The time base is expressed as a fraction and represents the time
+        // for each frame. Only fixed-framerate writing should be attempted,
+        // meaning frames will be spaced out in increments of 1 / framerate.
+        vCodecContext->time_base.num = 1;
+        vCodecContext->time_base.den = VS_MOVIE_WRITER_DEFAULT_FRAMERATE;
+
+        // Set the GOP (MPEG group of pictures) size to 12.  This makes the
+        // encoder emit a full frame (I frame) every 12 frames or so, with
+        // the remaining frames being P or B frames (see the MPEG spec for a
+        // full description of frame types)
+        vCodecContext->gop_size = 12;
+
+        // The vsVideoStream uses YUV420P as its base format.
+        vCodecContext->pix_fmt = PIX_FMT_YUV420P;
+
+        // Don't put more than 2 B frames per group of pictures (this is an
+        // image quality vs. compression ratio tradeoff)
+        if (vCodecContext->codec_id == CODEC_ID_MPEG2VIDEO)
+        {
+            vCodecContext->max_b_frames = 2;
+        }
+
+        // FIXME: I'm also not sure why macroblock overflow is such a high risk.
+        if (vCodecContext->codec_id == CODEC_ID_MPEG1VIDEO)
+        {
+            vCodecContext->mb_decision=2;
+        }
+    }
+    else
+    {
+        printf("vsMovieWriter::vsMovieWriter:  Couldn't find a video codec "
+             "suitable for the '%s' format!", format);
     }
 
-    // Store the codec context and format information.
-    vCodecContext = vStream->codec;
-    vCodecContext->codec_id = movieFormat->video_codec;
-    vCodecContext->codec_type = CODEC_TYPE_VIDEO;
-
-    // Fill in codec information with default values.
-    vCodecContext->bit_rate = VS_MOVIE_WRITER_DEFAULT_BITRATE;
-    vCodecContext->width = VS_MOVIE_WRITER_DEFAULT_WIDTH;
-    vCodecContext->height = VS_MOVIE_WRITER_DEFAULT_HEIGHT;
-
-    // The time base is expressed as a fraction and represents the time for
-    // each frame. Only fixed-framerate writing should be attempted, meaning
-    // frames will be spaced out in increments of 1 / framerate.
-    vCodecContext->time_base.num = 1;
-    vCodecContext->time_base.den = VS_MOVIE_WRITER_DEFAULT_FRAMERATE;
-
-    // Set the GOP (MPEG group of pictures) size to 12.  This makes the
-    // encoder emit a full frame (I frame) every 12 frames or so, with
-    // the remaining frames being P or B frames (see the MPEG spec for a
-    // full description of frame types)
-    vCodecContext->gop_size = 12;
-
-    // The vsVideoStream uses YUV420P as its base format.
-    vCodecContext->pix_fmt = PIX_FMT_YUV420P;
-
-    // Don't put more than 2 B frames per group of pictures (this is an
-    // image quality vs. compression ratio tradeoff)
-    if (vCodecContext->codec_id == CODEC_ID_MPEG2VIDEO)
+    // Set up an encoder for the video data
+    aCodec = avcodec_find_encoder(movieFormat->audio_codec);
+    if (aCodec != NULL)
     {
-        vCodecContext->max_b_frames = 2;
-    }
+        // Create a new audio stream using the above codec
+        aStream = avformat_new_stream(movieContext, aCodec);
+        if (aStream == NULL)
+        {
+            fprintf(stderr, "vsMovieWriter::vsMovieWriter: Unable to "
+                "create audio stream!\n");
+            return;
+        }
 
-    // FIXME: I'm also not sure why macroblock overflow is such a high risk.
-    if (vCodecContext->codec_id == CODEC_ID_MPEG1VIDEO)
+        // Fetch the stream's index within the movie, as well as the
+        // audio codec context
+        aStreamIndex = aStream->index;;
+        aCodecContext = aStream->codec;
+
+        // Set the audio stream's ID to 1 (apparently, some codecs need this)
+        aStream->id = 1;
+
+        // FIXME: These should be able to be specified.
+        aCodecContext->bit_rate = 96000;
+        aCodecContext->sample_rate = 44100;
+        aCodecContext->channels = 2;
+    }
+    else
     {
-        vCodecContext->mb_decision=2;
+        printf("vsMovieWriter::vsMovieWriter:  Couldn't find an audio codec "
+            "suitable for the '%s' format!", format);
     }
-
-    // Create a new audio stream with an ID of 1 (as opposed to the video
-    // stream index of 0).
-    aStreamIndex = 1;
-    aStream = av_new_stream(movieContext, aStreamIndex);
-    if (aStream == NULL)
-    {
-        fprintf(stderr, "vsMovieWriter::vsMovieWriter: Unable to create audio "
-            "stream!\n");
-        return;
-    }
-
-    // Store the codec context and format information.
-    aCodecContext = aStream->codec;
-    aCodecContext->codec_id = movieFormat->audio_codec;
-    aCodecContext->codec_type = CODEC_TYPE_AUDIO;
-
-    // FIXME: These should be able to be specified.
-    aCodecContext->bit_rate = 64000;
-    aCodecContext->sample_rate = 22050;
-    aCodecContext->channels = 1;
 
     // Initialize mutex and state variables to default values.
     pthread_mutex_init(&signalMutex, NULL);
@@ -383,28 +403,15 @@ bool vsMovieWriter::openFile(char *filename)
     // Copy the filename
     strncpy(movieContext->filename, filename, sizeof(movieContext->filename));
 
-    // Set the parameters. This finalization must be done even though no
-    // special parameters have been set.
-    if (av_set_parameters(movieContext, NULL) < 0)
-    {
-        printf("vsMovieWriter::openFile: Unable to set parameters!\n");
-        return false;
-    }
-
-    // Dump the format information out to the file.
-    dump_format(movieContext, 0, filename, 1);
-
-    // Find a codec matching the video codec context. This codec does not need
-    // to be freed later, as it is a pointer maintained by ffmpeg.
-    vCodec = avcodec_find_encoder(vCodecContext->codec_id);
+    // Make sure we have a video codec available
     if (vCodec == NULL)
     {
-        fprintf(stderr, "vsMovieWriter::openFile: Unable to find codec!\n");
+        fprintf(stderr, "vsMovieWriter::openFile: No video codec available!\n");
         return false;
     }
 
     // Attempt to open the codec.
-    if (avcodec_open(vCodecContext, vCodec) < 0)
+    if (avcodec_open2(vCodecContext, vCodec, NULL) < 0)
     {
         fprintf(stderr, "vsMovieWriter::openFile: Unable to load codec!\n");
         return false;
@@ -417,7 +424,7 @@ bool vsMovieWriter::openFile(char *filename)
     if (!(movieContext->oformat->flags & AVFMT_RAWPICTURE))
     {
         // FIXME: Set this size dynamically, fool.
-        vOutputBufferSize = 200000;
+        vOutputBufferSize = 400000;
         vOutputBuffer = (uint8_t *)malloc(vOutputBufferSize);
     }
     else
@@ -497,8 +504,7 @@ bool vsMovieWriter::openFile(char *filename)
         return false;
     }
 
-    // Find a codec matching the audio codec context.
-    aCodec = avcodec_find_encoder(aCodecContext->codec_id);
+    // Make sure we have an audio codec available
     if (aCodec == NULL)
     {
         // Free the video output buffer if exists.
@@ -529,44 +535,48 @@ bool vsMovieWriter::openFile(char *filename)
     }
 
     // Attempt to open the codec.
-    if (avcodec_open(aCodecContext, aCodec) < 0)
+    if (avcodec_open2(aCodecContext, aCodec, NULL) < 0)
     {
+        // Free the video output buffer if exists.
+        if (vOutputBuffer)
+        {
+            free(vOutputBuffer);
+        }
+
+        // Now free the rgb frame and its data buffer.
+        free(rgbFrame->data[0]);
+        av_free(rgbFrame);
+
+        if (videoFrame)
+        {
+            free(videoFrame->data[0]);
+            av_free(videoFrame);
+        }
+
         fprintf(stderr, "vsMovieWriter::openFile: Unable to load audio "
             "codec!\n");
         return false;
     }
+
+    // Create an AVFrame to buffer audio for encoding
+    audioFrame = avcodec_alloc_frame();
 
     // Create the output buffer, into which encoded data will be written before
     // it goes out to the file.
     aOutputBufferSize = 200000;
     aOutputBuffer = (uint8_t *)malloc(aOutputBufferSize);
 
-    // I don't know what this is doing or why, but according to ffmpeg sample
-    // code this is temporarily necessary for PCM formats to function. It
-    // determines the number of samples that should be read and processed into
-    // a single packet.
-    if (aCodecContext->frame_size <= 1)
+    // See if the chosen audio codec is capable of variable audio
+    // frame sizes
+    if (aCodecContext->codec->capabilities & CODEC_CAP_VARIABLE_FRAME_SIZE)
     {
-        // By default, use the output buffer size, splitting the data for each
-        // channel.
-        rawSampleSize = aOutputBufferSize / aCodecContext->channels;
-        switch(aStream->codec->codec_id)
-        {
-            case CODEC_ID_PCM_S16LE:
-            case CODEC_ID_PCM_S16BE:
-            case CODEC_ID_PCM_U16LE:
-            case CODEC_ID_PCM_U16BE:
-            {
-                // If a 16-bit mode is used (instead of 8-bit), double the size
-                // of the buffer to accommodate the extra data.
-                rawSampleSize >>= 1;
-            }
-            break;
-        }
+        // Pick a sane value for the frame size (this one was taken from
+        // the ffmpeg example code)
+        rawSampleSize = 10000;
     }
     else
     {
-        // If the format has the frame size set correctly, use it.
+        // Use the frame size that the codec has set
         rawSampleSize = aCodecContext->frame_size;
     }
 
@@ -577,11 +587,14 @@ bool vsMovieWriter::openFile(char *filename)
     nullSamples =
         (uint8_t *)calloc(rawSampleSize * 2 * aCodecContext->channels, 1);
 
+    // Dump the format information out to the file.
+    av_dump_format(movieContext, 0, filename, 1);
+
     // Attempt to open an output file in the case that an output file is used
     // for this format.
     if (!(movieFormat->flags & AVFMT_NOFILE))
     {
-        if (url_fopen(&movieContext->pb, filename, URL_WRONLY) < 0)
+        if (avio_open(&movieContext->pb, filename, AVIO_FLAG_WRITE) < 0)
         {
             // Free the video output buffer if exists.
             if (vOutputBuffer)
@@ -623,7 +636,7 @@ bool vsMovieWriter::openFile(char *filename)
     fileOpen = true;
 
     // Write the header for the stream.
-    av_write_header(movieContext);
+    avformat_write_header(movieContext, NULL);
 
     // Lock the pause mutex and set the pause state to true to prevent the
     // write thread from proceeding immediately.
@@ -725,7 +738,7 @@ void vsMovieWriter::closeFile()
 
     // Officially close the output file.
     if (!(movieFormat->flags & AVFMT_NOFILE))
-        url_fclose(movieContext->pb);
+        avio_close(movieContext->pb);
 
     // Mark that the file has been closed successfully.
     fileOpen = false;
@@ -1122,6 +1135,7 @@ void vsMovieWriter::writeFrame()
 {
     AVPacket videoPacket;
     int videoPacketSize;
+    int gotPacket;
 
     // Convert and resample the data in the output frame.
     sws_scale(scaleContext, videoFrame->data, videoFrame->linesize,
@@ -1135,7 +1149,7 @@ void vsMovieWriter::writeFrame()
  
         // In this mode, all frames are key frames, the index of
         // which is simply fetched from the stream.
-        videoPacket.flags |= PKT_FLAG_KEY;
+        videoPacket.flags |= AV_PKT_FLAG_KEY;
         videoPacket.stream_index = vStream->index;
 
         // The size and data are taken straight from the frame.
@@ -1143,32 +1157,37 @@ void vsMovieWriter::writeFrame()
         videoPacket.data = (uint8_t *)videoFrame;
  
         // Write the next video frame.
-        av_write_frame(movieContext, &videoPacket);
+        av_interleaved_write_frame(movieContext, &videoPacket);
     }
     else
     {
+        // Create a packet for the output buffer
+        av_init_packet(&videoPacket);
+        videoPacket.size = 0;
+        videoPacket.data = NULL;
+
         // Attempt to encode the image, storing the final size.
-        videoPacketSize = avcodec_encode_video(vCodecContext, vOutputBuffer,
-            vOutputBufferSize, videoFrame);
+        videoPacketSize =
+           avcodec_encode_video2(vCodecContext, &videoPacket, videoFrame,
+              &gotPacket);
 
         // The size will be zero if the image was buffered.
-        if (videoPacketSize > 0)
+        if ((videoPacketSize > 0) && (gotPacket))
         {
-            av_init_packet(&videoPacket);
- 
             // Use the timestamp from the codec context.
             videoPacket.pts = av_rescale_q(vCodecContext->coded_frame->pts,
                 vCodecContext->time_base, vStream->time_base);
  
             // Determine if this was a key frame.
             if (vCodecContext->coded_frame->key_frame)
-                videoPacket.flags |= PKT_FLAG_KEY;
+                videoPacket.flags |= AV_PKT_FLAG_KEY;
             videoPacket.stream_index = vStream->index;
-            videoPacket.data = vOutputBuffer;
-            videoPacket.size = videoPacketSize;
  
             // Finally, write out the frame itself.
-            av_write_frame(movieContext, &videoPacket);
+            av_interleaved_write_frame(movieContext, &videoPacket);
+
+            // Clean up
+            av_destruct_packet(&videoPacket);
         }
     }
 }
@@ -1180,22 +1199,39 @@ void vsMovieWriter::writeFrame()
 void vsMovieWriter::writeSamples(void *samples)
 {
     AVPacket audioPacket;
+    int channels, bytesPerSample, bytesPerFrame;
+    int gotPacket;
+    int errorCode;
 
     // Initialize the packet.
     av_init_packet(&audioPacket);
+    audioPacket.data = NULL;
+    audioPacket.size = 0;
+
+    // Fetch some audio parameters
+    channels = aCodecContext->channels;
+    bytesPerSample = av_get_bytes_per_sample(aCodecContext->sample_fmt);
+    bytesPerFrame = channels * bytesPerSample;
+
+    // Fill the audio frame with sample data
+    avcodec_get_frame_defaults(audioFrame);
+    audioFrame->nb_samples = rawSampleSize;
+    avcodec_fill_audio_frame(audioFrame, channels, aCodecContext->sample_fmt,
+        (uint8_t *) samples, bytesPerFrame, 1);
  
     // Attempt to encode the samples, storing the final size.
-    audioPacket.size = avcodec_encode_audio(aCodecContext, aOutputBuffer,
-        aOutputBufferSize, (const short int *)samples);
+    errorCode =
+        avcodec_encode_audio2(aCodecContext, &audioPacket, audioFrame, 
+            &gotPacket);
 
-    // Configure the packet using the new data.
-    audioPacket.pts = av_rescale_q(aCodecContext->coded_frame->pts,
-        aCodecContext->time_base, aStream->time_base);
-    audioPacket.flags |= PKT_FLAG_KEY;
-    audioPacket.stream_index = aStream->index;
-    audioPacket.data = aOutputBuffer;
+    // See if we encoded successfully
+    if ((errorCode >= 0) && (gotPacket))
+    {
+        // Configure the packet using the new data.
+        audioPacket.stream_index = aStream->index;
 
-    // Write the compressed samples out to the movie file.
-    av_write_frame(movieContext, &audioPacket);
+        // Write the compressed samples out to the movie file.
+        av_interleaved_write_frame(movieContext, &audioPacket);
+    }
 }
 
