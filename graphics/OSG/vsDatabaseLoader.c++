@@ -247,6 +247,7 @@ atList *vsDatabaseLoader::getPathList()
    atString pathStr;
    atStringTokenizer *pathTokens;
    atString *pathElement;
+   char pathSeparator[8];
    
    // Create the list we'll use to return the paths
    pathList = new atList();
@@ -259,14 +260,15 @@ atList *vsDatabaseLoader::getPathList()
    pathTokens = new atStringTokenizer(pathStr);
 
    // Parse the individual path elements and add them to the list
-   pathElement = pathTokens->getToken(";:");
+   sprintf(pathSeparator, "%c", PATH_SEPARATOR);
+   pathElement = pathTokens->getToken(pathSeparator);
    while (pathElement != NULL)
    {
        // Add the path to the list
        pathList->addEntry(pathElement);
 
        // Get the next path
-       pathElement = pathTokens->getToken(";:");
+       pathElement = pathTokens->getToken(pathSeparator);
    }
 
    // Clean up the tokenizer
