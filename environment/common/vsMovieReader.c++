@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 #ifndef WIN32
     #include <unistd.h>
@@ -117,7 +118,7 @@ vsMovieReader::~vsMovieReader()
 
     // Close the currently active file, if any
     if (movieFile)
-        av_close_input_file(movieFile);
+        avformat_close_input(&movieFile);
 
     // Flush and remove the packet queues
     flushQueue(videoQueue);
@@ -153,7 +154,7 @@ bool vsMovieReader::openFile(char *filename)
 
     // Open the new video file; signal an error and return false if there's
     // a problem
-    errorCode = av_open_input_file(&movieFile, filename, NULL, 0, NULL);
+    errorCode = avformat_open_input(&movieFile, filename, NULL, NULL);
     if (errorCode < 0)
     {
         printf("vsMovieReader::openFile: Unable to open file '%s'\n", filename);
@@ -161,7 +162,7 @@ bool vsMovieReader::openFile(char *filename)
     }
 
     // Get the codec information from the file
-    errorCode = av_find_stream_info(movieFile);
+    errorCode = avformat_find_stream_info(movieFile, NULL);
     if (errorCode < 0)
     {
         printf("vsMovieReader::openFile: Unable to determine codec "
@@ -184,7 +185,7 @@ bool vsMovieReader::openFile(char *filename)
     // Keep searching the file for a video stream until we find it, or
     // until we run out of streams
     while ((videoStreamIndex < movieFile->nb_streams) &&
-           (videoCodecContext->codec_type != CODEC_TYPE_VIDEO))
+           (videoCodecContext->codec_type != AVMEDIA_TYPE_VIDEO))
     {
         // Try the next video stream
         videoStreamIndex++;
@@ -227,7 +228,7 @@ bool vsMovieReader::openFile(char *filename)
         else
         {
             // Initialize the video codec.
-            errorCode = avcodec_open(videoCodecContext, videoCodec);
+            errorCode = avcodec_open2(videoCodecContext, videoCodec, NULL);
             if (errorCode < 0)
             {
                 printf("vsMovieReader::openFile: Unable to initialize video "
@@ -295,7 +296,7 @@ bool vsMovieReader::openFile(char *filename)
     // Keep searching the file for a audio stream until we find it, or
     // until we run out of streams.
     while ((audioStreamIndex < movieFile->nb_streams) &&
-           (audioCodecContext->codec_type != CODEC_TYPE_AUDIO))
+           (audioCodecContext->codec_type != AVMEDIA_TYPE_AUDIO))
     {
         // Try the next audio stream.
         audioStreamIndex++;
@@ -336,7 +337,7 @@ bool vsMovieReader::openFile(char *filename)
         else
         {
             // Initialize the audio codec
-            errorCode = avcodec_open(audioCodecContext, audioCodec);
+            errorCode = avcodec_open2(audioCodecContext, audioCodec, NULL);
             if (errorCode < 0)
             {
                 printf("vsMovieReader::openFile: Unable to initialize audio "
@@ -474,10 +475,7 @@ void vsMovieReader::closeFile()
 
     // Close the input file
     if (movieFile)
-    {
-        av_close_input_file(movieFile);
-        movieFile = NULL;
-    }
+        avformat_close_input(&movieFile);
 
     // Release the file mutex
     pthread_mutex_unlock(&fileMutex);
@@ -663,6 +661,7 @@ void vsMovieReader::advanceTime(double seconds)
 void vsMovieReader::jumpToTime(double seconds)
 {
     int64_t targetTimeStamp;
+    int result;
 
     // If there's no valid video decoder for this object, abort
     if (!videoCodecContext && !audioCodecContext)
@@ -688,24 +687,41 @@ void vsMovieReader::jumpToTime(double seconds)
         // Calculate the timestamp in stream units
         targetTimeStamp = (int64_t)(seconds / av_q2d(videoStream->time_base));
 
+        // Add the stream start time to the target timestamp
+        targetTimeStamp += movieFile->start_time;
+
         // Jump to the desired frame using the video stream as the basis
         av_seek_frame(movieFile, videoStreamIndex, targetTimeStamp, 0);
-
-        // Flush the internal buffers of the video stream
-        // TODO: Why don't we have to do this for the audio stream?
-        avcodec_flush_buffers(videoCodecContext);
     }
     else if (audioStreamIndex >= 0)
     {
         // Calculate the timestamp in stream units
         targetTimeStamp = (int64_t)(seconds / av_q2d(audioStream->time_base));
 
+        // Add the stream start time to the target timestamp
+        targetTimeStamp += movieFile->start_time;
+
         // Jump to the desired frame using the audio stream as the basis
         av_seek_frame(movieFile, audioStreamIndex, targetTimeStamp, 0);
     }
 
+    // Flush the codec buffers
+    if (videoCodecContext != NULL)
+        avcodec_flush_buffers(videoCodecContext);
+    if (audioCodecContext != NULL)
+        avcodec_flush_buffers(audioCodecContext);
+
     // Release the file mutex
     pthread_mutex_unlock(&fileMutex);
+
+    // Acquire the audio mutex
+    pthread_mutex_lock(&audioMutex);
+
+    // Clear the audio buffer
+    audioBufferSize = 0;
+
+    // Release the audio mutex
+    pthread_mutex_unlock(&audioMutex);
 
     // Reset the video timers
     currentTime = seconds;
@@ -727,6 +743,8 @@ void vsMovieReader::jumpToTime(double seconds)
 // ------------------------------------------------------------------------
 void vsMovieReader::restart()
 { 
+    int result;
+
     // If there's no valid video decoder for this object, abort
     if (!videoCodecContext && !audioCodecContext)
         return;
@@ -739,22 +757,33 @@ void vsMovieReader::restart()
     flushQueue(videoQueue);
     flushQueue(audioQueue);
 
-    // Empty the audio buffer
-    audioBufferSize = 0;
-
     // Acquire the file mutex
     pthread_mutex_lock(&fileMutex);
 
     // Make sure we have a valid stream to seek to the beginning of
     if ((videoStreamIndex >= 0) || (audioStreamIndex >= 0))
     {
+        // Seek to the beginning
         av_seek_frame(movieFile, -1, 0, 0);
+
+        // Flush the codec buffers
         if (videoCodecContext != NULL)
             avcodec_flush_buffers(videoCodecContext);
+        if (audioCodecContext != NULL)
+            avcodec_flush_buffers(audioCodecContext);
     }
 
     // Release the file mutex
     pthread_mutex_unlock(&fileMutex);
+
+    // Acquire the audio mutex
+    pthread_mutex_lock(&audioMutex);
+
+    // Clear the audio buffer
+    audioBufferSize = 0;
+
+    // Release the audio mutex
+    pthread_mutex_unlock(&audioMutex);
 
     // Reset the video timers
     currentTime = 0.0;
@@ -826,6 +855,10 @@ void vsMovieReader::forceReadFrame()
                 // This packet comes from an unknown stream. Discard it.
                 av_free_packet(&moviePacket);
             }
+
+            // Read another frame, if necessary
+            if ((readStatus >= 0) && (needVideo))
+                readStatus = av_read_frame(movieFile, &moviePacket);
         }
 
         // Release the file mutex
@@ -845,6 +878,7 @@ void vsMovieReader::readNextFrame()
     AVPacket decodePacket;
     unsigned char *audioBufferPtr;
     int size, outputSize;
+    int bytesPerFrame;
     unsigned char *dataPtr;
     double timeStamp;
 
@@ -867,6 +901,9 @@ void vsMovieReader::readNextFrame()
                 timeStamp = moviePacket.pts * av_q2d(videoStream->time_base);
                 lastFrameInterval = timeStamp - lastTimeStamp;
             }
+
+            // Reset the video frame to default
+            avcodec_get_frame_defaults(videoFrame);
 
             // Allocate a video frame and decode the video packet
             readSize = avcodec_decode_video2(videoCodecContext, videoFrame,
@@ -914,24 +951,51 @@ void vsMovieReader::readNextFrame()
             audioBufferPtr = (unsigned char *)&audioBuffer[audioBufferSize];
             while (decodePacket.size > 0)
             {
+                int gotFrame = 0;
+
                 // Lock the audio mutex
                 pthread_mutex_lock(&audioMutex);
 
-                // Calculate the available space in the audio buffer
+                // Reset the audio frame to default
+                avcodec_get_frame_defaults(audioFrame);
+
+                // Limit the output size, if necessary
+                bytesPerFrame = audioCodecContext->channels *
+                     av_get_bytes_per_sample(audioCodecContext->sample_fmt);
                 outputSize = sizeof(audioBuffer) - audioBufferSize;
+                audioFrame->nb_samples = outputSize / bytesPerFrame;
 
                 // Decode a chunk of the packet's data
                 readSize = 
-                    avcodec_decode_audio3(audioCodecContext, 
-                        (short *)audioBufferPtr, &outputSize, &decodePacket);
+                    avcodec_decode_audio4(audioCodecContext,
+                        audioFrame, &gotFrame, &decodePacket);
 
                 // If we hit an error, bail out of this frame
-                if ((readSize < 0) || (outputSize < 0))
+                if (readSize < 0)
                 {
                     decodePacket.size = 0;
                 }
-                else
+                else if (gotFrame)
                 {
+                    // Get the amount of data decoded
+                    outputSize =
+                        av_samples_get_buffer_size(NULL,
+                            audioCodecContext->channels,
+                            audioFrame->nb_samples, 
+                            audioCodecContext->sample_fmt, 1);
+
+                    // Copy the audio data from the frame
+                    // NOTE: This assumes the input file's audio format uses
+                    // interleaved audio audio samples (sound devices
+                    // almost always use interleaved samples, and up until
+                    // recently, ffmpeg only supported interleaved formats).
+                    // If the input file uses a planar audio format, the
+                    // decoded data will need to be resampled (the ffplay
+                    // program shows how to do this with the swresample
+                    // library).  Since planar audio is relatively rare, we
+                    // ignore it here for simplicity.
+                    memcpy(audioBufferPtr, audioFrame->data[0], outputSize);
+
                     // Update the amount of data left to read as
                     // well as the input and output data pointers
                     decodePacket.data += readSize;
