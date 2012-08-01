@@ -851,9 +851,6 @@ AVFrame *vsMovieWriter::allocFrame(PixelFormat format, int width, int height)
     }
 
     // Determine the size of an image of this format and these dimensions.
-    // FIXME: Internally, the avpicture_get_size method is horribly inefficient
-    // and ugly, but for now it is being employed because presumably ffmpeg
-    // will always support it accurately for any format.
     imageBufferSize = avpicture_get_size(format, width, height);
     imageBuffer = (uint8_t *)malloc(imageBufferSize);
     if (imageBuffer == NULL)
