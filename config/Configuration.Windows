@@ -9,13 +9,13 @@
 atlasPath = W:/atlas
 
 # Path for msinttypes headers (inttypes.h and stdint.h for MSVC)
-msinttypesPath = L:/msinttypes-r21
+msinttypesPath = L:/msinttypes-r26
 
 # Path for HLA RTI - Used by ATLAS for HLA networking (required)
-rtiPath = L:/rtis-1.3_D18A
+rtiPath = L:/rtis-1.3_D22
 
 # Path for libxml2 - Used by ATLAS for parsing XML documents (required)
-xmlPath = L:/libxml2-2.6.27
+xmlPath = L:/libxml2-2.7.6
 
 # Path for iconv - Used by libxml2 (required)
 iconvPath = L:/iconv-1.9.1
@@ -45,7 +45,7 @@ jpegPath = L:/jpeg-6b-4
 sceneGraph = OSG
 
 # Path to Open Scene Graph (required if "OSG" is selected)
-osgPath = L:/OpenSceneGraph-2.8.0
+osgPath = L:/OpenSceneGraph-3.0.1
 
 
 
@@ -113,5 +113,5 @@ vrpnPath = L:/vrpn-06.06beta4
 videoEnabled = yes
 
 # Path for ffmpeg (audio/video encode/decode library)
-ffmpegPath = L:/ffmpeg-0.6
+ffmpegPath = L:/ffmpeg-0.11.1
 
