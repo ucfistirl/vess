@@ -22,6 +22,7 @@
 //------------------------------------------------------------------------
 
 #include "vsSoundManager.h++"
+#include "atTimer.h++"
 
 // Static instance variable
 vsSoundManager *vsSoundManager::instance = NULL;
@@ -95,10 +96,7 @@ void *vsSoundManager::sourceThreadFunc(void *arg)
     vsSoundManager *manager;
     int i;
     unsigned long threadTime;
-    vsTimer *threadTimer;
-
-    // Create the timer for controlling the thread loop
-    threadTimer = new vsTimer();
+    atTimer threadTimer;
 
     // Get the sound manager instance from the argument (we don't want to
     // rely on the getInstance() call, because this function may start
@@ -109,7 +107,7 @@ void *vsSoundManager::sourceThreadFunc(void *arg)
     while (!manager->sourceThreadDone)
     {
         // Mark the thread timer to start measuring time for this loop
-        threadTimer->mark();
+        threadTimer.mark();
 
         // Acquire the source list mutex to keep the main thread from
         // changing the source list around while we're traversing it
@@ -137,7 +135,7 @@ void *vsSoundManager::sourceThreadFunc(void *arg)
 
         // Get the elapsed time for this loop in microseconds
         threadTime = (unsigned long)
-            (threadTimer->getElapsed() * 1.0e6);
+            (threadTimer.getElapsed() * 1.0e6);
 
         // If we've got time to spare, take a break for a while
         if (threadTime < manager->threadDelay)
