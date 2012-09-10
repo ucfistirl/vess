@@ -122,7 +122,7 @@ if opSystem == 'Windows':
 
    # Add the RTI
    rtiPath = config.get('base', 'rtiPath')
-   addExternal(rtiPath, '/include/1.3', '/lib/winnt_vc++-9.0', 'librti13')
+   addExternal(rtiPath, '/include/1.3', '/lib/winnt_vc++-10.0', 'librti13')
 
    # Add libxml2
    xmlPath = config.get('base', 'xmlPath')
