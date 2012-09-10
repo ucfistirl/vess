@@ -37,7 +37,8 @@ extern "C"
 #include "libswscale/swscale.h"
 }
 
-#define VS_MOVIE_PACKET_QUEUE_SIZE 8
+#define VS_MOVIE_PACKET_QUEUE_SIZE         8
+#define VS_MOVIE_AUDIO_STREAM_BUFFER_SIZE  8192
 
 enum  vsMoviePlayMode
 {
@@ -77,7 +78,7 @@ private:
     AVCodec               *audioCodec;
     int                   audioStreamIndex;
     int                   sampleRate, sampleSize, channelCount;
-    int                   samplesPerFrame;
+    int                   streamBufferSize;
     AVFrame               *audioFrame;
     unsigned char         audioBuffer[AVCODEC_MAX_AUDIO_FRAME_SIZE * 8];
     int                   audioBufferSize;
@@ -87,16 +88,20 @@ private:
 
     int                   imageWidth;
     int                   imageHeight;
-    double                timePerFrame;
 
     unsigned char         *outputBuffer;
-    double                lastTimeStamp;
+    double                videoClock;
+    double                audioClock;
     double                lastFrameInterval;
     double                currentTime;
     double                totalFileTime;
     int                   playMode;
 
     void                  forceReadFrame();
+    bool                  decodeVideo();
+    void                  decodeAudio();
+    double                getVideoClock();
+    double                getAudioClock();
     void                  readNextFrame();
     void                  copyFrame();
 

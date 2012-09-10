@@ -46,10 +46,11 @@ vsMovieReader::vsMovieReader()
     audioStreamIndex = -1;
     imageWidth = 0;
     imageHeight = 0;
-    timePerFrame = 0.0;
     outputBuffer = NULL;
     currentTime = 0.0;
     totalFileTime = 0.0;
+    videoClock = 0.0;
+    audioClock = 0.0;
     playMode = VS_MOVIE_STOPPED;
     memset(audioBuffer, 0, sizeof(audioBuffer));
     audioBufferSize = 0;
@@ -170,11 +171,6 @@ bool vsMovieReader::openFile(char *filename)
         return false;
     }
 
-    // Start with a default frame rate of 30 fps.  If we don't find a 
-    // video stream in this file, the audio buffer size will be based on
-    // this rate
-    timePerFrame = 1.0 / 30.0;
-
     // Try to find a video stream in the file.  Start the search with the 
     // first stream.
     videoStreamIndex = 0;
@@ -259,22 +255,6 @@ bool vsMovieReader::openFile(char *filename)
                 rgbFrame->linesize[2] = 0;
                 rgbFrame->linesize[3] = 0;
 
-                // Get the video frame rate.  If it's not available, then
-                // we'll stick with the default 30 fps rate.
-                if (av_q2d(videoStream->time_base) > 1.0E-9)
-                {
-                    timePerFrame = av_q2d(videoStream->time_base);
-
-                    // Some video files have their timestamps in fractional
-                    // milliseconds (for example, 1/30000, instead of 1/30).
-                    // See if the frame time is less than some arbitrary 
-                    // number (say 1/100 sec), and multiply by 1000 if so.
-                    if (timePerFrame < 0.01)
-                    {
-                        timePerFrame *= 1000.0;
-                    }
-                }
-
                 // Create a swscale context so we can convert the image format
                 // to a format we can use
                 scaleContext = sws_getCachedContext(scaleContext,
@@ -357,12 +337,8 @@ bool vsMovieReader::openFile(char *filename)
                 // ffmpeg always decodes 16-bit audio
                 sampleSize = 2;
 
-                // Compute the number of audio samples per frame of video,
-                // then quadruple it to determine a good audio buffer size.
-                // This will keep the audio stream from starving while we're
-                // busy decoding video.
-                samplesPerFrame = (int)(timePerFrame * sampleRate) * 
-                    sampleSize * channelCount * 4;
+                // Set the number of audio samples per queued buffer
+                streamBufferSize = VS_MOVIE_AUDIO_STREAM_BUFFER_SIZE;
 
                 // Acquire the audio mutex
                 pthread_mutex_lock(&audioMutex);
@@ -372,13 +348,13 @@ bool vsMovieReader::openFile(char *filename)
                 if (channelCount > 1)
                 {
                     soundStream = 
-                        new vsSoundStream(samplesPerFrame,
+                        new vsSoundStream(streamBufferSize,
                             VS_SBUF_FORMAT_STEREO16, sampleRate);
                 }
                 else
                 {
                     soundStream = 
-                        new vsSoundStream(samplesPerFrame,
+                        new vsSoundStream(streamBufferSize,
                             VS_SBUF_FORMAT_MONO16, sampleRate);
                 }
 
@@ -419,8 +395,9 @@ bool vsMovieReader::openFile(char *filename)
         // call readNextframe(), as that function won't work if the play 
         // mode is STOPPED.)
         currentTime = 0.0;
-        lastTimeStamp = 0.0;
-        lastFrameInterval = timePerFrame;
+        videoClock = 0.0;
+        audioClock = 0.0;
+        lastFrameInterval = 0.0;
         playMode = VS_MOVIE_PLAYING;
 
         // Prime the decoder by pulling in the first frame of the video
@@ -507,7 +484,6 @@ void vsMovieReader::closeFile()
     // Reset the image parameters
     imageWidth = 0;
     imageHeight = 0;
-    timePerFrame = 0.0;
     currentTime = 0.0;
     totalFileTime = 0.0;
 
@@ -546,7 +522,12 @@ int vsMovieReader::getDataSize()
 // ------------------------------------------------------------------------
 double vsMovieReader::getTimePerFrame()
 {
-    return timePerFrame;
+    // We can't reliably compute a frame rate for all video formats (either
+    // the time base doesn't correspond to the frame rate, or the frame
+    // rate is variable).  We probably should get rid of this method, but for
+    // now, we'll return the most recent frame interval (this won't work
+    // unless the video is playing)
+    return lastFrameInterval;
 }
 
 // ------------------------------------------------------------------------
@@ -614,7 +595,7 @@ void vsMovieReader::advanceFrame()
 
     // We need to update the currentTime value to the timestamp of the
     // latest frame so that advanceTime will still work after this call
-    currentTime = lastTimeStamp;
+    currentTime = videoClock;
 }
 
 // ------------------------------------------------------------------------
@@ -639,7 +620,7 @@ void vsMovieReader::advanceTime(double seconds)
 
     // Read frames from the stream as long as the frame's timestamp is
     // less than the current file time
-    while ((lastTimeStamp < currentTime) && 
+    while ((videoClock < currentTime) && 
            ((playMode == VS_MOVIE_PLAYING) || (playMode == VS_MOVIE_EOF)))
     {
         readNextFrame();
@@ -647,8 +628,8 @@ void vsMovieReader::advanceTime(double seconds)
     }
 
     // Clip the total file time if it ran off the end of the movie.
-    if (lastTimeStamp < currentTime)
-        currentTime = lastTimeStamp;
+    if (videoClock < currentTime)
+        currentTime = videoClock;
 
     // Copy the frame data over, if we advanced to a new one
     if (frameAdvanced)
@@ -661,7 +642,6 @@ void vsMovieReader::advanceTime(double seconds)
 void vsMovieReader::jumpToTime(double seconds)
 {
     int64_t targetTimeStamp;
-    int result;
 
     // If there's no valid video decoder for this object, abort
     if (!videoCodecContext && !audioCodecContext)
@@ -688,7 +668,8 @@ void vsMovieReader::jumpToTime(double seconds)
         targetTimeStamp = (int64_t)(seconds / av_q2d(videoStream->time_base));
 
         // Add the stream start time to the target timestamp
-        targetTimeStamp += movieFile->start_time;
+        if (movieFile->start_time != AV_NOPTS_VALUE)
+            targetTimeStamp += movieFile->start_time;
 
         // Jump to the desired frame using the video stream as the basis
         av_seek_frame(movieFile, videoStreamIndex, targetTimeStamp, 0);
@@ -699,7 +680,8 @@ void vsMovieReader::jumpToTime(double seconds)
         targetTimeStamp = (int64_t)(seconds / av_q2d(audioStream->time_base));
 
         // Add the stream start time to the target timestamp
-        targetTimeStamp += movieFile->start_time;
+        if (movieFile->start_time != AV_NOPTS_VALUE)
+            targetTimeStamp += movieFile->start_time;
 
         // Jump to the desired frame using the audio stream as the basis
         av_seek_frame(movieFile, audioStreamIndex, targetTimeStamp, 0);
@@ -723,19 +705,22 @@ void vsMovieReader::jumpToTime(double seconds)
     // Release the audio mutex
     pthread_mutex_unlock(&audioMutex);
 
-    // Reset the video timers
-    currentTime = seconds;
-    lastTimeStamp = 0.0;
-    lastFrameInterval = 0.0;
-
     // Mark the file as ready to play (we have to do this _before_ we call
     // advanceFrame(), as that function won't work if the play mode is
     // STOPPED.)
     playMode = VS_MOVIE_PLAYING;
 
-    // Re-prime the video
+    // Re-prime the video (wait for the videoClock to be reset)
+    videoClock = 0.0;
     forceReadFrame();
-    advanceFrame();
+    while ((fabs(videoClock) < 1.0e-6) &&
+           (playMode != VS_MOVIE_STOPPED))
+    {
+        advanceFrame();
+    }
+
+    // Update the main clock to match the new video clock
+    currentTime = videoClock;
 }
 
 // ------------------------------------------------------------------------
@@ -743,8 +728,6 @@ void vsMovieReader::jumpToTime(double seconds)
 // ------------------------------------------------------------------------
 void vsMovieReader::restart()
 { 
-    int result;
-
     // If there's no valid video decoder for this object, abort
     if (!videoCodecContext && !audioCodecContext)
         return;
@@ -787,8 +770,9 @@ void vsMovieReader::restart()
 
     // Reset the video timers
     currentTime = 0.0;
-    lastTimeStamp = 0.0;
-    lastFrameInterval = timePerFrame;
+    videoClock = 0.0;
+    audioClock = 0.0;
+    lastFrameInterval = 0.0;
 
     // Mark the file as ready to play (we have to do this _before_ we call
     // advanceFrame(), as that function won't work if the play mode is
@@ -810,6 +794,8 @@ int vsMovieReader::getPlayMode()
 
 // ------------------------------------------------------------------------
 // Private function
+// If there is a video stream present in the file, this method reads data
+// until a video frame is found
 // ------------------------------------------------------------------------
 void vsMovieReader::forceReadFrame()
 {
@@ -868,154 +854,248 @@ void vsMovieReader::forceReadFrame()
 
 // ------------------------------------------------------------------------
 // Private function
-// Gets the next frame's worth of image information from the video file
+// Dequeue a video packet and decode it into a video frame.  Returns
+// whether or not any picture was decoded
 // ------------------------------------------------------------------------
-void vsMovieReader::readNextFrame()
+bool vsMovieReader::decodeVideo()
 {
     int readSize;
     int gotPicture;
     AVPacket moviePacket;
+    int64_t ts;
+    double timeStamp;
+
+    // Try to dequeue a packet from the file
+    if (dequeuePacket(videoQueue, &moviePacket))
+    {
+        // Reset the video frame to default
+        avcodec_get_frame_defaults(videoFrame);
+
+        // Allocate a video frame and decode the video packet
+        readSize = avcodec_decode_video2(videoCodecContext, videoFrame,
+            &gotPicture, &moviePacket);
+
+        // If the video codec gave us a full picture, output it now
+        if ((readSize >= 0) && (gotPicture))
+        {
+            // Specify that we want the output in 3-bytes-per-pixel RGB
+            // format
+            sws_scale(scaleContext, videoFrame->data, videoFrame->linesize,
+                0, imageHeight, rgbFrame->data, rgbFrame->linesize);
+
+            // Fetch the frame's timestamp
+            ts = av_frame_get_best_effort_timestamp(videoFrame);
+
+            // Update the video clock
+            if (ts == AV_NOPTS_VALUE)
+            {
+                timeStamp = videoClock + lastFrameInterval;
+            }
+            else
+            {
+                timeStamp = ts * av_q2d(videoStream->time_base);
+                lastFrameInterval = timeStamp - videoClock;
+            }
+        }
+        else
+        {
+           // No picture, so no time has passed
+           timeStamp = videoClock;
+        }
+
+        // Release the packet
+        av_free_packet(&moviePacket);
+
+        // Update the video clock
+        videoClock = timeStamp;
+    }
+    else
+    {
+        // See if we've reached the end of the file
+        if (playMode == VS_MOVIE_EOF)
+        {
+            // We've hit the end of the file, there are no more packets
+            // queued, and the decoder is fully flushed.  Now, we can stop
+            // playing
+            playMode = VS_MOVIE_STOPPED;
+        }
+
+        // No picture was decoded
+        gotPicture = 0;
+    }
+
+    // Return whether or not we got a picture
+    if (gotPicture)
+        return true;
+    else
+        return false;
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Dequeues a packet of audio and decodes it into the audio buffer
+// ------------------------------------------------------------------------
+void vsMovieReader::decodeAudio()
+{
+    int readSize;
+    AVPacket moviePacket;
     AVPacket decodePacket;
     unsigned char *audioBufferPtr;
-    int size, outputSize;
-    int bytesPerFrame;
-    unsigned char *dataPtr;
-    double timeStamp;
+    int outputSize;
+    int gotFrame;
+    int bytesPerBlock;
+
+    // Get a packet from the audio queue
+    if (dequeuePacket(audioQueue, &moviePacket))
+    {
+        // The audio AVPacket might contain multiple frames worth of
+        // data (depending on the codec in use).  Set up a temporary
+        // AVPacket to keep track of our decoding progress (only the
+        // data and size fields are needed for the decode process)
+        decodePacket.data = moviePacket.data;
+        decodePacket.size = moviePacket.size;
+
+        // Decode the packet data
+        while (decodePacket.size > 0)
+        {
+            // Grab the packet's timestamp and see if it's valid
+            if (moviePacket.pts != AV_NOPTS_VALUE)
+            {
+               // Update the audio clock.  Note that this value is the
+               // time stamp at the beginning of this packet's audio data.
+               // We will advance it forward as we process the packet below
+               audioClock =
+                   av_q2d(audioStream->time_base) * moviePacket.pts;
+            }
+
+            // No frame yet from this packet
+            gotFrame = 0;
+
+            // Reset the audio frame to default
+            avcodec_get_frame_defaults(audioFrame);
+
+            // Limit the output size, if necessary
+            bytesPerBlock = channelCount * sampleSize;
+            outputSize = sizeof(audioBuffer) - audioBufferSize;
+            audioFrame->nb_samples = outputSize / bytesPerBlock;
+
+            // Decode a chunk of the packet's data
+            readSize = 
+                avcodec_decode_audio4(audioCodecContext,
+                    audioFrame, &gotFrame, &decodePacket);
+
+            // If we hit an error, bail out of this frame
+            if (readSize < 0)
+            {
+                decodePacket.size = 0;
+            }
+            else if (gotFrame)
+            {
+                // Get the amount of data decoded
+                outputSize =
+                    av_samples_get_buffer_size(NULL,
+                        audioCodecContext->channels,
+                        audioFrame->nb_samples, 
+                        audioCodecContext->sample_fmt, 1);
+
+                // Lock the audio mutex
+                pthread_mutex_lock(&audioMutex);
+
+                // Get the tail of the audio buffer
+                audioBufferPtr =
+                    (unsigned char *) &audioBuffer[audioBufferSize];
+
+                // Copy the audio data from the frame
+                // NOTE: This assumes the input file's audio format uses
+                // interleaved audio audio samples (sound devices
+                // almost always use interleaved samples, and up until
+                // recently, ffmpeg only supported interleaved formats).
+                // If the input file uses a planar audio format, the
+                // decoded data will need to be resampled (the ffplay
+                // program shows how to do this with the swresample
+                // library).  Since planar audio is relatively rare, we
+                // ignore it here for simplicity.
+                memcpy(audioBufferPtr, audioFrame->data[0], outputSize);
+
+                // Update the audio buffer size
+                audioBufferSize += outputSize;
+
+                // Unlock the audio mutex
+                pthread_mutex_unlock(&audioMutex);
+
+                // Update the audio clock to include this chunk of data
+                audioClock += (double) outputSize / 
+                   (double) (2 * channelCount * sampleRate);
+
+                // Update the input data pointer and size
+                decodePacket.data += readSize;
+                decodePacket.size -= readSize;
+            }
+        }
+
+        // Release the packet
+        av_free_packet(&moviePacket);
+    }
+}
+
+// ------------------------------------------------------------------------
+// Gets the current value of the video clock (based on timestamps in the
+// file)
+// ------------------------------------------------------------------------
+double vsMovieReader::getVideoClock()
+{
+   return videoClock;
+}
+
+// ------------------------------------------------------------------------
+// Gets the current value of the audio clock (based on timestamps in the
+// file, and the amount of data in the audio buffer)
+// ------------------------------------------------------------------------
+double vsMovieReader::getAudioClock()
+{
+   int blockSize;
+   double latency;
+
+   // Compute the audio buffer latency, including the two queued buffers
+   // in the audio stream (we only count half of the stream's front buffer,
+   // because we don't know exactly how much of it has been played yet)
+   blockSize = channelCount * sampleSize;
+   latency = (double) (audioBufferSize + 1.5 * streamBufferSize);
+   latency /= (double) (blockSize * sampleRate);
+
+   // Return the audio clock value, subtracting out the buffer latency
+   return audioClock - latency;
+}
+
+// ------------------------------------------------------------------------
+// Private function
+// Gets the next frame's worth of image information from the video file
+// ------------------------------------------------------------------------
+void vsMovieReader::readNextFrame()
+{
+    bool gotPicture;
 
     // Can't do anything if we're not in a PLAYING mode
     if ((playMode != VS_MOVIE_PLAYING) && (playMode != VS_MOVIE_EOF))
         return;
 
     // Get the next video packet from the queue
+    gotPicture = false;
     if (videoCodecContext != NULL)
-    {
-        if (dequeuePacket(videoQueue, &moviePacket))
-        {
-            // Compute the packet timestamp
-            if (moviePacket.pts == AV_NOPTS_VALUE)
-            {
-                timeStamp = lastTimeStamp + lastFrameInterval;
-            }
-            else
-            {
-                timeStamp = moviePacket.pts * av_q2d(videoStream->time_base);
-                lastFrameInterval = timeStamp - lastTimeStamp;
-            }
-
-            // Reset the video frame to default
-            avcodec_get_frame_defaults(videoFrame);
-
-            // Allocate a video frame and decode the video packet
-            readSize = avcodec_decode_video2(videoCodecContext, videoFrame,
-                &gotPicture, &moviePacket);
-
-            // If the video codec gave us a full picture, output it now
-            if ((readSize >= 0) && (gotPicture))
-            {
-                // Specify that we want the output in 3-bytes-per-pixel RGB
-                // format
-                sws_scale(scaleContext, videoFrame->data, videoFrame->linesize,
-                    0, imageHeight, rgbFrame->data, rgbFrame->linesize);
-
-                // Release the packet
-                av_free_packet(&moviePacket);
-            }
-
-            // Remember the time stamp
-            lastTimeStamp = timeStamp;
-        }
-        else if (playMode == VS_MOVIE_EOF)
-        {
-            // If we've hit the end of the file, and there are no more packets
-            // queued, then we need to stop playing
-            playMode = VS_MOVIE_STOPPED;
-        }
-    }
+        gotPicture = decodeVideo();
 
     // See if we need to decode more audio
     while ((audioCodecContext != NULL) && 
-           (audioBufferSize < samplesPerFrame) &&
+           (audioBufferSize < (2 * streamBufferSize)) &&
            (audioQueue->packetCount > 0))
     {
-        // Get a packet from the audio queue
-        if (dequeuePacket(audioQueue, &moviePacket))
-        {
-            // The audio AVPacket might contain multiple frames worth of
-            // data (depending on the codec in use).  Set up a temporary
-            // AVPacket to keep track of our decoding progress (only the
-            // data and size fields are needed for the decode process)
-            decodePacket.data = moviePacket.data;
-            decodePacket.size = moviePacket.size;
-
-            // Decode the packet data
-            audioBufferPtr = (unsigned char *)&audioBuffer[audioBufferSize];
-            while (decodePacket.size > 0)
-            {
-                int gotFrame = 0;
-
-                // Lock the audio mutex
-                pthread_mutex_lock(&audioMutex);
-
-                // Reset the audio frame to default
-                avcodec_get_frame_defaults(audioFrame);
-
-                // Limit the output size, if necessary
-                bytesPerFrame = audioCodecContext->channels *
-                     av_get_bytes_per_sample(audioCodecContext->sample_fmt);
-                outputSize = sizeof(audioBuffer) - audioBufferSize;
-                audioFrame->nb_samples = outputSize / bytesPerFrame;
-
-                // Decode a chunk of the packet's data
-                readSize = 
-                    avcodec_decode_audio4(audioCodecContext,
-                        audioFrame, &gotFrame, &decodePacket);
-
-                // If we hit an error, bail out of this frame
-                if (readSize < 0)
-                {
-                    decodePacket.size = 0;
-                }
-                else if (gotFrame)
-                {
-                    // Get the amount of data decoded
-                    outputSize =
-                        av_samples_get_buffer_size(NULL,
-                            audioCodecContext->channels,
-                            audioFrame->nb_samples, 
-                            audioCodecContext->sample_fmt, 1);
-
-                    // Copy the audio data from the frame
-                    // NOTE: This assumes the input file's audio format uses
-                    // interleaved audio audio samples (sound devices
-                    // almost always use interleaved samples, and up until
-                    // recently, ffmpeg only supported interleaved formats).
-                    // If the input file uses a planar audio format, the
-                    // decoded data will need to be resampled (the ffplay
-                    // program shows how to do this with the swresample
-                    // library).  Since planar audio is relatively rare, we
-                    // ignore it here for simplicity.
-                    memcpy(audioBufferPtr, audioFrame->data[0], outputSize);
-
-                    // Update the amount of data left to read as
-                    // well as the input and output data pointers
-                    decodePacket.data += readSize;
-                    decodePacket.size -= readSize;
-                    audioBufferPtr += outputSize;
-                    audioBufferSize += outputSize;
-                }
-
-                // Unlock the audio mutex
-                pthread_mutex_unlock(&audioMutex);
-            }
-
-            // Release the packet
-            av_free_packet(&moviePacket);
-        }
+        // Decode more audio into the audio buffer
+        decodeAudio();
     }
 
     // If we've run out of audio data, we need to stop playing
     if ((playMode == VS_MOVIE_EOF) && (audioQueue->packetCount == 0) &&
-        (audioBufferSize < samplesPerFrame))
+        (audioBufferSize < streamBufferSize))
     {
         playMode = VS_MOVIE_STOPPED;
     }
@@ -1260,7 +1340,7 @@ void *vsMovieReader::fileThreadFunc(void *readerObject)
 
 // ------------------------------------------------------------------------
 // Private function
-// Thread function to handle decoding of audio packets 
+// Thread function to handle queueing of decoded audio data
 // ------------------------------------------------------------------------
 void *vsMovieReader::audioThreadFunc(void *readerObject)
 {
@@ -1280,7 +1360,7 @@ void *vsMovieReader::audioThreadFunc(void *readerObject)
             // Check if it's time to update the audio stream
             while ((instance->soundStream != NULL) && 
                    (instance->soundStream->isBufferReady()) && 
-                   (instance->audioBufferSize >= instance->samplesPerFrame))
+                   (instance->audioBufferSize >= instance->streamBufferSize))
             {
                 // Lock the audio mutex
                 pthread_mutex_lock(&instance->audioMutex);
@@ -1292,9 +1372,9 @@ void *vsMovieReader::audioThreadFunc(void *readerObject)
                 // Slide the data in the local buffer down and update the
                 // buffer size
                 memmove(instance->audioBuffer, 
-                    &instance->audioBuffer[instance->samplesPerFrame], 
-                    instance->audioBufferSize - instance->samplesPerFrame);
-                instance->audioBufferSize -= instance->samplesPerFrame;
+                    &instance->audioBuffer[instance->streamBufferSize], 
+                    instance->audioBufferSize - instance->streamBufferSize);
+                instance->audioBufferSize -= instance->streamBufferSize;
 
                 // Unlock the audio mutex
                 pthread_mutex_unlock(&instance->audioMutex);
