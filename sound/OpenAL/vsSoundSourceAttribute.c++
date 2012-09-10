@@ -534,12 +534,25 @@ void vsSoundSourceAttribute::updateStream()
             // Swap buffers if the front buffer is done
             if (buffersProcessed > 0)
             {
-                // The current buffer is done, swap buffers.  NOTE:
-                // The user is responsible for making sure the buffers stay
-                // filled and ready
+                // Unqueue the front buffer of the stream
                 bufferID = ((vsSoundStream *)soundBuffer)->getFrontBufferID();
                 alSourceUnqueueBuffers(sourceID, 1, &bufferID);
-                ((vsSoundStream *)soundBuffer)->swapBuffers();
+                if (buffersProcessed > 1)
+                {
+                    // If both buffers were processed (probably not good),
+                    // also unqueue the back buffer
+                    bufferID =
+                        ((vsSoundStream *)soundBuffer)->getBackBufferID();
+                    alSourceUnqueueBuffers(sourceID, 1, &bufferID);
+
+                    // Mark both stream buffers as empty
+                    ((vsSoundStream *)soundBuffer)->flushBuffers();
+                }
+                else
+                {
+                    // Swap buffers, so the spent buffer can be refilled
+                    ((vsSoundStream *)soundBuffer)->swapBuffers();
+                }
             }
         }
         else if (soundBuffer->getBufferType() == VS_SOUND_BUFFER_PACKET_STREAM)
