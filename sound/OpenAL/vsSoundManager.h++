@@ -32,7 +32,7 @@
 #define VS_SDM_MAX_SOUNDS          512
 #define VS_SDM_DEFAULT_VOICE_LIMIT 32
 #define VS_SDM_MAX_VOICES          128
-#define VS_SDM_SOURCE_THREAD_HZ    20
+#define VS_SDM_SOURCE_THREAD_HZ    60
 
 struct vsSoundSourceListItem
 {
