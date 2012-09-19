@@ -40,6 +40,9 @@ extern "C"
 #define VS_MOVIE_PACKET_QUEUE_SIZE         8
 #define VS_MOVIE_AUDIO_STREAM_BUFFER_SIZE  8192
 
+// 8 seconds of 48kHz 16-bit audio
+#define VS_MOVIE_AUDIO_BUFFER_MAX_SIZE     768000
+
 enum  vsMoviePlayMode
 {
     VS_MOVIE_PLAYING,
@@ -80,8 +83,9 @@ private:
     int                   sampleRate, sampleSize, channelCount;
     int                   streamBufferSize;
     AVFrame               *audioFrame;
-    unsigned char         audioBuffer[AVCODEC_MAX_AUDIO_FRAME_SIZE * 8];
+    unsigned char         audioBuffer[VS_MOVIE_AUDIO_BUFFER_MAX_SIZE];
     int                   audioBufferSize;
+    int                   audioBufferLimit;
     vsSoundStream         *soundStream;
 
     SwsContext            *scaleContext;
@@ -100,10 +104,10 @@ private:
     void                  forceReadFrame();
     bool                  decodeVideo();
     void                  decodeAudio();
-    double                getVideoClock();
-    double                getAudioClock();
     void                  readNextFrame();
     void                  copyFrame();
+
+    void                  syncAudioToVideo();
 
     void                  enqueuePacket(vsMoviePacketQueue *queue, 
                                         AVPacket *packet);
@@ -137,6 +141,8 @@ public:
     double           getTimePerFrame();
     double           getTotalTime();
     double           getCurrentTime();
+    double           getVideoClock();
+    double           getAudioClock();
 
     void             setVideoBuffer(unsigned char *dataOutputBuffer);
     unsigned char    *getVideoBuffer();

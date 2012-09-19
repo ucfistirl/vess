@@ -36,6 +36,8 @@
 // ------------------------------------------------------------------------
 vsMovieReader::vsMovieReader()
 {
+    int oneSec;
+
     // Initialize object variables
     movieFile = NULL;
     videoCodecContext = NULL;
@@ -76,6 +78,11 @@ vsMovieReader::vsMovieReader()
 
     // Register all ffmpeg videoCodec objects
     av_register_all();
+
+    // Compute a value for the audio buffer that will serve as the
+    // "high water mark" (i.e.: no more audio should be decoded once we reach
+    // this mark)
+    audioBufferLimit = VS_MOVIE_AUDIO_BUFFER_MAX_SIZE - (48000 * 2 * 2);
 
     // Allocate AVFrame structures to hold the current video and audio frames
     videoFrame = avcodec_alloc_frame();
@@ -146,6 +153,8 @@ const char *vsMovieReader::getClassName()
 bool vsMovieReader::openFile(char *filename)
 {
     int errorCode;
+    int audioBlockSize;
+    int numFrames;
 
     // Close the current video file
     closeFile();
@@ -337,8 +346,19 @@ bool vsMovieReader::openFile(char *filename)
                 // ffmpeg always decodes 16-bit audio
                 sampleSize = 2;
 
+                // Get the number of bytes in an audio block (one complete
+                // sample for all channels)
+                audioBlockSize = channelCount * sampleSize;
+
                 // Set the number of audio samples per queued buffer
                 streamBufferSize = VS_MOVIE_AUDIO_STREAM_BUFFER_SIZE;
+                if (streamBufferSize % audioBlockSize != 0)
+                {
+                   // Adjust the stream buffer size so it is a multiple
+                   // of a complete audio frame (channelCount*sampleSize)
+                   numFrames = (streamBufferSize / audioBlockSize) + 1;
+                   streamBufferSize = numFrames * audioBlockSize;
+                }
 
                 // Acquire the audio mutex
                 pthread_mutex_lock(&audioMutex);
@@ -547,6 +567,37 @@ double vsMovieReader::getCurrentTime()
 }
 
 // ------------------------------------------------------------------------
+// Gets the current value of the video clock (based on timestamps in the
+// file)
+// ------------------------------------------------------------------------
+double vsMovieReader::getVideoClock()
+{
+    return videoClock;
+}
+
+// ------------------------------------------------------------------------
+// Gets the current value of the audio clock (based on timestamps in the
+// file, and the amount of data in the audio buffer)
+// ------------------------------------------------------------------------
+double vsMovieReader::getAudioClock()
+{
+    int blockSize;
+    double latency;
+
+    // Compute the audio buffer latency, including the two queued buffers
+    // in the audio stream (we only count half of the stream's front buffer,
+    // because we don't know exactly how much of it has been played yet)
+    blockSize = channelCount * sampleSize;
+    pthread_mutex_lock(&audioMutex);
+    latency = (double) (audioBufferSize + 1.5 * streamBufferSize);
+    pthread_mutex_unlock(&audioMutex);
+    latency /= (double) (blockSize * sampleRate);
+
+    // Return the audio clock value, subtracting out the buffer latency
+    return audioClock - latency;
+}
+
+// ------------------------------------------------------------------------
 // Sets the pointer to the buffer that the reader should store the video
 // frame images in. Automatically copies the current frame of the video
 // to the buffer, if it is running.
@@ -557,6 +608,65 @@ void vsMovieReader::setVideoBuffer(unsigned char *dataOutputBuffer)
 
     if ((playMode == VS_MOVIE_PLAYING) || (playMode == VS_MOVIE_EOF))
         copyFrame();
+}
+
+// ------------------------------------------------------------------------
+// Synchronizes the audio clock to the video clock.  This is done by adding
+// or removing samples to/from the audio buffer
+// ------------------------------------------------------------------------
+void vsMovieReader::syncAudioToVideo()
+{
+    int blockSize;
+    double latency;
+    double lead;
+    int offset;
+
+    // Compute the audio buffer latency, including the two queued buffers
+    // in the audio stream (we only count half of the stream's front buffer,
+    // because we don't know exactly how much of it has been played yet)
+    blockSize = channelCount * sampleSize;
+    pthread_mutex_lock(&audioMutex);
+    latency = (double) (audioBufferSize + 1.5 * streamBufferSize);
+    pthread_mutex_unlock(&audioMutex);
+    latency /= (double) (blockSize * sampleRate);
+
+    // Synchronize audio to video, if the audio is leading the video by
+    // more than a little
+    lead = (audioClock - latency) - videoClock;
+    if (lead > 0.1)
+    {
+        // Compute the audio lead in bytes
+        offset = (int) (lead * sampleRate) * blockSize;
+printf("\noffset = %d   size = %d\n", offset, audioBufferSize);
+
+        // Add silence to the audio buffer to account for the lead
+        pthread_mutex_lock(&audioMutex);
+        memset(&audioBuffer[audioBufferSize], 0, offset);
+        audioBufferSize += offset;
+        pthread_mutex_unlock(&audioMutex);
+    }
+    else if (lead < -0.1)
+    {
+        // Compute the audio lag in bytes
+        offset = (int) (-lead * sampleRate) * blockSize;
+
+        // Chop audio samples from the buffer to make up for the lag
+        pthread_mutex_lock(&audioMutex);
+printf("\noffset = %d   size = %d\n", offset, audioBufferSize);
+        if (offset > audioBufferSize)
+        {
+            // Flush the entire buffer (best we can do)
+            audioBufferSize = 0;
+        }
+        else
+        {
+            // Slide the remaining audio samples to the head of the buffer
+            memmove(audioBuffer, &audioBuffer[offset],
+                audioBufferSize - offset);
+            audioBufferSize -= offset;
+        }
+        pthread_mutex_unlock(&audioMutex);
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -634,6 +744,10 @@ void vsMovieReader::advanceTime(double seconds)
     // Copy the frame data over, if we advanced to a new one
     if (frameAdvanced)
         copyFrame();
+
+    // Synchronize audio to video (if we have both streams)
+    if ((audioCodecContext != NULL) && (videoCodecContext != NULL))
+        syncAudioToVideo();
 }
 
 // ------------------------------------------------------------------------
@@ -642,6 +756,10 @@ void vsMovieReader::advanceTime(double seconds)
 void vsMovieReader::jumpToTime(double seconds)
 {
     int64_t targetTimeStamp;
+    double minSeconds;
+    int64_t minTimeStamp;
+    int blockSize;
+    int offset;
 
     // If there's no valid video decoder for this object, abort
     if (!videoCodecContext && !audioCodecContext)
@@ -664,15 +782,29 @@ void vsMovieReader::jumpToTime(double seconds)
     // Make sure we have a valid stream to seek within
     if (videoStreamIndex >= 0)
     {
-        // Calculate the timestamp in stream units
+        // Calculate the target timestamp in stream units
         targetTimeStamp = (int64_t)(seconds / av_q2d(videoStream->time_base));
+
+        // Calculate a minimum timestamp.  Most modern video formats won't
+        // actually let you seek to just any frame (it must be a key frame).
+        // We'll pick a minimum timestamp so that we can find a key frame
+        // before our desired frame and then read the video until we get to
+        // the desired frame (10 seconds should be enough of a gap to find
+        // a keyframe)
+        minSeconds = seconds - 10.0;
+        if (minSeconds < 0.0)
+           minSeconds = 0.0;
+        minTimeStamp = (int64_t)(minSeconds / av_q2d(videoStream->time_base));
 
         // Add the stream start time to the target timestamp
         if (movieFile->start_time != AV_NOPTS_VALUE)
             targetTimeStamp += movieFile->start_time;
 
         // Jump to the desired frame using the video stream as the basis
-        av_seek_frame(movieFile, videoStreamIndex, targetTimeStamp, 0);
+        // +/- 5 time units
+        // av_seek_frame(movieFile, videoStreamIndex, targetTimeStamp, 0);
+        avformat_seek_file(movieFile, videoStreamIndex, minTimeStamp,
+            targetTimeStamp, targetTimeStamp, 0);
     }
     else if (audioStreamIndex >= 0)
     {
@@ -684,7 +816,9 @@ void vsMovieReader::jumpToTime(double seconds)
             targetTimeStamp += movieFile->start_time;
 
         // Jump to the desired frame using the audio stream as the basis
-        av_seek_frame(movieFile, audioStreamIndex, targetTimeStamp, 0);
+        // av_seek_frame(movieFile, audioStreamIndex, targetTimeStamp, 0);
+        avformat_seek_file(movieFile, audioStreamIndex, targetTimeStamp,
+            targetTimeStamp, targetTimeStamp, 0);
     }
 
     // Flush the codec buffers
@@ -710,19 +844,41 @@ void vsMovieReader::jumpToTime(double seconds)
     // STOPPED.)
     playMode = VS_MOVIE_PLAYING;
 
-    // Re-prime the video (wait for the videoClock to be reset)
-    videoClock = 0.0;
-    forceReadFrame();
-    while ((fabs(videoClock) < 1.0e-6) &&
-           (playMode != VS_MOVIE_STOPPED))
+    // If we're seeking in the video stream, we have more work to do
+    if (videoCodecContext != NULL)
     {
-        advanceFrame();
+        // Now that we've found the keyframe before the target time, we need
+        // to advance through the remaining frames until we get to the
+        // target time
+
+        // Reset the video clock (we'll pick up the actual time when we
+        // decode the first video frame)
+        videoClock = 0.0;
+        while ((fabs(videoClock) < seconds) &&
+               (playMode != VS_MOVIE_STOPPED))
+        {
+            // Get the next frame
+            forceReadFrame();
+            advanceFrame();
+
+            // Deal with audio that has accumulated
+            if ((audioCodecContext != NULL) && (videoClock < seconds))
+            {
+                // Acquire the audio mutex
+                pthread_mutex_lock(&audioMutex);
+
+                // Flush the audio buffer (again)
+                audioBufferSize = 0;
+
+                // Release the audio mutex
+                pthread_mutex_unlock(&audioMutex);
+            }
+        }
+
+        // Update the main clock to match the new video clock
+        currentTime = videoClock;
     }
-
-    // Update the main clock to match the new video clock
-    currentTime = videoClock;
 }
-
 // ------------------------------------------------------------------------
 // Rewinds the video back to the beginning
 // ------------------------------------------------------------------------
@@ -1039,41 +1195,13 @@ void vsMovieReader::decodeAudio()
 }
 
 // ------------------------------------------------------------------------
-// Gets the current value of the video clock (based on timestamps in the
-// file)
-// ------------------------------------------------------------------------
-double vsMovieReader::getVideoClock()
-{
-   return videoClock;
-}
-
-// ------------------------------------------------------------------------
-// Gets the current value of the audio clock (based on timestamps in the
-// file, and the amount of data in the audio buffer)
-// ------------------------------------------------------------------------
-double vsMovieReader::getAudioClock()
-{
-   int blockSize;
-   double latency;
-
-   // Compute the audio buffer latency, including the two queued buffers
-   // in the audio stream (we only count half of the stream's front buffer,
-   // because we don't know exactly how much of it has been played yet)
-   blockSize = channelCount * sampleSize;
-   latency = (double) (audioBufferSize + 1.5 * streamBufferSize);
-   latency /= (double) (blockSize * sampleRate);
-
-   // Return the audio clock value, subtracting out the buffer latency
-   return audioClock - latency;
-}
-
-// ------------------------------------------------------------------------
 // Private function
 // Gets the next frame's worth of image information from the video file
 // ------------------------------------------------------------------------
 void vsMovieReader::readNextFrame()
 {
     bool gotPicture;
+    bool needAudio;
 
     // Can't do anything if we're not in a PLAYING mode
     if ((playMode != VS_MOVIE_PLAYING) && (playMode != VS_MOVIE_EOF))
@@ -1085,12 +1213,34 @@ void vsMovieReader::readNextFrame()
         gotPicture = decodeVideo();
 
     // See if we need to decode more audio
+    pthread_mutex_lock(&audioMutex);
+    if (((videoClock - audioClock) > 0.0) &&
+        (audioBufferSize < audioBufferLimit))
+        needAudio = true;
+    else if (audioBufferSize < (streamBufferSize * 2))
+        needAudio = true;
+    else
+        needAudio = false;
+    pthread_mutex_unlock(&audioMutex);
+
+    // Decode audio as long as we need it
     while ((audioCodecContext != NULL) && 
-           (audioBufferSize < (2 * streamBufferSize)) &&
-           (audioQueue->packetCount > 0))
+           (audioQueue->packetCount > 0) &&
+           (needAudio))
     {
         // Decode more audio into the audio buffer
         decodeAudio();
+
+        // See if we still need audio
+        pthread_mutex_lock(&audioMutex);
+        if (((videoClock - audioClock) > 0.0) &&
+            (audioBufferSize < audioBufferLimit))
+            needAudio = true;
+        else if (audioBufferSize < (streamBufferSize * 2))
+            needAudio = true;
+        else
+            needAudio = false;
+        pthread_mutex_unlock(&audioMutex);
     }
 
     // If we've run out of audio data, we need to stop playing
