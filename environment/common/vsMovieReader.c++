@@ -637,7 +637,6 @@ void vsMovieReader::syncAudioToVideo()
     {
         // Compute the audio lead in bytes
         offset = (int) (lead * sampleRate) * blockSize;
-printf("\noffset = %d   size = %d\n", offset, audioBufferSize);
 
         // Add silence to the audio buffer to account for the lead
         pthread_mutex_lock(&audioMutex);
@@ -652,7 +651,6 @@ printf("\noffset = %d   size = %d\n", offset, audioBufferSize);
 
         // Chop audio samples from the buffer to make up for the lag
         pthread_mutex_lock(&audioMutex);
-printf("\noffset = %d   size = %d\n", offset, audioBufferSize);
         if (offset > audioBufferSize)
         {
             // Flush the entire buffer (best we can do)
@@ -851,9 +849,10 @@ void vsMovieReader::jumpToTime(double seconds)
         // to advance through the remaining frames until we get to the
         // target time
 
-        // Reset the video clock (we'll pick up the actual time when we
+        // Reset the clocks (we'll pick up the actual time when we
         // decode the first video frame)
         videoClock = 0.0;
+        audioClock = 0.0;
         while ((fabs(videoClock) < seconds) &&
                (playMode != VS_MOVIE_STOPPED))
         {
@@ -1507,14 +1506,15 @@ void *vsMovieReader::audioThreadFunc(void *readerObject)
         if ((instance->playMode == VS_MOVIE_PLAYING) ||
             (instance->playMode == VS_MOVIE_EOF))
         {
+            // Lock the audio mutex (the loop below will only execute a
+            // maximum of two times, so it should be OK to lock here)
+            pthread_mutex_lock(&instance->audioMutex);
+
             // Check if it's time to update the audio stream
             while ((instance->soundStream != NULL) && 
                    (instance->soundStream->isBufferReady()) && 
                    (instance->audioBufferSize >= instance->streamBufferSize))
             {
-                // Lock the audio mutex
-                pthread_mutex_lock(&instance->audioMutex);
-
                 // Copy the data from the local audio buffer to the sound 
                 // stream
                 instance->soundStream->queueBuffer(instance->audioBuffer);
@@ -1525,10 +1525,10 @@ void *vsMovieReader::audioThreadFunc(void *readerObject)
                     &instance->audioBuffer[instance->streamBufferSize], 
                     instance->audioBufferSize - instance->streamBufferSize);
                 instance->audioBufferSize -= instance->streamBufferSize;
-
-                // Unlock the audio mutex
-                pthread_mutex_unlock(&instance->audioMutex);
             }
+
+            // Unlock the audio mutex
+            pthread_mutex_unlock(&instance->audioMutex);
         }
 
         // Sleep for a while
