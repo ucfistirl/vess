@@ -1,0 +1,111 @@
+
+# VESS Configuration
+
+
+# Basic configuration, required by all VESS builds
+[base]
+
+# Path for ATLAS - Low-level support library (required)
+atlasPath = #../atlas
+
+# Path for HLA RTI - Used by ATLAS for HLA networking (required)
+rtiPath = /irl/tools/libs/rtis_D30G
+
+# Path for libxml2 - Used by ATLAS for parsing XML documents (required)
+xmlPath = /usr
+
+# Path for pthreads - for creating threads of execution
+pthreadPath = /usr
+
+
+
+# Utilities configuration
+[util]
+
+# Path to JPEG library - for loading and saving JPEG images (required)
+jpegPath = /usr
+
+
+
+# Graphics configuration
+# A supported scene graph library must be specified for VESS to build
+[graphics]
+
+# Scene Graph library to use
+# Currently, only "OSG" (for the Open Scene Graph library) is supported
+sceneGraph = OSG
+
+# Path to Open Scene Graph (required if "OSG" is selected)
+osgPath = /irl/tools/libs/OpenSceneGraph-3.0.1
+
+
+
+# Sound configuration
+# If any supported audio library is defined, the VESS sound features will
+# be enabled.
+[sound]
+
+# Sound features enable/disable
+soundEnabled = yes
+
+# Audio library selection
+# Currently, only "OpenAL" is supported
+audioLibrary = OpenAL
+
+# OpenAL - Audio library
+oalPath = /usr
+
+# ALUT - OpenAL Utility Toolkit (required if OpenAL is selected)
+alutPath = /usr
+
+
+
+# I/O support configuration
+# Some VESS I/O classes require external library support.  These classes
+# will be omitted if the corresponding library is not specified.
+[io]
+
+# Enable/disable for IEEE 1394 (firewire) camera support
+dc1394Enabled = no
+
+# Path for the raw1394 library
+raw1394Path =
+
+# Path for the dc1394_control library
+dc1394Path = /usr/lib
+
+# Enable/disable InterSense tracker support
+isenseEnabled = no
+
+# Path for the InterSense library
+isensePath = /irl/tools/libs/InterSense_SDK_404.02
+
+# Major version number for the InterSense library.  For example, this would
+# be 4 for version 4.04 of the InterSense SDK.
+isenseMajorVer = 4
+
+# Enable/disable PhaseSpace Motion Digitizer support
+pspaceEnabled = no
+
+# Path for the PhaseSpace owlsock library
+owlPath =
+
+# Enable/disable Virtual Reality Peripheral Network support
+vrpnEnabled = no
+
+# Path for VRPN libraries
+vrpnPath = /irl/tools/libs/vrpn-06.06beta4
+
+
+
+# Environment configuration
+# This includes support for encoding and decoding of digital video.  These
+# features require the ffmpeg library to be enabled.
+[environment]
+
+# Enable/disable video features
+videoEnabled = yes
+
+# Path for ffmpeg (audio/video encode/decode library)
+ffmpegPath = /usr
+
