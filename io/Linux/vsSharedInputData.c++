@@ -66,7 +66,7 @@ vsSharedInputData::vsSharedInputData(key_t ipcKey, int trackerCount,
     data = (vsInputData *)shmat(shmID, NULL, 0);
 
     // Check to see if the data segment we get back is valid
-    if ((int)data == -1)
+    if ((long )data == -1)
     {
         printf("vsSharedInputData::vsSharedInputData: "
             "Unable to attach to shared memory segment\n");
