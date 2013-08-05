@@ -1,12 +1,13 @@
 
 # Python imports
-import ConfigParser, platform, os, stat
+import ConfigParser, platform, os, stat, struct
 
 
 # VESS Configuration
 
 # Get the platform name and figure out which configuration file to open
-opSystem = platform.system()
+# and figure out whether we're building on a 32bit or 64bit system
+opSystem = platform.system() + '-' + str(struct.calcsize("P") * 8) + 'bit'
 configFilename = 'config/Configuration.' + opSystem
 
 # Try to open the config file
@@ -24,6 +25,7 @@ except:
 # Parse the config file
 config = ConfigParser.ConfigParser()
 config.readfp(configFile)
+
 
 
 # Functions
@@ -58,7 +60,7 @@ def embedManifest(environment, target, suffix):
 
 
 # Set the initial CFLAGS, defines and include path
-if opSystem == 'Windows':
+if opSystem == 'Windows.32bit':
 
    # Flags for the VC++ compiler
    # /nologo      = Don't print the compiler banner
@@ -91,7 +93,7 @@ if opSystem == 'Windows':
    # /MANIFEST       = Generate a manifest file
    linkFlags = Split('/DEBUG /OPT:REF /OPT:ICF /INCREMENTAL:NO /MANIFEST')
 
-else:
+elif opSystem == 'Linux-64bit':
 
    # Flags for gcc (generate debug information and optimize)
    compileFlags = Split('-g -O')
@@ -101,6 +103,22 @@ else:
 
    # No linker flags needed
    linkFlags = []
+
+elif opSystem == 'Linux-32bit':
+
+   # Flags for gcc (generate debug information and optimize)
+   compileFlags = Split('-g -O')
+
+   # Import ATLAS symbols and export VESS symbols
+   defines = Split('ATLAS_SYM=IMPORT VESS_SYM=EXPORT')
+
+   # No linker flags needed
+   linkFlags = []
+
+else:
+
+   print 'VESS is not supported on this platform.'
+   Exit(1)
 
 
 # Set up external library lists
@@ -118,7 +136,7 @@ atlasLibs = Split('atlas')
 
 # Depending on platform, add the external libraries that ATLAS requires
 # (Windows requires more to be linked in than Linux does)
-if opSystem == 'Windows':
+if opSystem == 'Windows-32bit':
 
    # Add the RTI
    rtiPath = config.get('base', 'rtiPath')
@@ -147,7 +165,32 @@ if opSystem == 'Windows':
    # Add the Windows-specific libraries (already in main path)
    extLibs.extend(Split('ws2_32 winmm opengl32 user32 gdi32'))
 
-elif opSystem == 'Linux':
+elif opSystem == 'Linux-64bit':
+
+   # Add the RTI
+   rtiPath = config.get('base', 'rtiPath')
+   addExternal(rtiPath, '/include/1.3', '/lib/x86_64_g++-4.4', 'rti13')
+
+   # Add libxml2
+   xmlPath = config.get('base', 'xmlPath')
+   addExternal(xmlPath, '/include/libxml2', '/lib64', 'xml2')
+
+   # Add pthreads
+   pthreadPath = config.get('base', 'pthreadPath')
+   addExternal(pthreadPath, '/include', '/lib64', 'pthread')
+
+   # Add OSG
+   osgPath = config.get('graphics', 'osgPath')
+   addExternal(osgPath, '/include', '/lib64', 'osg osgDB osgUtil osgText osgSim')
+
+   # Add ffmpeg
+   ffmpegPath = config.get('environment', 'ffmpegPath')
+   addExternal(ffmpegPath, '/include//ffmpeg', '/lib64', 'avcodec avformat avutil swscale')
+
+   # Add the X libraries (already in main path)
+   extLibs.extend(Split('Xi'))
+
+elif opSystem == 'Linux-32bit':
 
    # Add the RTI
    rtiPath = config.get('base', 'rtiPath')
@@ -166,7 +209,6 @@ elif opSystem == 'Linux':
 
 else:
 
-   print 'Platform is: ' + platform
    print 'VESS is not supported on this platform.'
    Exit(1)
 
