@@ -60,7 +60,7 @@ def embedManifest(environment, target, suffix):
 
 
 # Set the initial CFLAGS, defines and include path
-if opSystem == 'Windows.32bit':
+if opSystem == 'Windows-32bit':
 
    # Flags for the VC++ compiler
    # /nologo      = Don't print the compiler banner
