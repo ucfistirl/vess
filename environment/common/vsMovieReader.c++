@@ -1106,7 +1106,9 @@ void vsMovieReader::decodeAudio()
         // The audio AVPacket might contain multiple frames worth of
         // data (depending on the codec in use).  Set up a temporary
         // AVPacket to keep track of our decoding progress (only the
-        // data and size fields are needed for the decode process)
+        // data and size fields are needed for the decode process).
+        // The packet must be initialized before audio is decoded into
+        // it; otherwise memory errors can occur.
         av_init_packet(&decodePacket);
         decodePacket.data = moviePacket.data;
         decodePacket.size = moviePacket.size;
