@@ -349,6 +349,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
     int charWidth, charHeight;
     vsTransparencyAttribute *transpAttr;
     int newlines;
+    float bearingX, bearingY;
 
     // If there is no currently active font, return a NULL vsComponent
     if (!osgFont)
@@ -374,8 +375,8 @@ vsComponent *vsTextBuilder::buildText(char *text)
         letterTextureAttr = getTextureAttribute((unsigned char)(text[loop]));
 
         // Compute the size of the character
-        charWidth = osgGlyph->s() - (2 * osgFont->getGlyphImageMargin());
-        charHeight = osgGlyph->t() - (2 * osgFont->getGlyphImageMargin());
+        charWidth = osgGlyph->s();
+        charHeight = osgGlyph->t();
 
         // Check for a newline character
         if (text[loop] == '\n')
@@ -448,9 +449,13 @@ vsComponent *vsTextBuilder::buildText(char *text)
             letterGeom->setDataListSize(VS_GEOMETRY_VERTEX_COORDS, 4);
             letterGeom->setDataListSize(VS_GEOMETRY_TEXTURE_COORDS, 4);
 
-            // calculate the bearing
-            bearing.set((osgGlyph->getHorizontalBearing())[0], 0.0,
-                (osgGlyph->getHorizontalBearing())[1]);
+            // Calculate the bearing and scale it according to the font
+            // resolution
+            bearingX = osgGlyph->getHorizontalBearing()[0] *
+                (float)fontResolution.first;
+            bearingY = osgGlyph->getHorizontalBearing()[1] *
+                (float)fontResolution.second;
+            bearing.set(bearingX, 0.0, bearingY);
 
             // bottom left
             offset.set(0.0, 0.0, 0.0);
@@ -580,7 +585,7 @@ void vsTextBuilder::setupTextureAttribute(unsigned char ch)
     // Set some of the parameters of the texture
     (textureAttrArray[ch])->setApplyMode(VS_TEXTURE_APPLY_MODULATE);
     (textureAttrArray[ch])->setBoundaryMode(VS_TEXTURE_DIRECTION_ALL,
-                                            VS_TEXTURE_BOUNDARY_CLAMP);
+                                            VS_TEXTURE_BOUNDARY_CLAMP_TO_EDGE);
     (textureAttrArray[ch])->setMagFilter(VS_TEXTURE_MAGFILTER_LINEAR);
     (textureAttrArray[ch])->setMinFilter(VS_TEXTURE_MINFILTER_MIPMAP_LINEAR);
 }

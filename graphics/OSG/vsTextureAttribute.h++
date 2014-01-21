@@ -43,7 +43,8 @@ enum vsTextureDirection
 enum vsTextureBoundaryMode
 {
     VS_TEXTURE_BOUNDARY_REPEAT,
-    VS_TEXTURE_BOUNDARY_CLAMP
+    VS_TEXTURE_BOUNDARY_CLAMP,
+    VS_TEXTURE_BOUNDARY_CLAMP_TO_EDGE
 };
 
 enum vsTextureApplyMode

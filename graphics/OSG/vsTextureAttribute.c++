@@ -515,6 +515,8 @@ void vsTextureAttribute::setBoundaryMode(int whichDirection, int boundaryMode)
     // Translate the new boundary mode value into its OSG counterpart
     if (boundaryMode == VS_TEXTURE_BOUNDARY_REPEAT)
         wrapType = osg::Texture::REPEAT;
+    else if (boundaryMode == VS_TEXTURE_BOUNDARY_CLAMP_TO_EDGE)
+        wrapType = osg::Texture::CLAMP_TO_EDGE;
     else
         wrapType = osg::Texture::CLAMP;
 
