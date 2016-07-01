@@ -412,9 +412,7 @@ vsComponent *vsTextBuilder::buildText(char *text)
             {
                 // Get the inter-characer spacing between the previous
                 // character and the new one
-                //osgFontKerning = osgFont->getKerning(fontResolution,
-                //    previousChar, text[loop], osgText::KERNING_UNFITTED);
-                osgFontKerning = osgFont->getKerning(
+                osgFontKerning = osgFont->getKerning(fontResolution,
                     (unsigned int) previousChar, (unsigned int) text[loop],
                     osgText::KERNING_UNFITTED);
 

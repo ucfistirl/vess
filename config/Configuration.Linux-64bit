@@ -36,7 +36,7 @@ jpegPath = /usr
 sceneGraph = OSG
 
 # Path to Open Scene Graph (required if "OSG" is selected)
-osgPath = /irl/tools/libs/OpenSceneGraph-3.0.1
+osgPath = /irl/tools/libs/OpenSceneGraph-3.5.3
 
 
 

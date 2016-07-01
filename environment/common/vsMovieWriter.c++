@@ -99,17 +99,17 @@ vsMovieWriter::vsMovieWriter(const char *format)
         vCodecContext->gop_size = 12;
 
         // The vsVideoStream uses YUV420P as its base format.
-        vCodecContext->pix_fmt = PIX_FMT_YUV420P;
+        vCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
 
         // Don't put more than 2 B frames per group of pictures (this is an
         // image quality vs. compression ratio tradeoff)
-        if (vCodecContext->codec_id == CODEC_ID_MPEG2VIDEO)
+        if (vCodecContext->codec_id == AV_CODEC_ID_MPEG2VIDEO)
         {
             vCodecContext->max_b_frames = 2;
         }
 
         // FIXME: I'm also not sure why macroblock overflow is such a high risk.
-        if (vCodecContext->codec_id == CODEC_ID_MPEG1VIDEO)
+        if (vCodecContext->codec_id == AV_CODEC_ID_MPEG1VIDEO)
         {
             vCodecContext->mb_decision=2;
         }
@@ -435,7 +435,7 @@ bool vsMovieWriter::openFile(char *filename)
 
     // Allocate a frame for the RGB24-format data. This frame will hold the
     // data from the video queue in RGB24 format.
-    rgbFrame = allocFrame(PIX_FMT_RGB24, videoQueue->getWidth(),
+    rgbFrame = allocFrame(AV_PIX_FMT_RGB24, videoQueue->getWidth(),
         videoQueue->getHeight());
     if (rgbFrame == NULL)
     {
@@ -477,7 +477,7 @@ bool vsMovieWriter::openFile(char *filename)
     // conversion and resampling of the input image to the video frame
     scaleContext = sws_getCachedContext(scaleContext,
         vCodecContext->width, vCodecContext->height, vCodecContext->pix_fmt,
-        videoQueue->getWidth(), videoQueue->getHeight(), PIX_FMT_RGB24,
+        videoQueue->getWidth(), videoQueue->getHeight(), AV_PIX_FMT_RGB24,
         SWS_BICUBIC, NULL, NULL, NULL);
     if (scaleContext == NULL)
     {
@@ -559,7 +559,7 @@ bool vsMovieWriter::openFile(char *filename)
     }
 
     // Create an AVFrame to buffer audio for encoding
-    audioFrame = avcodec_alloc_frame();
+    audioFrame = av_frame_alloc();
 
     // Create the output buffer, into which encoded data will be written before
     // it goes out to the file.
@@ -837,14 +837,14 @@ double vsMovieWriter::getTimeElapsed()
 // or NULL if such a frame cannot be allocated. Note that the data buffer
 // for the frame is allocated and set as well.
 // ------------------------------------------------------------------------
-AVFrame *vsMovieWriter::allocFrame(PixelFormat format, int width, int height)
+AVFrame *vsMovieWriter::allocFrame(AVPixelFormat format, int width, int height)
 {
     AVFrame *frame;
     uint8_t *imageBuffer;
     int imageBufferSize;
 
     // Attempt to allocate the frame.
-    frame = avcodec_alloc_frame();
+    frame = av_frame_alloc();
     if (frame == NULL)
     {
         return NULL;
@@ -1184,7 +1184,7 @@ void vsMovieWriter::writeFrame()
             av_interleaved_write_frame(movieContext, &videoPacket);
 
             // Clean up
-            av_destruct_packet(&videoPacket);
+            av_packet_unref(&videoPacket);
         }
     }
 }
@@ -1211,7 +1211,6 @@ void vsMovieWriter::writeSamples(void *samples)
     bytesPerFrame = channels * bytesPerSample;
 
     // Fill the audio frame with sample data
-    avcodec_get_frame_defaults(audioFrame);
     audioFrame->nb_samples = rawSampleSize;
     avcodec_fill_audio_frame(audioFrame, channels, aCodecContext->sample_fmt,
         (uint8_t *) samples, bytesPerFrame, 1);

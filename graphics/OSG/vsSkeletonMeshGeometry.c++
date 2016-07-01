@@ -115,23 +115,23 @@ void vsSkeletonMeshGeometry::finishNewState()
 // ------------------------------------------------------------------------
 void vsSkeletonMeshGeometry::setBinding(int whichData, int binding)
 {
-    osg::Geometry::AttributeBinding osgBinding;
+    deprecated_osg::Geometry::AttributeBinding osgBinding;
     unsigned int unit;
     
     // Translate the binding constant
     switch (binding)
     {
         case VS_GEOMETRY_BIND_NONE:
-            osgBinding = osg::Geometry::BIND_OFF;
+            osgBinding = deprecated_osg::Geometry::BIND_OFF;
             break;
         case VS_GEOMETRY_BIND_OVERALL:
-            osgBinding = osg::Geometry::BIND_OVERALL;
+            osgBinding = deprecated_osg::Geometry::BIND_OVERALL;
             break;
         case VS_GEOMETRY_BIND_PER_PRIMITIVE:
-            osgBinding = osg::Geometry::BIND_PER_PRIMITIVE;
+            osgBinding = deprecated_osg::Geometry::BIND_PER_PRIMITIVE;
             break;
         case VS_GEOMETRY_BIND_PER_VERTEX:
-            osgBinding = osg::Geometry::BIND_PER_VERTEX;
+            osgBinding = deprecated_osg::Geometry::BIND_PER_VERTEX;
             break;
         default:
             printf("vsSkeletonMeshGeometry::setBinding: Unrecognized binding "
@@ -373,13 +373,13 @@ int vsSkeletonMeshGeometry::getBinding(int whichData)
     // Translate the result to its VESS counterpart
     switch (result)
     {
-        case osg::Geometry::BIND_OFF:
+        case deprecated_osg::Geometry::BIND_OFF:
             return VS_GEOMETRY_BIND_NONE;
-        case osg::Geometry::BIND_OVERALL:
+        case deprecated_osg::Geometry::BIND_OVERALL:
             return VS_GEOMETRY_BIND_OVERALL;
-        case osg::Geometry::BIND_PER_PRIMITIVE:
+        case deprecated_osg::Geometry::BIND_PER_PRIMITIVE:
             return VS_GEOMETRY_BIND_PER_PRIMITIVE;
-        case osg::Geometry::BIND_PER_VERTEX:
+        case deprecated_osg::Geometry::BIND_PER_VERTEX:
             return VS_GEOMETRY_BIND_PER_VERTEX;
     }
     

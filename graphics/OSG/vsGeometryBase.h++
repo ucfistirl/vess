@@ -148,8 +148,8 @@ protected:
 
     vsArray *           parentList;
 
-    osg::Geode          *osgGeode;
-    osg::Geometry       *osgGeometry;
+    osg::Geode                     *osgGeode;
+    deprecated_osg::Geometry       *osgGeometry;
 
     osg::Array          *dataList[VS_GEOMETRY_LIST_COUNT];
     int                 dataListSize[VS_GEOMETRY_LIST_COUNT];

@@ -70,7 +70,7 @@ private:
                        int startIdx,
                        osg::PrimitiveSet *osgPrimitiveSet,
                        int sourceBinding, osg::Array *sourceArray,
-                       osg::IndexArray *indexArray);
+                       const osg::IndexArray *indexArray);
 
     void      copyUniformValues(vsGLSLUniform *uniform,
                                 osg::Uniform *osgUniform);

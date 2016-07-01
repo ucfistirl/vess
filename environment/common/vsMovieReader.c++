@@ -85,8 +85,8 @@ vsMovieReader::vsMovieReader()
     audioBufferLimit = VS_MOVIE_AUDIO_BUFFER_MAX_SIZE - (48000 * 2 * 2);
 
     // Allocate AVFrame structures to hold the current video and audio frames
-    videoFrame = avcodec_alloc_frame();
-    audioFrame = avcodec_alloc_frame();
+    videoFrame = av_frame_alloc();
+    audioFrame = av_frame_alloc();
 
     // Allocate an AVPicture structure to hold the RGB converted frame.
     // We can't actually allocate the pixel buffers yet, because we don't
@@ -269,7 +269,7 @@ bool vsMovieReader::openFile(char *filename)
                 scaleContext = sws_getCachedContext(scaleContext,
                    videoCodecContext->width, videoCodecContext->height,
                    videoCodecContext->pix_fmt, imageWidth, imageHeight,
-                   PIX_FMT_RGB24, SWS_BICUBIC, NULL, NULL, NULL);
+                   AV_PIX_FMT_RGB24, SWS_BICUBIC, NULL, NULL, NULL);
             }
         }
     }
@@ -1023,9 +1023,6 @@ bool vsMovieReader::decodeVideo()
     // Try to dequeue a packet from the file
     if (dequeuePacket(videoQueue, &moviePacket))
     {
-        // Reset the video frame to default
-        avcodec_get_frame_defaults(videoFrame);
-
         // Allocate a video frame and decode the video packet
         readSize = avcodec_decode_video2(videoCodecContext, videoFrame,
             &gotPicture, &moviePacket);
@@ -1128,9 +1125,6 @@ void vsMovieReader::decodeAudio()
 
             // No frame yet from this packet
             gotFrame = 0;
-
-            // Reset the audio frame to default
-            avcodec_get_frame_defaults(audioFrame);
 
             // Limit the output size, if necessary
             bytesPerBlock = channelCount * sampleSize;

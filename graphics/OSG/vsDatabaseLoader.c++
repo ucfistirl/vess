@@ -766,7 +766,7 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
     vsGeometry *geometry;
     bool nonGeometryFlag;
     int loop, sloop, tloop;
-    osg::Geometry *osgGeometry;
+    deprecated_osg::Geometry *osgGeometry;
     osg::Drawable *osgDrawable;
     osg::Billboard *osgBillboard;
     vsBillboardAttribute *billboardAttr;
@@ -857,7 +857,7 @@ vsNode *vsDatabaseLoader::convertGeode(osg::Geode *geode, vsObjectMap *attrMap)
         osgDrawable = geode->getDrawable(loop);
 
         // See if the drawable is a geometry.
-        osgGeometry = dynamic_cast<osg::Geometry *>(osgDrawable);
+        osgGeometry = dynamic_cast<deprecated_osg::Geometry *>(osgDrawable);
         if (osgGeometry)
         {
             // Create a new component to represent the Geometry
@@ -2031,7 +2031,7 @@ void vsDatabaseLoader::convertDecal(vsComponent *decalComponent,
 // ------------------------------------------------------------------------
 int vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
     int startIdx, osg::PrimitiveSet *osgPrimitiveSet, int sourceBinding,
-    osg::Array *sourceArray, osg::IndexArray *indexArray)
+    osg::Array *sourceArray, const osg::IndexArray *indexArray)
 {
     int loop;
     osg::DrawArrays *osgDrawArraysPrim;
@@ -2096,26 +2096,26 @@ int vsDatabaseLoader::copyData(vsGeometry *targetGeometry, int targetDataType,
     // data entries to copy based on the source binding
     switch (sourceBinding)
     {
-        case osg::Geometry::BIND_OFF:
+        case deprecated_osg::Geometry::BIND_OFF:
             targetGeometry->setBinding(targetDataType,
                 VS_GEOMETRY_BIND_NONE);
             copySize = 0;
             break;
 
-        case osg::Geometry::BIND_OVERALL:
-        case osg::Geometry::BIND_PER_PRIMITIVE_SET:
+        case deprecated_osg::Geometry::BIND_OVERALL:
+        case deprecated_osg::Geometry::BIND_PER_PRIMITIVE_SET:
             targetGeometry->setBinding(targetDataType,
                 VS_GEOMETRY_BIND_OVERALL);
             copySize = 1;
             break;
 
-        case osg::Geometry::BIND_PER_PRIMITIVE:
+        case deprecated_osg::Geometry::BIND_PER_PRIMITIVE:
             targetGeometry->setBinding(targetDataType,
                 VS_GEOMETRY_BIND_PER_PRIMITIVE);
             copySize = primCount;
             break;
 
-        case osg::Geometry::BIND_PER_VERTEX:
+        case deprecated_osg::Geometry::BIND_PER_VERTEX:
             targetGeometry->setBinding(targetDataType,
                 VS_GEOMETRY_BIND_PER_VERTEX);
             copySize = vertCount;

@@ -919,7 +919,7 @@ void vsSphereIntersect::intersectSpheres(vsNode *targetNode)
 
         // See if the intersector's bounding sphere intersects with the 
         // bounding box.  If not, we need go no farther. 
-        osgBox = osgGeode->getDrawable(0)->getBound();
+        osgBox = osgGeode->getDrawable(0)->getBoundingBox();
         if (!intersectWithBox(boundSphere, osgBox))
         {
             return;
